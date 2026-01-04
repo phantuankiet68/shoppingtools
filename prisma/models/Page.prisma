@@ -1,0 +1,31 @@
+// ==== Page.prisma (đã chỉnh) ====
+model Page {
+  id        String      @id @default(cuid())
+  siteId    String
+  site      Site        @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  title     String
+  slug      String
+  path      String
+  status    PageStatus  @default(DRAFT)
+  blocks    Json
+  seoTitle          String?
+  seoDesc           String?
+  coverImage        String?
+  seoKeywords       String?
+  canonicalUrl      String?
+  noindex           Boolean?     @default(false)
+  nofollow          Boolean?     @default(false)
+  ogTitle           String?
+  ogDescription     String?
+  sitemapPriority   Float?       @default(0.7)
+  structuredData    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+}
+

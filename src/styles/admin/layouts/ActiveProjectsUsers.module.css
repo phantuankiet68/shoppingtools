@@ -1,0 +1,364 @@
+.grid {
+  display: grid;
+  margin-top: 12px;
+  gap: 14px;
+  align-items: start;
+}
+
+/* Card */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.cardHead {
+  padding: 14px 14px 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #f0f3ff;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #1f2a44;
+}
+
+.exportBtn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid #e6eaff;
+  background: #f1f4ff;
+  color: #5468ff;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  border: 1px solid #eef1ff;
+  background: #f7f9ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #7d88a8;
+}
+
+/* ---------- TABLE ---------- */
+.tableWrap {
+  padding: 10px 14px 6px 14px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  font-size: 11px;
+  font-weight: 800;
+  color: #8a95b5;
+  text-align: left;
+  padding: 10px 10px;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 12px 10px;
+  border-top: 1px solid #f1f4ff;
+  vertical-align: middle;
+  font-size: 12px;
+  color: #1f2a44;
+}
+
+.projectCell {
+  min-width: 160px;
+}
+.projectName {
+  font-weight: 900;
+  font-size: 12px;
+  color: #1f2a44;
+}
+.projectMeta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9aa5c6;
+}
+
+/* Lead */
+.lead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.leadAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f6ff;
+  border: 1px solid #eef1ff;
+  color: #6b7cff;
+  font-size: 10px;
+  font-weight: 900;
+}
+.leadName {
+  font-weight: 700;
+  color: #334155;
+}
+
+/* Progress */
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progressBar {
+  width: 120px;
+  height: 8px;
+  background: #eef2ff;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5468ff 0%, #00c2ff 100%);
+}
+.progressText {
+  font-size: 11px;
+  color: #9aa5c6;
+  font-weight: 800;
+}
+
+/* Assignees */
+.avatars {
+  display: flex;
+  align-items: center;
+}
+.avatar,
+.avatarMore {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  margin-left: -8px;
+  font-size: 10px;
+  font-weight: 900;
+}
+.avatar {
+  background: #eef2ff;
+  color: #5468ff;
+}
+.avatar:nth-child(2) {
+  background: #ecf7ff;
+  color: #0284c7;
+}
+.avatar:nth-child(3) {
+  background: #ecfff5;
+  color: #16a34a;
+}
+.avatar:nth-child(4) {
+  background: #fff1ee;
+  color: #ff6b4a;
+}
+
+.avatarMore {
+  background: #f7f9ff;
+  color: #7d88a8;
+}
+
+/* Status pill */
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.statusCompleted {
+  background: #ecfff5;
+  color: #16a34a;
+  border: 1px solid #d8ffe8;
+}
+.statusProgress {
+  background: #eef2ff;
+  color: #5468ff;
+  border: 1px solid #e1e7ff;
+}
+.statusPending {
+  background: #fff7ed;
+  color: #f97316;
+  border: 1px solid #ffe6c8;
+}
+
+.due {
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* Table footer */
+.tableFoot {
+  padding: 10px 14px 14px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.footHint {
+  font-size: 11px;
+  color: #9aa5c6;
+}
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pagerBtn {
+  height: 28px;
+  min-width: 28px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid #eef1ff;
+  background: #f7f9ff;
+  color: #7d88a8;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pagerActive {
+  background: #5468ff;
+  border-color: #5468ff;
+  color: #fff;
+}
+
+/* ---------- ACTIVE USERS ---------- */
+.usersBody {
+  position: relative;
+  padding: 12px 14px 14px 14px;
+  min-height: 290px;
+}
+
+.mapBg {
+  position: absolute;
+  inset: 50px 14px 14px 14px;
+  border-radius: 14px;
+  opacity: 0.12;
+  background: radial-gradient(circle at 30% 35%, #5468ff 0 2px, transparent 3px) 0 0/28px 28px, radial-gradient(circle at 70% 55%, #00c2ff 0 2px, transparent 3px) 0 0/32px 32px,
+    linear-gradient(180deg, #e8ecff 0%, #ffffff 65%);
+  filter: blur(0.2px);
+}
+
+.userList {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.userLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 140px;
+}
+.flag {
+  font-size: 16px;
+}
+.country {
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.userRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.userBar {
+  width: 170px;
+  height: 8px;
+  background: #eef2ff;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.userBarFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00c2ff 0%, #5468ff 100%);
+}
+
+.userPct {
+  width: 36px;
+  text-align: right;
+  font-size: 11px;
+  color: #9aa5c6;
+  font-weight: 900;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .usersBody {
+    min-height: 240px;
+  }
+  .userBar {
+    width: 200px;
+  }
+}
+@media (max-width: 560px) {
+  .progressBar {
+    width: 90px;
+  }
+  .userBar {
+    width: 140px;
+  }
+  .tableWrap {
+    overflow: auto;
+  }
+  .table {
+    min-width: 760px;
+  }
+}

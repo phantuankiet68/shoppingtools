@@ -1,0 +1,102 @@
+/* styles/popupNotice.module.css */
+
+/* vùng đặt toast (top-right) */
+.wrap {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 1050; /* cao hơn header */
+  pointer-events: none; /* để click xuyên qua vùng trống */
+}
+
+/* thẻ thông báo */
+.card {
+  min-width: 300px;
+  max-width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  pointer-events: auto; /* cho phép click vào nút đóng */
+  animation: slideIn 220ms ease-out;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.body {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #374151;
+}
+
+/* nút đóng */
+.closeBtn {
+  all: unset;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #6b7280;
+}
+.closeBtn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* biến thể */
+.success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+.success .title {
+  color: #166534;
+}
+.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+.error .title {
+  color: #991b1b;
+}
+.info {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+.info .title {
+  color: #1e3a8a;
+}
+.warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+.warning .title {
+  color: #92400e;
+}
+
+/* hiệu ứng */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+  }
+}

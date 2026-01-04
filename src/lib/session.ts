@@ -1,0 +1,9 @@
+import { randomBytes, createHash } from "node:crypto";
+
+export function newSessionToken() {
+  return randomBytes(32).toString("base64url");
+}
+
+export function hashToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}

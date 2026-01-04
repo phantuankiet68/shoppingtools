@@ -1,0 +1,207 @@
+// ==== base ====
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ==== part: MenuItem.prisma ====
+enum MenuSetKey {
+  home
+  v1
+}
+
+model MenuItem {
+  id        String     @id @default(cuid())
+  siteId    String
+  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  parentId  String?    @db.VarChar(191)
+  parent    MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  children  MenuItem[] @relation("MenuItemToSelf")
+  title     String     @db.VarChar(191)
+  path      String?    @db.VarChar(255)
+  icon      String?    @db.VarChar(100)
+  sortOrder Int        @default(0)
+  visible   Boolean    @default(true)
+  setKey    MenuSetKey @default(home)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([title])
+}
+
+// ==== part: Page.prisma ====
+// ==== Page.prisma (đã chỉnh) ====
+model Page {
+  id              String     @id @default(cuid())
+  siteId          String
+  site            Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  title           String
+  slug            String
+  path            String
+  status          PageStatus @default(DRAFT)
+  blocks          Json
+  seoTitle        String?
+  seoDesc         String?
+  coverImage      String?
+  seoKeywords     String?
+  canonicalUrl    String?
+  noindex         Boolean?   @default(false)
+  nofollow        Boolean?   @default(false)
+  ogTitle         String?
+  ogDescription   String?
+  sitemapPriority Float?     @default(0.7)
+  structuredData  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// ==== part: Site.prisma ====
+
+model Site {
+  id        String     @id @default(cuid())
+  domain    String     @unique
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  pages     Page[]
+  menuItems MenuItem[]
+}
+
+// ==== part: user.prisma ====
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AuditAction {
+  ADMIN_LOGIN_SUCCESS
+  ADMIN_LOGIN_FAIL
+  ADMIN_LOGOUT
+  PASSWORD_CHANGE
+  TWOFA_ENABLED
+  TWOFA_DISABLED
+  TWOFA_CHALLENGE_FAIL
+  SESSION_REVOKED
+  SESSION_REVOKE_ALL
+  ADMIN_SENSITIVE_ACTION
+}
+
+enum AuditResult {
+  SUCCESS
+  FAIL
+}
+
+enum SessionType {
+  ADMIN
+  USER
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerifiedAt DateTime?
+  role            UserRole  @default(USER)
+  isActive        Boolean   @default(true)
+
+  passwordHash      String
+  passwordUpdatedAt DateTime @default(now())
+
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+
+  requireReauthAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions    Session[]
+  twoFactor   TwoFactor?
+  backupCodes BackupCode[]
+  auditLogs   AuditLog[]
+
+  @@index([role])
+  @@index([lockedUntil])
+}
+
+model Session {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         SessionType @default(USER)
+  tokenHash    String      @unique
+  createdAt    DateTime    @default(now())
+  expiresAt    DateTime
+  lastSeenAt   DateTime    @default(now())
+  ip           String?
+  userAgent    String?
+  country      String?
+  revokedAt    DateTime?
+  revokeReason String?
+
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+model TwoFactor {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled    Boolean   @default(false)
+  secretEnc  String?
+  lastUsedAt DateTime?
+  enabledAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model BackupCode {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, codeHash])
+  @@index([userId, usedAt])
+}
+
+model LoginAttempt {
+  id          String   @id @default(cuid())
+  email       String?
+  ip          String
+  fingerprint String?
+  success     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([ip, createdAt])
+  @@index([email, createdAt])
+  @@index([fingerprint, createdAt])
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    AuditAction
+  result    AuditResult
+  ip        String?
+  userAgent String?
+  metaJson  Json?
+  createdAt DateTime    @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}

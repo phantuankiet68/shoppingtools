@@ -6,21 +6,39 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prisma:merge": "node scripts/prisma-build.js && prisma format --schema=prisma/schema.merged.prisma",
+    "prisma:migrate": "npm run prisma:merge && prisma migrate dev --schema=prisma/schema.merged.prisma",
+    "prisma:generate": "npm run prisma:merge && prisma generate --schema=prisma/schema.merged.prisma",
+    "prisma:studio": "npm run prisma:merge && prisma studio --schema=prisma/schema.merged.prisma",
+    "prisma:validate": "npm run prisma:merge && prisma validate --schema=prisma/schema.merged.prisma",
+    "prisma:reset": "npm run prisma:merge && prisma migrate reset --force --skip-generate --skip-seed --schema=prisma/schema.merged.prisma && tsx prisma/seed.ts",
+    "prisma:seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.1",
+    "bcrypt": "^6.0.0",
+    "bootstrap-icons": "^1.13.1",
+    "cookie": "^1.1.1",
+    "mysql2": "^3.16.0",
     "next": "16.1.1",
+    "prisma": "^6.19.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
