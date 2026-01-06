@@ -208,7 +208,6 @@ export default function MenuBuilder() {
       <PopupNotice open={notice.open} title={notice.title} message={notice.message} variant={notice.variant} onClose={() => setNotice((s) => ({ ...s, open: false }))} autoHideMs={2800} />
 
       <header className={styles.topbar}>
-        <h1 className={styles.h4}>⚙️ Menu Builder</h1>
         <div className={styles.topbarRight}>
           <div className={styles.inline}>
             <i className="bi bi-globe2" />
@@ -259,7 +258,8 @@ export default function MenuBuilder() {
               <option value="v1">Menu admin</option>
             </select>
           </div>
-
+        </div>
+        <div className={styles.topbarRight}>
           <div className={styles.inline} style={{ gap: 6 }}>
             <button
               className={`${styles.btn} ${styles.btnOutlineSecondary}`}
