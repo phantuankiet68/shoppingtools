@@ -3,6 +3,7 @@ model Page {
   id        String      @id @default(cuid())
   siteId    String
   site      Site        @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  locale    Locale
   title     String
   slug      String
   path      String
@@ -17,11 +18,19 @@ model Page {
   nofollow          Boolean?     @default(false)
   ogTitle           String?
   ogDescription     String?
+  twitterCard       TwitterCard? @default(SUMMARY_LARGE_IMAGE)
+  sitemapChangefreq Changefreq?  @default(WEEKLY)
   sitemapPriority   Float?       @default(0.7)
   structuredData    Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([siteId, locale, slug])
+  @@unique([siteId, path])
+
+  @@index([siteId, locale])
+  @@index([siteId, locale, updatedAt])
 }
 
 enum PageStatus {
@@ -29,3 +38,17 @@ enum PageStatus {
   PUBLISHED
 }
 
+enum TwitterCard {
+  SUMMARY
+  SUMMARY_LARGE_IMAGE
+}
+
+enum Changefreq {
+  ALWAYS
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  NEVER
+}

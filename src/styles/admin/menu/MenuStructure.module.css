@@ -1,0 +1,425 @@
+/* MenuStructure.module.css */
+.menuStructure {
+  border: 1px dashed rgba(15, 23, 42, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  background: #fff;
+}
+
+.card {
+  scrollbar-gutter: stable both-edges;
+  overflow: auto;
+  height: 72vh;
+}
+/* ===== Root tokens (tuỳ bạn đưa lên :root) ===== */
+.itemContainer {
+  padding: 10px 10px 14px;
+  border-radius: 14px;
+  border: 1px dashed rgba(15, 23, 42, 0.22);
+  background: #fff;
+  margin-bottom: 12px;
+}
+
+/* ===== Menu item row ===== */
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 12px;
+  border-radius: 14px;
+
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  user-select: none;
+}
+
+.menuItem:hover {
+  border-color: rgba(37, 99, 235, 0.25);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.menuItem:active {
+  transform: translateY(0px);
+}
+
+/* ===== Order badge (blue circle) ===== */
+.order {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
+
+  background: linear-gradient(180deg, #2f7bff, #1e5eff);
+  box-shadow: 0 10px 18px rgba(30, 94, 255, 0.22);
+}
+
+/* ===== Drag handle ===== */
+.handle {
+  font-size: 18px;
+  color: rgba(15, 23, 42, 0.38);
+  padding: 6px 6px;
+  border-radius: 10px;
+  cursor: grab;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.menuItem:hover .handle {
+  color: rgba(15, 23, 42, 0.52);
+}
+
+.handle:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.menuItem:active .handle {
+  cursor: grabbing;
+}
+
+/* ===== Pills ===== */
+.depthBadge,
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(15, 23, 42, 0.03);
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.depthMain {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.22);
+  color: #15803d;
+}
+
+.depthSub {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.22);
+  color: #1d4ed8;
+}
+
+/* Bạn đã có typeBadgeClass trong JSX (internal/external/scheduled)
+   => chỉ cần tạo vài class để map */
+.typeInternal {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.22);
+  color: #047857;
+}
+
+.typeExternal {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.24);
+  color: #c2410c;
+}
+
+.typeScheduled {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.22);
+  color: #6d28d9;
+}
+
+/* ===== Title flexible area ===== */
+.flex1 {
+  flex: 1;
+  min-width: 220px;
+  font-weight: 650;
+  color: rgba(15, 23, 42, 0.88);
+  line-height: 1.2;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* Highlight (nếu highlight() của bạn bọc <mark>) */
+.menuItem mark {
+  background: rgba(250, 204, 21, 0.3);
+  padding: 0 4px;
+  border-radius: 6px;
+}
+
+/* ===== Link pill (right side) ===== */
+.linkPill {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: rgba(2, 132, 199, 0.95);
+  background: rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.22);
+}
+
+/* ===== Buttons ===== */
+.btn {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0;
+  outline: none;
+}
+
+.btnIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.btnIcon i {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.btnIcon:hover {
+  transform: translateY(-1px);
+}
+
+.btnOutlineLight {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.22);
+  color: #1d4ed8;
+}
+
+.btnOutlineLight:hover {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.btnOutlineDanger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.18);
+  color: #b91c1c;
+}
+
+.btnOutlineDanger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+/* ===== Submenu wrapper (dashed zone) ===== */
+.subwrap {
+  margin-top: 10px;
+  padding: 10px 10px 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(15, 23, 42, 0.18);
+  background: rgba(248, 250, 252, 0.6);
+}
+
+/* Small helper row like "Submenu của ..." */
+.smallHelp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 13px;
+  font-weight: 600;
+
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.smallHelp i {
+  color: rgba(15, 23, 42, 0.45);
+}
+
+/* ===== Dropzone ===== */
+.dropzone {
+  margin-top: 8px;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px dashed rgba(15, 23, 42, 0.22);
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.03);
+  min-height: 86px;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.appSoft {
+  backdrop-filter: blur(6px);
+}
+
+.dropzone:hover {
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.03);
+}
+
+/* Optional: khi drag over, bạn setOver(...) có thể add class .isOver */
+.isOver {
+  border-color: rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.06);
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Optional: spacing cho nested children */
+.subwrap .itemContainer {
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .linkPill {
+    display: none;
+  }
+  .flex1 {
+    min-width: 140px;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border-radius: 14px;
+
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  margin-bottom: 10px;
+}
+
+.h6 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.86);
+  letter-spacing: 0.2px;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0; /* chống bể trong flex */
+}
+
+/* Search wrap */
+.search {
+  position: relative;
+  min-width: 260px;
+  width: min(520px, 46vw); /* tự co theo màn hình */
+  max-width: 560px;
+}
+
+.iconSearch {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.55;
+  color: rgba(15, 23, 42, 0.7);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  height: 40px;
+
+  padding: 0 12px 0 36px; /* chừa chỗ icon */
+  border-radius: 999px;
+
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(248, 250, 252, 0.9);
+  color: rgba(15, 23, 42, 0.88);
+
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.searchInput::placeholder {
+  color: rgba(15, 23, 42, 0.45);
+}
+
+.searchInput:focus {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* Clear button refined */
+.btnClear {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/* Nếu bạn chưa có btn/btnOutlineSecondary thì thêm nhanh: */
+.btn {
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+.btnOutlineSecondary {
+  border-color: rgba(15, 23, 42, 0.14);
+  background: rgba(15, 23, 42, 0.03);
+  color: rgba(15, 23, 42, 0.72);
+  transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
+}
+
+.btnOutlineSecondary:hover {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+/* Mobile: xuống dòng đẹp, không tràn */
+@media (max-width: 768px) {
+  .cardHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerRight {
+    width: 100%;
+  }
+
+  .search {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .btnClear {
+    justify-content: center;
+  }
+}

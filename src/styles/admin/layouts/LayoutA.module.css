@@ -290,6 +290,8 @@
 
 .content {
   padding: 10px;
+  overflow: auto;
+  height: 93vh;
 }
 
 .children {
@@ -1037,7 +1039,7 @@
 
 /* ===== Pro Ribbon Title (safe, not broken) ===== */
 .pageTitleWrap {
-  --ribbon-h: 42px;
+  --ribbon-h: 35px;
   --ribbon-r: 12px;
   --arrow-w: 20px;
   --blue: #2563eb;

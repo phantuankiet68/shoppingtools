@@ -6,3 +6,9 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+enum Locale {
+  vi
+  en
+  ja
+}

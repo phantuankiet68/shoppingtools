@@ -8,57 +8,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==== part: MenuItem.prisma ====
-enum MenuSetKey {
-  home
-  v1
+enum Locale {
+  vi
+  en
+  ja
 }
 
+// ==== part: MenuItem.prisma ====
 model MenuItem {
-  id        String     @id @default(cuid())
-  siteId    String
-  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade)
-  parentId  String?    @db.VarChar(191)
-  parent    MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
-  children  MenuItem[] @relation("MenuItemToSelf")
+  id String @id @default(cuid())
+
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+
+  parentId String?    @db.VarChar(191)
+  parent   MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  children MenuItem[] @relation("MenuItemToSelf")
+
   title     String     @db.VarChar(191)
   path      String?    @db.VarChar(255)
   icon      String?    @db.VarChar(100)
   sortOrder Int        @default(0)
   visible   Boolean    @default(true)
+  locale    Locale     @default(vi)
   setKey    MenuSetKey @default(home)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([parentId])
+  @@index([siteId, locale, setKey, sortOrder])
   @@index([title])
+}
+
+enum MenuSetKey {
+  home
+  v1
 }
 
 // ==== part: Page.prisma ====
 // ==== Page.prisma (đã chỉnh) ====
 model Page {
-  id              String     @id @default(cuid())
-  siteId          String
-  site            Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade)
-  title           String
-  slug            String
-  path            String
-  status          PageStatus @default(DRAFT)
-  blocks          Json
-  seoTitle        String?
-  seoDesc         String?
-  coverImage      String?
-  seoKeywords     String?
-  canonicalUrl    String?
-  noindex         Boolean?   @default(false)
-  nofollow        Boolean?   @default(false)
-  ogTitle         String?
-  ogDescription   String?
-  sitemapPriority Float?     @default(0.7)
-  structuredData  Json?
+  id                String       @id @default(cuid())
+  siteId            String
+  site              Site         @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  locale            Locale
+  title             String
+  slug              String
+  path              String
+  status            PageStatus   @default(DRAFT)
+  blocks            Json
+  seoTitle          String?
+  seoDesc           String?
+  coverImage        String?
+  seoKeywords       String?
+  canonicalUrl      String?
+  noindex           Boolean?     @default(false)
+  nofollow          Boolean?     @default(false)
+  ogTitle           String?
+  ogDescription     String?
+  twitterCard       TwitterCard? @default(SUMMARY_LARGE_IMAGE)
+  sitemapChangefreq Changefreq?  @default(WEEKLY)
+  sitemapPriority   Float?       @default(0.7)
+  structuredData    Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([siteId, locale, slug])
+  @@unique([siteId, path])
+  @@index([siteId, locale])
+  @@index([siteId, locale, updatedAt])
 }
 
 enum PageStatus {
@@ -66,16 +86,32 @@ enum PageStatus {
   PUBLISHED
 }
 
+enum TwitterCard {
+  SUMMARY
+  SUMMARY_LARGE_IMAGE
+}
+
+enum Changefreq {
+  ALWAYS
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  NEVER
+}
+
 // ==== part: Site.prisma ====
 
 model Site {
-  id        String     @id @default(cuid())
-  domain    String     @unique
-  name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  pages     Page[]
-  menuItems MenuItem[]
+  id            String     @id @default(cuid())
+  domain        String     @unique
+  name          String
+  localeDefault Locale     @default(vi)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  pages         Page[]
+  menuItems     MenuItem[]
 }
 
 // ==== part: user.prisma ====
