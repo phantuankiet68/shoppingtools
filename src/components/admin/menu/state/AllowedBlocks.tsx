@@ -28,26 +28,24 @@ export default function AllowedBlocks() {
     const out: Record<string, string[]> = {};
 
     if (siteKind === "ecommerce") {
-      out["Khám phá"] = ["Tìm kiếm", "Danh mục", "Bộ sưu tập", "Bán chạy"];
-      out["Nội dung & SEO"] = ["Hướng dẫn mua hàng", "Về chúng tôi", "Câu hỏi thường gặp"];
-      out["CSKH & Chính sách"] = ["Vận chuyển", "Đổi trả & Hoàn tiền", "Hệ thống cửa hàng"];
-      out["Mua hàng"] = ["Giỏ hàng", "Thanh toán"];
+      out["Explore"] = ["Search", "Categories", "Collections", "Best Sellers"];
+      out["Content & SEO"] = ["Buying Guides", "About Us", "Frequently Asked Questions"];
+      out["Customer Support & Policies"] = ["Shipping", "Returns & Refunds", "Store Locations"];
+      out["Shopping"] = ["Cart", "Checkout"];
     }
+
     if (siteKind === "corporate") {
-      out["Giới thiệu mở rộng"] = ["Tầm nhìn & Sứ mệnh", "Lịch sử hình thành", "Đội ngũ lãnh đạo", "Giá trị cốt lõi", "Đối tác & Khách hàng"];
-      out["Dịch vụ & Giải pháp"] = ["Tư vấn chiến lược", "Thiết kế & Sáng tạo", "Phát triển phần mềm", "Chuyển đổi số", "Hạ tầng IT & Bảo mật"];
-      out["Tuyển dụng & Văn hóa"] = ["Văn hóa doanh nghiệp", "Đời sống công ty", "Chính sách nhân sự", "Tin tuyển dụng"];
-      out["CSKH & Chính sách"] = ["Liên hệ nhanh", "FAQ - Câu hỏi thường gặp", "Chính sách bảo mật", "Điều khoản sử dụng"];
+      out["Extended Introduction"] = ["Vision & Mission", "Company History", "Leadership Team", "Core Values", "Partners & Clients"];
+      out["Services & Solutions"] = ["Strategic Consulting", "Design & Creative", "Software Development", "Digital Transformation", "IT Infrastructure & Security"];
+      out["Careers & Culture"] = ["Corporate Culture", "Company Life", "HR Policies", "Job Openings"];
+      out["Customer Support & Policies"] = ["Quick Contact", "FAQ - Frequently Asked Questions", "Privacy Policy", "Terms of Service"];
     }
 
     if (siteKind === "education") {
-      out["Khóa học & Lộ trình"] = ["Khóa học miễn phí", "Khóa học nổi bật", "Lộ trình luyện thi", "Chứng chỉ & Thành tích"];
-
-      out["Tương tác học viên"] = ["Forum thảo luận", "Câu hỏi thường gặp (FAQ)", "Gửi Issue / Báo lỗi", "Đề xuất bài học mới"];
-
-      out["Quản lý & Cá nhân hóa"] = ["Calendar", "Mind Map", "Profile", "Dashboard cá nhân", "Cài đặt thông báo"];
-
-      out["Truyền thông & SEO"] = ["Blog", "Tin tức học tập", "Sự kiện & Workshop", "Hướng dẫn đăng ký"];
+      out["Courses & Learning Paths"] = ["Free Courses", "Featured Courses", "Exam Preparation Paths", "Certificates & Achievements"];
+      out["Student Engagement"] = ["Discussion Forum", "Frequently Asked Questions (FAQ)", "Submit Issues / Report Bugs", "Suggest New Lessons"];
+      out["Management & Personalization"] = ["Calendar", "Mind Map", "Profile", "Personal Dashboard", "Notification Settings"];
+      out["Media & SEO"] = ["Blog", "Learning News", "Events & Workshops", "Registration Guide"];
     }
 
     return out;
@@ -128,7 +126,7 @@ export default function AllowedBlocks() {
     <div className={styles.cardform}>
       <div className={styles.cardHeader}>
         <button className={`${styles.btn} ${styles.btnOutlineLight}`} onClick={addBlankItem}>
-          <i className="bi bi-plus-lg" /> Thêm item trống
+          <i className="bi bi-plus-lg" /> Add empty items
         </button>
 
         {hasTabs && (
@@ -166,9 +164,9 @@ export default function AllowedBlocks() {
 
       <div className={styles.divider} />
 
-      <section aria-label="Gợi ý mở rộng menu" style={{ display: "grid", gap: 12 }}>
+      <section aria-label="Suggestions for expanding the menu" style={{ display: "grid", gap: 12 }}>
         {Object.keys(filteredSuggest).length === 0 ? (
-          <div className={styles.smallHelp}>Không còn gợi ý nào — bạn đã đầy đủ mục quan trọng rồi 🎉</div>
+          <div className={styles.smallHelp}>No more suggestions — you've got all the important points already. 🎉</div>
         ) : (
           Object.entries(filteredSuggest).map(([group, items]) => (
             <div key={group}>
@@ -189,7 +187,7 @@ export default function AllowedBlocks() {
                       padding: "6px 10px",
                       fontSize: 13,
                     }}
-                    title="Nhấn để thêm, hoặc kéo thả vào cấu trúc">
+                    title="Click to add, or drag and drop into structure">
                     <i className="bi bi-plus-lg" style={{ marginRight: 6 }} />
                     {name}
                   </button>

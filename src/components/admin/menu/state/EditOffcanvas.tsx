@@ -1,4 +1,3 @@
-// app/(admin)/menu/components/EditOffcanvas.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -35,7 +34,6 @@ export default function EditOffcanvas({ item, onClose }: Props) {
     setActiveMenu(walk(activeMenu));
   }
 
-  /** Tính path mặc định (chỉ để gợi ý/so sánh) */
   function resolvePathForPatch(it: BuilderMenuItem): string | null {
     if (it.linkType === "external") {
       const url = (it.externalUrl ?? "").trim();
@@ -47,11 +45,9 @@ export default function EditOffcanvas({ item, onClose }: Props) {
       const raw = (it as any).rawPath ? String((it as any).rawPath).trim() : "";
       return page?.path ?? (raw || null);
     }
-    // scheduled không lưu path
     return null;
   }
 
-  /** Preview ưu tiên pathInput để phản hồi tức thời */
   const hrefPreview = useMemo(() => {
     const now = new Date();
     const manual = (pathInput ?? "").trim();
@@ -64,11 +60,9 @@ export default function EditOffcanvas({ item, onClose }: Props) {
       const p = draft.internalPageId ? INTERNAL_PAGES.find((x) => x.id === draft.internalPageId) : undefined;
       return p?.path ?? (draft as any).rawPath ?? "";
     }
-    // scheduled
     return buildHref(draft, now);
   }, [draft, pathInput, buildHref]);
 
-  /** Lưu: cập nhật state + PATCH DB (title, icon, path) */
   async function save() {
     try {
       setSaving(true);
@@ -77,7 +71,6 @@ export default function EditOffcanvas({ item, onClose }: Props) {
       const computed = resolvePathForPatch(draft);
       const finalPath = manual || computed || null;
 
-      // Đồng bộ optimistic vào state
       const nextDraft: BuilderMenuItem = {
         ...draft,
         ...(draft.linkType === "external" && manual ? { externalUrl: manual } : {}),
@@ -85,22 +78,20 @@ export default function EditOffcanvas({ item, onClose }: Props) {
       };
       updateItem(nextDraft);
 
-      // PATCH tuyệt đối (tránh bị chèn /vi/)
-      const url = new URL(`/api/menu-items/${nextDraft.id}`, window.location.origin);
+      const url = new URL(`/api/admin/menu-items/${nextDraft.id}`, window.location.origin);
       const res = await fetch(url.toString(), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: nextDraft.title,
           icon: nextDraft.icon ?? null,
-          path: finalPath, // string | null
+          path: finalPath,
         }),
       });
 
-      // Item mới (id tạm) có thể 404 – bỏ qua để không chặn flow
       if (!res.ok && res.status !== 404) {
         const txt = await res.text().catch(() => "");
-        alert("Không thể cập nhật DB: " + (txt || res.status));
+        alert("Unable to update the database: " + (txt || res.status));
       }
     } finally {
       setSaving(false);
@@ -119,7 +110,6 @@ export default function EditOffcanvas({ item, onClose }: Props) {
     setDraft({ ...draft, schedules: next });
   }
 
-  // Gợi ý internal pages theo bộ hiện tại (home/v1)
   const pagesForSet = useMemo(() => {
     if (currentSet === "v1") return INTERNAL_PAGES.filter((p) => (p.path || "").startsWith("/v1"));
     return INTERNAL_PAGES.filter((p) => !(p.path || "").startsWith("/v1"));
@@ -128,16 +118,12 @@ export default function EditOffcanvas({ item, onClose }: Props) {
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
-
     const prevHtmlOverflow = html.style.overflow;
     const prevBodyOverflow = body.style.overflow;
-
-    // lock background scroll
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
 
     return () => {
-      // restore
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
     };
@@ -147,18 +133,16 @@ export default function EditOffcanvas({ item, onClose }: Props) {
     <div className={styles.offcanvasBackdrop}>
       <div className={styles.offcanvas}>
         <div className={styles.offcanvasHeader}>
-          <h5>Chỉnh sửa MenuItem</h5>
+          <h5>Edit Menu Item</h5>
           <button className={styles.btnClose} onClick={onClose} />
         </div>
 
         <div className={styles.offcanvasBody}>
           <div className={styles.vstack}>
             <div>
-              <label className={styles.formLabel}>Tiêu đề</label>
+              <label className={styles.formLabel}>Title</label>
               <input className={styles.formControl} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
             </div>
-
-            {/* Icon */}
             <div>
               <label className={styles.formLabel}>Bootstrap Icon</label>
               <div className={styles.inputGroup}>
@@ -168,14 +152,12 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                 <input className={styles.formControl} placeholder="vd: bi-house-door, bi-bag" value={draft.icon || ""} onChange={(e) => setDraft({ ...draft, icon: e.target.value })} />
               </div>
               <div className={styles.smallHelp}>
-                Danh sách:{" "}
+                List:{" "}
                 <a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener">
                   Bootstrap Icons
                 </a>
               </div>
             </div>
-
-            {/* Link Strategy */}
             <div>
               <label className={styles.formLabel}>Link Strategy</label>
               <select
@@ -226,7 +208,7 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                 />
                 <label className={styles.formCheck}>
                   <input type="checkbox" checked={!!draft.newTab} onChange={(e) => setDraft({ ...draft, newTab: e.target.checked })} />
-                  <span>Mở tab mới</span>
+                  <span>Open a new tab</span>
                 </label>
               </div>
             )}
@@ -235,7 +217,7 @@ export default function EditOffcanvas({ item, onClose }: Props) {
             {draft.linkType === "internal" && (
               <div className={styles.vstack}>
                 <label className={styles.formLabel}>
-                  Chọn Page nội bộ (gợi ý theo <code>{currentSet}</code>)
+                  Select an internal page (suggested options<code>{currentSet}</code>)
                 </label>
                 <select
                   className={styles.formSelect}
@@ -261,13 +243,12 @@ export default function EditOffcanvas({ item, onClose }: Props) {
               </div>
             )}
 
-            {/* Scheduled */}
             {draft.linkType === "scheduled" && (
               <div className={styles.vstack}>
                 <div className={styles.headerRow}>
-                  <label className={styles.formLabel}>Mốc thời gian</label>
+                  <label className={styles.formLabel}>Timeline</label>
                   <button className={`${styles.btn} ${styles.btnOutlineLight}`} onClick={addScheduleRow}>
-                    <i className="bi bi-plus" /> Thêm mốc
+                    <i className="bi bi-plus" /> Add a milestone
                   </button>
                 </div>
                 <div className={styles.scheduleList}>
@@ -302,13 +283,12 @@ export default function EditOffcanvas({ item, onClose }: Props) {
               </div>
             )}
 
-            {/* Path editable */}
             <div className={styles.divider} />
             <div>
-              <label className={styles.formLabel}>Đường dẫn (path) — sẽ lưu vào DB</label>
+              <label className={styles.formLabel}>The path will be saved to the database.</label>
               <input
                 className={styles.formControl}
-                placeholder={draft.linkType === "scheduled" ? "(scheduled không lưu path)" : "/path hoặc https://..."}
+                placeholder={draft.linkType === "scheduled" ? "(Scheduled path will not be saved.)" : "/path hoặc https://..."}
                 value={pathInput}
                 onChange={(e) => {
                   const v = e.target.value;
@@ -317,24 +297,24 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                 }}
               />
               <div className={styles.smallHelp}>
-                • Nếu để trống, hệ thống tự tính theo kiểu link ở trên.
-                {draft.linkType === "external" ? " • Với external: path sẽ bằng chính URL." : ""}
+                • If left blank, the system will automatically calculate using the linking method above.
+                {draft.linkType === "external" ? " • For external: the path will be the same as the URL." : ""}
               </div>
             </div>
 
             {/* Preview */}
             <div className={styles.smallHelp} style={{ marginTop: 8 }}>
               <i className="bi bi-eye" /> Preview URL:&nbsp;
-              <code>{hrefPreview || "(trống)"}</code>
+              <code>{hrefPreview || "(drum)"}</code>
             </div>
 
             {/* Footer */}
             <div className={styles.footerRow} style={{ marginTop: 12 }}>
               <button className={`${styles.btn} ${styles.btnOutlineSecondary}`} onClick={onClose}>
-                Đóng
+                Close
               </button>
               <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={save} disabled={saving}>
-                <i className="bi bi-save" /> {saving ? "Đang lưu..." : "Lưu"}
+                <i className="bi bi-save" /> {saving ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

@@ -1,4 +1,3 @@
-// src/components/menu/state/MenuStructure.tsx
 "use client";
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -54,7 +53,6 @@ export default function MenuStructure({ locale, siteId }: Props) {
   const doDelete = async () => {
     if (!pendingDeleteId) return;
 
-    // 0) Ẩn ngay trên UI (không cần store)
     const el = document.querySelector(`[data-menu-id="${pendingDeleteId}"]`);
     if (el) (el as HTMLElement).style.opacity = "0.4";
 
@@ -66,8 +64,8 @@ export default function MenuStructure({ locale, siteId }: Props) {
       router.refresh();
       setTimeout(() => window.location.reload(), 100);
     } catch (e: any) {
-      alert(e?.message || "Xóa thất bại");
-      if (el) (el as HTMLElement).style.opacity = ""; // rollback UI
+      alert(e?.message || "Delete failed");
+      if (el) (el as HTMLElement).style.opacity = "";
     } finally {
       setBusy(false);
       setConfirmOpen(false);
@@ -252,27 +250,27 @@ export default function MenuStructure({ locale, siteId }: Props) {
               askDelete(item.id);
             }}
             draggable={false}
-            title="Xoá mục này">
+            title="Delete this item">
             <i className="bi bi-x-lg" />
           </button>
-          <ConfirmDialog
-            open={confirmOpen}
-            title="Xoá menu"
-            message={busy ? "Đang xoá..." : "Bạn có chắc muốn xoá mục này? Thao tác này sẽ được lưu lại."}
-            onCancel={() => {
-              if (busy) return;
-              setConfirmOpen(false);
-              setPendingDeleteId(null);
-            }}
-            onConfirm={() => {
-              if (!busy) void doDelete();
-            }}
-          />
         </div>
+        <ConfirmDialog
+          open={confirmOpen}
+          title="Delete menu"
+          message={busy ? "Deleting..." : "Are you sure you want to delete this item? This action will be saved."}
+          onCancel={() => {
+            if (busy) return;
+            setConfirmOpen(false);
+            setPendingDeleteId(null);
+          }}
+          onConfirm={() => {
+            if (!busy) void doDelete();
+          }}
+        />
 
         <div className={styles.subwrap} data-parent={item.id}>
           <div className={styles.smallHelp}>
-            <i className="bi bi-diagram-2" /> Submenu của <b>{item.title || "(No title)"}</b>
+            <i className="bi bi-diagram-2" /> Submenu with <b>{item.title || "(No title)"}</b>
           </div>
 
           <div
@@ -290,7 +288,7 @@ export default function MenuStructure({ locale, siteId }: Props) {
               else onDropNew(e, "children", item.id);
             }}>
             {(item.children || []).length === 0 ? (
-              <p className={`${styles.smallHelp} m-0 py-2`}>Kéo item vào đây để tạo Submenu (Cấp 2)</p>
+              <p className={`${styles.smallHelp} m-0 py-2`}>Drag an item here to create a Submenu (Level 2)</p>
             ) : (
               (item.children || []).map((child, i) => renderRow(child, i, depth + 1, item.id))
             )}
@@ -308,11 +306,11 @@ export default function MenuStructure({ locale, siteId }: Props) {
         <div className={styles.headerRight}>
           <div className={styles.search}>
             <i className={`bi bi-search ${styles.iconSearch}`} aria-hidden />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm tiêu đề hoặc đường dẫn…" aria-label="Tìm trong menu" className={styles.searchInput} />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find the title or link…" aria-label="Find it in the menu." className={styles.searchInput} />
           </div>
 
           {q ? (
-            <button className={`${styles.btn} ${styles.btnOutlineSecondary} ${styles.btnClear}`} onClick={() => setQ("")} title="Xoá từ khoá" type="button">
+            <button className={`${styles.btn} ${styles.btnOutlineSecondary} ${styles.btnClear}`} onClick={() => setQ("")} title="Delete keywords" type="button">
               <i className="bi bi-x-circle" />
               <span>Clear</span>
             </button>
@@ -347,7 +345,7 @@ export default function MenuStructure({ locale, siteId }: Props) {
             else onDropNew(e, "root");
           }}>
           {filteredTree.length === 0 ? (
-            <p className={`${styles.smallHelp} text-center m-0 py-3`}>{q ? "Không tìm thấy kết quả" : "Thả block vào đây (Cấp 1)"}</p>
+            <p className={`${styles.smallHelp} text-center m-0 py-3`}>{q ? "No results found" : "Drop blocks here (Level 1)"}</p>
           ) : (
             filteredTree.map((it, idx) => renderRow(it, idx, 1))
           )}
@@ -361,8 +359,8 @@ export default function MenuStructure({ locale, siteId }: Props) {
 
 function ConfirmDialog({
   open,
-  title = "Xác nhận xoá",
-  message = "Bạn có chắc muốn xoá mục này?",
+  title = "Confirm deletion",
+  message = "Are you sure you want to delete this item?",
   onCancel,
   onConfirm,
 }: {
@@ -380,10 +378,11 @@ function ConfirmDialog({
         <p style={{ margin: "8px 0 16px", color: "var(--text-red)" }}>{message}</p>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button className={`${styles.btn} ${styles.btnOutlineSecondary}`} onClick={onCancel}>
-            Huỷ
+            Cancel
           </button>
+
           <button className={`${styles.btn} ${styles.btnOutlineDanger}`} onClick={onConfirm}>
-            Xoá
+            Delete
           </button>
         </div>
       </div>

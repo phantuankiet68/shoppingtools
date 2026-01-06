@@ -116,7 +116,7 @@ export default function MenuBuilder() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            siteId: selectedSiteId || undefined, // ✅ gửi siteId
+            siteId: selectedSiteId || undefined,
             locale,
             items: triples,
           }),
@@ -125,15 +125,15 @@ export default function MenuBuilder() {
 
         if (!res.ok) {
           const msg = await res.text().catch(() => "");
-          throw new Error(`Sync SEO thất bại: ${msg || res.status}`);
+          throw new Error(`Sync SEO failed: ${msg || res.status}`);
         }
 
         await reloadAll({ hard: false });
 
         setNotice({
           open: true,
-          title: "Đã lưu & đồng bộ SEO",
-          message: "Menu và Page (title/slug/path) đã được đồng bộ (theo site đã chọn).",
+          title: "SEO Saved & Synchronized",
+          message: "Menus and pages (title/slug/path) have been synchronized (according to the selected site).",
           variant: "success",
         });
         return;
@@ -142,14 +142,14 @@ export default function MenuBuilder() {
       await reloadAll({ hard: false });
       setNotice({
         open: true,
-        title: "Đã lưu Menu",
-        message: "Không có thay đổi để đồng bộ SEO. Dữ liệu đã được load lại.",
+        title: "Menu saved",
+        message: "No changes have been made to SEO synchronization. The data has been reloaded.",
         variant: "info",
       });
     } catch (e: any) {
       setNotice({
         open: true,
-        title: "Lưu thất bại",
+        title: "Save failed",
         message: e?.message ?? "Unknown error",
         variant: "error",
       });
@@ -163,31 +163,31 @@ export default function MenuBuilder() {
       () =>
         setNotice({
           open: true,
-          title: "Đã copy JSON",
-          message: "Nội dung menu hiện tại đã copy vào clipboard.",
+          title: "JSON has been copied.",
+          message: "The current menu content has been copied to the clipboard.",
           variant: "success",
         }),
       () =>
         setNotice({
           open: true,
-          title: "Copy thất bại",
-          message: "Trình duyệt không cho phép copy tự động.",
+          title: "Copy failed",
+          message: "The browser does not allow automatic copying.",
           variant: "warning",
         })
     );
   }
 
   function importJSONFromPrompt() {
-    const text = prompt("Paste JSON cho bộ hiện tại");
+    const text = prompt("Paste JSON for the current set.");
     if (!text) return;
     try {
       const data = JSON.parse(text);
-      if (!Array.isArray(data)) throw new Error("Invalid JSON: phải là mảng");
+      if (!Array.isArray(data)) throw new Error("Invalid JSON: It must be an array");
       setActiveMenu(data);
       setNotice({
         open: true,
-        title: "Import thành công",
-        message: "Đã cập nhật menu theo JSON vừa nhập.",
+        title: "Import successful",
+        message: "The menu has been updated according to the JSON that was just imported.",
         variant: "success",
       });
       startTransition(() => {
@@ -196,7 +196,7 @@ export default function MenuBuilder() {
     } catch (e: any) {
       setNotice({
         open: true,
-        title: "Import lỗi",
+        title: "Import error",
         message: e?.message ?? "Unknown error",
         variant: "error",
       });
@@ -231,9 +231,9 @@ export default function MenuBuilder() {
           <div className={styles.inline}>
             <i className="bi bi-layers" />
             <select className={`${styles.formSelectSm} ${styles.selectStyled}`} value={siteKind} onChange={(e) => setSiteKind(e.target.value as SiteKind)} aria-label="Loại website">
-              <option value="ecommerce">Bán hàng (eCommerce)</option>
-              <option value="corporate">Doanh nghiệp (Corporate)</option>
-              <option value="education">Học tập (Education)</option>
+              <option value="ecommerce">eCommerce</option>
+              <option value="corporate">Corporate</option>
+              <option value="education">Education</option>
             </select>
           </div>
           <div className={styles.inline}>
@@ -254,9 +254,9 @@ export default function MenuBuilder() {
                   router.refresh();
                 });
               }}
-              aria-label="Chọn bộ menu">
-              <option value="home">Menu cho Home</option>
-              <option value="v1">Menu cho /v1 (có Submenu)</option>
+              aria-label="Select menu set">
+              <option value="home">Menu Home</option>
+              <option value="v1">Menu admin</option>
             </select>
           </div>
 
@@ -270,8 +270,8 @@ export default function MenuBuilder() {
                   await loadFromServer(locale, currentSet, selectedSiteId);
                   setNotice({
                     open: true,
-                    title: "Đã tải từ DB",
-                    message: "Menu đã được load theo site + locale + set.",
+                    title: "Loaded from DB",
+                    message: "The menu has been loaded based on site, locale, and set.",
                     variant: "info",
                   });
                 } finally {
@@ -281,14 +281,18 @@ export default function MenuBuilder() {
                   router.refresh();
                 });
               }}
-              title="Load menu từ DB theo site + locale + set">
-              <i className="bi bi-download" /> {loading ? "Loading..." : refreshing ? "Refreshing..." : "Load từ DB"}
+              title="Load menu from database based on site, locale, and set.">
+              <i className="bi bi-download" /> {loading ? "Loading..." : refreshing ? "Refreshing..." : "Load from DB"}
             </button>
           </div>
 
           <div className={styles.inline} style={{ gap: 6 }}>
-            <button className={`${styles.btn} ${styles.btnOutlinePrimary}`} disabled={saving || !selectedSiteId} onClick={handleSaveAll} title="Lưu DB; sau đó đồng bộ Page theo Menu (site hiện tại)">
-              <i className="bi bi-save" /> {saving ? "Saving..." : "Save về DB"}
+            <button
+              className={`${styles.btn} ${styles.btnOutlinePrimary}`}
+              disabled={saving || !selectedSiteId}
+              onClick={handleSaveAll}
+              title="Save the database; then synchronize the page according to the menu (current site).">
+              <i className="bi bi-save" /> {saving ? "Saving..." : "Save DB"}
             </button>
           </div>
 
@@ -320,7 +324,7 @@ export default function MenuBuilder() {
               width: 0,
             }}
             rows={6}
-            placeholder="Export/Import JSON cho bộ hiện tại"
+            placeholder="Export/Import JSON for the current set"
             defaultValue={ioJson}
             onBlur={(e) => {
               try {

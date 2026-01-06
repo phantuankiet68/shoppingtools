@@ -52,134 +52,132 @@ export const ECOM_CATEGORY_PRESETS: {
   level1: string[];
   level2ByL1: Record<string, string[]>;
 } = {
-  level1: ["Thời trang", "Điện tử", "Gia dụng", "Sách"],
+  level1: ["Fashion", "Electronics", "Home Appliances", "Books"],
   level2ByL1: {
-    "Thời trang": ["Áo sơ mi", "Quần jeans", "Giày", "Phụ kiện"],
-    "Điện tử": ["Tivi", "Điện thoại", "Laptop", "Tai nghe"],
-    "Gia dụng": ["Nồi chiên không dầu", "Nồi cơm", "Máy lọc không khí", "Máy hút bụi"],
-    Sách: ["Sách mới", "Kinh doanh", "Kỹ năng", "Thiếu nhi"],
+    Fashion: ["Shirt", "Jeans", "Shoes", "Accessories"],
+    Electronics: ["TV", "Phone", "Laptop", "Headphones"],
+    "Home Appliances": ["Air Fryer", "Rice Cooker", "Air Purifier", "Vacuum Cleaner"],
+    Books: ["New Books", "Business", "Skills", "Children"],
   },
 };
 
 const INTERNAL_PAGE_SETS: Record<SiteKind, InternalPage[]> = {
   ecommerce: [
     // ======== HOME / DISCOVERY ========
-    { id: "home", path: "/", label: "Home", labelVi: "Trang chủ", aliases: ["🏠 Trang chủ", "Trang chủ", "Home"], tags: ["nav", "landing"] },
-    { id: "search", path: "/search", label: "Search", labelVi: "Tìm kiếm", aliases: ["Tìm kiếm", "Search"], tags: ["nav"] },
-    { id: "categories", path: "/categories", label: "All Categories", labelVi: "Danh mục", aliases: ["Danh mục", "Categories"], tags: ["nav"] },
-    { id: "products", path: "/products", label: "Products", labelVi: "Sản phẩm", aliases: ["🛍️ Sản phẩm", "Sản phẩm", "Products"], tags: ["nav"] },
-    { id: "collections", path: "/collections", label: "Collections", labelVi: "Bộ sưu tập", aliases: ["Bộ sưu tập"], tags: ["marketing"] },
-    { id: "new-arrivals", path: "/new", label: "New Arrivals", labelVi: "Hàng mới", aliases: ["🆕 Hàng mới", "Hàng mới"], tags: ["marketing", "nav"] },
-    { id: "best-sellers", path: "/best-sellers", label: "Best Sellers", labelVi: "Bán chạy", aliases: ["Bán chạy", "Best Sellers"], tags: ["marketing"] },
-    { id: "promotions", path: "/promotions", label: "Promotions", labelVi: "Khuyến mãi", aliases: ["💎 Khuyến mãi", "Khuyến mãi"], tags: ["marketing", "nav"] },
-    { id: "promotions-coupons", path: "/promotions/coupons", label: "Coupons", labelVi: "Mã giảm", tags: ["marketing"] },
+    { id: "home", path: "/", label: "Home", labelVi: "Home", aliases: ["Home", "Home"], tags: ["nav", "landing"] },
+    { id: "search", path: "/search", label: "Search", labelVi: "Search", aliases: ["Search"], tags: ["nav"] },
+    { id: "categories", path: "/categories", label: "All Categories", labelVi: "Categories", aliases: ["Categories"], tags: ["nav"] },
+    { id: "products", path: "/products", label: "Products", labelVi: "Products", aliases: ["Products", "Products"], tags: ["nav"] },
+    { id: "collections", path: "/collections", label: "Collections", labelVi: "Collections", aliases: ["Collections"], tags: ["marketing"] },
+    { id: "new-arrivals", path: "/new", label: "New Arrivals", labelVi: "New Arrivals", aliases: ["New Arrivals", "New Arrivals"], tags: ["marketing", "nav"] },
+    { id: "best-sellers", path: "/best-sellers", label: "Best Sellers", labelVi: "Best Sellers", aliases: ["Best Sellers"], tags: ["marketing"] },
+    { id: "promotions", path: "/promotions", label: "Promotions", labelVi: "Promotions", aliases: ["Promotions", "Promotions"], tags: ["marketing", "nav"] },
+    { id: "promotions-coupons", path: "/promotions/coupons", label: "Coupons", labelVi: "Coupons", tags: ["marketing"] },
     { id: "promotions-flash", path: "/promotions/flash-sale", label: "Flash Sale", labelVi: "Flash Sale", tags: ["marketing"] },
-    { id: "promotions-combo", path: "/promotions/combo", label: "Combos", labelVi: "Combo hot", tags: ["marketing"] },
+    { id: "promotions-combo", path: "/promotions/combo", label: "Combos", labelVi: "Hot Combos", tags: ["marketing"] },
 
     // ======== CONTENT / SEO ========
-    { id: "blog", path: "/blog", label: "Blog", labelVi: "Blog / Cẩm nang", aliases: ["📰 Blog", "Blog / Cẩm nang", "Cẩm nang"], tags: ["seo", "content", "nav"] },
-    { id: "guides", path: "/guides", label: "Buying Guides", labelVi: "Hướng dẫn mua hàng", aliases: ["Hướng dẫn"], tags: ["seo", "content"] },
-    { id: "about", path: "/about-us", label: "About Us", labelVi: "Về chúng tôi", aliases: ["Giới thiệu", "About"], tags: ["seo"] },
+    { id: "blog", path: "/blog", label: "Blog", labelVi: "Blog / Guides", aliases: ["Blog", "Guides"], tags: ["seo", "content", "nav"] },
+    { id: "guides", path: "/guides", label: "Buying Guides", labelVi: "Buying Guides", aliases: ["Guides"], tags: ["seo", "content"] },
+    { id: "about", path: "/about-us", label: "About Us", labelVi: "About Us", aliases: ["Introduction", "About"], tags: ["seo"] },
 
     // ======== SUPPORT ========
-    { id: "contact", path: "/contact", label: "Contact", labelVi: "Liên hệ", aliases: ["📞 Liên hệ", "Liên hệ"], tags: ["support", "nav"] },
-    { id: "support-center", path: "/support", label: "Support Center", labelVi: "Trung tâm CSKH", tags: ["support"] },
-    { id: "live-chat", path: "/support/chat", label: "Live Chat", labelVi: "Chat trực tuyến", tags: ["support"] },
-    { id: "faq", path: "/support/faq", label: "FAQ", labelVi: "Câu hỏi thường gặp", tags: ["support", "seo"] },
-    { id: "shipping", path: "/support/shipping", label: "Shipping Policy", labelVi: "Vận chuyển", tags: ["support"] },
-    { id: "returns", path: "/support/returns", label: "Returns & Refunds", labelVi: "Đổi trả & Hoàn tiền", tags: ["support"] },
-    { id: "stores", path: "/stores", label: "Stores", labelVi: "Hệ thống cửa hàng", tags: ["support"] },
+    { id: "contact", path: "/contact", label: "Contact", labelVi: "Contact", aliases: ["Contact", "Contact"], tags: ["support", "nav"] },
+    { id: "support-center", path: "/support", label: "Support Center", labelVi: "Customer Support Center", tags: ["support"] },
+    { id: "live-chat", path: "/support/chat", label: "Live Chat", labelVi: "Live Chat", tags: ["support"] },
+    { id: "faq", path: "/support/faq", label: "FAQ", labelVi: "Frequently Asked Questions", tags: ["support", "seo"] },
+    { id: "shipping", path: "/support/shipping", label: "Shipping Policy", labelVi: "Shipping", tags: ["support"] },
+    { id: "returns", path: "/support/returns", label: "Returns & Refunds", labelVi: "Returns & Refunds", tags: ["support"] },
+    { id: "stores", path: "/stores", label: "Stores", labelVi: "Store System", tags: ["support"] },
 
     // ======== ACCOUNT / CHECKOUT ========
-    { id: "account", path: "/account", label: "Account", labelVi: "Tài khoản", aliases: ["👤 Tài khoản", "Tài khoản"], tags: ["account", "nav"] },
-    { id: "sign-in", path: "/account/sign-in", label: "Sign in / Sign up", labelVi: "Đăng nhập / Đăng ký", tags: ["account"] },
-    { id: "orders", path: "/account/orders", label: "My Orders", labelVi: "Đơn hàng của tôi", tags: ["account"] },
-    { id: "wishlist", path: "/account/wishlist", label: "Wishlist", labelVi: "Yêu thích", tags: ["account"] },
-    { id: "cart", path: "/cart", label: "Cart", labelVi: "Giỏ hàng", aliases: ["Giỏ hàng"], tags: ["checkout"] },
-    { id: "checkout", path: "/checkout", label: "Checkout", labelVi: "Thanh toán", tags: ["checkout"] },
+    { id: "account", path: "/account", label: "Account", labelVi: "Account", aliases: ["Account", "Account"], tags: ["account", "nav"] },
+    { id: "sign-in", path: "/account/sign-in", label: "Sign in / Sign up", labelVi: "Sign in / Sign up", tags: ["account"] },
+    { id: "orders", path: "/account/orders", label: "My Orders", labelVi: "My Orders", tags: ["account"] },
+    { id: "wishlist", path: "/account/wishlist", label: "Wishlist", labelVi: "Wishlist", tags: ["account"] },
+    { id: "cart", path: "/cart", label: "Cart", labelVi: "Cart", aliases: ["Cart"], tags: ["checkout"] },
+    { id: "checkout", path: "/checkout", label: "Checkout", labelVi: "Checkout", tags: ["checkout"] },
 
     // ======== LEGAL ========
-    { id: "privacy", path: "/legal/privacy", label: "Privacy Policy", labelVi: "Chính sách bảo mật", tags: ["legal", "seo"] },
-    { id: "terms", path: "/legal/terms", label: "Terms of Service", labelVi: "Điều khoản sử dụng", tags: ["legal"] },
+    { id: "privacy", path: "/legal/privacy", label: "Privacy Policy", labelVi: "Privacy Policy", tags: ["legal", "seo"] },
+    { id: "terms", path: "/legal/terms", label: "Terms of Service", labelVi: "Terms of Service", tags: ["legal"] },
 
-    // ======== LEGACY / V1 (giữ nếu còn dùng) ========
+    // ======== LEGACY ========
     { id: "v1-home", path: "/v1", label: "V1 Home", tags: ["legacy"] },
     { id: "v1-products", path: "/v1/products", label: "V1 Products", tags: ["legacy"] },
     { id: "v1-reports", path: "/v1/reports", label: "V1 Reports", tags: ["legacy"] },
     { id: "v1-new", path: "/v1/new", label: "V1 New", tags: ["legacy"] },
 
-    // ======== ADMIN / DASHBOARD (nên có) ========
-    { id: "admin", path: "/admin", label: "Dashboard", labelVi: "Bảng điều khiển", aliases: ["Dashboard"], tags: ["admin"] },
-    { id: "admin-orders", path: "/admin/orders", label: "Orders", labelVi: "Đơn hàng", tags: ["admin"] },
-    { id: "admin-products", path: "/admin/products", label: "Products", labelVi: "Sản phẩm", tags: ["admin"] },
-    { id: "admin-categories", path: "/admin/categories", label: "Categories", labelVi: "Danh mục", tags: ["admin"] },
-    { id: "admin-inventory", path: "/admin/inventory", label: "Inventory", labelVi: "Tồn kho", tags: ["admin"] },
-    { id: "admin-discounts", path: "/admin/discounts", label: "Discounts", labelVi: "Khuyến mãi", tags: ["admin"] },
-    { id: "admin-customers", path: "/admin/customers", label: "Customers", labelVi: "Khách hàng", tags: ["admin"] },
-    { id: "admin-reviews", path: "/admin/reviews", label: "Reviews", labelVi: "Đánh giá", tags: ["admin"] },
-    { id: "admin-content", path: "/admin/content", label: "Content", labelVi: "Nội dung", tags: ["admin"] },
-    { id: "admin-reports", path: "/admin/reports", label: "Reports", labelVi: "Báo cáo", tags: ["admin"] },
-    { id: "admin-settings", path: "/admin/settings", label: "Settings", labelVi: "Cài đặt", tags: ["admin"] },
+    // ======== ADMIN ========
+    { id: "admin", path: "/admin", label: "Dashboard", labelVi: "Dashboard", aliases: ["Dashboard"], tags: ["admin"] },
+    { id: "admin-orders", path: "/admin/orders", label: "Orders", labelVi: "Orders", tags: ["admin"] },
+    { id: "admin-products", path: "/admin/products", label: "Products", labelVi: "Products", tags: ["admin"] },
+    { id: "admin-categories", path: "/admin/categories", label: "Categories", labelVi: "Categories", tags: ["admin"] },
+    { id: "admin-inventory", path: "/admin/inventory", label: "Inventory", labelVi: "Inventory", tags: ["admin"] },
+    { id: "admin-discounts", path: "/admin/discounts", label: "Discounts", labelVi: "Discounts", tags: ["admin"] },
+    { id: "admin-customers", path: "/admin/customers", label: "Customers", labelVi: "Customers", tags: ["admin"] },
+    { id: "admin-reviews", path: "/admin/reviews", label: "Reviews", labelVi: "Reviews", tags: ["admin"] },
+    { id: "admin-content", path: "/admin/content", label: "Content", labelVi: "Content", tags: ["admin"] },
+    { id: "admin-reports", path: "/admin/reports", label: "Reports", labelVi: "Reports", tags: ["admin"] },
+    { id: "admin-settings", path: "/admin/settings", label: "Settings", labelVi: "Settings", tags: ["admin"] },
   ],
   corporate: [
-    { id: "home", path: "/", label: "Home", labelVi: "Trang chủ", aliases: ["Trang chủ", "Home"], tags: ["nav", "landing"] },
-    { id: "about", path: "/about", label: "About", labelVi: "Giới thiệu", tags: ["nav"] },
-    { id: "services", path: "/services", label: "Services", labelVi: "Dịch vụ", tags: ["nav"] },
-    { id: "solutions", path: "/solutions", label: "Solutions", labelVi: "Giải pháp", tags: ["nav"] },
-    { id: "case-studies", path: "/case-studies", label: "Case Studies", labelVi: "Case study", tags: ["content"] },
+    { id: "home", path: "/", label: "Home", labelVi: "Home", aliases: ["Home"], tags: ["nav", "landing"] },
+    { id: "about", path: "/about", label: "About", labelVi: "About Us", tags: ["nav"] },
+    { id: "services", path: "/services", label: "Services", labelVi: "Services", tags: ["nav"] },
+    { id: "solutions", path: "/solutions", label: "Solutions", labelVi: "Solutions", tags: ["nav"] },
+    { id: "case-studies", path: "/case-studies", label: "Case Studies", labelVi: "Case Studies", tags: ["content"] },
     { id: "blog", path: "/blog", label: "Blog", labelVi: "Blog", tags: ["content", "seo"] },
-    { id: "careers", path: "/careers", label: "Careers", labelVi: "Tuyển dụng", tags: ["nav"] },
-    { id: "contact", path: "/contact", label: "Contact", labelVi: "Liên hệ", tags: ["nav"] },
+    { id: "careers", path: "/careers", label: "Careers", labelVi: "Careers", tags: ["nav"] },
+    { id: "contact", path: "/contact", label: "Contact", labelVi: "Contact", tags: ["nav"] },
   ],
   education: [
-    { id: "home", path: "/", label: "Home", labelVi: "Trang chủ", tags: ["nav", "landing"] },
-    { id: "courses", path: "/courses", label: "Courses", labelVi: "Khóa học", tags: ["nav"] },
-    { id: "tracks", path: "/tracks", label: "Learning Paths", labelVi: "Lộ trình", tags: ["nav"] },
-    { id: "resources", path: "/resources", label: "Resources", labelVi: "Tài nguyên", tags: ["content"] },
+    { id: "home", path: "/", label: "Home", labelVi: "Home", tags: ["nav", "landing"] },
+    { id: "courses", path: "/courses", label: "Courses", labelVi: "Courses", tags: ["nav"] },
+    { id: "tracks", path: "/tracks", label: "Learning Paths", labelVi: "Learning Paths", tags: ["nav"] },
+    { id: "resources", path: "/resources", label: "Resources", labelVi: "Resources", tags: ["content"] },
     { id: "blog", path: "/blog", label: "Blog", labelVi: "Blog", tags: ["seo", "content"] },
-    { id: "pricing", path: "/pricing", label: "Pricing", labelVi: "Bảng giá", tags: ["nav"] },
-    { id: "account", path: "/account", label: "Account", labelVi: "Tài khoản", tags: ["account", "nav"] },
-    { id: "contact", path: "/contact", label: "Contact", labelVi: "Liên hệ", tags: ["nav"] },
+    { id: "pricing", path: "/pricing", label: "Pricing", labelVi: "Pricing", tags: ["nav"] },
+    { id: "account", path: "/account", label: "Account", labelVi: "Account", tags: ["account", "nav"] },
+    { id: "contact", path: "/contact", label: "Contact", labelVi: "Contact", tags: ["nav"] },
   ],
 };
 
 const TEMPLATE_ALLOWED_BY_SITE: Record<SiteKind, TemplateAllowed> = {
   ecommerce: {
     header: {
-      home: ["Trang chủ", "Danh mục", "Sản phẩm", "Hàng mới", "Bán chạy", "Khuyến mãi", "Blog / Cẩm nang", "Liên hệ", "Tài khoản", "Giỏ hàng"],
-      dashboard: ["Dashboard", "Đơn hàng", "Sản phẩm", "Danh mục", "Tồn kho", "Khuyến mãi", "Khách hàng", "Đánh giá", "Nội dung", "Báo cáo", "Cài đặt"],
+      home: ["Home", "Categories", "Products", "New Arrivals", "Best Sellers", "Promotions", "Blog / Guides", "Contact", "Account", "Cart"],
+      dashboard: ["Dashboard", "Orders", "Products", "Categories", "Inventory", "Promotions", "Customers", "Reviews", "Content", "Reports", "Settings"],
     },
 
-    mega: ["Thời trang", "Điện tử", "Gia dụng", "Sách"],
+    mega: ["Fashion", "Electronics", "Home Appliances", "Books"],
 
-    drawer: ["Trang chủ", "Danh mục", "Sản phẩm", "Hàng mới", "Bán chạy", "Khuyến mãi", "Blog / Cẩm nang", "Tài khoản", "Giỏ hàng", "Liên hệ", "Trung tâm CSKH", "Câu hỏi thường gặp"],
+    drawer: ["Home", "Categories", "Products", "New Arrivals", "Best Sellers", "Promotions", "Blog / Guides", "Account", "Cart", "Contact", "Customer Support Center", "Frequently Asked Questions"],
 
-    sidebar: ["Tài khoản", "Đơn hàng của tôi", "Yêu thích", "Đăng nhập / Đăng ký"],
+    sidebar: ["Account", "My Orders", "Wishlist", "Sign in / Sign up"],
   },
 
   corporate: {
     header: {
-      home: ["Trang chủ", "Giới thiệu", "Dịch vụ", "Giải pháp", "Dự án", "Tin tức", "Tuyển dụng", "Liên hệ"],
-      dashboard: ["Dashboard", "Quản lý dự án", "Quản lý khách hàng", "Quản lý dịch vụ", "Bài viết & Blog", "Tuyển dụng nội bộ", "Báo cáo kinh doanh", "Cài đặt hệ thống"],
+      home: ["Home", "About Us", "Services", "Solutions", "Projects", "News", "Careers", "Contact"],
+      dashboard: ["Dashboard", "Project Management", "Customer Management", "Service Management", "Articles & Blog", "Internal Recruitment", "Business Reports", "System Settings"],
     },
   },
 
   education: {
     header: {
-      home: ["Trang chủ", "Khóa học", "Lộ trình học", "Blog / Cẩm nang", "Giảng viên", "Calendar", "Mind Map", "Liên hệ", "Tài khoản"],
-      dashboard: ["Dashboard", "Khóa học của tôi", "Lộ trình học tập", "Calendar", "Mind Map", "Issue", "Profile", "Cài đặt"],
+      home: ["Home", "Courses", "Learning Paths", "Blog / Guides", "Instructors", "Calendar", "Mind Map", "Contact", "Account"],
+      dashboard: ["Dashboard", "My Courses", "Learning Paths", "Calendar", "Mind Map", "Issues", "Profile", "Settings"],
     },
 
-    sidebar: ["Dashboard", "Khóa học của tôi", "Lộ trình học tập", "Calendar", "Mind Map", "Issue", "Profile", "Cài đặt"],
+    sidebar: ["Dashboard", "My Courses", "Learning Paths", "Calendar", "Mind Map", "Issues", "Profile", "Settings"],
 
-    mega: ["Khóa học", "Lộ trình học", "Blog", "Giảng viên"],
-    drawer: ["Trang chủ", "Khóa học", "Lộ trình học", "Blog / Cẩm nang", "Calendar", "Mind Map", "Liên hệ", "Tài khoản"],
+    mega: ["Courses", "Learning Paths", "Blog", "Instructors"],
+
+    drawer: ["Home", "Courses", "Learning Paths", "Blog / Guides", "Calendar", "Mind Map", "Contact", "Account"],
   },
 };
 
-/* =========================
- * Exports giữ API tĩnh (mặc định ecommerce)
- * =======================*/
 export const INTERNAL_PAGES: InternalPage[] = INTERNAL_PAGE_SETS["ecommerce"];
 export const TEMPLATE_ALLOWED: TemplateAllowed = TEMPLATE_ALLOWED_BY_SITE["ecommerce"];
 
@@ -394,7 +392,7 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
       });
     };
     scan(activeMenu);
-    if (bad.length && !confirm(`Một số item external chưa có URL:\n- ${bad.join("\n- ")}\nVẫn muốn lưu chứ?`)) return;
+    if (bad.length && !confirm(`Some external items do not have URLs:\n- ${bad.join("\n- ")}\nDo you still want to save?`)) return;
 
     const items = flattenBuilderToDb(activeMenu, locale, setKey, PAGES);
 
@@ -439,13 +437,13 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
       const out: BuilderMenuItem[] = [];
       for (const it of arr) {
         if (it.id === id) {
-          removed = it; // bắt được node bị xoá
-          continue; // không push vào out
+          removed = it;
+          continue;
         }
         if (it.children?.length) {
           const nextChildren = walk(it.children);
           if (nextChildren !== it.children) {
-            out.push({ ...it, children: nextChildren }); // copy node khi children đổi
+            out.push({ ...it, children: nextChildren });
           } else {
             out.push(it);
           }
