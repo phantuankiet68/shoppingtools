@@ -9,6 +9,8 @@ import LayoutC from "@/components/admin/layouts/LayoutC";
 
 import styles from "@/styles/admin/layouts/AdminLayoutClient.module.css";
 
+import { AdminTitleProvider } from "@/components/admin/AdminTitleContext";
+
 type LayoutKey = "A" | "B" | "C";
 const STORAGE_KEY = "admin_layout";
 
@@ -64,7 +66,25 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     );
   }
 
-  return <Chosen>{children}</Chosen>;
+  if (!mounted) return null;
+  if (isLoginPage) return <>{children}</>;
+
+  return (
+    <AdminTitleProvider>
+      {open ? (
+        <ChooseLayoutModal
+          onPick={applyLayout}
+          onClose={() => {
+            // nếu bạn muốn bắt buộc chọn layout thì return; ở đây
+            setLayout("A");
+            setOpen(false);
+          }}
+        />
+      ) : (
+        <Chosen>{children}</Chosen>
+      )}
+    </AdminTitleProvider>
+  );
 }
 
 function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void; onClose: () => void }) {
