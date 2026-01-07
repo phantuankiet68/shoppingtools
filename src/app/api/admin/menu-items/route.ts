@@ -33,19 +33,11 @@ function parseSort(url: URL) {
   return { field, dir };
 }
 
-/** Xác định siteId theo thứ tự ưu tiên:
- *  1) query ?siteId=...
- *  2) theo domain từ header (x-site-domain hoặc host)
- *  3) fallback: site đầu tiên trong DB
- */
 async function resolveSiteId(req: Request, maybeSiteId?: string | null) {
-  // 1) Nếu client gửi siteId hợp lệ
   if (maybeSiteId) {
     const ok = await prisma.site.findUnique({ where: { id: maybeSiteId }, select: { id: true } });
     if (ok) return ok.id;
   }
-
-  // 2) Theo domain
   const h = req.headers;
   const domain = h.get("x-site-domain") ?? h.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   if (domain) {
@@ -53,7 +45,6 @@ async function resolveSiteId(req: Request, maybeSiteId?: string | null) {
     if (s) return s.id;
   }
 
-  // 3) Fallback site đầu tiên
   const first = await prisma.site.findFirst({ select: { id: true }, orderBy: { createdAt: "asc" } });
   if (!first) throw new Error("No Site found. Seed the Site table first.");
   return first.id;
@@ -65,9 +56,6 @@ export async function GET(req: Request) {
     const page = coerceInt(url.searchParams.get("page"), 1, 1);
     const size = coerceInt(url.searchParams.get("size"), 20, 1, 200);
     const q = url.searchParams.get("q") ?? undefined;
-
-    const localeParam = url.searchParams.get("locale") as Locale | null;
-    const locale = localeParam && (Object.values(Locale) as string[]).includes(localeParam) ? (localeParam as Locale) : undefined;
 
     const setKeyParam = url.searchParams.get("setKey") as MenuSetKey | null;
     const setKey = setKeyParam && (Object.values(MenuSetKey) as string[]).includes(setKeyParam) ? (setKeyParam as MenuSetKey) : undefined;
@@ -86,7 +74,6 @@ export async function GET(req: Request) {
 
     const where: Prisma.MenuItemWhereInput = {
       siteId, // 🔑 ràng buộc theo site
-      ...(locale ? { locale } : {}),
       ...(setKey ? { setKey } : {}),
       ...(parentId ? { parentId } : {}),
       ...(q ? { OR: [{ title: ci(q) }, { path: ci(q) }, { icon: ci(q) }] } : {}),

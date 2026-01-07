@@ -25,3 +25,5 @@ Tôi muốn tạo page component change password tương tự giống ảnh. Và
 Tôi muốn tạo design page admin Privacy beautifull . hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon. Bạn hãy suy nghĩ giúp tôi nhé . Tôi muốn component có tạo key 2fa có thể tạo, thay đổi xóa bật tắt: do tôi muốn bảo mật cao hơn khi người dùng đăng nhập vào thì xác nnhận đúng key thì có thể vào admin ngược lại thì không. Nếu như nhập 3 lần không được sẽ tự động khóa tài khoản nếu có thể thì hay độ lại phần design chuyên nghiệp hơn và thích thú hơn nhé
 
 font-family: 'Open Sans', sans-serif;
+
+Hiện tại phần menu của tôi đang chưa được bắt mắt bạn có thể độ lại css module giúp tôi không

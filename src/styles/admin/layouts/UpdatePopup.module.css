@@ -1,0 +1,131 @@
+/* =========================
+   Update Popup (Scoped)
+   ========================= */
+
+.updatePopupWrap {
+  padding: 10px;
+}
+
+.updatePopupCard {
+  width: 260px;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+
+  color: rgba(15, 23, 42, 0.9);
+  position: relative;
+
+  animation: updatePopupIn 180ms ease-out;
+}
+
+@keyframes updatePopupIn {
+  from {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Close button */
+.updatePopupClose {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.03);
+
+  display: grid;
+  place-items: center;
+
+  color: rgba(15, 23, 42, 0.6);
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.updatePopupClose:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.18);
+  transform: translateY(-1px);
+}
+
+/* Header */
+.updatePopupHeader {
+  padding-right: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.updatePopupTitle {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+}
+
+.updatePopupVersion {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.45);
+}
+
+/* Description */
+.updatePopupDesc {
+  margin: 10px 0 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(15, 23, 42, 0.68);
+}
+
+/* Actions */
+.updatePopupActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.updatePopupLink {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #46a9e5f2;
+  text-decoration: none;
+  padding: 8px 8px;
+  border-radius: 10px;
+}
+
+.updatePopupLink:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+/* Primary button */
+.updatePopupPrimary {
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(#63b9f1, #46a6e5);
+  border: 1px solid #468ee559;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 800;
+  transition: transform 0.14s, box-shadow 0.14s, filter 0.14s;
+}
+
+.updatePopupPrimary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 16px 36px rgba(79, 70, 229, 0.28);
+}
+
+.updatePopupPrimary:active {
+  transform: translateY(0);
+}
