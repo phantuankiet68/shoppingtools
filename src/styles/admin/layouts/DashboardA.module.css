@@ -36,7 +36,7 @@
 }
 
 .congratsSub {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.4;
   color: #8a95b5;
   margin-bottom: 12px;
@@ -53,7 +53,7 @@
   background: #f1f4ff;
   color: #5468ff;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.3px;
   cursor: pointer;
 }
@@ -151,7 +151,7 @@
 }
 
 .miniLabel {
-  font-size: 12px;
+  font-size: 14px;
   color: #97a2c3;
 }
 .miniValue {
@@ -164,7 +164,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 11px;
+  font-size: 13px;
   margin-top: 10px;
 }
 .up {
@@ -220,12 +220,12 @@
 }
 
 .cardTitle {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   color: #1f2a44;
 }
 .cardLegend {
-  font-size: 11px;
+  font-size: 13px;
   color: #8a95b5;
 }
 
@@ -238,7 +238,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 13px;
   color: #8a95b5;
 }
 .dot {
@@ -261,7 +261,7 @@
   border-radius: 10px;
   border: 1px solid #eef1ff;
   background: #f7f9ff;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: #6b7cff;
   cursor: pointer;
@@ -324,7 +324,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   padding: 0 8px;
-  font-size: 11px;
+  font-size: 13px;
   color: #97a2c3;
 }
 .revAxis span {
@@ -370,12 +370,12 @@
   line-height: 1;
 }
 .donutLabel {
-  font-size: 12px;
+  font-size: 14px;
   color: #97a2c3;
   margin-top: 4px;
 }
 .donutSub {
-  font-size: 11px;
+  font-size: 13px;
   color: #97a2c3;
 }
 
@@ -401,11 +401,11 @@
   color: #6b7cff;
 }
 .donutFootYear {
-  font-size: 11px;
+  font-size: 13px;
   color: #97a2c3;
 }
 .donutFootVal {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   color: #1f2a44;
 }
@@ -473,7 +473,7 @@
 }
 
 .metricLabel {
-  font-size: 12px;
+  font-size: 14px;
   color: #97a2c3;
 }
 .metricValue {
@@ -486,7 +486,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 11px;
+  font-size: 13px;
   margin-top: 10px;
 }
 
@@ -507,7 +507,7 @@
 }
 
 .profileTitle {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   color: #1f2a44;
   margin-bottom: 6px;
@@ -541,7 +541,7 @@
   display: inline-flex;
   gap: 6px;
   align-items: center;
-  font-size: 11px;
+  font-size: 13px;
   color: #16a34a;
   font-weight: 800;
 }

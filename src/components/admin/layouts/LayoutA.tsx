@@ -89,13 +89,13 @@ export default function LayoutA({ children }: { children: ReactNode }) {
         <div className={styles.brandWrap}>
           <Link href="/admin" className={styles.brandLink}>
             <div className={styles.brandLogo}>
-              <span className={styles.brandLogoText}>D</span>
+              <span className={styles.brandLogoText}>A</span>
               <span className={styles.brandGlow} />
             </div>
 
             <div className={styles.brandText}>
               <div className={styles.brandTop}>
-                <div className={styles.brandName}>Dabang</div>
+                <div className={styles.brandName}>Manager</div>
                 <span className={styles.brandBadge}>Admin</span>
               </div>
               <div className={styles.brandSub}>
@@ -154,7 +154,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
           <div className={styles.row1}>
             <div className={styles.left}>
               <button className={styles.burger} type="button" onClick={toggleSidebar} aria-label="Toggle sidebar" aria-expanded={sidebarOpen}>
-                <i className={`bi ${sidebarOpen ? "bi-x" : "bi-list"}`} />
+                <i className={`bi ${sidebarOpen ? "bi-arrow-bar-left" : "bi-list"}`} />
               </button>
 
               <div className={styles.titleBlock}>
@@ -167,10 +167,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                 <span className={styles.searchIcon}>
                   <i className="bi bi-search" />
                 </span>
-                <input className={styles.searchInput} placeholder="Search anything… (pages, users, orders)" />
-                <span className={styles.kbd}>
-                  <strong>Ctrl</strong> K
-                </span>
+                <input className={styles.searchInput} placeholder="Search anything…" />
               </div>
             </div>
 
