@@ -5,14 +5,39 @@ import styles from "@/styles/admin/profile/ProfilePage.module.css";
 import { useEffect, useMemo, useState, useRef } from "react";
 import ProfileForm from "@/components/admin/profile/ProfileForm";
 import ChangePassword from "@/components/admin/profile/ChangePassword";
+import AdminMessagesClient from "@/components/admin/profile/AdminMessagesClient";
+import Task from "@/components/admin/profile/Task";
+import CalendarClient from "@/components/admin/profile/Calendar";
+import AdminFilesClient from "@/components/admin/profile/AdminFilesClient";
+import AdminImagesClient from "@/components/admin/profile/AdminImagesClient";
+import AdminSpendingClient from "@/components/admin/profile/AdminSpendingClient";
+import AdminPrivacyClient from "@/components/admin/profile/AdminPrivacyClient";
 
 const responsibilities = ["Security", "Encryption", "Keys and Secrets"];
 
 type AdminUser = { name: string; role: string };
 
+const LS_KEY = "admin_profile_active_section";
+
 export default function AdminProfilePage() {
   const [user, setUser] = useState<AdminUser | null>(null);
-  const [activeSection, setActiveSection] = useState<string>("profile");
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  function setSection(section: string) {
+    setActiveSection(section);
+    try {
+      localStorage.setItem(LS_KEY, section);
+    } catch {}
+  }
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LS_KEY);
+      setActiveSection(saved ?? "profile");
+    } catch {
+      setActiveSection("profile");
+    }
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -32,7 +57,6 @@ export default function AdminProfilePage() {
       alive = false;
     };
   }, []);
-
   return (
     <div className={styles.page}>
       <AdminPageTitle title="Profile" subtitle="Manage Profile" />
@@ -53,57 +77,57 @@ export default function AdminProfilePage() {
           <div className={styles.navSection}>
             <div className={styles.navTitle}>Account</div>
 
-            <a className={`${styles.navItem} ${activeSection === "profile" ? styles.active : ""}`} onClick={() => setActiveSection("profile")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "profile" ? styles.active : ""}`} onClick={() => setSection("profile")}>
               <i className="bi bi-person-circle" />
               <span>Profile</span>
-            </a>
+            </button>
 
-            <a className={`${styles.navItem} ${activeSection === "changePassword" ? styles.active : ""}`} onClick={() => setActiveSection("changePassword")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "changePassword" ? styles.active : ""}`} onClick={() => setSection("changePassword")}>
               <i className="bi bi-shield-lock" />
               <span>Change password</span>
-            </a>
+            </button>
 
-            <a className={`${styles.navItem} ${activeSection === "message" ? styles.active : ""}`} onClick={() => setActiveSection("message")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "message" ? styles.active : ""}`} onClick={() => setSection("message")}>
               <i className="bi bi-file-earmark-person" />
               <span>Messages</span>
-            </a>
+            </button>
           </div>
 
           <div className={styles.navSection}>
             <div className={styles.navTitle}>Workspace</div>
 
-            <a className={`${styles.navItem} ${activeSection === "task" ? styles.active : ""}`} onClick={() => setActiveSection("task")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "task" ? styles.active : ""}`} onClick={() => setSection("task")}>
               <i className="bi bi-check2-square" />
               <span>Tasks</span>
-            </a>
+            </button>
 
-            <a className={`${styles.navItem} ${activeSection === "calendar" ? styles.active : ""}`} onClick={() => setActiveSection("calendar")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "calendar" ? styles.active : ""}`} onClick={() => setSection("calendar")}>
               <i className="bi bi-calendar3" />
               <span>Calendar</span>
-            </a>
+            </button>
 
-            <a className={`${styles.navItem} ${activeSection === "file" ? styles.active : ""}`} onClick={() => setActiveSection("file")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "file" ? styles.active : ""}`} onClick={() => setSection("file")}>
               <i className="bi bi-folder2-open" />
               <span>Files</span>
-            </a>
+            </button>
 
-            <a className={`${styles.navItem} ${activeSection === "image" ? styles.active : ""}`} onClick={() => setActiveSection("image")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "image" ? styles.active : ""}`} onClick={() => setSection("image")}>
               <i className="bi bi-images" />
               <span>Images</span>
-            </a>
+            </button>
 
-            <a className={`${styles.navItem} ${activeSection === "spending" ? styles.active : ""}`} onClick={() => setActiveSection("spending")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "spending" ? styles.active : ""}`} onClick={() => setSection("spending")}>
               <i className="bi bi-credit-card" />
               <span>Spending</span>
               <span className={styles.badge}>NEW</span>
-            </a>
+            </button>
           </div>
 
           <div className={styles.navFooter}>
-            <a className={`${styles.navItem} ${activeSection === "privacy" ? styles.active : styles.danger}`} onClick={() => setActiveSection("privacy")}>
+            <button type="button" className={`${styles.navItem} ${activeSection === "privacy" ? styles.active : styles.danger}`} onClick={() => setSection("privacy")}>
               <i className="bi bi-shield-lock" />
               <span>Privacy</span>
-            </a>
+            </button>
           </div>
         </nav>
       </aside>
@@ -124,43 +148,43 @@ export default function AdminProfilePage() {
 
         {activeSection === "message" && (
           <section id="message">
-            <h2>CV</h2>
+            <AdminMessagesClient />
           </section>
         )}
 
         {activeSection === "task" && (
           <section id="task">
-            <h2>Tasks</h2>
+            <Task />
           </section>
         )}
 
         {activeSection === "calendar" && (
           <section id="calendar">
-            <h2>Calendar</h2>
+            <CalendarClient />
           </section>
         )}
 
         {activeSection === "file" && (
           <section id="file">
-            <h2>Files</h2>
+            <AdminFilesClient />
           </section>
         )}
 
         {activeSection === "image" && (
           <section id="image">
-            <h2>Images</h2>
+            <AdminImagesClient />
           </section>
         )}
 
         {activeSection === "spending" && (
           <section id="spending">
-            <h2>Spending</h2>
+            <AdminSpendingClient />
           </section>
         )}
 
         {activeSection === "privacy" && (
           <section id="privacy">
-            <h2>Privacy</h2>
+            <AdminPrivacyClient />
           </section>
         )}
       </main>
