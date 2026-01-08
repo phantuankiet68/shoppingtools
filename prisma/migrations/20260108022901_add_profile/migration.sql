@@ -1,0 +1,45 @@
+-- CreateTable
+CREATE TABLE `Profile` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+    `firstName` VARCHAR(191) NULL,
+    `lastName` VARCHAR(191) NULL,
+    `username` VARCHAR(191) NULL,
+    `backupEmail` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NULL,
+    `address` VARCHAR(191) NULL,
+    `city` VARCHAR(191) NULL,
+    `country` VARCHAR(191) NULL,
+    `role` ENUM('admin', 'staff', 'viewer') NOT NULL DEFAULT 'viewer',
+    `status` ENUM('active', 'suspended') NOT NULL DEFAULT 'active',
+    `company` VARCHAR(191) NULL,
+    `department` VARCHAR(191) NULL,
+    `jobTitle` VARCHAR(191) NULL,
+    `manager` VARCHAR(191) NULL,
+    `hireDate` DATETIME(3) NULL,
+    `gender` ENUM('male', 'female', 'other') NULL DEFAULT 'other',
+    `locale` ENUM('vi', 'en', 'ja') NOT NULL DEFAULT 'vi',
+    `timezone` VARCHAR(191) NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+    `dobMonth` VARCHAR(191) NULL,
+    `dobDay` INTEGER NULL,
+    `dobYear` INTEGER NULL,
+    `twitter` VARCHAR(191) NULL,
+    `linkedin` VARCHAR(191) NULL,
+    `facebook` VARCHAR(191) NULL,
+    `github` VARCHAR(191) NULL,
+    `website` VARCHAR(191) NULL,
+    `slogan` VARCHAR(191) NULL,
+    `bio` VARCHAR(191) NULL,
+    `twoFA` BOOLEAN NOT NULL DEFAULT false,
+    `lastLoginAt` DATETIME(3) NULL,
+    `lastLoginIp` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `Profile_userId_key`(`userId`),
+    UNIQUE INDEX `Profile_username_key`(`username`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `Profile` ADD CONSTRAINT `Profile_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

@@ -52,8 +52,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg, #facc15, #fb7185);
-  border: 5px solid #f7eded;
+  border: 5px solid #ffe8de;
 }
 
 .addBtn {
@@ -526,4 +525,28 @@
   .main {
     padding: 16px;
   }
+}
+
+.avatar {
+  border-radius: 50%;
+  background: #f3f4f6; /* gray-100 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* quan trọng */
+  display: block;
+}
+
+.avatarFallback {
+  font-size: 32px;
+  font-weight: 600;
+  color: #6b7280; /* gray-500 */
+  user-select: none;
 }

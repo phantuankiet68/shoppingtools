@@ -12,16 +12,18 @@ import AdminFilesClient from "@/components/admin/profile/AdminFilesClient";
 import AdminImagesClient from "@/components/admin/profile/AdminImagesClient";
 import AdminSpendingClient from "@/components/admin/profile/AdminSpendingClient";
 import AdminPrivacyClient from "@/components/admin/profile/AdminPrivacyClient";
+import AvatarUploadModal from "@/components/admin/profile/AvatarUploadModal";
 
 const responsibilities = ["Security", "Encryption", "Keys and Secrets"];
 
-type AdminUser = { name: string; role: string };
+type AdminUser = { name: string; role: string; image: string; email: string };
 
 const LS_KEY = "admin_profile_active_section";
 
 export default function AdminProfilePage() {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [openAvatar, setOpenAvatar] = useState(false);
 
   function setSection(section: string) {
     setActiveSection(section);
@@ -50,6 +52,7 @@ export default function AdminProfilePage() {
       .then((data) => {
         if (!alive) return;
         setUser(data?.user ?? null);
+        console.log(data);
       })
       .catch(() => {});
 
@@ -63,15 +66,22 @@ export default function AdminProfilePage() {
       <aside className={styles.sidebar}>
         <div className={styles.profileBlock}>
           <div className={styles.avatarWrap}>
-            <div className={styles.avatar} />
-            <button className={styles.addBtn}>
+            <div className={styles.avatar}>
+              {user?.image ? (
+                <img src={user.image} alt={user.name ?? "User avatar"} className={styles.avatarImg} />
+              ) : (
+                <span className={styles.avatarFallback}>{(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}</span>
+              )}
+            </div>
+
+            <button className={styles.addBtn} type="button" aria-label="Change avatar" onClick={() => setOpenAvatar(true)}>
               <i className="bi bi-plus" />
             </button>
           </div>
 
           <h3 className={styles.personName}>{user?.name ?? "—"}</h3>
         </div>
-
+        <AvatarUploadModal open={openAvatar} onClose={() => setOpenAvatar(false)} currentImage={user?.image} onUploaded={(newUrl) => setUser((u) => (u ? { ...u, image: newUrl } : u))} />
         {/* Menu */}
         <nav className={styles.nav}>
           <div className={styles.navSection}>

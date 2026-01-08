@@ -1,0 +1,313 @@
+/* AvatarUploadModal.module.css */
+
+/* ===== Overlay / Card ===== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+.modalCard {
+  width: min(980px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* ===== Header ===== */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: #ff8e50;
+}
+
+.modalSub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.modalClose {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #eef2f7;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.modalClose:hover {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+}
+
+.modalClose:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Body / Grid ===== */
+.modalBody {
+  padding: 18px 20px 14px;
+}
+
+.uploadGrid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.85fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .uploadGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Dropzone ===== */
+.dropzone {
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #fff9f2;
+  min-height: 380px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.15s ease;
+  position: relative;
+}
+
+.dropzone:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+}
+
+/* icon */
+.dropIcon {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  font-size: 22px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 10px;
+}
+
+.dropTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.dropOr {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.dropBrowse {
+  color: #878787;
+  text-underline-offset: 4px;
+  margin-top: 2px;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.dropHint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* hidden input */
+.hiddenFile {
+  display: none;
+}
+
+/* ===== Preview Panel ===== */
+.previewPanel {
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  background: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 380px;
+}
+
+.previewTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.previewBox {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.previewEmpty {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.previewMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: -2px;
+}
+
+.previewName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewStatus {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* actions row */
+.previewActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ===== Buttons (local for modal) ===== */
+.primaryBtn,
+.secondaryBtn {
+  height: 40px;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.15s ease;
+  user-select: none;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.secondaryBtn {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #0f172a;
+}
+
+.secondaryBtn:hover {
+  background: #f8fafc;
+  border-color: #d1d5db;
+}
+
+.primaryBtn {
+  background: #0f172a;
+  color: #fff;
+}
+
+.primaryBtn:hover {
+  background: #111827;
+  transform: translateY(-1px);
+}
+
+.primaryBtn:active {
+  transform: translateY(0);
+}
+
+.primaryBtn:disabled,
+.secondaryBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Error text ===== */
+.errorText {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.errorText::before {
+  content: "⚠";
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* ===== Footer ===== */
+.modalFooter {
+  padding: 12px 20px 16px;
+  border-top: 1px solid #eef2f7;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.linkBtn {
+  background: transparent;
+  border: none;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: 0.15s ease;
+}
+
+.linkBtn:hover {
+  background: #f8fafc;
+}

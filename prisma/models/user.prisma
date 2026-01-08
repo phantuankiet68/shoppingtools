@@ -33,6 +33,8 @@ model User {
   role              UserRole @default(USER)
   isActive          Boolean  @default(true)
 
+  image             String?
+
   passwordHash      String
   passwordUpdatedAt DateTime @default(now())
 
@@ -49,9 +51,11 @@ model User {
   backupCodes       BackupCode[]
   auditLogs         AuditLog[]
 
+  profile           Profile?
   @@index([role])
   @@index([lockedUntil])
 }
+
 
 model Session {
   id              String      @id @default(cuid())

@@ -1,9 +1,8 @@
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma"; // sửa path theo project bạn
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
 function hashToken(rawToken: string) {
-  // ✅ PHẢI GIỐNG LÚC TẠO SESSION
   return crypto.createHash("sha256").update(rawToken).digest("hex");
 }
 
@@ -28,12 +27,15 @@ export async function GET() {
       revokedAt: null,
       expiresAt: { gt: new Date() },
     },
-    include: {
+    select: {
+      id: true,
       user: {
         select: {
+          id: true,
           email: true,
           role: true,
           isActive: true,
+          image: true,
         },
       },
     },
@@ -55,6 +57,7 @@ export async function GET() {
       name: displayName,
       role: toRoleLabel(session.user.role),
       email: session.user.email,
+      image: session.user.image,
     },
   });
 }

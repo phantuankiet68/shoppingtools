@@ -9,6 +9,12 @@ CSS
 import styles from "@/styles/admin/login/login.module.css";
 import styles from "@/styles/admin/profile/messages.module.css";
 
+npm run prisma:migrate -- --name add_profile
+
+npm run prisma:merge
+npm run prisma:validate
+npm run prisma:migrate -- --name add_profile
+
 hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon. Bạn hãy suy nghĩ giúp tôi nhé
 
 Bây h tôi muốn bạn giúp tôi tạo model sau khi click vào button này sẽ tự động show popup bên trong popup sẽ chưa design giống ảnh hãy giúp tôi làm việc này nhé
@@ -27,3 +33,10 @@ Tôi muốn tạo design page admin Privacy beautifull . hiện tại tôi đang
 font-family: 'Open Sans', sans-serif;
 
 Hiện tại phần menu của tôi đang chưa được bắt mắt bạn có thể độ lại css module giúp tôi không
+
+tôi muốn bạn tạo file validate check First Name, Last Name, Username, Role, Account Status, Email (User), Backup Email, Phone, Address là bắt buộc
+
+có thể check ở TypeScript không trước khi thực hiện create hay update cần check lại trước khi lưu
+ở file ProfileForm.tsx có cần thêm gì để nhận biết không
+label after để thêm Chấm đỏ bắt buộc sau label được không tôi muốn hiển thị xuyên suốt
+Upload Popup UI
