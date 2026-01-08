@@ -3,6 +3,8 @@
 import { useMemo, useState, useEffect } from "react";
 import styles from "@/styles/admin/profile/ProfileForm.module.css";
 import { validateProfileInput } from "@/lib/validators/profile";
+import { getClientIP } from "@/services/me/getMe.service";
+import { getAdminProfile, patchAdminProfile } from "@/services/profile/getProfile.service";
 
 type Payment = {
   id: string;
@@ -135,7 +137,7 @@ export default function ProfileForm() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/admin/profile", { cache: "no-store" });
+        const res = await getAdminProfile();
         if (!res.ok) {
           setLoading(false);
           return;
@@ -197,12 +199,10 @@ export default function ProfileForm() {
       }
     })();
   }, []);
-
-  // Lấy IP hiện tại (session ip) để show ở UI (không phải last login ip)
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/admin/me/get-client-ip", { cache: "no-store" });
+        const res = await getClientIP();
         if (!res.ok) return;
         const data = await res.json();
         const ip = normalizeIp(data.ip);
@@ -229,14 +229,13 @@ export default function ProfileForm() {
   const setDefaultPayment = (id: string) => setPayments((p) => p.map((x) => ({ ...x, isDefault: x.id === id })));
 
   const onSave = async () => {
-    // ✅ 1) Validate client trước khi gọi API
     const v = validateProfileInput({
       firstName: profile.firstName,
       lastName: profile.lastName,
       username: profile.username,
       role: profile.role,
       status: profile.status,
-      email: profile.email, // Email (User) bắt buộc theo yêu cầu của bạn
+      email: profile.email,
       backupEmail: profile.backupEmail,
       phone: profile.phone,
       address: profile.address,
@@ -246,7 +245,6 @@ export default function ProfileForm() {
       const map: Record<string, string> = {};
       for (const e of v) map[e.field] = e.message;
       setErrors(map);
-      // optional: alert gọn
       alert(Object.values(map).join("\n"));
       return;
     }
@@ -259,9 +257,6 @@ export default function ProfileForm() {
         firstName: profile.firstName,
         lastName: profile.lastName,
         username: profile.username,
-
-        // ⚠️ email thuộc User nên thường không update ở profile API,
-        // nhưng bạn yêu cầu validate bắt buộc, nên vẫn gửi lên để server check nếu bạn muốn.
         email: profile.email,
 
         backupEmail: profile.backupEmail,
@@ -299,13 +294,7 @@ export default function ProfileForm() {
         twoFA: profile.twoFA,
       };
 
-      const res = await fetch("/api/admin/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json().catch(() => ({}));
+      const { res, data } = await patchAdminProfile(payload);
 
       if (!res.ok) {
         if (data?.error === "VALIDATION_ERROR" && Array.isArray(data.errors)) {

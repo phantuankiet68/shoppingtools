@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import styles from "@/styles/admin/profile/ChangePassword.module.css";
+import { changePassword } from "@/services/adminUser.service";
+import { getAdminProfile } from "@/services/profile/getProfile.service";
 
 type Account = {
   email: string;
@@ -16,8 +18,8 @@ type Account = {
 };
 
 type FormState = {
-  email: string; // account email (readonly)
-  confirmEmail: string; // must match email to confirm
+  email: string;
+  confirmEmail: string;
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
@@ -43,7 +45,6 @@ function validatePassword(pw: string) {
 }
 
 function passwordStrength(pw: string) {
-  // simple heuristic (0-100)
   let score = 0;
   if (pw.length >= 8) score += 25;
   if (pw.length >= 12) score += 10;
@@ -58,21 +59,16 @@ function cx(...arr: Array<string | false | undefined | null>) {
   return arr.filter(Boolean).join(" ");
 }
 
+function fmt(dt?: string | Date | null) {
+  if (!dt) return "—";
+  return new Date(dt).toLocaleString("vi-VN", { hour12: false });
+}
+
 export default function ChangePasswordPro() {
-  const account: Account = {
-    email: "bradley.ortiz@gmail.com",
-    username: "arthur.nancy",
-    role: "Admin",
-    status: "Active",
-    twoFA: true,
-    lastLogin: "Sep 21, 2025 · 09:32",
-    lastIP: "192.168.1.23",
-    device: "MacBook Pro · Chrome",
-    location: "Tokyo, Japan",
-  };
+  const [account, setAccount] = useState<Account | null>(null);
 
   const [form, setForm] = useState<FormState>({
-    email: account.email,
+    email: "",
     confirmEmail: "",
     currentPassword: "",
     newPassword: "",
@@ -95,7 +91,8 @@ export default function ChangePasswordPro() {
 
   const emailConfirmed = form.confirmEmail.trim().length > 0 && form.confirmEmail.trim().toLowerCase() === form.email.toLowerCase();
 
-  const canSubmit = form.currentPassword.length > 0 && rules.all && matchesConfirm && form.agree && emailConfirmed && status.type !== "loading";
+  // ✅ thêm điều kiện account đã load
+  const canSubmit = !!account && form.currentPassword.length > 0 && rules.all && matchesConfirm && form.agree && emailConfirmed && status.type !== "loading";
 
   const update =
     <K extends keyof FormState>(key: K) =>
@@ -105,6 +102,56 @@ export default function ChangePasswordPro() {
       setForm((p) => ({ ...p, [key]: value as FormState[K] }));
       if (status.type !== "idle") setStatus({ type: "idle" });
     };
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      try {
+        const res = await getAdminProfile();
+        if (!res.ok) {
+          if (!alive) return;
+
+          if (res.status === 401) {
+            setStatus({ type: "error", message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại." });
+          } else {
+            setStatus({ type: "error", message: "Không thể tải thông tin tài khoản." });
+          }
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!alive) return;
+
+        const nextAccount: Account = {
+          email: data?.user?.email ?? "",
+          username: data?.profile?.username ?? "—",
+          role: data?.profile?.role === "admin" ? "Admin" : data?.profile?.role === "staff" ? "Staff" : "Viewer",
+          status: data?.profile?.status === "active" ? "Active" : "Suspended",
+          twoFA: Boolean(data?.profile?.twoFA),
+          lastLogin: fmt(data?.profile?.lastLoginAt ?? null),
+          lastIP: data?.profile?.lastLoginIp ?? "—",
+          device: data?.session?.userAgent ?? "—",
+          location: data?.session?.country ?? "—",
+        };
+
+        setAccount(nextAccount);
+
+        setForm((p) => ({
+          ...p,
+          email: nextAccount.email,
+        }));
+      } catch {
+        if (!alive) return;
+        setStatus({ type: "error", message: "Có lỗi mạng khi tải dữ liệu." });
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -120,20 +167,12 @@ export default function ChangePasswordPro() {
     setStatus({ type: "loading", message: "Đang đổi mật khẩu..." });
 
     try {
-      // ✅ Demo API call - bạn thay bằng API thật
-      // const res = await fetch("/api/change-password", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     email: form.email,
-      //     currentPassword: form.currentPassword,
-      //     newPassword: form.newPassword,
-      //     signOutAll: form.signOutAll,
-      //   }),
-      // });
-      // if (!res.ok) throw new Error((await res.json())?.message ?? "Đổi mật khẩu thất bại.");
-
-      await new Promise((r) => setTimeout(r, 800));
+      await changePassword({
+        confirmEmail: form.confirmEmail,
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+        signOutAll: form.signOutAll,
+      });
 
       setForm((p) => ({
         ...p,
@@ -149,6 +188,25 @@ export default function ChangePasswordPro() {
     } catch (err: any) {
       setStatus({ type: "error", message: err?.message ?? "Có lỗi xảy ra. Vui lòng thử lại." });
     }
+  }
+  if (!account) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.shell}>
+          <div className={styles.panel} style={{ width: "100%" }}>
+            <div className={styles.panelTitle}>Loading…</div>
+            <div className={styles.formSub}>Đang tải thông tin tài khoản.</div>
+
+            {status.type === "error" ? (
+              <div className={cx(styles.alert, styles.alertErr)}>
+                <i className="bi bi-exclamation-triangle" />
+                <span>{status.message}</span>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -170,13 +228,6 @@ export default function ChangePasswordPro() {
               <div className={styles.v}>
                 <span className={cx(styles.pill, account.twoFA ? styles.pillOk : styles.pillWarn)}>{account.twoFA ? "Enabled" : "Disabled"}</span>
               </div>
-            </div>
-
-            <div className={styles.kv}>
-              <div className={styles.k}>
-                <i className="bi bi-clock" /> Last login
-              </div>
-              <div className={styles.v}>{account.lastLogin}</div>
             </div>
 
             <div className={styles.kv}>

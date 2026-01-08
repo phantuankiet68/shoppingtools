@@ -1,6 +1,6 @@
 npm run prisma:reset
 
-npm run prisma:migrate -- --name add_user
+npm run prisma:migrate -- --name friends_block
 
 Chạy xem dữ liệu
 npm run prisma:studio
@@ -14,6 +14,8 @@ npm run prisma:migrate -- --name add_profile
 npm run prisma:merge
 npm run prisma:validate
 npm run prisma:migrate -- --name add_profile
+DATABASE_URL="mysql://root:@localhost:3306/shoppingtool"
+ABLY_API_KEY=xxxx:yyyy
 
 hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon. Bạn hãy suy nghĩ giúp tôi nhé
 
@@ -40,3 +42,16 @@ có thể check ở TypeScript không trước khi thực hiện create hay upda
 ở file ProfileForm.tsx có cần thêm gì để nhận biết không
 label after để thêm Chấm đỏ bắt buộc sau label được không tôi muốn hiển thị xuyên suốt
 Upload Popup UI
+
+hiện tại các đường dẫn api /api/admin/user/change-password nếu để vào form thì dễ bị phát hiện tôi muốn bạn giúp tôi duy chuyển vào folder contants để tránh lỗi không đáng tiếc có được không tôi đang sử dung next js 15
+tuankiet@2000A
+
+Mark-as-read khi mở chat
+Hiện bạn đã set unread: 0 ở UI, nhưng nếu DB vẫn còn unread thì reload sẽ lại hiện.
+Tạo API POST /api/admin/chat/conversations/[id]/read rồi gọi khi activeChatId đổi.
+Thông báo khi đang ở chat khác
+Khi nhận inbox:new mà conversationId !== activeChatId, bạn có thể:
+play sound nhẹ
+show toast nhỏ “New message from …”
+Presence / online
+Subscribe presence: channel.presence.enter() và presence.subscribe() để hiện “online dot” thật (không phải dot giả)

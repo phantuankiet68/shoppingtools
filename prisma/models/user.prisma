@@ -52,9 +52,19 @@ model User {
   auditLogs         AuditLog[]
 
   profile           Profile?
+
+  // ✅ FRIEND RELATIONS
+  friendRequestsSent     FriendRequest[] @relation("FriendReqFrom")
+  friendRequestsReceived FriendRequest[] @relation("FriendReqTo")
+
+  // ✅ BLOCK RELATIONS
+  blocksSent     Block[] @relation("Blocker")
+  blocksReceived Block[] @relation("Blocked")
+
   @@index([role])
   @@index([lockedUntil])
 }
+
 
 
 model Session {

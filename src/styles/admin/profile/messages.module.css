@@ -382,7 +382,7 @@
 /* ===== Main ===== */
 .main {
   display: grid;
-  grid-template-rows: 72px 1fr 86px;
+  grid-template-rows: 72px 1fr 126px;
   min-width: 0;
 }
 
@@ -673,7 +673,6 @@
 .composerInner {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 12px;
   align-items: center;
 
   background: #ffffff;
@@ -838,4 +837,63 @@
   .sendText {
     display: none;
   }
+}
+.input {
+  resize: none;
+  overflow: hidden;
+  min-height: 40px;
+  max-height: 160px;
+  line-height: 1.4;
+  font-size: 14px;
+}
+.divRow {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+.colorPicker {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+.colorDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+.emojiPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  margin-top: 6px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  width: max-content;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.emojiBtn {
+  font-size: 20px;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.emojiBtn:hover {
+  transform: scale(1.2);
+}
+.linkAttach {
+  margin-top: 6px;
 }

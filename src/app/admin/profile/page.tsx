@@ -52,7 +52,6 @@ export default function AdminProfilePage() {
       .then((data) => {
         if (!alive) return;
         setUser(data?.user ?? null);
-        console.log(data);
       })
       .catch(() => {});
 

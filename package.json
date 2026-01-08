@@ -19,7 +19,9 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@ably-labs/react-hooks": "^2.1.2",
     "@prisma/client": "^6.19.1",
+    "ably": "^2.16.0",
     "bcrypt": "^6.0.0",
     "bootstrap-icons": "^1.13.1",
     "cookie": "^1.1.1",
