@@ -544,3 +544,72 @@
     transform: translateY(0);
   }
 }
+
+@media (max-width: 1600px) {
+  .topTitle {
+    font-size: 17px;
+  }
+  .linkBtn {
+    font-weight: 900;
+    font-size: 16px;
+  }
+  .iconBtn {
+    width: 28px;
+    height: 28px;
+  }
+  .grid {
+    padding: 10px;
+  }
+  .card {
+    border-radius: 8px;
+  }
+  .input {
+    outline: none;
+    height: 30px;
+    font-size: 13px;
+  }
+  .label {
+    color: #8b8b8b;
+    font-size: 13px;
+  }
+  .blockTitle {
+    margin-top: 0px;
+    font-size: 14px;
+  }
+  .inputIcon {
+    border-radius: 6px;
+    align-items: center;
+    height: 30px;
+  }
+  .page {
+    height: 89vh;
+    overflow: hidden;
+  }
+  .wrap {
+    height: 89vh;
+    padding: 0;
+    overflow: auto;
+  }
+  .addPay {
+    font-size: 13px;
+  }
+  .cardNumber {
+    font-size: 13px;
+  }
+  .muted {
+    color: rgb(156, 163, 175);
+    font-size: 12px;
+  }
+  .secondaryBtn {
+    height: 30px;
+    font-size: 13px;
+  }
+  .primaryBtn {
+    height: 30px;
+    font-size: 13px;
+  }
+  .title {
+    font-size: 17px;
+    font-weight: 850;
+  }
+}

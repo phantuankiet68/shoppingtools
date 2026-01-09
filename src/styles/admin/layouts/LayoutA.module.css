@@ -1908,3 +1908,15 @@
   border-right: 8px solid transparent;
   border-bottom: 8px solid #ffffff;
 }
+
+.LayoutA-module__Ah3ubG__content {
+  height: 94vh;
+  padding: 10px 10px 0;
+  overflow: auto;
+}
+
+@media (max-width: 1600px) {
+  .content {
+    height: 94vh;
+  }
+}

@@ -550,3 +550,45 @@
   color: #6b7280; /* gray-500 */
   user-select: none;
 }
+
+@media (max-width: 1600px) {
+  .sidebar {
+    background: #fff;
+    border-right: 1px solid #0000000f;
+    flex-direction: column;
+    width: 200px;
+    padding: 8px 8px 10px;
+    display: flex;
+  }
+  .avatarWrap {
+    width: 160px;
+    height: 160px;
+  }
+  .addBtn {
+    width: 30px;
+    height: 30px;
+    bottom: -7px;
+    right: 7px;
+  }
+  .personName {
+    font-size: 22px;
+  }
+  .navTitle {
+    font-size: 12px;
+  }
+  .navItem {
+    border-radius: 5px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .navItem i {
+    font-size: 14px;
+  }
+  .page {
+    grid-template-columns: 200px 1fr 260px;
+  }
+  .active:after {
+    width: 8px;
+    height: 8px;
+  }
+}

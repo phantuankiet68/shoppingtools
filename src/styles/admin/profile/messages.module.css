@@ -450,7 +450,6 @@
 }
 
 .headerTitleRow {
-  margin-top: 5px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -794,7 +793,6 @@
   gap: 8px;
 
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
-  box-shadow: 0 14px 22px rgba(37, 99, 235, 0.22);
 }
 
 .sendBtn:hover {
@@ -896,4 +894,101 @@
 }
 .linkAttach {
   margin-top: 6px;
+}
+
+@media (max-width: 1600px) {
+  .wrap {
+    grid-template-columns: 260px 1fr;
+    gap: 8px;
+    height: calc(100vh - 95px);
+    padding: 8px;
+  }
+  .sidebarTitleIcon i {
+    color: #4f6ee6;
+    font-size: 13px;
+  }
+  .sidebarTitleIcon {
+    border-radius: 5px;
+    width: 28px;
+    height: 28px;
+  }
+  .newChatBtn {
+    border-radius: 5px;
+    width: 28px;
+    height: 28px;
+  }
+  .sidebarTitleSub {
+    font-size: 10px;
+  }
+  .sidebarTitleMain {
+    font-size: 13px;
+  }
+  .sidebarTools {
+    padding: 8px 10px;
+  }
+  .searchBox {
+    grid-template-columns: 18px 1fr 20px;
+    border-radius: 8px;
+  }
+  .searchAction {
+    width: 25px;
+    height: 25px;
+  }
+  .tab {
+    height: 26px;
+    font-size: 12px;
+  }
+  .chatAvatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+  }
+  .chatRow {
+    border-radius: 8px;
+    grid-template-columns: 28px 1fr 18px;
+    gap: 10px;
+    padding: 5px;
+  }
+  .chatList {
+    padding: 8px 10px;
+  }
+  .chatName {
+    font-size: 13px;
+  }
+  .chatSender {
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .input {
+    font-size: 12px;
+  }
+  .iconBtn {
+    width: 30px;
+    height: 30px;
+  }
+  .header {
+    padding: 9px 10px;
+  }
+  .headerTitle {
+    font-size: 13px;
+  }
+  .headerKicker {
+    font-size: 11px;
+  }
+  .membersPill {
+    gap: 8px;
+    height: 21px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+  .toolBtn {
+    width: 28px;
+    height: 28px;
+  }
+  .sendBtn {
+    height: 33px;
+  }
+  .sendText {
+    font-size: 12px;
+  }
 }
