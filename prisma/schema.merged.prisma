@@ -14,6 +14,164 @@ enum Locale {
   ja
 }
 
+// ==== part: Calendar.prisma ====
+enum CalendarEventColor {
+  BLUE
+  PURPLE
+  GREEN
+  AMBER
+  RED
+  TEAL
+}
+
+model Calendar {
+  id        String  @id @default(cuid())
+  ownerId   String
+  name      String
+  isDefault Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner  User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  events CalendarEvent[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId])
+}
+
+model CalendarEvent {
+  id         String @id @default(cuid())
+  calendarId String
+  creatorId  String
+
+  title       String
+  description String?
+  location    String?
+
+  color CalendarEventColor @default(BLUE)
+
+  allDay  Boolean  @default(false)
+  startAt DateTime
+  endAt   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calendar Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  creator  User     @relation("UserCreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([calendarId, startAt])
+  @@index([creatorId, startAt])
+}
+
+// ==== part: File.prisma ====
+
+model FileFolder {
+  id   String @id @default(cuid())
+  name String
+
+  // Tree
+  parentId String?
+  parent   FileFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children FileFolder[] @relation("FolderTree")
+
+  // Ownership (map vào User.folders)
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Files inside folder
+  files StoredFile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // chống trùng tên folder trong cùng 1 thư mục (theo user)
+  @@unique([ownerId, parentId, name])
+  @@index([ownerId, parentId])
+}
+
+model StoredFile {
+  id String @id @default(cuid())
+
+  folderId String?
+  folder   FileFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  // Ownership (map vào User.files)
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  name       String
+  mimeType   String
+  sizeBytes  Int
+  storageKey String @unique // key để tìm file trong storage private
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, folderId])
+  @@index([folderId])
+}
+
+// ==== part: Image.prisma ====
+model ImageFolder {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name     String
+  parentId String?
+  parent   ImageFolder?  @relation("ImageFolderTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children ImageFolder[] @relation("ImageFolderTree")
+
+  images ImageAsset[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, parentId, name])
+  @@unique([id, userId])
+  @@index([userId, parentId])
+}
+
+model ImageAsset {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  folderId String?
+  folder   ImageFolder? @relation(fields: [folderId, userId], references: [id, userId], onDelete: Restrict)
+
+  originalName String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+
+  width  Int?
+  height Int?
+
+  tag ImageTag?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([fileName])
+  @@index([userId, createdAt])
+  @@index([userId, tag])
+}
+
+enum ImageTag {
+  NEW
+  HDR
+  AI
+  FAVORITE
+  COVER
+  BANNER
+  AVATAR
+  PRODUCT
+}
+
 // ==== part: MenuItem.prisma ====
 model MenuItem {
   id String @id @default(cuid())
@@ -329,8 +487,17 @@ model User {
   friendRequestsReceived FriendRequest[] @relation("FriendReqTo")
 
   // ✅ BLOCK RELATIONS
-  blocksSent          Block[]              @relation("Blocker")
-  blocksReceived      Block[]              @relation("Blocked")
+  blocksSent     Block[] @relation("Blocker")
+  blocksReceived Block[] @relation("Blocked")
+
+  calendars      Calendar[]
+  calendarEvents CalendarEvent[] @relation("UserCreatedEvents")
+
+  folders FileFolder[]
+  files   StoredFile[]
+
+  images              ImageAsset[]
+  imageFolders        ImageFolder[]
   conversationMembers ConversationMember[]
   messages            Message[]
 

@@ -1,11 +1,24 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/profile/tasks.module.css";
 
 type Member = { id: string; key: "A" | "B" | "C" | "D"; name: string; sub: string; color: "blue" | "purple" | "pink" | "amber" };
 type TimelineItem = { id: string; label: string; pct: number; startCol: number; span: number; color: Member["color"] };
 type Task = { id: string; title: string; dot?: Member["color"]; meta?: string; starred?: boolean };
+
+type ColKey = "draft" | "progress" | "editing" | "done";
+
+type DragPayload = {
+  taskId: string;
+  fromCol: ColKey;
+};
+
+type DragState = {
+  dragging?: DragPayload;
+  overCol?: ColKey;
+  overIndex?: number; // vị trí sẽ insert vào (0..len)
+};
 
 export default function AdminTasksClient() {
   const members: Member[] = useMemo(
@@ -28,42 +41,113 @@ export default function AdminTasksClient() {
     []
   );
 
-  const draft: Task[] = useMemo(
-    () => [
+  // ====== Kanban state (thay vì useMemo cố định) ======
+  const [kanban, setKanban] = useState<Record<ColKey, Task[]>>({
+    draft: [
       { id: "d1", title: "Incident ut labore et dolore", dot: "blue", meta: "2 files • 1 note" },
       { id: "d2", title: "Magna aliqua enim", dot: "purple", meta: "3 subtasks" },
     ],
-    []
-  );
-
-  const progress: Task[] = useMemo(
-    () => [
+    progress: [
       { id: "p1", title: "Incident ut labore et dolore", dot: "pink", meta: "Progress 75%", starred: true },
       { id: "p2", title: "Consectetur adipiscing", dot: "blue", meta: "Needs review" },
     ],
-    []
-  );
-
-  const editing: Task[] = useMemo(
-    () => [
+    editing: [
       { id: "e1", title: "Adipiscing elit sed do", dot: "purple", meta: "Supervisor: A" },
       { id: "e2", title: "Labore magna aliqua", dot: "blue", meta: "2 comments" },
       { id: "e3", title: "Excepteur sint occaecat", dot: "amber", meta: "QA" },
     ],
-    []
-  );
-
-  const done: Task[] = useMemo(
-    () => [
+    done: [
       { id: "x1", title: "Incididunt ut labore et…", dot: "blue", meta: "Done" },
       { id: "x2", title: "Magna aliqua enim…", dot: "purple", meta: "Done" },
       { id: "x3", title: "Incididunt ut labore et…", dot: "pink", meta: "Done" },
     ],
-    []
-  );
+  });
 
+  // ====== Drag helpers ======
+  const [drag, setDrag] = useState<DragState>({});
+  const dragImageRef = useRef<HTMLDivElement | null>(null);
+
+  function setDataTransfer(e: React.DragEvent, payload: DragPayload) {
+    e.dataTransfer.setData("application/x-kanban-task", JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = "move";
+
+    // Optional: custom drag image (nhẹ nhàng hơn)
+    if (dragImageRef.current) {
+      e.dataTransfer.setDragImage(dragImageRef.current, 10, 10);
+    }
+  }
+
+  function readPayload(e: React.DragEvent): DragPayload | null {
+    const raw = e.dataTransfer.getData("application/x-kanban-task");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as DragPayload;
+    } catch {
+      return null;
+    }
+  }
+
+  function removeFromColumn(col: ColKey, taskId: string, state: Record<ColKey, Task[]>) {
+    const idx = state[col].findIndex((t) => t.id === taskId);
+    if (idx < 0) return { next: state, removed: null as Task | null, removedIndex: -1 };
+
+    const removed = state[col][idx];
+    const nextCol = state[col].slice();
+    nextCol.splice(idx, 1);
+
+    return {
+      next: { ...state, [col]: nextCol },
+      removed,
+      removedIndex: idx,
+    };
+  }
+
+  function insertIntoColumn(col: ColKey, item: Task, index: number, state: Record<ColKey, Task[]>) {
+    const nextCol = state[col].slice();
+    const safeIndex = Math.max(0, Math.min(index, nextCol.length));
+    nextCol.splice(safeIndex, 0, item);
+    return { ...state, [col]: nextCol };
+  }
+
+  function moveTask(payload: DragPayload, toCol: ColKey, toIndex: number) {
+    setKanban((prev) => {
+      // 1) remove from source
+      const { next: afterRemove, removed } = removeFromColumn(payload.fromCol, payload.taskId, prev);
+      if (!removed) return prev;
+
+      // 2) adjust index if moving within same column and removing above insertion point
+      let finalIndex = toIndex;
+      if (payload.fromCol === toCol) {
+        // if removed index < toIndex, then insertion index shifts by -1
+        const oldIndex = prev[payload.fromCol].findIndex((t) => t.id === payload.taskId);
+        if (oldIndex >= 0 && oldIndex < toIndex) finalIndex = Math.max(0, toIndex - 1);
+      }
+
+      // 3) insert into target
+      return insertIntoColumn(toCol, removed, finalIndex, afterRemove);
+    });
+  }
+
+  // ====== Render ======
   return (
     <div className={styles.page}>
+      {/* invisible drag image */}
+      <div
+        ref={dragImageRef}
+        style={{
+          position: "fixed",
+          top: -9999,
+          left: -9999,
+          padding: 8,
+          borderRadius: 12,
+          background: "rgba(0,0,0,.75)",
+          color: "#fff",
+          fontSize: 12,
+          pointerEvents: "none",
+        }}>
+        Moving…
+      </div>
+
       {/* Header */}
       <div className={styles.top}>
         <div className={styles.topLeft}>
@@ -111,7 +195,7 @@ export default function AdminTasksClient() {
           </div>
         </aside>
 
-        {/* Center: timeline + kanban */}
+        {/* Center: timeline */}
         <section className={styles.center}>
           <div className={styles.timelineCard}>
             <div className={styles.timelineGrid}>
@@ -157,52 +241,210 @@ export default function AdminTasksClient() {
           </div>
         </section>
       </div>
+
+      {/* Kanban */}
       <div className={styles.kanban}>
-        <KanbanCol title="Draft" items={draft} />
-        <KanbanCol title="In Progress" items={progress} />
-        <KanbanCol title="Editing" items={editing} />
-        <KanbanCol title="Done" items={done} />
+        <KanbanCol
+          colKey="draft"
+          title="Draft"
+          items={kanban.draft}
+          drag={drag}
+          onDragStart={(payload) => setDrag({ dragging: payload })}
+          onDragOverIndex={(colKey, index) => setDrag((s) => ({ ...s, overCol: colKey, overIndex: index }))}
+          onDrop={(payload, colKey, index) => {
+            moveTask(payload, colKey, index);
+            setDrag({});
+          }}
+          onDragEnd={() => setDrag({})}
+          setDataTransfer={setDataTransfer}
+        />
+
+        <KanbanCol
+          colKey="progress"
+          title="In Progress"
+          items={kanban.progress}
+          drag={drag}
+          onDragStart={(payload) => setDrag({ dragging: payload })}
+          onDragOverIndex={(colKey, index) => setDrag((s) => ({ ...s, overCol: colKey, overIndex: index }))}
+          onDrop={(payload, colKey, index) => {
+            moveTask(payload, colKey, index);
+            setDrag({});
+          }}
+          onDragEnd={() => setDrag({})}
+          setDataTransfer={setDataTransfer}
+        />
+
+        <KanbanCol
+          colKey="editing"
+          title="Editing"
+          items={kanban.editing}
+          drag={drag}
+          onDragStart={(payload) => setDrag({ dragging: payload })}
+          onDragOverIndex={(colKey, index) => setDrag((s) => ({ ...s, overCol: colKey, overIndex: index }))}
+          onDrop={(payload, colKey, index) => {
+            moveTask(payload, colKey, index);
+            setDrag({});
+          }}
+          onDragEnd={() => setDrag({})}
+          setDataTransfer={setDataTransfer}
+        />
+
+        <KanbanCol
+          colKey="done"
+          title="Done"
+          items={kanban.done}
+          drag={drag}
+          onDragStart={(payload) => setDrag({ dragging: payload })}
+          onDragOverIndex={(colKey, index) => setDrag((s) => ({ ...s, overCol: colKey, overIndex: index }))}
+          onDrop={(payload, colKey, index) => {
+            moveTask(payload, colKey, index);
+            setDrag({});
+          }}
+          onDragEnd={() => setDrag({})}
+          setDataTransfer={setDataTransfer}
+        />
       </div>
     </div>
   );
 }
 
-function KanbanCol({ title, items }: { title: string; items: Task[] }) {
+function KanbanCol(props: {
+  colKey: ColKey;
+  title: string;
+  items: Task[];
+  drag: DragState;
+  onDragStart: (payload: DragPayload) => void;
+  onDragOverIndex: (colKey: ColKey, index: number) => void;
+  onDrop: (payload: DragPayload, colKey: ColKey, index: number) => void;
+  onDragEnd: () => void;
+  setDataTransfer: (e: React.DragEvent, payload: DragPayload) => void;
+}) {
+  const { colKey, title, items, drag, onDragStart, onDragOverIndex, onDrop, onDragEnd, setDataTransfer } = props;
+
+  const isOverThisCol = drag.overCol === colKey;
+  const overIndex = isOverThisCol ? drag.overIndex : undefined;
+
+  function handleColDragOver(e: React.DragEvent) {
+    // cần preventDefault để cho phép drop
+    e.preventDefault();
+    // nếu kéo vào khoảng trống cuối cột => insert ở cuối
+    onDragOverIndex(colKey, items.length);
+  }
+
+  function handleColDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const payload = readPayload(e);
+    if (!payload) return;
+    const index = typeof overIndex === "number" ? overIndex : items.length;
+    onDrop(payload, colKey, index);
+  }
+
+  function readPayload(e: React.DragEvent): DragPayload | null {
+    const raw = e.dataTransfer.getData("application/x-kanban-task");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as DragPayload;
+    } catch {
+      return null;
+    }
+  }
+
   return (
-    <div className={styles.col}>
+    <div
+      className={styles.col}
+      onDragOver={handleColDragOver}
+      onDrop={handleColDrop}
+      style={
+        isOverThisCol
+          ? {
+              outline: "2px dashed rgba(0,0,0,.12)",
+              outlineOffset: 6,
+              borderRadius: 16,
+            }
+          : undefined
+      }>
       <div className={styles.colHead}>
         <div className={styles.colTitle}>{title}</div>
         <span className={styles.colCount}>{items.length}</span>
       </div>
 
       <div className={styles.cardList}>
-        {items.map((t) => (
-          <div key={t.id} className={styles.taskCard}>
-            <div className={styles.taskTop}>
-              <span className={`${styles.taskDot} ${t.dot ? styles[`c_${t.dot}`] : ""}`} />
-              <div className={styles.taskTitle}>{t.title}</div>
-              {t.starred && (
-                <span className={styles.star} title="Starred">
-                  <i className="bi bi-star-fill" />
-                </span>
-              )}
-            </div>
+        {/* placeholder line at top (index 0) */}
+        {isOverThisCol && overIndex === 0 && <DropLine />}
 
-            {t.meta && <div className={styles.taskMeta}>{t.meta}</div>}
+        {items.map((t, idx) => {
+          const isDraggingThis = drag.dragging?.taskId === t.id;
 
-            <div className={styles.taskFoot}>
-              <span className={styles.pill}>
-                <i className="bi bi-check2-circle" /> Main Task
-              </span>
-              <span className={styles.smallIcons}>
-                <i className="bi bi-chat-dots" />
-                <i className="bi bi-paperclip" />
-              </span>
+          return (
+            <div key={t.id}>
+              <div
+                className={styles.taskCard}
+                draggable
+                onDragStart={(e) => {
+                  const payload: DragPayload = { taskId: t.id, fromCol: colKey };
+                  setDataTransfer(e, payload);
+                  onDragStart(payload);
+                }}
+                onDragEnd={onDragEnd}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  // Khi rê qua card này, ta set vị trí insert = idx (trước card)
+                  onDragOverIndex(colKey, idx);
+                }}
+                style={
+                  isDraggingThis
+                    ? {
+                        opacity: 0.45,
+                        transform: "scale(0.99)",
+                      }
+                    : undefined
+                }>
+                <div className={styles.taskTop}>
+                  <span className={`${styles.taskDot} ${t.dot ? styles[`c_${t.dot}`] : ""}`} />
+                  <div className={styles.taskTitle}>{t.title}</div>
+                  {t.starred && (
+                    <span className={styles.star} title="Starred">
+                      <i className="bi bi-star-fill" />
+                    </span>
+                  )}
+                </div>
+
+                {t.meta && <div className={styles.taskMeta}>{t.meta}</div>}
+
+                <div className={styles.taskFoot}>
+                  <span className={styles.pill}>
+                    <i className="bi bi-check2-circle" /> Main Task
+                  </span>
+                  <span className={styles.smallIcons}>
+                    <i className="bi bi-chat-dots" />
+                    <i className="bi bi-paperclip" />
+                  </span>
+                </div>
+              </div>
+
+              {/* placeholder line between items: insert at idx+1 */}
+              {isOverThisCol && overIndex === idx + 1 && <DropLine />}
             </div>
-          </div>
-        ))}
+          );
+        })}
+
+        {/* Nếu cột trống và đang over, show drop line */}
+        {items.length === 0 && isOverThisCol && <DropLine />}
       </div>
     </div>
+  );
+}
+
+function DropLine() {
+  return (
+    <div
+      style={{
+        height: 10,
+        margin: "10px 6px",
+        borderRadius: 999,
+        background: "rgba(0,0,0,.10)",
+      }}
+    />
   );
 }
 

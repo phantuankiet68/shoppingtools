@@ -2,7 +2,7 @@
   --bg: #f6f8ff;
   --card: #ffffff;
   --line: #e9eef9;
-  --text: #0f172a;
+  --text: #242f49;
   --muted: #64748b;
   --shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
   --shadow2: 0 10px 20px rgba(15, 23, 42, 0.08);
@@ -66,15 +66,15 @@
   padding: 0 14px;
   border-radius: 14px;
   border: 1px solid #dbeafe;
-  background: #2563eb;
+  background: #3cb0ff;
   color: #fff;
-  font-weight: 900;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 14px 22px rgba(37, 99, 235, 0.2);
   transition: transform 0.12s ease, filter 0.12s ease;
+  font-size: 16px;
 }
 .primaryBtn:hover {
   transform: translateY(-1px);
@@ -156,6 +156,9 @@
 }
 .memberMeta {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: self-start;
 }
 .memberName {
   font-weight: 900;
@@ -311,11 +314,10 @@
   background: linear-gradient(to bottom, #fff, #fbfcff);
 }
 .colTitle {
-  font-weight: 950;
   color: var(--text);
-  font-size: 12px;
-  letter-spacing: 0.12em;
   text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 900;
 }
 .colCount {
   min-width: 26px;
@@ -333,9 +335,33 @@
 }
 
 .cardList {
+  gap: 10px;
   padding: 12px;
   display: grid;
-  gap: 10px;
+  height: 36vh;
+  overflow: auto;
+
+  /* scrollbar */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #cfd3da transparent; /* Firefox */
+}
+
+/* Webkit (Chrome, Edge, Safari) */
+.cardList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cardList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cardList::-webkit-scrollbar-thumb {
+  background-color: #cfd3da;
+  border-radius: 999px;
+}
+
+.cardList::-webkit-scrollbar-thumb:hover {
+  background-color: #b7bcc6;
 }
 
 .taskCard {
@@ -363,7 +389,7 @@
   background: #e2e8f0;
 }
 .taskTitle {
-  font-weight: 900;
+  font-weight: 600;
   color: var(--text);
   font-size: 13px;
   line-height: 1.2;
@@ -377,8 +403,7 @@
 .taskMeta {
   margin-top: 6px;
   color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
 }
 
 .taskFoot {
@@ -595,34 +620,34 @@
 
 /* ===== Colors ===== */
 .c_blue {
-  background: linear-gradient(90deg, #1d4ed8, #60a5fa);
+  background: linear-gradient(90deg, #84c6ff, #a8cfff);
 }
 .c_purple {
-  background: linear-gradient(90deg, #7c3aed, #c4b5fd);
+  background: linear-gradient(90deg, #f4b472, #fdd2b5);
 }
 .c_pink {
-  background: linear-gradient(90deg, #db2777, #f9a8d4);
+  background: linear-gradient(90deg, #3ae1fa, #a8e6f9);
 }
 .c_amber {
-  background: linear-gradient(90deg, #f59e0b, #fde68a);
+  background: linear-gradient(90deg, #0bf5b4, #8afdea);
 }
 
 /* For dots/badges that use same class */
 .planDot.c_blue,
 .taskDot.c_blue {
-  background: #2563eb;
+  background: #ffa216;
 }
 .planDot.c_purple,
 .taskDot.c_purple {
-  background: #7c3aed;
+  background: #3aed62;
 }
 .planDot.c_pink,
 .taskDot.c_pink {
-  background: #db2777;
+  background: #68c2ff;
 }
 .planDot.c_amber,
 .taskDot.c_amber {
-  background: #f59e0b;
+  background: #f50b0b;
 }
 
 /* ===== Responsive ===== */

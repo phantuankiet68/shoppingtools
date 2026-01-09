@@ -86,8 +86,8 @@
 .monthRange {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .topRight {
@@ -188,16 +188,16 @@
   height: 40px;
   padding: 0 14px;
   border-radius: 14px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #2bb5ff, #26bbff);
   color: #ffffff;
-  font-weight: 950;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   box-shadow: 0 14px 22px rgba(37, 99, 235, 0.18);
   transition: transform 0.12s ease, filter 0.12s ease;
+  font-size: 15px;
 }
 .primaryBtn:hover {
   transform: translateY(-1px);
@@ -285,14 +285,10 @@
 }
 
 .events {
-  display: grid;
   gap: 8px;
-
-  /* chiếm phần còn lại */
-  flex: 1;
   min-height: 0;
-
-  /* nếu nhiều event thì cuộn trong ô */
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -349,31 +345,37 @@
   background: rgba(37, 99, 235, 0.12);
   border-color: rgba(37, 99, 235, 0.18);
   max-width: 133px;
+  max-height: 25px;
 }
 .c_purple {
   background: rgba(124, 58, 237, 0.12);
   border-color: rgba(124, 58, 237, 0.18);
   max-width: 133px;
+  max-height: 25px;
 }
 .c_green {
   background: rgba(34, 197, 94, 0.14);
   border-color: rgba(34, 197, 94, 0.18);
   max-width: 133px;
+  max-height: 25px;
 }
 .c_amber {
   background: rgba(245, 158, 11, 0.16);
   border-color: rgba(245, 158, 11, 0.22);
   max-width: 133px;
+  max-height: 25px;
 }
 .c_red {
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.18);
   max-width: 133px;
+  max-height: 25px;
 }
 .c_teal {
   background: rgba(20, 184, 166, 0.14);
   border-color: rgba(20, 184, 166, 0.18);
   max-width: 133px;
+  max-height: 25px;
 }
 
 /* ===== Responsive ===== */
@@ -388,5 +390,236 @@
   }
   .cell {
     min-height: 110px;
+  }
+}
+/* =========================
+   POPUP (Create/Edit Event)
+   ========================= */
+
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.popupCard {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.popupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.03), rgba(15, 23, 42, 0));
+}
+
+.popupTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
+
+.popupClose {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.popupClose:hover {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.14);
+  transform: translateY(-1px);
+}
+
+.popupClose:active {
+  transform: translateY(0px);
+}
+
+.popupBody {
+  padding: 14px 16px 8px;
+}
+
+.popupFooter {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+/* =========================
+   FORM
+   ========================= */
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.formRowTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(15, 23, 42, 0.4);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.formError {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.08);
+  color: #991b1b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* =========================
+   BUTTONS (popup-only)
+   ========================= */
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ghostBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.8);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.ghostBtn:hover {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+.ghostBtn:active {
+  transform: translateY(0px);
+}
+
+.dangerBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.dangerBtn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.32);
+  transform: translateY(-1px);
+}
+
+.dangerBtn:active {
+  transform: translateY(0px);
+}
+
+/* =========================
+   MOBILE tweaks
+   ========================= */
+
+@media (max-width: 520px) {
+  .popupOverlay {
+    padding: 12px;
+  }
+  .popupCard {
+    border-radius: 16px;
+  }
+  .formRowTwo {
+    grid-template-columns: 1fr;
+  }
+  .popupFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .footerRight {
+    justify-content: stretch;
+  }
+  .ghostBtn,
+  .dangerBtn {
+    width: 100%;
+    justify-content: center;
   }
 }

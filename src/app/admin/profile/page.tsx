@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import ProfileForm from "@/components/admin/profile/ProfileForm";
 import ChangePassword from "@/components/admin/profile/ChangePassword";
 import AdminMessagesClient from "@/components/admin/profile/AdminMessagesClient";
-import Task from "@/components/admin/profile/Task";
 import CalendarClient from "@/components/admin/profile/Calendar";
 import AdminFilesClient from "@/components/admin/profile/AdminFilesClient";
 import AdminImagesClient from "@/components/admin/profile/AdminImagesClient";
@@ -105,11 +104,6 @@ export default function AdminProfilePage() {
           <div className={styles.navSection}>
             <div className={styles.navTitle}>Workspace</div>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "task" ? styles.active : ""}`} onClick={() => setSection("task")}>
-              <i className="bi bi-check2-square" />
-              <span>Tasks</span>
-            </button>
-
             <button type="button" className={`${styles.navItem} ${activeSection === "calendar" ? styles.active : ""}`} onClick={() => setSection("calendar")}>
               <i className="bi bi-calendar3" />
               <span>Calendar</span>
@@ -158,12 +152,6 @@ export default function AdminProfilePage() {
         {activeSection === "message" && (
           <section id="message">
             <AdminMessagesClient />
-          </section>
-        )}
-
-        {activeSection === "task" && (
-          <section id="task">
-            <Task />
           </section>
         )}
 

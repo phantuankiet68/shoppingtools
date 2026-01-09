@@ -61,6 +61,16 @@ model User {
   blocksSent     Block[] @relation("Blocker")
   blocksReceived Block[] @relation("Blocked")
 
+
+  calendars      Calendar[]
+  calendarEvents CalendarEvent[] @relation("UserCreatedEvents")
+
+  folders FileFolder[]
+  files   StoredFile[]
+
+  images    ImageAsset[]
+  imageFolders ImageFolder[]
+
   @@index([role])
   @@index([lockedUntil])
 }
