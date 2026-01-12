@@ -1,0 +1,382 @@
+enum CurrencyCode {
+  USD
+  VND
+}
+
+enum PaymentMethod {
+  CARD
+  BANK
+  CASH
+  EWALLET
+  COD
+}
+
+enum TxStatus {
+  PENDING
+  PAID
+  REFUNDED
+  CANCELLED
+}
+
+enum TxType {
+  EXPENSE      // chi phí
+  INCOME       // thu nhập (nếu sau này bạn muốn)
+  ADJUSTMENT   // điều chỉnh
+}
+
+enum SpendCategoryType {
+  INVENTORY
+  SOFTWARE
+  MARKETING
+  OPS
+  TRAVEL
+  OFFICE
+  OTHER
+}
+
+enum ReceiptStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+}
+
+enum SalesChannel {
+  SHOP
+  MARKETPLACE
+  WHOLESALE
+}
+
+enum SalesStatus {
+  DELIVERING
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERING
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+model SpendCategory {
+  id        String            @id @default(cuid())
+  name      String            @unique
+  type      SpendCategoryType @default(OTHER)
+  icon      String?           // optional: "bi-cash-stack"...
+  color     String?           // optional: "blue", "#0ea5e9"
+  isActive  Boolean           @default(true)
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  transactions Transaction[]
+
+  @@index([type])
+}
+
+model Merchant {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  website   String?
+  email     String?
+  phone     String?
+  address   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type          TxType        @default(EXPENSE)
+  status        TxStatus      @default(PAID)
+  method        PaymentMethod @default(CARD)
+  currency      CurrencyCode  @default(USD)
+
+  title         String
+  description   String?
+
+  merchantId    String?
+  merchant      Merchant?     @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+
+  categoryId    String?
+  category      SpendCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  subtotalCents Int           @default(0)
+  taxCents      Int           @default(0)
+  totalCents    Int           @default(0)
+
+  occurredAt    DateTime
+  reference     String?
+  notes         String?
+
+  inventoryReceiptId String? @unique
+
+
+  lines        TransactionLine[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, occurredAt])
+  @@index([status])
+  @@index([categoryId])
+  @@index([merchantId])
+}
+
+model TransactionLine {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  // optional: gắn vào product nếu là mua hàng hoá
+  productId     String?
+  product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  title         String
+  qty           Int         @default(1)
+  unitPriceCents Int        @default(0)
+  totalCents    Int         @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([transactionId])
+  @@index([productId])
+}
+
+
+model ProductCategory {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  slug      String
+  isActive  Boolean @default(true)
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, slug])
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+
+model Product {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  slug        String
+  description String? @db.Text
+
+  sku       String
+  barcode   String?
+
+  priceCents Int @default(0)
+  costCents  Int @default(0)
+
+  stock      Int @default(0)   // tồn kho đơn giản
+  isActive   Boolean @default(true)
+
+  categoryId String?
+  category   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  images     ProductImage[]
+  attributes ProductAttribute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, sku])
+  @@unique([userId, slug])
+  @@unique([userId, barcode])
+  @@index([userId])
+  @@index([userId, name])
+}
+
+
+
+model Supplier {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  receipts  InventoryReceipt[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model InventoryReceipt {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  supplierId  String?
+  supplier    Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  status      ReceiptStatus @default(PENDING)
+  currency    CurrencyCode  @default(USD)
+
+  receivedAt  DateTime
+  reference   String?       // PO / invoice
+
+  subtotalCents Int @default(0)
+  taxCents      Int @default(0)
+  totalCents    Int @default(0)
+
+  notes       String?
+
+  items       InventoryReceiptItem[]
+
+  // optional: auto tạo 1 Transaction “Inventory Receipt” cho spending dashboard
+  transaction Transaction?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, receivedAt])
+  @@index([status])
+  @@index([supplierId])
+}
+
+model InventoryReceiptItem {
+  id          String           @id @default(cuid())
+  receiptId   String
+  receipt     InventoryReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+
+  productId   String
+  product     Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  qty         Int
+  unitCostCents Int
+  totalCents  Int
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([receiptId])
+  @@index([productId])
+}
+model Customer {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  email     String?
+  phone     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+   orders Order[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+
+model ProductImage {
+  id        String   @id @default(cuid())
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // URL ảnh (đã upload lên /uploads hoặc S3...)
+  url       String
+
+  // Tên file (optional)
+  fileName  String?
+
+  // sắp xếp ảnh trong gallery
+  sort      Int      @default(0)
+
+  // ảnh cover (optional nhưng rất hữu ích)
+  isCover   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([productId, sort])
+}
+
+
+model ProductAttribute {
+  id        String @id @default(cuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  key       String   // ví dụ: "Chất liệu"
+  value     String   // ví dụ: "Cotton"
+  sort      Int      @default(0)
+
+  @@index([productId, sort])
+}
+
+
+model Order {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  status     OrderStatus @default(PENDING)
+  currency   CurrencyCode @default(VND)
+
+  subtotalCents Int @default(0)
+  shippingCents Int @default(0)
+  totalCents    Int @default(0)
+
+  items     OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+
+model OrderItem {
+  id        String @id @default(cuid())
+
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  qty       Int
+  priceCents Int
+  totalCents Int
+
+  @@index([orderId])
+  @@index([productId])
+}

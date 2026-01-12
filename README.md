@@ -55,3 +55,5 @@ play sound nhẹ
 show toast nhỏ “New message from …”
 Presence / online
 Subscribe presence: channel.presence.enter() và presence.subscribe() để hiện “online dot” thật (không phải dot giả)
+Hiện tại file này tôi muốn tính tổng số sẳn phẩm thu vào và tổng sản phẩm đã bán và tổng số sản phẩm đang tồn kho và số sản phẩm đang được giao và tổng sản phẩm bị trả lại, tổng chi tiêu cho sẳn phẩm thu vào và bán. dưới là tổng kết lời lỗ và Spending by category hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon.
+Hiện tại ở trong ui model tôi muốn them phần kéo thả ảnh vào và sao khi kéo thả ảnh vào có thể preview được và nếu như create product ảnh sẽ được lưu vào db và move anh đến dường dẫn puclic/upload/images

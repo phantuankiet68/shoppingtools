@@ -71,6 +71,20 @@ model User {
   images    ImageAsset[]
   imageFolders ImageFolder[]
 
+    // Spending / finance
+  transactions    Transaction[]
+  spendCategories SpendCategory[]
+  merchants       Merchant[]
+
+  // Inventory / sales
+  products        Product[]
+  suppliers       Supplier[]
+  inventoryReceipts InventoryReceipt[]
+
+ customers Customer[]
+  orders    Order[]
+
+
   @@index([role])
   @@index([lockedUntil])
 }
