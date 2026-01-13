@@ -283,27 +283,6 @@ export default function SettingsPage() {
 
           {/* Appearance */}
           <Section icon="bi-palette2" title="Appearance" desc="Theme, colors and layout feel. Includes live preview.">
-            <Row label="Theme mode">
-              <div className={styles.segment}>
-                <SegBtn active={state.theme === "light"} onClick={() => set("theme", "light")} icon="bi-sun">
-                  Light
-                </SegBtn>
-                <SegBtn active={state.theme === "dark"} onClick={() => set("theme", "dark")} icon="bi-moon-stars">
-                  Dark
-                </SegBtn>
-                <SegBtn active={state.theme === "auto"} onClick={() => set("theme", "auto")} icon="bi-circle-half">
-                  Auto
-                </SegBtn>
-              </div>
-            </Row>
-
-            <Row label="Accent color" hint="Used for primary buttons, links, highlights.">
-              <div className={styles.colorRow}>
-                <input className={styles.color} type="color" value={state.accent} onChange={(e) => set("accent", e.target.value)} aria-label="Accent color" />
-                <input className={styles.inputMono} value={state.accent} onChange={(e) => set("accent", e.target.value)} placeholder="#6f42c1" />
-              </div>
-            </Row>
-
             <Row label="Font size">
               <select className={styles.select} value={state.fontSize} onChange={(e) => set("fontSize", e.target.value as any)}>
                 <option value="sm">Small</option>
@@ -318,26 +297,6 @@ export default function SettingsPage() {
                 <span className={styles.pill}>{state.radius}px</span>
               </div>
             </Row>
-
-            <div className={styles.previewCard} aria-label="Preview">
-              <div className={styles.previewTop}>
-                <div className={styles.previewDot} />
-                <div className={styles.previewDot} />
-                <div className={styles.previewDot} />
-              </div>
-              <div className={styles.previewBody}>
-                <div className={styles.previewTitle}>Preview</div>
-                <div className={styles.previewText}>Buttons, chips and cards will follow your current settings.</div>
-                <div className={styles.previewActions}>
-                  <button type="button" className={styles.btnPrimarySmall}>
-                    <i className="bi bi-lightning-charge" /> Primary
-                  </button>
-                  <button type="button" className={styles.btnGhostSmall}>
-                    <i className="bi bi-gear" /> Secondary
-                  </button>
-                </div>
-              </div>
-            </div>
           </Section>
 
           {/* Content / Data */}
@@ -369,6 +328,29 @@ export default function SettingsPage() {
               <Toggle checked={state.showBarcode} onChange={(v) => set("showBarcode", v)} />
             </Row>
           </Section>
+          {/* Advanced */}
+          <details className={styles.advanced}>
+            <summary className={styles.advancedSummary}>
+              <div className={styles.advancedLeft}>
+                <i className="bi bi-tools" />
+                <div>
+                  <div className={styles.advancedTitle}>Advanced</div>
+                  <div className={styles.advancedDesc}>Developer options and maintenance tools.</div>
+                </div>
+              </div>
+              <i className={`bi bi-chevron-down ${styles.chev}`} />
+            </summary>
+
+            <div className={styles.advancedBody}>
+              <Row label="Maintenance mode" hint="Disable public access temporarily.">
+                <Toggle checked={state.advanced.maintenanceMode} onChange={(v) => setNested(["advanced", "maintenanceMode"], v)} />
+              </Row>
+
+              <Row label="Debug mode" hint="Show extra logs and diagnostics (admin only).">
+                <Toggle checked={state.advanced.debugMode} onChange={(v) => setNested(["advanced", "debugMode"], v)} />
+              </Row>
+            </div>
+          </details>
         </div>
 
         {/* Right column */}
@@ -484,39 +466,6 @@ export default function SettingsPage() {
               </div>
             </div>
           </Section>
-
-          {/* Advanced */}
-          <details className={styles.advanced}>
-            <summary className={styles.advancedSummary}>
-              <div className={styles.advancedLeft}>
-                <i className="bi bi-tools" />
-                <div>
-                  <div className={styles.advancedTitle}>Advanced</div>
-                  <div className={styles.advancedDesc}>Developer options and maintenance tools.</div>
-                </div>
-              </div>
-              <i className={`bi bi-chevron-down ${styles.chev}`} />
-            </summary>
-
-            <div className={styles.advancedBody}>
-              <Row label="Maintenance mode" hint="Disable public access temporarily.">
-                <Toggle checked={state.advanced.maintenanceMode} onChange={(v) => setNested(["advanced", "maintenanceMode"], v)} />
-              </Row>
-
-              <Row label="Debug mode" hint="Show extra logs and diagnostics (admin only).">
-                <Toggle checked={state.advanced.debugMode} onChange={(v) => setNested(["advanced", "debugMode"], v)} />
-              </Row>
-
-              <div className={styles.advancedActions}>
-                <button type="button" className={styles.btnGhost} onClick={exportJson}>
-                  <i className="bi bi-download" /> Export JSON
-                </button>
-                <button type="button" className={styles.btnGhost} onClick={clearStorage}>
-                  <i className="bi bi-trash3" /> Clear saved
-                </button>
-              </div>
-            </div>
-          </details>
 
           {/* Bottom actions (mobile friendly) */}
           <div className={styles.footerActions}>
