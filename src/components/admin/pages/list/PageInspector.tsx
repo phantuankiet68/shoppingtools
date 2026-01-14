@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import styles from "@/styles/admin/page/page.module.css";
+import styles from "@/styles/admin/pages/PageInspector.module.css";
 import type { PageRow, SEO } from "@/lib/page/types";
 import { buildAutoSEO } from "@/lib/page/seo-utils";
 
@@ -16,10 +16,17 @@ type Props = {
   initialSeo?: SEO | null;
 };
 
+const LOCALE_PREFIX = /^\/(vi|en|ja)(?=\/|$)/i;
+
+function stripLocalePrefix(p?: string | null) {
+  if (!p) return "";
+  const s = p.trim();
+  return s.replace(LOCALE_PREFIX, "") || "/";
+}
+
 export default function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDuplicate, onDelete, initialSeo = null }: Props) {
   const hasPage = !!page;
 
-  // ===== SEO state (khởi tạo ổn định, không phụ thuộc early-return)
   const [seo, setSeo] = useState<SEO>(() => ({
     metaTitle: page?.title || "",
     metaDescription: "",
@@ -39,7 +46,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
   const [savingSEO, setSavingSEO] = useState(false);
   const [flash, setFlash] = useState("");
 
-  // Khi đổi trang, đồng bộ title cơ bản nếu trống
   useEffect(() => {
     if (!page) return;
     setSeo((prev) => ({
@@ -47,15 +53,13 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
       metaTitle: prev.metaTitle || page.title || "",
       ogTitle: prev.ogTitle || page.title || "",
     }));
-  }, [page?.id]); // dùng optional chaining
+  }, [page?.id]);
 
-  // Path hiển thị
   const pathPretty = useMemo(() => {
     if (!page) return "";
-    return page.path || `/${page.locale}${page.slug ? `/${page.slug}` : ""}`;
-  }, [page?.path, page?.locale, page?.slug]);
+    return stripLocalePrefix(page.path || "");
+  }, [page?.path]);
 
-  // Fetch SEO nếu chưa có initialSeo
   useEffect(() => {
     if (!page?.id || initialSeo) return;
     let stop = false;
@@ -63,21 +67,18 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
 
     (async () => {
       try {
-        const r = await fetch(`/api/pages/${pageId}/seo`);
+        const r = await fetch(`/api/admin/pages/${pageId}/seo`);
         if (r.ok) {
           const data = await r.json();
           if (!stop && data?.seo) setSeo((prev) => ({ ...prev, ...data.seo }));
         } else if (r.status === 404) {
-          // fallback (tuỳ backend): thử GET /api/pages/:id và lấy page.seo nếu có
-          const rp = await fetch(`/api/pages/${pageId}`);
+          const rp = await fetch(`/api/admin/pages/${pageId}`);
           if (rp.ok) {
             const d = await rp.json();
             if (!stop && d?.page?.seo) setSeo((prev) => ({ ...prev, ...d.page.seo }));
           }
         }
-      } catch {
-        /* ignore */
-      }
+      } catch {}
     })();
 
     return () => {
@@ -107,8 +108,7 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
     try {
       setSavingSEO(true);
 
-      // 1) Thử endpoint SEO chuyên biệt trước
-      const trySeo = await fetch(`/api/pages/${page.id}/seo`, {
+      const trySeo = await fetch(`/api/admin/pages/${page.id}/seo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ seo }),
@@ -119,12 +119,8 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
         setTimeout(() => setFlash(""), 1400);
         return;
       }
-      if (trySeo.status !== 404) {
-        throw new Error("Save SEO failed");
-      }
+      if (trySeo.status !== 404) throw new Error("Save SEO failed");
 
-      // 2) Fallback: cần đủ payload cho /save → fetch chi tiết để lấy blocks
-      //    (vì PageRow không có 'blocks')
       type PageDetail = {
         page?: {
           id: string;
@@ -136,13 +132,12 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
         };
       };
 
-      const detailRes = await fetch(`/api/pages/${page.id}`);
+      const detailRes = await fetch(`/api/admin/pages/${page.id}`);
       if (!detailRes.ok) throw new Error("Load page detail failed");
       const detailJson: PageDetail = await detailRes.json();
       const blocks = detailJson?.page?.blocks ?? [];
 
-      // 3) POST /save với đủ field
-      const res = await fetch(`/api/pages/save`, {
+      const res = await fetch(`/api/admin/pages/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -152,7 +147,7 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
           slug: page.slug,
           path: page.path,
           blocks,
-          seo, // server map sang các trường SEO đã thêm
+          seo,
         }),
       });
       if (!res.ok) throw new Error("Save SEO failed");
@@ -167,106 +162,117 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
     }
   };
 
+  const seoOkTitle = metaLen <= 60 ? "good" : metaLen <= 70 ? "warn" : "bad";
+  const seoOkDesc = descLen <= 160 ? "good" : descLen <= 180 ? "warn" : "bad";
+
+  const jsonLdStatus = (() => {
+    try {
+      if (!seo.structuredData?.trim()) return "empty";
+      JSON.parse(seo.structuredData);
+      return "valid";
+    } catch {
+      return "invalid";
+    }
+  })();
+
   return (
     <section className={styles.rightPane}>
-      {/* Header: luôn render để giữ cấu trúc ổn định */}
       {hasPage ? (
         <header className={styles.detailHead}>
-          <div>
-            <h2 className={styles.title}>{page!.title || "(untitled)"}</h2>
+          <div className={styles.detailInfo}>
+            <h2 className={styles.detailTitle}>{page!.title || "(untitled)"}</h2>
+
             <div className={styles.kv}>
-              <div>Locale:{page!.locale}</div>
-              <div>
-                Status: <span className={`${styles.badge} ${page!.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{page!.status}</span>
+              <div className={styles.kvItem}>
+                <span className={styles.kvLabel}>Status</span>
+                <span className={`${styles.badge} ${page!.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{page!.status}</span>
               </div>
-              <div>Updated: {new Date(page!.updatedAt || page!.createdAt || Date.now()).toLocaleString()}</div>
+
+              <div className={styles.kvItem}>
+                <span className={styles.kvLabel}>Updated</span>
+                <span className={styles.kvValue}>{new Date(page!.updatedAt || page!.createdAt || Date.now()).toLocaleString()}</span>
+              </div>
             </div>
           </div>
 
           <div className={styles.actionRow}>
-            <button className={styles.primaryBtn} onClick={onEdit}>
-              <i className="bi bi-pencil-square me-1" />
+            <button className={styles.primaryBtn} type="button" onClick={onEdit}>
+              <i className={`bi bi-pencil-square ${styles.iconLeft}`} />
               Edit
             </button>
-            <button className={styles.ghostBtn} onClick={onPreview}>
-              <i className="bi bi-box-arrow-up-right me-1" />
+
+            <button className={styles.ghostBtn} type="button" onClick={onPreview}>
+              <i className={`bi bi-box-arrow-up-right ${styles.iconLeft}`} />
               Preview
             </button>
+
             {page!.status === "PUBLISHED" ? (
-              <button className={styles.ghostBtn} onClick={onUnpublish}>
-                <i className="bi bi-eye-slash me-1" />
+              <button className={styles.ghostBtn} type="button" onClick={onUnpublish}>
+                <i className={`bi bi-eye-slash ${styles.iconLeft}`} />
                 Unpublish
               </button>
             ) : (
-              <button className={styles.ghostBtn} onClick={onPublish}>
-                <i className="bi bi-upload me-1" />
+              <button className={styles.ghostBtn} type="button" onClick={onPublish}>
+                <i className={`bi bi-upload ${styles.iconLeft}`} />
                 Publish
               </button>
             )}
-            <button className={styles.ghostBtn} onClick={onDuplicate}>
-              <i className="bi bi-layers me-1" />
+
+            <button className={styles.ghostBtn} type="button" onClick={onDuplicate}>
+              <i className={`bi bi-layers ${styles.iconLeft}`} />
               Duplicate
             </button>
-            <button className={styles.dangerBtn} onClick={onDelete}>
-              <i className="bi bi-trash me-1" />
+
+            <button className={styles.dangerBtn} type="button" onClick={onDelete}>
+              <i className={`bi bi-trash ${styles.iconLeft}`} />
               Delete
             </button>
           </div>
         </header>
       ) : (
         <div className={styles.rightEmpty}>
-          <i className="bi bi-layout-sidebar-inset" />
-          <p>Chọn một trang ở danh sách bên trái để chỉnh Settings & SEO.</p>
+          <i className={`bi bi-layout-sidebar-inset ${styles.emptyIcon}`} />
+          <p className={styles.emptyText}>Chọn một trang ở danh sách bên trái để chỉnh Settings & SEO.</p>
         </div>
       )}
 
       {flash && (
-        <div className="alert alert-warning py-2 px-3 my-2 small">
-          <i className="bi bi-info-circle me-1" /> {flash}
+        <div className={styles.notice} role="status" aria-live="polite">
+          <i className={`bi bi-info-circle ${styles.iconLeft}`} />
+          <span>{flash}</span>
         </div>
       )}
 
-      {/* Content chỉ hiện khi có page, nhưng hooks vẫn luôn được gọi ở trên */}
       {hasPage && (
         <>
-          <div className={styles.card}>
-            <div className={styles.infoGrid}>
-              <div>
-                Title: <code className={styles.code}>{page!.title || "(untitled)"}</code>
-              </div>
-              <div>
-                Locale:<code className={styles.code}>{page!.locale}</code>
-              </div>
-              <div className="d-flex align-items-center gap-2">
-                Path: <code className={styles.code}>{pathPretty}</code>
-              </div>
-            </div>
-          </div>
-
           <div className={styles.card}>
             <div className={styles.cardTitle}>SEO</div>
 
             {/* Meta Title */}
-            <div className="mb-2">
-              <div className="d-flex align-items-center justify-content-between">
-                <label className="fw-semibold font-13">Meta Title</label>
-                <span className="small text-secondary">
-                  {metaLen} <span className={metaLen <= 60 ? "text-success" : metaLen <= 70 ? "text-warning" : "text-danger"}>/ 60–70</span>
-                </span>
+            <div className={styles.field}>
+              <div className={styles.fieldTop}>
+                <label className={styles.label}>Meta Title</label>
+                <div className={styles.counter}>
+                  <span className={styles.counterNum}>{metaLen}</span>
+                  <span className={`${styles.counterHint} ${styles[`counter_${seoOkTitle}`]}`}>/ 60–70</span>
+                </div>
               </div>
-              <input className="form-control" value={seo.metaTitle} onChange={(e) => setSeo((prev) => ({ ...prev, metaTitle: e.target.value }))} placeholder={page!.title || "Tiêu đề…"} />
+
+              <input className={styles.input} value={seo.metaTitle} onChange={(e) => setSeo((prev) => ({ ...prev, metaTitle: e.target.value }))} placeholder={page!.title || "Tiêu đề…"} />
             </div>
 
             {/* Meta Description */}
-            <div className="mb-2">
-              <div className="d-flex align-items-center justify-content-between">
-                <label className="fw-semibold font-13">Meta Description</label>
-                <span className="small text-secondary">
-                  {descLen} <span className={descLen <= 160 ? "text-success" : descLen <= 180 ? "text-warning" : "text-danger"}>/ 150–160</span>
-                </span>
+            <div className={styles.field}>
+              <div className={styles.fieldTop}>
+                <label className={styles.label}>Meta Description</label>
+                <div className={styles.counter}>
+                  <span className={styles.counterNum}>{descLen}</span>
+                  <span className={`${styles.counterHint} ${styles[`counter_${seoOkDesc}`]}`}>/ 150–160</span>
+                </div>
               </div>
+
               <textarea
-                className="form-control"
+                className={styles.textarea}
                 rows={3}
                 value={seo.metaDescription}
                 onChange={(e) => setSeo((prev) => ({ ...prev, metaDescription: e.target.value }))}
@@ -275,15 +281,16 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
             </div>
 
             {/* Keywords & Canonical */}
-            <div className="row g-2">
-              <div className="col-md-6">
-                <label className="fw-semibold font-13">Keywords (optional)</label>
-                <input className="form-control" value={seo.keywords} onChange={(e) => setSeo((prev) => ({ ...prev, keywords: e.target.value }))} placeholder="zento, builder, landing page…" />
+            <div className={styles.twoCol}>
+              <div className={styles.field}>
+                <label className={styles.label}>Keywords (optional)</label>
+                <input className={styles.input} value={seo.keywords} onChange={(e) => setSeo((prev) => ({ ...prev, keywords: e.target.value }))} placeholder="zento, builder, landing page…" />
               </div>
-              <div className="col-md-6">
-                <label className="fw-semibold font-13">Canonical URL</label>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Canonical URL</label>
                 <input
-                  className="form-control"
+                  className={styles.input}
                   value={seo.canonicalUrl}
                   onChange={(e) => setSeo((prev) => ({ ...prev, canonicalUrl: e.target.value }))}
                   placeholder="https://example.com/vi/your-page"
@@ -292,50 +299,56 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
             </div>
 
             {/* Index flags */}
-            <div className="d-flex gap-3 mt-2">
-              <label className="form-check">
-                <input className="form-check-input" type="checkbox" checked={!!seo.noindex} onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))} />
-                <span className="ms-2">noindex</span>
+            <div className={styles.checkRow}>
+              <label className={styles.check}>
+                <input className={styles.checkInput} type="checkbox" checked={!!seo.noindex} onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))} />
+                <span className={styles.checkText}>noindex</span>
               </label>
-              <label className="form-check">
-                <input className="form-check-input" type="checkbox" checked={!!seo.nofollow} onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))} />
-                <span className="ms-2">nofollow</span>
+
+              <label className={styles.check}>
+                <input className={styles.checkInput} type="checkbox" checked={!!seo.nofollow} onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))} />
+                <span className={styles.checkText}>nofollow</span>
               </label>
             </div>
+
+            <div className={styles.hr} />
 
             {/* OG */}
-            <hr />
-            <div className="none">
-              <div className="row g-2">
-                <div className="col-md-6">
-                  <label className="fw-semibold font-13">OG Title</label>
-                  <input className="form-control" value={seo.ogTitle} onChange={(e) => setSeo((prev) => ({ ...prev, ogTitle: e.target.value }))} />
-                </div>
-                <div className="col-md-6">
-                  <label className="fw-semibold font-13">Twitter Card</label>
-                  <select className="form-select" value={seo.twitterCard} onChange={(e) => setSeo((prev) => ({ ...prev, twitterCard: e.target.value as SEO["twitterCard"] }))}>
-                    <option value="summary_large_image">summary_large_image</option>
-                    <option value="summary">summary</option>
-                  </select>
-                </div>
-                <div className="col-12">
-                  <label className="fw-semibold font-13">OG Description</label>
-                  <input className="form-control" value={seo.ogDescription} onChange={(e) => setSeo((prev) => ({ ...prev, ogDescription: e.target.value }))} />
-                </div>
-                <div className="col-12">
-                  <label className="fw-semibold font-13">OG Image URL</label>
-                  <input className="form-control" value={seo.ogImage} onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))} placeholder="https://…" />
-                  <div className="form-text">Khuyến nghị 1200×630px, &lt; 1MB</div>
-                </div>
+            <div className={styles.twoCol}>
+              <div className={styles.field}>
+                <label className={styles.label}>OG Title</label>
+                <input className={styles.input} value={seo.ogTitle} onChange={(e) => setSeo((prev) => ({ ...prev, ogTitle: e.target.value }))} />
               </div>
 
-              {/* Sitemap */}
-              <hr />
+              <div className={styles.field}>
+                <label className={styles.label}>Twitter Card</label>
+                <select className={styles.select} value={seo.twitterCard} onChange={(e) => setSeo((prev) => ({ ...prev, twitterCard: e.target.value as SEO["twitterCard"] }))}>
+                  <option value="summary_large_image">summary_large_image</option>
+                  <option value="summary">summary</option>
+                </select>
+              </div>
             </div>
-            <div className="row g-2">
-              <div className="col-md-6">
-                <label className="fw-semibold">Sitemap Changefreq</label>
-                <select className="form-select" value={seo.sitemapChangefreq} onChange={(e) => setSeo((prev) => ({ ...prev, sitemapChangefreq: e.target.value as SEO["sitemapChangefreq"] }))}>
+
+            <div className={styles.field}>
+              <label className={styles.label}>OG Description</label>
+              <input className={styles.input} value={seo.ogDescription} onChange={(e) => setSeo((prev) => ({ ...prev, ogDescription: e.target.value }))} />
+            </div>
+
+            <div className={styles.field}>
+              <div className={styles.fieldTop}>
+                <label className={styles.label}>OG Image URL</label>
+                <span className={styles.helper}>Khuyến nghị 1200×630px, &lt; 1MB</span>
+              </div>
+              <input className={styles.input} value={seo.ogImage} onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))} placeholder="https://…" />
+            </div>
+
+            <div className={styles.hr} />
+
+            {/* Sitemap */}
+            <div className={styles.twoCol}>
+              <div className={styles.field}>
+                <label className={styles.label}>Sitemap Changefreq</label>
+                <select className={styles.select} value={seo.sitemapChangefreq} onChange={(e) => setSeo((prev) => ({ ...prev, sitemapChangefreq: e.target.value as SEO["sitemapChangefreq"] }))}>
                   <option value="always">always</option>
                   <option value="hourly">hourly</option>
                   <option value="daily">daily</option>
@@ -345,14 +358,15 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
                   <option value="never">never</option>
                 </select>
               </div>
-              <div className="col-md-6">
-                <label className="fw-semibold">Sitemap Priority</label>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Sitemap Priority</label>
                 <input
                   type="number"
                   step="0.1"
                   min={0}
                   max={1}
-                  className="form-control"
+                  className={styles.input}
                   value={seo.sitemapPriority}
                   onChange={(e) => {
                     const v = Math.max(0, Math.min(1, Number(e.target.value)));
@@ -363,39 +377,35 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
             </div>
 
             {/* JSON-LD */}
-            <div className="mt-2">
-              <label className="fw-semibold">Structured Data (JSON-LD)</label>
+            <div className={styles.field}>
+              <label className={styles.label}>Structured Data (JSON-LD)</label>
               <textarea
-                className="form-control"
+                className={styles.textarea}
                 rows={3}
                 value={seo.structuredData}
                 onChange={(e) => setSeo((prev) => ({ ...prev, structuredData: e.target.value }))}
                 placeholder='{"@context":"https://schema.org","@type":"WebPage","name":"..."}'
               />
-              <div className="small mt-1">
-                {(() => {
-                  try {
-                    if (!seo.structuredData?.trim()) return <span className="text-secondary">Không bắt buộc</span>;
-                    JSON.parse(seo.structuredData);
-                    return <span className="text-success fw-semibold">JSON hợp lệ</span>;
-                  } catch {
-                    return <span className="text-danger fw-semibold">JSON không hợp lệ</span>;
-                  }
-                })()}
+
+              <div className={styles.jsonHint}>
+                {jsonLdStatus === "empty" && <span className={styles.jsonMuted}>Không bắt buộc</span>}
+                {jsonLdStatus === "valid" && <span className={styles.jsonOk}>JSON hợp lệ</span>}
+                {jsonLdStatus === "invalid" && <span className={styles.jsonBad}>JSON không hợp lệ</span>}
               </div>
             </div>
 
             {/* Actions */}
-            <div className="d-flex gap-2 mt-3">
-              <button className={styles.ghostBtn} onClick={handleAutoSEO}>
-                <i className="bi bi-magic me-1" />
+            <div className={styles.footerActions}>
+              <button className={styles.ghostBtn} type="button" onClick={handleAutoSEO}>
+                <i className={`bi bi-magic ${styles.iconLeft}`} />
                 Autocomplete
               </button>
-              <button className={styles.primaryBtn} onClick={handleSaveSEO} disabled={savingSEO}>
+
+              <button className={styles.primaryBtn} type="button" onClick={handleSaveSEO} disabled={savingSEO}>
                 {savingSEO ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" />
-                    Saving…
+                    <span className={styles.spinner} aria-hidden="true" />
+                    <span>Saving…</span>
                   </>
                 ) : (
                   <>Save SEO</>

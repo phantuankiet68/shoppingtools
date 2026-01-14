@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import styles from "@/styles/admin/page/page.module.css";
+import styles from "@/styles/admin/pages/pageList.module.css";
 import type { PageRow } from "@/lib/page/types";
 
 type Props = {
@@ -20,7 +20,6 @@ type Props = {
 
   onRefresh: () => void;
 
-  // 👇 NEW
   page: number;
   setPage: (n: number) => void;
   total: number;
@@ -28,26 +27,7 @@ type Props = {
   hasMore: boolean;
 };
 
-export default function PageList({
-  pages,
-  loading,
-  activeId,
-  onSelect,
-  q,
-  setQ,
-  status,
-  setStatus,
-  sortKey,
-  sortDir,
-  setSortKey,
-  setSortDir,
-  onRefresh,
-  page,
-  setPage,
-  total,
-  totalPages,
-  hasMore,
-}: Props) {
+export default function PageList({ pages, loading, activeId, onSelect, q, setQ, status, setStatus, sortKey, sortDir, setSortKey, setSortDir, onRefresh, page, setPage, total, totalPages }: Props) {
   const toggleSort = (k: Props["sortKey"]) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else {
@@ -57,7 +37,7 @@ export default function PageList({
   };
 
   const canPrev = page > 1;
-  const canNext = page < totalPages; // hoặc dựa trên hasMore
+  const canNext = page < totalPages;
 
   return (
     <aside className={styles.leftPane}>
@@ -66,31 +46,32 @@ export default function PageList({
           <i className={`bi bi-search ${styles.searchIcon}`} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by title / slug / path…" />
           {q && (
-            <button className={styles.clearBtn} onClick={() => setQ("")} title="Clear" aria-label="Clear">
+            <button className={styles.clearBtn} onClick={() => setQ("")} type="button" title="Clear" aria-label="Clear">
               <i className="bi bi-x-lg" />
             </button>
           )}
         </div>
 
         <div className={styles.toolbar}>
-          <select className="form-select form-select-sm" value={status} onChange={(e) => setStatus(e.target.value as any)}>
+          <select className={styles.select} value={status} onChange={(e) => setStatus(e.target.value as any)} aria-label="Status filter">
             <option value="all">All</option>
             <option value="PUBLISHED">Published</option>
             <option value="DRAFT">Draft</option>
           </select>
 
-          <button className={styles.ghostBtn} onClick={() => toggleSort("updatedAt")} title="Sort by updated">
+          <button className={styles.ghostBtn} type="button" onClick={() => toggleSort("updatedAt")} title="Sort by updated">
             <i className={`bi ${sortKey === "updatedAt" ? (sortDir === "asc" ? "bi-chevron-up" : "bi-chevron-down") : "bi-arrow-down-up"}`} />
-            <span className="ms-1">Updated</span>
-          </button>
-          <button className={styles.ghostBtn} onClick={() => toggleSort("title")} title="Sort by title">
-            <i className="bi bi-sort-alpha-down" />
-            <span className="ms-1">Title</span>
+            <span className={styles.btnText}>Updated</span>
           </button>
 
-          <button className={styles.refreshBtn} onClick={onRefresh} disabled={loading}>
-            <i className="bi bi-arrow-repeat me-1" />
-            {loading ? "Loading…" : ""}
+          <button className={styles.ghostBtn} type="button" onClick={() => toggleSort("title")} title="Sort by title">
+            <i className="bi bi-sort-alpha-down" />
+            <span className={styles.btnText}>Title</span>
+          </button>
+
+          <button className={styles.refreshBtn} type="button" onClick={onRefresh} disabled={loading} aria-label="Refresh">
+            <i className={`bi bi-arrow-repeat ${styles.iconLeft}`} />
+            <span>{loading ? "Loading…" : "Refresh"}</span>
           </button>
         </div>
       </div>
@@ -99,19 +80,22 @@ export default function PageList({
         {pages.length === 0 && !loading && <div className={styles.empty}>Không có trang nào.</div>}
 
         {pages.map((p) => (
-          <button key={p.id} className={`${styles.item} ${styles.sheen} ${p.id === activeId ? styles.itemActive : ""}`} onClick={() => onSelect(p.id)} title={p.title || p.slug}>
+          <button key={p.id} type="button" className={`${styles.item} ${styles.sheen} ${p.id === activeId ? styles.itemActive : ""}`} onClick={() => onSelect(p.id)} title={p.title || p.slug}>
             <div className={styles.itemIcon}>{p.locale.toUpperCase()}</div>
-            <div className="overflow-hidden">
+
+            <div className={styles.itemMain}>
               <div className={styles.itemTitle}>
-                {p.title || "(untitled)"}
+                <span className={styles.titleText}>{p.title || "(untitled)"}</span>
                 <span className={`${styles.badge} ${p.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{p.status}</span>
               </div>
+
               <div className={styles.meta}>
                 <code className={styles.code}>{p.slug}</code>
-                <span className="mx-1">•</span>
+                <span className={styles.dot}>•</span>
                 <code className={styles.code}>{p.path}</code>
               </div>
             </div>
+
             <div className={styles.itemTime}>{new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleDateString()}</div>
           </button>
         ))}
@@ -125,18 +109,19 @@ export default function PageList({
         )}
       </div>
 
-      {/* 👇 NEW: Pagination footer */}
       <div className={styles.pager}>
-        <button className={styles.pageBtn} onClick={() => canPrev && setPage(page - 1)} disabled={!canPrev || loading} aria-label="Previous page" title="Previous page">
+        <button className={styles.pageBtn} type="button" onClick={() => canPrev && setPage(page - 1)} disabled={!canPrev || loading} aria-label="Previous page" title="Previous page">
           <i className="bi bi-chevron-left" />
         </button>
 
         <div className={styles.pageInfo}>
-          Page <strong>{page}</strong> / {totalPages}
-          <span className="ms-2 text-muted">({total} items)</span>
+          <span>
+            Page <strong>{page}</strong> / {totalPages}
+          </span>
+          <span className={styles.muted}>({total} items)</span>
         </div>
 
-        <button className={styles.pageBtn} onClick={() => canNext && setPage(page + 1)} disabled={!canNext || loading} aria-label="Next page" title="Next page">
+        <button className={styles.pageBtn} type="button" onClick={() => canNext && setPage(page + 1)} disabled={!canNext || loading} aria-label="Next page" title="Next page">
           <i className="bi bi-chevron-right" />
         </button>
       </div>

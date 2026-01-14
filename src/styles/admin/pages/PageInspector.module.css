@@ -1,0 +1,434 @@
+/* =========================
+   Right pane (Inspector)
+========================= */
+.rightPane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 18px;
+
+  overflow: hidden;
+}
+
+.detailHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+.detailInfo {
+  min-width: 0;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(17, 24, 39, 0.92);
+  line-height: 1.15;
+
+  max-width: 560px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kv {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.kvItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  background: rgba(17, 24, 39, 0.03);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(17, 24, 39, 0.75);
+}
+
+.kvLabel {
+  color: rgba(17, 24, 39, 0.55);
+  font-weight: 800;
+}
+
+.kvValue {
+  color: rgba(17, 24, 39, 0.78);
+  font-weight: 800;
+}
+
+/* actions row in header */
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Buttons (share with list if you already have) */
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  border: none;
+  cursor: pointer;
+
+  color: white;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+
+  font-size: 12px;
+  font-weight: 900;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.38);
+}
+
+.primaryBtn:active {
+  transform: translateY(0);
+}
+
+.ghostBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  background: rgba(255, 255, 255, 0.7);
+  color: rgba(17, 24, 39, 0.78);
+
+  font-size: 12px;
+  font-weight: 900;
+
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.ghostBtn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.ghostBtn:active {
+  transform: scale(0.99);
+}
+
+.dangerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.1);
+  color: rgba(185, 28, 28, 1);
+
+  font-size: 12px;
+  font-weight: 900;
+
+  cursor: pointer;
+  transition: background 160ms ease, transform 120ms ease;
+}
+
+.dangerBtn:hover {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.dangerBtn:active {
+  transform: scale(0.99);
+}
+
+.iconLeft {
+  margin-right: 8px;
+}
+
+/* Empty state */
+.rightEmpty {
+  padding: 22px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  height: 100%;
+  color: rgba(17, 24, 39, 0.6);
+}
+
+.emptyIcon {
+  font-size: 26px;
+  opacity: 0.75;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Notice (replace bootstrap alert) */
+.notice {
+  margin: 10px 12px 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  color: rgba(120, 53, 15, 0.95);
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* Cards */
+.card {
+  margin: 12px;
+  padding: 12px;
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  height: 70vh;
+  overflow: auto;
+}
+
+.cardTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(17, 24, 39, 0.85);
+  margin-bottom: 10px;
+}
+
+/* Info grid */
+.infoGrid {
+  display: flex;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.infoLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(17, 24, 39, 0.65);
+}
+
+/* Fields */
+.field {
+  margin-top: 10px;
+}
+
+.fieldTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.label {
+  font-size: 13px;
+  color: rgba(17, 24, 39, 0.78);
+}
+
+.helper {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(17, 24, 39, 0.55);
+}
+
+/* Inputs */
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  outline: none;
+
+  padding: 10px 12px;
+  font-size: 13px;
+  color: rgba(17, 24, 39, 0.88);
+
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  background: white;
+}
+
+/* Two columns responsive */
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 980px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Counter */
+.counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.counterNum {
+  color: rgba(17, 24, 39, 0.72);
+}
+
+.counterHint {
+  font-weight: 900;
+}
+
+.counter_good {
+  color: rgba(21, 128, 61, 1);
+}
+.counter_warn {
+  color: rgba(161, 98, 7, 1);
+}
+.counter_bad {
+  color: rgba(185, 28, 28, 1);
+}
+
+/* Checkbox row */
+.checkRow {
+  margin-top: 10px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 10px;
+  border-radius: 14px;
+
+  background: rgba(17, 24, 39, 0.03);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkInput {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+}
+
+.checkText {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(17, 24, 39, 0.75);
+}
+
+/* HR */
+.hr {
+  height: 1px;
+  background: rgba(17, 24, 39, 0.08);
+  margin: 12px 0;
+}
+
+/* JSON hint */
+.jsonHint {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.jsonMuted {
+  color: rgba(17, 24, 39, 0.55);
+}
+
+.jsonOk {
+  color: rgba(21, 128, 61, 1);
+}
+
+.jsonBad {
+  color: rgba(185, 28, 28, 1);
+}
+
+/* Footer actions */
+.footerActions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Spinner (replace bootstrap spinner-border) */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-top-color: rgba(255, 255, 255, 1);
+  animation: spin 650ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

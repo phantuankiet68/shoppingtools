@@ -44,18 +44,6 @@ export default function UiBuilderListPage() {
   // alerts
   const [msg, setMsg] = useState("");
 
-  // ===== URL sync
-  const pushQuery = () => {
-    const params = new URLSearchParams();
-    if (q) params.set("q", q);
-    if (status !== "all") params.set("status", status);
-    params.set("sort", sortKey);
-    params.set("dir", sortDir);
-    params.set("page", String(page)); // 👈 NEW
-    if (activeId) params.set("id", activeId);
-    router.replace(`/api/admin/pages?${params.toString()}`);
-  };
-
   // ===== API
   async function loadPages() {
     try {
@@ -70,7 +58,7 @@ export default function UiBuilderListPage() {
       if (status !== "all") params.set("status", status);
 
       // 👇 Nên gọi theo route có locale (phù hợp chữ ký API bạn đang dùng)
-      const res = await fetch(`api/pages/list?${params.toString()}`);
+      const res = await fetch(`/api/admin/pages/list?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to load pages");
       const json = await res.json(); // {items,total,hasMore}
       const items: PageRow[] = json.items || [];
@@ -96,7 +84,7 @@ export default function UiBuilderListPage() {
   async function del(id: string) {
     if (!confirm("Xoá page này? Hành động không thể hoàn tác.")) return;
     try {
-      const res = await fetch(`/api/pages/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/pages/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       // sau khi xoá, nếu trang hiện tại hết dữ liệu thì lùi 1 trang
       const willBeCount = total - 1;
@@ -112,7 +100,7 @@ export default function UiBuilderListPage() {
 
   async function dup(id: string) {
     try {
-      const res = await fetch(`/api/pages/${id}/duplicate`, { method: "POST" });
+      const res = await fetch(`/api/admin/pages/${id}/duplicate`, { method: "POST" });
       if (!res.ok) throw new Error("Duplicate failed");
       await loadPages();
       setMsg("Đã nhân bản page");
@@ -125,7 +113,7 @@ export default function UiBuilderListPage() {
 
   async function pub(id: string, next: "publish" | "unpublish") {
     try {
-      const res = await fetch(`/api/pages/${next}`, {
+      const res = await fetch(`/api/admin/pages/${next}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
@@ -144,19 +132,14 @@ export default function UiBuilderListPage() {
 
   // effects
   useEffect(() => {
-    loadPages(); /* eslint-disable-next-line */
+    loadPages();
   }, []);
   useEffect(() => {
     const t = setTimeout(() => {
       loadPages();
-      pushQuery();
     }, 260);
     return () => clearTimeout(t);
-    // eslint-disable-next-line
-  }, [q, status, sortKey, sortDir, page]); // 👈 NEW: page
-  useEffect(() => {
-    pushQuery(); /* eslint-disable-next-line */
-  }, [activeId]);
+  }, [q, status, sortKey, sortDir, page]);
 
   function openPreview(page: PageRow) {
     if (!page.path) return;

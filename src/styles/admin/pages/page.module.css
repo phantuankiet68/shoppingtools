@@ -6,8 +6,8 @@
 .grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: 36% 1fr;
-  min-height: calc(85vh);
+  grid-template-columns: 26% 1fr;
+  min-height: calc(83vh);
   margin-top: 10px;
 }
 @media (max-width: 991.98px) {

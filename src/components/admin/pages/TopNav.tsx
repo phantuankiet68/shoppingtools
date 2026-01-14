@@ -1,4 +1,3 @@
-// src/components/TopNav.tsx
 "use client";
 import React from "react";
 import styles from "./TopNav.module.css";
@@ -13,23 +12,21 @@ type Props = {
   noticeText?: string;
 };
 
-export default function TopNav({ pageId, mode, onSwitch, onSave, saving, onCreate, noticeText }: Props) {
+export default function TopNav({ pageId, onCreate, noticeText }: Props) {
   const text = noticeText ?? "💡 Hãy tạo Menu trước; khi lưu Menu, Page / Path / Locale sẽ tự động được tạo & đồng bộ.";
 
   return (
-    <nav className="navbar navbar-expand bg-white bg-opacity-75 border-bottom px-3 py-2">
-      <div className="d-flex align-items-center gap-2">
-        <div className="zb-logo">⚡</div>
+    <header className={styles.topNav}>
+      {/* Left */}
+      <div className={styles.left}>
+        <div className={styles.logo}>⚡</div>
 
-        {/* Logo + ticker */}
-        <div className={`d-flex align-items-center ${styles.brandWrap}`}>
-          <div className="fw-bold me-2">Zento Builder</div>
+        <div className={styles.brand}>
+          <div className={styles.brandName}>Zento Builder</div>
 
-          {/* Marquee */}
-          <div className={styles.ticker} aria-live="polite" role="status">
+          <div className={styles.ticker} aria-live="polite">
             <div className={styles.tickerTrack}>
               <span className={styles.tickerItem}>{text}</span>
-              {/* lặp 2 lần để chạy mượt, không bị khoảng trống */}
               <span className={styles.tickerItem} aria-hidden="true">
                 {text}
               </span>
@@ -37,18 +34,18 @@ export default function TopNav({ pageId, mode, onSwitch, onSave, saving, onCreat
           </div>
         </div>
 
-        <span className="badge text-bg-light border ms-2">{pageId ? `ID: ${pageId}` : "(draft)"}</span>
+        <span className={styles.badge}>{pageId ? `ID: ${pageId}` : "Draft"}</span>
       </div>
 
-      {/* Actions bên phải */}
-      <div className="ms-auto d-flex align-items-center gap-2 mx-3">
+      {/* Right */}
+      <div className={styles.right}>
         {onCreate && (
-          <button className="btn btn-primary btn-sm" onClick={onCreate} title="Tạo Menu">
-            <i className="bi bi-plus-circle me-1"></i>
-            Tạo Menu
+          <button className={styles.primaryBtn} onClick={onCreate}>
+            <i className="bi bi-plus-circle" />
+            <span>Tạo Menu</span>
           </button>
         )}
       </div>
-    </nav>
+    </header>
   );
 }

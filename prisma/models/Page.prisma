@@ -29,6 +29,8 @@ model Page {
   @@unique([siteId, locale, slug])
   @@unique([siteId, path])
 
+  sections  Section[]
+
   @@index([siteId, locale])
   @@index([siteId, locale, updatedAt])
 }
@@ -51,4 +53,23 @@ enum Changefreq {
   MONTHLY
   YEARLY
   NEVER
+}
+
+model Section {
+  id        String   @id @default(cuid())
+  pageId    String
+  type      String   // "hero" | "text" | "gallery"...
+  enabled   Boolean  @default(true)
+  sort      Int      @default(0)
+
+  data      Json     // nội dung + props
+  style     Json?    // style override (optional)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, sort])
+  @@index([type])
 }
