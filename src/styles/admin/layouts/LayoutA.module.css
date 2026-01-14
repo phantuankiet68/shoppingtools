@@ -47,12 +47,8 @@
 }
 
 .nav {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   height: 68vh;
   overflow-y: auto;
-  padding: 0 15px;
 }
 
 /* ===== Scrollbar (Webkit) ===== */
@@ -73,39 +69,6 @@
   background-color: rgba(148, 163, 184, 0.8);
 }
 
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: #334155;
-  border: 1px solid #ececec;
-  transition: 0.18s ease;
-}
-
-.navItem:hover {
-  background: #f6fbff;
-  border-color: rgba(68, 152, 255, 0.18);
-}
-
-.navItemActive {
-  color: #1e293b;
-  background: #f6fbff;
-  border-color: #5b9de938;
-}
-
-.navIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(91, 92, 233, 0.12);
-  color: #0c0b18;
-  background: #ffffff;
-}
 .navIcon :global(i) {
   font-size: 16px;
 }
@@ -712,25 +675,12 @@
   gap: 18px;
 }
 
-.section {
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.07);
-  border-radius: 22px;
-  padding: 16px;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
-}
-
 .sectionHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 12px;
-}
-
-.sectionTitle {
-  font-weight: 900;
-  color: #0f172a;
 }
 .sectionSub {
   font-size: 14px;
@@ -1212,7 +1162,6 @@
 }
 .navGroup {
   display: grid;
-  gap: 6px;
 }
 .navGroupBtn {
   width: 100%;
@@ -1221,12 +1170,6 @@
 
 .chev {
   margin-left: auto;
-  height: 34px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  color: #94a3b8;
-  transition: transform 0.18s ease, background 0.18s ease;
 }
 .chev :global(i) {
   font-size: 14px;
@@ -1238,9 +1181,6 @@
 
   margin-left: 12px;
   padding-left: 12px;
-
-  border-left: 2px dashed rgba(99, 102, 241, 0.2);
-
   max-height: 0;
   opacity: 0;
   overflow: hidden;
@@ -1253,31 +1193,6 @@
   opacity: 1;
   transform: translateY(0);
   padding-top: 6px;
-}
-
-.subItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: #475569;
-  border: 1px solid #ececec;
-  background: transparent;
-  transition: 0.18s ease;
-}
-
-.subItem:hover {
-  background: #f6fbff;
-  border-color: rgba(91, 92, 233, 0.16);
-}
-
-.subItemActive {
-  background: rgba(91, 92, 233, 0.1);
-  border-color: rgba(91, 92, 233, 0.22);
-  color: #1e293b;
-  font-weight: 800;
 }
 
 .subDot {
@@ -1919,4 +1834,237 @@
   .content {
     height: 94vh;
   }
+}
+/* =========================
+   NAV (Sidebar)
+========================= */
+
+.nav {
+  padding: 0px 12px 12px 16px;
+  overflow: auto;
+  height: calc(100vh - 96px); /* tuỳ brandWrap của bạn */
+}
+
+/* Section wrapper */
+.section {
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: rgba(17, 24, 39, 0.55);
+  padding: 0px 0px 8px 0px;
+  margin-bottom: 6px;
+}
+
+/* list container */
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Divider */
+.sectionDivider {
+  height: 1px;
+  background: rgba(17, 24, 39, 0.08);
+  margin: 12px 6px;
+}
+
+/* =========================
+   Top-level item (Link/Button)
+========================= */
+
+.navItem {
+  color: #111827d9;
+  background: #ffffffb8;
+  border: 1px solid #11182714;
+  border-radius: 8px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 5px 12px;
+  text-decoration: none;
+  transition: transform 0.12s, background 0.16s, border-color 0.16s;
+  display: flex;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+.navItem:active {
+  transform: scale(0.99);
+}
+
+.navItemActive {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: rgba(17, 24, 39, 0.92);
+}
+
+/* Icon bubble */
+.navIcon {
+  background: #ffffffe6;
+  border: 1px solid #1118271a;
+  border-radius: 999px;
+  flex: 0 0 25px;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  display: grid;
+}
+
+.navLabel {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Group button */
+.navGroupBtn {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.chev {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: rgba(17, 24, 39, 0.55);
+  transition: transform 180ms ease, background 160ms ease;
+}
+
+.navItem:hover .chev {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.chevOpen {
+  transform: rotate(180deg);
+}
+
+/* =========================
+   Submenu (FIX khoảng trống)
+========================= */
+
+/* IMPORTANT: submenu phải 0 height khi đóng */
+.submenu {
+  margin-left: 25px; /* thụt vào dưới icon */
+  margin-top: 6px;
+
+  border-left: 1px solid rgba(17, 24, 39, 0.1);
+  padding-left: 10px;
+
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-2px);
+
+  transition: max-height 220ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+/* Khi mở mới có height -> không tạo khoảng trống khi đóng */
+.submenuOpen {
+  max-height: 520px; /* đủ cho 10-15 items */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.subItem {
+  color: #111827c7;
+  background: #ffffff8c;
+  border: 1px solid #11182712;
+  border-radius: 5px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 12px 10px;
+  text-decoration: none;
+  transition: background 0.16s, border-color 0.16s;
+  display: flex;
+}
+
+.subItem:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.subItemActive {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.subDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.18);
+  flex: 0 0 10px;
+}
+
+.subItemActive .subDot {
+  background: rgba(59, 130, 246, 0.75);
+}
+
+.subLabel {
+  font-size: 13.5px;
+  line-height: 1.1;
+}
+
+/* =========================
+   Collapsed Flyout (optional)
+========================= */
+
+.flyout {
+  position: fixed;
+  z-index: 50;
+
+  width: 240px;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+
+  padding: 10px;
+}
+
+.flyoutTitle {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(17, 24, 39, 0.75);
+  padding: 8px 8px 6px;
+}
+
+.flyoutList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px;
+}
+
+.flyoutItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  text-decoration: none;
+  color: rgba(17, 24, 39, 0.85);
+
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.flyoutItemActive {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
 }

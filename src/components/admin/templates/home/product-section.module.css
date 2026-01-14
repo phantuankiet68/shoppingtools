@@ -1,0 +1,124 @@
+.container {
+  width: min(1200px, 92%);
+  margin-inline: auto;
+}
+.wrap {
+  padding: 28px 0;
+}
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.card {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(2, 132, 199, 0.12);
+}
+.thumb {
+  background: #f1f5f9;
+}
+.thumb img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+}
+.info {
+  padding: 12px;
+}
+.info h3 {
+  font-size: 15px;
+  line-height: 1.35;
+  margin: 0 0 6px;
+  height: 42px;
+  overflow: hidden;
+}
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+}
+.stars i {
+  color: #f59e0b;
+}
+.price {
+  font-weight: 700;
+  color: var(--ink);
+}
+.actions {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: all 0.15s ease;
+}
+.card:hover .actions {
+  opacity: 1;
+  transform: none;
+}
+.iconBtn {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px;
+  cursor: pointer;
+}
+.ribbon {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  background: var(--accent);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 0 12px 12px 0;
+  font-size: 12px;
+}
+.rNew {
+  background: #10b981;
+}
+.rHot {
+  background: #ef4444;
+}
+.rSale {
+  background: #f59e0b;
+}
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

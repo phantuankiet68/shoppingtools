@@ -57,3 +57,76 @@ Presence / online
 Subscribe presence: channel.presence.enter() và presence.subscribe() để hiện “online dot” thật (không phải dot giả)
 Hiện tại file này tôi muốn tính tổng số sẳn phẩm thu vào và tổng sản phẩm đã bán và tổng số sản phẩm đang tồn kho và số sản phẩm đang được giao và tổng sản phẩm bị trả lại, tổng chi tiêu cho sẳn phẩm thu vào và bán. dưới là tổng kết lời lỗ và Spending by category hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon.
 Hiện tại ở trong ui model tôi muốn them phần kéo thả ảnh vào và sao khi kéo thả ảnh vào có thể preview được và nếu như create product ảnh sẽ được lưu vào db và move anh đến dường dẫn puclic/upload/images
+Dashboard
+
+Builder
+├─ Pages
+├─ Sections
+├─ Blocks
+├─ Theme
+└─ Assets
+
+Assets → Blocks → Sections → Pages
+↑
+Theme
+
+OVERVIEW
+
+Dashboard
+
+NO-CODE BUILDER
+
+Builder
+├─ Pages
+├─ Sections
+├─ Blocks
+├─ Theme
+└─ Assets
+└─ Menu
+└─ Integrations
+
+COMMERCE
+
+Products
+├─ Products
+├─ Categories
+├─ Pricing
+└─ Variants (Soon)
+
+Inventory
+├─ Stock Levels
+├─ Stock Movements (Soon)
+└─ Purchase Orders (Soon)
+
+Orders
+├─ Orders
+├─ Payments
+└─ Refunds (Soon)
+
+Customers
+├─ Customers
+└─ Addresses (Soon)
+
+SYSTEM
+
+Integrations
+├─ Payment
+├─ Email
+├─ Webhooks
+└─ Storage
+
+Users & Roles
+
+Settings
+├─ Store
+├─ Shipping
+├─ Taxes
+└─ Maintenance
+
+Logs (Soon)
+
+ACCOUNT
+
+Chat
+
+Profile (tuỳ)

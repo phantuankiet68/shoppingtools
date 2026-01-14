@@ -1,0 +1,607 @@
+/* ========== FOOTER ========== */
+
+.MallFooterWrap {
+  --brand: #ff7a1b;
+  --brand-soft: #ffe4c2;
+  --brand-soft-2: #fff5e9;
+  --accent-pink: #ff4c6a;
+
+  --ink: #111827;
+  --muted: #6b7280;
+  --panel: #ffffff;
+  --bg: #f6f7fb;
+  --line: rgba(15, 23, 42, 0.08);
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --shadow-soft: 0 18px 40px rgba(248, 116, 34, 0.18);
+
+  --transition-fast: 180ms ease-out;
+  padding: 0 16px 24px;
+  background: radial-gradient(circle at top left, rgba(255, 199, 141, 0.7), transparent 55%), radial-gradient(circle at top right, rgba(255, 241, 212, 0.8), transparent 60%), var(--panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.MallFooter {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 24px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* light glow */
+.MallFooter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.MallFooterInner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ========== TOPBAR FOOTER / VARIANT ========== */
+
+.FooterTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.Brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.Logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: conic-gradient(from 200deg, #ffedd5, #ffb86b, #ffedd5, #fff7ed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(248, 113, 22, 0.35);
+  flex-shrink: 0;
+}
+
+.Logo i {
+  font-size: 18px;
+  color: #b45309;
+}
+
+.BrandText {
+  overflow: hidden;
+}
+
+.BrandText span {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.BrandMain {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.BrandSub {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.Variants {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.VariantsLabel {
+  white-space: nowrap;
+}
+
+.VariantButton {
+  border: none;
+  outline: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.08);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+}
+
+.VariantButton i {
+  font-size: 0.9rem;
+}
+
+.VariantButton:hover {
+  background: #fff7ed;
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25);
+  transform: translateY(-1px);
+  color: #c2410c;
+}
+
+.VariantButtonActive {
+  background: linear-gradient(90deg, #ff9447, #ff7a1b);
+  color: #fefce8;
+  box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.9);
+}
+
+/* ========== LƯỚI NỘI DUNG CHÍNH ========== */
+
+.Grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr 1.1fr 1.1fr;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.Col {
+  min-width: 0;
+}
+
+.ColTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.ColText {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.ChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.Chip {
+  font-size: 0.78rem;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 0;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.Chip i {
+  font-size: 0.85rem;
+}
+
+.Chip:hover {
+  background: #fff7ed;
+  box-shadow: 0 8px 18px rgba(248, 113, 22, 0.22);
+  transform: translateY(-1px);
+  color: #c2410c;
+}
+
+/* Newsletter */
+
+.NewsletterForm {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.InputWrap {
+  flex: 1 1 180px;
+  position: relative;
+  min-width: 0;
+}
+
+.InputWrap i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.Input {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  padding: 8px 12px 8px 28px;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.Input::placeholder {
+  color: #9ca3af;
+}
+
+.Input:focus {
+  border-color: rgba(249, 115, 22, 0.9);
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.6), 0 0 0 6px rgba(248, 113, 22, 0.2);
+  background: #ffffff;
+}
+
+.PrimaryButton {
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(90deg, #ff9447, #ff7a1b);
+  color: #fff7ed;
+  font-size: 0.82rem;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 10px 24px rgba(248, 113, 22, 0.32);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  white-space: nowrap;
+}
+
+.PrimaryButton i {
+  font-size: 0.9rem;
+}
+
+.PrimaryButton:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 16px 30px rgba(248, 113, 22, 0.45);
+}
+
+.PrimaryButton:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(248, 113, 22, 0.38);
+}
+
+/* Link list */
+
+.List {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.List li a {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  transition: color var(--transition-fast), transform var(--transition-fast), text-shadow var(--transition-fast);
+}
+
+.List li a i {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.List li a:hover {
+  color: #f97316;
+  transform: translateX(1px);
+  text-shadow: 0 0 1px rgba(248, 113, 22, 0.3);
+}
+
+/* App + Social */
+
+.Badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.BadgeStore {
+  border-radius: 16px;
+  padding: 6px 10px;
+  border: 1px dashed rgba(148, 163, 184, 0.7);
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: border var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.BadgeStore span {
+  display: block;
+  line-height: 1.2;
+}
+
+.BadgeStore small {
+  display: block;
+  font-size: 0.68rem;
+  color: #9ca3af;
+}
+
+.BadgeStore strong {
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.BadgeStore:hover {
+  border-style: solid;
+  border-color: #fb923c;
+  background: #fff7ed;
+  box-shadow: 0 12px 26px rgba(248, 113, 22, 0.25);
+  transform: translateY(-1px);
+}
+
+.SocialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.SocialButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.SocialButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.4);
+  background: #f97316;
+  color: #fff7ed;
+}
+
+/* ========== DÒNG CUỐI ========== */
+
+.BottomRow {
+  border-top: 1px dashed rgba(148, 163, 184, 0.6);
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: #9ca3af;
+  flex-wrap: wrap;
+}
+
+.BottomLeft span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.BottomLeft i {
+  font-size: 0.9rem;
+}
+
+.LangCurrency {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.Pill {
+  border-radius: 999px;
+  padding: 3px 9px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.95);
+  transition: border var(--transition-fast), background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.Pill i {
+  font-size: 0.85rem;
+}
+
+.Pill:hover {
+  border-color: #fb923c;
+  background: #fffbeb;
+  color: #c2410c;
+  box-shadow: 0 10px 18px rgba(248, 113, 22, 0.2);
+}
+
+/* ========== VARIANTS ========== */
+
+.VariantSoft {
+  background: radial-gradient(circle at 15% -10%, rgba(255, 237, 213, 0.9), transparent 55%), radial-gradient(circle at 80% 0%, rgba(219, 234, 254, 0.8), transparent 60%), #ffffff;
+  box-shadow: 0 14px 30px rgba(148, 163, 184, 0.35);
+}
+
+.VariantSoft .PrimaryButton {
+  background: linear-gradient(90deg, #fb923c, #f97316);
+}
+
+.VariantSoft .SocialButton:hover {
+  background: #0ea5e9;
+}
+
+.VariantDark {
+  background: radial-gradient(circle at top left, rgba(255, 148, 94, 0.32), transparent 55%), radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.22), transparent 55%),
+    linear-gradient(145deg, #020617, #111827);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.9);
+}
+
+.VariantDark::before {
+  opacity: 0.3;
+}
+
+.VariantDark .BrandMain,
+.VariantDark .ColTitle,
+.VariantDark .BottomRow,
+.VariantDark .BrandSub {
+  color: #e5e7eb;
+}
+
+.VariantDark .ColText,
+.VariantDark .List li a {
+  color: #9ca3af;
+}
+
+.VariantDark .Input {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.7);
+  color: #e5e7eb;
+}
+
+.VariantDark .Input::placeholder {
+  color: #6b7280;
+}
+
+.VariantDark .Chip {
+  background: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4);
+  color: #e5e7eb;
+}
+
+.VariantDark .Chip:hover {
+  background: rgba(248, 113, 22, 0.18);
+  color: #fed7aa;
+  box-shadow: 0 10px 26px rgba(248, 113, 22, 0.5);
+}
+
+.VariantDark .BadgeStore {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+.VariantDark .BadgeStore strong {
+  color: #f9fafb;
+}
+
+.VariantDark .BadgeStore small {
+  color: #9ca3af;
+}
+
+.VariantDark .BadgeStore:hover {
+  background: rgba(248, 113, 22, 0.35);
+  border-color: #fdba74;
+}
+
+.VariantDark .SocialButton {
+  background: rgba(15, 23, 42, 0.95);
+  color: #e5e7eb;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4);
+}
+
+.VariantDark .SocialButton:hover {
+  background: #f97316;
+  color: #111827;
+}
+
+.VariantDark .Pill {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(148, 163, 184, 0.7);
+  color: #e5e7eb;
+}
+
+.VariantDark .Pill:hover {
+  background: rgba(249, 115, 22, 0.28);
+  color: #fffbeb;
+}
+
+/* ========== RESPONSIVE ========== */
+
+@media (max-width: 992px) {
+  .Grid {
+    grid-template-columns: 1.5fr 1.2fr 1.2fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .MallFooter {
+    padding: 20px 16px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .FooterTopbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .Variants {
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+
+  .Grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .Grid {
+    grid-template-columns: 1fr;
+  }
+
+  .NewsletterForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .PrimaryButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .BottomRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .Variants {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .InputWrap {
+    flex: 1 1 31px;
+    position: relative;
+    min-width: 0;
+  }
+
+  .MallFooterWrap {
+    padding: 0;
+  }
+}

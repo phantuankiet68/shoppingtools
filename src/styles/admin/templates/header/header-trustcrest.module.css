@@ -1,0 +1,125 @@
+/* ===== Header: solid, safe stacking ===== */
+.tcHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: var(--tc-panel);
+  border-bottom: 1px solid var(--tc-line);
+  box-shadow: var(--tc-shadow);
+}
+
+/* Top microbar */
+.tcTop {
+  font-size: 0.92rem;
+  color: var(--tc-muted);
+}
+.tcTop a {
+  color: inherit;
+  text-decoration: none;
+}
+.tcTop a:hover {
+  color: var(--tc-primary);
+}
+
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--tc-ink);
+}
+.brandBadge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--tc-primary), var(--tc-accent));
+}
+.brandTitle {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  line-height: 1.05;
+}
+.brandTitle small {
+  display: block;
+  color: var(--tc-muted);
+  font-weight: 600;
+}
+
+/* Search (compact, safe) */
+.tcSearch {
+  background: #f8fafc;
+  border: 1px solid var(--tc-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.tcSearch .form-control {
+  border: 0;
+  background: transparent;
+  padding: 0.45rem 0.8rem;
+  box-shadow: none;
+  color: var(--tc-ink);
+}
+.tcSearch .btn {
+  border: 0;
+  color: #475569;
+}
+
+/* Nav (desktop) */
+.tcNav .nav-link {
+  color: var(--tc-ink);
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0.56rem 0.7rem;
+}
+.tcNav .nav-link:hover {
+  background: #eef2ff;
+}
+
+/* Dropdown — high z-index, safe sizing */
+.dropdown-menu {
+  z-index: 2000;
+  border: 1px solid var(--tc-border);
+  border-radius: 12px;
+  box-shadow: var(--tc-shadow);
+  padding: 0.6rem;
+  background: var(--tc-panel);
+}
+.dropdown-item {
+  border-radius: 8px;
+}
+.dropdown-item:hover {
+  background: #eef2ff;
+}
+
+/* CTA button */
+.btnCta {
+  background: linear-gradient(90deg, var(--tc-primary), var(--tc-accent));
+  color: #fff;
+  border: 0;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+}
+
+/* Hero (tùy chọn – nếu dùng chung file) */
+.hero {
+  background: linear-gradient(180deg, #ffffff 0%, #f2f7ff 100%);
+  border-bottom: 1px solid var(--tc-line);
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .tcNav {
+    display: none;
+  }
+}
+@media (max-width: 575.98px) {
+  .brandTitle {
+    display: none;
+  }
+}

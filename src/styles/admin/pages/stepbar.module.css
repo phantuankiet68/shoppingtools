@@ -1,0 +1,148 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 10px 14px;
+  border: 1px solid rgba(2, 6, 23, 0.06);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(2, 6, 23, 0.08);
+  background: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+}
+.tile:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(2, 6, 23, 0.08);
+}
+.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.active {
+  border-color: #b6d4fe;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.16);
+}
+
+.iconWrap {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff 0%, #f6f7fb 100%);
+  box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.06), 0 6px 12px rgba(2, 6, 23, 0.06);
+  color: #f59e0b;
+  font-size: 18px;
+}
+.caption {
+  font-size: 13px;
+  color: #111827;
+  white-space: nowrap;
+}
+
+/* mũi tên */
+.arrowBox {
+  width: 120px; /* độ dài arrow */
+  height: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.arrowPath {
+  stroke: #9ca3af;
+  stroke-width: 2;
+  stroke-dasharray: 4 6; /* nét đứt */
+  fill: none;
+}
+
+.arrowHead {
+  fill: #9ca3af;
+}
+
+/* z-index tinh chỉnh để mũi tên không đè lên tile */
+.arrowDown {
+  margin-top: -2px;
+} /* cong xuống */
+.arrowUp {
+  margin-bottom: -2px;
+} /* cong lên */
+
+/* responsive */
+@media (max-width: 1024px) {
+  .wrap {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .arrowBox {
+    width: 110px;
+    height: 42px;
+  }
+}
+@media (max-width: 640px) {
+  .arrowBox {
+    width: 88px;
+    height: 36px;
+  }
+  .caption {
+    font-size: 12px;
+  }
+}
+
+.arrowBox {
+  opacity: 0.6;
+  transition: all 0.25s ease;
+}
+
+.arrowActive .arrowPath {
+  stroke: #0d6efd; /* xanh bootstrap primary */
+  stroke-width: 2;
+}
+
+.arrowActive .arrowHead {
+  fill: #0d6efd;
+}
+
+.btnSave {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  border: 1px dashed #72adff;
+  background: #fff;
+  color: #7aa1ff;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.btnExport {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  border: 1px dashed #3de45c;
+  background: #fff;
+  color: #31bc8b;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}

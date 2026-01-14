@@ -1,0 +1,359 @@
+.Topbar {
+  --tb-bg: #fff8ed;
+  --tb-bg-dark: #ffedd5;
+  --tb-ink: #1f2933;
+  --tb-muted: #6b7280;
+  --tb-brand: #f97316;
+  --tb-line: rgba(15, 23, 42, 0.08);
+  --tb-radius: 999px;
+
+  width: 100%;
+  background: linear-gradient(to right, var(--tb-bg), #ffffff);
+  border-bottom: 1px solid var(--tb-line);
+  font-size: 12px;
+  color: var(--tb-muted);
+}
+
+/* ===== TOPBAR WRAPPER ===== */
+
+.TopbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4px 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto; /* trái – giữa – phải */
+  align-items: center;
+  column-gap: 16px;
+}
+
+.TbLeft,
+.TbCenter,
+.TbRight {
+  min-width: 0;
+}
+
+/* ===== LEFT BLOCK ===== */
+
+.TbLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.TbLeftIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--tb-bg-dark);
+  color: var(--tb-brand);
+  font-size: 11px;
+}
+
+.TbMessage {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--tb-ink);
+  font-weight: 500;
+}
+
+.TbRegionBtn {
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  border-radius: var(--tb-radius);
+  font-size: 11px;
+  color: var(--tb-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.TbRegionBtn i {
+  font-size: 12px;
+}
+
+.TbRegionBtn:hover {
+  background: var(--tb-bg-dark);
+  color: var(--tb-ink);
+}
+
+/* ===== CENTER TICKER ===== */
+
+.TbCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.TbTicker {
+  position: relative;
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 11px;
+}
+
+.TbTickerText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  color: var(--tb-muted);
+}
+
+.Badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(248, 113, 113, 0.1);
+  color: #b91c1c;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.TbTickerText.IsLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.TbTickerText.IsEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.TbTickerText.IsActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ===== RIGHT BLOCK ===== */
+
+.TbRight {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+}
+
+.TbRightDetails {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.TbLinks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.TbLink {
+  border: none;
+  background: transparent;
+  padding: 2px 0;
+  font-size: 12px;
+  color: var(--tb-muted);
+  cursor: pointer;
+  text-decoration: none;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.TbLink i {
+  font-size: 13px;
+}
+
+.TbLink:hover {
+  color: var(--tb-ink);
+  text-decoration: underline;
+}
+
+.TbDivider {
+  width: 1px;
+  height: 14px;
+  background: var(--tb-line);
+}
+
+/* Select ngôn ngữ */
+
+.TbLangSelectWrap {
+  padding: 2px 6px;
+  border-radius: var(--tb-radius);
+  background: rgba(249, 115, 22, 0.04);
+  border: 1px solid rgba(249, 115, 22, 0.14);
+}
+
+.TbLangSelect {
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  color: var(--tb-muted);
+  outline: none;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.TbLangSelect option {
+  color: #111827;
+}
+
+.TbSocial {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.TbSocial a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--tb-muted);
+  font-size: 11px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.TbSocial a:hover {
+  background: var(--tb-bg-dark);
+  color: var(--tb-brand);
+  transform: translateY(-1px);
+}
+
+/* Nút More (mobile) */
+
+.TbMoreBtn {
+  display: none;
+  border: none;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--tb-muted);
+}
+
+.TbMoreBtn:hover {
+  background: var(--tb-bg-dark);
+  color: var(--tb-ink);
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Tablet ~ laptop nhỏ */
+@media (max-width: 900px) {
+  .TopbarInner {
+    grid-template-columns: minmax(0, 1fr) auto; /* trái + phải */
+    padding-inline: 10px;
+  }
+
+  .TbCenter {
+    display: none; /* ẩn ticker khi chật */
+  }
+
+  .TbMessage {
+    max-width: 200px;
+  }
+}
+
+/* Mobile <= 640px */
+@media (max-width: 640px) {
+  .TopbarInner {
+    padding-inline: 8px;
+  }
+
+  .TbMessage {
+    max-width: 140px;
+    font-size: 11px;
+  }
+
+  .TbRegionBtn .RegionText {
+    display: none; /* chỉ để icon cho gọn */
+  }
+
+  .TbRightDetails {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 30px;
+    padding: 8px 10px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+    z-index: 20;
+
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 220px;
+  }
+
+  .TbLinks {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .TbDivider {
+    align-self: stretch;
+    height: 1px;
+    width: 100%;
+  }
+
+  .TbMoreBtn {
+    display: inline-flex;
+  }
+
+  .TbRight.IsOpen .TbRightDetails {
+    display: flex;
+  }
+}
+
+/* Mobile rất nhỏ <= 480px: giảm kích thước thêm cho dễ nhìn */
+@media (max-width: 480px) {
+  .TopbarInner {
+    padding-inline: 6px;
+  }
+
+  .TbLeftIcon {
+    display: none; /* bớt 1 icon cho gọn */
+  }
+
+  .TbMessage {
+    max-width: 120px;
+    font-size: 10px;
+  }
+
+  .TbLangSelect {
+    font-size: 10px;
+  }
+
+  .TbRightDetails {
+    top: 28px;
+    min-width: 210px;
+    font-size: 11px;
+  }
+
+  .TbLink {
+    font-size: 11px;
+  }
+}

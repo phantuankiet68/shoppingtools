@@ -1,0 +1,119 @@
+/* ===== Ocean background + wave ===== */
+.oceanWrap {
+  position: relative;
+  background: radial-gradient(1200px 600px at -10% -10%, #e9f8ff 10%, transparent 60%), linear-gradient(180deg, #ecfbff 0%, #ffffff 60%);
+  overflow: visible; /* để dropdown không bị cắt */
+}
+
+.oceanGrad {
+  background-image: linear-gradient(90deg, var(--sea-2), var(--sea-1));
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 16px 40px rgba(7, 45, 66, 0.18);
+  position: relative;
+  z-index: 1;
+}
+
+.wave {
+  display: block;
+  width: 100%;
+  height: 56px;
+  margin-top: -6px;
+}
+
+/* ===== Topbar ===== */
+.topbar a {
+  color: #eaf7ff;
+  text-decoration: none;
+  opacity: 0.95;
+}
+.topbar a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* ===== Brand ===== */
+.brand {
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.brandBadge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: var(--sea-2);
+  font-weight: 900;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Search ticket (glass card) ===== */
+.searchCard {
+  background: var(--glass);
+  border: 1px solid var(--stroke);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 36px rgba(0, 79, 122, 0.22);
+  position: relative;
+  z-index: 20; /* nổi hơn phần nền */
+}
+.searchCard .form-control,
+.searchCard .form-select {
+  background: transparent;
+  border: 0;
+  color: #083454;
+  box-shadow: none !important;
+}
+.vline {
+  border-left: 1px dashed rgba(255, 255, 255, 0.45);
+}
+.btnSun {
+  background: var(--sun-1);
+  color: #4a3a00;
+  font-weight: 700;
+  border: 0;
+}
+.btnSun:hover {
+  filter: brightness(0.95);
+}
+
+/* ===== Nav ===== */
+.navLink {
+  color: #eaf7ff !important;
+  font-weight: 700;
+  border-radius: 10px;
+}
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  border: 0;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 24px 60px rgba(7, 45, 66, 0.25);
+  z-index: 3000; /* cao hơn search-card */
+}
+.ddTitle {
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+}
+.dropdown-item {
+  border-radius: 8px;
+}
+.dropdown-item i {
+  opacity: 0.8;
+}
+
+/* (tuỳ chọn) giữ dropdown khi hover nếu bootstrap JS chưa chạy */
+@media (min-width: 992px) {
+  .nav-item.dropdown:hover > .dropdown-menu {
+    display: block;
+  }
+}

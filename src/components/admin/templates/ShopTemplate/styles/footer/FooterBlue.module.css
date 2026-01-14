@@ -1,0 +1,594 @@
+/* =============================
+   AURORA BLUE FASHION FOOTER – LIGHT
+==============================*/
+.AuroraFooter {
+  --ab-bg-from: #e0edff;
+  --ab-bg-to: #ffffff;
+  --ab-ink-main: #0f172a;
+  --ab-ink-muted: #6b7280;
+  --ab-accent: #2563eb;
+  --ab-chip: #ffffff;
+  --ab-border-soft: rgba(148, 163, 184, 0.25);
+  --ab-shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
+
+  --ab-radius-xl: 18px;
+  --ab-radius-pill: 999px;
+  margin-top: 40px;
+  padding: 32px 16px 20px;
+  background: radial-gradient(circle at 5% -30%, #bfdbfe 0, transparent 55%), radial-gradient(circle at 100% 0, #fee2b3 0, transparent 45%), linear-gradient(90deg, var(--ab-bg-from), var(--ab-bg-to));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glow mờ nhẹ */
+.AuroraFooter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 15% 120%, rgba(191, 219, 254, 0.6), transparent 60%);
+  opacity: 0.8;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.AfInner {
+  position: relative;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 22px 22px 18px;
+  border-radius: 26px;
+  border: 1px solid var(--ab-border-soft);
+  background: #ffffff;
+  box-shadow: var(--ab-shadow-soft);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr);
+  gap: 32px;
+}
+
+/* ===== Cột trái: brand + lợi ích + newsletter ===== */
+.AfLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.AfLogoRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.AfLogoCircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: conic-gradient(from 160deg, #22c55e, #22d3ee, #facc15, #f97316, #22c55e);
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+}
+
+.AfLogoInner {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: radial-gradient(circle at 20% 0, #3b82f6, #1d4ed8 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #f9fafb;
+  letter-spacing: 0.08em;
+}
+
+.AfBrandName {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.AfBrandMain {
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-size: 13px;
+  color: #111827;
+}
+
+.AfBrandSub {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ab-ink-muted);
+}
+
+.AfIconDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.AfChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.AfChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: var(--ab-radius-pill);
+  background: var(--ab-chip);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  font-size: 11px;
+  color: var(--ab-ink-muted);
+}
+
+.AfChip i {
+  font-size: 12px;
+  color: var(--ab-accent);
+}
+
+.AfChipAccent {
+  background: linear-gradient(90deg, #f97316, #fde68a);
+  color: #111827;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+/* Trust mini card */
+.AfTrustGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.AfTrustCard {
+  border-radius: 14px;
+  padding: 9px 10px 8px;
+  background: #f9fafb;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.AfTrustTitle {
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #111827;
+}
+
+.AfTrustTitle i {
+  font-size: 13px;
+  color: var(--ab-accent);
+}
+
+.AfTrustDesc {
+  font-size: 10px;
+  color: var(--ab-ink-muted);
+}
+
+/* Newsletter */
+.AfNewsletter {
+  margin-top: 4px;
+  padding: 11px 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(191, 219, 254, 0.55), #eff6ff);
+  border: 1px dashed rgba(148, 163, 184, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.AfNewsletterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.AfNewsletterHeader span {
+  font-weight: 500;
+  color: #111827;
+}
+
+.AfNewsletterTag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.6);
+  background: #ffffff;
+  font-size: 10px;
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.AfNewsletterRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.AfInput {
+  flex: 1;
+  position: relative;
+}
+
+.AfInput input {
+  width: 100%;
+  padding: 8px 10px 8px 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.9);
+  background: #ffffff;
+  color: #111827;
+  font-size: 11px;
+  outline: none;
+}
+
+.AfInput input::placeholder {
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.AfInputIcon {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.AfBtnPrimary {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.AfBtnPrimary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.4);
+}
+
+.AfNewsNote {
+  font-size: 10px;
+  color: var(--ab-ink-muted);
+}
+
+/* ===== Cột phải: menu ===== */
+.AfCols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  align-items: flex-start;
+}
+
+.AfColTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.AfColList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.AfColList li a {
+  font-size: 12px;
+  color: var(--ab-ink-muted);
+  text-decoration: none;
+  position: relative;
+  padding-left: 10px;
+  transition: color 0.2s ease, transform 0.18s ease;
+}
+
+.AfColList li a::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: rgba(148, 163, 184, 0.9);
+  transform: translateY(1px);
+}
+
+.AfColList li a:hover {
+  color: #1f2937;
+  transform: translateX(3px);
+}
+
+.AfSocialRow {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ab-ink-muted);
+}
+
+.AfSocialBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.AfBtnIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  background: #ffffff;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  color: #1f2937;
+}
+
+.AfBtnIcon:hover {
+  transform: translateY(-2px);
+  border-color: var(--ab-accent);
+  background: #eff6ff;
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.3);
+  color: #1d4ed8;
+}
+
+/* ===== PHƯƠNG THỨC THANH TOÁN ===== */
+.AfPaymentWide {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.35);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.AfPaymentTitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #111827;
+}
+
+.AfPaymentLogos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.PayLogo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  min-width: 56px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  text-transform: uppercase;
+}
+
+.PayVisa {
+  color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.PayMastercard {
+  background: linear-gradient(90deg, #f97316, #ef4444);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.PayNapas {
+  color: #0f766e;
+  border-color: #0f766e;
+}
+
+.PayCod {
+  background: #fff7ed;
+  border-color: #f97316;
+  color: #92400e;
+}
+
+.PayMomo {
+  background: #fdf2ff;
+  border-color: #ec4899;
+  color: #be185d;
+}
+
+/* ===== Bottom bar ===== */
+.AfBottom {
+  position: relative;
+  max-width: 1220px;
+  margin: 14px auto 0;
+  padding: 10px 4px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--ab-ink-muted);
+}
+
+.AfBottomLeft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.AfBottomLinks {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.AfBottomLinks a {
+  color: var(--ab-ink-muted);
+  text-decoration: none;
+}
+
+.AfBottomLinks a:hover {
+  color: #1f2937;
+}
+
+.AfBottomRight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.AfSelect {
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.9);
+  background: #ffffff;
+  color: var(--ab-ink-muted);
+  font-size: 10px;
+  outline: none;
+}
+
+.AfStatusPill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #dcfce7;
+  border: 1px solid #22c55e;
+  color: #166534;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.AfStatusPill i {
+  font-size: 11px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .AfInner {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.9fr);
+    padding: 20px 18px 16px;
+  }
+
+  .AfTrustGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 840px) {
+  .AfInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .AfLeft {
+    order: 1;
+  }
+
+  .AfCols {
+    order: 2;
+  }
+
+  .AfPaymentWide {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .AfInner {
+    padding: 16px 14px 14px;
+    border-radius: 20px;
+  }
+
+  .AfTrustGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .AfCols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .AfNewsletterRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .AfBtnPrimary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .AfBottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .AfBottomRight {
+    justify-content: flex-start;
+  }
+
+  .AfPaymentWide {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 460px) {
+  .AfTrustGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .AfCols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .AfLogoRow {
+    align-items: flex-start;
+  }
+}

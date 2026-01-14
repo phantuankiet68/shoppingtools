@@ -1,0 +1,541 @@
+/* ================== WRAPPER ================== */
+.AwTheme {
+  margin-top: 40px;
+}
+
+/* ================== FOOTER ================== */
+.AwFooter {
+  /* Palette cục bộ cho footer */
+  --brand: #ff8a3a;
+  --brand-strong: #f97316;
+  --brand-soft: #ffe7cf;
+  --brand-soft-2: #fff7ec;
+
+  --ink: #111827;
+  --ink-soft: #6b7280;
+  --border: rgba(148, 163, 184, 0.35);
+  --chip-bg: #f4f4f6;
+
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.12);
+
+  position: relative;
+  padding: 26px 20px 20px;
+  max-width: 1180px;
+  margin: 0 auto;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: radial-gradient(circle at top right, rgba(255, 214, 170, 0.42), transparent 55%), #ffffff;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.AwFooter::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background-image: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.96) 0, transparent 55%), radial-gradient(circle at 80% 120%, rgba(253, 186, 116, 0.2), transparent 60%);
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.AwInner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ========== MODE SWITCH ========== */
+.AwModeSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.AwModeBtn {
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  backdrop-filter: blur(10px);
+  transition: all 0.18s ease;
+}
+
+.AwModeBtn i {
+  font-size: 13px;
+}
+
+.AwModeBtn:not(.IsActive):hover {
+  border-color: rgba(148, 163, 184, 0.5);
+  transform: translateY(-1px);
+}
+
+.IsActive {
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+/* ========== TOP AREA ========== */
+.AwTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.AwBrandBlock {
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.AwBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 5px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--ink-soft);
+  width: fit-content;
+}
+
+.AwBadgeIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle at 30% 10%, #fefce8, #f97316);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+}
+
+.AwBrandName {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.AwTagline {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.AwBrandDesc {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* Newsletter */
+.AwNewsletter {
+  min-width: 260px;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  backdrop-filter: blur(18px);
+}
+
+.AwNewsletterTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.AwNewsletter p {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.AwInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border-radius: var(--radius-pill);
+  padding: 4px 4px 4px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+.AwInputWrap i {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.AwInputWrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.AwInputWrap button {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* ========== TRUST BAR ========== */
+.AwTrust {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, rgba(255, 247, 237, 0.92), rgba(254, 252, 232, 0.95));
+  border: 1px solid rgba(253, 186, 116, 0.4);
+}
+
+.AwTrustItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.AwTrustIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  color: var(--brand-strong);
+  font-size: 14px;
+}
+
+.AwTrustItem strong {
+  display: block;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+/* ========== MAIN GRID ========== */
+.AwGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  padding-top: 18px;
+}
+
+.AwColTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+
+.AwLinks,
+.AwTags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.AwLinks a,
+.AwTags button {
+  padding: 4px 0;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: all 0.16s ease;
+}
+
+.AwLinks a:hover,
+.AwTags button:hover {
+  color: var(--brand-strong);
+  background: rgba(255, 247, 237, 0.9);
+  padding-left: 4px;
+}
+
+/* Social & app */
+.AwSocial {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.AwSocialIcons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.AwSocialIcons a {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: var(--ink-soft);
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.AwSocialIcons a:hover {
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+.AwAppBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(148, 163, 184, 0.5);
+  background: rgba(255, 255, 255, 0.98);
+  font-size: 11px;
+}
+
+.AwAppIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand), #fbbf24);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* ========== BOTTOM BAR ========== */
+.AwBottom {
+  border-top: 1px solid rgba(148, 163, 184, 0.32);
+  margin-top: 18px;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  justify-content: space-between;
+}
+
+.AwBottomLeft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.AwMiniPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.AwMiniDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle at 30% 0, #facc15, #f97316);
+  box-shadow: 0 0 0 4px rgba(248, 250, 252, 1);
+}
+
+.AwBottomCopy {
+  white-space: nowrap;
+}
+
+/* PAYMENT */
+.AwPayment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.AwPaymentLabel {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.AwPaymentPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.AwPaymentIcons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.AwPaymentIcons img {
+  height: 22px;
+  width: auto;
+  display: block;
+}
+
+/* ========== STYLE VARIANTS (data-mode) ========== */
+
+/* highlightBrand tương đương footer-style-2 */
+.AwTheme[data-mode="highlightBrand"] .AwFooter {
+  background: linear-gradient(135deg, #fff7ed, #fefce8);
+  box-shadow: 0 14px 40px rgba(248, 148, 60, 0.22);
+}
+
+.AwTheme[data-mode="highlightBrand"] .AwGrid {
+  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+}
+
+.AwTheme[data-mode="highlightBrand"] .AwTags {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 4px;
+}
+
+.AwTheme[data-mode="highlightBrand"] .AwTags button {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+}
+
+/* ultraMinimal tương đương footer-style-3 */
+.AwTheme[data-mode="ultraMinimal"] .AwFooter {
+  max-width: none;
+  border-radius: 0;
+  box-shadow: 0 -1px 0 rgba(148, 163, 184, 0.3);
+  background: #ffffff;
+}
+
+.AwTheme[data-mode="ultraMinimal"] .AwGrid {
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
+  gap: 18px;
+}
+
+.AwTheme[data-mode="ultraMinimal"] .AwLinks {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.AwTheme[data-mode="ultraMinimal"] .AwLinks a {
+  padding: 0;
+  background: transparent;
+}
+
+.AwTheme[data-mode="ultraMinimal"] .AwNewsletter {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.AwTheme[data-mode="ultraMinimal"] .AwInputWrap {
+  background: #f3f4f6;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .AwGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .AwTop {
+    flex-direction: column;
+  }
+
+  .AwNewsletter {
+    width: 100%;
+  }
+
+  .AwTrust {
+    grid-template-columns: 1fr;
+  }
+
+  .AwBottom {
+    flex-direction: column;
+  }
+
+  .AwBottomLeft {
+    justify-content: flex-start;
+  }
+
+  .AwPayment {
+    justify-content: flex-start;
+  }
+
+  .AwBottomCopy {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 640px) {
+  .AwFooter {
+    border-radius: 18px 18px 0 0;
+    padding: 20px 14px 18px;
+  }
+
+  .AwModeSwitch {
+    justify-content: flex-start;
+  }
+
+  .AwGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

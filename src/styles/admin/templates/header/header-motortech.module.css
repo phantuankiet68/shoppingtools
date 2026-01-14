@@ -1,0 +1,144 @@
+/* ===== Topbar ===== */
+.pkTop {
+  background: linear-gradient(90deg, var(--pk-orange), var(--pk-amber));
+  color: #fff;
+  font-size: 0.9rem;
+}
+.pkTop a {
+  color: #fff;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.pkTop a:hover {
+  opacity: 0.85;
+}
+
+/* ===== Header ===== */
+.pkHeader {
+  background: var(--pk-panel);
+  box-shadow: var(--pk-shadow);
+  position: relative;
+  z-index: 10;
+}
+
+/* ===== Brand ===== */
+.pkBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--pk-ink);
+}
+.pkBadge {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--pk-orange);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.4);
+}
+.pkTitle {
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+.pkTitle small {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--pk-muted);
+}
+
+/* ===== Search ===== */
+.pkSearch {
+  background: var(--pk-chip);
+  border-radius: 12px;
+  border: 1px solid var(--pk-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+.pkSearch .form-select,
+.pkSearch .form-control {
+  border: 0;
+  background: transparent;
+}
+.pkSearch .form-control {
+  border-left: 1px solid var(--pk-border);
+}
+.pkSearch .btn {
+  background: var(--pk-orange);
+  border: 0;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.pkSearch .btn:hover {
+  filter: brightness(0.95);
+}
+
+/* ===== Nav ===== */
+.pkNav .nav-link {
+  color: var(--pk-ink);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  position: relative;
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  transition: background 0.2s ease;
+}
+.pkNav .nav-link:hover {
+  background: var(--pk-steel);
+}
+.pkNav .nav-link i {
+  color: var(--pk-orange);
+  margin-right: 0.25rem;
+}
+
+/* ===== Dropdown ===== */
+.dropdown-menu {
+  border-radius: 12px;
+  border: 1px solid var(--pk-border);
+  box-shadow: var(--pk-shadow);
+  background: var(--pk-panel);
+}
+.dropdown-item:hover {
+  background: #f1f5f9;
+}
+
+/* ===== Icons ===== */
+.iconBtn {
+  background: transparent;
+  border: 0;
+  font-size: 1.2rem;
+  color: var(--pk-ink);
+  position: relative;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.iconBtn:hover {
+  color: var(--pk-orange);
+}
+.pkBadgeNum {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--pk-orange);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  line-height: 1;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 991px) {
+  .pkSearch .form-select {
+    display: none;
+  }
+}
+@media (max-width: 575px) {
+  .pkTitle {
+    display: none;
+  }
+}

@@ -1,0 +1,70 @@
+.container {
+  width: min(1200px, 92%);
+  margin-inline: auto;
+}
+.hero {
+  background: linear-gradient(135deg, #ecfeff, #fdf2f8);
+}
+.heroInner {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 36px;
+  align-items: center;
+  padding: 40px 0;
+}
+.kicker {
+  color: var(--brand-600);
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.h1 {
+  font-size: 36px;
+  line-height: 1.2;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+.bullets {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+}
+.bullets i {
+  color: var(--brand-600);
+  margin-right: 6px;
+}
+.heroCtas {
+  display: flex;
+  gap: 12px;
+}
+.btnPrimary {
+  background: var(--brand-600);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+}
+.btnGhost {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 10px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.heroImg {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(2, 132, 199, 0.15);
+}
+.heroImg img {
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 1024px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+  }
+}

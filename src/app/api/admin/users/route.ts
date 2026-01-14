@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
-
-async function hashPassword(pw: string) {
-  return `dev_hash:${pw}`;
-}
+import { hashPassword } from "@/lib/password";
 
 const USER_ROLES = new Set(["ADMIN", "USER"] as const);
 const PROFILE_ROLES = new Set(["admin", "staff", "viewer"] as const);
@@ -137,10 +134,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid user role" }, { status: 400 });
     }
 
+    // ✅ Optional: check duplicate email early (nice error)
+    const exists = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (exists) {
+      return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+    }
+
     const profile = body?.profile ?? {};
+    const username = cleanStr(profile.username);
+
+    // ✅ Optional: check duplicate username early (unique in Profile)
+    if (username) {
+      const u2 = await prisma.profile.findUnique({ where: { username }, select: { id: true } });
+      if (u2) {
+        return NextResponse.json({ error: "Username already exists" }, { status: 400 });
+      }
+    }
+
     const profileRole = profile?.role && PROFILE_ROLES.has(profile.role) ? profile.role : "viewer";
     const profileStatus = profile?.status && PROFILE_STATUS.has(profile.status) ? profile.status : "active";
 
+    // ✅ bcrypt hash
     const passwordHash = await hashPassword(password);
 
     const created = await prisma.user.create({
@@ -149,21 +163,29 @@ export async function POST(req: Request) {
         role: role ?? "USER",
         isActive,
         passwordHash,
-        // image optional
+        passwordUpdatedAt: new Date(),
         image: cleanStr(body?.image),
 
         profile: {
           create: {
             firstName: cleanStr(profile.firstName),
             lastName: cleanStr(profile.lastName),
-            username: cleanStr(profile.username),
+            username,
+            backupEmail: cleanStr(profile.backupEmail),
             phone: cleanStr(profile.phone),
+            address: cleanStr(profile.address),
             city: cleanStr(profile.city),
             country: cleanStr(profile.country),
 
             role: profileRole,
             status: profileStatus,
 
+            company: cleanStr(profile.company),
+            department: cleanStr(profile.department),
+            jobTitle: cleanStr(profile.jobTitle),
+            manager: cleanStr(profile.manager),
+
+            gender: profile.gender === "male" || profile.gender === "female" || profile.gender === "other" ? profile.gender : "other",
             timezone: cleanStr(profile.timezone) ?? "Asia/Ho_Chi_Minh",
           },
         },
@@ -173,8 +195,14 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, id: created.id });
   } catch (e: any) {
-    const msg = e?.message || "Create failed";
-    // Prisma unique constraint -> email/username duplicate
-    return NextResponse.json({ error: msg }, { status: 400 });
+    // ✅ Prisma unique constraint (P2002) -> email/username duplicates
+    if (e?.code === "P2002") {
+      const target = Array.isArray(e?.meta?.target) ? e.meta.target.join(", ") : String(e?.meta?.target || "");
+      if (target.includes("email")) return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+      if (target.includes("username")) return NextResponse.json({ error: "Username already exists" }, { status: 400 });
+      return NextResponse.json({ error: "Duplicate value" }, { status: 400 });
+    }
+
+    return NextResponse.json({ error: e?.message || "Create failed" }, { status: 400 });
   }
 }

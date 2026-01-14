@@ -1,0 +1,133 @@
+/* ===== Nền giấy + bookmark ===== */
+.bookHeader {
+  background: linear-gradient(180deg, var(--paper-dark), var(--paper));
+  border-bottom: 2px solid var(--brand);
+  position: relative;
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+.bookmark {
+  position: absolute;
+  right: 60px;
+  top: 0;
+  width: 26px;
+  height: 70px;
+  background: var(--accent);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Topbar ===== */
+.topbar {
+  background: var(--brand);
+  color: var(--white);
+  font-size: 0.9rem;
+  padding-block: 4px;
+}
+.topbar a {
+  color: var(--white);
+  text-decoration: none;
+}
+.topbar a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Brand ===== */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--brand);
+}
+.brandLogo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--leaf);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Search ===== */
+.searchBox {
+  background: var(--white);
+  border: 1px solid var(--shadow);
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+.searchBox input {
+  border: none;
+  flex: 1;
+  padding: 0.6rem 1rem;
+  outline: none;
+  font-size: 0.95rem;
+  color: var(--s--ink);
+  background: transparent;
+}
+.searchBox select {
+  border: none;
+  padding: 0.6rem 0.8rem;
+  background: transparent;
+  color: var(--s--ink);
+  outline: none;
+}
+.searchBox button {
+  background: var(--brand);
+  color: var(--white);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+}
+.searchBox button:hover {
+  background: var(--accent);
+}
+
+/* ===== Nav ===== */
+.bookNav {
+  border-top: 1px solid var(--shadow);
+  background: transparent;
+}
+.bookNav .nav-link {
+  color: var(--s--ink);
+  font-weight: 600;
+}
+.bookNav .nav-link:hover {
+  color: var(--accent);
+}
+
+/* ===== Dropdown ===== */
+.dropdown-menu {
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--paper-dark);
+  background: var(--white);
+}
+.dropdown-item:hover {
+  background: var(--paper-dark);
+}
+
+/* ===== Icons ===== */
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--brand);
+  font-size: 1.2rem;
+  margin-left: 0.4rem;
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+.iconBtn:hover {
+  color: var(--accent);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 991px) {
+  .searchBox select {
+    display: none;
+  }
+}

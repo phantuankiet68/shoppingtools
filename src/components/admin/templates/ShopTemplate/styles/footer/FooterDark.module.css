@@ -1,0 +1,659 @@
+/* ================== FOOTER CARD AURORA BLUE – FASHION ===================*/
+.abFooter {
+  --ab-bg-page: radial-gradient(circle at 0 -20%, #e0edff 0, #f9fafb 55%);
+  --ab-card-from: #ffffff;
+  --ab-card-to: #eef2ff;
+  --ab-ink-main: #0f172a;
+  --ab-ink-muted: #6b7280;
+  --ab-accent: #2563eb;
+  --ab-chip: rgba(255, 255, 255, 0.9);
+  --ab-border: rgba(148, 163, 184, 0.35);
+
+  --ab-radius-xl: 26px;
+  --ab-radius-pill: 999px;
+
+  --ab-shadow-main: 0 18px 40px rgba(15, 23, 42, 0.12);
+  padding: 32px 18px 24px;
+  position: relative;
+}
+
+.abFooter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 5% 120%, rgba(56, 189, 248, 0.18), transparent 60%), radial-gradient(circle at 100% -10%, rgba(129, 140, 248, 0.25), transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.abWrap {
+  position: relative;
+  max-width: 1260px;
+  margin: 0 auto;
+  border-radius: var(--ab-radius-xl);
+  background: radial-gradient(circle at 0 0, #ffffff, var(--ab-card-to));
+  border: 1px solid var(--ab-border);
+  box-shadow: var(--ab-shadow-main);
+  padding: 20px 18px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 2.2fr);
+  gap: 10px;
+}
+
+/* ====== Left: brand + primary actions ====== */
+.abLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.abBrandRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.abLogo {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: conic-gradient(from 180deg, #38bdf8, #22c55e, #facc15, #f97316, #38bdf8);
+  padding: 2px;
+  box-shadow: 0 0 22px rgba(59, 130, 246, 0.6);
+  flex-shrink: 0;
+}
+
+.abLogoInner {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: radial-gradient(circle at 20% 0, #2563eb, #0f172a 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.abBrandText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.abBrandTitle {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.abBrandSub {
+  font-size: 11px;
+  color: var(--ab-ink-muted);
+}
+
+.abChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.abChip {
+  padding: 6px 11px;
+  border-radius: var(--ab-radius-pill);
+  background: var(--ab-chip);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  font-size: 11px;
+  color: var(--ab-ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.abChip i {
+  font-size: 12px;
+}
+
+.abChipHot {
+  background: linear-gradient(90deg, #fb923c, #fde047);
+  color: #111827;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.abCtaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.abBtnPrimary {
+  border-radius: var(--ab-radius-pill);
+  border: none;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 18px rgba(37, 99, 235, 0.45);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  white-space: nowrap;
+}
+
+.abBtnPrimary i {
+  font-size: 14px;
+}
+
+.abBtnPrimary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.65);
+}
+
+.abBtnOutline {
+  border-radius: var(--ab-radius-pill);
+  padding: 8px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: #f9fafb;
+  color: var(--ab-ink-muted);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+  white-space: nowrap;
+}
+
+.abBtnOutline i {
+  font-size: 13px;
+}
+
+.abBtnOutline:hover {
+  background: #e5edff;
+  color: #1e293b;
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+}
+
+.abSmallNote {
+  font-size: 10px;
+  color: var(--ab-ink-muted);
+  max-width: 220px;
+}
+
+/* ====== Right: link columns + status ====== */
+.abRight {
+  display: grid;
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.6fr);
+  gap: 22px;
+  align-items: flex-start;
+}
+
+.abCols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.abColTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 10px;
+  color: #0f172a;
+}
+
+.abList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.abList a {
+  font-size: 11px;
+  text-decoration: none;
+  color: var(--ab-ink-muted);
+  padding-left: 10px;
+  position: relative;
+  transition: color 0.18s ease, transform 0.18s ease;
+  display: inline-block;
+}
+
+.abList a::before {
+  content: "•";
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: rgba(148, 163, 184, 0.9);
+  transform: translateY(1px);
+}
+
+.abList a:hover {
+  color: #1f2937;
+  transform: translateX(3px);
+}
+
+/* Status card */
+.abStatusCard {
+  border-radius: 18px;
+  padding: 10px 11px;
+  background: linear-gradient(135deg, #e0f2fe, #eff6ff);
+  border: 1px solid rgba(129, 140, 248, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.abStatusHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.abStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  font-size: 10px;
+  border-radius: var(--ab-radius-pill);
+  background: rgba(22, 163, 74, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.9);
+  color: #166534;
+}
+
+.abStatusPill i {
+  font-size: 12px;
+}
+
+.abUptime {
+  font-size: 11px;
+  color: #1f2937;
+  text-align: right;
+}
+
+.abBar {
+  height: 18px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.abBarFill {
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #22d3ee);
+}
+
+.abStatusFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--ab-ink-muted);
+  flex-wrap: wrap;
+}
+
+.abStatusFooter strong {
+  color: #0f172a;
+}
+
+.abMiniActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.abMiniBtn {
+  border-radius: 999px;
+  padding: 2px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: #f9fafb;
+  color: var(--ab-ink-muted);
+  font-size: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.abMiniBtn i {
+  font-size: 11px;
+}
+
+.abMiniBtn:hover {
+  background: #e0f2fe;
+  border-color: #60a5fa;
+  color: #1e40af;
+}
+
+.abSocialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.abSocialBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #1f2937;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.abSocialBtn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  border-color: #bfdbfe;
+  color: #ffffff;
+}
+
+/* ===== Payment methods ===== */
+.abPaymentRow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.abPaymentLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #111827;
+}
+
+.abPaymentLogos {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.abPaymentLogo {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  background: #ffffff;
+}
+
+.payVisa {
+  color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.payMastercard {
+  background: linear-gradient(90deg, #f97316, #ef4444);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.payNapas {
+  color: #0f766e;
+  border-color: #0f766e;
+}
+
+.payCod {
+  background: #fff7ed;
+  border-color: #f97316;
+  color: #92400e;
+}
+
+.payMomo {
+  background: #fdf2ff;
+  border-color: #ec4899;
+  color: #be185d;
+}
+
+/* ===== Bottom line ===== */
+.abBottom {
+  margin: 10px auto 0;
+  max-width: 1260px;
+  padding: 8px 4px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--ab-ink-muted);
+}
+
+.abBottomLeft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.abBottomLinks {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.abBottomLinks a {
+  color: var(--ab-ink-muted);
+  text-decoration: none;
+}
+
+.abBottomLinks a:hover {
+  color: #111827;
+}
+
+.abBottomRight {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* ===== Toggles & ticker ===== */
+.abToggleGroup {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 3px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  gap: 3px;
+}
+
+.abToggleButton {
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: var(--ab-ink-muted);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  white-space: nowrap;
+}
+
+.abToggleButtonActive {
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  color: #ffffff;
+  font-weight: 600;
+  transform: translateY(-1px);
+}
+
+.abTicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px dashed rgba(148, 163, 184, 0.6);
+  background: #ffffff;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.abTickerLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #2563eb;
+  white-space: nowrap;
+}
+
+.abTickerTrack {
+  position: relative;
+  width: 180px;
+  white-space: nowrap;
+  animation: abTicker 14s linear infinite;
+}
+
+@keyframes abTicker {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.abDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+/* ===== Layout mode via data-layout ===== */
+.abFooter[data-layout="compact"] .abWrap {
+  padding: 16px 14px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.8fr);
+  gap: 18px;
+}
+
+.abFooter[data-layout="compact"] .abCols {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.abFooter[data-layout="minimal"] .abWrap {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.abFooter[data-layout="minimal"] .abRight {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.abFooter[data-layout="minimal"] .abCols {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ===== Theme via data-theme ===== */
+.abFooter[data-theme="cyan"] {
+  --ab-accent: #22d3ee;
+}
+
+.abFooter[data-theme="magenta"] {
+  --ab-accent: #ec4899;
+}
+
+.abFooter[data-theme="emerald"] {
+  --ab-accent: #22c55e;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .abWrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .abRight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .abWrap {
+    padding: 16px 13px 14px;
+    border-radius: 20px;
+  }
+
+  .abCols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .abBottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .abBottomRight {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .abBrandRow {
+    align-items: flex-start;
+  }
+
+  .abCtaRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .abBtnPrimary,
+  .abBtnOutline {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .abCols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .abBottomRight {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .abToggleGroup,
+  .abTicker {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .abPaymentRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

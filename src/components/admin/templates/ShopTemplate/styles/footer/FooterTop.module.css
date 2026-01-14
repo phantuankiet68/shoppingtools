@@ -1,0 +1,484 @@
+.BtFooter {
+  --brand: #2563eb;
+  --brand-soft: #e0edff;
+  --brand-deep: #111827;
+  --accent: #fb923c;
+  --ink-main: #0f172a;
+  --ink-muted: #6b7280;
+  --bg-page: #f8fafc;
+  --panel: #ffffff;
+  --border-soft: rgba(148, 163, 184, 0.35);
+  --radius-xl: 26px;
+  --radius-lg: 18px;
+  --shadow-soft: 0 16px 45px rgba(15, 23, 42, 0.14);
+
+  margin: 32px auto 24px;
+  max-width: 1360px;
+  padding: 22px 24px 16px;
+  border-radius: var(--radius-xl);
+  background: radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.08), transparent 55%), radial-gradient(circle at 100% 0%, rgba(251, 146, 60, 0.16), transparent 60%), var(--panel);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(6px);
+  transition: border-radius 0.2s ease, padding 0.2s ease;
+  color: var(--ink-main);
+}
+
+.BtInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.8fr) minmax(0, 1.6fr);
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* LEFT: Brand & selling point */
+.BtBrand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.BtBrandRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.BtLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0%, #ffffff 0, #2563eb 45%, #1d4ed8 80%);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.BtLogo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 220deg, rgba(248, 250, 252, 0.6), transparent 35%, transparent 65%, rgba(248, 250, 252, 0.6));
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.BtLogo span {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  position: relative;
+  z-index: 1;
+}
+
+.BtBrandInfo h3 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.BtBrandInfo p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.BtTagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.BtTag {
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(255, 255, 255, 0.98));
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.BtTag i {
+  font-size: 12px;
+  color: var(--brand);
+}
+
+/* MIDDLE: Links (fashion) */
+.BtLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 26px;
+}
+
+.BtLinks h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-muted);
+}
+
+.BtLinks ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.BtLinks a {
+  text-decoration: none;
+  color: var(--ink-main);
+  opacity: 0.9;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.18s ease, transform 0.12s ease, color 0.12s ease;
+}
+
+.BtLinks a i {
+  font-size: 12px;
+  color: var(--brand);
+}
+
+.BtLinks a:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  color: var(--brand-deep);
+}
+
+/* RIGHT: Switcher + hotline + newsletter */
+.BtRight {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.BtSwitcher {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.7);
+}
+
+.BtSwitchBtn {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 4px 10px;
+  cursor: pointer;
+  color: var(--ink-muted);
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  white-space: nowrap;
+}
+
+/* dùng chung class active cho nhiều nút */
+.IsActive {
+  background: linear-gradient(135deg, var(--brand), #3b82f6);
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+}
+
+.BtHotlinePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.98);
+  font-size: 12px;
+  color: var(--ink-main);
+}
+
+.BtHotlinePill i {
+  font-size: 14px;
+  color: var(--brand);
+}
+
+.BtHotlinePill strong {
+  color: var(--accent);
+}
+
+.BtNewsletter {
+  width: 100%;
+  max-width: 290px;
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: linear-gradient(135deg, rgba(224, 237, 255, 0.95), rgba(255, 255, 255, 0.98));
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.BtNewsIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0%, #ffffff 0, #2563eb 70%);
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.BtNewsMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.BtNewsMain strong {
+  font-size: 13px;
+}
+
+.BtNewsMain span {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.BtInputRow {
+  margin-top: 4px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.BtInputRow input {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 6px 9px;
+  font-size: 11px;
+  outline: none;
+}
+
+.BtInputRow button {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  background-image: linear-gradient(135deg, var(--accent), #f97316);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(248, 163, 95, 0.6);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  white-space: nowrap;
+}
+
+.BtInputRow button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(248, 163, 95, 0.85);
+}
+
+/* BOTTOM: copyright + social + payments */
+.BtBottom {
+  border-top: 1px dashed rgba(148, 163, 184, 0.55);
+  margin-top: 16px;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--ink-muted);
+  flex-wrap: wrap;
+}
+
+.BtBottomLeft {
+  flex: 1 1 220px;
+}
+
+.BtSocial {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.BtSocial span {
+  white-space: nowrap;
+}
+
+.BtSocial a {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  color: var(--brand-deep);
+  font-size: 13px;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.BtSocial a:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand);
+  background: rgba(224, 237, 255, 0.9);
+}
+
+.BtPayments {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.BtPayments span {
+  white-space: nowrap;
+}
+
+.BtPayLogos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 2px;
+}
+
+.BtPayLogos img {
+  display: block;
+  max-height: 20px;
+  width: auto;
+  border-radius: 5px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  padding: 3px 6px;
+}
+
+/* ===== VARIANTS via data-variant ===== */
+
+/* Classic (mặc định) */
+.BtFooter[data-variant="classic"] {
+  border-radius: var(--radius-xl);
+}
+
+/* Editorial (split) */
+.BtFooter[data-variant="split"] .BtInner {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.9fr) minmax(0, 1.6fr);
+}
+
+.BtFooter[data-variant="split"] .BtLinks {
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(224, 237, 255, 0.95), rgba(255, 255, 255, 0.98));
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+.BtFooter[data-variant="split"] .BtLinks h4 {
+  color: #64748b;
+}
+
+.BtFooter[data-variant="split"] .BtLinks a i {
+  color: #2563eb;
+}
+
+/* Minimal (compact) */
+.BtFooter[data-variant="minimal"] {
+  padding: 16px 20px 12px;
+  border-radius: 20px;
+}
+
+.BtFooter[data-variant="minimal"] .BtInner {
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.9fr);
+}
+
+.BtFooter[data-variant="minimal"] .BtRight {
+  align-items: flex-start;
+}
+
+.BtFooter[data-variant="minimal"] .BtNewsletter {
+  display: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px) {
+  .BtInner {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.8fr);
+  }
+  .BtRight {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 900px) {
+  .BtInner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .BtRight {
+    width: 100%;
+    align-items: flex-start;
+  }
+  .BtNewsletter {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .BtFooter {
+    margin: 20px 12px;
+    padding: 18px 14px;
+    border-radius: 20px;
+  }
+
+  .BtBrandInfo h3 {
+    font-size: 17px;
+  }
+
+  .BtTag {
+    white-space: normal;
+  }
+
+  .BtBottom {
+    align-items: flex-start;
+  }
+
+  .BtBottomLeft {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .BtBottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .BtSocial,
+  .BtPayments {
+    justify-content: flex-start;
+  }
+
+  .BtPayLogos {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .BtSwitcher {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .BtSwitchBtn {
+    flex: 1;
+    text-align: center;
+  }
+}

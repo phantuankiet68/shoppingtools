@@ -40,7 +40,7 @@ function isExternalHref(href: string) {
 }
 
 function isLocalePrefixed(href: string, locale: Locale) {
-  return href === `/${locale}` || href.startsWith(`/${locale}/`);
+  return href === `/` || href.startsWith(``);
 }
 
 function looksLikeHome(href: string) {
@@ -73,7 +73,7 @@ export function deriveTriple(locale: Locale, it: BasicMenuItem): TSP | null {
 
   // home
   if (looksLikeHome(hrefRaw)) {
-    return { title, slug: "/", path: `/${locale}` };
+    return { title, slug: "/", path: `/` };
   }
 
   // v1: không ép locale
@@ -90,21 +90,21 @@ export function deriveTriple(locale: Locale, it: BasicMenuItem): TSP | null {
     if (isLocalePrefixed(hrefRaw, locale)) {
       const segs = hrefRaw.split("/").filter(Boolean);
       const last = segs.pop() || "";
-      const slug = hrefRaw === `/${locale}` ? "/" : last;
+      const slug = hrefRaw === `/` ? "/" : last;
       return { title, slug, path: hrefRaw };
     }
 
     // chưa có locale -> prefix
-    const withPrefix = hrefRaw === "/" ? `/${locale}` : `/${locale}/${hrefRaw.replace(/^\//, "")}`;
+    const withPrefix = hrefRaw === "/" ? `/` : `${hrefRaw.replace(/^\//, "")}`;
     const segs = withPrefix.split("/").filter(Boolean);
     const last = segs.pop() || "";
-    const slug = withPrefix === `/${locale}` ? "/" : last;
+    const slug = withPrefix === `/` ? "/" : last;
     return { title, slug, path: withPrefix };
   }
 
   // fallback: tạo slug từ title
   const s = slugify(title) || "untitled";
-  return { title, slug: s, path: `/${locale}/${s}` };
+  return { title, slug: s, path: `${s}` };
 }
 
 export function flattenTriples(locale: Locale, items: BasicMenuItem[]): TSP[] {

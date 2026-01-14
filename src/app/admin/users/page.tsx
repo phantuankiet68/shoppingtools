@@ -183,9 +183,16 @@ export default function UsersClient() {
     profileStatus: "active" as "active" | "suspended",
   });
 
+  const didInitRef = useRef(false);
+  const inFlightRef = useRef(false);
+
   async function loadList() {
+    if (inFlightRef.current) return;
+
+    inFlightRef.current = true;
     setLoading(true);
     setErr("");
+
     try {
       const params = new URLSearchParams();
       if (q.trim()) params.set("q", q.trim());
@@ -203,19 +210,20 @@ export default function UsersClient() {
       setErr(e?.message || "Failed to load users");
     } finally {
       setLoading(false);
+      inFlightRef.current = false;
     }
   }
 
   useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
     loadList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => loadList(), 300);
     return () => clearTimeout(searchTimer.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, role, active]);
 
   function toggleAll(v: boolean) {

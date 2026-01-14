@@ -1,0 +1,56 @@
+.brandWrap {
+  gap: 0.35rem;
+}
+
+/* Vùng hiển thị ticker – che phần tràn */
+.ticker {
+  --ticker-height: 22px;
+  --ticker-speed: 28s; /* tăng/giảm tốc độ chạy */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: var(--ticker-height);
+  max-width: min(52vw, 560px); /* co giãn theo màn hình */
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+}
+
+/* Dải chữ chạy */
+.tickerTrack {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  will-change: transform;
+  animation: ticker-scroll var(--ticker-speed) linear infinite;
+}
+
+/* Mỗi “bản sao” nội dung */
+.tickerItem {
+  display: inline-block;
+  padding-right: 3rem; /* khoảng cách giữa 2 bản sao */
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Dừng khi hover để người dùng đọc */
+.ticker:hover .tickerTrack {
+  animation-play-state: paused;
+}
+
+/* Mượt mà hơn cho người dùng không thích animation */
+@media (prefers-reduced-motion: reduce) {
+  .tickerTrack {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* Keyframes chạy từ phải -> trái đến khi hết và lặp */
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  } /* vì có 2 bản sao bằng nhau */
+}

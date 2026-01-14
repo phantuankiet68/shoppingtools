@@ -205,6 +205,27 @@ function positionFlyout(groupEl: HTMLElement, flyEl: HTMLElement) {
   flyEl.style.left = `${railRect.right + 8}px`;
 }
 
+type SectionKey = "overview" | "builder" | "commerce" | "system" | "account";
+
+const SECTION_TITLES: Record<SectionKey, string> = {
+  overview: "OVERVIEW",
+  builder: "NO-CODE BUILDER",
+  commerce: "COMMERCE",
+  system: "SYSTEM",
+  account: "ACCOUNT",
+};
+
+const SECTION_ORDER: SectionKey[] = ["overview", "builder", "commerce", "system", "account"];
+
+function sectionOfTopItem(title: string): SectionKey {
+  const t = (title || "").toLowerCase();
+  if (isAccountItem(title)) return "account";
+  if (/(^|\s)(builder)(\s|$)/i.test(title)) return "builder";
+  if (/(products|inventory|orders|customers)/i.test(t)) return "commerce";
+  if (/(integrations|settings|roles|logs|system)/i.test(t)) return "system";
+  return "overview";
+}
+
 /* ===================== LayoutA ===================== */
 export default function LayoutA({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -399,14 +420,23 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     if (shouldCollapse) setOpenGroups({});
   }, [pathname]);
 
-  // ===== Sidebar: phân nhóm overview/account =====
-  const groupsAll = useMemo(() => items.filter((i) => i.children?.length), [items]);
-  const groupsOverview = useMemo(() => groupsAll.filter((g) => isOverviewGroup(g.title)), [groupsAll]);
-  const groupsAccount = useMemo(() => groupsAll.filter((g) => !isOverviewGroup(g.title)), [groupsAll]);
+  const sectionBuckets = useMemo(() => {
+    const buckets: Record<SectionKey, { flats: Item[]; groups: Item[] }> = {
+      overview: { flats: [], groups: [] },
+      builder: { flats: [], groups: [] },
+      commerce: { flats: [], groups: [] },
+      system: { flats: [], groups: [] },
+      account: { flats: [], groups: [] },
+    };
 
-  const flatsAll = useMemo(() => items.filter((i) => !i.children?.length), [items]);
-  const flatAccount = useMemo(() => flatsAll.filter((i) => isAccountItem(i.title)), [flatsAll]);
-  const flatOverview = useMemo(() => flatsAll.filter((i) => !isAccountItem(i.title)), [flatsAll]);
+    for (const it of items) {
+      const sec = sectionOfTopItem(it.title);
+      if (it.children?.length) buckets[sec].groups.push(it);
+      else buckets[sec].flats.push(it);
+    }
+
+    return buckets;
+  }, [items]);
 
   function scheduleCloseGroup(gKey: string, delay = 180) {
     const old = closeTimers.current[gKey];
@@ -476,282 +506,139 @@ export default function LayoutA({ children }: { children: ReactNode }) {
             )}
           </Link>
         </div>
-
         <nav className={styles.nav} ref={navRef}>
-          {/* Overview singles */}
-          {flatOverview.map((it) => (
-            <Link
-              key={it.key}
-              data-sb-key={it.key}
-              href={it.path || "#"}
-              data-ripple="1"
-              className={`${styles.navItem} ${activeKey === it.key ? styles.navItemActive : ""}`}
-              aria-current={activeKey === it.key ? "page" : undefined}
-              title={it.title}
-              aria-label={it.title}
-              onClick={(e) => {
-                if (!it.path || it.path === "#") e.preventDefault();
-                setActiveKey(it.key);
-                try {
-                  localStorage.setItem("sb_active_key", it.key);
-                } catch {}
-                closeSidebarIfMobile();
-              }}>
-              <span className={styles.navIcon}>
-                <i className={`${it.icon}`} />
-              </span>
-              {!collapsed && <span className={styles.navLabel}>{it.title}</span>}
-              {!collapsed && <span className={styles.singleDot} />}
-            </Link>
-          ))}
+          {SECTION_ORDER.map((sec) => {
+            const bucket = sectionBuckets[sec];
+            const hasAny = (bucket.flats?.length || 0) + (bucket.groups?.length || 0) > 0;
+            if (!hasAny) return null;
 
-          {groupsOverview.map((g) => {
-            const isOpen = !!openGroups[g.key];
             return (
-              <div className={styles.navGroup} key={g.key} onMouseEnter={(e) => onGroupMouseEnter(g.key, e)} onMouseLeave={() => onGroupMouseLeave(g.key)}>
-                <button
-                  type="button"
-                  data-sb-key={g.key}
-                  data-ripple="1"
-                  className={`${styles.navItem} ${styles.navGroupBtn} ${isOpen ? styles.navItemActive : ""}`}
-                  aria-expanded={isOpen}
-                  title={g.title}
-                  aria-label={g.title}
-                  onClick={(e) => {
-                    if (collapsed) return;
-                    e.preventDefault();
-                    toggleGroupExclusive(g.key);
-                  }}>
-                  <span className={styles.navIcon}>
-                    <i className={`${g.icon}`} />
-                  </span>
+              <div key={sec}>
+                <div className={styles.section}>
+                  {!collapsed && <div className={styles.sectionTitle}>{SECTION_TITLES[sec]}</div>}
 
-                  {!collapsed && <span className={styles.navLabel}>{g.title}</span>}
-
-                  {!collapsed && (
-                    <span className={`${styles.chev} ${isOpen ? styles.chevOpen : ""}`}>
-                      <i className="bi bi-chevron-down" />
-                    </span>
-                  )}
-                </button>
-
-                {/* Inline submenu */}
-                {!collapsed && (
-                  <div className={`${styles.submenu} ${isOpen ? styles.submenuOpen : ""}`}>
-                    {g.children!.map((s) => (
+                  <div className={styles.sectionList}>
+                    {/* flats */}
+                    {bucket.flats.map((it) => (
                       <Link
-                        key={s.key}
-                        data-sb-key={s.key}
-                        href={s.path || "#"}
+                        key={it.key}
+                        data-sb-key={it.key}
+                        href={it.path || "#"}
                         data-ripple="1"
-                        className={`${styles.subItem} ${activeKey === s.key ? styles.subItemActive : ""}`}
-                        title={s.title}
-                        aria-label={s.title}
+                        className={`${styles.navItem} ${activeKey === it.key ? styles.navItemActive : ""}`}
+                        aria-current={activeKey === it.key ? "page" : undefined}
+                        title={collapsed ? it.title : undefined}
+                        aria-label={it.title}
                         onClick={(e) => {
-                          if (!s.path || s.path === "#") e.preventDefault();
-                          setActiveKey(s.key);
+                          if (!it.path || it.path === "#") e.preventDefault();
+                          setActiveKey(it.key);
                           try {
-                            localStorage.setItem("sb_active_key", s.key);
+                            localStorage.setItem("sb_active_key", it.key);
                           } catch {}
                           closeSidebarIfMobile();
                         }}>
                         <span className={styles.navIcon}>
-                          <i className={`${s.icon}`} />
+                          <i className={it.icon} />
                         </span>
-                        <span className={styles.subLabel}>{s.title}</span>
+                        {!collapsed && <span className={styles.navLabel}>{it.title}</span>}
                       </Link>
                     ))}
+
+                    {/* groups */}
+                    {bucket.groups.map((g) => {
+                      const isOpen = !!openGroups[g.key];
+                      return (
+                        <div className={styles.navGroup} key={g.key} onMouseEnter={(e) => onGroupMouseEnter(g.key, e)} onMouseLeave={() => onGroupMouseLeave(g.key)}>
+                          <button
+                            type="button"
+                            data-sb-key={g.key}
+                            data-ripple="1"
+                            className={`${styles.navItem} ${styles.navGroupBtn} ${isOpen ? styles.navItemActive : ""}`}
+                            aria-expanded={isOpen}
+                            title={collapsed ? g.title : undefined}
+                            aria-label={g.title}
+                            onClick={(e) => {
+                              if (collapsed) return;
+                              e.preventDefault();
+                              toggleGroupExclusive(g.key);
+                            }}>
+                            <span className={styles.navIcon}>
+                              <i className={g.icon} />
+                            </span>
+                            {!collapsed && <span className={styles.navLabel}>{g.title}</span>}
+                            {!collapsed && (
+                              <span className={`${styles.chev} ${isOpen ? styles.chevOpen : ""}`}>
+                                <i className="bi bi-chevron-down" />
+                              </span>
+                            )}
+                          </button>
+
+                          {!collapsed && (
+                            <div className={`${styles.submenu} ${isOpen ? styles.submenuOpen : ""}`}>
+                              {g.children!.map((s) => (
+                                <Link
+                                  key={s.key}
+                                  data-sb-key={s.key}
+                                  href={s.path || "#"}
+                                  data-ripple="1"
+                                  className={`${styles.subItem} ${activeKey === s.key ? styles.subItemActive : ""}`}
+                                  title={s.title}
+                                  aria-label={s.title}
+                                  onClick={(e) => {
+                                    if (!s.path || s.path === "#") e.preventDefault();
+                                    setActiveKey(s.key);
+                                    try {
+                                      localStorage.setItem("sb_active_key", s.key);
+                                    } catch {}
+                                    closeSidebarIfMobile();
+                                  }}>
+                                  <span className={styles.subDot} />
+                                  <span className={styles.subLabel}>{s.title}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* flyout collapsed */}
+                          {collapsed && isOpen && (
+                            <div data-flyout={g.key} className={styles.flyout}>
+                              <div className={styles.flyoutTitle}>{g.title}</div>
+                              <div className={styles.flyoutList}>
+                                {g.children!.map((s) => (
+                                  <Link
+                                    key={s.key}
+                                    href={s.path || "#"}
+                                    data-ripple="1"
+                                    onClick={(e) => {
+                                      if (!s.path || s.path === "#") e.preventDefault();
+                                      setActiveKey(s.key);
+                                      try {
+                                        localStorage.setItem("sb_active_key", s.key);
+                                      } catch {}
+                                      closeSidebarIfMobile();
+                                      toggleGroupExclusive(g.key);
+                                    }}
+                                    className={`${styles.flyoutItem} ${activeKey === s.key ? styles.flyoutItemActive : ""}`}>
+                                    <i className={s.icon} />
+                                    <span>{s.title}</span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
 
-                {collapsed && isOpen && (
-                  <div
-                    data-flyout={g.key}
-                    style={{
-                      position: "fixed",
-                      zIndex: 60,
-                      minWidth: 240,
-                      padding: 10,
-                      borderRadius: 12,
-                      background: "rgba(15, 18, 24, .96)",
-                      border: "1px solid rgba(255,255,255,.08)",
-                      boxShadow: "0 18px 50px rgba(0,0,0,.45)",
-                    }}>
-                    <div style={{ padding: "6px 10px", fontWeight: 700, opacity: 0.95 }}>{g.title}</div>
-
-                    <div style={{ display: "grid", gap: 4, paddingTop: 6 }}>
-                      {g.children!.map((s) => (
-                        <Link
-                          key={s.key}
-                          href={s.path || "#"}
-                          data-ripple="1"
-                          onClick={(e) => {
-                            if (!s.path || s.path === "#") e.preventDefault();
-                            setActiveKey(s.key);
-                            try {
-                              localStorage.setItem("sb_active_key", s.key);
-                            } catch {}
-                            closeSidebarIfMobile();
-                            toggleGroupExclusive(g.key);
-                          }}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            padding: "10px 10px",
-                            borderRadius: 10,
-                            color: "rgba(255,255,255,.88)",
-                            textDecoration: "none",
-                            background: activeKey === s.key ? "rgba(255,255,255,.10)" : "transparent",
-                          }}>
-                          <i className={`${s.icon}`} />
-                          <span>{s.title}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          <div className={styles.navDivider} />
-
-          {/* Account singles */}
-          {flatAccount.map((it) => (
-            <Link
-              key={it.key}
-              data-sb-key={it.key}
-              href={it.path || "#"}
-              data-ripple="1"
-              className={`${styles.navItem} ${activeKey === it.key ? styles.navItemActive : ""}`}
-              aria-current={activeKey === it.key ? "page" : undefined}
-              title={it.title}
-              aria-label={it.title}
-              onClick={(e) => {
-                if (!it.path || it.path === "#") e.preventDefault();
-                setActiveKey(it.key);
-                try {
-                  localStorage.setItem("sb_active_key", it.key);
-                } catch {}
-                closeSidebarIfMobile();
-              }}>
-              <span className={styles.navIcon}>
-                <i className={`${it.icon}`} />
-              </span>
-              {!collapsed && <span className={styles.navLabel}>{it.title}</span>}
-              {!collapsed && <span className={styles.singleDot} />}
-            </Link>
-          ))}
-
-          {/* Account groups */}
-          {groupsAccount.map((g) => {
-            const isOpen = !!openGroups[g.key];
-            return (
-              <div className={styles.navGroup} key={g.key} onMouseEnter={(e) => onGroupMouseEnter(g.key, e)} onMouseLeave={() => onGroupMouseLeave(g.key)}>
-                <button
-                  type="button"
-                  data-sb-key={g.key}
-                  data-ripple="1"
-                  className={`${styles.navItem} ${styles.navGroupBtn} ${isOpen ? styles.navItemActive : ""}`}
-                  aria-expanded={isOpen}
-                  title={g.title}
-                  aria-label={g.title}
-                  onClick={(e) => {
-                    if (collapsed) return;
-                    e.preventDefault();
-                    toggleGroupExclusive(g.key);
-                  }}>
-                  <span className={styles.navIcon}>
-                    <i className={`${g.icon}`} />
-                  </span>
-
-                  {!collapsed && <span className={styles.navLabel}>{g.title}</span>}
-
-                  {!collapsed && (
-                    <span className={`${styles.chev} ${isOpen ? styles.chevOpen : ""}`}>
-                      <i className="bi bi-chevron-down" />
-                    </span>
-                  )}
-                </button>
-
-                {!collapsed && (
-                  <div className={`${styles.submenu} ${isOpen ? styles.submenuOpen : ""}`}>
-                    {g.children!.map((s) => (
-                      <Link
-                        key={s.key}
-                        data-sb-key={s.key}
-                        href={s.path || "#"}
-                        data-ripple="1"
-                        className={`${styles.subItem} ${activeKey === s.key ? styles.subItemActive : ""}`}
-                        title={s.title}
-                        aria-label={s.title}
-                        onClick={(e) => {
-                          if (!s.path || s.path === "#") e.preventDefault();
-                          setActiveKey(s.key);
-                          try {
-                            localStorage.setItem("sb_active_key", s.key);
-                          } catch {}
-                          closeSidebarIfMobile();
-                        }}>
-                        <span className={styles.subDot} />
-                        <span className={styles.subLabel}>{s.title}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {collapsed && isOpen && (
-                  <div
-                    data-flyout={g.key}
-                    style={{
-                      position: "fixed",
-                      zIndex: 60,
-                      minWidth: 240,
-                      padding: 10,
-                      borderRadius: 12,
-                      background: "rgba(15, 18, 24, .96)",
-                      border: "1px solid rgba(255,255,255,.08)",
-                      boxShadow: "0 18px 50px rgba(0,0,0,.45)",
-                    }}>
-                    <div style={{ padding: "6px 10px", fontWeight: 700, opacity: 0.95 }}>{g.title}</div>
-
-                    <div style={{ display: "grid", gap: 4, paddingTop: 6 }}>
-                      {g.children!.map((s) => (
-                        <Link
-                          key={s.key}
-                          href={s.path || "#"}
-                          data-ripple="1"
-                          onClick={(e) => {
-                            if (!s.path || s.path === "#") e.preventDefault();
-                            setActiveKey(s.key);
-                            try {
-                              localStorage.setItem("sb_active_key", s.key);
-                            } catch {}
-                            closeSidebarIfMobile();
-                            toggleGroupExclusive(g.key);
-                          }}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            padding: "10px 10px",
-                            borderRadius: 10,
-                            color: "rgba(255,255,255,.88)",
-                            textDecoration: "none",
-                            background: activeKey === s.key ? "rgba(255,255,255,.10)" : "transparent",
-                          }}>
-                          <i className={`${s.icon}`} />
-                          <span>{s.title}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* divider giữa các section */}
+                {sec !== "account" && <div className={styles.sectionDivider} />}
               </div>
             );
           })}
         </nav>
+
         <UpdatePopup />
       </aside>
 

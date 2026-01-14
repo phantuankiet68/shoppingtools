@@ -1,0 +1,596 @@
+/* styles/topbar/TopbarMulti.module.css */
+
+.topbar {
+  --page-bg: #f3f4f6;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  position: relative;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+/* lớp inner giữ grid 3 cột */
+.topbarInner {
+  padding: 8px 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+  position: relative;
+}
+
+.topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.35), transparent 55%), radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.28), transparent 55%);
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+/* đảm bảo content nằm trên overlay */
+.tbLeft,
+.tbCenter,
+.tbRight {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+/* LEFT */
+.tbLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logoCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.brandTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brandTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brandSub {
+  font-size: 11px;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.regionBtn {
+  margin-left: 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  padding: 2px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: 0.18s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.regionBtn i {
+  font-size: 12px;
+}
+
+/* CENTER – ticker pill */
+.tbCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.ticker {
+  max-width: 460px;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.tickerBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+}
+
+.tickerLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.tickerText {
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.main {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+}
+
+/* states cho ticker */
+.isLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.isEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.isActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* RIGHT */
+.tbRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: end;
+  position: relative;
+}
+
+.tbLinks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tbLink {
+  font-size: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: 0.18s ease;
+  white-space: nowrap;
+}
+
+.tbLink i {
+  font-size: 14px;
+}
+
+.tbLinkArrow {
+  font-size: 13px;
+  opacity: 0.6;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.tbLink:hover .tbLinkArrow {
+  transform: translateX(2px);
+  opacity: 1;
+}
+
+/* Status pill chuẩn TopbarPro (ẩn mặc định ở HTML gốc) */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+/* Theme switcher */
+.themeSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.themeBtn {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.3);
+  transition: 0.18s ease;
+  flex-shrink: 0;
+}
+
+.themeBtnActive {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+/* Mobile menu button */
+.moreBtn {
+  display: none;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Dropdown cho mobile */
+.tbLinksDropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  padding: 8px 10px;
+  border-radius: 10px;
+  min-width: 190px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+
+/* khi mở menu mobile */
+.tbRightOpen .tbLinksDropdown {
+  display: flex;
+}
+
+/* THEMES (data-scheme) */
+/* Sunrise */
+.topbar[data-scheme="sunrise"] {
+  --tb-bg: #fff7ed;
+  --tb-ink: #7c2d12;
+  --tb-muted: #9a3412;
+  --tb-border: rgba(251, 146, 60, 0.4);
+  --tb-chip-bg: rgba(255, 255, 255, 0.8);
+  --tb-pill-bg: rgba(255, 237, 213, 0.9);
+  --tb-label-bg: rgba(248, 250, 252, 0.9);
+  --tb-tag-bg: rgba(251, 113, 133, 0.1);
+  --tb-link-muted: #9a3412;
+  --tb-link-hover: #7c2d12;
+
+  background: radial-gradient(circle at 0 0, #fed7aa 0, #fff7ed 50%), radial-gradient(circle at 100% 0, #fed7aa 0, #fff7ed 50%);
+  border: 1px solid var(--tb-border);
+}
+
+.topbar[data-scheme="sunrise"] .logoCircle {
+  background: radial-gradient(circle at 25% 25%, #fed7aa, #fb7185, #f97316);
+  box-shadow: 0 0 16px rgba(248, 113, 113, 0.7);
+}
+
+.topbar[data-scheme="sunrise"] .brandTitle {
+  color: var(--tb-ink);
+}
+
+.topbar[data-scheme="sunrise"] .brandSub {
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="sunrise"] .regionBtn {
+  background: var(--tb-chip-bg);
+  border-color: rgba(248, 171, 95, 0.7);
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="sunrise"] .regionBtn:hover {
+  box-shadow: 0 0 0 1px rgba(248, 171, 95, 0.7);
+}
+
+.topbar[data-scheme="sunrise"] .tickerBox {
+  background: var(--tb-pill-bg);
+  border-color: rgba(248, 171, 95, 0.6);
+}
+
+.topbar[data-scheme="sunrise"] .tickerLabel {
+  background: var(--tb-label-bg);
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="sunrise"] .tickerText {
+  color: var(--tb-ink);
+}
+
+.topbar[data-scheme="sunrise"] .tag {
+  background: var(--tb-tag-bg);
+  color: #be123c;
+}
+
+.topbar[data-scheme="sunrise"] .tbLink {
+  color: var(--tb-link-muted);
+}
+
+.topbar[data-scheme="sunrise"] .tbLink:hover {
+  color: var(--tb-link-hover);
+}
+
+.topbar[data-scheme="sunrise"] .themeBtn[data-theme="sunrise"] {
+  background: #fed7aa;
+  border-color: #fb923c;
+}
+
+/* Mint */
+.topbar[data-scheme="mint"] {
+  --tb-bg: #ecfdf5;
+  --tb-ink: #064e3b;
+  --tb-muted: #047857;
+  --tb-border: rgba(45, 212, 191, 0.6);
+  --tb-chip-bg: rgba(236, 253, 245, 0.9);
+  --tb-pill-bg: rgba(209, 250, 229, 0.95);
+  --tb-label-bg: rgba(240, 253, 250, 0.95);
+  --tb-tag-bg: rgba(59, 130, 246, 0.08);
+  --tb-link-muted: #047857;
+  --tb-link-hover: #065f46;
+
+  background: radial-gradient(circle at 0 0, #a7f3d0 0, #ecfdf5 55%), radial-gradient(circle at 100% 0, #67e8f9 0, #ecfdf5 55%);
+  border: 1px solid var(--tb-border);
+}
+
+.topbar[data-scheme="mint"] .logoCircle {
+  background: radial-gradient(circle at 25% 20%, #a7f3d0, #22c55e, #0ea5e9);
+  box-shadow: 0 0 16px rgba(45, 212, 191, 0.7);
+}
+
+.topbar[data-scheme="mint"] .brandTitle {
+  color: var(--tb-ink);
+}
+
+.topbar[data-scheme="mint"] .brandSub {
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="mint"] .regionBtn {
+  background: var(--tb-chip-bg);
+  border-color: rgba(34, 197, 94, 0.7);
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="mint"] .regionBtn:hover {
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.7);
+}
+
+.topbar[data-scheme="mint"] .tickerBox {
+  background: var(--tb-pill-bg);
+  border-color: rgba(45, 212, 191, 0.7);
+}
+
+.topbar[data-scheme="mint"] .tickerLabel {
+  background: var(--tb-label-bg);
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="mint"] .tickerText {
+  color: var(--tb-ink);
+}
+
+.topbar[data-scheme="mint"] .tag {
+  background: var(--tb-tag-bg);
+  color: #1d4ed8;
+}
+
+.topbar[data-scheme="mint"] .tbLink {
+  color: var(--tb-link-muted);
+}
+
+.topbar[data-scheme="mint"] .tbLink:hover {
+  color: var(--tb-link-hover);
+}
+
+.topbar[data-scheme="mint"] .themeBtn[data-theme="mint"] {
+  background: #bbf7d0;
+  border-color: #22c55e;
+}
+
+/* Slate (dark) */
+.topbar[data-scheme="slate"] {
+  --tb-bg: #0b1120;
+  --tb-ink: #e5e7eb;
+  --tb-muted: #9ca3af;
+  --tb-border: rgba(148, 163, 184, 0.6);
+  --tb-chip-bg: rgba(15, 23, 42, 0.95);
+  --tb-pill-bg: rgba(15, 23, 42, 0.95);
+  --tb-label-bg: rgba(15, 23, 42, 1);
+  --tb-tag-bg: rgba(191, 219, 254, 0.16);
+  --tb-link-muted: #9ca3af;
+  --tb-link-hover: #f9fafb;
+
+  background: radial-gradient(circle at 0 0, #1d2951 0, #020617 55%), radial-gradient(circle at 100% 0, #0f172a 0, #020617 60%);
+  border: 1px solid var(--tb-border);
+}
+
+.topbar[data-scheme="slate"] .logoCircle {
+  background: radial-gradient(circle at 25% 25%, #4f46e5, #ec4899, #22d3ee);
+  box-shadow: 0 0 18px rgba(79, 70, 229, 0.9);
+}
+
+.topbar[data-scheme="slate"] .brandTitle {
+  color: #e5e7eb;
+}
+
+.topbar[data-scheme="slate"] .brandSub {
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="slate"] .regionBtn {
+  background: var(--tb-chip-bg);
+  border-color: rgba(148, 163, 184, 0.6);
+  color: var(--tb-muted);
+}
+
+.topbar[data-scheme="slate"] .regionBtn:hover {
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.8);
+}
+
+.topbar[data-scheme="slate"] .tickerBox {
+  background: var(--tb-pill-bg);
+  border-color: rgba(148, 163, 184, 0.7);
+}
+
+.topbar[data-scheme="slate"] .tickerLabel {
+  background: var(--tb-label-bg);
+  color: #e5e7eb;
+}
+
+.topbar[data-scheme="slate"] .tickerText {
+  color: var(--tb-ink);
+}
+
+.topbar[data-scheme="slate"] .tag {
+  background: var(--tb-tag-bg);
+  color: #bfdbfe;
+}
+
+.topbar[data-scheme="slate"] .tbLink {
+  color: var(--tb-link-muted);
+}
+
+.topbar[data-scheme="slate"] .tbLink:hover {
+  color: var(--tb-link-hover);
+}
+
+.topbar[data-scheme="slate"] .themeBtn[data-theme="slate"] {
+  background: #111827;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+/* Theme button icon màu */
+.themeBtn[data-theme="sunrise"] {
+  color: #c2410c;
+}
+.themeBtn[data-theme="mint"] {
+  color: #047857;
+}
+.themeBtn[data-theme="slate"] {
+  color: #e5e7eb;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* RESPONSIVE */
+
+/* Tablet & laptop nhỏ – ẩn ticker, chia 2 cột */
+@media (max-width: 840px) {
+  .topbarInner {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .tbCenter {
+    display: none;
+  }
+}
+
+/* Mobile & tablet dọc */
+@media (max-width: 640px) {
+  .topbarInner {
+    padding: 8px 12px;
+    column-gap: 10px;
+    overflow: visible;
+  }
+
+  .regionBtn {
+    display: none;
+  }
+
+  .tbLinks {
+    display: none;
+  }
+
+  .moreBtn {
+    display: inline-flex;
+  }
+
+  .tbLinksDropdown {
+    background: var(--tb-bg);
+    border: 1px solid var(--tb-border);
+  }
+
+  .statusPill {
+    display: none;
+  }
+}
+
+/* iPhone SE / mobile nhỏ */
+@media (max-width: 480px) {
+  .topbarInner {
+    padding: 8px 10px;
+    column-gap: 8px;
+  }
+
+  .brandSub {
+    display: none;
+  }
+
+  .logoCircle {
+    width: 26px;
+    height: 26px;
+  }
+
+  .brandTitle {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+
+  .themeSwitcher {
+    gap: 4px;
+  }
+
+  .themeBtn {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+
+  .tbLinksDropdown {
+    min-width: 170px;
+  }
+}

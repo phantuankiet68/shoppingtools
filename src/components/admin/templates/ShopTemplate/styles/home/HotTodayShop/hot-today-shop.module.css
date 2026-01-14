@@ -1,0 +1,264 @@
+/* File: styles/templates/home/hot-today-shop.module.css */
+
+.hotToday {
+  background: #fff;
+  border: 1px solid #eef1f5;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.06);
+}
+
+/* Header */
+.htHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.htHead h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.htView {
+  color: #e11d48;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+/* Grid: 5/row desktop, 3 tablet, 2 mobile */
+.htGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1024px) {
+  .htGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .htGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Card */
+.pCard {
+  border: 1px solid #eef1f5;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pCard:hover {
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Thumb */
+.thumb {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.thumb img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  display: block;
+}
+
+/* Badges */
+.badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.35);
+}
+
+.mallBadge {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: #111827;
+  color: #fff;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  opacity: 0.9;
+}
+
+/* Quick actions (hover) */
+.quick {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: 0.2s ease;
+}
+
+.pCard:hover .quick {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quick button {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.12);
+  cursor: pointer;
+}
+
+.quick button:hover {
+  background: #fffbf6;
+  border-color: #ffb17a;
+  color: #ff6a00;
+}
+
+/* Title */
+.title {
+  color: #111827;
+  text-decoration: none;
+  font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 40px;
+}
+
+/* Price */
+.price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.now {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.old {
+  color: #9ca3af;
+  text-decoration: line-through;
+  font-size: 13px;
+}
+
+/* Rating + sold */
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.rating i {
+  color: #f59e0b;
+  margin-right: 2px;
+  font-size: 13px;
+}
+
+.score {
+  margin-left: 4px;
+  color: #9ca3af;
+}
+
+.sold {
+  color: #6b7280;
+}
+
+/* Vouchers / chips */
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.chipGhost {
+  background: #fff7ef;
+  border: 1px solid #ffb17a;
+  color: #ff6a00;
+}
+
+/* Sold bar */
+.soldbar {
+  position: relative;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #ffb347, #ff6a00);
+}
+
+.soldbarText {
+  position: absolute;
+  right: 8px;
+  top: -18px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Button add-to-cart */
+.btnAdd {
+  margin-top: auto;
+  width: 100%;
+  border: 1px solid #ffb17a;
+  background: #fff7ef;
+  color: #ff6a00;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btnAdd:hover {
+  background: #ffead9;
+}

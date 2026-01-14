@@ -1,0 +1,600 @@
+/* ================== FOOTER AURORA FASHION ================== */
+.awFooter {
+  --aw-page-bg: #f4f6ff;
+  --aw-card-bg: #ffffff;
+  --aw-card-soft: #f9fbff;
+  --aw-ink-main: #0f172a;
+  --aw-ink-muted: #6b7280;
+  --aw-border: #e2e8f0;
+  --aw-accent: #2563eb;
+  --aw-accent-soft: #e0f2ff;
+  --aw-radius-xl: 24px;
+  --aw-radius-pill: 999px;
+  --aw-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  padding: 40px 16px 24px;
+  background: transparent;
+}
+
+.awWrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  background: radial-gradient(circle at 10% 0, #eef4ff, #ffffff 70%);
+  border-radius: var(--aw-radius-xl);
+  border: 1px solid var(--aw-border);
+  box-shadow: var(--aw-shadow);
+  padding: 26px 26px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr);
+  gap: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.awWrap::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at 0 0, rgba(129, 230, 217, 0.22), transparent 55%), radial-gradient(circle at 100% 0, rgba(129, 140, 248, 0.22), transparent 60%);
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.awInner {
+  position: relative;
+  display: contents;
+}
+
+/* ===== LEFT: BRAND + NEWSLETTER + SOCIAL ===== */
+.awLeft {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.awBrandRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.awLogo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-size: 24px;
+  box-shadow: 0 16px 30px rgba(79, 70, 229, 0.4);
+}
+
+.awBrandText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.awBrandTitle {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.awBrandSub {
+  font-size: 12px;
+  color: var(--aw-ink-muted);
+}
+
+/* Slogan bubbles */
+.awPillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.awPill {
+  padding: 6px 12px;
+  border-radius: var(--aw-radius-pill);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px dashed #cbd5f5;
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(6px);
+}
+
+.awPill i {
+  font-size: 14px;
+  color: var(--aw-accent);
+}
+
+.awPillHot {
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  border-style: solid;
+  border-color: transparent;
+  color: #f9fafb;
+  font-weight: 600;
+}
+
+.awNewsletter {
+  background: var(--aw-card-soft);
+  border-radius: 18px;
+  border: 1px solid #dbeafe;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.awNewsletterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.awNewsletterTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.awNewsletterBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.awNewsletterBadge i {
+  font-size: 13px;
+}
+
+.awNewsletterText {
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+}
+
+.awNewsletterForm {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.awInput {
+  flex: 1 1 160px;
+  border-radius: var(--aw-radius-pill);
+  border: 1px solid #cbd5f5;
+  padding: 7px 12px;
+  font-size: 11px;
+  outline: none;
+  background: #ffffff;
+}
+
+.awInput:focus {
+  border-color: var(--aw-accent);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+}
+
+.awBtnPrimary {
+  border-radius: var(--aw-radius-pill);
+  border: none;
+  padding: 8px 17px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #f9fafb;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 14px 24px rgba(37, 99, 235, 0.3);
+  white-space: nowrap;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+}
+
+.awBtnPrimary i {
+  font-size: 15px;
+}
+
+.awBtnPrimary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  box-shadow: 0 18px 30px rgba(37, 99, 235, 0.4);
+}
+
+.awSmallNote {
+  font-size: 10px;
+  color: var(--aw-ink-muted);
+}
+
+/* Social */
+.awSocialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.awSocialLabel {
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+}
+
+.awSocialIcons {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.awSocialBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #d4d4f5;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #4f46e5;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.awSocialBtn:hover {
+  background: #eef2ff;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(148, 163, 184, 0.4);
+}
+
+/* ===== RIGHT: LINK COLUMNS + BADGE + PAYMENT ===== */
+.awRight {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.6fr);
+  gap: 20px;
+}
+
+.awCols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.awColTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.awList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.awList a {
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+  text-decoration: none;
+  padding-left: 10px;
+  position: relative;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.awList a::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #cbd5f5;
+  transform: translateY(1px);
+}
+
+.awList a:hover {
+  color: var(--aw-accent);
+  transform: translateX(3px);
+}
+
+/* Trust / delivery card + payment methods */
+.awStatusCard {
+  border-radius: 20px;
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.awStatusTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.awStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--aw-radius-pill);
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 10px;
+}
+
+.awStatusPill i {
+  font-size: 13px;
+}
+
+.awUptime {
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+}
+
+.awStatusText {
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+}
+
+.awStatusText strong {
+  color: var(--aw-ink-main);
+}
+
+.awMiniBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.awMiniBadge {
+  border-radius: 999px;
+  border: 1px dashed #cbd5f5;
+  background: #ffffff;
+  font-size: 10px;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.awMiniBadge i {
+  font-size: 12px;
+}
+
+/* Payment methods */
+.awPaymentBlock {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #d4d4f5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.awPaymentLabel {
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.awPaymentLabel i {
+  font-size: 14px;
+  color: var(--aw-accent);
+}
+
+.awPaymentLogos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.awPaymentLogos img {
+  height: 26px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 2px 4px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+/* ===== Bottom bar ===== */
+.awBottom {
+  max-width: 1180px;
+  margin: 14px auto 0;
+  padding: 8px 2px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--aw-ink-muted);
+}
+
+.awBottomLeft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.awBottomLinks {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.awBottomLinks a {
+  color: var(--aw-ink-muted);
+  text-decoration: none;
+}
+
+.awBottomLinks a:hover {
+  color: var(--aw-accent);
+}
+
+.awBottomRight {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Toggle group & ticker */
+.awToggleGroup {
+  display: inline-flex;
+  background: #ffffff;
+  border-radius: 999px;
+  border: 1px solid #d4d4d8;
+  padding: 3px;
+  gap: 3px;
+}
+
+.awToggleButton {
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: var(--aw-ink-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.awToggleButtonActive {
+  background: var(--aw-accent-soft);
+  color: var(--aw-accent);
+  font-weight: 600;
+  transform: translateY(-1px);
+}
+
+.awTicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px dashed #d4d4d8;
+  background: #ffffff;
+  overflow: hidden;
+  max-width: 220px;
+}
+
+.awTickerLabel {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4f46e5;
+}
+
+.awTickerTrack {
+  white-space: nowrap;
+  animation: awTicker 16s linear infinite;
+}
+
+@keyframes awTicker {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ===== Theme variants ===== */
+.awFooter[data-theme="blue"] {
+  --aw-accent: #2563eb;
+  --aw-accent-soft: #e0f2ff;
+}
+
+.awFooter[data-theme="mint"] {
+  --aw-accent: #059669;
+  --aw-accent-soft: #d1fae5;
+  --aw-page-bg: #f4fdf7;
+}
+
+.awFooter[data-theme="peach"] {
+  --aw-accent: #f97316;
+  --aw-accent-soft: #ffedd5;
+  --aw-page-bg: #fff7ed;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 960px) {
+  .awWrap {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 22px 18px 16px;
+  }
+
+  .awRight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .awWrap {
+    padding: 18px 14px 14px;
+    border-radius: 18px;
+    gap: 20px;
+  }
+
+  .awCols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .awStatusCard {
+    padding: 10px 10px;
+  }
+
+  .awBottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .awInput {
+    flex: 1 1 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .awNewsletterForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .awBtnPrimary {
+    width: 70%;
+    justify-content: center;
+  }
+
+  .awCols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .awRight {
+    gap: 16px;
+  }
+}

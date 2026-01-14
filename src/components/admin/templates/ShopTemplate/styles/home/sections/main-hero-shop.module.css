@@ -1,0 +1,32 @@
+.mainHero {
+  display: grid;
+  grid-template-columns: 260px 1fr 260px;
+  gap: 16px;
+  padding: 18px 0;
+}
+
+.colCat {
+  min-width: 0;
+}
+.colHero {
+  min-width: 0;
+}
+.colRight {
+  min-width: 0;
+}
+
+/* When a column is hidden via React, grid auto adjusts (no CSS needed). */
+
+/* Responsive: tablet */
+@media (max-width: 1200px) {
+  .mainHero {
+    grid-template-columns: var(--cat-w) 1fr;
+  }
+}
+
+/* Responsive: mobile */
+@media (max-width: 992px) {
+  .mainHero {
+    grid-template-columns: 1fr;
+  }
+}

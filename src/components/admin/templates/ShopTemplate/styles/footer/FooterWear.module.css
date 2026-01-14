@@ -1,0 +1,417 @@
+/* ========= FOOTER WRAPPER ========= */
+.AwFooter {
+  --aw-page-bg: #f3f6ff;
+  --aw-footer-bg: linear-gradient(135deg, #eff6ff, #dbeafe);
+  --aw-card-bg: #ffffff;
+  --aw-card-soft: #eef2ff;
+
+  --aw-ink-main: #0f172a;
+  --aw-ink-muted: #64748b;
+
+  --aw-border-soft: rgba(148, 163, 184, 0.35);
+  --aw-shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.1);
+
+  --aw-accent-blue: #2563eb;
+  --aw-accent-pink: #fb7185;
+  --aw-accent-orange: #fb923c;
+
+  --aw-radius-xl: 24px;
+  --aw-radius-lg: 18px;
+  --aw-radius-pill: 999px;
+
+  margin-top: 40px;
+  padding: 32px 16px 22px;
+  background: var(--aw-footer-bg);
+  border-radius: var(--aw-radius-xl) var(--aw-radius-xl) 0 0;
+  box-shadow: var(--aw-shadow-soft);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  position: relative;
+  overflow: hidden;
+  color: var(--aw-ink-main);
+}
+
+.AwFooter::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background-image: radial-gradient(circle at 10% 0, rgba(96, 165, 250, 0.45), transparent 55%), radial-gradient(circle at 90% 120%, rgba(251, 113, 133, 0.45), transparent 55%);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.AwInner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* ========= TOP AREA ========= */
+.AwTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 2.6fr);
+  gap: 30px;
+  align-items: flex-start;
+}
+
+/* ----- BRAND BLOCK ----- */
+.AwBrand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.AwBrandPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: var(--aw-radius-pill);
+  background: radial-gradient(circle at 0 0, #ffffff, #e0edff);
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+  justify-content: space-between;
+}
+
+.AwBrandLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.AwBrandLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #2563eb, #22c55e, #fb923c, #fb7185, #2563eb);
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.AwBrandLogoInner {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: radial-gradient(circle at 30% 20%, #ffffff, #1d4ed8);
+}
+
+.AwBrandMainTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.AwBrandMainTitle h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.AwTag {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 2px 10px;
+  border-radius: var(--aw-radius-pill);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--aw-accent-blue);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+}
+
+.AwBrandSub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--aw-ink-muted);
+}
+
+.AwTagsRow {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.AwChip {
+  font-size: 11px;
+  padding: 4px 11px;
+  border-radius: var(--aw-radius-pill);
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--aw-ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.AwChipDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0, #fb923c, #fb7185);
+  box-shadow: 0 0 8px rgba(251, 146, 60, 0.7);
+}
+
+.AwChip:hover {
+  border-color: rgba(37, 99, 235, 0.8);
+  color: var(--aw-accent-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.15);
+}
+
+/* ----- MENU + NEWSLETTER BLOCK ----- */
+.AwRight {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.2fr);
+  gap: 18px;
+}
+
+.AwMenuGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 32px;
+}
+
+.AwColTitle {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--aw-ink-main);
+  margin-bottom: 8px;
+}
+
+.AwLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.AwLinks a {
+  text-decoration: none;
+  color: var(--aw-ink-muted);
+  padding: 4px 0;
+  border-radius: 6px;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.AwLinks a i {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.AwLinks a:hover {
+  color: var(--aw-accent-blue);
+  padding-left: 2px;
+}
+
+/* Newsletter + social card */
+.AwNewsCard {
+  background: var(--aw-card-bg);
+  border-radius: var(--aw-radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.AwNewsCard p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--aw-ink-muted);
+}
+
+.AwInputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 5px 4px 10px;
+  border-radius: var(--aw-radius-pill);
+  background: var(--aw-card-soft);
+  border: 1px solid rgba(148, 163, 184, 0.7);
+}
+
+.AwInputRow i {
+  font-size: 14px;
+  color: var(--aw-ink-muted);
+}
+
+.AwInputRow input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
+  color: var(--aw-ink-main);
+}
+
+.AwInputRow input::placeholder {
+  color: #9ca3af;
+}
+
+.AwInputRow button {
+  border: none;
+  border-radius: var(--aw-radius-pill);
+  padding: 6px 13px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--aw-accent-pink), var(--aw-accent-orange));
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 10px 18px rgba(248, 113, 113, 0.5);
+}
+
+/* Social */
+.AwSocial {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.AwSocialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.AwSocialRow a {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--aw-radius-pill);
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--aw-ink-muted);
+  font-size: 15px;
+  transition: all 0.18s ease;
+}
+
+.AwSocialRow a:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--aw-accent-blue), #a855f7);
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* ========= BOTTOM AREA ========= */
+.AwBottom {
+  margin-top: 18px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--aw-ink-muted);
+}
+
+.AwBottomLeft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+.AwPillSmall {
+  border-radius: var(--aw-radius-pill);
+  padding: 4px 9px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.AwPillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--aw-accent-blue);
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.8);
+}
+
+/* ----- Payment methods ----- */
+.AwPayments {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.AwPayLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.AwPayLogos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.AwPayLogos img {
+  height: 24px;
+  width: auto;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 3px 6px;
+  object-fit: contain;
+}
+
+/* ========= RESPONSIVE ========= */
+@media (max-width: 960px) {
+  .AwTop {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .AwRight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .AwNewsCard {
+    order: -1; /* newsletter lên trên menu trên tablet */
+  }
+}
+
+@media (max-width: 640px) {
+  .AwFooter {
+    padding-inline: 14px;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .AwMenuGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .AwBottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .AwBottomLeft {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

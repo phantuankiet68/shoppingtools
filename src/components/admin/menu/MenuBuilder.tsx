@@ -10,6 +10,8 @@ import MenuStructure from "@/components/admin/menu/state/MenuStructure";
 import { flattenTriples } from "@/lib/menu/deriveTitleSlugPath";
 import PopupNotice from "@/components/ui/PopupNotice";
 
+const LS_MENU_SET_KEY = "ui.menu.currentSet";
+
 function useStateSafe<T>(init: T) {
   const [val, setVal] = useState<T>(init);
   const [ready, setReady] = useState(false);
@@ -50,6 +52,7 @@ export default function MenuBuilder() {
 
   const [sites, setSites] = useState<SiteRow[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [hideSiteSelect, setHideSiteSelect] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -106,6 +109,7 @@ export default function MenuBuilder() {
   }
 
   async function handleSaveAll() {
+    console.log("Hoc them");
     try {
       setSaving(true);
       await saveToServer(locale, currentSet, selectedSiteId);
@@ -123,9 +127,12 @@ export default function MenuBuilder() {
           cache: "no-store",
         });
 
+        const raw = await res.text().catch(() => "");
+        console.log("sync-from-menu status:", res.status);
+        console.log("sync-from-menu raw:", raw);
+
         if (!res.ok) {
-          const msg = await res.text().catch(() => "");
-          throw new Error(`Sync SEO failed: ${msg || res.status}`);
+          throw new Error(`Sync SEO failed: ${raw || res.status}`);
         }
 
         await reloadAll({ hard: false });
@@ -203,29 +210,66 @@ export default function MenuBuilder() {
     }
   }
 
+  useEffect(() => {
+    if (!selectedSiteId) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const key = `ui.menu.currentSet.${selectedSiteId}`;
+      const saved = typeof window !== "undefined" ? (localStorage.getItem(key) as MenuSetKey | null) : null;
+      const effectiveSet = saved || currentSet;
+      if (effectiveSet !== currentSet) {
+        setCurrentSet(effectiveSet);
+      }
+      try {
+        setLoading(true);
+        await loadFromServer(locale, effectiveSet, selectedSiteId);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSiteId]);
+
+  useEffect(() => {
+    if (!selectedSiteId || typeof window === "undefined") {
+      setHideSiteSelect(false);
+      return;
+    }
+    const key = `ui.menu.currentSet.${selectedSiteId}`;
+    const saved = localStorage.getItem(key);
+    setHideSiteSelect(saved === "v1");
+  }, [selectedSiteId, currentSet]);
+
   return (
     <div className={styles.container}>
       <PopupNotice open={notice.open} title={notice.title} message={notice.message} variant={notice.variant} onClose={() => setNotice((s) => ({ ...s, open: false }))} autoHideMs={2800} />
 
       <header className={styles.topbar}>
         <div className={styles.topbarRight}>
-          <div className={styles.inline}>
-            <i className="bi bi-globe2" />
-            <select
-              className={`${styles.formSelectSm} ${styles.selectStyled}`}
-              value={selectedSiteId}
-              onChange={(e) => {
-                setSelectedSiteId(e.target.value);
-                startTransition(() => router.refresh());
-              }}
-              aria-label="Chọn Site">
-              {sites.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} — {s.domain} ({s.localeDefault})
-                </option>
-              ))}
-            </select>
-          </div>
+          {!hideSiteSelect && (
+            <div className={styles.inline}>
+              <i className="bi bi-globe2" />
+              <select
+                className={`${styles.formSelectSm} ${styles.selectStyled}`}
+                value={selectedSiteId}
+                onChange={(e) => {
+                  setSelectedSiteId(e.target.value);
+                  startTransition(() => router.refresh());
+                }}
+                aria-label="Chọn Site">
+                {sites.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} — {s.domain} ({s.localeDefault})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className={styles.inline}>
             <i className="bi bi-layers" />
@@ -242,6 +286,11 @@ export default function MenuBuilder() {
               value={currentSet}
               onChange={async (e) => {
                 const setKey = e.target.value as MenuSetKey;
+
+                if (typeof window !== "undefined" && selectedSiteId) {
+                  localStorage.setItem(`ui.menu.currentSet.${selectedSiteId}`, setKey);
+                }
+
                 setCurrentSet(setKey);
                 setLoading(true);
                 try {
@@ -249,9 +298,7 @@ export default function MenuBuilder() {
                 } finally {
                   setLoading(false);
                 }
-                startTransition(() => {
-                  router.refresh();
-                });
+                startTransition(() => router.refresh());
               }}
               aria-label="Select menu set">
               <option value="home">Menu Home</option>
@@ -286,15 +333,17 @@ export default function MenuBuilder() {
             </button>
           </div>
 
-          <div className={styles.inline} style={{ gap: 6 }}>
-            <button
-              className={`${styles.btn} ${styles.btnOutlinePrimary}`}
-              disabled={saving || !selectedSiteId}
-              onClick={handleSaveAll}
-              title="Save the database; then synchronize the page according to the menu (current site).">
-              <i className="bi bi-save" /> {saving ? "Saving..." : "Save DB"}
-            </button>
-          </div>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnOutlinePrimary}`}
+            disabled={false}
+            onClick={() => {
+              console.log("clicked Save DB", { saving, selectedSiteId });
+              void handleSaveAll();
+            }}
+            title="Save the database; then synchronize the page according to the menu (current site).">
+            <i className="bi bi-save" /> {saving ? "Saving..." : "Save DB"}
+          </button>
 
           <div className={styles.inline} style={{ gap: 6 }}>
             <button className={`${styles.btn} ${styles.btnOutlineSuccess}`} onClick={exportJSON}>

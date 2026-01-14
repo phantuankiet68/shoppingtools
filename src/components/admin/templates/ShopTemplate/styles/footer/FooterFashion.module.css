@@ -1,0 +1,550 @@
+/* ================== FOOTER WRAPPER ================== */
+.AbTheme {
+  margin-top: 40px;
+}
+
+/* ================== FOOTER BASE ================== */
+.AbFooter {
+  /* Palette cục bộ cho footer thời trang */
+  --blue-main: #3b82f6;
+  --blue-soft: #e0edff;
+  --blue-soft-2: #f3f6ff;
+  --accent: #f97316;
+  --ink: #0f172a;
+  --ink-soft: #64748b;
+  --bg: #f9fbff;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --shadow-soft: 0 16px 44px rgba(15, 23, 42, 0.14);
+
+  margin-top: 40px;
+  padding: 24px 16px 18px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.22), transparent 55%), radial-gradient(circle at 96% 120%, rgba(37, 99, 235, 0.18), transparent 60%), var(--bg);
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.AbFooter::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  opacity: 0.9;
+  background-image: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.95), transparent 55%), radial-gradient(circle at 80% 120%, rgba(191, 219, 254, 0.7), transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.AbInner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* ================== MODE SWITCH ================== */
+.AbModeSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.AbModeBtn {
+  border-radius: 999px;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.94);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.AbModeBtn i {
+  font-size: 13px;
+}
+
+.AbModeBtn:not(.IsActive):hover {
+  border-color: rgba(148, 163, 184, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Active chung cho nút mode + view mode */
+.IsActive {
+  background: var(--blue-main);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+/* ================== GRID ================== */
+.AbGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.5fr) minmax(0, 1.7fr);
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* ================== BRAND / SUMMARY ================== */
+.AbColTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.AbBrand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.AbBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  font-size: 11px;
+  color: var(--ink-soft);
+  width: fit-content;
+}
+
+.AbBadgeIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 10%, #e0f2fe, #3b82f6);
+  color: #fff;
+  font-size: 13px;
+}
+
+.AbBrandTitle {
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.AbBrandTag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #7fb5ff;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ================== METRICS ================== */
+.AbMetricsSection {
+  margin-top: 4px;
+}
+
+.AbMetrics {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.AbMetricCard {
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 50%;
+}
+
+.AbMetricLabel {
+  color: var(--ink-soft);
+}
+
+.AbMetricValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--blue-main);
+}
+
+.AbMetricChip {
+  margin-top: 2px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.08);
+  color: #15803d;
+  width: fit-content;
+}
+
+/* ================== STORE META ================== */
+.AbStoreMeta {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.6);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr);
+  gap: 6px 16px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.AbStoreMetaItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.AbStoreMetaItem i {
+  font-size: 13px;
+  margin-top: 1px;
+  color: var(--blue-main);
+}
+
+.AbStoreMetaLabel {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ================== LINKS ================== */
+.AbLinksGroup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+  gap: 16px;
+}
+
+.AbLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.AbLinks a {
+  text-decoration: none;
+  color: var(--ink-soft);
+  padding: 4px 0;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.AbLinkBadge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  margin-left: 6px;
+  background: rgba(248, 250, 252, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.AbLinks a:hover {
+  color: var(--blue-main);
+  background: rgba(219, 234, 254, 0.9);
+  padding-left: 4px;
+}
+
+/* ================== NEWSLETTER + SOCIAL + PAYMENTS ================== */
+.AbNewsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.AbNews {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: var(--radius-md);
+  padding: 9px 11px 11px;
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  backdrop-filter: blur(16px);
+}
+
+.AbNews p {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.AbInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.9);
+}
+
+.AbInputWrap i {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.AbInputWrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.AbInputWrap button {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--blue-main), #60a5fa);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* SOCIAL */
+.AbSocial {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.AbSocialIcons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.AbSocialIcons a {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.AbSocialIcons a:hover {
+  background: var(--blue-main);
+  border-color: transparent;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* PAYMENTS */
+.AbPaymentsWrap {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.AbPaymentsLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.AbPaymentsLabel i {
+  font-size: 13px;
+  color: var(--blue-main);
+}
+
+.AbPaymentsIcons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.AbPaymentsIcons img {
+  display: block;
+  width: 50px;
+  height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+/* ================== BOTTOM BAR ================== */
+.AbBottom {
+  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  margin-top: 16px;
+  padding-top: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.AbBottomLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.AbStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.5);
+  font-size: 11px;
+  color: var(--blue-main);
+}
+
+.AbStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(240, 253, 250, 1);
+}
+
+.AbBottomLinks {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.AbBottomLinks a {
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+
+.AbBottomLinks a:hover {
+  color: var(--blue-main);
+}
+
+/* VIEW MODE */
+.AbViewMode {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  font-size: 11px;
+}
+
+.AbViewMode i {
+  font-size: 13px;
+}
+
+.AbViewModeBtn {
+  border: none;
+  background: transparent;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+/* ================== VARIANTS (data-mode) ================== */
+
+/* boutiqueShell: tương đương style-2: đổi background nhẹ */
+.AbTheme[data-mode="boutiqueShell"] .AbFooter {
+  background: linear-gradient(135deg, #e0f2fe, #f9fbff);
+}
+
+/* minimalBar: tương đương style-3 */
+.AbTheme[data-mode="minimalBar"] .AbFooter {
+  background: #ffffff;
+  box-shadow: 0 -1px 0 rgba(148, 163, 184, 0.3);
+  border-radius: 0;
+}
+
+.AbTheme[data-mode="minimalBar"] .AbGrid {
+  grid-template-columns: minmax(0, 2.6fr) minmax(0, 1.8fr);
+  gap: 18px;
+}
+
+.AbTheme[data-mode="minimalBar"] .AbNews {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.AbTheme[data-mode="minimalBar"] .AbInputWrap {
+  background: #e5e7eb;
+}
+
+.AbTheme[data-mode="minimalBar"] .AbLinks a {
+  background: transparent;
+  padding-left: 0;
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 960px) {
+  .AbGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .AbStoreMeta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .AbGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .AbModeSwitch {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .AbFooter {
+    border-radius: 18px 18px 0 0;
+    padding: 18px 14px 14px;
+  }
+
+  .AbBottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .AbViewMode {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .AbPaymentsIcons img {
+    width: 46px;
+    height: 26px;
+  }
+}

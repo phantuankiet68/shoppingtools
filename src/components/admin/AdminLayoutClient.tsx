@@ -57,8 +57,6 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       <ChooseLayoutModal
         onPick={applyLayout}
         onClose={() => {
-          // Nếu bạn muốn BẮT BUỘC chọn layout thì đổi thành: return;
-          // Hiện tại: cho đóng và mặc định A
           setLayout("A");
           setOpen(false);
         }}

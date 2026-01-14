@@ -1,0 +1,265 @@
+.topbar {
+  width: 100%;
+  --orange-main: #f97316;
+  --orange-dark: #ea580c;
+  --orange-light: #fed7aa;
+  --ink-light: #fffaf5;
+  --ink-muted: #fdebd2;
+
+  background: var(--orange-main);
+  padding: 8px 0;
+  color: var(--ink-light);
+}
+
+.topbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* LEFT */
+
+.tbLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logoCircle {
+  width: 28px;
+  height: 28px;
+  background: #ffffff;
+  border-radius: 50%;
+  color: var(--orange-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.brandTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.brandSub {
+  font-size: 12px;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.regionBtn {
+  border: none;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--ink-light);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.regionBtn:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+/* CENTER – ticker */
+
+.tbCenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.ticker {
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.tickerBox {
+  background: rgba(255, 255, 255, 0.22);
+  padding: 4px 12px;
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tickerLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  opacity: 0.9;
+  letter-spacing: 0.15em;
+}
+
+.tickerText {
+  font-size: 12px;
+  display: inline-flex;
+  gap: 6px;
+  white-space: nowrap;
+  transition: 0.3s ease;
+  opacity: 1;
+}
+
+.tag {
+  background: var(--orange-light);
+  color: #7c2d12;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+/* Animation helpers (giữ lại để gần với bản gốc) */
+
+.isActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* RIGHT */
+
+.tbRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.tbLinks {
+  display: flex;
+  gap: 16px;
+}
+
+.tbLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-light);
+  opacity: 0.9;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tbLink i {
+  font-size: 15px;
+  color: var(--ink-muted);
+  transition: 0.2s;
+}
+
+.tbLink:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.tbLink:hover i {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.statusPill {
+  background: rgba(255, 255, 255, 0.22);
+  padding: 4px 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: ping 1.7s infinite;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* MOBILE */
+
+.moreBtn {
+  display: none;
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+@media (max-width: 840px) {
+  .tbCenter {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .brandSub {
+    display: none;
+  }
+
+  .regionBtn {
+    display: none;
+  }
+
+  .moreBtn {
+    display: block;
+  }
+
+  .tbLinks {
+    display: none;
+    position: absolute;
+    top: 32px;
+    right: 0;
+    background: var(--orange-dark);
+    padding: 10px;
+    border-radius: 10px;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 150px;
+  }
+
+  .tbRightOpen .tbLinks {
+    display: flex;
+  }
+
+  .statusPill {
+    display: none;
+  }
+
+  .tbLink {
+    color: #ffffff;
+  }
+
+  .tbLink i {
+    color: #fed7aa;
+  }
+}
