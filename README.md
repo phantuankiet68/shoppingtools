@@ -109,11 +109,13 @@ Customers
 
 SYSTEM
 
-Integrations
+integrations
 ├─ Payment
 ├─ Email
 ├─ Webhooks
 └─ Storage
+
+storage.module.css
 
 Users & Roles
 
@@ -122,6 +124,11 @@ Settings
 ├─ Shipping
 ├─ Taxes
 └─ Maintenance
+
+store.module.css
+shipping.module.css
+taxes.module.css
+maintenance.module.css
 
 Logs (Soon)
 

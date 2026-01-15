@@ -1,4 +1,3 @@
-// app/admin/menu/page.tsx
 "use client";
 
 import dynamic from "next/dynamic";
@@ -8,7 +7,7 @@ const StockLevelBuilder = dynamic(() => import("@/components/admin/inventory/sto
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Stock Level Builder" subtitle="Manage Stock Level" />
+      <AdminPageTitle title="Stock Level Management" subtitle="Monitor and manage product stock levels" />
       <StockLevelBuilder />
     </main>
   );

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/layouts/LayoutA.module.css";
 import { usePathname } from "next/navigation";
 import { useAdminTitle } from "@/components/admin/AdminTitleContext";
-import UpdatePopup from "@/components/admin/layouts/UpdatePopup";
+// import UpdatePopup from "@/components/admin/layouts/UpdatePopup";
 type AdminUser = { name: string; role: string };
 type NotiTab = "all" | "messages" | "tasks" | "alerts";
 
@@ -639,7 +639,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <UpdatePopup />
+        {/* <UpdatePopup /> */}
       </aside>
 
       {/* ===================== MAIN (giữ nguyên) ===================== */}

@@ -1,4 +1,3 @@
-// app/admin/menu/page.tsx
 "use client";
 
 import dynamic from "next/dynamic";
@@ -8,7 +7,7 @@ const PurchaseOrderBuilder = dynamic(() => import("@/components/admin/inventory/
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Purchase Orders Builder" subtitle="Manage Purchase Orders" />
+      <AdminPageTitle title="Purchase Order Management" subtitle="Create, track, and manage purchase orders" />
       <PurchaseOrderBuilder />
     </main>
   );
