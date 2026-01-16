@@ -16,6 +16,8 @@ model MenuItem {
   locale    Locale     @default(vi)
   setKey    MenuSetKey @default(home)
 
+  pages     Page[]
+
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

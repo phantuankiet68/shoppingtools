@@ -188,14 +188,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
                 <span className={styles.kvLabel}>Status</span>
                 <span className={`${styles.badge} ${page!.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{page!.status}</span>
               </div>
-
-              <div className={styles.kvItem}>
-                <span className={styles.kvLabel}>Path</span>
-                <span className={styles.kvValue}>
-                  <code>{pathPretty}</code>
-                </span>
-              </div>
-
               <div className={styles.kvItem}>
                 <span className={styles.kvLabel}>Updated</span>
                 <span className={styles.kvValue}>{new Date(page!.updatedAt || page!.createdAt || Date.now()).toLocaleString()}</span>

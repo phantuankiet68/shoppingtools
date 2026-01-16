@@ -2,6 +2,8 @@ model Page {
   id        String     @id @default(cuid())
   siteId    String
   site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  menuItemId String?   @db.VarChar(191)
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
   title     String
   slug      String
   path      String
@@ -28,6 +30,7 @@ model Page {
 
   @@index([siteId])
   @@index([siteId, updatedAt])
+  @@index([menuItemId])
 }
 
 enum PageStatus {

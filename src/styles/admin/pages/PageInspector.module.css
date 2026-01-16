@@ -432,3 +432,24 @@
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: 1540px) {
+  .badge {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .kvValue {
+    color: #111827c7;
+    font-weight: 500;
+  }
+  .kvItem {
+    gap: 0px;
+    padding: 6px 10px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+  .rightPane {
+    border-radius: 6px;
+  }
+}

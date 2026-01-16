@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { PageRow } from "@/lib/page/types";
-import { TopNav } from "@/components/admin/pages";
 import PageList from "@/components/admin/pages/list/PageList";
 import PageInspector from "@/components/admin/pages/list/PageInspector";
 import styles from "@/styles/admin/page/page.module.css";
@@ -22,7 +21,7 @@ export default function UiBuilderListPage() {
   const [status, setStatus] = useState<"all" | "DRAFT" | "PUBLISHED">(initStatus);
   const [sortKey, setSortKey] = useState<"updatedAt" | "createdAt" | "title">(initSort);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(initDir);
-  const PAGE_SIZE = 8;
+  const PAGE_SIZE = 7;
   const [page, setPage] = useState<number>(initPage);
   const [total, setTotal] = useState<number>(0);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -133,8 +132,6 @@ export default function UiBuilderListPage() {
 
   return (
     <div className={styles.wrap}>
-      <TopNav pageId={null} mode="pages" onSwitch={() => {}} onSave={() => {}} saving={false} onCreate={openCreate} />
-
       {msg && (
         <div className="container-fluid">
           <div className="alert alert-warning py-2 px-3 my-2 small">

@@ -4,7 +4,7 @@
 .leftPane {
   display: flex;
   flex-direction: column;
-  height: calc(83vh); /* tuỳ chiều cao topbar của bạn */
+  height: calc(90vh); /* tuỳ chiều cao topbar của bạn */
   min-width: 360px;
   max-width: 520px;
   width: 420px;
@@ -447,9 +447,10 @@
 @media (max-width: 1540px) {
   .leftPane {
     width: 318px;
-    min-width: 0px;
+    min-width: 0;
     max-width: 520px;
-    height: 78vh;
+    height: 87.5vh;
+    border-radius: 6px;
   }
   .searchBox {
     border-radius: 5px;
@@ -478,7 +479,19 @@
     align-items: center;
     justify-content: center;
   }
-  .pageList-module__sgfijW__iconLeft {
+  .iconLeft {
     margin-right: 0px;
+  }
+
+  .listWrap {
+    padding: 5px;
+  }
+  .item {
+    border-radius: 6px;
+    grid-template-columns: 40px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 8px;
   }
 }

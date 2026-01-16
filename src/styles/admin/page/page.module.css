@@ -1,14 +1,9 @@
-.wrap {
-  padding: 8px;
-}
-
 /* grid: left list + right detail */
 .grid {
   display: grid;
   gap: 14px;
   grid-template-columns: 26% 1fr;
-  min-height: calc(83vh);
-  margin-top: 10px;
+  min-height: calc(90vh);
 }
 @media (max-width: 991.98px) {
   .grid {
@@ -354,5 +349,9 @@
 @media (max-width: 1540px) {
   .wrap {
     padding: 0;
+  }
+  .grid {
+    margin-top: 0;
+    grid-template-columns: 25% 1fr;
   }
 }
