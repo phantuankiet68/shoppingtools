@@ -443,3 +443,42 @@
   font-weight: 700;
   font-size: 12px;
 }
+
+@media (max-width: 1540px) {
+  .leftPane {
+    width: 318px;
+    min-width: 0px;
+    max-width: 520px;
+    height: 78vh;
+  }
+  .searchBox {
+    border-radius: 5px;
+    padding: 4px 12px 4px 38px;
+  }
+
+  .select {
+    border-radius: 6px;
+    height: 30px;
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+  .ghostBtn {
+    border-radius: 6px;
+    height: 30px;
+    padding: 0 4px;
+    font-size: 12px;
+  }
+  .refreshBtn {
+    border-radius: 6px;
+    gap: 8px;
+    height: 30px;
+    padding: 0px 8px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pageList-module__sgfijW__iconLeft {
+    margin-right: 0px;
+  }
+}

@@ -290,40 +290,36 @@ model Block {
 }
 
 // ==== part: Page.prisma ====
-// ==== Page.prisma (đã chỉnh) ====
 model Page {
-  id                String       @id @default(cuid())
+  id                String      @id @default(cuid())
   siteId            String
-  site              Site         @relation(fields: [siteId], references: [id], onUpdate: Cascade)
-  locale            Locale
+  site              Site        @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   title             String
   slug              String
   path              String
-  status            PageStatus   @default(DRAFT)
+  status            PageStatus  @default(DRAFT)
   blocks            Json
   seoTitle          String?
   seoDesc           String?
   coverImage        String?
   seoKeywords       String?
   canonicalUrl      String?
-  noindex           Boolean?     @default(false)
-  nofollow          Boolean?     @default(false)
+  noindex           Boolean     @default(false)
+  nofollow          Boolean     @default(false)
   ogTitle           String?
   ogDescription     String?
-  twitterCard       TwitterCard? @default(SUMMARY_LARGE_IMAGE)
-  sitemapChangefreq Changefreq?  @default(WEEKLY)
-  sitemapPriority   Float?       @default(0.7)
+  twitterCard       TwitterCard @default(SUMMARY_LARGE_IMAGE)
+  sitemapChangefreq Changefreq  @default(WEEKLY)
+  sitemapPriority   Float       @default(0.7)
   structuredData    Json?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  sections          Section[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  sections Section[]
-
-  @@unique([siteId, locale, slug])
+  @@unique([siteId, slug])
   @@unique([siteId, path])
-  @@index([siteId, locale])
-  @@index([siteId, locale, updatedAt])
+  @@index([siteId])
+  @@index([siteId, updatedAt])
 }
 
 enum PageStatus {
@@ -820,16 +816,14 @@ model Profile {
 }
 
 // ==== part: Site.prisma ====
-
 model Site {
-  id            String     @id @default(cuid())
-  domain        String     @unique
-  name          String
-  localeDefault Locale     @default(vi)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  pages         Page[]
-  menuItems     MenuItem[]
+  id        String     @id @default(cuid())
+  domain    String     @unique
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  pages     Page[]
+  menuItems MenuItem[]
 }
 
 // ==== part: user.prisma ====

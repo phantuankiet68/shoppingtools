@@ -351,3 +351,9 @@
   font-size: 12px;
   color: #666;
 }
+
+@media (max-width: 1540px) {
+  .wrap {
+    padding: 0;
+  }
+}

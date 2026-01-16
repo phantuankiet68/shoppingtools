@@ -199,7 +199,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
                             </span>
                           </div>
                           <div className={styles.itemRight}>
-                            <span className={styles.kind}>{k}</span>
+                            <i className="bi bi-arrow-right-circle"></i>
                           </div>
                         </li>
                       );

@@ -19,7 +19,7 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
   if (!active) {
     return (
       <div className={cls.panel}>
-        <div className={cls.empty}>Chọn một block để chỉnh sửa</div>
+        <div className={cls.empty}>Select a block to edit.</div>
       </div>
     );
   }
@@ -32,7 +32,7 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
     return (
       <div className={cls.panel}>
         <div className={cls.empty}>
-          Không có inspector cho <b>{active.kind}</b>
+          There is no inspector for <b>{active.kind}</b>
         </div>
       </div>
     );

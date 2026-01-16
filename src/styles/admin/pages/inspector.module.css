@@ -381,3 +381,8 @@
 .stateTabs {
   margin-bottom: 6px;
 }
+@media (max-width: 1540px) {
+  .panel {
+    height: 78vh;
+  }
+}

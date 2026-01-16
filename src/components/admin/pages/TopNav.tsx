@@ -13,8 +13,6 @@ type Props = {
 };
 
 export default function TopNav({ pageId, onCreate, noticeText }: Props) {
-  const text = noticeText ?? "💡 Hãy tạo Menu trước; khi lưu Menu, Page / Path / Locale sẽ tự động được tạo & đồng bộ.";
-
   return (
     <header className={styles.topNav}>
       {/* Left */}
@@ -23,15 +21,6 @@ export default function TopNav({ pageId, onCreate, noticeText }: Props) {
 
         <div className={styles.brand}>
           <div className={styles.brandName}>Zento Builder</div>
-
-          <div className={styles.ticker} aria-live="polite">
-            <div className={styles.tickerTrack}>
-              <span className={styles.tickerItem}>{text}</span>
-              <span className={styles.tickerItem} aria-hidden="true">
-                {text}
-              </span>
-            </div>
-          </div>
         </div>
 
         <span className={styles.badge}>{pageId ? `ID: ${pageId}` : "Draft"}</span>

@@ -3,23 +3,23 @@ import React from "react";
 import styles from "@/styles/admin/pages/pageList.module.css";
 import type { PageRow } from "@/lib/page/types";
 
+type SortKey = "updatedAt" | "createdAt" | "title";
+type SortDir = "asc" | "desc";
+
 type Props = {
   pages: PageRow[];
   loading: boolean;
   activeId: string | null;
   onSelect: (id: string) => void;
-
   q: string;
   setQ: (v: string) => void;
   status: "all" | "DRAFT" | "PUBLISHED";
   setStatus: (v: "all" | "DRAFT" | "PUBLISHED") => void;
-  sortKey: "updatedAt" | "createdAt" | "title" | "locale";
-  sortDir: "asc" | "desc";
-  setSortKey: (k: Props["sortKey"]) => void;
-  setSortDir: (d: Props["sortDir"]) => void;
-
+  sortKey: SortKey;
+  sortDir: SortDir;
+  setSortKey: (k: SortKey) => void;
+  setSortDir: (d: SortDir) => void;
   onRefresh: () => void;
-
   page: number;
   setPage: (n: number) => void;
   total: number;
@@ -27,12 +27,19 @@ type Props = {
   hasMore: boolean;
 };
 
+function initialsFromTitle(t?: string) {
+  const s = (t || "").trim();
+  if (!s) return "PG";
+  const parts = s.split(/\s+/).slice(0, 2);
+  return parts.map((x) => x[0]?.toUpperCase() || "").join("") || "PG";
+}
+
 export default function PageList({ pages, loading, activeId, onSelect, q, setQ, status, setStatus, sortKey, sortDir, setSortKey, setSortDir, onRefresh, page, setPage, total, totalPages }: Props) {
-  const toggleSort = (k: Props["sortKey"]) => {
+  const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else {
       setSortKey(k);
-      setSortDir(k === "title" || k === "locale" ? "asc" : "desc");
+      setSortDir(k === "title" ? "asc" : "desc");
     }
   };
 
@@ -71,7 +78,6 @@ export default function PageList({ pages, loading, activeId, onSelect, q, setQ, 
 
           <button className={styles.refreshBtn} type="button" onClick={onRefresh} disabled={loading} aria-label="Refresh">
             <i className={`bi bi-arrow-repeat ${styles.iconLeft}`} />
-            <span>{loading ? "Loading…" : "Refresh"}</span>
           </button>
         </div>
       </div>
@@ -81,7 +87,7 @@ export default function PageList({ pages, loading, activeId, onSelect, q, setQ, 
 
         {pages.map((p) => (
           <button key={p.id} type="button" className={`${styles.item} ${styles.sheen} ${p.id === activeId ? styles.itemActive : ""}`} onClick={() => onSelect(p.id)} title={p.title || p.slug}>
-            <div className={styles.itemIcon}>{p.locale.toUpperCase()}</div>
+            <div className={styles.itemIcon}>{initialsFromTitle(p.title || p.slug)}</div>
 
             <div className={styles.itemMain}>
               <div className={styles.itemTitle}>

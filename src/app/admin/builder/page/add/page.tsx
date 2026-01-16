@@ -2,15 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import styles from "@/styles/admin/pages/add.module.css";
+
 import DesignHeader from "@/components/admin/pages/DesignHeader";
 import { ControlsPalette, Canvas, Inspector } from "@/components/admin/pages";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import type { Block, Locale as LocaleType, SEO } from "@/lib/page/types";
+import type { Block, SEO } from "@/lib/page/types";
 import { uid, slugify } from "@/lib/page/utils";
 
-/* =========================
- * Types & helpers
- * =======================*/
 type ViewMode = "design" | "preview";
 type SiteRow = {
   id: string;
@@ -31,38 +30,28 @@ function originFromDomain(domain?: string) {
 }
 
 export default function UiBuilderAddPage() {
-  // ===== Route params & query
   const { locale: routeLocale } = useParams<{ locale: "vi" | "en" | "ja" }>();
   const sp = useSearchParams();
-  const initialId = sp.get("id"); // nếu edit
+  const initialId = sp.get("id");
 
-  // ===== Site selection
   const [sites, setSites] = useState<SiteRow[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
 
-  // ===== Core state
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mode, setMode] = useState<ViewMode>("design");
   const [guardMsg, setGuardMsg] = useState("");
 
-  // NEW: device (desktop / tablet / mobile)
   const [device, setDevice] = useState<Device>("desktop");
 
-  // Meta
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [pageId, setPageId] = useState<string | null>(initialId);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  // Locale có thể chỉnh trong UI (DesignHeader yêu cầu setter)
-  const [localeState, setLocaleState] = useState<"vi" | "en" | "ja">(routeLocale);
-
-  // Palette search
   const [search, setSearch] = useState("");
 
-  // SEO state
   const [seo, setSeo] = useState<SEO>({
     metaTitle: title,
     metaDescription: "",
@@ -79,42 +68,27 @@ export default function UiBuilderAddPage() {
     structuredData: "",
   });
 
-  // ===== Slug "/" & path (dựa theo localeState)
   const rawSlug = (slug ?? "").trim();
   const isHome = rawSlug === "/";
   const computedSlug = isHome ? "" : slugify(rawSlug || title || "trang-moi");
-  const path = `/${localeState}${isHome || !computedSlug ? "" : `/${computedSlug}`}`;
+  const path = `/${isHome || !computedSlug ? "" : `/${computedSlug}`}`;
 
-  // ===== Derived
   const active = useMemo(() => blocks.find((b) => b.id === activeId) || null, [blocks, activeId]);
-  const serialized = useMemo(
-    () =>
-      JSON.stringify(
-        blocks.map(({ kind, props }) => ({ kind, props })),
-        null,
-        2
-      ),
-    [blocks]
-  );
 
-  // ===== Load sites (và chọn site phù hợp)
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch("/api/sites", { cache: "no-store" });
+        const r = await fetch("/api/admin/sites", { cache: "no-store" });
         if (!r.ok) return;
         const data = await r.json();
         const list: SiteRow[] = data.items ?? [];
         setSites(list);
 
-        // Nếu đang edit, cố gắng lấy siteId từ detail page
         if (initialId) {
-          const d = await fetch(`api/pages/${initialId}`, {
-            cache: "no-store",
-          });
+          const d = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store" }); // ✅ fix
           if (d.ok) {
             const dj = await d.json();
-            const pid = dj?.page?.siteId as string | undefined; // API nên select thêm siteId
+            const pid = dj?.page?.siteId as string | undefined;
             if (pid && list.some((s) => s.id === pid)) {
               setSelectedSiteId(pid);
               return;
@@ -122,54 +96,37 @@ export default function UiBuilderAddPage() {
           }
         }
 
-        // Fallback: nhớ lựa chọn cũ hoặc chọn site đầu tiên
         const saved = localStorage.getItem("pages_selected_site");
         const fallback = list[0]?.id ?? "";
         const pick = saved && list.some((s) => s.id === saved) ? saved : fallback;
         setSelectedSiteId(pick);
-      } catch {
-        /* ignore */
-      }
+      } catch {}
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialId, routeLocale]);
 
-  // Lưu lựa chọn site
   useEffect(() => {
     if (selectedSiteId) localStorage.setItem("pages_selected_site", selectedSiteId);
   }, [selectedSiteId]);
 
   const currentSite = useMemo(() => sites.find((s) => s.id === selectedSiteId) ?? sites[0], [sites, selectedSiteId]);
 
-  // ===== Load page detail by ?id=
   useEffect(() => {
     if (!initialId) return;
     (async () => {
-      const r = await fetch(`api/pages/${initialId}`, {
-        cache: "no-store",
-      });
+      const r = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store" });
       if (!r.ok) return;
       const { page: p } = await r.json();
       setPageId(p.id);
       setTitle(p.title ?? "Untitled");
       setSlug(p.slug ?? "");
-      setLocaleState((p.locale as LocaleType) || routeLocale);
-      const list = (p.blocks || []).map((x: any) => ({
-        id: uid(),
-        kind: x.kind,
-        props: x.props || {},
-      }));
-      setBlocks(list);
       setSeo((prev) => ({
         ...prev,
         metaTitle: p.title ?? prev.metaTitle,
         ogTitle: p.title ?? prev.ogTitle,
       }));
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialId]);
+  }, [initialId, routeLocale]);
 
-  // ===== Drag & Drop
   const onDragStart = (kind: string) => (e: React.DragEvent) => {
     e.dataTransfer.setData("text/plain", kind);
     e.dataTransfer.effectAllowed = "copy";
@@ -180,7 +137,6 @@ export default function UiBuilderAddPage() {
 
     const meta = (e as any).zbMeta as { type: "row-col"; parentRowId: string; colIndex: number } | { type: "section"; parentSectionId: string; slot: string } | null;
 
-    // Branch 1: template
     const txt = e.dataTransfer.getData("text/plain") || "";
     const isTemplate = txt.startsWith("template:");
     if (isTemplate) {
@@ -203,10 +159,7 @@ export default function UiBuilderAddPage() {
         } else if (meta?.type === "section") {
           const roots = getRoots(mapped);
           roots.forEach((rb) => {
-            (rb.props as any).__parent = {
-              id: meta.parentSectionId,
-              slot: meta.slot || "children",
-            };
+            (rb.props as any).__parent = { id: meta.parentSectionId, slot: meta.slot || "children" };
             if ((rb.props as any)._parentRowId) delete (rb.props as any)._parentRowId;
             if ((rb.props as any)._parentColIndex !== undefined) delete (rb.props as any)._parentColIndex;
           });
@@ -216,12 +169,9 @@ export default function UiBuilderAddPage() {
         setBlocks((prev) => [...prev, ...withIds]);
         setActiveId(withIds[0]?.id ?? null);
         return;
-      } catch {
-        // rơi về single-block
-      }
+      } catch {}
     }
 
-    // Branch 2: single block
     const kind = e.dataTransfer.getData("text/plain");
     const reg = REGISTRY.find((r) => r.kind === kind);
     const def = reg?.defaults || {};
@@ -231,10 +181,7 @@ export default function UiBuilderAddPage() {
       props._parentRowId = meta.parentRowId;
       props._parentColIndex = meta.colIndex;
     } else if (meta?.type === "section") {
-      props.__parent = {
-        id: meta.parentSectionId,
-        slot: meta.slot || "children",
-      };
+      props.__parent = { id: meta.parentSectionId, slot: meta.slot || "children" };
     }
 
     const b: Block = { id: uid(), kind, props };
@@ -242,7 +189,6 @@ export default function UiBuilderAddPage() {
     setActiveId(b.id);
   };
 
-  // ===== CRUD blocks
   const move = (dir: -1 | 1) => {
     if (!activeId) return;
     setBlocks((prev) => {
@@ -262,7 +208,6 @@ export default function UiBuilderAddPage() {
     setActiveId(null);
   };
 
-  // === FIX: Cho phép đổi cả kind và props, kèm seed defaults khi đổi kind ===
   const updateActive = (patch: Record<string, any>) => {
     if (!activeId) return;
     setBlocks((prev) =>
@@ -271,12 +216,7 @@ export default function UiBuilderAddPage() {
 
         const nextKind = patch.kind ?? b.kind;
         const kindChanged = nextKind !== b.kind;
-
-        // Nếu Inspector truyền props rõ ràng thì dùng luôn; nếu không, merge patch vào props hiện tại
         let nextProps = "props" in patch ? patch.props ?? {} : { ...(b.props ?? {}), ...patch };
-
-        // Khi đổi kind mà Inspector KHÔNG gửi props mới,
-        // ta seed defaults của kind mới (nếu có) để tránh thiếu prop cần thiết
         if (kindChanged && !("props" in patch)) {
           const def = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
           nextProps = { ...def, ...nextProps };
@@ -287,21 +227,19 @@ export default function UiBuilderAddPage() {
     );
   };
 
-  // ===== Persist
   async function savePage() {
     try {
       setSaving(true);
       const safeTitle = (title || "").trim() || "Untitled";
       const normalizedSlug = isHome ? "/" : rawSlug || slugify(safeTitle);
       const finalSlug = normalizedSlug === "/" ? "/" : slugify(normalizedSlug);
-      const finalPath = `/${localeState}${finalSlug === "/" ? "" : `/${finalSlug}`}`;
+      const finalPath = `/${finalSlug === "/" ? "" : `/${finalSlug}`}`;
 
       const body = {
         id: pageId ?? undefined,
-        locale: localeState,
         title: safeTitle,
         slug: finalSlug,
-        path: finalPath, // server có thể tính lại; gửi để hiển thị tức thời
+        path: finalPath,
         blocks: blocks.map(({ kind, props }) => ({ kind, props })),
         seo: {
           ...seo,
@@ -310,8 +248,7 @@ export default function UiBuilderAddPage() {
         },
       };
 
-      // Gọi đúng route có prefix locale + header domain để định danh site
-      const res = await fetch(`api/pages/save`, {
+      const res = await fetch(`/api/admin/pages/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -319,6 +256,7 @@ export default function UiBuilderAddPage() {
         },
         body: JSON.stringify(body),
       });
+
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json?.ok) throw new Error(json?.error || "Save failed");
 
@@ -341,7 +279,7 @@ export default function UiBuilderAddPage() {
     }
     try {
       setPublishing(true);
-      const res = await fetch(`api/pages/publish`, {
+      const res = await fetch(`/api/admin/pages/publish`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -349,10 +287,10 @@ export default function UiBuilderAddPage() {
         },
         body: JSON.stringify({ id: pageId }),
       });
+
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json?.ok === false) throw new Error(json?.error || "Publish failed");
 
-      // Preview theo domain của site đã chọn
       const safePath = ensureLeadingSlash(path);
       const siteOrigin = originFromDomain(currentSite?.domain);
       const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
@@ -365,7 +303,6 @@ export default function UiBuilderAddPage() {
     }
   }
 
-  // Đồng bộ SEO title khi đổi tiêu đề
   useEffect(() => {
     setSeo((prev) => ({
       ...prev,
@@ -374,7 +311,6 @@ export default function UiBuilderAddPage() {
     }));
   }, [title]);
 
-  // Preview (từ nút preview trong header)
   const openPreview = () => {
     const safePath = ensureLeadingSlash(path);
     const siteOrigin = originFromDomain(currentSite?.domain);
@@ -383,21 +319,21 @@ export default function UiBuilderAddPage() {
   };
 
   return (
-    <div className="zb-wrapper p-2">
+    <div className={styles.wrapper}>
       {guardMsg && (
-        <div className="container-fluid">
-          <div className="alert alert-warning py-2 px-3 my-2 small">
-            <i className="bi bi-exclamation-triangle me-1"></i>
-            {guardMsg}
+        <div className={styles.guardWrap}>
+          <div className={styles.guardAlert}>
+            <i className="bi bi-exclamation-triangle" />
+            <span>{guardMsg}</span>
           </div>
         </div>
       )}
 
       {/* ====== Site selector */}
-      <div className="container-fluid">
-        <div className="d-flex align-items-center gap-2 d-none">
+      <div className={styles.siteBar}>
+        <div className={`${styles.siteRow} ${styles.hidden}`}>
           <i className="bi bi-globe2" />
-          <select className="form-select form-select-sm" value={selectedSiteId} onChange={(e) => setSelectedSiteId(e.target.value)} aria-label="Chọn site">
+          <select className={styles.siteSelect} value={selectedSiteId} onChange={(e) => setSelectedSiteId(e.target.value)} aria-label="Chọn site">
             {sites.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name} — {s.domain} ({s.localeDefault})
@@ -407,60 +343,56 @@ export default function UiBuilderAddPage() {
         </div>
       </div>
 
-      <div className="p-0">
-        <div className="mb-2">
-          <DesignHeader
-            title={title}
-            setTitle={setTitle}
-            locale={localeState}
-            setLocale={setLocaleState}
-            saving={saving}
-            saved={!saving}
-            publishing={publishing}
-            onSave={savePage}
-            onPublish={publishPage}
-            onPreview={openPreview}
-            onRefresh={() => {}}
-            device={device}
-            setDevice={setDevice}
-          />
-        </div>
-
+      <div>
         {mode === "design" ? (
-          <div className="row g-3">
-            <div className="col-12 col-md-2">
+          <div className={styles.builderGrid}>
+            <aside className={styles.left}>
               <ControlsPalette search={search} setSearch={setSearch} onDragStart={onDragStart} />
-            </div>
-            <div className="col-12 col-md-8">
+            </aside>
+
+            <main className={styles.center}>
               <Canvas blocks={blocks} activeId={activeId} setActiveId={setActiveId} onDrop={onDrop} move={move} device={device} />
-            </div>
-            <div className="col-12 col-md-2">
+            </main>
+
+            <aside className={styles.right}>
+              <DesignHeader
+                title={title}
+                setTitle={setTitle}
+                saving={saving}
+                saved={!saving}
+                publishing={publishing}
+                onSave={savePage}
+                onPublish={publishPage}
+                onPreview={openPreview}
+                onRefresh={() => {}}
+                setDevice={setDevice}
+              />
               <Inspector active={active} move={move} remove={remove} updateActive={updateActive} />
-            </div>
+            </aside>
           </div>
         ) : (
-          <div className="card">
-            <div className="card-body">
-              {/* Preview đơn giản */}
-              <div className="d-grid gap-2">
+          <div className={styles.previewCard}>
+            <div className={styles.previewBody}>
+              <div className={styles.previewList}>
                 {blocks.map((b) => (
-                  <div key={b.id} className="card">
-                    <div className="card-body p-2">
-                      <code className="small">{b.kind}</code>
+                  <div key={b.id} className={styles.blockCard}>
+                    <div className={styles.blockBody}>
+                      <code className={styles.blockCode}>{b.kind}</code>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-3 d-flex gap-2">
-                <button className="btn btn-outline-secondary btn-sm" onClick={() => setMode("design")}>
-                  <i className="bi bi-arrow-left-short me-1" />
+              <div className={styles.previewActions}>
+                <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => setMode("design")}>
+                  <i className="bi bi-arrow-left-short" />
                   Back to Design
                 </button>
-                <button className="btn btn-primary btn-sm" onClick={savePage} disabled={saving}>
+
+                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={savePage} disabled={saving}>
                   {saving ? (
                     <>
-                      <span className="spinner-border spinner-border-sm me-2" />
+                      <span className={styles.spinner} />
                       Saving…
                     </>
                   ) : (
@@ -485,7 +417,6 @@ function getRoots(list: Block[]) {
   });
 }
 
-// Remap id cho toàn bộ cây template để tránh trùng/đè
 function remapIds(list: Block[]) {
   const idMap = new Map<string, string>();
   const mapId = (oldId: string) => {
@@ -502,7 +433,6 @@ function remapIds(list: Block[]) {
     return nb;
   });
 
-  // remap references (_parentRowId, __parent.id)
   clone.forEach((b) => {
     const p: any = b.props || {};
     if (p._parentRowId && idMap.has(p._parentRowId)) {
@@ -515,13 +445,9 @@ function remapIds(list: Block[]) {
 
   return clone;
 }
+
 function composeTemplateBlocks(templateId: string): Block[] {
-  // Các block gốc cần id để làm cha
-  const make = (kind: string, props: any = {}): Block => ({
-    id: uid(),
-    kind,
-    props,
-  });
+  const make = (kind: string, props: any = {}): Block => ({ id: uid(), kind, props });
 
   if (templateId === "tpl-header-only") {
     return [
@@ -536,7 +462,7 @@ function composeTemplateBlocks(templateId: string): Block[] {
   }
 
   if (templateId === "tpl-hero-2col") {
-    const row = make("Row", { cols: 2, gap: 24 }); // Row 2 cột
+    const row = make("Row", { cols: 2, gap: 24 });
 
     const left = make("BannerPro", {
       eyebrow: "LowCode Builder",
@@ -601,6 +527,5 @@ function composeTemplateBlocks(templateId: string): Block[] {
     return [header, section, hero, row, t1, t2, t3];
   }
 
-  // fallback
   return [];
 }

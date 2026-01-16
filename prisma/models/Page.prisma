@@ -1,38 +1,33 @@
-// ==== Page.prisma (đã chỉnh) ====
 model Page {
-  id        String      @id @default(cuid())
+  id        String     @id @default(cuid())
   siteId    String
-  site      Site        @relation(fields: [siteId], references: [id], onUpdate: Cascade)
-  locale    Locale
+  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   title     String
   slug      String
   path      String
-  status    PageStatus  @default(DRAFT)
+  status    PageStatus @default(DRAFT)
   blocks    Json
   seoTitle          String?
   seoDesc           String?
   coverImage        String?
   seoKeywords       String?
   canonicalUrl      String?
-  noindex           Boolean?     @default(false)
-  nofollow          Boolean?     @default(false)
+  noindex           Boolean      @default(false)
+  nofollow          Boolean      @default(false)
   ogTitle           String?
   ogDescription     String?
-  twitterCard       TwitterCard? @default(SUMMARY_LARGE_IMAGE)
-  sitemapChangefreq Changefreq?  @default(WEEKLY)
-  sitemapPriority   Float?       @default(0.7)
+  twitterCard       TwitterCard  @default(SUMMARY_LARGE_IMAGE)
+  sitemapChangefreq Changefreq   @default(WEEKLY)
+  sitemapPriority   Float        @default(0.7)
   structuredData    Json?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([siteId, locale, slug])
+  sections  Section[]
+  @@unique([siteId, slug])
   @@unique([siteId, path])
 
-  sections  Section[]
-
-  @@index([siteId, locale])
-  @@index([siteId, locale, updatedAt])
+  @@index([siteId])
+  @@index([siteId, updatedAt])
 }
 
 enum PageStatus {

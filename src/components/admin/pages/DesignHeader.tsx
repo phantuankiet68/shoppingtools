@@ -11,9 +11,6 @@ type Props = {
   slug?: string;
   setSlug?: (v: string) => void;
   path?: string;
-
-  locale: "vi" | "en" | "ja";
-  setLocale: (v: "vi" | "en" | "ja") => void;
   saving?: boolean;
   saved?: boolean;
   publishing?: boolean;
@@ -25,24 +22,7 @@ type Props = {
   setDevice?: (d: Device) => void;
 };
 
-export default function DesignHeader({
-  title,
-  setTitle,
-  slug,
-  setSlug,
-  path,
-  locale,
-  setLocale,
-  saving,
-  saved,
-  publishing,
-  onSave,
-  onPublish,
-  onPreview,
-  onRefresh,
-  device = "desktop",
-  setDevice,
-}: Props) {
+export default function DesignHeader({ title, setTitle, slug, setSlug, path, saving, saved, publishing, onSave, onPublish, onPreview, onRefresh, device = "desktop", setDevice }: Props) {
   const canEditTitle = Boolean(setTitle);
   const canEditSlug = Boolean(setSlug);
 
@@ -54,7 +34,7 @@ export default function DesignHeader({
             type="button"
             className={cls.iconBtn}
             onClick={() => {
-              window.location.href = "/viadmin/pages";
+              window.location.href = "/admin/pages";
             }}
             title="Refresh"
             aria-label="Refresh">
@@ -72,12 +52,6 @@ export default function DesignHeader({
               {title || "Untitled"}
             </span>
           )}
-
-          <select className={cls.locale} value={locale} onChange={(e) => setLocale(e.target.value as any)} aria-label="Locale">
-            <option value="vi">vi</option>
-            <option value="en">en</option>
-            <option value="ja">ja</option>
-          </select>
         </div>
 
         <div className={cls.subRow}>

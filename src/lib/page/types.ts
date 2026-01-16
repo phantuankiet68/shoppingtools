@@ -1,8 +1,6 @@
 // src/lib/types.ts
 import type { RegItem, InspectorField } from "@/lib/ui-builder/types";
 
-export type Locale = "vi" | "en" | "ja";
-
 export type Block = {
   id: string;
   kind: string;
@@ -16,7 +14,6 @@ export type PageRow = {
   siteName: string | null;
   title: string;
   slug: string;
-  locale: "vi" | "en" | "ja";
   path: string | null;
   status: "DRAFT" | "PUBLISHED";
   createdAt: string;

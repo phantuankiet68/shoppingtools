@@ -1,76 +1,56 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { PageRow } from "@/lib/page/types";
 import { TopNav } from "@/components/admin/pages";
 import PageList from "@/components/admin/pages/list/PageList";
 import PageInspector from "@/components/admin/pages/list/PageInspector";
 import styles from "@/styles/admin/page/page.module.css";
 
-type Locale = "vi" | "en" | "ja";
-
 export default function UiBuilderListPage() {
   const router = useRouter();
-  const { locale } = useParams<{ locale: Locale }>();
   const sp = useSearchParams();
-
-  // ===== URL-derived filters
   const initQ = sp.get("q") ?? "";
   const initStatus = (sp.get("status") as "all" | "DRAFT" | "PUBLISHED" | null) ?? "all";
-  const initSort = (sp.get("sort") as "updatedAt" | "createdAt" | "title" | "locale" | null) ?? "updatedAt";
+  const initSort = (sp.get("sort") as "updatedAt" | "createdAt" | "title" | null) ?? "updatedAt";
   const initDir = (sp.get("dir") as "asc" | "desc" | null) ?? "desc";
-  const initPage = Math.max(1, Number(sp.get("page") || "1")); // 👈 NEW
-
-  // ===== List state
+  const initPage = Math.max(1, Number(sp.get("page") || "1"));
   const [pages, setPages] = useState<PageRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState(initQ);
   const [status, setStatus] = useState<"all" | "DRAFT" | "PUBLISHED">(initStatus);
-  const [sortKey, setSortKey] = useState<"updatedAt" | "createdAt" | "title" | "locale">(initSort);
+  const [sortKey, setSortKey] = useState<"updatedAt" | "createdAt" | "title">(initSort);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(initDir);
-
-  // 👇 NEW: pagination
   const PAGE_SIZE = 8;
   const [page, setPage] = useState<number>(initPage);
   const [total, setTotal] = useState<number>(0);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [hasMore, setHasMore] = useState<boolean>(false);
-
-  // selection
   const [activeId, setActiveId] = useState<string | null>(sp.get("id"));
   const active = useMemo(() => pages.find((p) => p.id === activeId) ?? null, [pages, activeId]);
-
-  // alerts
   const [msg, setMsg] = useState("");
 
-  // ===== API
   async function loadPages() {
     try {
       setLoading(true);
       const params = new URLSearchParams({
         q,
-        offset: String((page - 1) * PAGE_SIZE), // 👈 NEW
-        limit: String(PAGE_SIZE), // 👈 NEW
+        offset: String((page - 1) * PAGE_SIZE),
+        limit: String(PAGE_SIZE),
         sort: sortKey,
         dir: sortDir,
       });
       if (status !== "all") params.set("status", status);
-
-      // 👇 Nên gọi theo route có locale (phù hợp chữ ký API bạn đang dùng)
       const res = await fetch(`/api/admin/pages/list?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to load pages");
-      const json = await res.json(); // {items,total,hasMore}
+      const json = await res.json();
       const items: PageRow[] = json.items || [];
       setPages(items);
       setTotal(json.total ?? items.length);
       setHasMore(!!json.hasMore);
-
-      // ensure selection exists
       if (!activeId && items.length) setActiveId(items[0].id);
       if (activeId && !items.find((p) => p.id === activeId)) setActiveId(items[0]?.id ?? null);
-
-      // nếu page > totalPages (ví dụ filter ra ít hơn), kéo page về cuối
       const nextTotalPages = Math.max(1, Math.ceil((json.total ?? 0) / PAGE_SIZE));
       if (page > nextTotalPages) setPage(nextTotalPages);
     } catch (e: any) {
@@ -82,14 +62,15 @@ export default function UiBuilderListPage() {
   }
 
   async function del(id: string) {
-    if (!confirm("Xoá page này? Hành động không thể hoàn tác.")) return;
+    if (!confirm("Delete this page? This action is irreversible.")) return;
     try {
       const res = await fetch(`/api/admin/pages/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
-      // sau khi xoá, nếu trang hiện tại hết dữ liệu thì lùi 1 trang
+
       const willBeCount = total - 1;
       const willBeTotalPages = Math.max(1, Math.ceil(willBeCount / PAGE_SIZE));
       if (page > willBeTotalPages) setPage(willBeTotalPages);
+
       await loadPages();
       if (activeId === id) setActiveId(null);
     } catch (e: any) {
@@ -126,20 +107,8 @@ export default function UiBuilderListPage() {
     }
   }
 
-  // open
-  const openEdit = (id: string) => router.push(`/api/admin/pages/add?id=${encodeURIComponent(id)}`);
-  const openCreate = () => router.push(`/api/admin/menu`);
-
-  // effects
-  useEffect(() => {
-    loadPages();
-  }, []);
-  useEffect(() => {
-    const t = setTimeout(() => {
-      loadPages();
-    }, 260);
-    return () => clearTimeout(t);
-  }, [q, status, sortKey, sortDir, page]);
+  const openEdit = (id: string) => router.push(`/admin/builder/page/add?id=${encodeURIComponent(id)}`);
+  const openCreate = () => router.push(`/admin/menu`);
 
   function openPreview(page: PageRow) {
     if (!page.path) return;
@@ -149,9 +118,18 @@ export default function UiBuilderListPage() {
     }
     const base = page.siteDomain ? `http://${page.siteDomain}` : "";
     window.open(`${base}${page.path.startsWith("/") ? page.path : `/${page.path}`}`, "_blank");
-
-    console.log(base);
   }
+
+  useEffect(() => {
+    loadPages();
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadPages();
+    }, 260);
+    return () => clearTimeout(t);
+  }, [q, status, sortKey, sortDir, page]);
 
   return (
     <div className={styles.wrap}>

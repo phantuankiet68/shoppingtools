@@ -4,6 +4,9 @@ import React from "react";
 import styles from "@/styles/admin/page/page.module.css";
 import type { PageRow } from "@/lib/page/types";
 
+type SortKey = "updatedAt" | "createdAt" | "title";
+type SortDir = "asc" | "desc";
+
 type Props = {
   pages: PageRow[];
   pagesLoading: boolean;
@@ -20,10 +23,10 @@ type Props = {
   setPagesQ: (v: string) => void;
   statusFilter: "all" | "DRAFT" | "PUBLISHED";
   setStatusFilter: (v: "all" | "DRAFT" | "PUBLISHED") => void;
-  sortKey: "updatedAt" | "createdAt" | "title" | "locale";
-  sortDir: "asc" | "desc";
-  setSortKey: (k: Props["sortKey"]) => void;
-  setSortDir: (d: Props["sortDir"]) => void;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  setSortKey: (k: SortKey) => void;
+  setSortDir: (d: SortDir) => void;
 
   loadPages: (p?: number) => Promise<void>;
   openPageForEdit: (id: string) => void | Promise<void>;
@@ -59,11 +62,11 @@ export default function PagesTable(props: Props) {
     deletePage,
   } = props;
 
-  const toggleSort = (key: "updatedAt" | "createdAt" | "title" | "locale") => {
+  const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else {
       setSortKey(key);
-      setSortDir(key === "title" || key === "locale" ? "asc" : "desc");
+      setSortDir(key === "title" ? "asc" : "desc");
     }
   };
 
@@ -94,10 +97,10 @@ export default function PagesTable(props: Props) {
           <span className="text-secondary small">Sort</span>
           <select
             className="form-select"
-            style={{ width: 200 }}
+            style={{ width: 220 }}
             value={`${sortKey}:${sortDir}`}
             onChange={(e) => {
-              const [k, d] = e.target.value.split(":") as any;
+              const [k, d] = e.target.value.split(":") as [SortKey, SortDir];
               setSortKey(k);
               setSortDir(d);
             }}>
@@ -107,8 +110,6 @@ export default function PagesTable(props: Props) {
             <option value="createdAt:asc">Created (oldest)</option>
             <option value="title:asc">Title (A→Z)</option>
             <option value="title:desc">Title (Z→A)</option>
-            <option value="locale:asc">Locale (A→Z)</option>
-            <option value="locale:desc">Locale (Z→A)</option>
           </select>
         </div>
 
@@ -126,28 +127,29 @@ export default function PagesTable(props: Props) {
           <thead className={styles.thead}>
             <tr>
               <th style={{ width: 220 }}>ID</th>
-              <th className={styles.thSort} onClick={() => toggleSort("locale")}>
-                Locale
-                <i className={`bi ${sortKey === "locale" ? (sortDir === "asc" ? "bi-chevron-up" : "bi-chevron-down") : "bi-arrow-down-up"} ${styles.sortIcon}`}></i>
-              </th>
+
               <th className={styles.thSort} onClick={() => toggleSort("title")}>
                 Title
                 <i className={`bi ${sortKey === "title" ? (sortDir === "asc" ? "bi-chevron-up" : "bi-chevron-down") : "bi-arrow-down-up"} ${styles.sortIcon}`}></i>
               </th>
+
               <th>Slug</th>
               <th>Path</th>
+
               <th className={styles.thSort} onClick={() => toggleSort("updatedAt")}>
                 Updated
                 <i className={`bi ${sortKey === "updatedAt" ? (sortDir === "asc" ? "bi-chevron-up" : "bi-chevron-down") : "bi-arrow-down-up"} ${styles.sortIcon}`}></i>
               </th>
+
               <th>Status</th>
               <th className="text-end">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {pages.length === 0 && !pagesLoading && (
               <tr>
-                <td className={styles.empty} colSpan={8}>
+                <td className={styles.empty} colSpan={7}>
                   Không có kết quả nào khớp bộ lọc.
                 </td>
               </tr>
@@ -158,32 +160,44 @@ export default function PagesTable(props: Props) {
                 <td className={`${styles.cell} ${styles.ellipsis}`} title={p.id}>
                   <code>{p.id}</code>
                 </td>
-                <td className={styles.cell}>
-                  <span className={`${styles.badge} ${styles.badgeGray}`}>{p.locale}</span>
-                </td>
+
                 <td className={`${styles.cell} ${styles.ellipsis}`} title={p.title}>
                   {p.title}
                 </td>
+
                 <td className={`${styles.cell} ${styles.ellipsis}`} title={p.slug}>
                   <code>{p.slug}</code>
                 </td>
-                <td className={`${styles.cell} ${styles.ellipsis}`} title={p.path}>
-                  <code>{p.path}</code>
+
+                <td className={`${styles.cell} ${styles.ellipsis}`} title={p.title ?? undefined}>
+                  {p.title || "(untitled)"}
                 </td>
                 <td className={`${styles.cell} ${styles.nowrap}`} title={new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleString()}>
                   {new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleDateString()}
                 </td>
+
                 <td className={styles.cell}>
                   <span className={`${styles.badge} ${p.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{p.status}</span>
                 </td>
+
                 <td className={`${styles.cell} ${styles.actions}`}>
                   <div className="btn-group">
                     <button className={`${styles.btnEdit} btn-sm btn-outline-primary`} title="Open in builder" onClick={() => openPageForEdit(p.id)}>
                       <i className="bi bi-pencil-square"></i>
                     </button>
-                    <a className={`${styles.btnPreview} btn-sm btn-outline-primary`} title="Preview in new tab" href={p.path} target="_blank" rel="noreferrer">
+
+                    <a
+                      className={`${styles.btnPreview} btn-sm btn-outline-primary`}
+                      title="Preview in new tab"
+                      href={p.path ?? undefined}
+                      target={p.path ? "_blank" : undefined}
+                      rel={p.path ? "noreferrer" : undefined}
+                      onClick={(e) => {
+                        if (!p.path) e.preventDefault();
+                      }}>
                       <i className="bi bi-box-arrow-up-right"></i>
                     </a>
+
                     {p.status === "PUBLISHED" ? (
                       <button className={`${styles.btnUnpublish} btn-sm btn-outline-primary`} title="Unpublish" onClick={() => togglePublish(p.id, "unpublish")}>
                         <i className="bi bi-eye-slash"></i>
@@ -193,9 +207,11 @@ export default function PagesTable(props: Props) {
                         <i className="bi bi-upload"></i>
                       </button>
                     )}
+
                     <button className={`${styles.btnDuplicate} btn-sm btn-outline-primary`} title="Duplicate" onClick={() => duplicatePage(p.id)}>
                       <i className="bi bi-layers"></i>
                     </button>
+
                     <button className={`${styles.btnDelete} btn-sm btn-outline-primary`} title="Delete" onClick={() => deletePage(p.id)}>
                       <i className="bi bi-trash"></i>
                     </button>
@@ -206,7 +222,7 @@ export default function PagesTable(props: Props) {
 
             {pagesLoading && (
               <tr>
-                <td className={styles.loading} colSpan={8}>
+                <td className={styles.loading} colSpan={7}>
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                   Đang tải dữ liệu…
                 </td>
@@ -220,6 +236,7 @@ export default function PagesTable(props: Props) {
           <div className={styles.pageInfo}>
             Đang hiển thị <strong>{showingFrom}</strong>–<strong>{showingTo}</strong> / <strong>{total}</strong>
           </div>
+
           <div className={styles.pageNav}>
             <button className={styles.pageBtn} disabled={page <= 1} onClick={() => goToPage(1)} title="First">
               «
@@ -227,25 +244,21 @@ export default function PagesTable(props: Props) {
             <button className={styles.pageBtn} disabled={page <= 1} onClick={() => goToPage(page - 1)} title="Prev">
               ‹
             </button>
+
             {pageWindow().map((n) => (
               <button key={n} className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ""}`} onClick={() => goToPage(n)}>
                 {n}
               </button>
             ))}
+
             <button className={styles.pageBtn} disabled={page >= totalPages} onClick={() => goToPage(page + 1)} title="Next">
               ›
             </button>
             <button className={styles.pageBtn} disabled={page >= totalPages} onClick={() => goToPage(totalPages)} title="Last">
               »
             </button>
-            <select
-              className={styles.pageSize}
-              value={pageSize}
-              onChange={(e) => {
-                /* parent sẽ setPageSize + reset page */
-              }}>
-              {/* gợi ý: điều khiển pageSize ở parent; hoặc truyền handler riêng nếu muốn */}
-            </select>
+
+            <select className={styles.pageSize} value={pageSize} onChange={() => {}} />
           </div>
         </div>
       </div>

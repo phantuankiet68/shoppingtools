@@ -1,10 +1,8 @@
-
 model Site {
-  id            String   @id @default(cuid())
-  domain        String   @unique
-  name          String
-  localeDefault Locale   @default(vi)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  pages         Page[]
+  id        String   @id @default(cuid())
+  domain    String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pages     Page[]
 }

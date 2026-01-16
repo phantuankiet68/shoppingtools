@@ -153,6 +153,7 @@
   align-items: center;
   gap: 8px;
   color: var(--text);
+  font-size: 13px;
 }
 .itemLeft i {
   color: var(--muted);
@@ -245,15 +246,18 @@
   color: var(--text);
 }
 .tplChildren {
-  list-style: none;
+  border-left: 2px dashed #eef1f7;
   margin: 2px 0 6px 13px;
   padding: 2px 0 0 3px;
-  border-left: 2px dashed #eef1f7;
+  list-style: none;
+  gap: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-
 /* templates.module.css (hoặc file hiện tại của bạn) */
 .templatesWrapper {
-  height: 72vh;
+  height: 69vh;
   overflow: auto;
 
   /* Trải nghiệm cuộn mượt + tránh layout shift khi xuất hiện scrollbar */
@@ -345,5 +349,10 @@
   }
   .templatesWrapper::-webkit-scrollbar-thumb:hover {
     animation: none;
+  }
+}
+@media (max-width: 1540px) {
+  .templatesWrapper {
+    height: 70vh;
   }
 }
