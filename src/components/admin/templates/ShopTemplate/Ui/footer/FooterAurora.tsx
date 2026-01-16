@@ -1,5 +1,4 @@
 "use client";
-
 import React, { FC, useState } from "react";
 import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterAurora.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
