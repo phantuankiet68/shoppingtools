@@ -336,6 +336,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
   // ===== Sidebar: Fetch menu (giữ logic cũ) =====
   useEffect(() => {
     let alive = true;
+
     (async () => {
       try {
         const params = new URLSearchParams();
@@ -344,6 +345,8 @@ export default function LayoutA({ children }: { children: ReactNode }) {
         params.set("sort", "sortOrder:asc");
         params.set("locale", getCurrentLocale());
         params.set("setKey", "v1");
+        const siteId = localStorage.getItem("builder_site_id");
+        if (siteId) params.set("siteId", siteId);
 
         const res = await fetch(`/api/admin/menu-items?${params.toString()}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load menu");
@@ -353,7 +356,6 @@ export default function LayoutA({ children }: { children: ReactNode }) {
 
         const tree = buildTree(data.items || []);
         setItems(tree);
-
         setOpenGroups({});
       } catch {
         setItems([]);

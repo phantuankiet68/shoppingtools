@@ -57,24 +57,19 @@ export async function GET(req: Request) {
     const size = coerceInt(url.searchParams.get("size"), 20, 1, 200);
     const q = url.searchParams.get("q") ?? undefined;
 
-    const setKeyParam = url.searchParams.get("setKey") as MenuSetKey | null;
-    const setKey = setKeyParam && (Object.values(MenuSetKey) as string[]).includes(setKeyParam) ? (setKeyParam as MenuSetKey) : undefined;
+    // ✅ luôn lấy v1, không cần site
+    const setKey: MenuSetKey = "v1" as MenuSetKey;
 
     const parentIdRaw = url.searchParams.get("parentId");
     const parentId = parentIdRaw && parentIdRaw !== "null" && parentIdRaw !== "" ? parentIdRaw : undefined;
 
     const lite = url.searchParams.get("lite") === "1";
-    const siteIdQuery = url.searchParams.get("siteId");
-
-    // 🔑 Bắt buộc có siteId (tự resolve nếu thiếu)
-    const siteId = await resolveSiteId(req, siteIdQuery);
 
     const { field, dir } = parseSort(url);
     const ci = (value: string) => ({ contains: value, mode: Prisma.QueryMode.insensitive } as const);
 
     const where: Prisma.MenuItemWhereInput = {
-      siteId, // 🔑 ràng buộc theo site
-      ...(setKey ? { setKey } : {}),
+      setKey, // ✅ chỉ lấy menu setKey v1
       ...(parentId ? { parentId } : {}),
       ...(q ? { OR: [{ title: ci(q) }, { path: ci(q) }, { icon: ci(q) }] } : {}),
     };
@@ -85,10 +80,14 @@ export async function GET(req: Request) {
       const items = await prisma.menuItem.findMany({
         where,
         orderBy,
-        take: size, // vẫn tôn trọng size nếu truyền
+        take: size,
         select: { id: true, title: true, path: true },
       });
-      const liteItems = items.map((m) => ({ id: m.id, label: m.title, path: m.path ?? "/" }));
+      const liteItems = items.map((m) => ({
+        id: m.id,
+        label: m.title,
+        path: m.path ?? "/",
+      }));
       return NextResponse.json(liteItems);
     }
 
@@ -108,7 +107,7 @@ export async function GET(req: Request) {
       page,
       pageSize: size,
       pageCount: Math.max(1, Math.ceil(total / size)),
-      siteId, // tiện cho client biết đang query site nào
+      setKey, // trả về cho client biết đang dùng setKey nào
     });
   } catch (e) {
     console.error("GET /api/menu-items error:", e);

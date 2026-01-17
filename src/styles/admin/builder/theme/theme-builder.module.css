@@ -447,6 +447,9 @@
     min-height: calc(96vh - 64px);
     display: grid;
   }
+  .section {
+    max-width: 230px;
+  }
 }
 
 .filters {
