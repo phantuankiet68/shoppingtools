@@ -1,39 +1,52 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/product/variants/variants.module.css";
 
+/**
+ * API sử dụng:
+ *  - GET    /api/admin/products/lite
+ *  - GET    /api/admin/product-variant?productId=...
+ *  - POST   /api/admin/product-variant
+ *  - PATCH  /api/admin/product-variant/[id]
+ *  - DELETE /api/admin/product-variant/[id]
+ *  - GET/POST/PATCH/DELETE /api/admin/product-variant/[id]/image  (id = variantId)
+ */
+
 type Currency = "USD" | "VND";
+type VariantStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
 
 type ProductRow = {
   id: string;
   name: string;
-  skuPrefix: string;
-  image?: string;
+  skuPrefix: string; // bạn đang dùng Product.sku làm prefix
+  image?: string | null;
 };
 
-type VariantStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
+type VariantImageRow = { id: string; url: string; isCover: boolean; sort: number };
 
 type VariantRow = {
   id: string;
   productId: string;
 
-  name: string; // e.g. "Red / M"
+  name: string;
   sku: string;
   barcode?: string;
 
   priceCents: number;
-  compareAtCents?: number;
   currency: Currency;
 
   stock: number;
-  trackInventory: boolean;
 
-  status: VariantStatus;
-  isDefault: boolean;
+  status: VariantStatus; // map sang DB isActive
 
-  options: Record<string, string>; // { Color: "Red", Size: "M" }
-  images: { id: string; url: string; isCover: boolean; sort: number }[];
+  // ✅ map trực tiếp sang DB (không dùng Record nữa để tránh nhầm)
+  option1?: string;
+  value1?: string;
+  option2?: string;
+  value2?: string;
+
+  images: VariantImageRow[];
 
   createdAt: string;
   updatedAt: string;
@@ -42,7 +55,26 @@ type VariantRow = {
 type OptionDef = {
   id: string;
   name: string; // "Color"
-  values: string[]; // ["Red", "Blue"]
+  values: string[]; // ["Xanh", "Đỏ"]
+};
+
+type DbVariant = {
+  id: string;
+  productId: string;
+  name: string | null;
+  sku: string;
+  barcode: string | null;
+  priceCents: number;
+  costCents: number;
+  stock: number;
+  isActive: boolean;
+  option1: string | null;
+  value1: string | null;
+  option2: string | null;
+  value2: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  images: { id: string; url: string; isCover: boolean; sort: number }[];
 };
 
 function uid() {
@@ -74,143 +106,152 @@ function fmtMoney(cents: number, ccy: Currency) {
   return (cents / 100).toFixed(2);
 }
 
-function cartesian(options: OptionDef[]) {
-  const valid = options.filter((o) => o.name.trim() && o.values.length > 0);
-  if (valid.length === 0) return [{} as Record<string, string>];
-
-  let acc: Record<string, string>[] = [{}];
-  for (const opt of valid) {
-    const next: Record<string, string>[] = [];
-    for (const a of acc) {
-      for (const v of opt.values) {
-        next.push({ ...a, [opt.name]: v });
-      }
-    }
-    acc = next;
+function uniqueSkuForProduct(prefix: string, existingSkus: Set<string>, base = "NEW") {
+  const baseSku = slugSku(`${prefix}-${base}`);
+  if (!existingSkus.has(baseSku)) return baseSku;
+  for (let i = 2; i < 10000; i++) {
+    const sku = slugSku(`${prefix}-${base}-${i}`);
+    if (!existingSkus.has(sku)) return sku;
   }
-  return acc;
+  return slugSku(`${prefix}-${base}-${Date.now()}`);
 }
 
-function optionLabel(opts: Record<string, string>) {
-  const keys = Object.keys(opts);
-  if (keys.length === 0) return "Default";
-  return keys.map((k) => opts[k]).join(" / ");
+/** ===== DB <-> UI ===== */
+function dbToUiVariant(v: DbVariant): VariantRow {
+  const status: VariantStatus = v.isActive ? "ACTIVE" : "DRAFT";
+  const opt1 = (v.option1 ?? "").trim() || undefined;
+  const val1 = (v.value1 ?? "").trim() || undefined;
+  const opt2 = (v.option2 ?? "").trim() || undefined;
+  const val2 = (v.value2 ?? "").trim() || undefined;
+
+  const displayName = (v.name ?? "").trim() || [val1, val2].filter(Boolean).join(" / ") || "Default";
+
+  return {
+    id: v.id,
+    productId: v.productId,
+    name: displayName,
+    sku: v.sku,
+    barcode: v.barcode ?? undefined,
+    priceCents: v.priceCents ?? 0,
+    currency: "USD",
+    stock: v.stock ?? 0,
+    status,
+    option1: opt1,
+    value1: val1,
+    option2: opt2,
+    value2: val2,
+    images: (v.images ?? []).map((im) => ({
+      id: im.id,
+      url: im.url,
+      isCover: !!im.isCover,
+      sort: im.sort ?? 0,
+    })),
+    createdAt: new Date(v.createdAt).toISOString(),
+    updatedAt: new Date(v.updatedAt).toISOString(),
+  };
+}
+
+function uiToDbCreatePayload(v: {
+  productId: string;
+  sku: string;
+  name?: string;
+  barcode?: string;
+  priceCents?: number;
+  stock?: number;
+  status?: VariantStatus;
+  option1?: string;
+  value1?: string;
+  option2?: string;
+  value2?: string;
+}) {
+  return {
+    productId: v.productId,
+    sku: v.sku,
+    name: v.name?.trim() ? v.name.trim() : null,
+    barcode: v.barcode?.trim() ? v.barcode.trim() : null,
+    priceCents: Number.isFinite(Number(v.priceCents)) ? Math.max(0, Math.trunc(Number(v.priceCents))) : 0,
+    costCents: 0,
+    stock: Number.isFinite(Number(v.stock)) ? Math.max(0, Math.trunc(Number(v.stock))) : 0,
+    isActive: (v.status ?? "ACTIVE") === "ACTIVE",
+    option1: v.option1?.trim() ? v.option1.trim() : null,
+    value1: v.value1?.trim() ? v.value1.trim() : null,
+    option2: v.option2?.trim() ? v.option2.trim() : null,
+    value2: v.value2?.trim() ? v.value2.trim() : null,
+  };
+}
+
+function uiToDbPatchPayload(patch: Partial<VariantRow>) {
+  const data: any = {};
+
+  if (patch.name !== undefined) data.name = patch.name?.trim() ? patch.name.trim() : null;
+  if (patch.sku !== undefined) data.sku = patch.sku;
+  if (patch.barcode !== undefined) data.barcode = patch.barcode?.trim() ? patch.barcode.trim() : null;
+
+  if (patch.priceCents !== undefined) data.priceCents = Math.max(0, Math.trunc(Number(patch.priceCents)));
+  if (patch.stock !== undefined) data.stock = Math.max(0, Math.trunc(Number(patch.stock)));
+
+  if (patch.status !== undefined) data.isActive = patch.status === "ACTIVE";
+
+  if (patch.option1 !== undefined) data.option1 = patch.option1?.trim() ? patch.option1.trim() : null;
+  if (patch.value1 !== undefined) data.value1 = patch.value1?.trim() ? patch.value1.trim() : null;
+  if (patch.option2 !== undefined) data.option2 = patch.option2?.trim() ? patch.option2.trim() : null;
+  if (patch.value2 !== undefined) data.value2 = patch.value2?.trim() ? patch.value2.trim() : null;
+
+  return data;
+}
+
+/** ===== fetch helper ===== */
+async function apiJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+  const res = await fetch(input, {
+    ...init,
+    headers: {
+      ...(init?.headers || {}),
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (res.status === 204) return null as unknown as T;
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data as T;
+}
+
+function optionSummary(v: VariantRow) {
+  const a: string[] = [];
+  if (v.option1 && v.value1) a.push(`${v.option1}:${v.value1}`);
+  if (v.option2 && v.value2) a.push(`${v.option2}:${v.value2}`);
+  return a.join("  ·  ");
+}
+
+function buildLabelFromValues(v1?: string, v2?: string) {
+  const s = [v1, v2].filter(Boolean).join(" / ");
+  return s || "Default";
 }
 
 export default function VariantsPage() {
-  // demo products
-  const [products] = useState<ProductRow[]>(() => [
-    { id: "p1", name: "T-Shirt Classic", skuPrefix: "TSHIRT", image: "https://picsum.photos/seed/tshirt/200/200" },
-    { id: "p2", name: "Sneakers Runner", skuPrefix: "SNEAK", image: "https://picsum.photos/seed/sneak/200/200" },
-    { id: "p3", name: "Backpack Urban", skuPrefix: "BAG", image: "https://picsum.photos/seed/bag/200/200" },
-  ]);
-
+  /** ===== UI state ===== */
   const [productQuery, setProductQuery] = useState("");
-  const [activeProductId, setActiveProductId] = useState<string>(() => products[0]?.id || "");
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [activeProductId, setActiveProductId] = useState<string>("");
 
   const activeProduct = useMemo(() => products.find((p) => p.id === activeProductId) || null, [products, activeProductId]);
 
-  // demo option defs per product (in real app: load from DB)
-  const [optionDefs, setOptionDefs] = useState<Record<string, OptionDef[]>>(() => ({
-    p1: [
-      { id: uid(), name: "Color", values: ["Red", "Black", "White"] },
-      { id: uid(), name: "Size", values: ["S", "M", "L"] },
-    ],
-    p2: [{ id: uid(), name: "Size", values: ["40", "41", "42"] }],
-    p3: [],
-  }));
+  /** ===== Option defs: local per product (chỉ dùng Generate) ===== */
+  const [optionDefs, setOptionDefs] = useState<Record<string, OptionDef[]>>({});
+  const defs = optionDefs[activeProductId] ?? [];
 
-  const [variants, setVariants] = useState<VariantRow[]>(() => {
-    const base: VariantRow[] = [];
-
-    // p1 seed
-    base.push({
-      id: uid(),
-      productId: "p1",
-      name: "Red / M",
-      sku: "TSHIRT-RED-M",
-      priceCents: 1900,
-      compareAtCents: 2500,
-      currency: "USD",
-      stock: 12,
-      trackInventory: true,
-      status: "ACTIVE",
-      isDefault: true,
-      options: { Color: "Red", Size: "M" },
-      images: [{ id: uid(), url: "https://picsum.photos/seed/redm/900/900", isCover: true, sort: 0 }],
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    });
-
-    base.push({
-      id: uid(),
-      productId: "p1",
-      name: "Black / L",
-      sku: "TSHIRT-BLACK-L",
-      priceCents: 1900,
-      currency: "USD",
-      stock: 6,
-      trackInventory: true,
-      status: "ACTIVE",
-      isDefault: false,
-      options: { Color: "Black", Size: "L" },
-      images: [{ id: uid(), url: "https://picsum.photos/seed/blackl/900/900", isCover: true, sort: 0 }],
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    });
-
-    // p2 seed
-    base.push({
-      id: uid(),
-      productId: "p2",
-      name: "41",
-      sku: "SNEAK-41",
-      priceCents: 5900,
-      currency: "USD",
-      stock: 3,
-      trackInventory: true,
-      status: "DRAFT",
-      isDefault: true,
-      options: { Size: "41" },
-      images: [{ id: uid(), url: "https://picsum.photos/seed/s41/900/900", isCover: true, sort: 0 }],
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    });
-
-    // p3 seed default
-    base.push({
-      id: uid(),
-      productId: "p3",
-      name: "Default",
-      sku: "BAG-DEFAULT",
-      priceCents: 3900,
-      currency: "USD",
-      stock: 20,
-      trackInventory: true,
-      status: "ACTIVE",
-      isDefault: true,
-      options: {},
-      images: [{ id: uid(), url: "https://picsum.photos/seed/bagdefault/900/900", isCover: true, sort: 0 }],
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    });
-
-    return base;
-  });
-
+  /** ===== Variants ===== */
+  const [variants, setVariants] = useState<VariantRow[]>([]);
   const [variantQuery, setVariantQuery] = useState("");
-  const [activeVariantId, setActiveVariantId] = useState<string>(() => {
-    const first = variants.find((v) => v.productId === activeProductId);
-    return first?.id || "";
-  });
+  const [activeVariantId, setActiveVariantId] = useState<string>("");
 
-  // re-sync active variant when switching product
-  function selectProduct(id: string) {
-    setActiveProductId(id);
-    const first = variants.find((v) => v.productId === id);
-    setActiveVariantId(first?.id || "");
-    setVariantQuery("");
-  }
+  const [loading, setLoading] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const visibleProducts = useMemo(() => {
     const q = productQuery.trim().toLowerCase();
@@ -224,193 +265,410 @@ export default function VariantsPage() {
       .filter((v) => v.productId === activeProductId)
       .filter((v) => (q ? (v.name + " " + v.sku).toLowerCase().includes(q) : true))
       .slice()
-      .sort((a, b) => (a.isDefault === b.isDefault ? a.name.localeCompare(b.name) : a.isDefault ? -1 : 1));
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [variants, activeProductId, variantQuery]);
 
   const activeVariant = useMemo(() => variants.find((v) => v.id === activeVariantId) || null, [variants, activeVariantId]);
 
-  const defs = optionDefs[activeProductId] ?? [];
+  /** ===== load products ===== */
+  useEffect(() => {
+    let cancelled = false;
 
-  function patchVariant(id: string, patch: Partial<VariantRow>) {
+    async function loadProducts() {
+      try {
+        const data = await apiJson<{ items: ProductRow[] }>("/api/admin/products/lite");
+        if (cancelled) return;
+
+        const items = data.items ?? [];
+        setProducts(items);
+        setActiveProductId(items[0]?.id || "");
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || "Failed to load products");
+      }
+    }
+
+    loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** ===== load variants when change product ===== */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      if (!activeProductId) return;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await apiJson<{ items: DbVariant[] }>(`/api/admin/product-variant?productId=${encodeURIComponent(activeProductId)}`);
+        if (cancelled) return;
+
+        const rows = (data.items ?? []).map(dbToUiVariant);
+
+        setVariants((prev) => {
+          const other = prev.filter((v) => v.productId !== activeProductId);
+          return [...other, ...rows];
+        });
+
+        setActiveVariantId(rows[0]?.id || "");
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || "Failed to load variants");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeProductId]);
+
+  function selectProduct(id: string) {
+    setActiveProductId(id);
+    setVariantQuery("");
+    setActiveVariantId("");
+  }
+
+  /** ===== local patch ===== */
+  function patchVariantLocal(id: string, patch: Partial<VariantRow>) {
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch, updatedAt: nowIso() } : v)));
   }
 
-  function setDefaultVariant(id: string) {
-    if (!activeProductId) return;
-    setVariants((prev) => prev.map((v) => (v.productId === activeProductId ? { ...v, isDefault: v.id === id } : v)));
-  }
+  async function patchVariantRemote(id: string, patch: Partial<VariantRow>) {
+    setSavingId(id);
+    setError(null);
 
-  function toggleStatus(id: string) {
-    const v = variants.find((x) => x.id === id);
-    if (!v) return;
-    const next: VariantStatus = v.status === "ACTIVE" ? "DRAFT" : "ACTIVE";
-    patchVariant(id, { status: next });
-  }
+    try {
+      const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(uiToDbPatchPayload(patch)),
+      });
 
-  function createVariant() {
-    if (!activeProduct) return;
-    const row: VariantRow = {
-      id: uid(),
-      productId: activeProduct.id,
-      name: "New variant",
-      sku: slugSku(`${activeProduct.skuPrefix}-NEW`),
-      priceCents: 0,
-      currency: "USD",
-      stock: 0,
-      trackInventory: true,
-      status: "DRAFT",
-      isDefault: productVariants.length === 0,
-      options: {},
-      images: [],
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-    setVariants((prev) => [...prev, row]);
-    setTimeout(() => setActiveVariantId(row.id), 0);
-  }
-
-  function duplicateVariant(id: string) {
-    const v = variants.find((x) => x.id === id);
-    if (!v) return;
-    const copy: VariantRow = {
-      ...JSON.parse(JSON.stringify(v)),
-      id: uid(),
-      name: v.name + " Copy",
-      sku: slugSku(v.sku + "-COPY"),
-      isDefault: false,
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-    setVariants((prev) => [...prev, copy]);
-    setTimeout(() => setActiveVariantId(copy.id), 0);
-  }
-
-  function deleteVariant(id: string) {
-    const v = variants.find((x) => x.id === id);
-    if (!v) return;
-    const ok = confirm(`Delete variant "${v.name}"?`);
-    if (!ok) return;
-
-    setVariants((prev) => prev.filter((x) => x.id !== id));
-    if (activeVariantId === id) {
-      const remain = variants.filter((x) => x.id !== id && x.productId === activeProductId);
-      setActiveVariantId(remain[0]?.id || "");
+      const next = dbToUiVariant(res.item as any);
+      setVariants((prev) => prev.map((v) => (v.id === id ? next : v)));
+    } catch (e: any) {
+      setError(e?.message || "Failed to save");
+    } finally {
+      setSavingId(null);
     }
   }
 
-  // Option defs editor (right panel)
-  function addOption() {
-    const name = prompt("Option name? (e.g. Color)");
-    if (!name?.trim()) return;
-    const next: OptionDef = { id: uid(), name: name.trim(), values: ["Value"] };
-    setOptionDefs((prev) => ({ ...prev, [activeProductId]: [...(prev[activeProductId] ?? []), next] }));
+  /** ===== CRUD variant ===== */
+  async function createVariantRemote() {
+    if (!activeProduct) return;
+    setError(null);
+
+    const existing = new Set(variants.filter((v) => v.productId === activeProduct.id).map((v) => v.sku));
+    const sku = uniqueSkuForProduct(activeProduct.skuPrefix, existing, "NEW");
+
+    try {
+      const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant`, {
+        method: "POST",
+        body: JSON.stringify(
+          uiToDbCreatePayload({
+            productId: activeProduct.id,
+            sku,
+            name: "New variant",
+            priceCents: 0,
+            stock: 0,
+            status: "DRAFT",
+          })
+        ),
+      });
+
+      const created = dbToUiVariant(res.item as any);
+      setVariants((prev) => [...prev, created]);
+      setActiveVariantId(created.id);
+    } catch (e: any) {
+      setError(e?.message || "Failed to create");
+    }
   }
 
-  function patchOption(optId: string, patch: Partial<OptionDef>) {
+  async function duplicateVariantRemote(id: string) {
+    const v = variants.find((x) => x.id === id);
+    if (!v) return;
+    setError(null);
+
+    const existing = new Set(variants.filter((x) => x.productId === v.productId).map((x) => x.sku));
+    const sku = uniqueSkuForProduct(v.sku, existing, "COPY");
+
+    try {
+      const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant`, {
+        method: "POST",
+        body: JSON.stringify(
+          uiToDbCreatePayload({
+            productId: v.productId,
+            sku,
+            name: `${v.name} Copy`,
+            barcode: v.barcode,
+            priceCents: v.priceCents,
+            stock: v.stock,
+            status: "DRAFT",
+            option1: v.option1,
+            value1: v.value1,
+            option2: v.option2,
+            value2: v.value2,
+          })
+        ),
+      });
+
+      const created = dbToUiVariant(res.item as any);
+      setVariants((prev) => [...prev, created]);
+      setActiveVariantId(created.id);
+    } catch (e: any) {
+      setError(e?.message || "Failed to duplicate");
+    }
+  }
+
+  async function deleteVariantRemote(id: string) {
+    const v = variants.find((x) => x.id === id);
+    if (!v) return;
+
+    const ok = confirm(`Delete variant "${v.name}"?`);
+    if (!ok) return;
+
+    setError(null);
+    try {
+      await apiJson(`/api/admin/product-variant/${id}`, { method: "DELETE" });
+      setVariants((prev) => prev.filter((x) => x.id !== id));
+
+      if (activeVariantId === id) {
+        const remain = variants.filter((x) => x.id !== id && x.productId === activeProductId);
+        setActiveVariantId(remain[0]?.id || "");
+      }
+    } catch (e: any) {
+      setError(e?.message || "Failed to delete");
+    }
+  }
+
+  /** ===== OPTION DEFINITIONS (local) ===== */
+  function addOptionDef() {
+    const name = prompt("Option name? (e.g. Color, Size)");
+    if (!name?.trim()) return;
+
+    setOptionDefs((prev) => ({
+      ...prev,
+      [activeProductId]: [...(prev[activeProductId] ?? []), { id: uid(), name: name.trim(), values: ["Value"] }],
+    }));
+  }
+
+  function patchOptionDef(optId: string, patch: Partial<OptionDef>) {
     setOptionDefs((prev) => ({
       ...prev,
       [activeProductId]: (prev[activeProductId] ?? []).map((o) => (o.id === optId ? { ...o, ...patch } : o)),
     }));
   }
 
-  function removeOption(optId: string) {
-    const ok = confirm("Remove this option?");
+  function removeOptionDef(optId: string) {
+    const ok = confirm("Remove this option definition?");
     if (!ok) return;
+
     setOptionDefs((prev) => ({
       ...prev,
       [activeProductId]: (prev[activeProductId] ?? []).filter((o) => o.id !== optId),
     }));
   }
 
-  function generateVariants() {
-    if (!activeProduct) return;
+  /** ===== Generate variants from defs (POST many) ===== */
+  function cartesian(defsIn: OptionDef[]) {
+    const valid = defsIn.filter((o) => o.name.trim() && o.values.length > 0);
+    if (valid.length === 0) return [{} as Record<string, string>];
 
-    const combos = cartesian(defs);
-    if (combos.length === 0) return;
+    let acc: Record<string, string>[] = [{}];
+    for (const opt of valid) {
+      const next: Record<string, string>[] = [];
+      for (const a of acc) {
+        for (const v of opt.values) next.push({ ...a, [opt.name]: v });
+      }
+      acc = next;
+    }
+    return acc;
+  }
+
+  async function generateVariantsRemote() {
+    if (!activeProduct) return;
+    setError(null);
+
+    const cleaned = defs
+      .map((d) => ({
+        ...d,
+        name: d.name.trim(),
+        values: d.values.map((x) => x.trim()).filter(Boolean),
+      }))
+      .filter((d) => d.name && d.values.length);
+
+    if (cleaned.length === 0) {
+      return;
+    }
+
+    if (cleaned.length > 2) {
+      alert("Schema hiện tại chỉ hỗ trợ tối đa 2 options (option1/option2). Hãy giảm còn 2 option.");
+      return;
+    }
+
+    const combos = cartesian(cleaned);
+    if (!combos.length) return;
 
     const existingSkus = new Set(variants.filter((v) => v.productId === activeProduct.id).map((v) => v.sku));
+
+    // tạo tuần tự để dễ debug (cần nhanh hơn thì mình sẽ thêm limit concurrency)
     const created: VariantRow[] = [];
 
     for (const opts of combos) {
-      const label = optionLabel(opts);
-      const skuParts = [activeProduct.skuPrefix, ...Object.values(opts).map((x) => slugSku(x))].filter(Boolean);
-      const sku = slugSku(skuParts.join("-") || `${activeProduct.skuPrefix}-DEFAULT`);
+      const optNames = Object.keys(opts);
+      const o1 = optNames[0];
+      const o2 = optNames[1];
+      const v1 = o1 ? opts[o1] : undefined;
+      const v2 = o2 ? opts[o2] : undefined;
+
+      const label = buildLabelFromValues(v1, v2);
+      const skuParts = [activeProduct.skuPrefix, v1, v2].filter(Boolean).map((x) => slugSku(String(x)));
+      let sku = slugSku(skuParts.join("-") || `${activeProduct.skuPrefix}-DEFAULT`);
 
       if (existingSkus.has(sku)) continue;
 
-      created.push({
-        id: uid(),
-        productId: activeProduct.id,
-        name: label,
-        sku,
-        priceCents: 0,
-        currency: "USD",
-        stock: 0,
-        trackInventory: true,
-        status: "DRAFT",
-        isDefault: false,
-        options: opts,
-        images: [],
-        createdAt: nowIso(),
-        updatedAt: nowIso(),
-      });
+      // đảm bảo unique nếu trùng do format
+      sku = uniqueSkuForProduct(activeProduct.skuPrefix, existingSkus, sku.replace(activeProduct.skuPrefix + "-", ""));
       existingSkus.add(sku);
+
+      try {
+        const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant`, {
+          method: "POST",
+          body: JSON.stringify(
+            uiToDbCreatePayload({
+              productId: activeProduct.id,
+              sku,
+              name: label,
+              priceCents: 0,
+              stock: 0,
+              status: "DRAFT",
+              option1: o1,
+              value1: v1,
+              option2: o2,
+              value2: v2,
+            })
+          ),
+        });
+
+        created.push(dbToUiVariant(res.item as any));
+      } catch (e: any) {
+        setError(e?.message || "Failed to generate some variants");
+        break;
+      }
     }
 
-    if (created.length === 0) {
+    if (!created.length) {
       alert("No new variants to generate (all combinations already exist).");
       return;
     }
 
     setVariants((prev) => [...prev, ...created]);
-    setTimeout(() => setActiveVariantId(created[0].id), 0);
+    setActiveVariantId(created[0].id);
   }
 
-  function addImage() {
+  /** ===== Images APIs ===== */
+  async function reloadImages(variantId: string) {
+    const res = await apiJson<{ items: VariantImageRow[] }>(`/api/admin/product-variant/${variantId}/image`);
+
+    setVariants((prev) =>
+      prev.map((v) =>
+        v.id === variantId
+          ? {
+              ...v,
+              images: (res.items ?? []).map((im) => ({
+                id: im.id,
+                url: im.url,
+                isCover: !!im.isCover,
+                sort: im.sort ?? 0,
+              })),
+              updatedAt: nowIso(),
+            }
+          : v
+      )
+    );
+  }
+
+  async function addImageRemote() {
     if (!activeVariant) return;
+
     const url = prompt("Image URL?");
     if (!url?.trim()) return;
 
-    const next = { id: uid(), url: url.trim(), isCover: activeVariant.images.length === 0, sort: activeVariant.images.length };
-    patchVariant(activeVariant.id, { images: [...activeVariant.images, next] });
+    setError(null);
+    try {
+      await apiJson<{ item: any }>(`/api/admin/product-variant/${activeVariant.id}/image`, {
+        method: "POST",
+        body: JSON.stringify({
+          url: url.trim(),
+          isCover: activeVariant.images.length === 0,
+          sort: activeVariant.images.length,
+        }),
+      });
+      await reloadImages(activeVariant.id);
+    } catch (e: any) {
+      setError(e?.message || "Failed to add image");
+    }
   }
 
-  function setCover(imgId: string) {
+  async function setCoverRemote(imageId: string) {
     if (!activeVariant) return;
-    patchVariant(activeVariant.id, {
-      images: activeVariant.images.map((im) => ({ ...im, isCover: im.id === imgId })),
-    });
+    setError(null);
+
+    try {
+      await apiJson<{ item: any }>(`/api/admin/product-variant/${activeVariant.id}/image`, {
+        method: "PATCH",
+        body: JSON.stringify({ imageId, isCover: true }),
+      });
+      await reloadImages(activeVariant.id);
+    } catch (e: any) {
+      setError(e?.message || "Failed to set cover");
+    }
   }
 
-  function removeImage(imgId: string) {
+  async function removeImageRemote(imageId: string) {
     if (!activeVariant) return;
-    const next = activeVariant.images.filter((im) => im.id !== imgId).map((im, i) => ({ ...im, sort: i }));
-    // ensure cover
-    if (next.length > 0 && !next.some((x) => x.isCover)) next[0].isCover = true;
-    patchVariant(activeVariant.id, { images: next });
+    setError(null);
+
+    try {
+      await apiJson(`/api/admin/product-variant/${activeVariant.id}/image?imageId=${encodeURIComponent(imageId)}`, { method: "DELETE" });
+      await reloadImages(activeVariant.id);
+    } catch (e: any) {
+      setError(e?.message || "Failed to remove image");
+    }
   }
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} style={{ fontSize: 14 }}>
       {/* Topbar */}
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <span className={styles.brandDot} />
           <div className={styles.brandText}>
             <div className={styles.brandTitle}>Variants</div>
-            <div className={styles.brandSub}>Products · Options · Generate · Inventory · Pricing</div>
+            <div className={styles.brandSub}>Products · Variants · Options · Generate · Images</div>
           </div>
         </div>
 
         <div className={styles.topActions}>
-          <button className={styles.ghostBtn} type="button" onClick={generateVariants} disabled={!activeProduct}>
+          <button className={styles.ghostBtn} type="button" onClick={generateVariantsRemote} disabled={!activeProduct || loading} title="Generate variants from option definitions">
             <i className="bi bi-shuffle" /> Generate
           </button>
-          <button className={styles.primaryBtn} type="button" onClick={createVariant} disabled={!activeProduct}>
+
+          <button className={styles.primaryBtn} type="button" onClick={createVariantRemote} disabled={!activeProduct || loading} title="Create a single new variant">
             <i className="bi bi-plus-lg" /> New variant
           </button>
         </div>
       </header>
+
+      {error && (
+        <div style={{ padding: 12, color: "#b91c1c" }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
 
       <div className={styles.body}>
         {/* Products sidebar */}
@@ -452,7 +710,7 @@ export default function VariantsPage() {
             <div className={styles.tip}>
               <i className="bi bi-lightbulb" />
               <span>
-                Variants nên unique theo <span className={styles.mono}>[productId, sku]</span>.
+                Variants unique theo <span className={styles.mono}>[productId, sku]</span>.
               </span>
             </div>
           </div>
@@ -466,7 +724,7 @@ export default function VariantsPage() {
               <div className={styles.panelHeader}>
                 <div>
                   <div className={styles.panelTitle}>Variants list</div>
-                  <div className={styles.panelSub}>Search, set default, quick toggle</div>
+                  <div className={styles.panelSub}>{loading ? "Loading..." : "Search, quick actions"}</div>
                 </div>
               </div>
 
@@ -489,6 +747,7 @@ export default function VariantsPage() {
                       <th className={styles.thRight}>Actions</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {productVariants.length === 0 ? (
                       <tr>
@@ -505,27 +764,18 @@ export default function VariantsPage() {
                     ) : (
                       productVariants.map((v) => {
                         const active = v.id === activeVariantId;
+                        const sub = optionSummary(v);
+
                         return (
                           <tr key={v.id} className={`${styles.tr} ${active ? styles.trActive : ""}`} onClick={() => setActiveVariantId(v.id)} role="button">
                             <td>
                               <div className={styles.cellTitle}>
-                                <span className={`${styles.dot} ${v.isDefault ? styles.dotHot : ""}`} />
+                                <span className={styles.dot} />
                                 <div>
                                   <div className={styles.nameRow}>
                                     <span className={styles.name}>{v.name}</span>
-                                    {v.isDefault && <span className={styles.badge}>Default</span>}
                                   </div>
-                                  <div className={styles.sub}>
-                                    {Object.keys(v.options).length ? (
-                                      <span className={styles.mono}>
-                                        {Object.entries(v.options)
-                                          .map(([k, val]) => `${k}:${val}`)
-                                          .join("  ·  ")}
-                                      </span>
-                                    ) : (
-                                      <span className={styles.muted}>No options</span>
-                                    )}
-                                  </div>
+                                  <div className={styles.sub}>{sub ? <span className={styles.mono}>{sub}</span> : <span className={styles.muted}>No options</span>}</div>
                                 </div>
                               </div>
                             </td>
@@ -536,7 +786,7 @@ export default function VariantsPage() {
                               {v.currency} {fmtMoney(v.priceCents, v.currency)}
                             </td>
 
-                            <td className={styles.mono}>{v.trackInventory ? v.stock : "—"}</td>
+                            <td className={styles.mono}>{v.stock}</td>
 
                             <td>
                               <span className={`${styles.status} ${v.status === "ACTIVE" ? styles.ok : v.status === "DRAFT" ? styles.off : styles.bad}`}>
@@ -546,16 +796,23 @@ export default function VariantsPage() {
                             </td>
 
                             <td className={styles.tdRight} onClick={(e) => e.stopPropagation()}>
-                              <button className={styles.iconBtn} type="button" title="Set default" onClick={() => setDefaultVariant(v.id)}>
-                                <i className={`bi ${v.isDefault ? "bi-star-fill" : "bi-star"}`} />
-                              </button>
-                              <button className={styles.iconBtn} type="button" title="Toggle status" onClick={() => toggleStatus(v.id)}>
+                              <button
+                                className={styles.iconBtn}
+                                type="button"
+                                title="Toggle status"
+                                onClick={() =>
+                                  patchVariantRemote(v.id, {
+                                    status: v.status === "ACTIVE" ? "DRAFT" : "ACTIVE",
+                                  })
+                                }>
                                 <i className="bi bi-toggle2-on" />
                               </button>
-                              <button className={styles.iconBtn} type="button" title="Duplicate" onClick={() => duplicateVariant(v.id)}>
+
+                              <button className={styles.iconBtn} type="button" title="Duplicate" onClick={() => duplicateVariantRemote(v.id)}>
                                 <i className="bi bi-files" />
                               </button>
-                              <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Delete" onClick={() => deleteVariant(v.id)}>
+
+                              <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Delete" onClick={() => deleteVariantRemote(v.id)}>
                                 <i className="bi bi-trash" />
                               </button>
                             </td>
@@ -574,7 +831,7 @@ export default function VariantsPage() {
                 <div className={styles.panelHeader}>
                   <div>
                     <div className={styles.panelTitle}>Inspector</div>
-                    <div className={styles.panelSub}>Options, pricing, inventory, images</div>
+                    <div className={styles.panelSub}>{savingId ? "Saving..." : "Edit fields and images"}</div>
                   </div>
                 </div>
 
@@ -590,36 +847,27 @@ export default function VariantsPage() {
                   </div>
                 ) : (
                   <div className={styles.panelBody}>
-                    <div className={styles.headerRow}>
-                      <div>
-                        <div className={styles.headTitle}>{activeVariant.name}</div>
-                        <div className={styles.headMeta}>
-                          <span className={styles.badgeMini}>
-                            <i className="bi bi-upc-scan" /> {activeVariant.sku}
-                          </span>
-                          {activeVariant.isDefault && (
-                            <span className={styles.badgeMini}>
-                              <i className="bi bi-star-fill" /> default
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <button className={`${styles.iconBtn} ${activeVariant.isDefault ? styles.hotBtn : ""}`} type="button" title="Set default" onClick={() => setDefaultVariant(activeVariant.id)}>
-                        <i className={`bi ${activeVariant.isDefault ? "bi-star-fill" : "bi-star"}`} />
-                      </button>
-                    </div>
-
+                    {/* BASIC */}
                     <label className={styles.label}>Name</label>
                     <div className={styles.inputWrap}>
                       <i className="bi bi-tag" />
-                      <input className={styles.input} value={activeVariant.name} onChange={(e) => patchVariant(activeVariant.id, { name: e.target.value })} />
+                      <input
+                        className={styles.input}
+                        value={activeVariant.name}
+                        onChange={(e) => patchVariantLocal(activeVariant.id, { name: e.target.value })}
+                        onBlur={() => patchVariantRemote(activeVariant.id, { name: activeVariant.name })}
+                      />
                     </div>
 
                     <label className={styles.label}>SKU</label>
                     <div className={styles.inputWrap}>
                       <i className="bi bi-hash" />
-                      <input className={styles.input} value={activeVariant.sku} onChange={(e) => patchVariant(activeVariant.id, { sku: slugSku(e.target.value) })} />
+                      <input
+                        className={styles.input}
+                        value={activeVariant.sku}
+                        onChange={(e) => patchVariantLocal(activeVariant.id, { sku: slugSku(e.target.value) })}
+                        onBlur={() => patchVariantRemote(activeVariant.id, { sku: activeVariant.sku })}
+                      />
                     </div>
 
                     <div className={styles.twoCols}>
@@ -627,7 +875,7 @@ export default function VariantsPage() {
                         <label className={styles.label}>Currency</label>
                         <div className={styles.selectWrap}>
                           <i className="bi bi-currency-dollar" />
-                          <select className={styles.select} value={activeVariant.currency} onChange={(e) => patchVariant(activeVariant.id, { currency: e.target.value as Currency })}>
+                          <select className={styles.select} value={activeVariant.currency} disabled>
                             <option value="USD">USD</option>
                             <option value="VND">VND</option>
                           </select>
@@ -644,22 +892,15 @@ export default function VariantsPage() {
                             value={Math.round(activeVariant.priceCents / 100)}
                             onChange={(e) => {
                               const v = clamp(Number(e.target.value || 0), 0, 1_000_000);
-                              patchVariant(activeVariant.id, { priceCents: v * 100 });
+                              patchVariantLocal(activeVariant.id, { priceCents: v * 100 });
                             }}
+                            onBlur={() => patchVariantRemote(activeVariant.id, { priceCents: activeVariant.priceCents })}
                           />
                         </div>
                       </div>
                     </div>
 
                     <div className={styles.twoCols}>
-                      <button
-                        className={`${styles.toggleLine} ${activeVariant.trackInventory ? styles.toggleLineOn : ""}`}
-                        type="button"
-                        onClick={() => patchVariant(activeVariant.id, { trackInventory: !activeVariant.trackInventory })}>
-                        <i className={`bi ${activeVariant.trackInventory ? "bi-toggle2-on" : "bi-toggle2-off"}`} />
-                        <span>Track inventory</span>
-                      </button>
-
                       <div>
                         <label className={styles.label}>Stock</label>
                         <div className={styles.inputWrap}>
@@ -667,92 +908,122 @@ export default function VariantsPage() {
                           <input
                             className={styles.input}
                             type="number"
-                            disabled={!activeVariant.trackInventory}
                             value={activeVariant.stock}
-                            onChange={(e) => patchVariant(activeVariant.id, { stock: clamp(Number(e.target.value || 0), 0, 1_000_000) })}
+                            onChange={(e) => patchVariantLocal(activeVariant.id, { stock: clamp(Number(e.target.value || 0), 0, 1_000_000) })}
+                            onBlur={() => patchVariantRemote(activeVariant.id, { stock: activeVariant.stock })}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={styles.label}>Status</label>
+                        <div className={styles.selectWrap}>
+                          <i className="bi bi-flag" />
+                          <select className={styles.select} value={activeVariant.status} onChange={(e) => patchVariantRemote(activeVariant.id, { status: e.target.value as VariantStatus })}>
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="DRAFT">DRAFT</option>
+                            <option value="ARCHIVED">ARCHIVED</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.hr} />
+
+                    {/* ✅ VARIANT OPTIONS (SAVE TO DB) */}
+                    <div className={styles.sectionTitle}>
+                      <i className="bi bi-sliders" /> Options (Variant) — saved to DB
+                    </div>
+
+                    <div className={styles.twoCols}>
+                      <div>
+                        <label className={styles.label}>Option 1 (name)</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-grid-1x2" />
+                          <input
+                            className={styles.input}
+                            placeholder="e.g. Color"
+                            value={activeVariant.option1 ?? ""}
+                            onChange={(e) => patchVariantLocal(activeVariant.id, { option1: e.target.value })}
+                            onBlur={() => patchVariantRemote(activeVariant.id, { option1: activeVariant.option1 })}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={styles.label}>Value 1</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-tag" />
+                          <input
+                            className={styles.input}
+                            placeholder="e.g. Xanh"
+                            value={activeVariant.value1 ?? ""}
+                            onChange={(e) => {
+                              const v1 = e.target.value;
+                              patchVariantLocal(activeVariant.id, {
+                                value1: v1,
+                                name: buildLabelFromValues(v1, activeVariant.value2),
+                              });
+                            }}
+                            onBlur={() =>
+                              patchVariantRemote(activeVariant.id, {
+                                value1: activeVariant.value1,
+                                name: activeVariant.name,
+                              })
+                            }
                           />
                         </div>
                       </div>
                     </div>
 
-                    <label className={styles.label}>Status</label>
-                    <div className={styles.selectWrap}>
-                      <i className="bi bi-flag" />
-                      <select className={styles.select} value={activeVariant.status} onChange={(e) => patchVariant(activeVariant.id, { status: e.target.value as VariantStatus })}>
-                        <option value="ACTIVE">ACTIVE</option>
-                        <option value="DRAFT">DRAFT</option>
-                        <option value="ARCHIVED">ARCHIVED</option>
-                      </select>
-                    </div>
+                    <div className={styles.twoCols}>
+                      <div>
+                        <label className={styles.label}>Option 2 (name)</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-grid-1x2" />
+                          <input
+                            className={styles.input}
+                            placeholder="e.g. Size"
+                            value={activeVariant.option2 ?? ""}
+                            onChange={(e) => patchVariantLocal(activeVariant.id, { option2: e.target.value })}
+                            onBlur={() => patchVariantRemote(activeVariant.id, { option2: activeVariant.option2 })}
+                          />
+                        </div>
+                      </div>
 
-                    <div className={styles.hr} />
-
-                    <div className={styles.sectionTitle}>
-                      <i className="bi bi-sliders" /> Options (Product)
-                    </div>
-
-                    <div className={styles.optionDefs}>
-                      {defs.length === 0 ? (
-                        <div className={styles.emptySmall}>No options. Add option definitions.</div>
-                      ) : (
-                        defs.map((o) => (
-                          <div key={o.id} className={styles.optionDef}>
-                            <div className={styles.optionHead}>
-                              <div className={styles.optionName}>
-                                <i className="bi bi-grid-1x2" /> <input className={styles.optionNameInput} value={o.name} onChange={(e) => patchOption(o.id, { name: e.target.value })} />
-                              </div>
-                              <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Remove option" onClick={() => removeOption(o.id)}>
-                                <i className="bi bi-x-lg" />
-                              </button>
-                            </div>
-
-                            <div className={styles.chips}>
-                              {o.values.map((val, idx) => (
-                                <div key={idx} className={styles.chip}>
-                                  <input
-                                    className={styles.chipInput}
-                                    value={val}
-                                    onChange={(e) => {
-                                      const next = [...o.values];
-                                      next[idx] = e.target.value;
-                                      patchOption(o.id, { values: next });
-                                    }}
-                                  />
-                                  <button
-                                    className={styles.chipX}
-                                    type="button"
-                                    title="Remove value"
-                                    onClick={() => {
-                                      const next = o.values.filter((_, i) => i !== idx);
-                                      patchOption(o.id, { values: next });
-                                    }}>
-                                    <i className="bi bi-x" />
-                                  </button>
-                                </div>
-                              ))}
-
-                              <button className={styles.chipAdd} type="button" onClick={() => patchOption(o.id, { values: [...o.values, "Value"] })}>
-                                <i className="bi bi-plus" /> Add value
-                              </button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-
-                      <div className={styles.optionActions}>
-                        <button className={styles.ghostBtn} type="button" onClick={addOption}>
-                          <i className="bi bi-plus-lg" /> Add option
-                        </button>
-                        <button className={styles.primaryBtn} type="button" onClick={generateVariants}>
-                          <i className="bi bi-shuffle" /> Generate variants
-                        </button>
+                      <div>
+                        <label className={styles.label}>Value 2</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-tag" />
+                          <input
+                            className={styles.input}
+                            placeholder="e.g. M"
+                            value={activeVariant.value2 ?? ""}
+                            onChange={(e) => {
+                              const v2 = e.target.value;
+                              patchVariantLocal(activeVariant.id, {
+                                value2: v2,
+                                name: buildLabelFromValues(activeVariant.value1, v2),
+                              });
+                            }}
+                            onBlur={() =>
+                              patchVariantRemote(activeVariant.id, {
+                                value2: activeVariant.value2,
+                                name: activeVariant.name,
+                              })
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
 
                     <div className={styles.hr} />
 
+                    <div className={styles.hr} />
+
+                    {/* Images */}
                     <div className={styles.sectionTitle}>
-                      <i className="bi bi-images" /> Images
+                      <i className="bi bi-images" /> Images (DB)
                     </div>
 
                     <div className={styles.images}>
@@ -773,10 +1044,10 @@ export default function VariantsPage() {
                                 <div className={styles.imageBadges}>{im.isCover && <span className={styles.badge}>Cover</span>}</div>
                               </div>
                               <div className={styles.imageActions}>
-                                <button className={styles.iconBtn} type="button" title="Set cover" onClick={() => setCover(im.id)}>
+                                <button className={styles.iconBtn} type="button" title="Set cover" onClick={() => setCoverRemote(im.id)}>
                                   <i className="bi bi-star" />
                                 </button>
-                                <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Remove" onClick={() => removeImage(im.id)}>
+                                <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Remove" onClick={() => removeImageRemote(im.id)}>
                                   <i className="bi bi-trash" />
                                 </button>
                               </div>
@@ -784,17 +1055,9 @@ export default function VariantsPage() {
                           ))
                       )}
 
-                      <button className={styles.ghostBtn} type="button" onClick={addImage}>
+                      <button className={styles.ghostBtn} type="button" onClick={addImageRemote}>
                         <i className="bi bi-plus-lg" /> Add image URL
                       </button>
-                    </div>
-
-                    <div className={styles.tipInline}>
-                      <i className="bi bi-shield-check" />
-                      <span>
-                        Khi nối DB: nên có table <span className={styles.mono}>ProductVariant</span> + <span className={styles.mono}>VariantImage</span> và index{" "}
-                        <span className={styles.mono}>productId, sku</span>.
-                      </span>
                     </div>
                   </div>
                 )}

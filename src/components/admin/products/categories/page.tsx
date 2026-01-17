@@ -1,7 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/product/categories/categories.module.css";
+
+type ApiCategory = {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  sort: number;
+
+  icon: string | null;
+  coverImage: string | null;
+  seoTitle: string | null;
+  seoDesc: string | null;
+
+  count?: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 type CategoryRow = {
   id: string;
@@ -11,23 +29,22 @@ type CategoryRow = {
   enabled: boolean;
   sort: number;
 
-  icon?: string; // bootstrap icon
-  coverImage?: string; // url
+  icon?: string;
+  coverImage?: string;
   seoTitle?: string;
   seoDesc?: string;
+
+  count?: number;
 };
 
-function uid() {
-  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
-
 function slugify(input: string) {
-  return input
+  return String(input ?? "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
@@ -47,42 +64,46 @@ function buildTree(rows: CategoryRow[]) {
     if (r.parentId && map.has(r.parentId)) map.get(r.parentId)!.children.push(r);
     else roots.push(r);
   }
+
   const sortRec = (n: any) => {
     n.children.sort(bySort);
     n.children.forEach(sortRec);
   };
   roots.sort(bySort);
   roots.forEach(sortRec);
+
   return roots;
 }
 
-export default function CategoriesPage() {
-  const [rows, setRows] = useState<CategoryRow[]>(() => [
-    { id: uid(), parentId: null, name: "Products", slug: "products", enabled: true, sort: 10, icon: "bi-box" },
-    { id: uid(), parentId: null, name: "Blog", slug: "blog", enabled: true, sort: 20, icon: "bi-journal-text" },
-    { id: uid(), parentId: null, name: "Support", slug: "support", enabled: true, sort: 30, icon: "bi-life-preserver" },
-    { id: uid(), parentId: null, name: "Collections", slug: "collections", enabled: true, sort: 40, icon: "bi-grid-3x3-gap" },
-  ]);
-
-  // add children demo
-  const [bootstrapped, setBootstrapped] = useState(false);
-  if (!bootstrapped) {
-    setBootstrapped(true);
-    setRows((prev) => {
-      const products = prev.find((x) => x.slug === "products")!;
-      const collections = prev.find((x) => x.slug === "collections")!;
-      return [
-        ...prev,
-        { id: uid(), parentId: products.id, name: "Shoes", slug: "shoes", enabled: true, sort: 10, icon: "bi-bag" },
-        { id: uid(), parentId: products.id, name: "Accessories", slug: "accessories", enabled: true, sort: 20, icon: "bi-gem" },
-        { id: uid(), parentId: collections.id, name: "Summer", slug: "summer", enabled: true, sort: 10, icon: "bi-sun" },
-        { id: uid(), parentId: collections.id, name: "Winter", slug: "winter", enabled: true, sort: 20, icon: "bi-snow" },
-      ];
-    });
+async function jfetch<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+    cache: "no-store",
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (typeof json?.error === "string" && json.error) || "Request failed";
+    throw new Error(msg);
   }
+  return json as T;
+}
+
+export default function CategoriesPage() {
+  const [rows, setRows] = useState<CategoryRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string>("");
 
   const [q, setQ] = useState("");
-  const [activeId, setActiveId] = useState<string>(() => rows[0]?.id || "");
+  const [activeId, setActiveId] = useState<string>("");
+
+  // prevent PATCH spam when typing
+  const patchTimer = useRef<any>(null);
+
   const active = useMemo(() => rows.find((x) => x.id === activeId) || null, [rows, activeId]);
 
   const tree = useMemo(() => buildTree(rows), [rows]);
@@ -95,6 +116,7 @@ export default function CategoriesPage() {
     for (const r of rows) {
       if ((r.name + " " + r.slug).toLowerCase().includes(qq)) match.add(r.id);
     }
+
     // include ancestors
     const byId = new Map(rows.map((r) => [r.id, r]));
     let changed = true;
@@ -113,27 +135,218 @@ export default function CategoriesPage() {
 
   const flatSiblings = useMemo(() => {
     if (!active) return [];
-    const sibs = rows
+    return rows
       .filter((x) => x.parentId === active.parentId)
       .slice()
       .sort(bySort);
-    return sibs;
   }, [rows, active]);
 
-  // drag reorder (within same parent)
+  async function loadTree() {
+    setLoading(true);
+    setErr("");
+    try {
+      const data = await jfetch<{ items: ApiCategory[] }>("/api/admin/product-categories?tree=1&sort=sortasc&pageSize=5000");
+
+      const mapped: CategoryRow[] = (data.items || []).map((c) => ({
+        id: c.id,
+        parentId: c.parentId,
+        name: c.name,
+        slug: c.slug,
+        enabled: !!c.isActive,
+        sort: c.sort ?? 0,
+        icon: c.icon ?? undefined,
+        coverImage: c.coverImage ?? undefined,
+        seoTitle: c.seoTitle ?? undefined,
+        seoDesc: c.seoDesc ?? undefined,
+        count: (c as any).count ?? (c as any)._count?.products ?? 0,
+      }));
+
+      mapped.sort(bySort);
+      setRows(mapped);
+
+      // choose active
+      setActiveId((prev) => {
+        if (prev && mapped.some((x) => x.id === prev)) return prev;
+        return mapped[0]?.id || "";
+      });
+    } catch (e: any) {
+      setErr(e?.message || "Failed to load categories");
+      setRows([]);
+      setActiveId("");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadTree();
+  }, []);
+
+  function select(id: string) {
+    setActiveId(id);
+  }
+
+  async function createCategory(parentId: string | null) {
+    const name = prompt("Category name?");
+    if (!name?.trim()) return;
+
+    setBusy(true);
+    try {
+      const payload = {
+        name: name.trim(),
+        slug: slugify(name),
+        parentId,
+        isActive: true,
+      };
+
+      const res = await jfetch<{ item: ApiCategory }>("/api/admin/product-categories", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      const created = res.item;
+
+      // update local state fast (no need reload)
+      const row: CategoryRow = {
+        id: created.id,
+        parentId: created.parentId,
+        name: created.name,
+        slug: created.slug,
+        enabled: created.isActive,
+        sort: created.sort ?? 0,
+        icon: created.icon ?? undefined,
+        coverImage: created.coverImage ?? undefined,
+        seoTitle: created.seoTitle ?? undefined,
+        seoDesc: created.seoDesc ?? undefined,
+        count: (created as any).count ?? 0,
+      };
+
+      setRows((prev) => [...prev, row]);
+      setActiveId(row.id);
+    } catch (e: any) {
+      alert(e?.message || "Create failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeCategory(id: string) {
+    const current = rows.find((x) => x.id === id);
+    if (!current) return;
+
+    const hasChildren = rows.some((x) => x.parentId === id);
+    const ok = confirm(hasChildren ? `Delete "${current.name}"? (children will become root)` : `Delete "${current.name}"?`);
+    if (!ok) return;
+
+    setBusy(true);
+    try {
+      await jfetch(`/api/admin/product-categories/${id}`, {
+        method: "DELETE",
+      });
+
+      // remove locally
+      setRows((prev) => prev.filter((x) => x.id !== id));
+      setActiveId((prev) => {
+        if (prev !== id) return prev;
+        const remain = rows.filter((x) => x.id !== id);
+        return remain[0]?.id || "";
+      });
+    } catch (e: any) {
+      alert(e?.message || "Delete failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleEnabled(id: string) {
+    const cur = rows.find((x) => x.id === id);
+    if (!cur) return;
+
+    const nextEnabled = !cur.enabled;
+
+    // optimistic
+    setRows((prev) => prev.map((x) => (x.id === id ? { ...x, enabled: nextEnabled } : x)));
+
+    try {
+      await jfetch(`/api/admin/product-categories/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive: nextEnabled }),
+      });
+    } catch (e: any) {
+      // rollback
+      setRows((prev) => prev.map((x) => (x.id === id ? { ...x, enabled: cur.enabled } : x)));
+      alert(e?.message || "Update failed");
+    }
+  }
+
+  function patchActiveLocal(patch: Partial<CategoryRow>) {
+    if (!active) return;
+    setRows((prev) => prev.map((x) => (x.id === active.id ? { ...x, ...patch } : x)));
+  }
+
+  function patchActiveApiDebounced(patch: Record<string, any>) {
+    if (!active) return;
+
+    if (patchTimer.current) clearTimeout(patchTimer.current);
+    patchTimer.current = setTimeout(async () => {
+      try {
+        await jfetch(`/api/admin/product-categories/${active.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(patch),
+        });
+      } catch (e: any) {
+        alert(e?.message || "Save failed");
+        // safest: reload tree to sync
+        loadTree();
+      }
+    }, 350);
+  }
+
+  function changeName(name: string) {
+    if (!active) return;
+    patchActiveLocal({ name });
+    patchActiveApiDebounced({ name: name.trim() });
+  }
+
+  function changeSlug(slug: string) {
+    if (!active) return;
+    const s = slugify(slug);
+    patchActiveLocal({ slug: s });
+    patchActiveApiDebounced({ slug: s });
+  }
+
+  function moveParent(newParentId: string | null) {
+    if (!active) return;
+    if (newParentId === active.id) return;
+
+    patchActiveLocal({ parentId: newParentId });
+    patchActiveApiDebounced({ parentId: newParentId });
+  }
+
+  function autoSlugFromName() {
+    if (!active) return;
+    const s = slugify(active.name);
+    patchActiveLocal({ slug: s });
+    patchActiveApiDebounced({ slug: s });
+  }
+
+  // drag reorder
   const [dragId, setDragId] = useState<string | null>(null);
   function onDragStart(id: string) {
     setDragId(id);
   }
-  function onDrop(targetId: string) {
+
+  async function onDrop(targetId: string) {
     if (!active) return;
     if (!dragId || dragId === targetId) return;
 
     const parentId = active.parentId;
+
     const sibs = rows
       .filter((x) => x.parentId === parentId)
       .slice()
       .sort(bySort);
+
     const from = sibs.findIndex((x) => x.id === dragId);
     const to = sibs.findIndex((x) => x.id === targetId);
     if (from < 0 || to < 0) return;
@@ -143,95 +356,28 @@ export default function CategoriesPage() {
     next.splice(to, 0, moved);
 
     const sortMap = new Map(next.map((x, i) => [x.id, (i + 1) * 10]));
+
+    // optimistic local
     setRows((prev) => prev.map((x) => (sortMap.has(x.id) ? { ...x, sort: sortMap.get(x.id)! } : x)));
     setDragId(null);
-  }
 
-  function select(id: string) {
-    setActiveId(id);
-  }
-
-  function createCategory(parentId: string | null) {
-    const name = prompt("Category name?");
-    if (!name?.trim()) return;
-    const slug = slugify(name);
-    const maxSort = Math.max(0, ...rows.filter((x) => x.parentId === parentId).map((x) => x.sort)) + 10;
-
-    const row: CategoryRow = {
-      id: uid(),
-      parentId,
-      name: name.trim(),
-      slug,
-      enabled: true,
-      sort: maxSort,
-      icon: "bi-tag",
-    };
-    setRows((prev) => [...prev, row]);
-    setTimeout(() => select(row.id), 0);
-  }
-
-  function removeCategory(id: string) {
-    const current = rows.find((x) => x.id === id);
-    if (!current) return;
-
-    const hasChildren = rows.some((x) => x.parentId === id);
-    const ok = confirm(hasChildren ? `Delete "${current.name}" and its children?` : `Delete "${current.name}"?`);
-    if (!ok) return;
-
-    // cascade delete (MVP)
-    const toDelete = new Set<string>();
-    const walk = (cid: string) => {
-      toDelete.add(cid);
-      rows.filter((x) => x.parentId === cid).forEach((ch) => walk(ch.id));
-    };
-    walk(id);
-
-    setRows((prev) => prev.filter((x) => !toDelete.has(x.id)));
-    if (activeId === id) {
-      const remain = rows.filter((x) => !toDelete.has(x.id));
-      setActiveId(remain[0]?.id || "");
+    // persist: PATCH each sibling (MVP)
+    try {
+      setBusy(true);
+      await Promise.all(
+        Array.from(sortMap.entries()).map(([id, sort]) =>
+          jfetch(`/api/admin/product-categories/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ sort }),
+          })
+        )
+      );
+    } catch (e: any) {
+      alert(e?.message || "Reorder failed");
+      loadTree();
+    } finally {
+      setBusy(false);
     }
-  }
-
-  function toggleEnabled(id: string) {
-    setRows((prev) => prev.map((x) => (x.id === id ? { ...x, enabled: !x.enabled } : x)));
-  }
-
-  function patchActive(patch: Partial<CategoryRow>) {
-    if (!active) return;
-    setRows((prev) => prev.map((x) => (x.id === active.id ? { ...x, ...patch } : x)));
-  }
-
-  function changeName(name: string) {
-    if (!active) return;
-    patchActive({ name });
-    // auto slug if user hasn’t edited slug manually (simple heuristic)
-  }
-
-  function changeSlug(slug: string) {
-    patchActive({ slug: slugify(slug) });
-  }
-
-  function moveParent(newParentId: string | null) {
-    if (!active) return;
-    if (newParentId === active.id) return;
-
-    // prevent cycles
-    const byId = new Map(rows.map((r) => [r.id, r]));
-    let p = newParentId;
-    while (p) {
-      if (p === active.id) return; // cycle
-      p = byId.get(p)?.parentId ?? null;
-    }
-
-    const maxSort = Math.max(0, ...rows.filter((x) => x.parentId === newParentId).map((x) => x.sort)) + 10;
-
-    patchActive({ parentId: newParentId, sort: maxSort });
-  }
-
-  function autoSlugFromName() {
-    if (!active) return;
-    patchActive({ slug: slugify(active.name) });
   }
 
   function TreeNode({ node, depth }: { node: any; depth: number }) {
@@ -239,11 +385,15 @@ export default function CategoriesPage() {
     if (!show) return null;
 
     const isActive = node.id === activeId;
+
     return (
       <div className={styles.treeNode}>
         <button type="button" className={`${styles.treeBtn} ${isActive ? styles.treeActive : ""}`} onClick={() => select(node.id)} style={{ paddingLeft: 10 + depth * 14 }}>
           <i className={`bi ${node.icon || "bi-folder2"}`} />
           <span className={styles.treeName}>{node.name}</span>
+
+          {typeof node.count === "number" && <span className={styles.treeCount}>{node.count}</span>}
+
           {!node.enabled && <span className={styles.badgeOff}>OFF</span>}
           <span className={styles.treeSlug}>/{node.slug}</span>
         </button>
@@ -272,38 +422,54 @@ export default function CategoriesPage() {
         </div>
 
         <div className={styles.topActions}>
-          <button className={styles.ghostBtn} type="button" onClick={() => createCategory(active?.id ?? null)} disabled={!active}>
-            <i className="bi bi-node-plus" /> Add child
+          <button className={styles.ghostBtn} type="button" onClick={() => loadTree()} disabled={busy || loading}>
+            <i className="bi bi-arrow-repeat" /> Refresh
           </button>
-          <button className={styles.primaryBtn} type="button" onClick={() => createCategory(active?.parentId ?? null)}>
+          <button className={styles.primaryBtn} type="button" onClick={() => createCategory(active?.parentId ?? null)} disabled={busy}>
             <i className="bi bi-plus-lg" /> Add sibling
           </button>
         </div>
       </header>
+
+      {err && (
+        <div className={styles.pageError}>
+          <i className="bi bi-exclamation-triangle" />
+          <span>{err}</span>
+        </div>
+      )}
 
       <div className={styles.body}>
         {/* Sidebar tree */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
             <div className={styles.sidebarTitle}>Category tree</div>
-            <div className={styles.sidebarHint}>Search and select a category</div>
           </div>
 
           <div className={styles.searchWrap}>
             <i className="bi bi-search" />
-            <input className={styles.search} placeholder="Search name / slug..." value={q} onChange={(e) => setQ(e.target.value)} />
+            <input className={styles.search} placeholder={loading ? "Loading..." : "Search name / slug..."} value={q} onChange={(e) => setQ(e.target.value)} disabled={loading} />
           </div>
 
           <div className={styles.tree}>
-            {tree.map((n) => (
-              <TreeNode key={n.id} node={n} depth={0} />
-            ))}
+            {loading ? (
+              <div className={styles.loadingBox}>
+                <i className="bi bi-arrow-repeat" />
+                <span>Loading categories...</span>
+              </div>
+            ) : tree.length === 0 ? (
+              <div className={styles.loadingBox}>
+                <i className="bi bi-inbox" />
+                <span>No categories.</span>
+              </div>
+            ) : (
+              tree.map((n) => <TreeNode key={n.id} node={n} depth={0} />)
+            )}
           </div>
 
           <div className={styles.sidebarFooter}>
             <div className={styles.tip}>
               <i className="bi bi-lightbulb" />
-              <span>Bạn có thể dùng categories cho Products, Blog, hoặc Sections preset.</span>
+              <span>Tip: Drag sort áp dụng trong “Order within parent”.</span>
             </div>
           </div>
         </aside>
@@ -320,14 +486,16 @@ export default function CategoriesPage() {
                 </div>
 
                 <div className={styles.panelHeaderActions}>
-                  <button className={styles.ghostBtn} type="button" onClick={() => createCategory(active?.parentId ?? null)}>
-                    <i className="bi bi-plus-lg" /> Add
+                  <button className={styles.ghostBtn} type="button" onClick={() => createCategory(active?.id ?? null)} disabled={!active || busy}>
+                    <i className="bi bi-node-plus" /> Add child
                   </button>
                 </div>
               </div>
 
               <div className={styles.list}>
-                {flatSiblings.length === 0 ? (
+                {!active ? (
+                  <div className={styles.empty}>Select a category</div>
+                ) : flatSiblings.length === 0 ? (
                   <div className={styles.empty}>No categories here</div>
                 ) : (
                   flatSiblings.map((c) => {
@@ -357,19 +525,26 @@ export default function CategoriesPage() {
                               {c.name}
                               {!c.enabled && <span className={styles.badgeOff}>OFF</span>}
                             </div>
+
                             <div className={styles.itemMeta}>
                               <span className={styles.mono}>sort {c.sort}</span>
                               <span className={styles.dot}>•</span>
                               <span className={styles.mono}>/{c.slug}</span>
+                              {typeof c.count === "number" ? (
+                                <>
+                                  <span className={styles.dot}>•</span>
+                                  <span className={styles.mono}>{c.count} products</span>
+                                </>
+                              ) : null}
                             </div>
                           </div>
                         </div>
 
                         <div className={styles.itemActions} onClick={(e) => e.stopPropagation()}>
-                          <button className={styles.iconBtn} type="button" title="Toggle" onClick={() => toggleEnabled(c.id)}>
+                          <button className={styles.iconBtn} type="button" title="Toggle" onClick={() => toggleEnabled(c.id)} disabled={busy}>
                             <i className={`bi ${c.enabled ? "bi-eye" : "bi-eye-slash"}`} />
                           </button>
-                          <button className={styles.iconBtn} type="button" title="Delete" onClick={() => removeCategory(c.id)}>
+                          <button className={styles.iconBtn} type="button" title="Delete" onClick={() => removeCategory(c.id)} disabled={busy}>
                             <i className="bi bi-trash" />
                           </button>
                         </div>
@@ -383,13 +558,6 @@ export default function CategoriesPage() {
             {/* Inspector */}
             <aside className={styles.inspector}>
               <div className={styles.panel}>
-                <div className={styles.panelHeader}>
-                  <div>
-                    <div className={styles.panelTitle}>Inspector</div>
-                    <div className={styles.panelSub}>Edit details, SEO & hierarchy</div>
-                  </div>
-                </div>
-
                 {!active ? (
                   <div className={styles.panelBody}>
                     <div className={styles.emptyInspector}>
@@ -415,7 +583,7 @@ export default function CategoriesPage() {
                         </div>
                       </div>
 
-                      <button className={styles.iconBtn} type="button" title="Toggle enabled" onClick={() => toggleEnabled(active.id)}>
+                      <button className={styles.iconBtn} type="button" title="Toggle enabled" onClick={() => toggleEnabled(active.id)} disabled={busy}>
                         <i className={`bi ${active.enabled ? "bi-toggle2-on" : "bi-toggle2-off"}`} />
                       </button>
                     </div>
@@ -424,7 +592,7 @@ export default function CategoriesPage() {
                       <label className={styles.label}>Name</label>
                       <div className={styles.inputWrap}>
                         <i className="bi bi-type" />
-                        <input className={styles.input} value={active.name} onChange={(e) => changeName(e.target.value)} />
+                        <input className={styles.input} value={active.name} onChange={(e) => changeName(e.target.value)} disabled={busy} />
                       </div>
 
                       <div className={styles.rowInline}>
@@ -432,11 +600,11 @@ export default function CategoriesPage() {
                           <label className={styles.label}>Slug</label>
                           <div className={styles.inputWrap}>
                             <i className="bi bi-hash" />
-                            <input className={styles.input} value={active.slug} onChange={(e) => changeSlug(e.target.value)} />
+                            <input className={styles.input} value={active.slug} onChange={(e) => changeSlug(e.target.value)} disabled={busy} />
                           </div>
                         </div>
 
-                        <button className={styles.ghostBtn} type="button" onClick={autoSlugFromName}>
+                        <button className={styles.ghostBtn} type="button" onClick={autoSlugFromName} disabled={busy}>
                           <i className="bi bi-magic" /> Auto
                         </button>
                       </div>
@@ -444,7 +612,7 @@ export default function CategoriesPage() {
                       <label className={styles.label}>Parent</label>
                       <div className={styles.selectWrap}>
                         <i className="bi bi-diagram-3" />
-                        <select className={styles.select} value={active.parentId ?? ""} onChange={(e) => moveParent(e.target.value ? e.target.value : null)}>
+                        <select className={styles.select} value={active.parentId ?? ""} onChange={(e) => moveParent(e.target.value ? e.target.value : null)} disabled={busy}>
                           <option value="">(no parent)</option>
                           {rows
                             .filter((x) => x.id !== active.id)
@@ -461,13 +629,33 @@ export default function CategoriesPage() {
                       <label className={styles.label}>Icon (Bootstrap)</label>
                       <div className={styles.inputWrap}>
                         <i className="bi bi-bootstrap" />
-                        <input className={styles.input} value={active.icon ?? ""} onChange={(e) => patchActive({ icon: e.target.value.trim() })} placeholder="e.g. bi-tag" />
+                        <input
+                          className={styles.input}
+                          value={active.icon ?? ""}
+                          onChange={(e) => {
+                            const v = e.target.value.trim();
+                            patchActiveLocal({ icon: v });
+                            patchActiveApiDebounced({ icon: v || null });
+                          }}
+                          placeholder="e.g. bi-tag"
+                          disabled={busy}
+                        />
                       </div>
 
                       <label className={styles.label}>Cover image URL (optional)</label>
                       <div className={styles.inputWrap}>
                         <i className="bi bi-image" />
-                        <input className={styles.input} value={active.coverImage ?? ""} onChange={(e) => patchActive({ coverImage: e.target.value })} placeholder="https://..." />
+                        <input
+                          className={styles.input}
+                          value={active.coverImage ?? ""}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            patchActiveLocal({ coverImage: v });
+                            patchActiveApiDebounced({ coverImage: v || null });
+                          }}
+                          placeholder="https://..."
+                          disabled={busy}
+                        />
                       </div>
 
                       <div className={styles.sectionTitle}>
@@ -475,16 +663,37 @@ export default function CategoriesPage() {
                       </div>
 
                       <label className={styles.label}>SEO title</label>
-                      <input className={styles.inputPlain} value={active.seoTitle ?? ""} onChange={(e) => patchActive({ seoTitle: e.target.value })} placeholder="Optional" />
+                      <input
+                        className={styles.inputPlain}
+                        value={active.seoTitle ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          patchActiveLocal({ seoTitle: v });
+                          patchActiveApiDebounced({ seoTitle: v || null });
+                        }}
+                        placeholder="Optional"
+                        disabled={busy}
+                      />
 
                       <label className={styles.label}>SEO description</label>
-                      <textarea className={styles.textarea} value={active.seoDesc ?? ""} onChange={(e) => patchActive({ seoDesc: e.target.value })} placeholder="Optional" />
+                      <textarea
+                        className={styles.textarea}
+                        value={active.seoDesc ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          patchActiveLocal({ seoDesc: v });
+                          patchActiveApiDebounced({ seoDesc: v || null });
+                        }}
+                        placeholder="Optional"
+                        disabled={busy}
+                      />
 
                       <div className={styles.actions}>
-                        <button className={styles.primaryBtn} type="button" onClick={() => alert("Demo only. Wire API to save.")}>
-                          <i className="bi bi-save2" /> Save
+                        <button className={styles.primaryBtn} type="button" onClick={() => loadTree()} disabled={busy}>
+                          <i className="bi bi-save2" /> Reload
                         </button>
-                        <button className={`${styles.ghostBtn} ${styles.dangerBtn}`} type="button" onClick={() => removeCategory(active.id)}>
+
+                        <button className={`${styles.ghostBtn} ${styles.dangerBtn}`} type="button" onClick={() => removeCategory(active.id)} disabled={busy}>
                           <i className="bi bi-trash" /> Delete
                         </button>
                       </div>
@@ -492,7 +701,7 @@ export default function CategoriesPage() {
                       <div className={styles.tipInline}>
                         <i className="bi bi-lightbulb" />
                         <span>
-                          Khi nối DB: dùng unique <span className={styles.mono}>[siteId, slug]</span> và index <span className={styles.mono}>parentId, sort</span>.
+                          Khi nối DB: index <span className={styles.mono}>parentId, sort</span> để load tree nhanh.
                         </span>
                       </div>
                     </div>

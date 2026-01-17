@@ -57,6 +57,9 @@ Presence / online
 Subscribe presence: channel.presence.enter() và presence.subscribe() để hiện “online dot” thật (không phải dot giả)
 Hiện tại file này tôi muốn tính tổng số sẳn phẩm thu vào và tổng sản phẩm đã bán và tổng số sản phẩm đang tồn kho và số sản phẩm đang được giao và tổng sản phẩm bị trả lại, tổng chi tiêu cho sẳn phẩm thu vào và bán. dưới là tổng kết lời lỗ và Spending by category hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon.
 Hiện tại ở trong ui model tôi muốn them phần kéo thả ảnh vào và sao khi kéo thả ảnh vào có thể preview được và nếu như create product ảnh sẽ được lưu vào db và move anh đến dường dẫn puclic/upload/images
+
+tôi muốn độ lại design chỉ cần lấy không cần giữ Product Categories hãy xóa nhưng phần liên quan giúp tôi nhé. Và bạn hãy kiểm tra giúp tôi nhé hiện tại đang ẩn các lỗi khi load lại page api GET /admin/products/product 200 in 66ms chạy lại khá nhiều lần. khiến trang đang chạy rất chậm nhé. hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon. Nếu có thể bạn hãy design bên trái là sidebar và bên phải là list product nhé
+
 Dashboard
 
 Builder

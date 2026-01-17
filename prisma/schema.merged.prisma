@@ -594,6 +594,17 @@ model ProductCategory {
   slug     String
   isActive Boolean @default(true)
 
+  parentId String?
+  parent   ProductCategory?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children ProductCategory[] @relation("CategoryTree")
+
+  sort Int @default(0)
+
+  icon       String?
+  coverImage String?
+  seoTitle   String?
+  seoDesc    String? @db.Text
+
   products Product[]
 
   createdAt DateTime @default(now())
@@ -602,6 +613,8 @@ model ProductCategory {
   @@unique([userId, slug])
   @@unique([userId, name])
   @@index([userId])
+  @@index([userId, parentId])
+  @@index([userId, parentId, sort])
 }
 
 model Product {
@@ -613,13 +626,15 @@ model Product {
   slug        String
   description String? @db.Text
 
-  sku     String
-  barcode String?
+  sku               String
+  barcode           String?
+  priceCents        Int     @default(0)
+  costCents         Int     @default(0)
+  stock             Int     @default(0)
+  hasVariants       Boolean @default(false)
+  displayPriceCents Int     @default(0)
+  displayStock      Int     @default(0)
 
-  priceCents Int @default(0)
-  costCents  Int @default(0)
-
-  stock    Int     @default(0) // tồn kho đơn giản
   isActive Boolean @default(true)
 
   categoryId String?
@@ -627,6 +642,8 @@ model Product {
 
   images     ProductImage[]
   attributes ProductAttribute[]
+
+  variants ProductVariant[]
 
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
@@ -639,6 +656,10 @@ model Product {
   @@unique([userId, barcode])
   @@index([userId])
   @@index([userId, name])
+  // NEW: index tối ưu list/filter
+  @@index([userId, isActive])
+  @@index([userId, hasVariants])
+  @@index([userId, categoryId, isActive])
 }
 
 model Supplier {
@@ -695,12 +716,16 @@ model InventoryReceipt {
 }
 
 model InventoryReceiptItem {
-  id        String           @id @default(cuid())
+  id String @id @default(cuid())
+
   receiptId String
   receipt   InventoryReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
   qty           Int
   unitCostCents Int
@@ -711,6 +736,7 @@ model InventoryReceiptItem {
 
   @@index([receiptId])
   @@index([productId])
+  @@index([variantId])
 }
 
 model Customer {
@@ -801,12 +827,72 @@ model OrderItem {
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
   qty        Int
   priceCents Int
   totalCents Int
 
   @@index([orderId])
   @@index([productId])
+  @@index([variantId])
+}
+
+enum VariantStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model ProductVariant {
+  id String @id @default(cuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  name    String? // ví dụ: "Đen"
+  sku     String
+  barcode String?
+
+  priceCents Int @default(0)
+  costCents  Int @default(0)
+
+  // inventory
+  stock    Int     @default(0)
+  isActive Boolean @default(true)
+
+  option1 String? // "Color"
+  value1  String? // "Black"
+  option2 String?
+  value2  String?
+
+  images ProductVariantImage[]
+
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  inventoryReceiptItems InventoryReceiptItem[]
+  orderItems            OrderItem[]
+
+  @@unique([productId, sku])
+  @@index([productId])
+  @@index([productId, isActive])
+}
+
+model ProductVariantImage {
+  id String @id @default(cuid())
+
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  url      String
+  fileName String?
+  sort     Int     @default(0)
+  isCover  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([variantId])
+  @@index([variantId, sort])
 }
 
 // ==== part: Profile.prisma ====

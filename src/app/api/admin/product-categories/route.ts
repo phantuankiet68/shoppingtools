@@ -10,10 +10,6 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function normName(s: unknown) {
-  return String(s ?? "").trim();
-}
-
 function slugify(input: string) {
   return String(input ?? "")
     .toLowerCase()
@@ -26,24 +22,43 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
-function normSlug(s: unknown, fallbackFromName?: string) {
-  const raw = String(s ?? "").trim();
-  const base = raw.length ? raw : String(fallbackFromName ?? "");
-  const slug = slugify(base);
-  return slug.length ? slug : "";
+function cleanText(v: unknown, max = 2000) {
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+async function ensureParentBelongsToUser(userId: string, parentId: string) {
+  const p = await prisma.productCategory.findFirst({
+    where: { id: parentId, userId },
+    select: { id: true },
+  });
+  return !!p;
+}
+
+async function nextSortForParent(userId: string, parentId: string | null) {
+  const max = await prisma.productCategory.aggregate({
+    where: { userId, parentId },
+    _max: { sort: true },
+  });
+  const cur = max._max.sort ?? 0;
+  // step 10 giống UI drag reorder
+  return cur + 10;
 }
 
 /**
  * GET /api/admin/product-categories
  * query:
- *  q?       search name/slug
- *  active?  all|true|false
- *  sort?    newest|nameasc
+ *  q?              search name/slug
+ *  active?         all|true|false (default all)
+ *  sort?           newest|nameasc|sortasc|countdesc (default sortasc)
+ *  parentId?       filter by parent ("" or "null" => null)
+ *  tree?           1 -> ignore pagination and return all rows (for building tree)
+ *  lite?           1 -> lightweight payload (sidebar)
  *  page? pageSize?
  */
 export async function GET(req: Request) {
   let userId: string | null = null;
-
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
@@ -52,34 +67,55 @@ export async function GET(req: Request) {
 
     const q = (url.searchParams.get("q") ?? "").trim();
     const active = (url.searchParams.get("active") ?? "all").toLowerCase();
-    const sort = (url.searchParams.get("sort") ?? "newest").toLowerCase();
+    const sort = (url.searchParams.get("sort") ?? "sortasc").toLowerCase();
+
+    const tree = url.searchParams.get("tree") === "1";
+    const lite = url.searchParams.get("lite") === "1";
+
+    const parentIdRaw = url.searchParams.get("parentId");
+    const parentId = parentIdRaw == null || parentIdRaw === "" || parentIdRaw === "null" ? undefined : parentIdRaw;
 
     const page = clamp(toInt(url.searchParams.get("page"), 1), 1, 1000000);
-    const pageSize = clamp(toInt(url.searchParams.get("pageSize"), 50), 1, 100);
+    const pageSize = clamp(toInt(url.searchParams.get("pageSize"), 50), 1, 500);
 
     const where: any = { userId };
 
     if (active === "true") where.isActive = true;
     if (active === "false") where.isActive = false;
 
-    // DB bạn không support mode: "insensitive" => bỏ
     if (q) {
       where.OR = [{ name: { contains: q } }, { slug: { contains: q } }];
     }
 
-    const orderBy = sort === "nameasc" ? { name: "asc" } : { createdAt: "desc" };
+    // If parentId explicitly provided: filter. (undefined means "no filter")
+    if (parentId !== undefined) {
+      where.parentId = parentId;
+    }
 
-    const [items, total] = await Promise.all([
+    // orderBy (no Prisma type usage)
+    const orderBy = sort === "nameasc" ? ({ name: "asc" } as const) : sort === "newest" ? ({ createdAt: "desc" } as const) : ({ sort: "asc" } as const); // sortasc default
+
+    // If tree=1 -> return all (no pagination)
+    const skip = tree ? 0 : (page - 1) * pageSize;
+    const take = tree ? 5000 : pageSize; // cap safety
+
+    const [rawItems, total] = await Promise.all([
       prisma.productCategory.findMany({
         where,
         orderBy,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        skip,
+        take,
         select: {
           id: true,
+          parentId: true,
           name: true,
           slug: true,
           isActive: true,
+          sort: true,
+          icon: true,
+          coverImage: true,
+          seoTitle: true,
+          seoDesc: true,
           createdAt: true,
           updatedAt: true,
           _count: { select: { products: true } },
@@ -87,6 +123,44 @@ export async function GET(req: Request) {
       }),
       prisma.productCategory.count({ where }),
     ]);
+
+    let items = rawItems.map((x) => ({
+      id: x.id,
+      parentId: x.parentId,
+      name: x.name,
+      slug: x.slug,
+      isActive: x.isActive,
+      sort: x.sort,
+      icon: x.icon,
+      coverImage: x.coverImage,
+      seoTitle: x.seoTitle,
+      seoDesc: x.seoDesc,
+      createdAt: x.createdAt,
+      updatedAt: x.updatedAt,
+      count: x._count.products,
+    }));
+
+    // Optional app-level sort by count desc
+    if (sort === "countdesc") {
+      items = items.slice().sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    }
+
+    // Lite for sidebar checklist
+    if (lite) {
+      const liteItems = items.map((x) => ({
+        id: x.id,
+        name: x.name,
+        isActive: x.isActive,
+        count: x.count,
+      }));
+      return NextResponse.json({
+        items: liteItems,
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      });
+    }
 
     return NextResponse.json({
       items,
@@ -101,15 +175,17 @@ export async function GET(req: Request) {
   }
 }
 
+/**
+ * POST /api/admin/product-categories
+ * body: { name*, slug?, isActive?, parentId?, sort?, icon?, coverImage?, seoTitle?, seoDesc? }
+ */
 export async function POST(req: Request) {
   let userId: string | null = null;
 
   try {
-    // 1) auth
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    // 2) parse json safely
     const ct = req.headers.get("content-type") || "";
     if (!ct.includes("application/json")) {
       return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
@@ -127,31 +203,71 @@ export async function POST(req: Request) {
 
     const isActive = typeof body.isActive === "boolean" ? body.isActive : true;
 
+    const parentIdRaw = body.parentId;
+    const parentId = parentIdRaw == null || parentIdRaw === "" || parentIdRaw === "null" ? null : String(parentIdRaw);
+
+    if (parentId) {
+      const ok = await ensureParentBelongsToUser(userId, parentId);
+      if (!ok) return NextResponse.json({ error: "Parent not found" }, { status: 400 });
+    }
+
+    const sort = Number.isFinite(Number(body.sort)) ? Math.trunc(Number(body.sort)) : await nextSortForParent(userId, parentId);
+
     const created = await prisma.productCategory.create({
       data: {
         userId,
         name,
         slug,
         isActive,
+        parentId,
+        sort,
+        icon: cleanText(body.icon, 64),
+        coverImage: cleanText(body.coverImage, 2048),
+        seoTitle: cleanText(body.seoTitle, 160),
+        seoDesc: cleanText(body.seoDesc, 2000),
       },
       select: {
         id: true,
+        parentId: true,
         name: true,
         slug: true,
         isActive: true,
+        sort: true,
+        icon: true,
+        coverImage: true,
+        seoTitle: true,
+        seoDesc: true,
         createdAt: true,
         updatedAt: true,
+        _count: { select: { products: true } },
       },
     });
 
-    return NextResponse.json({ item: created }, { status: 201 });
+    return NextResponse.json(
+      {
+        item: {
+          id: created.id,
+          parentId: created.parentId,
+          name: created.name,
+          slug: created.slug,
+          isActive: created.isActive,
+          sort: created.sort,
+          icon: created.icon,
+          coverImage: created.coverImage,
+          seoTitle: created.seoTitle,
+          seoDesc: created.seoDesc,
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+          count: created._count.products,
+        },
+      },
+      { status: 201 }
+    );
   } catch (e: any) {
     console.error("[POST /api/admin/product-categories] ERROR:", e);
 
-    // auth lỗi => 401
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // prisma unique
     if (e?.code === "P2002") {
       const target = e?.meta?.target;
       const t = Array.isArray(target) ? target.join(",") : String(target ?? "");
@@ -160,7 +276,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Category already exists" }, { status: 409 });
     }
 
-    // prisma validation / missing column / migration issues thường rơi vào đây
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
 }

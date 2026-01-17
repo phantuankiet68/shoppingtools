@@ -56,19 +56,16 @@ type ProductForm = {
   sku: string;
   barcode: string;
 
-  cost: string; // input money
-  price: string; // input money
-  stock: string; // input number
+  cost: string;
+  price: string;
+  stock: string;
 
-  categoryId: string; // "" => null
+  categoryId: string;
   isActive: boolean;
 
-  images: { url: string; isCover: boolean }[]; // URL images
+  images: { url: string; isCover: boolean }[];
 };
 
-/** =========================
- *  Helpers
- *  ========================= */
 function moneyFromCents(cents: number) {
   const n = (cents ?? 0) / 100;
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -166,11 +163,7 @@ function mapToForm(p: ApiProduct): ProductForm {
   };
 }
 
-/** =========================
- *  Component
- *  ========================= */
 export default function AdminProductsClient() {
-  /** Product state */
   const [items, setItems] = useState<ApiProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -187,16 +180,12 @@ export default function AdminProductsClient() {
 
   const [openRowMenu, setOpenRowMenu] = useState<string | null>(null);
   const rowMenuWrapRef = useClickOutside<HTMLDivElement>(() => setOpenRowMenu(null));
-
-  /** Modal state */
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>("create");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm());
   const [formErr, setFormErr] = useState<string>("");
   const modalCardRef = useRef<HTMLDivElement | null>(null);
-
-  /** Images (upload files) */
   const [localFiles, setLocalFiles] = useState<{ file: File; preview: string }[]>([]);
   const [coverIndex, setCoverIndex] = useState(0);
 
@@ -204,11 +193,15 @@ export default function AdminProductsClient() {
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [catLoading, setCatLoading] = useState(false);
   const [catErr, setCatErr] = useState("");
-  const [catName, setCatName] = useState("");
-  const [catSlug, setCatSlug] = useState("");
-  const [catActive, setCatActive] = useState(true);
-  const [catSlugEdited, setCatSlugEdited] = useState(false);
   const [slugEdited, setSlugEdited] = useState(false);
+  const [filters, setFilters] = useState({
+    q: "",
+    categoryIds: [] as string[],
+    priceMin: "",
+    priceMax: "",
+    active: "all" as "all" | "active" | "inactive",
+    sort: "Newest" as SortKey,
+  });
 
   async function loadCategories() {
     setCatLoading(true);
@@ -224,42 +217,6 @@ export default function AdminProductsClient() {
       setCatLoading(false);
     }
   }
-
-  async function createCategory() {
-    const name = catName.trim();
-    if (!name) {
-      setCatErr("Category name is required");
-      return;
-    }
-
-    setBusy(true);
-    setCatErr("");
-    try {
-      const res = await fetch("/api/admin/product-categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          slug: catSlug.trim() ? slugify(catSlug.trim()) : null,
-          isActive: !!catActive,
-        }),
-      });
-
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || "Create category failed");
-
-      setCatName("");
-      setCatSlug("");
-      setCatActive(true);
-      setCatSlugEdited(false);
-      await loadCategories();
-    } catch (e: any) {
-      setCatErr(e?.message || "Create category failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function load() {
     setLoading(true);
     setError("");
@@ -285,13 +242,11 @@ export default function AdminProductsClient() {
   useEffect(() => {
     load();
     loadCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const t = setTimeout(() => load(), 300);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, sort, activeFilter]);
 
   const suggestions = useMemo(() => {
@@ -358,7 +313,6 @@ export default function AdminProductsClient() {
     setBusy(true);
 
     try {
-      // ✅ đúng route
       const res = await fetch(`/api/admin/products/${p.id}`, { cache: "no-store" });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || "Failed to load product");
@@ -388,7 +342,6 @@ export default function AdminProductsClient() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalOpen]);
 
   function validateForm(f: ProductForm) {
@@ -407,10 +360,7 @@ export default function AdminProductsClient() {
     for (const img of f.images) {
       if (!img.url.trim()) return "Image URL cannot be empty";
     }
-
-    // ✅ nếu upload file thì backend upload endpoint phải có
     if (localFiles.length > 0) {
-      // không chặn nữa — submitForm sẽ upload trước
     }
 
     return "";
@@ -425,7 +375,6 @@ export default function AdminProductsClient() {
     return () => {
       localFiles.forEach((x) => URL.revokeObjectURL(x.preview));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localFiles]);
 
   function addFiles(files: FileList | File[]) {
@@ -464,7 +413,6 @@ export default function AdminProductsClient() {
     });
   }
 
-  /** ✅ Upload local images -> returns public URLs */
   async function uploadLocalImages(files: File[]) {
     const fd = new FormData();
     for (const f of files) fd.append("files", f);
@@ -477,14 +425,6 @@ export default function AdminProductsClient() {
     if (urls.length === 0) throw new Error("Upload failed: empty urls");
     return urls;
   }
-
-  /** =========================
-   *  ✅ FIXED submitForm
-   *  - upload localFiles first (if any)
-   *  - merge uploaded urls + url images
-   *  - ensure only one cover
-   *  - POST/PATCH JSON to products API
-   *  ========================= */
   async function submitForm() {
     const msg = validateForm(form);
     if (msg) {
@@ -621,193 +561,183 @@ export default function AdminProductsClient() {
     URL.revokeObjectURL(url);
   }
 
+  async function loadWithFilters(f: typeof filters) {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
+
+      if (f.q.trim()) params.set("q", f.q.trim());
+
+      params.set("active", f.active);
+
+      params.set("sort", f.sort === "PriceAsc" ? "priceAsc" : f.sort === "PriceDesc" ? "priceDesc" : f.sort === "NameAsc" ? "nameAsc" : "newest");
+
+      if (f.categoryIds.length > 0) {
+        params.set("categoryIds", f.categoryIds.join(","));
+      }
+
+      // price range (USD input) -> cents
+      const min = centsFromInput(f.priceMin);
+      const max = centsFromInput(f.priceMax);
+
+      if (f.priceMin.trim()) params.set("priceMinCents", String(min));
+      if (f.priceMax.trim()) params.set("priceMaxCents", String(max));
+
+      params.set("page", "1");
+      params.set("pageSize", "50");
+
+      const res = await fetch(`/api/admin/products?${params.toString()}`, { cache: "no-store" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || "Failed to load products");
+
+      setItems(Array.isArray(json?.items) ? json.items : []);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load products");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function applyFilters() {
+    // sync to current UI and call load
+    loadWithFilters(filters);
+  }
+
   return (
     <div className={styles.page}>
-      {/* MAIN LAYOUT 4/8 */}
       <div className={styles.mainGrid}>
-        {/* LEFT: ProductCategory */}
-        <aside className={styles.leftCol}>
+        <aside className={styles.sidebar}>
           <div className={styles.sideCard}>
             <div className={styles.sideHead}>
-              <div className={styles.sideTitle}>Product Categories</div>
-              <button type="button" className={styles.iconBtn} title="Refresh categories" onClick={loadCategories} disabled={catLoading || busy}>
-                <i className={`bi bi-arrow-clockwise ${catLoading ? styles.spin : ""}`} />
+              <div className={styles.sideActions2}>
+                <button type="button" className={styles.btnSoft} onClick={exportCsv} disabled={loading || busy || filtered.length === 0}>
+                  <i className="bi bi-download" />
+                  Export
+                </button>
+
+                <button className={styles.btnPrimary} type="button" onClick={openCreate} disabled={busy}>
+                  <i className="bi bi-plus-lg" />
+                  New
+                </button>
+              </div>
+              <button type="button" className={styles.iconBtn} title="Refresh" onClick={() => load()} disabled={loading || busy}>
+                <i className={`bi bi-arrow-clockwise ${loading ? styles.spin : ""}`} />
               </button>
             </div>
 
-            {catErr && (
+            {error && (
               <div className={styles.sideError}>
                 <i className="bi bi-exclamation-triangle" />
-                <span>{catErr}</span>
+                <span>{error}</span>
               </div>
             )}
 
-            <div className={styles.sideForm}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Category name *</label>
-                <input
-                  className={styles.input}
-                  value={catName}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setCatName(v);
-                    if (!catSlugEdited) setCatSlug(slugify(v));
-                  }}
-                  placeholder="e.g. Chairs"
-                />
+            <div className={styles.sideBody}>
+              {/* Keyword */}
+              <div className={styles.sideBlock}>
+                <div className={styles.sideLabel}>Search</div>
+                <div className={styles.searchWrap}>
+                  <i className={`bi bi-search ${styles.searchIcon}`} />
+                  <input className={styles.search} value={filters.q} placeholder="name / sku / barcode..." onChange={(e) => setFilters((s) => ({ ...s, q: e.target.value }))} />
+                  {filters.q && (
+                    <button type="button" className={styles.clearBtn} onClick={() => setFilters((s) => ({ ...s, q: "" }))}>
+                      <i className="bi bi-x" />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Slug (optional)</label>
-                <input
-                  className={styles.input}
-                  value={catSlug}
-                  onChange={(e) => {
-                    setCatSlugEdited(true);
-                    setCatSlug(slugify(e.target.value));
-                  }}
-                  placeholder="e.g. chairs"
-                />
+              {/* Category */}
+              <div className={styles.sideBlock}>
+                <div className={styles.sideLabel}>Category</div>
+
+                <div className={styles.checkList}>
+                  {categories.length === 0 ? (
+                    <div className={styles.sideEmpty}>No categories</div>
+                  ) : (
+                    categories.map((c) => {
+                      const checked = filters.categoryIds.includes(c.id);
+
+                      return (
+                        <label key={c.id} className={styles.checkRow}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const on = e.target.checked;
+                              setFilters((s) => {
+                                const next = new Set(s.categoryIds);
+                                if (on) next.add(c.id);
+                                else next.delete(c.id);
+                                return { ...s, categoryIds: Array.from(next) };
+                              });
+                            }}
+                          />
+
+                          <span className={styles.checkText}>
+                            {c.name}
+                            {/* nếu API của bạn có count thì hiện như ảnh */}
+                            {typeof (c as any).count === "number" ? <span className={styles.checkCount}>({(c as any).count})</span> : null}
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.switchRow}>
-                  <input type="checkbox" checked={catActive} onChange={(e) => setCatActive(e.target.checked)} />
-                  <span className={styles.switchUi} />
-                  <span className={styles.switchText}>{catActive ? "Active" : "Inactive"}</span>
-                </label>
-              </div>
-
-              <button type="button" className={styles.btnPrimary} onClick={createCategory} disabled={busy}>
-                <i className="bi bi-plus-lg" />
-                <span>Add category</span>
-              </button>
-            </div>
-
-            <div className={styles.sideList}>
-              <div className={styles.sideListHead}>
-                <span>All categories</span>
-                <span className={styles.muted}>{categories.length}</span>
-              </div>
-
-              {catLoading ? (
-                <div className={styles.sideEmpty}>Loading...</div>
-              ) : categories.length === 0 ? (
-                <div className={styles.sideEmpty}>No categories yet</div>
-              ) : (
-                categories.map((c) => (
-                  <div key={c.id} className={styles.catRow}>
-                    <div className={styles.catMeta}>
-                      <div className={styles.catName}>{c.name}</div>
-                      <div className={styles.catSub}>
-                        <span className={styles.mono}>{c.slug || "—"}</span>
-                      </div>
-                    </div>
-
-                    <span className={`${styles.badge} ${c.isActive ? styles.badgeOk : styles.badgeOff}`}>
-                      <i className={`bi ${c.isActive ? "bi-check-circle-fill" : "bi-slash-circle"}`} />
-                      {c.isActive ? "Active" : "Inactive"}
-                    </span>
+              {/* Price range */}
+              <div className={styles.sideBlock}>
+                <div className={styles.sideLabel}>Price range</div>
+                <div className={styles.rangeGrid}>
+                  <div className={styles.rangeField}>
+                    <span className={styles.rangeHint}>Min</span>
+                    <input className={styles.input} value={filters.priceMin} inputMode="decimal" placeholder="0" onChange={(e) => setFilters((s) => ({ ...s, priceMin: e.target.value }))} />
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        </aside>
 
-        {/* RIGHT: Product list */}
-        <section className={styles.rightCol}>
-          {/* Filter row */}
-          <div className={styles.filterRow}>
-            <div className={styles.chips}>
-              <div className={styles.chipSelect}>
-                <i className={`bi bi-arrow-down-up ${styles.chipIcon}`} />
-                <select className={styles.chipNative} value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
+                  <div className={styles.rangeField}>
+                    <span className={styles.rangeHint}>Max</span>
+                    <input className={styles.input} value={filters.priceMax} inputMode="decimal" placeholder="9999" onChange={(e) => setFilters((s) => ({ ...s, priceMax: e.target.value }))} />
+                  </div>
+                </div>
+
+                <div className={styles.smallHelp}>* Tip: nhập giá theo USD (ví dụ 12.5)</div>
+              </div>
+
+              {/* Status */}
+              <div className={styles.sideBlock}>
+                <div className={styles.sideLabel}>Status</div>
+                <select className={styles.input} value={filters.active} onChange={(e) => setFilters((s) => ({ ...s, active: e.target.value as any }))}>
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Sort */}
+              <div className={styles.sideBlock}>
+                <div className={styles.sideLabel}>Sort</div>
+                <select className={styles.input} value={filters.sort} onChange={(e) => setFilters((s) => ({ ...s, sort: e.target.value as SortKey }))}>
                   <option value="Newest">Newest</option>
                   <option value="NameAsc">Name A → Z</option>
                   <option value="PriceAsc">Price: Low → High</option>
                   <option value="PriceDesc">Price: High → Low</option>
                 </select>
-                <i className={`bi bi-chevron-down ${styles.chev}`} />
               </div>
 
-              <div className={styles.chipSelect}>
-                <i className={`bi bi-toggle2-on ${styles.chipIcon}`} />
-                <select className={styles.chipNative} value={activeFilter} onChange={(e) => setActiveFilter(e.target.value as any)}>
-                  <option value="all">All status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-                <i className={`bi bi-chevron-down ${styles.chev}`} />
-              </div>
-
-              <button type="button" className={styles.chipBtn} onClick={load} disabled={loading || busy} title="Refresh">
-                <i className={`bi bi-arrow-clockwise ${loading ? styles.spin : ""}`} />
-              </button>
-            </div>
-
-            {/* search */}
-            <div className={styles.searchWrap} ref={suggestWrapRef}>
-              <i className={`bi bi-search ${styles.searchIcon}`} />
-              <input className={styles.search} value={query} placeholder="Search name / sku / barcode..." onChange={(e) => setQuery(e.target.value)} onFocus={() => setOpenSuggest(true)} />
-              {query && (
-                <button
-                  type="button"
-                  className={styles.clearBtn}
-                  aria-label="Clear"
-                  onClick={() => {
-                    setQuery("");
-                    setOpenSuggest(true);
-                  }}>
-                  <i className="bi bi-x" />
+              {/* Actions */}
+              <div className={styles.sideActions}>
+                <button type="button" className={styles.btnPrimary} onClick={() => applyFilters()} disabled={busy}>
+                  <i className="bi bi-check2" />
+                  Apply
                 </button>
-              )}
-
-              {openSuggest && (
-                <div className={styles.suggest}>
-                  <div className={styles.suggestHead}>Products</div>
-                  {suggestions.length === 0 ? (
-                    <div className={styles.suggestEmpty}>No results</div>
-                  ) : (
-                    suggestions.map((p) => (
-                      <button
-                        type="button"
-                        key={p.id}
-                        className={styles.suggestItem}
-                        onClick={() => {
-                          setQuery(p.name);
-                          setOpenSuggest(false);
-                        }}>
-                        <div className={styles.suggestAvatar}>
-                          <i className="bi bi-box-seam" />
-                        </div>
-                        <div className={styles.suggestMeta}>
-                          <div className={styles.suggestName}>{p.name}</div>
-                          <div className={styles.suggestSub}>
-                            {moneyFromCents(p.priceCents)} • {p.sku}
-                            {p.barcode ? ` • ${p.barcode}` : ""}
-                          </div>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className={styles.topActions}>
-              <button type="button" className={styles.btnSoft} onClick={exportCsv} disabled={loading || busy || filtered.length === 0} title="Export data">
-                <i className="bi bi-download" />
-                <span>Export</span>
-              </button>
-
-              <button className={styles.btnPrimary} type="button" onClick={openCreate} disabled={busy}>
-                <i className="bi bi-plus-lg" />
-                <span>New</span>
-              </button>
+              </div>
             </div>
           </div>
+        </aside>
 
+        <section className={styles.rightCol}>
           {/* Card table */}
           <div className={styles.card}>
             <div className={styles.cardTop}>
