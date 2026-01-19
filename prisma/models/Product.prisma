@@ -200,12 +200,14 @@ model Product {
 
   sku       String
   barcode   String?
+
   priceCents Int @default(0)
   costCents  Int @default(0)
   stock      Int @default(0)
-  hasVariants Boolean @default(false)
-  displayPriceCents Int @default(0)
-  displayStock      Int @default(0)
+
+  hasVariants       Boolean @default(false)
+  displayPriceCents Int     @default(0)  // ví dụ: min variant price hoặc product price
+  displayStock      Int     @default(0)  // ví dụ: sum variant stock hoặc product stock
 
   isActive   Boolean @default(true)
 
@@ -214,8 +216,8 @@ model Product {
 
   images     ProductImage[]
   attributes ProductAttribute[]
-
   variants   ProductVariant[]
+  stockMovements StockMovement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -225,13 +227,10 @@ model Product {
   @@unique([userId, barcode])
   @@index([userId])
   @@index([userId, name])
-
-  // NEW: index tối ưu list/filter
   @@index([userId, isActive])
   @@index([userId, hasVariants])
   @@index([userId, categoryId, isActive])
 }
-
 
 
 
@@ -265,7 +264,9 @@ model InventoryReceipt {
   status      ReceiptStatus @default(PENDING)
   currency    CurrencyCode  @default(USD)
 
-  receivedAt  DateTime
+  // NOTE: pending thì có thể chưa nhận -> nullable
+  receivedAt  DateTime?
+
   reference   String?       // PO / invoice
 
   subtotalCents Int @default(0)
@@ -282,10 +283,13 @@ model InventoryReceipt {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([userId, createdAt])
   @@index([userId, receivedAt])
   @@index([status])
   @@index([supplierId])
+  @@index([userId, supplierId])
 }
+
 model InventoryReceiptItem {
   id        String @id @default(cuid())
 
@@ -298,9 +302,9 @@ model InventoryReceiptItem {
   variantId String?
   variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
-  qty          Int
+  qty           Int
   unitCostCents Int
-  totalCents   Int
+  totalCents    Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -308,6 +312,10 @@ model InventoryReceiptItem {
   @@index([receiptId])
   @@index([productId])
   @@index([variantId])
+
+  // helpful cho thống kê nhập theo thời gian
+  @@index([productId, createdAt])
+  @@index([variantId, createdAt])
 }
 
 model Customer {
@@ -469,3 +477,54 @@ model ProductVariantImage {
   @@index([variantId])
   @@index([variantId, sort])
 }
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUST
+  RETURN_IN
+  VOID
+}
+
+enum StockMovementSource {
+  RECEIPT
+  ORDER
+  MANUAL
+}
+
+model StockMovement {
+  id        String @id @default(cuid())
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  type      StockMovementType
+  source    StockMovementSource
+
+  qtyDelta  Int
+  occurredAt DateTime
+
+  note      String?
+  reference String?
+
+  receiptItemId String?
+  orderItemId   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, occurredAt])
+  @@index([productId, occurredAt])
+  @@index([variantId, occurredAt])
+
+  @@unique([receiptItemId])
+  @@unique([orderItemId])
+}
+
+
+

@@ -140,3 +140,278 @@ ACCOUNT
 Chat
 
 Profile (tuỳ)
+
+1. Enum (các trạng thái/loại để chuẩn hoá dữ liệu)
+   CurrencyCode (USD, VND)
+
+Chuẩn hoá đơn vị tiền cho giao dịch/phiếu nhập/đơn hàng.
+
+Giúp hệ thống xử lý đa tiền tệ (sau này có thể thêm).
+
+PaymentMethod (CARD, BANK, CASH, EWALLET, COD)
+
+Dùng cho Transaction để biết bạn đã thanh toán bằng cách nào.
+
+Hữu ích cho báo cáo kế toán / dòng tiền.
+
+TxStatus (PENDING, PAID, REFUNDED, CANCELLED)
+
+Trạng thái giao dịch chi/thu (Transaction).
+
+Ví dụ: đã trả tiền chưa, có hoàn tiền không.
+
+TxType (EXPENSE, INCOME, ADJUSTMENT)
+
+Phân loại giao dịch:
+
+EXPENSE: chi phí (mua hàng, marketing…)
+
+INCOME: thu nhập (nếu muốn ghi nhận doanh thu)
+
+ADJUSTMENT: điều chỉnh (sửa sai, bù trừ)
+
+SpendCategoryType (INVENTORY, SOFTWARE, MARKETING, OPS, TRAVEL, OFFICE, OTHER)
+
+Nhóm loại chi phí để làm dashboard/báo cáo.
+
+INVENTORY thường liên quan trực tiếp đến Product (nhập hàng).
+
+ReceiptStatus (PENDING, RECEIVED, CANCELLED)
+
+Trạng thái phiếu nhập kho (InventoryReceipt):
+
+Pending: tạo phiếu nhưng chưa nhận hàng
+
+Received: đã nhận, thường sẽ cộng tồn kho
+
+Cancelled: huỷ
+
+SalesChannel / SalesStatus
+
+Trong schema bạn đưa, 2 enum này chưa được model nào dùng (có thể dự định dùng cho Order/Shipment/Sales sau).
+
+OrderStatus (PENDING, CONFIRMED, DELIVERING, DELIVERED, CANCELLED, RETURNED)
+
+Trạng thái đơn hàng (Order).
+
+Liên quan trực tiếp Product vì OrderItem trỏ tới Product.
+
+2. Nhóm model “Sản phẩm” (Product core)
+   Product
+
+Trung tâm dữ liệu sản phẩm – dùng cho:
+
+Danh mục hàng hoá trong shop
+
+Là “tham chiếu” cho nhập kho (InventoryReceiptItem), giao dịch (TransactionLine), và bán hàng (OrderItem)
+
+Các field chính:
+
+userId: multi-tenant (mỗi user có data riêng)
+
+name, slug: hiển thị + SEO/permalink
+
+description: mô tả dài
+
+sku (bắt buộc): mã quản lý nội bộ (unique theo user)
+
+barcode (optional): mã vạch
+
+priceCents: giá bán
+
+costCents: giá vốn chuẩn (có thể dùng khi tính lợi nhuận)
+
+stock: tồn kho đơn giản (counter)
+
+isActive: bật/tắt bán
+
+categoryId: gắn danh mục
+
+images: gallery ảnh
+
+attributes: thuộc tính (size, chất liệu…)
+
+Nói ngắn gọn: Product là “master data”.
+
+ProductCategory
+
+Cây danh mục sản phẩm (category tree) để:
+
+Gom nhóm sản phẩm (quần áo / phụ kiện…)
+
+Tạo menu/filter
+
+Hỗ trợ SEO (seoTitle/seoDesc)
+
+Field đáng chú ý:
+
+parentId, children: tạo cây danh mục
+
+sort: thứ tự hiển thị
+
+icon, coverImage: UI
+
+@@unique([userId, slug]) và @@unique([userId, name]): tránh trùng
+
+ProductImage
+
+Ảnh của sản phẩm:
+
+url: link ảnh
+
+sort: sắp xếp ảnh
+
+isCover: ảnh cover
+
+index (productId, sort) để load gallery nhanh
+
+ProductAttribute
+
+Thuộc tính dạng key/value cho sản phẩm:
+
+Ví dụ: key="Chất liệu" value="Cotton", key="Size" value="M"
+
+sort để hiển thị có thứ tự
+
+Dùng cho UI + filter (nếu sau này bạn index thêm)
+
+3. Nhóm model “Nhập kho / nhà cung cấp” (gắn với Product)
+   Supplier
+
+Nhà cung cấp:
+
+Thông tin liên hệ
+
+Có receipts: danh sách phiếu nhập từ supplier đó
+
+InventoryReceipt
+
+Phiếu nhập kho (đợt nhập hàng):
+
+supplierId: mua từ ai
+
+status: pending/received/cancelled
+
+receivedAt: ngày nhận
+
+reference: PO/invoice
+
+subtotalCents/taxCents/totalCents: tổng tiền nhập
+
+items: dòng hàng nhập
+
+transaction: optional liên kết sang Transaction để “đổ vào dashboard chi phí”
+
+Dùng để quản lý nhập hàng theo lần, track tiền nhập + đối soát chứng từ.
+
+InventoryReceiptItem
+
+Dòng hàng trong phiếu nhập:
+
+productId: nhập sản phẩm nào
+
+qty: số lượng nhập
+
+unitCostCents: giá nhập từng unit
+
+totalCents: qty \* unitCost
+
+Đây là chỗ gắn Product với nghiệp vụ “tồn kho & giá nhập theo từng lần”.
+
+4. Nhóm model “Chi phí / giao dịch” (có thể liên quan Product)
+   SpendCategory
+
+Danh mục chi phí (cho Transaction):
+
+Ví dụ: “Nhập hàng”, “Ads”, “Phí vận hành”…
+
+type dùng để group báo cáo (INVENTORY/MARKETING…)
+
+Merchant
+
+Đối tác bán/thu tiền (người/đơn vị bạn trả tiền):
+
+Ví dụ: “Facebook”, “Viettel Post”, “Nhà in ABC”…
+
+Transaction có thể gắn Merchant để báo cáo chi theo merchant
+
+Transaction
+
+Giao dịch chi/thu/điều chỉnh – phục vụ finance dashboard:
+
+type, status, method, currency
+
+merchantId + categoryId
+
+subtotal/tax/total
+
+occurredAt: ngày phát sinh
+
+inventoryReceiptId @unique: điểm nối đặc biệt
+→ một phiếu nhập kho có thể map sang 1 transaction (chi phí nhập hàng)
+
+Ngoài ra:
+
+lines: TransactionLine[] để chi tiết theo dòng
+
+TransactionLine
+
+Dòng chi tiết trong Transaction:
+
+Có thể gắn productId (optional)
+→ dùng khi giao dịch liên quan hàng hoá cụ thể (mua nguyên liệu, mua lô sản phẩm…)
+
+qty, unitPriceCents, totalCents
+
+Transaction/TransactionLine là “sổ chi tiền”, có thể gắn Product để phân tích chi phí theo sản phẩm.
+
+5. Nhóm model “Bán hàng / đơn hàng” (liên quan Product trực tiếp)
+   Customer
+
+Thông tin khách hàng (optional trong Order):
+
+orders: các đơn của khách
+
+Unique theo (userId, name)
+
+Order
+
+Đơn hàng bán ra:
+
+customerId optional
+
+status: trạng thái xử lý đơn
+
+currency, subtotal/shipping/total
+
+items: OrderItem[]
+
+OrderItem
+
+Dòng sản phẩm trong đơn hàng:
+
+productId: bán sản phẩm nào
+
+qty, priceCents, totalCents
+
+Đây là nơi Product “đi vào doanh thu”.
+
+6. Tóm tắt “Product được dùng ở đâu?”
+
+Phân loại & hiển thị: ProductCategory, ProductImage, ProductAttribute
+
+Nhập kho: InventoryReceiptItem -> Product
+
+Chi phí có thể gắn theo sản phẩm: TransactionLine -> Product (optional)
+
+Bán hàng: OrderItem -> Product
+
+7. Một vài điểm đáng chú ý (để bạn tránh bug logic)
+
+Product.stock là “tồn kho đơn giản”:
+Nếu bạn dùng InventoryReceipt/Order để tăng/giảm tồn kho thì cần logic đồng bộ (tránh lệch).
+
+Transaction.inventoryReceiptId @unique + InventoryReceipt.transaction?
+→ ý tưởng là “1 phiếu nhập ↔ 1 giao dịch chi phí nhập hàng”.
+
+SalesChannel / SalesStatus hiện chưa dùng: nếu không dùng sớm có thể bỏ hoặc chuẩn bị model Shipment/Sale.
