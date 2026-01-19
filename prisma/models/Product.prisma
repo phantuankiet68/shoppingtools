@@ -62,6 +62,25 @@ enum OrderStatus {
   RETURNED
 }
 
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+  CANCELLED
+}
+
+enum FulfillmentStatus {
+  UNFULFILLED
+  PARTIAL
+  FULFILLED
+  CANCELLED
+  RETURNED
+}
+
+
+
+
 model SpendCategory {
   id        String            @id @default(cuid())
   name      String            @unique
@@ -97,6 +116,10 @@ model Transaction {
   userId        String
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // NEW
+  orderId       String?
+  order         Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
   type          TxType        @default(EXPENSE)
   status        TxStatus      @default(PAID)
   method        PaymentMethod @default(CARD)
@@ -121,7 +144,6 @@ model Transaction {
 
   inventoryReceiptId String? @unique
 
-
   lines        TransactionLine[]
 
   createdAt    DateTime @default(now())
@@ -131,7 +153,9 @@ model Transaction {
   @@index([status])
   @@index([categoryId])
   @@index([merchantId])
+  @@index([orderId])
 }
+
 
 model TransactionLine {
   id            String      @id @default(cuid())
@@ -261,13 +285,15 @@ model InventoryReceipt {
   supplierId  String?
   supplier    Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
 
+  // NEW: link to PO
+  poId        String?
+  po          PurchaseOrder? @relation(fields: [poId], references: [id], onDelete: SetNull)
+
   status      ReceiptStatus @default(PENDING)
   currency    CurrencyCode  @default(USD)
 
-  // NOTE: pending thì có thể chưa nhận -> nullable
   receivedAt  DateTime?
-
-  reference   String?       // PO / invoice
+  reference   String?
 
   subtotalCents Int @default(0)
   taxCents      Int @default(0)
@@ -276,8 +302,6 @@ model InventoryReceipt {
   notes       String?
 
   items       InventoryReceiptItem[]
-
-  // optional: auto tạo 1 Transaction “Inventory Receipt” cho spending dashboard
   transaction Transaction?
 
   createdAt   DateTime @default(now())
@@ -288,13 +312,22 @@ model InventoryReceipt {
   @@index([status])
   @@index([supplierId])
   @@index([userId, supplierId])
+
+  // NEW
+  @@index([poId])
+  @@index([userId, poId])
 }
+
 
 model InventoryReceiptItem {
   id        String @id @default(cuid())
 
   receiptId String
   receipt   InventoryReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+
+  // NEW: link to PO line (optional vì có thể nhận hàng không qua PO)
+  poLineId  String?
+  poLine    PurchaseOrderLine? @relation(fields: [poLineId], references: [id], onDelete: SetNull)
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
@@ -312,11 +345,13 @@ model InventoryReceiptItem {
   @@index([receiptId])
   @@index([productId])
   @@index([variantId])
-
-  // helpful cho thống kê nhập theo thời gian
   @@index([productId, createdAt])
   @@index([variantId, createdAt])
+
+  // NEW
+  @@index([poLineId])
 }
+
 
 model Customer {
   id        String   @id @default(cuid())
@@ -378,26 +413,76 @@ model ProductAttribute {
 
 model Order {
   id        String @id @default(cuid())
+
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // customer (optional)
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
+  // status (ops)
   status     OrderStatus @default(PENDING)
-  currency   CurrencyCode @default(VND)
 
+  // NEW: tách payment & fulfillment để UI/admin rõ ràng
+  paymentStatus     PaymentStatus     @default(UNPAID)
+  fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
+
+  // channel / ref
+  channel   SalesChannel @default(SHOP)
+  currency  CurrencyCode @default(VND)
+
+  // money
   subtotalCents Int @default(0)
+  discountCents Int @default(0) // NEW
   shippingCents Int @default(0)
+  taxCents      Int @default(0) // NEW
   totalCents    Int @default(0)
 
+  // NEW: order code / external ref (marketplace)
+  number     String?   // ORD-00001 (optional, nhưng nên có)
+  reference  String?   // marketplace order id / note
+
+  // NEW: shipping/customer snapshot (tránh đổi thông tin làm sai đơn cũ)
+  customerNameSnapshot  String?
+  customerPhoneSnapshot String?
+  customerEmailSnapshot String?
+
+  shipToName     String?
+  shipToPhone    String?
+  shipToAddress1 String?
+  shipToAddress2 String?
+  shipToCity     String?
+  shipToState    String?
+  shipToPostal   String?
+  shipToCountry  String?
+
+  // NEW: logistics
+  carrier      String?
+  trackingCode String?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  cancelledAt  DateTime?
+  returnedAt   DateTime?
+
+  notes     String?
+  tags      String? // optional: "vip, fragile"
+
   items     OrderItem[]
+
+  // NEW: link payment transactions (nếu bạn muốn)
+  // Một Order có thể thu nhiều lần hoặc refund nhiều lần => 1-n
+  transactions Transaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId, createdAt])
   @@index([status])
+  @@index([paymentStatus])
+  @@index([fulfillmentStatus])
+  @@index([userId, customerId])
+  @@unique([userId, number])
 }
 
 
@@ -413,9 +498,30 @@ model OrderItem {
   variantId String?
   variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
+  // qty ordered
   qty        Int
-  priceCents Int
-  totalCents Int
+
+  // NEW: hỗ trợ partial flow
+  qtyReserved Int @default(0)
+  qtyShipped  Int @default(0)
+  qtyReturned Int @default(0)
+
+  // price snapshot
+  unitPriceCents Int
+  subtotalCents  Int @default(0) // unitPriceCents * qty (cache)
+  discountCents  Int @default(0) // NEW
+  taxCents       Int @default(0) // NEW
+  totalCents     Int @default(0)
+
+  // NEW: snapshot identity (để audit)
+  skuSnapshot         String?
+  productNameSnapshot String?
+  variantNameSnapshot String?
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([productId])
@@ -510,20 +616,103 @@ model StockMovement {
   qtyDelta  Int
   occurredAt DateTime
 
+  beforeStock Int?
+  afterStock  Int?
+
   note      String?
   reference String?
 
   receiptItemId String?
   orderItemId   String?
 
+  // NEW: chống tạo trùng khi user double click / retry
+  idempotencyKey String?
+
   createdAt DateTime @default(now())
 
   @@index([userId, occurredAt])
   @@index([productId, occurredAt])
   @@index([variantId, occurredAt])
+  @@index([orderItemId, occurredAt])
 
   @@unique([receiptItemId])
-  @@unique([orderItemId])
+  // REMOVE: @@unique([orderItemId])
+  @@unique([idempotencyKey])
+}
+
+
+enum POStatus {
+  DRAFT
+  APPROVED
+  PARTIAL
+  RECEIVED
+  CANCELLED
+}
+
+
+model PurchaseOrder {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  number     String   // PO-00012
+  status     POStatus @default(DRAFT)
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  currency   CurrencyCode @default(USD)
+  expectedAt DateTime?
+  notes      String?
+
+  // totals cache (optional but recommended for fast UI)
+  subtotalCents Int @default(0)
+  taxCents      Int @default(0)
+  totalCents    Int @default(0)
+
+  lines     PurchaseOrderLine[]
+  receipts  InventoryReceipt[]   // link ngược qua InventoryReceipt.poId
+
+  approvedAt DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, number])
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([supplierId])
+}
+
+model PurchaseOrderLine {
+  id        String @id @default(cuid())
+
+  poId      String
+  po        PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  // snapshots for audit/history
+  skuSnapshot  String?
+  nameSnapshot String?
+
+  qtyOrdered   Int
+  qtyReceived  Int @default(0)
+
+  unitCostCents Int @default(0)
+  totalCents    Int @default(0) // qtyOrdered * unitCostCents (cache)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([poId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 

@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/inventory/purchase-orders/purchase-orders.module.css";
 
 type POStatus = "DRAFT" | "APPROVED" | "PARTIAL" | "RECEIVED" | "CANCELLED";
-
 type Currency = "USD" | "VND";
 
 type SupplierRow = {
@@ -16,8 +15,15 @@ type SupplierRow = {
 
 type POLine = {
   id: string;
+
+  // DB link (chuẩn)
+  productId: string;
+  variantId?: string | null;
+
+  // display
   sku: string;
-  name: string; // product/variant label
+  name: string;
+
   qtyOrdered: number;
   qtyReceived: number;
   unitCostCents: number;
@@ -25,12 +31,12 @@ type POLine = {
 
 type PurchaseOrder = {
   id: string;
-  number: string; // PO-00012
-  supplierId: string;
+  number: string;
+  supplierId: string | null;
   status: POStatus;
 
   currency: Currency;
-  expectedAt?: string; // ISO date
+  expectedAt?: string; // YYYY-MM-DD
   notes?: string;
 
   lines: POLine[];
@@ -38,14 +44,6 @@ type PurchaseOrder = {
   createdAt: string;
   updatedAt: string;
 };
-
-function uid() {
-  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
 
 function clampInt(v: number, min = 0, max = 1_000_000) {
   const n = Math.trunc(Number(v || 0));
@@ -58,15 +56,15 @@ function fmtMoney(cents: number, ccy: Currency) {
 }
 
 function sumItems(po: PurchaseOrder) {
-  return po.lines.reduce((s, l) => s + l.qtyOrdered, 0);
+  return po.lines.reduce((s, l) => s + (l.qtyOrdered || 0), 0);
 }
 
 function sumCostCents(po: PurchaseOrder) {
-  return po.lines.reduce((s, l) => s + l.qtyOrdered * l.unitCostCents, 0);
+  return po.lines.reduce((s, l) => s + (l.qtyOrdered || 0) * (l.unitCostCents || 0), 0);
 }
 
 function receivedCostCents(po: PurchaseOrder) {
-  return po.lines.reduce((s, l) => s + l.qtyReceived * l.unitCostCents, 0);
+  return po.lines.reduce((s, l) => s + (l.qtyReceived || 0) * (l.unitCostCents || 0), 0);
 }
 
 function statusBadgeClass(s: POStatus) {
@@ -77,18 +75,45 @@ function statusBadgeClass(s: POStatus) {
   return "bad";
 }
 
-function nextStatusFromLines(po: PurchaseOrder): POStatus {
-  if (po.status === "CANCELLED") return "CANCELLED";
-  if (po.status === "DRAFT") return "DRAFT";
-  const ordered = po.lines.reduce((s, l) => s + l.qtyOrdered, 0);
-  const rec = po.lines.reduce((s, l) => s + l.qtyReceived, 0);
-  if (ordered === 0) return po.status;
-  if (rec <= 0) return "APPROVED";
-  if (rec < ordered) return "PARTIAL";
-  return "RECEIVED";
+// Small fetch helper
+async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: { "content-type": "application/json", ...(init?.headers || {}) },
+    cache: "no-store",
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+  return json as T;
+}
+
+function mapPOFromApi(po: any): PurchaseOrder {
+  return {
+    id: po.id,
+    number: po.number,
+    supplierId: po.supplierId ?? null,
+    status: po.status,
+    currency: po.currency,
+    expectedAt: po.expectedAt ? String(po.expectedAt).slice(0, 10) : undefined,
+    notes: po.notes ?? "",
+    lines: (po.lines ?? []).map((l: any) => ({
+      id: l.id,
+      productId: l.productId,
+      variantId: l.variantId ?? null,
+      sku: l.skuSnapshot || l.variant?.sku || l.product?.sku || "SKU",
+      name: l.nameSnapshot || l.variant?.name || l.product?.name || "Item",
+      qtyOrdered: l.qtyOrdered,
+      qtyReceived: l.qtyReceived,
+      unitCostCents: l.unitCostCents,
+    })),
+    createdAt: po.createdAt,
+    updatedAt: po.updatedAt,
+  };
 }
 
 export default function PurchaseOrdersPage() {
+  // NOTE: Suppliers trong UI demo của bạn đang hardcode.
+  // Khi bạn có DB supplier list, thay block này bằng fetch /api/admin/suppliers
   const [suppliers] = useState<SupplierRow[]>(() => [
     { id: "all", name: "All suppliers", code: "ALL" },
     { id: "s1", name: "Blue Ocean Trading", code: "BOT", email: "po@blueocean.test" },
@@ -100,160 +125,237 @@ export default function PurchaseOrdersPage() {
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<POStatus | "ALL">("ALL");
 
-  const [orders, setOrders] = useState<PurchaseOrder[]>(() => {
-    const seed: PurchaseOrder[] = [
-      {
-        id: uid(),
-        number: "PO-00012",
-        supplierId: "s1",
-        status: "APPROVED",
-        currency: "USD",
-        expectedAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString().slice(0, 10),
-        notes: "Ship by sea. Pack by color/size.",
-        lines: [
-          { id: uid(), sku: "TSHIRT-RED-M", name: "T-Shirt Classic — Red / M", qtyOrdered: 50, qtyReceived: 0, unitCostCents: 600 },
-          { id: uid(), sku: "TSHIRT-BLACK-L", name: "T-Shirt Classic — Black / L", qtyOrdered: 30, qtyReceived: 0, unitCostCents: 600 },
-        ],
-        createdAt: nowIso(),
-        updatedAt: nowIso(),
-      },
-      {
-        id: uid(),
-        number: "PO-00011",
-        supplierId: "s2",
-        status: "PARTIAL",
-        currency: "USD",
-        expectedAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString().slice(0, 10),
-        notes: "Urgent restock.",
-        lines: [{ id: uid(), sku: "TSHIRT-WHITE-S", name: "T-Shirt Classic — White / S", qtyOrdered: 40, qtyReceived: 10, unitCostCents: 580 }],
-        createdAt: nowIso(),
-        updatedAt: nowIso(),
-      },
-      {
-        id: uid(),
-        number: "PO-00010",
-        supplierId: "s3",
-        status: "DRAFT",
-        currency: "USD",
-        expectedAt: undefined,
-        notes: "",
-        lines: [{ id: uid(), sku: "SNEAK-41", name: "Sneakers Runner — 41", qtyOrdered: 20, qtyReceived: 0, unitCostCents: 3200 }],
-        createdAt: nowIso(),
-        updatedAt: nowIso(),
-      },
-    ];
-    return seed.sort((a, b) => b.number.localeCompare(a.number));
-  });
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  const [activeId, setActiveId] = useState<string>("");
+
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const supplierName = (id: string | null) => suppliers.find((s) => s.id === id)?.name || id || "—";
+
+  // debounced query
+  const [qDebounced, setQDebounced] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setQDebounced(q.trim()), 250);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  async function refresh(opts?: { keepActive?: boolean }) {
+    setLoading(true);
+    setErr(null);
+    try {
+      const qs = new URLSearchParams();
+      if (activeSupplierId !== "all") qs.set("supplierId", activeSupplierId);
+      if (statusFilter !== "ALL") qs.set("status", statusFilter);
+      if (qDebounced) qs.set("q", qDebounced);
+
+      const res = await api<{ data: any[] }>(`/api/admin/purchase-orders?${qs.toString()}`);
+      const mapped = res.data.map(mapPOFromApi);
+      setOrders(mapped);
+
+      if (!opts?.keepActive) {
+        setActiveId(mapped[0]?.id || "");
+      } else {
+        // keep if exists
+        const still = mapped.some((x) => x.id === activeId);
+        if (!still) setActiveId(mapped[0]?.id || "");
+      }
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refresh({ keepActive: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSupplierId, statusFilter, qDebounced]);
 
   const visible = useMemo(() => {
-    const qq = q.trim().toLowerCase();
-    return orders
-      .filter((po) => (activeSupplierId === "all" ? true : po.supplierId === activeSupplierId))
-      .filter((po) => (statusFilter === "ALL" ? true : po.status === statusFilter))
-      .filter((po) => {
-        if (!qq) return true;
-        const sup = suppliers.find((s) => s.id === po.supplierId)?.name || "";
-        const hay = `${po.number} ${sup} ${po.status} ${po.lines.map((l) => l.sku + " " + l.name).join(" ")}`.toLowerCase();
-        return hay.includes(qq);
-      })
-      .slice()
-      .sort((a, b) => b.number.localeCompare(a.number));
-  }, [orders, activeSupplierId, statusFilter, q, suppliers]);
+    // server already filtered by supplier/status/q; keep a stable sort locally
+    return orders.slice().sort((a, b) => b.number.localeCompare(a.number));
+  }, [orders]);
 
-  const [activeId, setActiveId] = useState<string>(() => visible[0]?.id || orders[0]?.id || "");
   const active = useMemo(() => orders.find((x) => x.id === activeId) || null, [orders, activeId]);
 
-  function patchPO(id: string, patch: Partial<PurchaseOrder>) {
-    setOrders((prev) => prev.map((po) => (po.id === id ? { ...po, ...patch, updatedAt: nowIso() } : po)));
+  // --- actions (API) ---
+  async function createPO() {
+    setSaving(true);
+    setErr(null);
+    try {
+      const res = await api<{ data: any }>(`/api/admin/purchase-orders`, { method: "POST" });
+      const newId = res.data?.id as string | undefined;
+      await refresh({ keepActive: true });
+      if (newId) setActiveId(newId);
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function patchLine(poId: string, lineId: string, patch: Partial<POLine>) {
-    setOrders((prev) =>
-      prev.map((po) => {
-        if (po.id !== poId) return po;
-        const lines = po.lines.map((l) => (l.id === lineId ? { ...l, ...patch } : l));
-        const next = { ...po, lines, updatedAt: nowIso() };
-        return { ...next, status: nextStatusFromLines(next) };
-      })
-    );
+  async function patchPO(id: string, patch: Partial<PurchaseOrder>) {
+    setSaving(true);
+    setErr(null);
+    try {
+      await api(`/api/admin/purchase-orders/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          supplierId: patch.supplierId ?? undefined,
+          currency: patch.currency ?? undefined,
+          expectedAt: patch.expectedAt ?? undefined,
+          notes: patch.notes ?? undefined,
+        }),
+      });
+      await refresh({ keepActive: true });
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function addLine() {
+  // Product lookup (requires you to create this endpoint)
+  // Expected response:
+  // { data: { productId, variantId?, sku, name } }
+  async function lookupSku(sku: string) {
+    const s = sku.trim().toUpperCase();
+    if (!s) throw new Error("SKU is required");
+    const res = await api<{ data: any }>(`/api/admin/products/lookup?sku=${encodeURIComponent(s)}`);
+    if (!res?.data?.productId) throw new Error("SKU not found");
+    return res.data;
+  }
+
+  async function addLine() {
     if (!active) return;
-    const next: POLine = {
-      id: uid(),
-      sku: "SKU",
-      name: "Item name",
-      qtyOrdered: 1,
-      qtyReceived: 0,
-      unitCostCents: 0,
-    };
-    patchPO(active.id, { lines: [...active.lines, next] });
+
+    if (active.status !== "DRAFT") {
+      alert("Only DRAFT PO can be edited.");
+      return;
+    }
+
+    const sku = prompt("Enter SKU to add (Product.sku or Variant.sku):", "");
+    if (!sku) return;
+
+    setSaving(true);
+    setErr(null);
+
+    try {
+      const found = await lookupSku(sku);
+
+      await api<{ data: any }>(`/api/admin/purchase-orders/${active.id}/lines`, {
+        method: "POST",
+        body: JSON.stringify({
+          productId: found.productId,
+          variantId: found.variantId ?? null,
+          qtyOrdered: 1,
+          unitCostCents: 0,
+          skuSnapshot: found.sku ?? sku.trim().toUpperCase(),
+          nameSnapshot: found.name ?? "Item",
+        }),
+      });
+
+      await refresh({ keepActive: true });
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function removeLine(lineId: string) {
+  async function updateLine(poId: string, lineId: string, patch: { qtyOrdered?: number; unitCostCents?: number }) {
     if (!active) return;
+    if (active.status !== "DRAFT") return;
+
+    setSaving(true);
+    setErr(null);
+    try {
+      await api(`/api/admin/purchase-orders/${poId}/lines?lineId=${encodeURIComponent(lineId)}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          ...(patch.qtyOrdered !== undefined ? { qtyOrdered: clampInt(patch.qtyOrdered, 0) } : {}),
+          ...(patch.unitCostCents !== undefined ? { unitCostCents: clampInt(patch.unitCostCents, 0) } : {}),
+        }),
+      });
+      await refresh({ keepActive: true });
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function removeLine(lineId: string) {
+    if (!active) return;
+    if (active.status !== "DRAFT") return;
+
     const ok = confirm("Remove this line?");
     if (!ok) return;
-    const lines = active.lines.filter((l) => l.id !== lineId);
-    const next = { ...active, lines, updatedAt: nowIso() };
-    patchPO(active.id, { lines, status: nextStatusFromLines(next) });
-  }
 
-  function createPO() {
-    const nextNumber = "PO-" + String(orders.length + 10).padStart(5, "0");
-    const po: PurchaseOrder = {
-      id: uid(),
-      number: nextNumber,
-      supplierId: activeSupplierId === "all" ? "s1" : activeSupplierId,
-      status: "DRAFT",
-      currency: "USD",
-      expectedAt: undefined,
-      notes: "",
-      lines: [],
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-    setOrders((prev) => [po, ...prev]);
-    setActiveId(po.id);
-  }
-
-  function setStatus(next: POStatus) {
-    if (!active) return;
-    if (active.status === "CANCELLED") return;
-
-    if (next === "APPROVED" && active.lines.length === 0) {
-      alert("Add at least one line before approving.");
-      return;
+    setSaving(true);
+    setErr(null);
+    try {
+      await api(`/api/admin/purchase-orders/${active.id}/lines/${lineId}`, { method: "DELETE" });
+      await refresh({ keepActive: true });
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
     }
-    if (next === "RECEIVED") {
-      // receive all remaining
-      setOrders((prev) =>
-        prev.map((po) => {
-          if (po.id !== active.id) return po;
-          const lines = po.lines.map((l) => ({ ...l, qtyReceived: l.qtyOrdered }));
-          const nextPO = { ...po, status: "RECEIVED" as const, lines, updatedAt: nowIso() };
-          return nextPO;
-        })
-      );
-      return;
-    }
-
-    patchPO(active.id, { status: next });
   }
 
-  // Receive partial (by entering qty per line)
-  function receiveLine(lineId: string, qty: number) {
+  async function approvePO() {
     if (!active) return;
-    const line = active.lines.find((l) => l.id === lineId);
-    if (!line) return;
-
-    const add = clampInt(qty, 0, 1_000_000);
-    const nextReceived = clampInt(Math.min(line.qtyOrdered, line.qtyReceived + add), 0);
-    patchLine(active.id, lineId, { qtyReceived: nextReceived });
+    setSaving(true);
+    setErr(null);
+    try {
+      await api(`/api/admin/purchase-orders/${active.id}/approve`, { method: "POST" });
+      await refresh({ keepActive: true });
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  // Stats for sidebar
+  async function receive(poId: string, lines: Array<{ poLineId: string; qty: number }>) {
+    setSaving(true);
+    setErr(null);
+    try {
+      await api(`/api/admin/purchase-orders/${poId}/receive`, {
+        method: "POST",
+        body: JSON.stringify({ lines }),
+      });
+      await refresh({ keepActive: true });
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function receiveLine(poLineId: string, qty: number) {
+    if (!active) return;
+    if (active.status === "DRAFT" || active.status === "CANCELLED") return;
+    const add = clampInt(qty, 0);
+    if (!add) return;
+    await receive(active.id, [{ poLineId, qty: add }]);
+  }
+
+  async function receiveAllRemaining() {
+    if (!active) return;
+    if (active.status === "DRAFT" || active.status === "CANCELLED") return;
+
+    const lines = active.lines.map((l) => ({ poLineId: l.id, qty: Math.max(0, l.qtyOrdered - l.qtyReceived) })).filter((x) => x.qty > 0);
+
+    if (lines.length === 0) return;
+
+    await receive(active.id, lines);
+  }
+
+  // Stats for sidebar (client side)
   const stats = useMemo(() => {
     const list = orders.filter((po) => (activeSupplierId === "all" ? true : po.supplierId === activeSupplierId));
     const open = list.filter((po) => po.status !== "RECEIVED" && po.status !== "CANCELLED").length;
@@ -262,8 +364,6 @@ export default function PurchaseOrdersPage() {
     const spend = list.reduce((s, po) => s + sumCostCents(po), 0);
     return { open, received, draft, spend };
   }, [orders, activeSupplierId]);
-
-  const supplierName = (id: string) => suppliers.find((s) => s.id === id)?.name || id;
 
   return (
     <div className={styles.shell}>
@@ -277,10 +377,10 @@ export default function PurchaseOrdersPage() {
         </div>
 
         <div className={styles.topActions}>
-          <button className={styles.ghostBtn} type="button" onClick={() => alert("Demo only. Wire export to CSV/PDF.")}>
-            <i className="bi bi-download" /> Export
+          <button className={styles.ghostBtn} type="button" onClick={() => refresh({ keepActive: true })} disabled={loading || saving}>
+            <i className="bi bi-arrow-repeat" /> Refresh
           </button>
-          <button className={styles.primaryBtn} type="button" onClick={createPO}>
+          <button className={styles.primaryBtn} type="button" onClick={createPO} disabled={saving}>
             <i className="bi bi-plus-lg" /> New PO
           </button>
         </div>
@@ -296,11 +396,11 @@ export default function PurchaseOrdersPage() {
 
           <div className={styles.supplierList}>
             {suppliers.map((s) => {
-              const active = s.id === activeSupplierId;
+              const isActive = s.id === activeSupplierId;
               return (
-                <button key={s.id} type="button" className={`${styles.supplierBtn} ${active ? styles.supplierActive : ""}`} onClick={() => setActiveSupplierId(s.id)}>
+                <button key={s.id} type="button" className={`${styles.supplierBtn} ${isActive ? styles.supplierActive : ""}`} onClick={() => setActiveSupplierId(s.id)}>
                   <div className={styles.supplierLeft}>
-                    <span className={`${styles.dot} ${active ? styles.dotHot : ""}`} />
+                    <span className={`${styles.dot} ${isActive ? styles.dotHot : ""}`} />
                     <div className={styles.supplierText}>
                       <div className={styles.supplierName}>{s.name}</div>
                       <div className={styles.supplierMeta}>
@@ -347,7 +447,10 @@ export default function PurchaseOrdersPage() {
               <div className={styles.panelHeader}>
                 <div>
                   <div className={styles.panelTitle}>PO list</div>
-                  <div className={styles.panelSub}>Search and filter by status</div>
+                  <div className={styles.panelSub}>
+                    {loading ? "Loading..." : saving ? "Saving..." : "Search and filter by status"}
+                    {err ? ` · Error: ${err}` : ""}
+                  </div>
                 </div>
               </div>
 
@@ -397,11 +500,11 @@ export default function PurchaseOrdersPage() {
                       </tr>
                     ) : (
                       visible.map((po) => {
-                        const active = po.id === activeId;
+                        const isActive = po.id === activeId;
                         const items = sumItems(po);
                         const total = sumCostCents(po);
                         return (
-                          <tr key={po.id} className={`${styles.tr} ${active ? styles.trActive : ""}`} onClick={() => setActiveId(po.id)} role="button">
+                          <tr key={po.id} className={`${styles.tr} ${isActive ? styles.trActive : ""}`} onClick={() => setActiveId(po.id)} role="button">
                             <td className={styles.mono}>
                               <div className={styles.poCell}>
                                 <div className={styles.poNumber}>{po.number}</div>
@@ -471,7 +574,14 @@ export default function PurchaseOrdersPage() {
                     <label className={styles.label}>Supplier</label>
                     <div className={styles.selectWrap}>
                       <i className="bi bi-building" />
-                      <select className={styles.select} value={active.supplierId} onChange={(e) => patchPO(active.id, { supplierId: e.target.value })} disabled={active.status !== "DRAFT"}>
+                      <select
+                        className={styles.select}
+                        value={active.supplierId ?? ""}
+                        onChange={(e) => patchPO(active.id, { supplierId: e.target.value })}
+                        disabled={active.status !== "DRAFT" || saving}>
+                        <option value="" disabled>
+                          Select supplier
+                        </option>
                         {suppliers
                           .filter((s) => s.id !== "all")
                           .map((s) => (
@@ -487,23 +597,40 @@ export default function PurchaseOrdersPage() {
                         <label className={styles.label}>Currency</label>
                         <div className={styles.selectWrap}>
                           <i className="bi bi-currency-dollar" />
-                          <select className={styles.select} value={active.currency} onChange={(e) => patchPO(active.id, { currency: e.target.value as Currency })} disabled={active.status !== "DRAFT"}>
+                          <select
+                            className={styles.select}
+                            value={active.currency}
+                            onChange={(e) => patchPO(active.id, { currency: e.target.value as Currency })}
+                            disabled={active.status !== "DRAFT" || saving}>
                             <option value="USD">USD</option>
                             <option value="VND">VND</option>
                           </select>
                         </div>
                       </div>
+
                       <div>
                         <label className={styles.label}>Expected date</label>
                         <div className={styles.inputWrap}>
                           <i className="bi bi-calendar3" />
-                          <input className={styles.input} type="date" value={active.expectedAt || ""} onChange={(e) => patchPO(active.id, { expectedAt: e.target.value || undefined })} />
+                          <input
+                            className={styles.input}
+                            type="date"
+                            value={active.expectedAt || ""}
+                            onChange={(e) => patchPO(active.id, { expectedAt: e.target.value || undefined })}
+                            disabled={saving}
+                          />
                         </div>
                       </div>
                     </div>
 
                     <label className={styles.label}>Notes</label>
-                    <textarea className={styles.textarea} value={active.notes || ""} onChange={(e) => patchPO(active.id, { notes: e.target.value })} placeholder="Packing / shipping instructions..." />
+                    <textarea
+                      className={styles.textarea}
+                      value={active.notes || ""}
+                      onChange={(e) => patchPO(active.id, { notes: e.target.value })}
+                      placeholder="Packing / shipping instructions..."
+                      disabled={saving}
+                    />
 
                     <div className={styles.hr} />
 
@@ -516,7 +643,7 @@ export default function PurchaseOrdersPage() {
                     ) : (
                       <div className={styles.lines}>
                         {active.lines.map((l) => {
-                          const remaining = Math.max(0, l.qtyOrdered - l.qtyReceived);
+                          const remaining = Math.max(0, (l.qtyOrdered || 0) - (l.qtyReceived || 0));
                           return (
                             <div key={l.id} className={styles.lineCard}>
                               <div className={styles.lineTop}>
@@ -526,7 +653,13 @@ export default function PurchaseOrdersPage() {
                                     <span className={styles.mono}>{l.sku}</span>
                                   </div>
                                 </div>
-                                <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Remove line" onClick={() => removeLine(l.id)} disabled={active.status !== "DRAFT"}>
+
+                                <button
+                                  className={`${styles.iconBtn} ${styles.dangerBtn}`}
+                                  type="button"
+                                  title="Remove line"
+                                  onClick={() => removeLine(l.id)}
+                                  disabled={active.status !== "DRAFT" || saving}>
                                   <i className="bi bi-trash" />
                                 </button>
                               </div>
@@ -540,8 +673,8 @@ export default function PurchaseOrdersPage() {
                                       className={styles.inputMini}
                                       type="number"
                                       value={l.qtyOrdered}
-                                      disabled={active.status !== "DRAFT"}
-                                      onChange={(e) => patchLine(active.id, l.id, { qtyOrdered: clampInt(Number(e.target.value || 0), 0) })}
+                                      disabled={active.status !== "DRAFT" || saving}
+                                      onChange={(e) => updateLine(active.id, l.id, { qtyOrdered: clampInt(Number(e.target.value || 0), 0) })}
                                     />
                                   </div>
                                 </div>
@@ -562,8 +695,8 @@ export default function PurchaseOrdersPage() {
                                       className={styles.inputMini}
                                       type="number"
                                       value={Math.round(l.unitCostCents / 100)}
-                                      disabled={active.status !== "DRAFT"}
-                                      onChange={(e) => patchLine(active.id, l.id, { unitCostCents: clampInt(Number(e.target.value || 0), 0) * 100 })}
+                                      disabled={active.status !== "DRAFT" || saving}
+                                      onChange={(e) => updateLine(active.id, l.id, { unitCostCents: clampInt(Number(e.target.value || 0), 0) * 100 })}
                                     />
                                   </div>
                                 </div>
@@ -578,7 +711,7 @@ export default function PurchaseOrdersPage() {
                                   className={styles.ghostBtn}
                                   type="button"
                                   onClick={() => receiveLine(l.id, remaining)}
-                                  disabled={active.status === "DRAFT" || active.status === "CANCELLED" || remaining <= 0}
+                                  disabled={saving || active.status === "DRAFT" || active.status === "CANCELLED" || remaining <= 0}
                                   title="Receive remaining for this line">
                                   <i className="bi bi-box-arrow-in-down" /> Receive all
                                 </button>
@@ -587,7 +720,7 @@ export default function PurchaseOrdersPage() {
                                   className={styles.primaryBtn}
                                   type="button"
                                   onClick={() => receiveLine(l.id, 1)}
-                                  disabled={active.status === "DRAFT" || active.status === "CANCELLED" || remaining <= 0}
+                                  disabled={saving || active.status === "DRAFT" || active.status === "CANCELLED" || remaining <= 0}
                                   title="Receive 1 unit">
                                   <i className="bi bi-plus-lg" /> +1
                                 </button>
@@ -598,8 +731,8 @@ export default function PurchaseOrdersPage() {
                       </div>
                     )}
 
-                    <button className={styles.ghostBtn} type="button" onClick={addLine} disabled={active.status !== "DRAFT"}>
-                      <i className="bi bi-plus-lg" /> Add line
+                    <button className={styles.ghostBtn} type="button" onClick={addLine} disabled={active.status !== "DRAFT" || saving}>
+                      <i className="bi bi-plus-lg" /> Add line (by SKU)
                     </button>
 
                     <div className={styles.hr} />
@@ -609,15 +742,19 @@ export default function PurchaseOrdersPage() {
                     </div>
 
                     <div className={styles.actions}>
-                      <button className={styles.primaryBtn} type="button" onClick={() => setStatus("APPROVED")} disabled={active.status !== "DRAFT"}>
+                      <button className={styles.primaryBtn} type="button" onClick={approvePO} disabled={active.status !== "DRAFT" || saving}>
                         <i className="bi bi-check2-circle" /> Approve
                       </button>
 
-                      <button className={styles.ghostBtn} type="button" onClick={() => setStatus("RECEIVED")} disabled={active.status === "DRAFT" || active.status === "CANCELLED"}>
-                        <i className="bi bi-box-arrow-in-down" /> Receive all
+                      <button className={styles.ghostBtn} type="button" onClick={receiveAllRemaining} disabled={saving || active.status === "DRAFT" || active.status === "CANCELLED"}>
+                        <i className="bi bi-box-arrow-in-down" /> Receive all remaining
                       </button>
 
-                      <button className={`${styles.ghostBtn} ${styles.dangerGhost}`} type="button" onClick={() => setStatus("CANCELLED")} disabled={active.status === "RECEIVED"}>
+                      <button
+                        className={`${styles.ghostBtn} ${styles.dangerGhost}`}
+                        type="button"
+                        onClick={() => alert("Wire cancel API if you want to support CANCELLED (recommended: POST /purchase-orders/[id]/cancel)")}
+                        disabled={saving || active.status === "RECEIVED"}>
                         <i className="bi bi-x-circle" /> Cancel
                       </button>
                     </div>
@@ -640,7 +777,7 @@ export default function PurchaseOrdersPage() {
                     <div className={styles.tipInline}>
                       <i className="bi bi-shield-check" />
                       <span>
-                        Khi nối DB: Receive PO nên tạo <span className={styles.mono}>InventoryLedger(RECEIVE)</span> theo từng line để update tồn kho.
+                        Receive PO sẽ tạo <span className={styles.mono}>InventoryReceipt</span> + <span className={styles.mono}>StockMovement(IN)</span> để tăng tồn kho & audit.
                       </span>
                     </div>
                   </div>
