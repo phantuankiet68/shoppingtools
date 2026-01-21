@@ -1,0 +1,50 @@
+enum PaymentDirection {
+  CAPTURE
+  REFUND
+}
+
+enum PaymentProvider {
+  MANUAL
+  VNPAY
+  MOMO
+  ZALOPAY
+  STRIPE
+  PAYPAL
+  OTHER
+}
+
+model Payment {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId   String
+  order     Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  direction PaymentDirection @default(CAPTURE)
+  status    TxStatus         @default(PAID)
+  method    PaymentMethod    @default(CASH)
+  currency  CurrencyCode     @default(VND)
+
+  amountCents Int            @default(0)
+
+  provider  PaymentProvider  @default(MANUAL)
+  reference String?
+  notes     String?
+
+  occurredAt DateTime        @default(now())
+
+  idempotencyKey String?     @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refundsAsOriginal Refund[] @relation("RefundOriginalPayment")
+  refundFor         Refund?  @relation("RefundPayment")
+
+  @@index([userId, occurredAt])
+  @@index([orderId, occurredAt])
+  @@index([status])
+  @@index([method])
+  @@index([reference])
+}

@@ -65,6 +65,51 @@ model CalendarEvent {
   @@index([creatorId, startAt])
 }
 
+// ==== part: Customer.prisma ====
+model Customer {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // identity
+  name  String
+  phone String?
+  email String?
+
+  // optional: default address (for quick-fill)
+  address1 String?
+  address2 String?
+  city     String?
+  state    String?
+  postal   String?
+  country  String?
+
+  // admin helpers
+  notes    String? @db.Text
+  tags     String? // e.g. "vip,repeat,high_risk"
+  isActive Boolean @default(true)
+
+  imageFolderId String?
+  imageFolder   ImageFolder? @relation(fields: [imageFolderId], references: [id], onDelete: SetNull)
+
+  // relations
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Uniques: thường unique theo user + phone/email để tránh trùng trong 1 shop
+  @@unique([userId, phone])
+  @@unique([userId, email])
+  @@index([userId])
+  @@index([userId, name])
+  @@index([userId, phone])
+  @@index([userId, email])
+  @@index([isActive])
+  @@index([imageFolderId])
+}
+
 // ==== part: File.prisma ====
 
 model FileFolder {
@@ -126,8 +171,9 @@ model ImageFolder {
 
   images ImageAsset[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  customers Customer[]
 
   @@unique([userId, parentId, name])
   @@unique([id, userId])
@@ -424,6 +470,58 @@ model Section {
   @@index([type])
 }
 
+// ==== part: Payment.prisma ====
+enum PaymentDirection {
+  CAPTURE
+  REFUND
+}
+
+enum PaymentProvider {
+  MANUAL
+  VNPAY
+  MOMO
+  ZALOPAY
+  STRIPE
+  PAYPAL
+  OTHER
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  direction PaymentDirection @default(CAPTURE)
+  status    TxStatus         @default(PAID)
+  method    PaymentMethod    @default(CASH)
+  currency  CurrencyCode     @default(VND)
+
+  amountCents Int @default(0)
+
+  provider  PaymentProvider @default(MANUAL)
+  reference String?
+  notes     String?
+
+  occurredAt DateTime @default(now())
+
+  idempotencyKey String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refundsAsOriginal Refund[] @relation("RefundOriginalPayment")
+  refundFor         Refund?  @relation("RefundPayment")
+
+  @@index([userId, occurredAt])
+  @@index([orderId, occurredAt])
+  @@index([status])
+  @@index([method])
+  @@index([reference])
+}
+
 // ==== part: Product.prisma ====
 enum CurrencyCode {
   USD
@@ -570,11 +668,10 @@ model Transaction {
 
   lines TransactionLine[]
 
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   inventoryReceipts InventoryReceipt[]
-  order             Order?             @relation(fields: [orderId], references: [id])
-  orderId           String?
 
   @@index([userId, occurredAt])
   @@index([status])
@@ -775,24 +872,6 @@ model InventoryReceiptItem {
   @@index([poLineId])
 }
 
-model Customer {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name  String
-  email String?
-  phone String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  orders Order[]
-
-  @@unique([userId, name])
-  @@index([userId])
-}
-
 model ProductImage {
   id String @id @default(cuid())
 
@@ -889,12 +968,11 @@ model Order {
 
   items OrderItem[]
 
-  // NEW: link payment transactions (nếu bạn muốn)
-  // Một Order có thể thu nhiều lần hoặc refund nhiều lần => 1-n
-  transactions Transaction[]
+  payments Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  refunds   Refund[]
 
   @@unique([userId, number])
   @@index([userId, createdAt])
@@ -938,8 +1016,9 @@ model OrderItem {
 
   note String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  refundItems RefundItem[]
 
   @@index([orderId])
   @@index([productId])
@@ -1202,6 +1281,88 @@ model Profile {
   updatedAt DateTime @updatedAt
 }
 
+// ==== part: Refund.prisma ====
+enum RefundStatus {
+  PENDING // tạo yêu cầu
+  APPROVED // duyệt (tuỳ bạn có cần duyệt hay không)
+  PROCESSING // đang hoàn qua cổng
+  SUCCEEDED // hoàn thành
+  FAILED // thất bại
+  CANCELLED // huỷ yêu cầu
+}
+
+enum RefundReason {
+  CUSTOMER_REQUEST
+  DAMAGED
+  WRONG_ITEM
+  NOT_RECEIVED
+  CANCELLED_ORDER
+  DUPLICATE_PAYMENT
+  OTHER
+}
+
+model Refund {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Link tới payment CAPTURE gốc (nếu bạn có flow nhiều payments/transactions)
+  originalPaymentId String?
+  originalPayment   Payment? @relation("RefundOriginalPayment", fields: [originalPaymentId], references: [id], onDelete: SetNull)
+
+  // Link tới payment REFUND (dòng tiền hoàn)
+  refundPaymentId String?  @unique
+  refundPayment   Payment? @relation("RefundPayment", fields: [refundPaymentId], references: [id], onDelete: SetNull)
+
+  status RefundStatus @default(PENDING)
+  reason RefundReason @default(OTHER)
+
+  // số tiền hoàn (đơn vị cents theo currency của order/payment)
+  amountCents Int
+
+  currency CurrencyCode @default(VND)
+
+  // tracking / note
+  reference String? // mã refund từ gateway (nếu muốn tách khỏi Payment.reference)
+  notes     String?
+
+  // workflow meta
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  processedAt DateTime?
+  completedAt DateTime?
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  refundItems RefundItem[]
+
+  @@index([userId, createdAt])
+  @@index([orderId, createdAt])
+  @@index([status, createdAt])
+  @@index([reason, createdAt])
+}
+
+model RefundItem {
+  id String @id @default(cuid())
+
+  refundId String
+  refund   Refund @relation(fields: [refundId], references: [id], onDelete: Cascade)
+
+  orderItemId String?
+  orderItem   OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+
+  qty         Int     @default(1)
+  amountCents Int     @default(0)
+  notes       String?
+
+  @@index([refundId])
+  @@index([orderItemId])
+}
+
 // ==== part: Site.prisma ====
 model Site {
   id        String     @id @default(cuid())
@@ -1300,9 +1461,11 @@ model User {
   orders              Order[]
   conversationMembers ConversationMember[]
   messages            Message[]
+  payments            Payment[]
   productCategories   ProductCategory[]
   stockMovements      StockMovement[]
   purchaseOrders      PurchaseOrder[]
+  refunds             Refund[]
 
   @@index([role])
   @@index([lockedUntil])

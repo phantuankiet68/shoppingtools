@@ -48,7 +48,7 @@ tuankiet@2000A
 
 Mark-as-read khi mở chat
 Hiện bạn đã set unread: 0 ở UI, nhưng nếu DB vẫn còn unread thì reload sẽ lại hiện.
-Tạo API POST /api/admin/chat/conversations/[id]/read rồi gọi khi activeChatId đổi.
+Tạo API POST /api/admin/chat/[id]/route.ts rồi gọi khi activeChatId đổi.
 Thông báo khi đang ở chat khác
 Khi nhận inbox:new mà conversationId !== activeChatId, bạn có thể:
 play sound nhẹ
@@ -415,3 +415,5 @@ Transaction.inventoryReceiptId @unique + InventoryReceipt.transaction?
 → ý tưởng là “1 phiếu nhập ↔ 1 giao dịch chi phí nhập hàng”.
 
 SalesChannel / SalesStatus hiện chưa dùng: nếu không dùng sớm có thể bỏ hoặc chuẩn bị model Shipment/Sale.
+
+API /api/admin/customers và /api/admin/customers/[id] theo Next.js 15

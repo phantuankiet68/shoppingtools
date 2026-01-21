@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/orders/refunds/refunds.module.css";
 
+/** -------------------------
+ * UI types (keep your UI stable)
+ * -------------------------- */
 type RefundStatus = "REQUESTED" | "APPROVED" | "REJECTED" | "PROCESSING" | "REFUNDED";
 type Reason = "DUPLICATE" | "DAMAGED" | "NOT_AS_DESCRIBED" | "LATE_DELIVERY" | "OTHER";
 type Channel = "CARD" | "BANK_TRANSFER" | "MOMO" | "ZALOPAY" | "CASH";
@@ -15,7 +18,7 @@ type RefundRow = {
   customer: { name: string; email: string };
   channel: Channel;
   amount: number; // VND
-  feeReturn: number; // VND (refund fee or returned fee)
+  feeReturn: number; // VND
   status: RefundStatus;
   reason: Reason;
   note?: string;
@@ -23,80 +26,74 @@ type RefundRow = {
   timeline: { at: string; label: string; by?: string }[];
 };
 
-const seed: RefundRow[] = [
-  {
-    id: "ref_20001",
-    createdAt: "2026-01-15T09:12:00+07:00",
-    orderCode: "ORD-24018",
-    paymentId: "pay_10001",
-    customer: { name: "Nguyễn Minh", email: "minh.nguyen@example.com" },
-    channel: "CARD",
-    amount: 250000,
-    feeReturn: 0,
-    status: "REQUESTED",
-    reason: "DUPLICATE",
-    note: "Khách đặt trùng đơn, yêu cầu hoàn phần dư.",
-    reference: "VNPAY-RF-8S2K1A",
-    timeline: [{ at: "2026-01-15T09:12:00+07:00", label: "Refund requested", by: "Customer" }],
-  },
-  {
-    id: "ref_20002",
-    createdAt: "2026-01-14T14:05:00+07:00",
-    orderCode: "ORD-24002",
-    paymentId: "pay_10003",
-    customer: { name: "Lê Anh", email: "anh.le@example.com" },
-    channel: "BANK_TRANSFER",
-    amount: 799000,
-    feeReturn: 15000,
-    status: "PROCESSING",
-    reason: "DAMAGED",
-    note: "Hàng lỗi. Cần hoàn qua tài khoản ngân hàng.",
-    reference: "BANK-RF-8841",
-    timeline: [
-      { at: "2026-01-14T14:05:00+07:00", label: "Refund requested", by: "Support" },
-      { at: "2026-01-14T16:30:00+07:00", label: "Approved", by: "Admin" },
-      { at: "2026-01-15T08:10:00+07:00", label: "Processing payout", by: "System" },
-    ],
-  },
-  {
-    id: "ref_20003",
-    createdAt: "2026-01-13T11:20:00+07:00",
-    orderCode: "ORD-23981",
-    paymentId: "pay_10004",
-    customer: { name: "Phạm Mai", email: "mai.pham@example.com" },
-    channel: "ZALOPAY",
-    amount: 1599000,
-    feeReturn: 0,
-    status: "REFUNDED",
-    reason: "NOT_AS_DESCRIBED",
-    note: "Sản phẩm không đúng mô tả.",
-    reference: "ZLP-RF-7W1H9K",
-    timeline: [
-      { at: "2026-01-13T11:20:00+07:00", label: "Refund requested", by: "Customer" },
-      { at: "2026-01-13T13:05:00+07:00", label: "Approved", by: "Admin" },
-      { at: "2026-01-13T18:12:00+07:00", label: "Refunded", by: "Gateway" },
-    ],
-  },
-  {
-    id: "ref_20004",
-    createdAt: "2026-01-12T10:44:00+07:00",
-    orderCode: "ORD-23970",
-    paymentId: "pay_09991",
-    customer: { name: "Trần Huy", email: "huy.tran@example.com" },
-    channel: "MOMO",
-    amount: 349000,
-    feeReturn: 0,
-    status: "REJECTED",
-    reason: "OTHER",
-    note: "Không đủ điều kiện hoàn (quá thời hạn).",
-    reference: "MOMO-RF-2K9Q0D",
-    timeline: [
-      { at: "2026-01-12T10:44:00+07:00", label: "Refund requested", by: "Customer" },
-      { at: "2026-01-12T12:10:00+07:00", label: "Rejected", by: "Admin" },
-    ],
-  },
-];
+/** -------------------------
+ * DB / API types (Prisma)
+ * -------------------------- */
+type DbRefundStatus = "PENDING" | "APPROVED" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+type DbRefundReason = "CUSTOMER_REQUEST" | "DAMAGED" | "WRONG_ITEM" | "NOT_RECEIVED" | "CANCELLED_ORDER" | "DUPLICATE_PAYMENT" | "OTHER";
 
+type DbPaymentMethod = "CARD" | "BANK" | "CASH" | "EWALLET" | "COD";
+type DbPaymentProvider = "MANUAL" | "VNPAY" | "MOMO" | "ZALOPAY" | "STRIPE" | "PAYPAL" | "OTHER";
+
+type ApiRefundRow = {
+  id: string;
+  requestedAt: string;
+  approvedAt?: string | null;
+  processedAt?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+
+  status: DbRefundStatus;
+  reason: DbRefundReason;
+
+  amountCents: number;
+  currency: "USD" | "VND";
+
+  reference?: string | null;
+  notes?: string | null;
+
+  orderId: string;
+  originalPaymentId?: string | null;
+  refundPaymentId?: string | null;
+
+  order?: {
+    id: string;
+    number?: string | null;
+    reference?: string | null;
+    customerNameSnapshot?: string | null;
+    customerEmailSnapshot?: string | null;
+    customerPhoneSnapshot?: string | null;
+    shipToName?: string | null;
+    shipToPhone?: string | null;
+  } | null;
+
+  refundPayment?: {
+    id: string;
+    method: DbPaymentMethod;
+    provider: DbPaymentProvider;
+    status: string;
+    reference?: string | null;
+    occurredAt: string;
+    amountCents: number;
+    currency: "USD" | "VND";
+  } | null;
+
+  originalPayment?: {
+    id: string;
+    method: DbPaymentMethod;
+    provider: DbPaymentProvider;
+    status: string;
+    reference?: string | null;
+    occurredAt: string;
+    amountCents: number;
+    currency: "USD" | "VND";
+  } | null;
+};
+
+/** -------------------------
+ * Formatting helpers
+ * -------------------------- */
 function formatVND(n: number) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
 }
@@ -105,6 +102,9 @@ function formatDT(iso: string) {
   return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(d);
 }
 
+/** -------------------------
+ * UI labels / classes
+ * -------------------------- */
 function statusLabel(s: RefundStatus) {
   switch (s) {
     case "REQUESTED":
@@ -162,8 +162,119 @@ function badgeClass(s: RefundStatus) {
   }
 }
 
+/** -------------------------
+ * Mapping UI <-> DB
+ * -------------------------- */
+function dbStatusToUi(s: DbRefundStatus): RefundStatus {
+  switch (s) {
+    case "PENDING":
+      return "REQUESTED";
+    case "APPROVED":
+      return "APPROVED";
+    case "PROCESSING":
+      return "PROCESSING";
+    case "SUCCEEDED":
+      return "REFUNDED";
+    case "FAILED":
+    case "CANCELLED":
+      return "REJECTED";
+  }
+}
+function uiStatusToDb(s: RefundStatus): DbRefundStatus {
+  switch (s) {
+    case "REQUESTED":
+      return "PENDING";
+    case "APPROVED":
+      return "APPROVED";
+    case "PROCESSING":
+      return "PROCESSING";
+    case "REFUNDED":
+      return "SUCCEEDED";
+    case "REJECTED":
+      return "CANCELLED";
+  }
+}
+function dbReasonToUi(r: DbRefundReason): Reason {
+  switch (r) {
+    case "DUPLICATE_PAYMENT":
+      return "DUPLICATE";
+    case "DAMAGED":
+      return "DAMAGED";
+    case "NOT_RECEIVED":
+      return "LATE_DELIVERY";
+    default:
+      return "OTHER";
+  }
+}
+function paymentToChannel(p?: { method: DbPaymentMethod; provider: DbPaymentProvider } | null): Channel {
+  if (!p) return "CASH";
+  if (p.provider === "MOMO") return "MOMO";
+  if (p.provider === "ZALOPAY") return "ZALOPAY";
+  if (p.method === "BANK") return "BANK_TRANSFER";
+  if (p.method === "CASH") return "CASH";
+  return "CARD";
+}
+
+/** -------------------------
+ * Safe JSON parsing (avoid "Unexpected token <")
+ * -------------------------- */
+async function safeJson(res: Response) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Expected JSON but got: ${text.slice(0, 120)}`);
+  }
+}
+
+/** -------------------------
+ * Timeline builder from API timestamps
+ * -------------------------- */
+function buildTimeline(api: ApiRefundRow): RefundRow["timeline"] {
+  const t: RefundRow["timeline"] = [];
+  t.push({ at: api.requestedAt, label: "Refund requested", by: "Customer" });
+
+  if (api.approvedAt) t.push({ at: api.approvedAt, label: "Approved", by: "Admin" });
+  if (api.processedAt) t.push({ at: api.processedAt, label: "Processing payout", by: "System" });
+  if (api.completedAt) t.push({ at: api.completedAt, label: "Refunded", by: "Gateway" });
+
+  if (api.status === "FAILED") t.push({ at: api.updatedAt, label: "Failed", by: "System" });
+  if (api.status === "CANCELLED") t.push({ at: api.updatedAt, label: "Cancelled", by: "Admin" });
+
+  return t.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+}
+
+/** -------------------------
+ * Transform API row -> UI row
+ * -------------------------- */
+function toRefundRow(api: ApiRefundRow): RefundRow {
+  const orderCode = api.order?.number || api.order?.reference || api.orderId;
+  const channel = paymentToChannel(api.refundPayment ? { method: api.refundPayment.method, provider: api.refundPayment.provider } : null);
+
+  return {
+    id: api.id,
+    createdAt: api.requestedAt,
+    orderCode,
+    paymentId: api.originalPaymentId || undefined,
+    customer: {
+      name: api.order?.customerNameSnapshot || api.order?.shipToName || "—",
+      email: api.order?.customerEmailSnapshot || "—",
+    },
+    channel,
+    amount: Math.max(0, Math.trunc(api.amountCents)), // treat cents as VND integer in your app
+    feeReturn: 0,
+    status: dbStatusToUi(api.status),
+    reason: dbReasonToUi(api.reason),
+    note: api.notes || undefined,
+    reference: api.reference || api.refundPayment?.reference || undefined,
+    timeline: buildTimeline(api),
+  };
+}
+
 export default function RefundsPage() {
-  const [rows, setRows] = useState<RefundRow[]>(seed);
+  const [rows, setRows] = useState<RefundRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<RefundStatus | "ALL">("ALL");
@@ -173,6 +284,28 @@ export default function RefundsPage() {
   const [to, setTo] = useState("");
 
   const [selected, setSelected] = useState<RefundRow | null>(null);
+
+  async function fetchRefunds() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/admin/refunds?take=200`, { method: "GET" });
+      const json = await safeJson(res);
+      if (!res.ok) throw new Error(json?.error || "Failed to load refunds");
+
+      const apiRows: ApiRefundRow[] = json.data || [];
+      setRows(apiRows.map(toRefundRow));
+    } catch (e: any) {
+      setErr(e?.message || "Failed to load refunds");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchRefunds();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
@@ -252,60 +385,80 @@ export default function RefundsPage() {
     URL.revokeObjectURL(url);
   }
 
-  function approve(id: string) {
+  async function patchRefund(id: string, next: RefundStatus) {
+    // optimistic update
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r;
-        if (r.status !== "REQUESTED") return r;
-        return {
-          ...r,
-          status: "APPROVED",
-          timeline: [...r.timeline, { at: new Date().toISOString(), label: "Approved", by: "Admin" }],
-        };
-      })
+
+        const now = new Date().toISOString();
+        let label = "";
+        let by = "";
+
+        if (next === "APPROVED") {
+          label = "Approved";
+          by = "Admin";
+        } else if (next === "REJECTED") {
+          label = "Rejected";
+          by = "Admin";
+        } else if (next === "PROCESSING") {
+          label = "Processing payout";
+          by = "System";
+        } else if (next === "REFUNDED") {
+          label = "Refunded";
+          by = "Gateway";
+        }
+
+        const timeline = label ? [...r.timeline, { at: now, label, by }] : r.timeline;
+        const updated: RefundRow = { ...r, status: next, timeline };
+
+        if (selected?.id === id) setSelected(updated);
+        return updated;
+      }),
     );
+
+    try {
+      const res = await fetch(`/api/admin/refunds/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: uiStatusToDb(next) }),
+      });
+      const json = await safeJson(res);
+      if (!res.ok) throw new Error(json?.error || "Update failed");
+
+      const api: ApiRefundRow = json.data;
+      const row = toRefundRow(api);
+
+      setRows((prev) => prev.map((x) => (x.id === id ? row : x)));
+      if (selected?.id === id) setSelected(row);
+    } catch (e: any) {
+      await fetchRefunds(); // rollback to server truth
+      alert(e?.message || "Update failed");
+    }
+  }
+
+  function approve(id: string) {
+    const r = rows.find((x) => x.id === id);
+    if (!r || r.status !== "REQUESTED") return;
+    patchRefund(id, "APPROVED");
   }
 
   function reject(id: string) {
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        if (r.status !== "REQUESTED") return r;
-        return {
-          ...r,
-          status: "REJECTED",
-          timeline: [...r.timeline, { at: new Date().toISOString(), label: "Rejected", by: "Admin" }],
-        };
-      })
-    );
+    const r = rows.find((x) => x.id === id);
+    if (!r || r.status !== "REQUESTED") return;
+    patchRefund(id, "REJECTED");
   }
 
   function startProcessing(id: string) {
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        if (r.status !== "APPROVED") return r;
-        return {
-          ...r,
-          status: "PROCESSING",
-          timeline: [...r.timeline, { at: new Date().toISOString(), label: "Processing payout", by: "System" }],
-        };
-      })
-    );
+    const r = rows.find((x) => x.id === id);
+    if (!r || r.status !== "APPROVED") return;
+    patchRefund(id, "PROCESSING");
   }
 
   function markRefunded(id: string) {
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        if (r.status !== "PROCESSING") return r;
-        return {
-          ...r,
-          status: "REFUNDED",
-          timeline: [...r.timeline, { at: new Date().toISOString(), label: "Refunded", by: "Gateway" }],
-        };
-      })
-    );
+    const r = rows.find((x) => x.id === id);
+    if (!r || r.status !== "PROCESSING") return;
+    patchRefund(id, "REFUNDED");
   }
 
   return (
@@ -466,13 +619,17 @@ export default function RefundsPage() {
             </div>
 
             <div className={styles.filterActions}>
+              <button className={styles.btnSoft} type="button" onClick={fetchRefunds} disabled={loading}>
+                <i className="bi bi-arrow-repeat" />
+                Refresh
+              </button>
               <button className={styles.btnSoft} type="button" onClick={clearFilters}>
                 <i className="bi bi-eraser" />
                 Clear
               </button>
               <div className={styles.miniTip}>
                 <i className="bi bi-info-circle" />
-                Click a row to open details drawer.
+                {loading ? "Loading..." : err ? err : "Click a row to open details drawer."}
               </div>
             </div>
           </div>
@@ -485,7 +642,7 @@ export default function RefundsPage() {
               <i className="bi bi-list-check" />
               <h2>Refund requests</h2>
             </div>
-            <span className={styles.panelHint}>{filtered.length} results</span>
+            <span className={styles.panelHint}>{loading ? "Loading..." : err ? err : `${filtered.length} results`}</span>
           </div>
 
           <div className={styles.tableWrap}>
@@ -509,8 +666,8 @@ export default function RefundsPage() {
                       <div className={styles.emptyBox}>
                         <i className="bi bi-inboxes" />
                         <div>
-                          <div className={styles.emptyTitle}>No refund requests</div>
-                          <div className={styles.emptySub}>Try changing filters or search keyword.</div>
+                          <div className={styles.emptyTitle}>{loading ? "Loading..." : "No refund requests"}</div>
+                          <div className={styles.emptySub}>{err ? err : "Try changing filters or search keyword."}</div>
                         </div>
                       </div>
                     </td>
