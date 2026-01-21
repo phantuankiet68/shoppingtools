@@ -1,0 +1,99 @@
+enum EmailStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum EmailType {
+  SYSTEM
+  MARKETING
+  TRANSACTIONAL
+  INTERNAL
+}
+
+
+model Email {
+  id            String      @id @default(cuid())
+
+  type          EmailType   @default(SYSTEM)
+  status        EmailStatus @default(DRAFT)
+
+  subject       String
+  previewText   String?
+  htmlContent   String?     @db.LongText
+  textContent   String?     @db.Text
+
+  templateKey   String?
+  templateData  Json?
+
+  fromName      String?
+  fromEmail     String?
+
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+
+  totalRecipients Int       @default(0)
+  successCount   Int        @default(0)
+  failedCount    Int        @default(0)
+
+  lastError     String?     @db.Text
+
+  recipients    EmailRecipient[]
+
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+
+model EmailRecipient {
+  id          String      @id @default(cuid())
+
+  emailId     String
+  email       Email       @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  toEmail     String
+  toName      String?
+
+  status      EmailStatus @default(QUEUED)
+  sentAt      DateTime?
+  error       String?     @db.Text
+
+  openedAt    DateTime?
+  clickedAt   DateTime?
+
+  providerMessageId String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([emailId])
+  @@index([toEmail])
+  @@index([status])
+}
+
+
+model EmailTemplate {
+  id           String   @id @default(cuid())
+
+  key          String   @unique
+  name         String
+  subject      String
+
+  htmlContent  String?  @db.LongText
+  textContent  String?  @db.Text
+
+  description  String?
+  isActive     Boolean  @default(true)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

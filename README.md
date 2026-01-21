@@ -417,3 +417,17 @@ Transaction.inventoryReceiptId @unique + InventoryReceipt.transaction?
 SalesChannel / SalesStatus hiện chưa dùng: nếu không dùng sớm có thể bỏ hoặc chuẩn bị model Shipment/Sale.
 
 API /api/admin/customers và /api/admin/customers/[id] theo Next.js 15
+
+Email (DRAFT)
+↓
+Create EmailRecipients (QUEUED)
+↓
+Email → QUEUED
+↓
+Worker gửi email từng recipient
+↓
+EmailRecipient → SENT / FAILED
+↓
+Email.successCount / failedCount cập nhật
+↓
+Email → SENT (khi xong)

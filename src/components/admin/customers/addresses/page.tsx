@@ -32,6 +32,8 @@ type Address = {
   updatedAt: string; // ISO
 };
 
+type ApiListResponse = { items: any[]; total?: number; page?: number; limit?: number } | { data: any[] } | any;
+
 const seed: Address[] = [
   {
     id: "addr_2001",
@@ -118,8 +120,73 @@ function typeMeta(t: AddressType) {
   return t === "SHIPPING" ? { label: "Shipping", icon: "bi-truck" } : { label: "Billing", icon: "bi-receipt" };
 }
 
+/** Normalize response item -> Address UI type */
+function normalizeFromApi(x: any): Address {
+  // Support several shapes:
+  // 1) API already returns customerName
+  // 2) API returns { customer: { name } }
+  const customerName = x.customerName ?? x.customer?.name ?? "—";
+
+  return {
+    id: String(x.id),
+    customerId: String(x.customerId ?? x.customer?.id ?? ""),
+    customerName: String(customerName),
+
+    label: String(x.label ?? ""),
+    type: (x.type ?? "SHIPPING") as AddressType,
+    status: (x.status ?? "ACTIVE") as AddressStatus,
+    isDefault: Boolean(x.isDefault),
+
+    receiverName: String(x.receiverName ?? ""),
+    phone: x.phone ?? "",
+
+    line1: String(x.line1 ?? ""),
+    line2: x.line2 ?? "",
+    ward: x.ward ?? "",
+    district: x.district ?? "",
+    city: String(x.city ?? ""),
+    region: x.region ?? "",
+    country: String(x.country ?? "VN"),
+    postalCode: x.postalCode ?? "",
+
+    note: x.note ?? "",
+    createdAt: String(x.createdAt ?? new Date().toISOString()),
+    updatedAt: String(x.updatedAt ?? new Date().toISOString()),
+  };
+}
+
+async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+  });
+
+  // Try parse JSON even on error
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+
+  if (!res.ok) {
+    const msg = (data && (data.error || data.message)) || `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+
+  return data as T;
+}
+
 export default function AddressesPage() {
   const [addresses, setAddresses] = useState<Address[]>(seed);
+
+  // api state
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string>("");
 
   // toolbar
   const [query, setQuery] = useState("");
@@ -143,6 +210,40 @@ export default function AddressesPage() {
   const [page, setPage] = useState(1);
   const pageSize = 8;
 
+  // ========= API LOAD =========
+  React.useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      setLoading(true);
+      setApiError("");
+      try {
+        const data = await apiFetch<ApiListResponse>("/api/admin/addresses");
+
+        // Accept: {items: []} OR {data: []} OR [] directly
+        const rawItems: any[] = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : Array.isArray(data?.data) ? data.data : [];
+
+        const normalized = rawItems.map(normalizeFromApi);
+
+        if (mounted) {
+          setAddresses(normalized);
+        }
+      } catch (e: any) {
+        if (mounted) {
+          setApiError(e?.message || "Failed to load addresses");
+          // keep seed as fallback
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // ========= Derived UI =========
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
@@ -202,45 +303,60 @@ export default function AddressesPage() {
     setSelected({});
   }
 
-  function bulkSetStatus(nextStatus: AddressStatus) {
+  // ========= API actions =========
+
+  async function bulkSetStatus(nextStatus: AddressStatus) {
     const ids = Object.entries(selected)
       .filter(([, v]) => v)
       .map(([id]) => id);
 
     if (ids.length === 0) return;
 
-    setAddresses((prev) =>
-      prev.map((a) =>
-        ids.includes(a.id)
-          ? {
-              ...a,
-              status: nextStatus,
-              updatedAt: new Date().toISOString(),
-            }
-          : a
-      )
-    );
-    clearSelection();
+    // optimistic UI
+    setAddresses((prev) => prev.map((a) => (ids.includes(a.id) ? { ...a, status: nextStatus, updatedAt: new Date().toISOString() } : a)));
+
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          apiFetch(`/api/admin/addresses/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ status: nextStatus }),
+          }),
+        ),
+      );
+      clearSelection();
+    } catch (e: any) {
+      setApiError(e?.message || "Bulk update failed");
+      // (optional) reload from server
+    }
   }
 
-  function bulkDelete() {
+  async function bulkDelete() {
     const ids = Object.entries(selected)
       .filter(([, v]) => v)
       .map(([id]) => id);
 
     if (ids.length === 0) return;
 
+    // optimistic UI
     setAddresses((prev) => prev.filter((a) => !ids.includes(a.id)));
-    clearSelection();
+
+    try {
+      await Promise.all(ids.map((id) => apiFetch(`/api/admin/addresses/${id}`, { method: "DELETE" })));
+      clearSelection();
+    } catch (e: any) {
+      setApiError(e?.message || "Bulk delete failed");
+      // (optional) reload from server
+    }
   }
 
-  function setDefault(addressId: string) {
+  async function setDefault(addressId: string) {
     const target = addresses.find((a) => a.id === addressId);
     if (!target) return;
 
+    // optimistic UI: default unique per customer+type
     setAddresses((prev) =>
       prev.map((a) => {
-        // default should be unique per customer + type (common pattern)
         const sameBucket = a.customerId === target.customerId && a.type === target.type;
         if (!sameBucket) return a;
         return {
@@ -248,26 +364,64 @@ export default function AddressesPage() {
           isDefault: a.id === addressId,
           updatedAt: new Date().toISOString(),
         };
-      })
+      }),
     );
+
+    try {
+      await apiFetch(`/api/admin/addresses/${addressId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isDefault: true }),
+      });
+    } catch (e: any) {
+      setApiError(e?.message || "Set default failed");
+      // (optional) reload from server
+    }
   }
 
-  function createAddress(payload: Omit<Address, "id" | "createdAt" | "updatedAt">) {
-    const id = `addr_${Math.floor(2000 + Math.random() * 8000)}`;
-    const now = new Date().toISOString();
-    const next: Address = { ...payload, id, createdAt: now, updatedAt: now };
+  async function createAddress(payload: Omit<Address, "id" | "createdAt" | "updatedAt">) {
+    setApiError("");
+    try {
+      const created = await apiFetch<any>("/api/admin/addresses", {
+        method: "POST",
+        body: JSON.stringify({
+          customerId: payload.customerId,
+          label: payload.label,
+          type: payload.type,
+          status: payload.status,
+          isDefault: payload.isDefault,
 
-    setAddresses((prev) => {
-      // if set as default, clear other defaults for same customer+type
-      if (next.isDefault) {
-        return [next, ...prev].map((a) => {
-          const sameBucket = a.customerId === next.customerId && a.type === next.type;
-          if (!sameBucket) return a;
-          return { ...a, isDefault: a.id === next.id };
-        });
-      }
-      return [next, ...prev];
-    });
+          receiverName: payload.receiverName,
+          phone: payload.phone || null,
+
+          line1: payload.line1,
+          line2: payload.line2 || null,
+          ward: payload.ward || null,
+          district: payload.district || null,
+          city: payload.city,
+          region: payload.region || null,
+          country: payload.country,
+          postalCode: payload.postalCode || null,
+
+          note: payload.note || null,
+        }),
+      });
+
+      const next = normalizeFromApi(created);
+
+      setAddresses((prev) => {
+        if (next.isDefault) {
+          return [next, ...prev].map((a) => {
+            const sameBucket = a.customerId === next.customerId && a.type === next.type;
+            if (!sameBucket) return a;
+            return { ...a, isDefault: a.id === next.id };
+          });
+        }
+        return [next, ...prev];
+      });
+    } catch (e: any) {
+      setApiError(e?.message || "Create address failed");
+      throw e;
+    }
   }
 
   const stats = useMemo(() => {
@@ -285,8 +439,17 @@ export default function AddressesPage() {
         <div className={styles.headerLeft}>
           <div className={styles.titleRow}>
             <h1 className={styles.title}>Addresses</h1>
-            <span className={styles.subtitle}>Manage shipping/billing addresses across customers</span>
+            <span className={styles.subtitle}>
+              Manage shipping/billing addresses across customers
+              {loading ? " • Loading…" : ""}
+            </span>
           </div>
+
+          {apiError ? (
+            <div style={{ marginTop: 8, fontSize: 13, color: "#b42318" }}>
+              <i className="bi bi-exclamation-triangle" /> {apiError}
+            </div>
+          ) : null}
 
           <div className={styles.kpis}>
             <div className={styles.kpiCard}>
@@ -702,8 +865,8 @@ export default function AddressesPage() {
       {createOpen ? (
         <CreateAddressModal
           onClose={() => setCreateOpen(false)}
-          onCreate={(payload) => {
-            createAddress(payload);
+          onCreate={async (payload) => {
+            await createAddress(payload);
             setCreateOpen(false);
           }}
         />
@@ -712,7 +875,7 @@ export default function AddressesPage() {
   );
 }
 
-function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCreate: (payload: Omit<Address, "id" | "createdAt" | "updatedAt">) => void }) {
+function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCreate: (payload: Omit<Address, "id" | "createdAt" | "updatedAt">) => Promise<void> | void }) {
   // Minimal “customer select” mock (in real app load from DB)
   const customers = [
     { id: "cus_1001", name: "Nguyễn Minh Anh" },
@@ -741,11 +904,13 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
   const [postalCode, setPostalCode] = useState("");
   const [note, setNote] = useState("");
 
+  const [saving, setSaving] = useState(false);
+
   React.useEffect(() => {
     setReceiverName(customerName);
   }, [customerName]);
 
-  const canSave = customerId && receiverName.trim().length >= 2 && line1.trim().length >= 3 && city.trim().length >= 2 && country.trim().length >= 2;
+  const canSave = customerId && receiverName.trim().length >= 2 && line1.trim().length >= 3 && city.trim().length >= 2 && country.trim().length >= 2 && !saving;
 
   return (
     <div className={styles.modalRoot} role="dialog" aria-modal="true">
@@ -874,34 +1039,39 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.secondaryBtn} type="button" onClick={onClose}>
+          <button className={styles.secondaryBtn} type="button" onClick={onClose} disabled={saving}>
             Cancel
           </button>
           <button
             className={styles.primaryBtn}
             type="button"
             disabled={!canSave}
-            onClick={() =>
-              onCreate({
-                customerId,
-                customerName,
-                label: label.trim(),
-                type,
-                status,
-                isDefault,
-                receiverName: receiverName.trim(),
-                phone: phone.trim(),
-                line1: line1.trim(),
-                line2: line2.trim(),
-                ward: ward.trim(),
-                district: district.trim(),
-                city: city.trim(),
-                region: "",
-                country: country.trim(),
-                postalCode: postalCode.trim(),
-                note: note.trim(),
-              })
-            }>
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await onCreate({
+                  customerId,
+                  customerName,
+                  label: label.trim(),
+                  type,
+                  status,
+                  isDefault,
+                  receiverName: receiverName.trim(),
+                  phone: phone.trim(),
+                  line1: line1.trim(),
+                  line2: line2.trim(),
+                  ward: ward.trim(),
+                  district: district.trim(),
+                  city: city.trim(),
+                  region: "",
+                  country: country.trim(),
+                  postalCode: postalCode.trim(),
+                  note: note.trim(),
+                });
+              } finally {
+                setSaving(false);
+              }
+            }}>
             <i className="bi bi-check2" />
             Create
           </button>
