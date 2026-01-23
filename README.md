@@ -128,6 +128,8 @@ Settings
 ├─ Taxes
 └─ Maintenance
 
+Tôi muốn tạo design page storage nhưng hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon. Bạn hãy suy nghĩ giúp tôi rằng page storage có nhiệm vụ để làm gì trong low code và tôi đang tạo low code dành cho shop bán hàng
+
 store.module.css
 shipping.module.css
 taxes.module.css

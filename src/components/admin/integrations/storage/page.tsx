@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/integrations/storage/storage.module.css";
 
 type StorageProvider = "LOCAL" | "S3" | "R2";
@@ -11,14 +11,14 @@ type StorageSettings = {
   status: Status;
 
   // Common
-  publicBaseUrl: string; // CDN/public URL prefix
-  rootPrefix: string; // e.g. "uploads/"
+  publicBaseUrl: string;
+  rootPrefix: string;
   privateByDefault: boolean;
   signedUrlEnabled: boolean;
   signedUrlTtlSeconds: number;
 
   maxUploadMb: number;
-  allowedMime: string; // comma-separated
+  allowedMime: string;
   enableImageOptimization: boolean;
 
   // Local
@@ -27,12 +27,12 @@ type StorageSettings = {
   // S3/R2
   region: string;
   bucket: string;
-  endpointUrl: string; // for R2/custom
-  accessKeyId: string;
-  secretAccessKey: string;
+  endpointUrl: string;
+  accessKeyId: string; // masked from API
+  secretAccessKey: string; // masked from API
 
   // CDN
-  cacheControl: string; // e.g. public,max-age=31536000,immutable
+  cacheControl: string;
   purgeEnabled: boolean;
 };
 
@@ -66,7 +66,7 @@ const defaults: StorageSettings = {
   provider: "R2",
   status: "DISCONNECTED",
 
-  publicBaseUrl: "https://cdn.yourdomain.com",
+  publicBaseUrl: "",
   rootPrefix: "uploads/",
   privateByDefault: true,
   signedUrlEnabled: true,
@@ -79,10 +79,10 @@ const defaults: StorageSettings = {
   localDir: "./public/uploads",
 
   region: "auto",
-  bucket: "my-app-bucket",
-  endpointUrl: "https://<accountid>.r2.cloudflarestorage.com",
-  accessKeyId: "AKIA****************",
-  secretAccessKey: "********************",
+  bucket: "",
+  endpointUrl: "",
+  accessKeyId: "",
+  secretAccessKey: "",
 
   cacheControl: "public,max-age=31536000,immutable",
   purgeEnabled: false,
@@ -112,6 +112,20 @@ function maskSecret(s: string) {
   return `${v.slice(0, 4)}••••••••••${v.slice(-4)}`;
 }
 
+async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    cache: "no-store",
+  });
+
+  const payload = await res.json().catch(() => null);
+  if (!res.ok || !payload?.ok) {
+    throw new Error(payload?.error || `Request failed: ${res.status}`);
+  }
+  return payload.data as T;
+}
+
 export default function StoragePage() {
   const [settings, setSettings] = useState<StorageSettings>(defaults);
   const [dirty, setDirty] = useState(false);
@@ -122,21 +136,9 @@ export default function StoragePage() {
 
   const [showSecrets, setShowSecrets] = useState(false);
 
-  const [buckets, setBuckets] = useState<BucketRow[]>([
-    { id: "b_1", name: "my-app-bucket", region: "auto", provider: "R2", objects: 13240, sizeGb: 18.6, updatedAt: "2026-01-13T08:10:00Z" },
-    { id: "b_2", name: "assets-public", region: "ap-southeast-1", provider: "S3", objects: 4280, sizeGb: 9.2, updatedAt: "2026-01-09T04:30:00Z" },
-  ]);
-
-  const [objects, setObjects] = useState<ObjectRow[]>([
-    { key: "uploads/avatars/u_102.png", sizeKb: 84, type: "image/png", visibility: "PUBLIC", updatedAt: "2026-01-14T06:22:00Z" },
-    { key: "uploads/docs/invoice_889.pdf", sizeKb: 620, type: "application/pdf", visibility: "PRIVATE", updatedAt: "2026-01-12T10:02:00Z" },
-    { key: "uploads/images/banner-home.jpg", sizeKb: 312, type: "image/jpeg", visibility: "PUBLIC", updatedAt: "2026-01-10T15:40:00Z" },
-  ]);
-
-  const [logs, setLogs] = useState<LogRow[]>([
-    { id: "l1", at: "2026-01-14T06:30:00Z", level: "INFO", action: "Load", message: "Storage integration page loaded (mock)." },
-    { id: "l2", at: "2026-01-12T09:10:00Z", level: "WARN", action: "Signed URL", message: "Signed URL enabled. Ensure clock sync on servers (mock)." },
-  ]);
+  const [buckets, setBuckets] = useState<BucketRow[]>([]);
+  const [objects, setObjects] = useState<ObjectRow[]>([]);
+  const [logs, setLogs] = useState<LogRow[]>([]);
 
   const [searchKey, setSearchKey] = useState("");
   const [filterVisibility, setFilterVisibility] = useState<"ALL" | "PUBLIC" | "PRIVATE">("ALL");
@@ -157,11 +159,11 @@ export default function StoragePage() {
     const mimeOk = settings.allowedMime.trim().length > 0;
     const baseOk = settings.publicBaseUrl.trim().length > 0;
     const signedOk = !settings.signedUrlEnabled || settings.signedUrlTtlSeconds > 0;
+
     const providerOk =
       settings.provider === "LOCAL" ? settings.localDir.trim().length > 0 : settings.bucket.trim().length > 0 && settings.accessKeyId.trim().length > 0 && settings.secretAccessKey.trim().length > 0;
 
-    const ok = mimeOk && baseOk && signedOk && providerOk;
-    return { ok, mimeOk, baseOk, signedOk, providerOk };
+    return { ok: mimeOk && baseOk && signedOk && providerOk, mimeOk, baseOk, signedOk, providerOk };
   }, [settings]);
 
   function markDirty() {
@@ -173,8 +175,9 @@ export default function StoragePage() {
     markDirty();
   }
 
-  function pushLog(level: LogRow["level"], action: string, message: string) {
-    setLogs((prev) => [{ id: `l_${Math.floor(Math.random() * 999999)}`, at: new Date().toISOString(), level, action, message }, ...prev]);
+  // ✅ Fix lỗi pushLog: dùng local log (UI-only) để không bị undefined
+  function pushLocalLog(level: LogRow["level"], action: string, message: string) {
+    setLogs((prev) => [{ id: `ui_${Math.floor(Math.random() * 999999)}`, at: new Date().toISOString(), level, action, message }, ...prev]);
   }
 
   function validate(): { ok: boolean; msg?: string } {
@@ -190,7 +193,6 @@ export default function StoragePage() {
       return { ok: true };
     }
 
-    // S3/R2
     if (!settings.bucket.trim()) return { ok: false, msg: "Bucket is required." };
     if (!settings.accessKeyId.trim()) return { ok: false, msg: "Access key ID is required." };
     if (!settings.secretAccessKey.trim()) return { ok: false, msg: "Secret access key is required." };
@@ -200,36 +202,117 @@ export default function StoragePage() {
     return { ok: true };
   }
 
-  function switchProvider(next: StorageProvider) {
-    setSettings((s) => ({ ...s, provider: next, status: "DISCONNECTED" }));
-    setDirty(true);
-    setToast({ type: "info", text: `Switched to ${providerMeta(next).title}. Configure and test.` });
-    pushLog("INFO", "Switch provider", `Provider changed to ${providerMeta(next).title} (mock).`);
-  }
-
-  function save() {
-    const v = validate();
-    if (!v.ok) {
-      setToast({ type: "error", text: v.msg || "Invalid configuration." });
-      pushLog("ERROR", "Save", v.msg || "Invalid configuration.");
-      return;
-    }
-    setToast({ type: "success", text: "Saved settings (mock)." });
-    pushLog("INFO", "Save", "Storage settings saved (mock).");
+  // ---------- API loaders ----------
+  async function loadSettings() {
+    const data = await api<StorageSettings>("/api/admin/storage/settings");
+    setSettings(data);
     setDirty(false);
   }
 
-  function disconnect() {
-    setSettings((s) => ({ ...s, status: "DISCONNECTED" }));
-    setToast({ type: "info", text: "Disconnected (mock)." });
-    pushLog("WARN", "Disconnect", "Storage disconnected (mock).");
+  async function loadBuckets() {
+    // optional route — nếu bạn chưa làm buckets thì comment dòng này và UI vẫn chạy
+    const data = await api<BucketRow[]>("/api/admin/storage/buckets");
+    setBuckets(data);
+  }
+
+  async function loadObjects() {
+    const params = new URLSearchParams();
+    if (searchKey.trim()) params.set("query", searchKey.trim());
+    params.set("visibility", filterVisibility);
+
+    const data = await api<ObjectRow[]>(`/api/admin/storage/objects?${params.toString()}`);
+    setObjects(data);
+  }
+
+  async function loadLogs() {
+    const data = await api<LogRow[]>("/api/admin/storage/logs");
+    setLogs(data);
+  }
+
+  async function initialLoad() {
+    setBusy(true);
+    setToast(null);
+    try {
+      await loadSettings();
+      await Promise.all([loadObjects(), loadLogs(), loadBuckets().catch(() => {})]);
+    } catch (e: any) {
+      setToast({ type: "error", text: e.message || "Failed to load storage data." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    initialLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "BROWSER") loadObjects().catch(() => {});
+    if (activeTab === "LOGS") loadLogs().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  // ---------- Actions ----------
+  function switchProvider(next: StorageProvider) {
+    setSettings((s) => ({ ...s, provider: next, status: "DISCONNECTED" }));
+    setDirty(true);
+    setToast({ type: "info", text: `Switched to ${providerMeta(next).title}. Configure and save.` });
+    pushLocalLog("INFO", "Switch provider", `Provider changed to ${providerMeta(next).title}.`);
+  }
+
+  async function save() {
+    const v = validate();
+    if (!v.ok) {
+      setToast({ type: "error", text: v.msg || "Invalid configuration." });
+      pushLocalLog("ERROR", "Save", v.msg || "Invalid configuration.");
+      return;
+    }
+
+    setBusy(true);
+    setToast(null);
+    try {
+      const data = await api<StorageSettings>("/api/admin/storage/settings", {
+        method: "PUT",
+        body: JSON.stringify(settings),
+      });
+      setSettings(data);
+      setDirty(false);
+      setToast({ type: "success", text: "Saved settings." });
+
+      await Promise.all([loadLogs(), loadBuckets().catch(() => {})]);
+    } catch (e: any) {
+      setToast({ type: "error", text: e.message || "Save failed." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disconnect() {
+    setBusy(true);
+    setToast(null);
+    try {
+      // nếu backend PUT không cho cập nhật status, bạn tạo API riêng.
+      const data = await api<StorageSettings>("/api/admin/storage/settings", {
+        method: "PUT",
+        body: JSON.stringify({ ...settings, status: "DISCONNECTED" }),
+      });
+      setSettings(data);
+      setDirty(false);
+      setToast({ type: "info", text: "Disconnected." });
+      await loadLogs();
+    } catch (e: any) {
+      setToast({ type: "error", text: e.message || "Disconnect failed." });
+    } finally {
+      setBusy(false);
+    }
   }
 
   function resetDefaults() {
     setSettings(defaults);
     setDirty(true);
     setToast({ type: "info", text: "Reset to defaults (not saved yet)." });
-    pushLog("WARN", "Reset", "Reset settings (mock).");
+    pushLocalLog("WARN", "Reset", "Reset settings (UI only).");
   }
 
   async function testUpload() {
@@ -238,59 +321,63 @@ export default function StoragePage() {
       setToast({ type: "error", text: v.msg || "Invalid configuration." });
       return;
     }
+
     setBusy(true);
     setToast(null);
+    try {
+      await api<{ status: Status; key?: string }>("/api/admin/storage/test-upload", { method: "POST" });
+      setToast({ type: "success", text: "Test upload succeeded." });
 
-    await new Promise((r) => setTimeout(r, 700));
-
-    const ok = Math.random() > 0.2; // mock
-    if (ok) {
-      setSettings((s) => ({ ...s, status: "CONNECTED" }));
-      setToast({ type: "success", text: "Test upload succeeded (mock)." });
-      pushLog("INFO", "Test upload", "Upload OK (mock).");
+      await Promise.all([loadSettings(), loadObjects(), loadLogs()]);
       setDirty(false);
-
-      // add a new object mock
-      setObjects((prev) => [
-        {
-          key: `${settings.rootPrefix.replace(/\/?$/, "/")}tests/test_${Date.now()}.txt`,
-          sizeKb: 2,
-          type: "text/plain",
-          visibility: settings.privateByDefault ? "PRIVATE" : "PUBLIC",
-          updatedAt: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
-    } else {
-      setSettings((s) => ({ ...s, status: "ERROR" }));
-      setToast({ type: "error", text: "Test upload failed (mock)." });
-      pushLog("ERROR", "Test upload", "Upload failed (mock).");
+    } catch (e: any) {
+      setToast({ type: "error", text: e.message || "Test upload failed." });
+      await Promise.all([loadSettings().catch(() => {}), loadLogs().catch(() => {})]);
+    } finally {
+      setBusy(false);
     }
-
-    setBusy(false);
   }
 
-  function addBucket() {
+  async function addBucket() {
     const name = prompt("Bucket name")?.trim();
     if (!name) return;
-    setBuckets((prev) => [
-      { id: `b_${Math.floor(Math.random() * 999999)}`, name, region: settings.region, provider: settings.provider, objects: 0, sizeGb: 0, updatedAt: new Date().toISOString() },
-      ...prev,
-    ]);
-    setToast({ type: "success", text: "Bucket added (mock)." });
-    pushLog("INFO", "Add bucket", `Bucket ${name} added (mock).`);
+
+    setBusy(true);
+    setToast(null);
+    try {
+      await api<BucketRow>("/api/admin/storage/buckets", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+
+      setToast({ type: "success", text: "Bucket added." });
+      await Promise.all([loadBuckets().catch(() => {}), loadLogs()]);
+    } catch (e: any) {
+      setToast({ type: "error", text: e.message || "Add bucket failed." });
+    } finally {
+      setBusy(false);
+    }
   }
 
   function purgeCdn() {
     setToast({ type: "info", text: "CDN purge queued (mock)." });
-    pushLog("INFO", "CDN purge", "Purge request queued (mock).");
+    pushLocalLog("INFO", "CDN purge", "Purge request queued (mock).");
   }
 
-  function deleteObject(key: string) {
-    if (!confirm(`Delete object ${key}? (mock)`)) return;
-    setObjects((prev) => prev.filter((o) => o.key !== key));
-    setToast({ type: "info", text: "Object deleted (mock)." });
-    pushLog("WARN", "Delete object", `Deleted ${key} (mock).`);
+  async function deleteObject(key: string) {
+    if (!confirm(`Delete object ${key}?`)) return;
+
+    setBusy(true);
+    setToast(null);
+    try {
+      await api<{ deleted: true; affected: number }>(`/api/admin/storage/objects?key=${encodeURIComponent(key)}`, { method: "DELETE" });
+      setToast({ type: "info", text: "Object deleted." });
+      await Promise.all([loadObjects(), loadLogs()]);
+    } catch (e: any) {
+      setToast({ type: "error", text: e.message || "Delete failed." });
+    } finally {
+      setBusy(false);
+    }
   }
 
   function copyUrl(key: string) {
@@ -340,13 +427,13 @@ export default function StoragePage() {
         </div>
 
         <div className={styles.headerRight}>
-          <button className={styles.secondaryBtn} type="button" onClick={resetDefaults}>
+          <button className={styles.secondaryBtn} type="button" onClick={resetDefaults} disabled={busy}>
             <i className="bi bi-arrow-counterclockwise" /> Reset
           </button>
-          <button className={styles.secondaryBtn} type="button" onClick={disconnect} disabled={settings.status === "DISCONNECTED"}>
+          <button className={styles.secondaryBtn} type="button" onClick={disconnect} disabled={busy || settings.status === "DISCONNECTED"}>
             <i className="bi bi-plug" /> Disconnect
           </button>
-          <button className={styles.primaryBtn} type="button" onClick={save} disabled={!dirty}>
+          <button className={styles.primaryBtn} type="button" onClick={save} disabled={busy || !dirty}>
             <i className="bi bi-cloud-check" /> Save
           </button>
           <button className={styles.primaryBtn} type="button" onClick={testUpload} disabled={busy}>
@@ -362,7 +449,7 @@ export default function StoragePage() {
           const m = providerMeta(k);
           const active = settings.provider === k;
           return (
-            <button key={k} type="button" className={`${styles.providerCard} ${active ? styles.providerActive : ""}`} onClick={() => switchProvider(k)}>
+            <button key={k} type="button" className={`${styles.providerCard} ${active ? styles.providerActive : ""}`} onClick={() => switchProvider(k)} disabled={busy}>
               <div className={styles.providerTop}>
                 <div className={styles.providerIcon}>
                   <i className={`bi ${m.icon}`} />
@@ -536,9 +623,10 @@ export default function StoragePage() {
                       <button
                         className={styles.secondaryBtn}
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           setToast({ type: "info", text: "IAM policy helper (mock)." });
-                          pushLog("INFO", "IAM policy", "Opened IAM policy helper (mock).");
+                          // ✅ thay pushLog -> local log + (tuỳ) refresh logs thật
+                          pushLocalLog("INFO", "IAM policy", "Opened IAM policy helper (mock).");
                         }}>
                         <i className="bi bi-shield-check" /> IAM policy
                       </button>
@@ -603,7 +691,7 @@ export default function StoragePage() {
                         onClick={() => {
                           update("purgeEnabled", !settings.purgeEnabled);
                           setToast({ type: "info", text: `CDN purge ${!settings.purgeEnabled ? "enabled" : "disabled"} (mock).` });
-                          pushLog("INFO", "Toggle purge", "Toggled CDN purge (mock).");
+                          pushLocalLog("INFO", "Toggle purge", "Toggled CDN purge (mock).");
                         }}>
                         <i className="bi bi-lightning" /> Toggle purge
                       </button>
@@ -639,7 +727,7 @@ export default function StoragePage() {
                       <i className="bi bi-lightning-charge" /> Purge CDN
                     </button>
                     <button className={styles.secondaryBtn} type="button" onClick={addBucket}>
-                      <i className="bi bi-plus-circle" /> Add bucket (mock)
+                      <i className="bi bi-plus-circle" /> Add bucket
                     </button>
                   </div>
                 </div>
@@ -651,7 +739,7 @@ export default function StoragePage() {
                   <div className={styles.cardTitle}>
                     <i className="bi bi-bucket" /> Buckets
                   </div>
-                  <div className={styles.cardHint}>Overview (mock)</div>
+                  <div className={styles.cardHint}>Overview</div>
                 </div>
                 <div className={styles.cardBody}>
                   <div className={styles.bucketGrid}>
@@ -683,7 +771,7 @@ export default function StoragePage() {
                             type="button"
                             onClick={() => {
                               setActiveTab("BROWSER");
-                              setToast({ type: "info", text: `Open browser for ${b.name} (mock).` });
+                              setToast({ type: "info", text: `Open browser for ${b.name}` });
                             }}>
                             <i className="bi bi-folder2-open" /> Browse
                           </button>
@@ -709,32 +797,34 @@ export default function StoragePage() {
                 <div className={styles.cardTitle}>
                   <i className="bi bi-folder2-open" /> Object browser
                 </div>
-                <div className={styles.cardHint}>Search, filter visibility, copy URLs, delete (mock)</div>
+                <div className={styles.cardHint}>Search, filter visibility, copy URLs, delete</div>
               </div>
 
               <div className={styles.cardBody}>
                 <div className={styles.browserTools}>
                   <div className={styles.searchWrap}>
                     <i className={`bi bi-search ${styles.searchIcon}`} />
-                    <input className={styles.search} placeholder="Search by key (e.g. uploads/avatars/...)" value={searchKey} onChange={(e) => setSearchKey(e.target.value)} />
+                    <input
+                      className={styles.search}
+                      placeholder="Search by key (e.g. uploads/avatars/...)"
+                      value={searchKey}
+                      onChange={(e) => setSearchKey(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") loadObjects().catch(() => {});
+                      }}
+                    />
                   </div>
 
                   <div className={styles.selectWrap}>
                     <i className={`bi bi-funnel ${styles.selectIcon}`} />
-                    <select className={styles.select} value={filterVisibility} onChange={(e) => setFilterVisibility(e.target.value as any)}>
+                    <select className={styles.select} value={filterVisibility} onChange={(e) => setFilterVisibility(e.target.value as any)} onBlur={() => loadObjects().catch(() => {})}>
                       <option value="ALL">All</option>
                       <option value="PUBLIC">Public</option>
                       <option value="PRIVATE">Private</option>
                     </select>
                   </div>
 
-                  <button
-                    className={styles.secondaryBtn}
-                    type="button"
-                    onClick={() => {
-                      setToast({ type: "info", text: "Refresh objects (mock)." });
-                      pushLog("INFO", "Refresh", "Refreshed object list (mock).");
-                    }}>
+                  <button className={styles.secondaryBtn} type="button" onClick={() => loadObjects().catch((e) => setToast({ type: "error", text: e.message }))} disabled={busy}>
                     <i className="bi bi-arrow-clockwise" /> Refresh
                   </button>
                 </div>
@@ -775,18 +865,22 @@ export default function StoragePage() {
                           <button className={styles.iconBtn} type="button" onClick={() => copyUrl(o.key)} title="Copy public URL">
                             <i className="bi bi-clipboard" />
                           </button>
+
+                          {/* Signed URL mock */}
                           <button
                             className={styles.iconBtn}
                             type="button"
                             onClick={() => {
                               setToast({ type: "info", text: "Generate signed URL (mock)." });
-                              pushLog("INFO", "Signed URL", `Generated signed URL for ${o.key} (mock).`);
+                              // ✅ thay pushLog -> pushLocalLog để không lỗi
+                              pushLocalLog("INFO", "Signed URL", `Generated signed URL for ${o.key} (mock).`);
                             }}
                             disabled={!settings.signedUrlEnabled}
                             title="Generate signed URL">
                             <i className="bi bi-link" />
                           </button>
-                          <button className={`${styles.iconBtn} ${styles.dangerIconBtn}`} type="button" onClick={() => deleteObject(o.key)} title="Delete">
+
+                          <button className={`${styles.iconBtn} ${styles.dangerIconBtn}`} type="button" onClick={() => deleteObject(o.key)} title="Delete" disabled={busy}>
                             <i className="bi bi-trash3" />
                           </button>
                         </div>
@@ -804,20 +898,22 @@ export default function StoragePage() {
                 <div className={styles.cardTitle}>
                   <i className="bi bi-journal-text" /> Storage logs
                 </div>
-                <div className={styles.cardHint}>Uploads, signed URLs, deletes (mock)</div>
+                <div className={styles.cardHint}>Uploads, signed URLs, deletes</div>
               </div>
 
               <div className={styles.cardBody}>
                 <div className={styles.inlineActions}>
-                  <button className={styles.secondaryBtn} type="button" onClick={() => setToast({ type: "info", text: "Refresh logs (mock)." })}>
+                  <button className={styles.secondaryBtn} type="button" onClick={() => loadLogs().catch((e) => setToast({ type: "error", text: e.message }))} disabled={busy}>
                     <i className="bi bi-arrow-clockwise" /> Refresh
                   </button>
+
+                  {/* Clear UI-only (không xoá DB) */}
                   <button
                     className={`${styles.secondaryBtn} ${styles.dangerBtn}`}
                     type="button"
                     onClick={() => {
                       setLogs([]);
-                      setToast({ type: "info", text: "Logs cleared (mock)." });
+                      setToast({ type: "info", text: "Logs cleared (UI only)." });
                     }}>
                     <i className="bi bi-trash3" /> Clear
                   </button>
@@ -862,7 +958,7 @@ export default function StoragePage() {
               <div className={styles.dangerRow}>
                 <div>
                   <div className={styles.dangerTitle}>Purge secrets</div>
-                  <div className={styles.dangerHint}>Remove stored credentials (mock).</div>
+                  <div className={styles.dangerHint}>Remove stored credentials (UI state only, save to apply).</div>
                 </div>
                 <button
                   className={`${styles.secondaryBtn} ${styles.dangerBtn}`}
@@ -871,7 +967,8 @@ export default function StoragePage() {
                     update("accessKeyId", "");
                     update("secretAccessKey", "");
                     setToast({ type: "info", text: "Secrets purged (not saved yet)." });
-                    pushLog("WARN", "Purge secrets", "Purged credentials (mock).");
+                    // ✅ thay pushLog -> pushLocalLog
+                    pushLocalLog("WARN", "Purge secrets", "Purged credentials (UI only, not saved yet).");
                   }}>
                   <i className="bi bi-shield-x" /> Purge
                 </button>
@@ -888,7 +985,7 @@ export default function StoragePage() {
                   onClick={() => {
                     update("signedUrlEnabled", false);
                     setToast({ type: "info", text: "Signed URLs disabled (not saved yet)." });
-                    pushLog("WARN", "Disable signed", "Signed URLs disabled (mock).");
+                    pushLocalLog("WARN", "Disable signed", "Signed URLs disabled (UI only, not saved yet).");
                   }}>
                   <i className="bi bi-link-45deg" /> Disable
                 </button>
@@ -922,7 +1019,7 @@ export default function StoragePage() {
               <div className={styles.sideHint}>
                 <i className="bi bi-info-circle" />
                 <div>
-                  Trạng thái config: <b>{health.ok ? "Looks good" : "Needs attention"}</b>. (mock validator)
+                  Trạng thái config: <b>{health.ok ? "Looks good" : "Needs attention"}</b>. (validator)
                 </div>
               </div>
 
@@ -983,7 +1080,7 @@ export default function StoragePage() {
                 type="button"
                 onClick={() => {
                   setToast({ type: "success", text: "Copied masked values (mock)." });
-                  pushLog("INFO", "Copy secrets", "Copied masked secrets (mock).");
+                  pushLocalLog("INFO", "Copy secrets", "Copied masked secrets (mock).");
                 }}>
                 <i className="bi bi-clipboard" /> Copy masked
               </button>
@@ -992,7 +1089,7 @@ export default function StoragePage() {
                 type="button"
                 onClick={() => {
                   setToast({ type: "info", text: "Rotate keys (mock) — implement vault flow later." });
-                  pushLog("INFO", "Rotate keys", "Rotate access keys (mock).");
+                  pushLocalLog("INFO", "Rotate keys", "Rotate access keys (mock).");
                 }}>
                 <i className="bi bi-arrow-repeat" /> Rotate keys
               </button>

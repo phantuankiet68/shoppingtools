@@ -26,13 +26,12 @@ model Refund {
   orderId   String
   order     Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  // Link tới payment CAPTURE gốc (nếu bạn có flow nhiều payments/transactions)
   originalPaymentId String?
-  originalPayment   Payment? @relation("RefundOriginalPayment", fields: [originalPaymentId], references: [id], onDelete: SetNull)
+  originalPayment   Payment? @relation("RefundOriginalPayment", fields: [originalPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_original_payment")
 
-  // Link tới payment REFUND (dòng tiền hoàn)
   refundPaymentId   String?  @unique
-  refundPayment     Payment? @relation("RefundPayment", fields: [refundPaymentId], references: [id], onDelete: SetNull)
+  refundPayment     Payment? @relation("RefundPayment", fields: [refundPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_refund_payment")
+
 
   status    RefundStatus @default(PENDING)
   reason    RefundReason @default(OTHER)

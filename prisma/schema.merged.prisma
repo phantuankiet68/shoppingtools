@@ -179,6 +179,9 @@ enum EmailType {
 model Email {
   id String @id @default(cuid())
 
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   type   EmailType   @default(SYSTEM)
   status EmailStatus @default(DRAFT)
 
@@ -208,10 +211,11 @@ model Email {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([status])
-  @@index([type])
-  @@index([scheduledAt])
-  @@index([createdAt])
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, type])
+  @@index([userId, scheduledAt])
+  @@index([userId, createdAt])
 }
 
 model EmailRecipient {
@@ -243,7 +247,10 @@ model EmailRecipient {
 model EmailTemplate {
   id String @id @default(cuid())
 
-  key     String @unique
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  key     String
   name    String
   subject String
 
@@ -255,6 +262,10 @@ model EmailTemplate {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
+  @@index([userId])
+  @@index([userId, isActive])
 }
 
 // ==== part: File.prisma ====
@@ -1456,13 +1467,11 @@ model Refund {
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  // Link tới payment CAPTURE gốc (nếu bạn có flow nhiều payments/transactions)
   originalPaymentId String?
-  originalPayment   Payment? @relation("RefundOriginalPayment", fields: [originalPaymentId], references: [id], onDelete: SetNull)
+  originalPayment   Payment? @relation("RefundOriginalPayment", fields: [originalPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_original_payment")
 
-  // Link tới payment REFUND (dòng tiền hoàn)
   refundPaymentId String?  @unique
-  refundPayment   Payment? @relation("RefundPayment", fields: [refundPaymentId], references: [id], onDelete: SetNull)
+  refundPayment   Payment? @relation("RefundPayment", fields: [refundPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_refund_payment")
 
   status RefundStatus @default(PENDING)
   reason RefundReason @default(OTHER)
@@ -1518,6 +1527,223 @@ model Site {
   updatedAt DateTime   @updatedAt
   pages     Page[]
   menuItems MenuItem[]
+}
+
+// ==== part: Storage.prisma ====
+enum StorageProvider {
+  LOCAL
+  S3
+  R2
+}
+
+enum StorageStatus {
+  DISCONNECTED
+  CONNECTED
+  ERROR
+}
+
+enum ObjectVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum StorageLogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+model StorageIntegration {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider StorageProvider @default(R2)
+  status   StorageStatus   @default(DISCONNECTED)
+
+  // Common
+  publicBaseUrl       String
+  rootPrefix          String  @default("uploads/")
+  privateByDefault    Boolean @default(true)
+  signedUrlEnabled    Boolean @default(true)
+  signedUrlTtlSeconds Int     @default(900)
+
+  maxUploadMb             Int     @default(50)
+  allowedMime             String  @default("image/*,application/pdf")
+  enableImageOptimization Boolean @default(true)
+
+  // Local
+  localDir String?
+
+  // S3/R2
+  region             String?
+  bucket             String?
+  endpointUrl        String?
+  accessKeyIdEnc     String?
+  secretAccessKeyEnc String?
+
+  // CDN
+  cacheControl String  @default("public,max-age=31536000,immutable")
+  purgeEnabled Boolean @default(false)
+
+  // Diagnostics
+  lastTestedAt DateTime?
+  lastError    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buckets StorageBucket[]
+  objects StorageObject[]
+  logs    StorageLog[]
+}
+
+model StorageBucket {
+  id String @id @default(uuid())
+
+  integrationId String
+  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  provider    StorageProvider
+  name        String
+  region      String?
+  endpointUrl String?
+  isDefault   Boolean         @default(false)
+
+  objectsCount Int    @default(0)
+  sizeBytes    BigInt @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([integrationId, provider, name])
+  @@index([integrationId, provider])
+}
+
+model StorageObject {
+  id String @id @default(uuid())
+
+  integrationId String
+  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  provider StorageProvider
+  bucket   String
+  key      String
+
+  sizeBytes  BigInt
+  mimeType   String
+  visibility ObjectVisibility @default(PRIVATE)
+
+  etag           String?
+  checksum       String?
+  lastModifiedAt DateTime?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([integrationId, provider, bucket, key])
+  @@index([integrationId, key])
+  @@index([integrationId, visibility])
+  @@index([integrationId, updatedAt(sort: Desc)])
+}
+
+model StorageLog {
+  id String @id @default(uuid())
+
+  integrationId String
+  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  at      DateTime        @default(now())
+  level   StorageLogLevel @default(INFO)
+  action  String
+  message String
+  meta    Json?
+
+  @@index([integrationId, at(sort: Desc)])
+  @@index([integrationId, level])
+}
+
+// ==== part: Webhook.prisma ====
+// ===== ENUMS =====
+enum WebhookDirection {
+  inbound
+  outbound
+}
+
+enum WebhookStatus {
+  active
+  paused
+  error
+}
+
+enum WebhookAuthType {
+  none
+  hmac_sha256
+  static_header
+}
+
+enum RetryStrategy {
+  none
+  fixed
+  exponential
+}
+
+enum WebhookDeliveryStatus {
+  success
+  failed
+  retrying
+}
+
+enum WebhookMethod {
+  POST
+  PUT
+  PATCH
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String // chỉ lưu id, không FK
+
+  name      String
+  direction WebhookDirection
+  status    WebhookStatus    @default(active)
+
+  eventKey String
+
+  endpointPath   String?
+  destinationUrl String?
+  method         WebhookMethod @default(POST)
+
+  security    Json?
+  mapping     Json?
+  retryPolicy Json?
+
+  lastTriggeredAt DateTime?
+  success24h      Int       @default(0)
+  fail24h         Int       @default(0)
+
+  deliveries WebhookDelivery[]
+
+  @@index([userId])
+  @@index([userId, direction, status])
+  @@index([userId, eventKey])
+}
+
+model WebhookDelivery {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  webhookId String
+  webhook   Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  status WebhookDeliveryStatus @default(success)
+
+  payload Json?
 }
 
 // ==== part: user.prisma ====
@@ -1606,6 +1832,8 @@ model User {
   customers           Customer[]
   orders              Order[]
   addresses           Address[]
+  emails              Email[]
+  emailTemplates      EmailTemplate[]
   conversationMembers ConversationMember[]
   messages            Message[]
   payments            Payment[]
@@ -1613,6 +1841,7 @@ model User {
   stockMovements      StockMovement[]
   purchaseOrders      PurchaseOrder[]
   refunds             Refund[]
+  storageIntegration  StorageIntegration?
 
   @@index([role])
   @@index([lockedUntil])

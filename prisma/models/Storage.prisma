@@ -1,0 +1,134 @@
+enum StorageProvider {
+  LOCAL
+  S3
+  R2
+}
+
+enum StorageStatus {
+  DISCONNECTED
+  CONNECTED
+  ERROR
+}
+
+enum ObjectVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum StorageLogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+model StorageIntegration {
+  id                     String          @id @default(uuid())
+
+  userId                 String          @unique
+  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider               StorageProvider @default(R2)
+  status                 StorageStatus   @default(DISCONNECTED)
+
+  // Common
+  publicBaseUrl           String
+  rootPrefix              String          @default("uploads/")
+  privateByDefault        Boolean         @default(true)
+  signedUrlEnabled        Boolean         @default(true)
+  signedUrlTtlSeconds     Int             @default(900)
+
+  maxUploadMb             Int             @default(50)
+  allowedMime             String          @default("image/*,application/pdf")
+  enableImageOptimization Boolean         @default(true)
+
+  // Local
+  localDir                String?
+
+  // S3/R2
+  region                  String?
+  bucket                  String?
+  endpointUrl             String?
+  accessKeyIdEnc          String?
+  secretAccessKeyEnc      String?
+
+  // CDN
+  cacheControl            String          @default("public,max-age=31536000,immutable")
+  purgeEnabled            Boolean         @default(false)
+
+  // Diagnostics
+  lastTestedAt            DateTime?
+  lastError               String?
+
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  buckets                 StorageBucket[]
+  objects                 StorageObject[]
+  logs                    StorageLog[]
+}
+
+model StorageBucket {
+  id          String          @id @default(uuid())
+
+  integrationId String
+  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  provider     StorageProvider
+  name         String
+  region       String?
+  endpointUrl  String?
+  isDefault    Boolean        @default(false)
+
+  objectsCount Int            @default(0)
+  sizeBytes    BigInt         @default(0)
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([integrationId, provider])
+  @@unique([integrationId, provider, name])
+}
+
+model StorageObject {
+  id             String           @id @default(uuid())
+
+  integrationId  String
+  integration    StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  provider       StorageProvider
+  bucket         String
+  key            String
+
+  sizeBytes      BigInt
+  mimeType       String
+  visibility     ObjectVisibility @default(PRIVATE)
+
+  etag           String?
+  checksum       String?
+  lastModifiedAt DateTime?
+
+  deletedAt      DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([integrationId, provider, bucket, key])
+  @@index([integrationId, key])
+  @@index([integrationId, visibility])
+  @@index([integrationId, updatedAt(sort: Desc)])
+}
+
+model StorageLog {
+  id            String   @id @default(uuid())
+
+  integrationId String
+  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  at            DateTime @default(now())
+  level         StorageLogLevel @default(INFO)
+  action        String
+  message       String
+  meta          Json?
+
+  @@index([integrationId, at(sort: Desc)])
+  @@index([integrationId, level])
+}

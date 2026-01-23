@@ -1,0 +1,79 @@
+// ===== ENUMS =====
+enum WebhookDirection {
+  inbound
+  outbound
+}
+
+enum WebhookStatus {
+  active
+  paused
+  error
+}
+
+enum WebhookAuthType {
+  none
+  hmac_sha256
+  static_header
+}
+
+enum RetryStrategy {
+  none
+  fixed
+  exponential
+}
+
+enum WebhookDeliveryStatus {
+  success
+  failed
+  retrying
+}
+
+enum WebhookMethod {
+  POST
+  PUT
+  PATCH
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String // chỉ lưu id, không FK
+
+  name      String
+  direction WebhookDirection
+  status    WebhookStatus @default(active)
+
+  eventKey  String
+
+  endpointPath   String?
+  destinationUrl String?
+  method         WebhookMethod @default(POST)
+
+  security    Json?
+  mapping     Json?
+  retryPolicy Json?
+
+  lastTriggeredAt DateTime?
+  success24h      Int @default(0)
+  fail24h         Int @default(0)
+
+  deliveries WebhookDelivery[]
+
+  @@index([userId])
+  @@index([userId, direction, status])
+  @@index([userId, eventKey])
+}
+
+model WebhookDelivery {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  webhookId String
+  webhook   Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  status WebhookDeliveryStatus @default(success)
+
+  payload Json?
+}

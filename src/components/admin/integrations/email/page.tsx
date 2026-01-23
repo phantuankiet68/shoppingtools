@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/integrations/email/email.module.css";
 
 type EmailProviderKey = "SMTP" | "RESEND" | "SENDGRID";
@@ -12,16 +12,16 @@ type EmailSettings = {
 
   // Common
   fromName: string;
-  fromEmail: string; // sender
+  fromEmail: string;
   replyToEmail: string;
-  testMode: boolean; // dry run
+  testMode: boolean;
   trackOpens: boolean;
   trackClicks: boolean;
 
   // SMTP
   smtpHost: string;
   smtpPort: number;
-  smtpSecure: boolean; // TLS
+  smtpSecure: boolean;
   smtpUser: string;
   smtpPass: string;
 
@@ -43,7 +43,22 @@ type DomainRow = {
   lastCheckedAt: string;
 };
 
-type LogRow = {
+/** API-backed template type (from /api/admin/email-template) */
+type EmailTemplate = {
+  id: string;
+  key: string;
+  name: string;
+  subject: string;
+  htmlContent?: string | null;
+  textContent?: string | null;
+  description?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Email “log” row built from /api/admin/email list */
+type EmailLogRow = {
   id: string;
   at: string;
   level: "INFO" | "WARN" | "ERROR";
@@ -77,7 +92,10 @@ const defaultSettings: EmailSettings = {
 
 function fmtDateTime(iso: string) {
   const d = new Date(iso);
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(d);
+  return new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
 }
 
 function badgeMeta(status: ProviderStatus) {
@@ -87,9 +105,23 @@ function badgeMeta(status: ProviderStatus) {
 }
 
 function providerMeta(p: EmailProviderKey) {
-  if (p === "SMTP") return { title: "SMTP", icon: "bi-inboxes", hint: "Your own SMTP server / Gmail / Office365" };
-  if (p === "RESEND") return { title: "Resend", icon: "bi-lightning-charge", hint: "API-based transactional email" };
-  return { title: "SendGrid", icon: "bi-send", hint: "Marketing + transactional via API" };
+  if (p === "SMTP")
+    return {
+      title: "SMTP",
+      icon: "bi-inboxes",
+      hint: "Your own SMTP server / Gmail / Office365",
+    };
+  if (p === "RESEND")
+    return {
+      title: "Resend",
+      icon: "bi-lightning-charge",
+      hint: "API-based transactional email",
+    };
+  return {
+    title: "SendGrid",
+    icon: "bi-send",
+    hint: "Marketing + transactional via API",
+  };
 }
 
 function maskSecret(s: string) {
@@ -99,25 +131,92 @@ function maskSecret(s: string) {
   return `${v.slice(0, 4)}••••••••••${v.slice(-4)}`;
 }
 
+/** ---------- API helper (supports {ok,data} + legacy) ---------- */
+async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+  let payload: any = null;
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = text;
+  }
+
+  if (!res.ok) {
+    const msg = (payload && (payload.message || payload.error)) || `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+
+  if (payload && typeof payload === "object" && "ok" in payload) {
+    if (payload.ok === false) {
+      throw new Error(payload.message || "Request failed");
+    }
+    return payload.data as T;
+  }
+
+  return payload as T;
+}
+
+/** Extract list items from many possible shapes */
+function extractItems(data: any): any[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.items)) return data.items;
+  if (data.data && Array.isArray(data.data.items)) return data.data.items;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+}
+
+/** ---------- Page ---------- */
 export default function EmailPage() {
+  // SETTINGS (currently local; connect your settings API later)
   const [settings, setSettings] = useState<EmailSettings>(defaultSettings);
   const [dirty, setDirty] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"CONFIG" | "SENDER" | "LOGS">("CONFIG");
   const [testing, setTesting] = useState(false);
-  const [toast, setToast] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+  const [toast, setToast] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+  } | null>(null);
 
   const [showSecrets, setShowSecrets] = useState(false);
 
+  // Domains: still mock until you add domain API
   const [domains, setDomains] = useState<DomainRow[]>([
-    { id: "dom_1", domain: "yourdomain.com", status: "PENDING", lastCheckedAt: "2026-01-12T10:02:00Z" },
-    { id: "dom_2", domain: "mail.yourdomain.com", status: "FAILED", lastCheckedAt: "2026-01-10T04:20:00Z" },
+    {
+      id: "dom_1",
+      domain: "yourdomain.com",
+      status: "PENDING",
+      lastCheckedAt: "2026-01-12T10:02:00Z",
+    },
+    {
+      id: "dom_2",
+      domain: "mail.yourdomain.com",
+      status: "FAILED",
+      lastCheckedAt: "2026-01-10T04:20:00Z",
+    },
   ]);
 
-  const [logs, setLogs] = useState<LogRow[]>([
-    { id: "log_1", at: "2026-01-14T06:22:00Z", level: "INFO", action: "Load", message: "Email integration page loaded (mock)." },
-    { id: "log_2", at: "2026-01-12T09:05:00Z", level: "WARN", action: "Domain", message: "Sender domain not verified yet (mock)." },
-  ]);
+  // Templates (API)
+  const [tplLoading, setTplLoading] = useState(false);
+  const [tplError, setTplError] = useState<string>("");
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [tplModalOpen, setTplModalOpen] = useState(false);
+  const [tplEditing, setTplEditing] = useState<EmailTemplate | null>(null);
+
+  // Logs from Emails list (API)
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState<string>("");
+  const [logs, setLogs] = useState<EmailLogRow[]>([]);
 
   const health = useMemo(() => {
     const senderOk = settings.fromEmail.includes("@") && settings.fromName.trim().length > 0;
@@ -133,10 +232,6 @@ export default function EmailPage() {
   function update<K extends keyof EmailSettings>(key: K, value: EmailSettings[K]) {
     setSettings((s) => ({ ...s, [key]: value }));
     markDirty();
-  }
-
-  function pushLog(level: LogRow["level"], action: string, message: string) {
-    setLogs((prev) => [{ id: `log_${Math.floor(Math.random() * 999999)}`, at: new Date().toISOString(), level, action, message }, ...prev]);
   }
 
   function validate(): { ok: boolean; msg?: string } {
@@ -168,19 +263,112 @@ export default function EmailPage() {
   function switchProvider(next: EmailProviderKey) {
     setSettings((s) => ({ ...s, provider: next, status: "DISCONNECTED" }));
     setDirty(true);
-    setToast({ type: "info", text: `Switched to ${providerMeta(next).title}. Configure and connect when ready.` });
-    pushLog("INFO", "Switch provider", `Provider changed to ${providerMeta(next).title} (mock).`);
+    setToast({
+      type: "info",
+      text: `Switched to ${providerMeta(next).title}. Configure and connect when ready.`,
+    });
   }
 
-  function saveSettings() {
+  /** ---------- Templates API ---------- */
+  async function loadTemplates() {
+    setTplLoading(true);
+    setTplError("");
+    try {
+      // API returns {items,pagination} in data (our style)
+      const data = await apiFetch<any>("/api/admin/email-template?limit=100");
+      const items = extractItems(data);
+      setTemplates(items as EmailTemplate[]);
+    } catch (e: any) {
+      setTplError(e?.message || "Failed to load templates");
+    } finally {
+      setTplLoading(false);
+    }
+  }
+
+  async function createTemplate(payload: { key: string; name: string; subject: string; htmlContent?: string | null; textContent?: string | null; description?: string | null; isActive?: boolean }) {
+    const created = await apiFetch<EmailTemplate>("/api/admin/email-template", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setTemplates((prev) => [created, ...prev].sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt)));
+    setToast({ type: "success", text: "Template created." });
+  }
+
+  async function updateTemplate(id: string, patch: Partial<EmailTemplate>) {
+    const updated = await apiFetch<EmailTemplate>(`/api/admin/email-template/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+    setTemplates((prev) => prev.map((t) => (t.id === id ? updated : t)).sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt)));
+    setToast({ type: "success", text: "Template updated." });
+  }
+
+  async function deleteTemplate(id: string) {
+    await apiFetch(`/api/admin/email-template/${id}`, { method: "DELETE" });
+    // soft delete: isActive=false (API)
+    setTemplates((prev) => prev.map((t) => (t.id === id ? { ...t, isActive: false } : t)));
+    setToast({ type: "info", text: "Template disabled." });
+  }
+
+  /** ---------- Logs API (from /api/admin/email) ---------- */
+  async function loadLogs() {
+    setLogsLoading(true);
+    setLogsError("");
+    try {
+      const data = await apiFetch<any>("/api/admin/email?limit=30");
+      const items = extractItems(data);
+
+      // Convert email list -> log rows
+      const rows: EmailLogRow[] = (items || []).map((e: any) => {
+        const status: string = e.status || "DRAFT";
+        const level: EmailLogRow["level"] = status === "FAILED" ? "ERROR" : status === "CANCELLED" ? "WARN" : "INFO";
+
+        const at = e.sentAt || e.updatedAt || e.createdAt || new Date().toISOString();
+
+        const msg = `#${e.id} • ${e.type || "SYSTEM"} • ${status} • ${e.subject || "(no subject)"}`;
+
+        return {
+          id: String(e.id),
+          at: String(at),
+          level,
+          action: "Email",
+          message: msg,
+        };
+      });
+
+      setLogs(rows);
+    } catch (e: any) {
+      setLogsError(e?.message || "Failed to load logs");
+    } finally {
+      setLogsLoading(false);
+    }
+  }
+
+  /** Load templates when entering CONFIG tab (first time) */
+  useEffect(() => {
+    if (activeTab === "CONFIG" && templates.length === 0 && !tplLoading) {
+      loadTemplates();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  /** Load logs when opening LOGS tab */
+  useEffect(() => {
+    if (activeTab === "LOGS" && logs.length === 0 && !logsLoading) {
+      loadLogs();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  /** ---------- Settings actions (still mock unless you add API) ---------- */
+  async function saveSettings() {
     const v = validate();
     if (!v.ok) {
       setToast({ type: "error", text: v.msg || "Invalid configuration." });
-      pushLog("ERROR", "Save", v.msg || "Invalid configuration.");
       return;
     }
+
+    // TODO: Connect to your settings API when ready:
+    // await apiFetch("/api/admin/email-settings", { method: "PATCH", body: JSON.stringify(settings) })
+
     setToast({ type: "success", text: "Saved settings (mock)." });
-    pushLog("INFO", "Save", "Email settings saved (mock).");
     setDirty(false);
   }
 
@@ -188,54 +376,64 @@ export default function EmailPage() {
     const v = validate();
     if (!v.ok) {
       setToast({ type: "error", text: v.msg || "Invalid configuration." });
-      pushLog("ERROR", "Test email", v.msg || "Invalid configuration.");
       return;
     }
 
     setTesting(true);
     setToast(null);
 
-    await new Promise((r) => setTimeout(r, 650));
+    // TODO: Connect to your test endpoint later:
+    // await apiFetch("/api/admin/email-settings/test", { method: "POST", body: JSON.stringify({ ... }) })
 
-    // mock result
+    await new Promise((r) => setTimeout(r, 650));
     setSettings((s) => ({ ...s, status: "CONNECTED" }));
-    setToast({ type: "success", text: settings.testMode ? "Sent test email (dry-run, mock)." : "Sent test email (mock)." });
-    pushLog("INFO", "Test email", settings.testMode ? "Dry-run email sent (mock)." : "Email sent (mock).");
+    setToast({
+      type: "success",
+      text: settings.testMode ? "Sent test email (dry-run, mock)." : "Sent test email (mock).",
+    });
     setDirty(false);
     setTesting(false);
   }
 
   function disconnect() {
+    // TODO: connect API later
     setSettings((s) => ({ ...s, status: "DISCONNECTED" }));
     setToast({ type: "info", text: "Disconnected (mock)." });
-    pushLog("WARN", "Disconnect", "Email provider disconnected (mock).");
   }
 
   function resetToDefaults() {
     setSettings(defaultSettings);
     setDirty(true);
     setToast({ type: "info", text: "Reset to defaults (not saved yet)." });
-    pushLog("WARN", "Reset", "Reset settings to defaults (mock).");
   }
 
+  /** Domain mock actions */
   function addDomain() {
     const domain = prompt("Enter domain (e.g. yourdomain.com)")?.trim();
     if (!domain) return;
-    setDomains((prev) => [{ id: `dom_${Math.floor(Math.random() * 999999)}`, domain, status: "PENDING", lastCheckedAt: new Date().toISOString() }, ...prev]);
-    setToast({ type: "info", text: "Domain added (mock). Configure DNS records to verify." });
-    pushLog("INFO", "Add domain", `Added domain ${domain} (mock).`);
+    setDomains((prev) => [
+      {
+        id: `dom_${Math.floor(Math.random() * 999999)}`,
+        domain,
+        status: "PENDING",
+        lastCheckedAt: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+    setToast({
+      type: "info",
+      text: "Domain added (mock). Configure DNS records to verify.",
+    });
   }
 
   function verifyDomain(id: string) {
     setDomains((prev) => prev.map((d) => (d.id === id ? { ...d, status: "VERIFIED", lastCheckedAt: new Date().toISOString() } : d)));
     setToast({ type: "success", text: "Domain verified (mock)." });
-    pushLog("INFO", "Verify domain", "Domain verified (mock).");
   }
 
   function removeDomain(id: string) {
     setDomains((prev) => prev.filter((d) => d.id !== id));
     setToast({ type: "info", text: "Domain removed (mock)." });
-    pushLog("WARN", "Remove domain", "Domain removed (mock).");
   }
 
   const bm = badgeMeta(settings.status);
@@ -258,11 +456,6 @@ export default function EmailPage() {
             <span className={styles.crumbActive}>
               <i className="bi bi-envelope" /> Email
             </span>
-          </div>
-
-          <div className={styles.titleRow}>
-            <h1 className={styles.title}>Email</h1>
-            <span className={styles.subtitle}>Configure sender, provider credentials, tracking, and deliverability</span>
           </div>
 
           <div className={styles.headMeta}>
@@ -386,7 +579,10 @@ export default function EmailPage() {
                         checked={settings.testMode}
                         onChange={(v) => {
                           update("testMode", v);
-                          setToast({ type: "info", text: v ? "Test mode enabled (dry-run)." : "Live mode enabled." });
+                          setToast({
+                            type: "info",
+                            text: v ? "Test mode enabled (dry-run)." : "Live mode enabled.",
+                          });
                         }}
                         labels={["Live", "Test"]}
                       />
@@ -417,13 +613,14 @@ export default function EmailPage() {
                 </div>
               </div>
 
+              {/* Provider specific config - kept as-is */}
               {settings.provider === "RESEND" ? (
                 <div className={styles.card}>
                   <div className={styles.cardHead}>
                     <div className={styles.cardTitle}>
                       <i className="bi bi-lightning-charge" /> Resend configuration
                     </div>
-                    <div className={styles.cardHint}>API key + (optional) domain verification</div>
+                    <div className={styles.cardHint}>API key</div>
                   </div>
 
                   <div className={styles.cardBody}>
@@ -440,15 +637,6 @@ export default function EmailPage() {
                       <button className={styles.secondaryBtn} type="button" onClick={() => setShowSecrets(true)}>
                         <i className="bi bi-eye" /> View masked secrets
                       </button>
-                      <button
-                        className={styles.secondaryBtn}
-                        type="button"
-                        onClick={() => {
-                          pushLog("INFO", "Rotate key", "Rotate Resend API key (mock).");
-                          setToast({ type: "info", text: "Key rotation (mock) — wire to your vault later." });
-                        }}>
-                        <i className="bi bi-arrow-repeat" /> Rotate key
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -460,7 +648,7 @@ export default function EmailPage() {
                     <div className={styles.cardTitle}>
                       <i className="bi bi-send" /> SendGrid configuration
                     </div>
-                    <div className={styles.cardHint}>API key + sender authentication</div>
+                    <div className={styles.cardHint}>API key</div>
                   </div>
 
                   <div className={styles.cardBody}>
@@ -477,15 +665,6 @@ export default function EmailPage() {
                       <button className={styles.secondaryBtn} type="button" onClick={() => setShowSecrets(true)}>
                         <i className="bi bi-eye" /> View masked secrets
                       </button>
-                      <button
-                        className={styles.secondaryBtn}
-                        type="button"
-                        onClick={() => {
-                          pushLog("INFO", "Create sender", "Create SendGrid sender (mock).");
-                          setToast({ type: "info", text: "Create sender flow (mock) — implement later." });
-                        }}>
-                        <i className="bi bi-plus-circle" /> Create sender
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -497,7 +676,7 @@ export default function EmailPage() {
                     <div className={styles.cardTitle}>
                       <i className="bi bi-inboxes" /> SMTP configuration
                     </div>
-                    <div className={styles.cardHint}>Host/port/credentials for SMTP relay</div>
+                    <div className={styles.cardHint}>Host/port/credentials</div>
                   </div>
 
                   <div className={styles.cardBody}>
@@ -544,20 +723,84 @@ export default function EmailPage() {
                 </div>
               ) : null}
 
+              {/* ✅ Templates (API-backed) */}
               <div className={styles.card}>
                 <div className={styles.cardHead}>
                   <div className={styles.cardTitle}>
-                    <i className="bi bi-layout-text-window-reverse" /> Templates (quick)
+                    <i className="bi bi-layout-text-window-reverse" /> Templates
                   </div>
-                  <div className={styles.cardHint}>Hook to your no-code template builder later</div>
+                  <div className={styles.cardHint}>Manage templates via /api/admin/email-template</div>
                 </div>
 
                 <div className={styles.cardBody}>
+                  {tplError ? (
+                    <div style={{ marginBottom: 10, color: "#b42318", fontSize: 13 }}>
+                      <i className="bi bi-exclamation-triangle" /> {tplError}{" "}
+                      <button className={styles.secondaryBtn} type="button" onClick={loadTemplates}>
+                        <i className="bi bi-arrow-clockwise" /> Retry
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <div className={styles.inlineActions}>
+                    <button
+                      className={styles.primaryBtn}
+                      type="button"
+                      onClick={() => {
+                        setTplEditing(null);
+                        setTplModalOpen(true);
+                      }}>
+                      <i className="bi bi-plus-lg" /> New template
+                    </button>
+
+                    <button className={styles.secondaryBtn} type="button" onClick={loadTemplates} disabled={tplLoading}>
+                      <i className={`bi ${tplLoading ? "bi-hourglass-split" : "bi-arrow-clockwise"}`} /> Refresh
+                    </button>
+                  </div>
+
                   <div className={styles.templateGrid}>
-                    <TemplateCard icon="bi-person-check" title="Welcome email" desc="Account created / onboarding" />
-                    <TemplateCard icon="bi-key" title="Reset password" desc="OTP / reset link" />
-                    <TemplateCard icon="bi-bag-check" title="Order confirmation" desc="Receipt + shipping info" />
-                    <TemplateCard icon="bi-bell" title="Notifications" desc="System alerts & updates" />
+                    {tplLoading && templates.length === 0 ? (
+                      <div className={styles.empty}>
+                        <i className="bi bi-hourglass-split" />
+                        <div className={styles.emptyTitle}>Loading templates…</div>
+                        <div className={styles.emptyHint}>Please wait</div>
+                      </div>
+                    ) : templates.length === 0 ? (
+                      <div className={styles.empty}>
+                        <i className="bi bi-file-earmark-text" />
+                        <div className={styles.emptyTitle}>No templates</div>
+                        <div className={styles.emptyHint}>Create your first template to send emails faster.</div>
+                      </div>
+                    ) : (
+                      templates.map((t) => (
+                        <TemplateCard
+                          key={t.id}
+                          title={t.name}
+                          desc={t.description || t.subject}
+                          metaLeft={t.key}
+                          metaRight={t.isActive ? "Active" : "Disabled"}
+                          disabled={!t.isActive}
+                          onOpen={() => {
+                            setTplEditing(t);
+                            setTplModalOpen(true);
+                          }}
+                          onToggleActive={async () => {
+                            try {
+                              await updateTemplate(t.id, { isActive: !t.isActive } as any);
+                            } catch (e: any) {
+                              setToast({ type: "error", text: e?.message || "Update failed" });
+                            }
+                          }}
+                          onDisable={async () => {
+                            try {
+                              await deleteTemplate(t.id);
+                            } catch (e: any) {
+                              setToast({ type: "error", text: e?.message || "Disable failed" });
+                            }
+                          }}
+                        />
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -565,78 +808,60 @@ export default function EmailPage() {
           ) : null}
 
           {activeTab === "SENDER" ? (
-            <>
-              <div className={styles.card}>
-                <div className={styles.cardHead}>
-                  <div className={styles.cardTitle}>
-                    <i className="bi bi-shield-check" /> Sender domains
-                  </div>
-                  <div className={styles.cardHint}>Verify SPF/DKIM to improve deliverability (mock)</div>
+            <div className={styles.card}>
+              <div className={styles.cardHead}>
+                <div className={styles.cardTitle}>
+                  <i className="bi bi-shield-check" /> Sender domains
+                </div>
+                <div className={styles.cardHint}>Verify SPF/DKIM to improve deliverability (mock)</div>
+              </div>
+
+              <div className={styles.cardBody}>
+                <div className={styles.inlineActions}>
+                  <button className={styles.primaryBtn} type="button" onClick={addDomain}>
+                    <i className="bi bi-plus-lg" /> Add domain
+                  </button>
                 </div>
 
-                <div className={styles.cardBody}>
-                  <div className={styles.inlineActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={addDomain}>
-                      <i className="bi bi-plus-lg" /> Add domain
-                    </button>
-                    <button
-                      className={styles.secondaryBtn}
-                      type="button"
-                      onClick={() => {
-                        setToast({ type: "info", text: "DNS records guide (mock)." });
-                        pushLog("INFO", "DNS guide", "Opened DNS records guide (mock).");
-                      }}>
-                      <i className="bi bi-journal-bookmark" /> DNS guide
-                    </button>
-                  </div>
-
-                  <div className={styles.domainList}>
-                    {domains.length === 0 ? (
-                      <div className={styles.empty}>
-                        <i className="bi bi-globe2" />
-                        <div className={styles.emptyTitle}>No domains</div>
-                        <div className={styles.emptyHint}>Add a sender domain to enable SPF/DKIM verification.</div>
-                      </div>
-                    ) : (
-                      domains.map((d) => (
-                        <div key={d.id} className={styles.domainRow}>
-                          <div className={styles.domainLeft}>
-                            <div className={styles.domainName}>
-                              <i className="bi bi-globe2" /> {d.domain}
-                            </div>
-                            <div className={styles.domainMeta}>Last checked: {fmtDateTime(d.lastCheckedAt)}</div>
-                          </div>
-
-                          <div className={styles.domainRight}>
-                            <span className={`${styles.chip} ${d.status === "VERIFIED" ? styles.chipOk : d.status === "FAILED" ? styles.chipErr : styles.chipPending}`}>
-                              <i className={`bi ${d.status === "VERIFIED" ? "bi-check-circle" : d.status === "FAILED" ? "bi-x-circle" : "bi-hourglass-split"}`} />
-                              {d.status}
-                            </span>
-
-                            {d.status !== "VERIFIED" ? (
-                              <button className={styles.secondaryBtn} type="button" onClick={() => verifyDomain(d.id)}>
-                                <i className="bi bi-shield-check" /> Verify
-                              </button>
-                            ) : null}
-
-                            <button className={`${styles.secondaryBtn} ${styles.dangerBtn}`} type="button" onClick={() => removeDomain(d.id)}>
-                              <i className="bi bi-trash3" /> Remove
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  <div className={styles.noteCallout}>
-                    <i className="bi bi-info-circle" />
-                    <div>
-                      <b>Tip:</b> Với no-code, bạn có thể expose “Domain verification status” để hiển thị cảnh báo trong dashboard.
+                <div className={styles.domainList}>
+                  {domains.length === 0 ? (
+                    <div className={styles.empty}>
+                      <i className="bi bi-globe2" />
+                      <div className={styles.emptyTitle}>No domains</div>
+                      <div className={styles.emptyHint}>Add a sender domain to enable SPF/DKIM verification.</div>
                     </div>
-                  </div>
+                  ) : (
+                    domains.map((d) => (
+                      <div key={d.id} className={styles.domainRow}>
+                        <div className={styles.domainLeft}>
+                          <div className={styles.domainName}>
+                            <i className="bi bi-globe2" /> {d.domain}
+                          </div>
+                          <div className={styles.domainMeta}>Last checked: {fmtDateTime(d.lastCheckedAt)}</div>
+                        </div>
+
+                        <div className={styles.domainRight}>
+                          <span className={`${styles.chip} ${d.status === "VERIFIED" ? styles.chipOk : d.status === "FAILED" ? styles.chipErr : styles.chipPending}`}>
+                            <i className={`bi ${d.status === "VERIFIED" ? "bi-check-circle" : d.status === "FAILED" ? "bi-x-circle" : "bi-hourglass-split"}`} />
+                            {d.status}
+                          </span>
+
+                          {d.status !== "VERIFIED" ? (
+                            <button className={styles.secondaryBtn} type="button" onClick={() => verifyDomain(d.id)}>
+                              <i className="bi bi-shield-check" /> Verify
+                            </button>
+                          ) : null}
+
+                          <button className={`${styles.secondaryBtn} ${styles.dangerBtn}`} type="button" onClick={() => removeDomain(d.id)}>
+                            <i className="bi bi-trash3" /> Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
-            </>
+            </div>
           ) : null}
 
           {activeTab === "LOGS" ? (
@@ -645,31 +870,37 @@ export default function EmailPage() {
                 <div className={styles.cardTitle}>
                   <i className="bi bi-journal-text" /> Email logs
                 </div>
-                <div className={styles.cardHint}>Delivery, bounces, complaints (mock)</div>
+                <div className={styles.cardHint}>Loaded from /api/admin/email (latest 30)</div>
               </div>
 
               <div className={styles.cardBody}>
+                {logsError ? (
+                  <div style={{ marginBottom: 10, color: "#b42318", fontSize: 13 }}>
+                    <i className="bi bi-exclamation-triangle" /> {logsError}{" "}
+                    <button className={styles.secondaryBtn} type="button" onClick={loadLogs}>
+                      <i className="bi bi-arrow-clockwise" /> Retry
+                    </button>
+                  </div>
+                ) : null}
+
                 <div className={styles.inlineActions}>
-                  <button className={styles.secondaryBtn} type="button" onClick={() => setToast({ type: "info", text: "Refresh logs (mock)." })}>
-                    <i className="bi bi-arrow-clockwise" /> Refresh
-                  </button>
-                  <button
-                    className={`${styles.secondaryBtn} ${styles.dangerBtn}`}
-                    type="button"
-                    onClick={() => {
-                      setLogs([]);
-                      setToast({ type: "info", text: "Logs cleared (mock)." });
-                    }}>
-                    <i className="bi bi-trash3" /> Clear logs
+                  <button className={styles.secondaryBtn} type="button" onClick={loadLogs} disabled={logsLoading}>
+                    <i className={`bi ${logsLoading ? "bi-hourglass-split" : "bi-arrow-clockwise"}`} /> Refresh
                   </button>
                 </div>
 
                 <div className={styles.logs}>
-                  {logs.length === 0 ? (
+                  {logsLoading && logs.length === 0 ? (
+                    <div className={styles.empty}>
+                      <i className="bi bi-hourglass-split" />
+                      <div className={styles.emptyTitle}>Loading…</div>
+                      <div className={styles.emptyHint}>Fetching email history</div>
+                    </div>
+                  ) : logs.length === 0 ? (
                     <div className={styles.empty}>
                       <i className="bi bi-inbox" />
                       <div className={styles.emptyTitle}>No logs</div>
-                      <div className={styles.emptyHint}>Logs will appear here when messages are sent.</div>
+                      <div className={styles.emptyHint}>Logs will appear here when emails are created/sent.</div>
                     </div>
                   ) : (
                     logs.map((l) => (
@@ -689,55 +920,6 @@ export default function EmailPage() {
               </div>
             </div>
           ) : null}
-
-          {/* Danger zone */}
-          <div className={styles.card}>
-            <div className={styles.cardHead}>
-              <div className={styles.cardTitle}>
-                <i className="bi bi-exclamation-octagon" /> Danger zone
-              </div>
-              <div className={styles.cardHint}>Be careful — affects verification & deliverability</div>
-            </div>
-
-            <div className={styles.cardBody}>
-              <div className={styles.dangerRow}>
-                <div>
-                  <div className={styles.dangerTitle}>Disable emails</div>
-                  <div className={styles.dangerHint}>System won’t send transactional emails until re-enabled.</div>
-                </div>
-                <button
-                  className={`${styles.secondaryBtn} ${styles.dangerBtn}`}
-                  type="button"
-                  onClick={() => {
-                    setSettings((s) => ({ ...s, status: "DISCONNECTED" }));
-                    setToast({ type: "info", text: "Emails disabled (mock)." });
-                    pushLog("WARN", "Disable emails", "Emails disabled (mock).");
-                  }}>
-                  <i className="bi bi-power" />
-                  Disable
-                </button>
-              </div>
-
-              <div className={styles.dangerRow}>
-                <div>
-                  <div className={styles.dangerTitle}>Purge secrets</div>
-                  <div className={styles.dangerHint}>Remove stored API keys/passwords (mock).</div>
-                </div>
-                <button
-                  className={`${styles.secondaryBtn} ${styles.dangerBtn}`}
-                  type="button"
-                  onClick={() => {
-                    setSettings((s) => ({ ...s, resendApiKey: "", sendgridApiKey: "", smtpPass: "" }));
-                    setDirty(true);
-                    setToast({ type: "info", text: "Secrets purged (not saved yet)." });
-                    pushLog("WARN", "Purge secrets", "Secrets purged (mock).");
-                  }}>
-                  <i className="bi bi-shield-x" />
-                  Purge
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Side */}
@@ -765,9 +947,7 @@ export default function EmailPage() {
 
               <div className={styles.sideHint}>
                 <i className="bi bi-info-circle" />
-                <div>
-                  No-code gợi ý: expose actions <b>sendEmail</b> + template variables để users map vào workflows.
-                </div>
+                <div>Tip: Templates đang dùng API thật. Settings/domains sẽ nối API khi bạn có model tương ứng.</div>
               </div>
 
               <div className={styles.sideActions}>
@@ -827,13 +1007,7 @@ export default function EmailPage() {
             ) : null}
 
             <div className={styles.inlineActions}>
-              <button
-                className={styles.secondaryBtn}
-                type="button"
-                onClick={() => {
-                  setToast({ type: "success", text: "Copied masked values (mock)." });
-                  pushLog("INFO", "Copy secrets", "Copied masked secrets (mock).");
-                }}>
+              <button className={styles.secondaryBtn} type="button" onClick={() => setToast({ type: "success", text: "Copied masked values (mock)." })}>
                 <i className="bi bi-clipboard" /> Copy masked
               </button>
             </div>
@@ -842,6 +1016,30 @@ export default function EmailPage() {
       </aside>
 
       {showSecrets ? <button className={styles.backdrop} onClick={() => setShowSecrets(false)} aria-label="Close drawer" /> : null}
+
+      {/* ✅ Template create/edit modal */}
+      {tplModalOpen ? (
+        <TemplateModal
+          initial={tplEditing}
+          onClose={() => {
+            setTplModalOpen(false);
+            setTplEditing(null);
+          }}
+          onSave={async (payload) => {
+            try {
+              if (tplEditing) {
+                await updateTemplate(tplEditing.id, payload as any);
+              } else {
+                await createTemplate(payload as any);
+              }
+              setTplModalOpen(false);
+              setTplEditing(null);
+            } catch (e: any) {
+              setToast({ type: "error", text: e?.message || "Save failed" });
+            }
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -889,17 +1087,164 @@ function SecretRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TemplateCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+function TemplateCard({
+  title,
+  desc,
+  metaLeft,
+  metaRight,
+  disabled,
+  onOpen,
+  onToggleActive,
+  onDisable,
+}: {
+  title: string;
+  desc: string;
+  metaLeft: string;
+  metaRight: string;
+  disabled?: boolean;
+  onOpen: () => void;
+  onToggleActive: () => void;
+  onDisable: () => void;
+}) {
   return (
-    <button type="button" className={styles.templateCard} onClick={() => alert(`Open template builder: ${title} (mock)`)}>
-      <div className={styles.templateIcon}>
-        <i className={`bi ${icon}`} />
+    <div className={styles.templateCard}>
+      <button type="button" className={styles.templateMain} onClick={onOpen}>
+        <div className={styles.templateInfo}>
+          <div className={styles.templateTitle}>
+            {title} {disabled ? <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>(Disabled)</span> : null}
+          </div>
+          <div className={styles.templateDesc}>{desc}</div>
+          <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+            <span className={styles.mono}>{metaLeft}</span>
+            <span style={{ margin: "0 8px" }}>•</span>
+            <span>{metaRight}</span>
+          </div>
+        </div>
+        <i className={`bi bi-chevron-right ${styles.templateArrow}`} />
+      </button>
+
+      <div className={styles.templateActions}>
+        <button className={styles.secondaryBtn} type="button" onClick={onToggleActive}>
+          <i className="bi bi-toggle-on" /> Toggle
+        </button>
+        <button className={`${styles.secondaryBtn} ${styles.dangerBtn}`} type="button" onClick={onDisable}>
+          <i className="bi bi-slash-circle" /> Disable
+        </button>
       </div>
-      <div className={styles.templateInfo}>
-        <div className={styles.templateTitle}>{title}</div>
-        <div className={styles.templateDesc}>{desc}</div>
+    </div>
+  );
+}
+
+/** -------- Modal: Create/Edit template -------- */
+function TemplateModal({
+  initial,
+  onClose,
+  onSave,
+}: {
+  initial: EmailTemplate | null;
+  onClose: () => void;
+  onSave: (payload: { key: string; name: string; subject: string; htmlContent?: string | null; textContent?: string | null; description?: string | null; isActive?: boolean }) => Promise<void> | void;
+}) {
+  const isEdit = !!initial;
+
+  const [key, setKey] = useState(initial?.key || "");
+  const [name, setName] = useState(initial?.name || "");
+  const [subject, setSubject] = useState(initial?.subject || "");
+  const [description, setDescription] = useState(initial?.description || "");
+  const [htmlContent, setHtmlContent] = useState(initial?.htmlContent || "");
+  const [textContent, setTextContent] = useState(initial?.textContent || "");
+  const [isActive, setIsActive] = useState(initial?.isActive ?? true);
+
+  const [saving, setSaving] = useState(false);
+  const canSave = key.trim().length >= 2 && name.trim().length >= 2 && subject.trim().length >= 1 && (htmlContent.trim().length > 0 || textContent.trim().length > 0) && !saving;
+
+  return (
+    <div className={styles.modalRoot} role="dialog" aria-modal="true">
+      <button className={styles.modalBackdrop} onClick={onClose} aria-label="Close modal" />
+      <div className={styles.modal}>
+        <div className={styles.modalHeader}>
+          <div className={styles.modalTitle}>
+            <i className="bi bi-file-earmark-text" /> {isEdit ? "Edit template" : "New template"}
+          </div>
+          <button className={styles.iconBtn} type="button" onClick={onClose} aria-label="Close">
+            <i className="bi bi-x-lg" />
+          </button>
+        </div>
+
+        <div className={styles.modalBody}>
+          <div className={styles.formGrid}>
+            <Field label="Key" hint="Unique (per admin)">
+              <div className={styles.inputWrap}>
+                <i className={`bi bi-hash ${styles.inputIcon}`} />
+                <input
+                  className={styles.input}
+                  value={key}
+                  onChange={(e) => setKey(e.target.value)}
+                  disabled={isEdit} // usually keep key immutable
+                />
+              </div>
+            </Field>
+
+            <Field label="Name" hint="Human readable">
+              <div className={styles.inputWrap}>
+                <i className={`bi bi-card-text ${styles.inputIcon}`} />
+                <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+            </Field>
+
+            <Field label="Subject" hint="Email subject">
+              <div className={styles.inputWrap}>
+                <i className={`bi bi-type ${styles.inputIcon}`} />
+                <input className={styles.input} value={subject} onChange={(e) => setSubject(e.target.value)} />
+              </div>
+            </Field>
+
+            <Field label="Active">
+              <Toggle checked={isActive} onChange={setIsActive} labels={["Disabled", "Active"]} />
+            </Field>
+          </div>
+
+          <Field label="Description" hint="Optional">
+            <textarea className={styles.textarea} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description…" />
+          </Field>
+
+          <Field label="HTML content" hint="Optional, but at least HTML or Text is required">
+            <textarea className={styles.textarea} value={htmlContent} onChange={(e) => setHtmlContent(e.target.value)} placeholder="<h1>Hello {{name}}</h1>" />
+          </Field>
+
+          <Field label="Text content" hint="Optional">
+            <textarea className={styles.textarea} value={textContent} onChange={(e) => setTextContent(e.target.value)} placeholder="Hello {{name}}" />
+          </Field>
+        </div>
+
+        <div className={styles.modalFooter}>
+          <button className={styles.secondaryBtn} type="button" onClick={onClose} disabled={saving}>
+            Cancel
+          </button>
+          <button
+            className={styles.primaryBtn}
+            type="button"
+            disabled={!canSave}
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await onSave({
+                  key: key.trim(),
+                  name: name.trim(),
+                  subject: subject.trim(),
+                  description: description.trim() || null,
+                  htmlContent: htmlContent.trim() || null,
+                  textContent: textContent.trim() || null,
+                  isActive,
+                });
+              } finally {
+                setSaving(false);
+              }
+            }}>
+            <i className="bi bi-check2" /> Save
+          </button>
+        </div>
       </div>
-      <i className={`bi bi-chevron-right ${styles.templateArrow}`} />
-    </button>
+    </div>
   );
 }

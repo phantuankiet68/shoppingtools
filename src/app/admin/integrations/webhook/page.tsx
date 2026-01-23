@@ -2,13 +2,13 @@
 
 import dynamic from "next/dynamic";
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const StorageBuilder = dynamic(() => import("@/components/admin/integrations/storage/page"), { ssr: false });
+const WebhookBuilder = dynamic(() => import("@/components/admin/integrations/webhook/page"), { ssr: false });
 
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Storage Management" subtitle="Configure and manage system storage" />
-      <StorageBuilder />
+      <AdminPageTitle title="Webhook Management" subtitle="Configure and manage webhook endpoints" />
+      <WebhookBuilder />
     </main>
   );
 }
