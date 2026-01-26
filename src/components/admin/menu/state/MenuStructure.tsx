@@ -1,12 +1,13 @@
 "use client";
-import { useMemo, useRef, useState } from "react";
+
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/menu/MenuStructure.module.css";
 import EditOffcanvas from "./EditOffcanvas";
-import React from "react";
-import { useMenuStore, type Locale, type MenuSetKey } from "@/components/admin/menu/state/useMenuStore";
+import { useMenuStore, type Locale, type BuilderMenuItem } from "@/components/admin/menu/state/useMenuStore";
+import ConfirmDialog from "@/components/admin/popup/delete/ConfirmDialog";
 
-type MenuItem = ReturnType<typeof useMenuStore>["activeMenu"][number];
+type MenuItem = BuilderMenuItem;
 
 type DragInfo = null | {
   kind: "move";
@@ -27,6 +28,54 @@ function slugifyLoose(input: string) {
     .replace(/^-|-$/g, "");
 }
 
+function findItemInTree(tree: MenuItem[] | undefined, id: string): MenuItem | null {
+  const arr = tree || [];
+  for (const it of arr) {
+    if (it.id === id) return it;
+    if (it.children?.length) {
+      const found = findItemInTree(it.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function removeItemByIdFromTree(tree: MenuItem[] | undefined, id: string): { removed: MenuItem | null; next: MenuItem[] } {
+  const arr = tree || [];
+  let removed: MenuItem | null = null;
+
+  const walk = (nodes: MenuItem[]): MenuItem[] => {
+    const out: MenuItem[] = [];
+    for (const n of nodes) {
+      if (n.id === id) {
+        removed = n;
+        continue;
+      }
+      if (n.children?.length) {
+        const nextChildren = walk(n.children);
+        out.push(nextChildren !== n.children ? { ...n, children: nextChildren } : n);
+      } else {
+        out.push(n);
+      }
+    }
+    return out;
+  };
+
+  const next = walk(arr);
+  return { removed, next };
+}
+
+function isDescendant(tree: MenuItem[] | undefined, sourceId: string, targetParentId?: string): boolean {
+  if (!targetParentId) return false;
+  const sourceNode = findItemInTree(tree, sourceId);
+  if (!sourceNode?.children?.length) return false;
+
+  const walk = (node: MenuItem): boolean => {
+    return (node.children || []).some((c) => c.id === targetParentId || walk(c));
+  };
+  return walk(sourceNode);
+}
+
 type Props = {
   locale: Locale;
   siteId?: string;
@@ -34,50 +83,55 @@ type Props = {
 
 export default function MenuStructure({ locale, siteId }: Props) {
   const router = useRouter();
-  const { currentSet, activeMenu, setActiveMenu, removeItemById, saveToServer, loadFromServer, buildHref, findItem } = useMenuStore();
+
+  const { activeMenu, setActiveMenu, buildHref } = useMenuStore();
 
   const [editing, setEditing] = useState<MenuItem | null>(null);
+
   const dragInfo = useRef<DragInfo>(null);
   const overRef = useRef<HTMLElement | null>(null);
 
   const [q, setQ] = useState("");
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = React.useState<string | null>(null);
-  const [busy, setBusy] = React.useState(false);
 
-  const askDelete = (id: string) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const askDelete = useCallback((id: string) => {
     setPendingDeleteId(id);
     setConfirmOpen(true);
-  };
+  }, []);
 
-  const doDelete = async () => {
+  const doDelete = useCallback(async () => {
     if (!pendingDeleteId) return;
 
-    const el = document.querySelector(`[data-menu-id="${pendingDeleteId}"]`);
-    if (el) (el as HTMLElement).style.opacity = "0.4";
+    const el = document.querySelector(`[data-menu-id="${pendingDeleteId}"]`) as HTMLElement | null;
+    if (el) el.style.opacity = "0.4";
 
     try {
       setBusy(true);
       const res = await fetch(`/api/admin/menu-items/${pendingDeleteId}`, { method: "DELETE", cache: "no-store" });
       if (!res.ok) throw new Error(await res.text());
+      const { next } = removeItemByIdFromTree(activeMenu, pendingDeleteId);
+      setActiveMenu(next);
 
       router.refresh();
-      setTimeout(() => window.location.reload(), 100);
     } catch (e: any) {
       alert(e?.message || "Delete failed");
-      if (el) (el as HTMLElement).style.opacity = "";
+      if (el) el.style.opacity = "";
     } finally {
       setBusy(false);
       setConfirmOpen(false);
       setPendingDeleteId(null);
     }
-  };
+  }, [pendingDeleteId, activeMenu, setActiveMenu, router]);
 
   const filteredTree = useMemo(() => {
     const query = q.trim().toLowerCase();
-    if (!query) return activeMenu;
+    if (!query) return activeMenu || [];
 
     const now = new Date();
+
     const matchNode = (node: MenuItem): MenuItem | null => {
       const href = buildHref(node, now);
       const titleHit = (node.title || "").toLowerCase().includes(query);
@@ -94,117 +148,121 @@ export default function MenuStructure({ locale, siteId }: Props) {
     return (activeMenu || []).map(matchNode).filter(Boolean) as MenuItem[];
   }, [activeMenu, q, buildHref]);
 
-  function setOver(el: HTMLElement | null, on: boolean) {
+  const setOver = useCallback((el: HTMLElement | null, on: boolean) => {
     if (!el) return;
     if (on) el.classList.add(styles.dropActive);
     else el.classList.remove(styles.dropActive);
-  }
+  }, []);
 
-  function onDropNew(e: React.DragEvent, zone: "root" | "children", parentId?: string) {
-    e.preventDefault();
-    e.stopPropagation();
+  const onDropzoneOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
 
-    const raw = e.dataTransfer.getData("application/json") || e.dataTransfer.getData("text/plain");
-    if (!raw) return;
-
-    try {
-      const payload = JSON.parse(raw);
-      if (payload?.type !== "new") return;
-
-      const title = (payload.name as string) || "Untitled";
-      const linkType = (payload.linkType as string) ?? "internal";
-      const baseId = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
-      let rawPath: string | null = null;
-      let slug: string | undefined = undefined;
-
-      if (linkType === "internal") {
-        rawPath = (payload.rawPath as string | undefined) || "";
-        if (!rawPath) {
-          const s = slugifyLoose(title) || "untitled";
-          rawPath = `/${s}`;
-        }
-        const segs = rawPath.split("/").filter(Boolean);
-        slug = segs.length ? segs[segs.length - 1] : "/";
+      if (overRef.current !== e.currentTarget) {
+        setOver(overRef.current as any, false);
+        overRef.current = e.currentTarget;
+        setOver(e.currentTarget, true);
       }
+    },
+    [setOver],
+  );
 
-      const item: MenuItem = {
-        id: baseId as any,
-        title,
-        icon: "",
-        linkType: (linkType as any) ?? "internal",
-        externalUrl: (payload.externalUrl as string) ?? "",
-        newTab: false,
-        internalPageId: (payload.internalPageId as string) ?? null,
-        rawPath: rawPath as any,
-        ...(slug ? { slug: slug as any } : {}),
-        schedules: [],
-        children: [],
-      };
+  const onDropNew = useCallback(
+    (e: React.DragEvent, zone: "root" | "children", parentId?: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const raw = e.dataTransfer.getData("application/json") || e.dataTransfer.getData("text/plain");
+      if (!raw) return;
+
+      try {
+        const payload = JSON.parse(raw);
+        if (payload?.type !== "new") return;
+
+        const title = (payload.name as string) || "Untitled";
+        const linkType = (payload.linkType as string) ?? "internal";
+        const baseId = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
+
+        let rawPath: string | null = null;
+        let slug: string | undefined;
+
+        if (linkType === "internal") {
+          rawPath = (payload.rawPath as string | undefined) || "";
+          if (!rawPath) {
+            const s = slugifyLoose(title) || "untitled";
+            rawPath = `/${s}`;
+          }
+          const segs = rawPath.split("/").filter(Boolean);
+          slug = segs.length ? segs[segs.length - 1] : "/";
+        }
+
+        const item: MenuItem = {
+          id: baseId as any,
+          title,
+          icon: "",
+          linkType: (linkType as any) ?? "internal",
+          externalUrl: (payload.externalUrl as string) ?? "",
+          internalPageId: (payload.internalPageId as string) ?? null,
+          rawPath: rawPath as any,
+          ...(slug ? { slug: slug as any } : {}),
+          schedules: [],
+          children: [],
+        };
+
+        if (zone === "root") {
+          setActiveMenu([...(activeMenu || []), item]);
+        } else {
+          const next = (activeMenu || []).map((it) => (it.id === parentId ? { ...it, children: [...(it.children || []), item] } : it));
+          setActiveMenu(next);
+        }
+      } finally {
+        setOver(overRef.current as any, false);
+        overRef.current = null;
+      }
+    },
+    [activeMenu, setActiveMenu, setOver],
+  );
+
+  const onDragStartRow = useCallback((e: React.DragEvent, it: MenuItem, source: "root" | "children", parentId?: string) => {
+    dragInfo.current = { kind: "move", id: it.id, source, parentId };
+    (e.currentTarget as HTMLElement).classList.add(styles.ghost);
+    e.dataTransfer.effectAllowed = "move";
+  }, []);
+
+  const onDragEndRow = useCallback((e: React.DragEvent) => {
+    (e.currentTarget as HTMLElement).classList.remove(styles.ghost);
+    dragInfo.current = null;
+  }, []);
+
+  const onDropMove = useCallback(
+    (e: React.DragEvent, zone: "root" | "children", parentId?: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const info = dragInfo.current;
+      if (!info || info.kind !== "move") return;
+      if (zone === "children" && parentId === info.id) return;
+      if (zone === "children" && isDescendant(activeMenu, info.id, parentId)) return;
+
+      const { removed, next } = removeItemByIdFromTree(activeMenu, info.id);
+      if (!removed) return;
 
       if (zone === "root") {
-        setActiveMenu([...(activeMenu || []), item]);
+        setActiveMenu([...next, removed]);
       } else {
-        const next = (activeMenu || []).map((it) => (it.id === parentId ? { ...it, children: [...(it.children || []), item] } : it));
-        setActiveMenu(next);
+        const nextRoot = next.map((it) => (it.id === parentId ? { ...it, children: [...(it.children || []), removed] } : it));
+        setActiveMenu(nextRoot);
       }
-    } finally {
+      dragInfo.current = null;
       setOver(overRef.current as any, false);
       overRef.current = null;
-    }
-  }
+    },
+    [activeMenu, setActiveMenu, setOver],
+  );
 
-  function onDragStartRow(e: React.DragEvent, it: MenuItem, source: "root" | "children", parentId?: string) {
-    dragInfo.current = { kind: "move", id: it.id, source, parentId };
-    (e.target as HTMLElement).classList.add(styles.ghost);
-    e.dataTransfer.effectAllowed = "move";
-  }
-  function onDragEndRow(e: React.DragEvent) {
-    (e.target as HTMLElement).classList.remove(styles.ghost);
-    dragInfo.current = null;
-  }
-  function onDropMove(e: React.DragEvent, zone: "root" | "children", parentId?: string) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const info = dragInfo.current;
-    if (!info || info.kind !== "move") return;
-
-    if (zone === "children" && parentId === info.id) return;
-    const isDescendant = (nodeId: string, targetId?: string): boolean => {
-      if (!targetId) return false;
-      const node = findItem(nodeId);
-      if (!node?.children?.length) return false;
-      return node.children.some((c) => c.id === targetId || isDescendant(c.id, targetId));
-    };
-    if (zone === "children" && isDescendant(info.id, parentId)) return;
-
-    const [removed, nextRoot] = removeItemById(info.id);
-    if (!removed) return;
-
-    if (zone === "root") {
-      setActiveMenu([...nextRoot, removed]);
-    } else {
-      const next = nextRoot.map((it) => (it.id === parentId ? { ...it, children: [...(it.children || []), removed] } : it));
-      setActiveMenu(next);
-    }
-    dragInfo.current = null;
-
-    setOver(overRef.current as any, false);
-    overRef.current = null;
-  }
-
-  const onDropzoneOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
-    if (overRef.current !== e.currentTarget) {
-      setOver(overRef.current as any, false);
-      overRef.current = e.currentTarget;
-      setOver(e.currentTarget, true);
-    }
-  };
-
-  function highlight(text: string, needle: string) {
+  const highlight = useCallback((text: string, needle: string) => {
     if (!needle) return text;
     const ql = needle.toLowerCase();
     const tl = (text || "").toLowerCase();
@@ -217,86 +275,76 @@ export default function MenuStructure({ locale, siteId }: Props) {
         {text.slice(i + needle.length)}
       </>
     );
-  }
+  }, []);
 
-  function renderRow(item: MenuItem, idx: number, depth: number, parentId?: string) {
-    const typeBadgeClass = item.linkType === "internal" ? styles.badgeSuccess : item.linkType === "scheduled" ? styles.badgeWarning : styles.badgePrimary;
+  const renderRow = useCallback(
+    (item: MenuItem, idx: number, depth: number, parentId?: string) => {
+      const typeBadgeClass = item.linkType === "internal" ? styles.badgeSuccess : item.linkType === "scheduled" ? styles.badgeWarning : styles.badgePrimary;
 
-    const hrefPreview = buildHref(item, new Date());
+      const hrefPreview = buildHref(item, new Date());
 
-    return (
-      <div key={item.id} className={styles.itemContainer}>
-        <div className={styles.menuItem} draggable onDragStart={(e) => onDragStartRow(e, item, parentId ? "children" : "root", parentId)} onDragEnd={onDragEndRow} title={hrefPreview || ""}>
-          <span className={`${styles.order} text-white`}>{idx + 1}</span>
-          <i className={`bi bi-grip-vertical ${styles.handle}`} />
-          <span className={`${styles.depthBadge} ${depth === 1 ? styles.depthMain : styles.depthSub}`}>{depth === 1 ? "Main" : "Sub"}</span>
-          <span className={`${styles.typeBadge} ${typeBadgeClass}`}>{item.linkType}</span>
+      return (
+        <div key={item.id} className={styles.itemContainer} data-menu-id={item.id}>
+          <div className={styles.menuItem} draggable onDragStart={(e) => onDragStartRow(e, item, parentId ? "children" : "root", parentId)} onDragEnd={onDragEndRow} title={hrefPreview || ""}>
+            <span className={`${styles.order} text-white`}>{idx + 1}</span>
+            <i className={`bi bi-grip-vertical ${styles.handle}`} />
+            <span className={`${styles.depthBadge} ${depth === 1 ? styles.depthMain : styles.depthSub}`}>{depth === 1 ? "Main" : "Sub"}</span>
+            <span className={`${styles.typeBadge} ${typeBadgeClass}`}>{item.linkType}</span>
 
-          <span className={styles.flex1}>{highlight(item.title || "(No title)", q.trim())}</span>
+            <span className={styles.flex1}>{highlight(item.title || "(No title)", q.trim())}</span>
 
-          {hrefPreview ? <span className={styles.linkPill}>{hrefPreview}</span> : null}
+            {hrefPreview ? <span className={styles.linkPill}>{hrefPreview}</span> : null}
 
-          <button className={`${styles.btn} ${styles.btnIcon} ${styles.btnOutlineLight}`} onClick={() => setEditing(item)}>
-            <i className="bi bi-sliders2" />
-          </button>
+            <button type="button" className={`${styles.btn} ${styles.btnIcon} ${styles.btnOutlineLight}`} onClick={() => setEditing(item)}>
+              <i className="bi bi-sliders2" />
+            </button>
 
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnIcon} ${styles.btnOutlineDanger}`}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              askDelete(item.id);
-            }}
-            draggable={false}
-            title="Delete this item">
-            <i className="bi bi-x-lg" />
-          </button>
-        </div>
-        <ConfirmDialog
-          open={confirmOpen}
-          title="Delete menu"
-          message={busy ? "Deleting..." : "Are you sure you want to delete this item? This action will be saved."}
-          onCancel={() => {
-            if (busy) return;
-            setConfirmOpen(false);
-            setPendingDeleteId(null);
-          }}
-          onConfirm={() => {
-            if (!busy) void doDelete();
-          }}
-        />
-
-        <div className={styles.subwrap} data-parent={item.id}>
-          <div className={styles.smallHelp}>
-            <i className="bi bi-diagram-2" /> Submenu with <b>{item.title || "(No title)"}</b>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnIcon} ${styles.btnOutlineDanger}`}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                askDelete(item.id);
+              }}
+              draggable={false}
+              title="Delete this item">
+              <i className="bi bi-x-lg" />
+            </button>
           </div>
 
-          <div
-            className={`${styles.dropzone} ${styles.appSoft}`}
-            onDragOver={onDropzoneOver}
-            onDragEnter={onDropzoneOver}
-            onDragLeave={(e) => {
-              if (overRef.current === e.currentTarget) {
-                setOver(e.currentTarget, false);
-                overRef.current = null;
-              }
-            }}
-            onDrop={(e) => {
-              if (dragInfo.current) onDropMove(e, "children", item.id);
-              else onDropNew(e, "children", item.id);
-            }}>
-            {(item.children || []).length === 0 ? (
-              <p className={`${styles.smallHelp} m-0 py-2`}>Drag an item here to create a Submenu (Level 2)</p>
-            ) : (
-              (item.children || []).map((child, i) => renderRow(child, i, depth + 1, item.id))
-            )}
+          <div className={styles.subwrap} data-parent={item.id}>
+            <div className={styles.smallHelp}>
+              <i className="bi bi-diagram-2" /> Submenu with <b>{item.title || "(No title)"}</b>
+            </div>
+
+            <div
+              className={`${styles.dropzone} ${styles.appSoft}`}
+              onDragOver={onDropzoneOver}
+              onDragEnter={onDropzoneOver}
+              onDragLeave={(e) => {
+                if (overRef.current === e.currentTarget) {
+                  setOver(e.currentTarget, false);
+                  overRef.current = null;
+                }
+              }}
+              onDrop={(e) => {
+                if (dragInfo.current) onDropMove(e, "children", item.id);
+                else onDropNew(e, "children", item.id);
+              }}>
+              {(item.children || []).length === 0 ? (
+                <p className={`${styles.smallHelp} m-0 py-2`}>Drag an item here to create a Submenu (Level 2)</p>
+              ) : (
+                (item.children || []).map((child, i) => renderRow(child, i, depth + 1, item.id))
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
+      );
+    },
+    [askDelete, buildHref, highlight, onDragEndRow, onDragStartRow, onDropMove, onDropNew, onDropzoneOver, q, setOver],
+  );
 
   return (
     <>
@@ -317,23 +365,12 @@ export default function MenuStructure({ locale, siteId }: Props) {
           ) : null}
         </div>
       </div>
+
       <div className={styles.card}>
         <div
           className={`${styles.dropzone} ${styles.appSoft}`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
-            if (overRef.current !== e.currentTarget) {
-              setOver(overRef.current as any, false);
-              overRef.current = e.currentTarget as any;
-              setOver(e.currentTarget as any, true);
-            }
-          }}
-          onDragEnter={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          onDragOver={onDropzoneOver}
+          onDragEnter={onDropzoneOver}
           onDragLeave={(e) => {
             if (overRef.current === e.currentTarget) {
               setOver(e.currentTarget as any, false);
@@ -353,56 +390,19 @@ export default function MenuStructure({ locale, siteId }: Props) {
 
         {editing && <EditOffcanvas item={editing} onClose={() => setEditing(null)} />}
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Delete menu"
+        message={busy ? "Deleting..." : "Are you sure you want to delete this item? This action will be saved."}
+        onCancel={() => {
+          if (busy) return;
+          setConfirmOpen(false);
+          setPendingDeleteId(null);
+        }}
+        onConfirm={() => {
+          if (!busy) void doDelete();
+        }}
+      />
     </>
   );
 }
-
-function ConfirmDialog({
-  open,
-  title = "Confirm deletion",
-  message = "Are you sure you want to delete this item?",
-  onCancel,
-  onConfirm,
-}: {
-  open: boolean;
-  title?: string;
-  message?: string;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <div role="dialog" aria-modal="true" style={backdropStyle} onClick={onCancel}>
-      <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-        <h5 style={{ margin: 0 }}>{title}</h5>
-        <p style={{ margin: "8px 0 16px", color: "var(--text-red)" }}>{message}</p>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button className={`${styles.btn} ${styles.btnOutlineSecondary}`} onClick={onCancel}>
-            Cancel
-          </button>
-
-          <button className={`${styles.btn} ${styles.btnOutlineDanger}`} onClick={onConfirm}>
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const backdropStyle: React.CSSProperties = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,.35)",
-  display: "grid",
-  placeItems: "center",
-  zIndex: 10000,
-};
-const modalStyle: React.CSSProperties = {
-  width: 420,
-  maxWidth: "92vw",
-  background: "var(--card-bg,#fff)",
-  border: "1px solid var(--card-bd,#e5e7eb)",
-  borderRadius: 12,
-  padding: 16,
-};

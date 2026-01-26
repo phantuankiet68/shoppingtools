@@ -1,7 +1,6 @@
-// app/components/menu/MenuBuilder.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState, startTransition } from "react";
+import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/menu/menu.module.css";
 import { useMenuStore, type Locale, type MenuSetKey, type SiteKind } from "@/components/admin/menu/state/useMenuStore";
@@ -9,15 +8,6 @@ import AllowedBlocks from "@/components/admin/menu/state/AllowedBlocks";
 import MenuStructure from "@/components/admin/menu/state/MenuStructure";
 import { flattenTriples } from "@/lib/menu/deriveTitleSlugPath";
 import PopupNotice from "@/components/ui/PopupNotice";
-
-const LS_MENU_SET_KEY = "ui.menu.currentSet";
-
-function useStateSafe<T>(init: T) {
-  const [val, setVal] = useState<T>(init);
-  const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
-  return [ready ? val : init, setVal] as const;
-}
 
 type NoticeState = {
   open: boolean;
@@ -33,26 +23,31 @@ type SiteRow = {
   localeDefault: "vi" | "en" | "ja";
 };
 
-type Props = {
-  locale: Locale;
-  siteId?: string;
-};
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted;
+}
 
 export default function MenuBuilder() {
   const router = useRouter();
+  const mounted = useMounted();
+
   const { currentSet, setCurrentSet, activeMenu, setActiveMenu, loadFromServer, saveToServer, siteKind, setSiteKind, templateKey } = useMenuStore();
 
-  const [locale] = useStateSafe<Locale>("vi");
-  const [saving, setSaving] = useStateSafe(false);
-  const [loading, setLoading] = useStateSafe(false);
+  const locale: Locale = "vi";
+
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const [notice, setNotice] = useState<NoticeState>({ open: false });
-  const ioJson = useMemo(() => JSON.stringify(activeMenu, null, 2), [activeMenu]);
 
   const [sites, setSites] = useState<SiteRow[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
   const [hideSiteSelect, setHideSiteSelect] = useState(false);
+
+  const ioJson = useMemo(() => JSON.stringify(activeMenu, null, 2), [activeMenu]);
 
   useEffect(() => {
     (async () => {
@@ -62,46 +57,92 @@ export default function MenuBuilder() {
         const data = await res.json();
         const list: SiteRow[] = data.items || [];
         setSites(list);
-
-        const saved = typeof window !== "undefined" ? localStorage.getItem("ui.selectedSiteId") || "" : "";
-        if (saved && list.some((s) => s.id === saved)) {
-          setSelectedSiteId(saved);
-        } else if (list.length) {
-          setSelectedSiteId(list[0].id);
-        }
+        if (!mounted) return;
+        const saved = localStorage.getItem("ui.selectedSiteId") || "";
+        if (saved && list.some((s) => s.id === saved)) setSelectedSiteId(saved);
+        else if (list.length) setSelectedSiteId(list[0].id);
       } catch (e) {
         console.error(e);
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    if (selectedSiteId) localStorage.setItem("ui.selectedSiteId", selectedSiteId);
-  }, [selectedSiteId]);
+  }, [mounted]);
 
   useEffect(() => {
     if (!selectedSiteId) return;
+
+    let cancelled = false;
+
     (async () => {
+      const key = `ui.menu.currentSet.${selectedSiteId}`;
+      const saved = typeof window !== "undefined" ? (localStorage.getItem(key) as MenuSetKey | null) : null;
+      const effectiveSet = saved || currentSet;
+
+      if (effectiveSet !== currentSet) {
+        setCurrentSet(effectiveSet);
+      }
+
       try {
         setLoading(true);
-        await loadFromServer(locale, currentSet, selectedSiteId);
+        await loadFromServer(locale, effectiveSet, selectedSiteId);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSiteId, locale]);
+
+  const loadMenu = useCallback(
+    async (setKey: MenuSetKey, siteId: string) => {
+      if (!siteId) return;
+      setLoading(true);
+      try {
+        await loadFromServer(locale, setKey, siteId);
       } finally {
         setLoading(false);
       }
-    })();
-  }, [selectedSiteId]);
+    },
+    [loadFromServer],
+  );
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (!selectedSiteId) return;
+
+    const key = `ui.menu.currentSet.${selectedSiteId}`;
+    const saved = (localStorage.getItem(key) as MenuSetKey | null) || null;
+    const effectiveSet: MenuSetKey = saved || currentSet;
+
+    if (effectiveSet !== currentSet) {
+      setCurrentSet(effectiveSet);
+      void loadMenu(effectiveSet, selectedSiteId);
+    } else {
+      void loadMenu(currentSet, selectedSiteId);
+    }
+  }, [mounted, selectedSiteId]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (!selectedSiteId) return;
+
+    localStorage.setItem(`ui.menu.currentSet.${selectedSiteId}`, currentSet);
+    setHideSiteSelect(currentSet === "v1");
+
+    void loadMenu(currentSet, selectedSiteId);
+  }, [mounted, currentSet, selectedSiteId, loadMenu]);
 
   async function reloadAll({ hard = false }: { hard?: boolean } = {}) {
+    if (!selectedSiteId) return;
     try {
       setRefreshing(true);
       await loadFromServer(locale, currentSet, selectedSiteId);
-      startTransition(() => {
-        router.refresh();
-      });
+
+      startTransition(() => router.refresh());
+
       if (hard) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 150);
+        setTimeout(() => window.location.reload(), 150);
       }
     } finally {
       setRefreshing(false);
@@ -109,11 +150,11 @@ export default function MenuBuilder() {
   }
 
   async function handleSaveAll() {
-    console.log("Hoc them");
+    if (!selectedSiteId) return;
     try {
       setSaving(true);
-      await saveToServer(locale, currentSet, selectedSiteId);
 
+      await saveToServer(locale, currentSet, selectedSiteId);
       const triples = flattenTriples(locale, (activeMenu as any) ?? []);
       if (triples.length > 0) {
         const res = await fetch("/api/admin/pages/sync-from-menu", {
@@ -128,12 +169,7 @@ export default function MenuBuilder() {
         });
 
         const raw = await res.text().catch(() => "");
-        console.log("sync-from-menu status:", res.status);
-        console.log("sync-from-menu raw:", raw);
-
-        if (!res.ok) {
-          throw new Error(`Sync SEO failed: ${raw || res.status}`);
-        }
+        if (!res.ok) throw new Error(`Sync SEO failed: ${raw || res.status}`);
 
         await reloadAll({ hard: false });
 
@@ -180,16 +216,18 @@ export default function MenuBuilder() {
           title: "Copy failed",
           message: "The browser does not allow automatic copying.",
           variant: "warning",
-        })
+        }),
     );
   }
 
   function importJSONFromPrompt() {
     const text = prompt("Paste JSON for the current set.");
     if (!text) return;
+
     try {
       const data = JSON.parse(text);
       if (!Array.isArray(data)) throw new Error("Invalid JSON: It must be an array");
+
       setActiveMenu(data);
       setNotice({
         open: true,
@@ -197,9 +235,8 @@ export default function MenuBuilder() {
         message: "The menu has been updated according to the JSON that was just imported.",
         variant: "success",
       });
-      startTransition(() => {
-        router.refresh();
-      });
+
+      startTransition(() => router.refresh());
     } catch (e: any) {
       setNotice({
         open: true,
@@ -209,41 +246,6 @@ export default function MenuBuilder() {
       });
     }
   }
-
-  useEffect(() => {
-    if (!selectedSiteId) return;
-
-    let cancelled = false;
-
-    (async () => {
-      const key = `ui.menu.currentSet.${selectedSiteId}`;
-      const saved = typeof window !== "undefined" ? (localStorage.getItem(key) as MenuSetKey | null) : null;
-      const effectiveSet = saved || currentSet;
-      if (effectiveSet !== currentSet) {
-        setCurrentSet(effectiveSet);
-      }
-      try {
-        setLoading(true);
-        await loadFromServer(locale, effectiveSet, selectedSiteId);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedSiteId]);
-
-  useEffect(() => {
-    if (!selectedSiteId || typeof window === "undefined") {
-      setHideSiteSelect(false);
-      return;
-    }
-    const key = `ui.menu.currentSet.${selectedSiteId}`;
-    const saved = localStorage.getItem(key);
-    setHideSiteSelect(saved === "v1");
-  }, [selectedSiteId, currentSet]);
 
   return (
     <div className={styles.container}>
@@ -275,10 +277,9 @@ export default function MenuBuilder() {
             <i className="bi bi-layers" />
             <select className={`${styles.formSelectSm} ${styles.selectStyled}`} value={siteKind} onChange={(e) => setSiteKind(e.target.value as SiteKind)} aria-label="Loại website">
               <option value="ecommerce">eCommerce</option>
-              <option value="corporate">Corporate</option>
-              <option value="education">Education</option>
             </select>
           </div>
+
           <div className={styles.inline}>
             <i className="bi bi-diagram-3" />
             <select
@@ -286,17 +287,17 @@ export default function MenuBuilder() {
               value={currentSet}
               onChange={async (e) => {
                 const setKey = e.target.value as MenuSetKey;
-
+                setCurrentSet(setKey);
                 if (typeof window !== "undefined" && selectedSiteId) {
                   localStorage.setItem(`ui.menu.currentSet.${selectedSiteId}`, setKey);
                 }
-
-                setCurrentSet(setKey);
-                setLoading(true);
-                try {
-                  await loadFromServer(locale, setKey, selectedSiteId);
-                } finally {
-                  setLoading(false);
+                if (selectedSiteId) {
+                  setLoading(true);
+                  try {
+                    await loadFromServer("vi", setKey, selectedSiteId);
+                  } finally {
+                    setLoading(false);
+                  }
                 }
                 startTransition(() => router.refresh());
               }}
@@ -306,12 +307,14 @@ export default function MenuBuilder() {
             </select>
           </div>
         </div>
+
         <div className={styles.topbarRight}>
           <div className={styles.inline} style={{ gap: 6 }}>
             <button
               className={`${styles.btn} ${styles.btnOutlineSecondary}`}
               disabled={loading || refreshing || !selectedSiteId}
               onClick={async () => {
+                if (!selectedSiteId) return;
                 try {
                   setLoading(true);
                   await loadFromServer(locale, currentSet, selectedSiteId);
@@ -324,11 +327,10 @@ export default function MenuBuilder() {
                 } finally {
                   setLoading(false);
                 }
-                startTransition(() => {
-                  router.refresh();
-                });
+                startTransition(() => router.refresh());
               }}
-              title="Load menu from database based on site, locale, and set.">
+              title="Load menu from database based on site, locale, and set."
+              type="button">
               <i className="bi bi-download" /> {loading ? "Loading..." : refreshing ? "Refreshing..." : "Load from DB"}
             </button>
           </div>
@@ -336,20 +338,17 @@ export default function MenuBuilder() {
           <button
             type="button"
             className={`${styles.btn} ${styles.btnOutlinePrimary}`}
-            disabled={false}
-            onClick={() => {
-              console.log("clicked Save DB", { saving, selectedSiteId });
-              void handleSaveAll();
-            }}
+            disabled={!selectedSiteId || saving}
+            onClick={() => void handleSaveAll()}
             title="Save the database; then synchronize the page according to the menu (current site).">
             <i className="bi bi-save" /> {saving ? "Saving..." : "Save DB"}
           </button>
 
           <div className={styles.inline} style={{ gap: 6 }}>
-            <button className={`${styles.btn} ${styles.btnOutlineSuccess}`} onClick={exportJSON}>
+            <button className={`${styles.btn} ${styles.btnOutlineSuccess}`} onClick={exportJSON} type="button">
               <i className="bi bi-clipboard" /> Copy JSON
             </button>
-            <button className={`${styles.btn} ${styles.btnOutlineWarning}`} onClick={importJSONFromPrompt}>
+            <button className={`${styles.btn} ${styles.btnOutlineWarning}`} onClick={importJSONFromPrompt} type="button">
               <i className="bi bi-upload" /> Import JSON
             </button>
           </div>
@@ -358,32 +357,17 @@ export default function MenuBuilder() {
 
       <div className={styles.grid}>
         <div className={styles.leftCol}>
-          <AllowedBlocks key={`ab-${currentSet}-${siteKind}-${templateKey}-${selectedSiteId}`} />
+          <AllowedBlocks />
         </div>
         <div className={styles.rightCol}>
           <MenuStructure key={`ms-${currentSet}-${selectedSiteId}`} locale={locale} siteId={selectedSiteId} />
-
           <textarea
             className={`${styles.formControl} ${styles.mt}`}
-            style={{
-              position: "absolute",
-              opacity: 0,
-              pointerEvents: "none",
-              height: 0,
-              width: 0,
-            }}
+            style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, width: 0 }}
             rows={6}
             placeholder="Export/Import JSON for the current set"
-            defaultValue={ioJson}
-            onBlur={(e) => {
-              try {
-                const data = JSON.parse(e.target.value || "[]");
-                if (Array.isArray(data)) setActiveMenu(data);
-                startTransition(() => {
-                  router.refresh();
-                });
-              } catch {}
-            }}
+            value={ioJson}
+            readOnly
           />
         </div>
       </div>

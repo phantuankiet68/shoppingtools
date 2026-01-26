@@ -2,50 +2,54 @@
 "use client";
 
 import React from "react";
-import { useMenuStore } from "@/components/admin/menu/state/useMenuStore";
+import { useMenuStore, type BuilderMenuItem } from "@/components/admin/menu/state/useMenuStore";
 import styles from "@/styles/admin/menu/menu.module.css";
 
 type TabKey = "home" | "dashboard";
 
-function isTabbedConfig(v: unknown): v is { home: string[]; dashboard: string[] } {
-  return !!v && typeof v === "object" && !Array.isArray(v) && Array.isArray((v as any).home) && Array.isArray((v as any).dashboard);
+function isTabbedConfig(v: unknown): v is { home: string[]; dashboard?: string[] } {
+  return !!v && typeof v === "object" && !Array.isArray(v) && Array.isArray((v as any).home) && ((v as any).dashboard === undefined || Array.isArray((v as any).dashboard));
 }
 
 export default function AllowedBlocks() {
-  const { TEMPLATE_ALLOWED, templateKey, activeMenu, setActiveMenu, addBlankItem, INTERNAL_PAGES, siteKind } = useMenuStore();
+  const { TEMPLATE_ALLOWED, templateKey, activeMenu, setActiveMenu, addBlankItem, INTERNAL_PAGES, siteKind, currentSet } = useMenuStore();
 
   const tpl = TEMPLATE_ALLOWED[templateKey];
   const hasTabs = isTabbedConfig(tpl);
-  const [tab, setTab] = React.useState<TabKey>("home");
+
+  // ✅ Ép tab theo currentSet, không dùng state tab để tránh user đổi tay + tránh re-render dư
+  const forcedTab: TabKey = currentSet === "v1" ? "dashboard" : "home";
 
   const baseNames: string[] = React.useMemo(() => {
     if (!tpl) return [];
     if (Array.isArray(tpl)) return tpl;
-    return tab === "dashboard" ? tpl.dashboard : tpl.home;
-  }, [tpl, tab]);
+
+    // ✅ dashboard có thể undefined
+    return forcedTab === "dashboard" ? (tpl.dashboard ?? []) : tpl.home;
+  }, [tpl, forcedTab]);
+
+  const existingPages = React.useMemo(() => {
+    const set = new Set<string>();
+
+    (INTERNAL_PAGES || []).forEach((p) => {
+      if (p.label) set.add(p.label.toLowerCase().trim());
+      if (p.labelVi) set.add(p.labelVi.toLowerCase().trim());
+      (p.aliases || []).forEach((a) => set.add(a.toLowerCase().trim()));
+    });
+
+    return set;
+  }, [INTERNAL_PAGES]);
 
   const SUGGEST = React.useMemo(() => {
     const out: Record<string, string[]> = {};
 
     if (siteKind === "ecommerce") {
-      out["Explore"] = ["Search", "Categories", "Collections", "Best Sellers"];
-      out["Content & SEO"] = ["Buying Guides", "About Us", "Frequently Asked Questions"];
-      out["Customer Support & Policies"] = ["Shipping", "Returns & Refunds", "Store Locations"];
-      out["Shopping"] = ["Cart", "Checkout"];
-    }
-
-    if (siteKind === "corporate") {
-      out["Extended Introduction"] = ["Vision & Mission", "Company History", "Leadership Team", "Core Values", "Partners & Clients"];
-      out["Services & Solutions"] = ["Strategic Consulting", "Design & Creative", "Software Development", "Digital Transformation", "IT Infrastructure & Security"];
-      out["Careers & Culture"] = ["Corporate Culture", "Company Life", "HR Policies", "Job Openings"];
-      out["Customer Support & Policies"] = ["Quick Contact", "FAQ - Frequently Asked Questions", "Privacy Policy", "Terms of Service"];
-    }
-
-    if (siteKind === "education") {
-      out["Courses & Learning Paths"] = ["Free Courses", "Featured Courses", "Exam Preparation Paths", "Certificates & Achievements"];
-      out["Student Engagement"] = ["Discussion Forum", "Frequently Asked Questions (FAQ)", "Submit Issues / Report Bugs", "Suggest New Lessons"];
-      out["Management & Personalization"] = ["Calendar", "Mind Map", "Profile", "Personal Dashboard", "Notification Settings"];
-      out["Media & SEO"] = ["Blog", "Learning News", "Events & Workshops", "Registration Guide"];
+      out["Product Experience"] = ["Product Detail", "Product Reviews", "Compare Products", "Recently Viewed", "Related Products"];
+      out["Trust & Conversion"] = ["Customer Reviews", "Testimonials", "Warranty Policy", "Return Process", "Payment Methods"];
+      out["Order & After Sale"] = ["Order Tracking", "Track My Order", "Order History", "Reorder"];
+      out["Content & Growth"] = ["News", "Press", "Promotions Detail", "Campaigns"];
+      out["Engagement"] = ["Notifications", "Subscriptions", "Newsletter", "Loyalty Program", "Reward Points"];
+      out["Utilities"] = ["Store Locator", "Size Guide", "Help Center", "Live Chat"];
     }
 
     return out;
@@ -53,12 +57,14 @@ export default function AllowedBlocks() {
 
   const existingTitles = React.useMemo(() => {
     const all: string[] = [];
-    const walk = (arr: any[]) => {
+
+    const walk = (arr: BuilderMenuItem[]) => {
       arr.forEach((n) => {
         if (n?.title) all.push(String(n.title).toLowerCase().trim());
         if (n?.children?.length) walk(n.children);
       });
     };
+
     walk(activeMenu || []);
     return new Set(all);
   }, [activeMenu]);
@@ -72,40 +78,46 @@ export default function AllowedBlocks() {
 
       return INTERNAL_PAGES.find((p) => {
         const pool = [p.label, p.labelVi, ...(p.aliases || [])].filter(Boolean).map((s) => String(s).toLowerCase().trim());
+
         return pool.includes(needle);
       });
     },
-    [INTERNAL_PAGES]
+    [INTERNAL_PAGES],
   );
 
   const addByName = React.useCallback(
     (name: string) => {
       const page = findPageByName(name);
-      const item = {
+
+      const item: BuilderMenuItem = {
         id: `s_${Math.random().toString(36).slice(2, 9)}`,
         title: name,
         icon: "",
-        linkType: "internal" as const,
+        linkType: "internal",
         externalUrl: "",
-        newTab: false,
         internalPageId: page?.id ?? "home",
         rawPath: page?.path ?? (page ? null : "/"),
-        schedules: [] as any[],
-        children: [] as any[],
+        schedules: [],
+        children: [],
       };
+
       setActiveMenu([...(activeMenu || []), item]);
     },
-    [activeMenu, findPageByName, setActiveMenu]
+    [activeMenu, findPageByName, setActiveMenu],
   );
 
-  function onDragStart(e: React.DragEvent, name: string) {
-    const page = findPageByName(name);
-    const payload = page ? { type: "new", name, linkType: "internal" as const, internalPageId: page.id } : { type: "new", name, linkType: "internal" as const, internalPageId: "home" };
-    const json = JSON.stringify(payload);
-    e.dataTransfer.setData("application/json", json);
-    e.dataTransfer.setData("text/plain", json);
-    e.dataTransfer.effectAllowed = "copy";
-  }
+  const onDragStart = React.useCallback(
+    (e: React.DragEvent, name: string) => {
+      const page = findPageByName(name);
+      const payload = page ? { type: "new", name, linkType: "internal" as const, internalPageId: page.id } : { type: "new", name, linkType: "internal" as const, internalPageId: "home" };
+
+      const json = JSON.stringify(payload);
+      e.dataTransfer.setData("application/json", json);
+      e.dataTransfer.setData("text/plain", json);
+      e.dataTransfer.effectAllowed = "copy";
+    },
+    [findPageByName],
+  );
 
   const filteredSuggest = React.useMemo(() => {
     const out: Record<string, string[]> = {};
@@ -113,90 +125,82 @@ export default function AllowedBlocks() {
 
     Object.entries(SUGGEST).forEach(([group, arr]) => {
       const items = arr.filter((name) => {
-        const k = name.toLowerCase().trim();
-        return !baseSet.has(k) && !existingTitles.has(k);
+        const key = name.toLowerCase().trim();
+
+        return !baseSet.has(key) && !existingTitles.has(key) && !existingPages.has(key);
       });
+
       if (items.length) out[group] = items;
     });
 
     return out;
-  }, [SUGGEST, baseNames, existingTitles]);
+  }, [SUGGEST, baseNames, existingTitles, existingPages]);
 
   return (
     <div className={styles.cardform}>
       <div className={styles.cardHeader}>
-        <button className={`${styles.btn} ${styles.btnOutlineLight}`} onClick={addBlankItem}>
+        <button className={`${styles.btn} ${styles.btnOutlineLight}`} onClick={addBlankItem} type="button">
           <i className="bi bi-plus-lg" /> Add empty items
         </button>
-
         {hasTabs && (
-          <div className={styles.tabs}>
-            <button type="button" onClick={() => setTab("home")} className={`${styles.btn} ${tab === "home" ? styles.btnOutlinePrimary : styles.btnOutlineLight}`} aria-pressed={tab === "home"}>
-              Home
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setTab("dashboard")}
-              className={`${styles.btn} ${tab === "dashboard" ? styles.btnOutlinePrimary : styles.btnOutlineLight}`}
-              aria-pressed={tab === "dashboard"}>
-              Dashboard
+          <div className={styles.smallHelp} style={{ marginLeft: "auto" }}>
+            <button type="button" className={`${styles.btn} ${styles.btnOutlinePrimary}`}>
+              Showing: <b>{forcedTab === "dashboard" ? "Dashboard" : "Home"}</b>
             </button>
           </div>
         )}
       </div>
 
-      {/* ============ GRID MỤC CHÍNH ============ */}
-      <div className={styles.blocksGrid}>
-        {baseNames.map((n) => (
-          <div key={n} className={styles.blockCell}>
-            <div className={`${styles.blockCard} ${styles.appCard}`} draggable onDragStart={(e) => onDragStart(e, n)} onClick={() => addByName(n)} title="Kéo thả hoặc nhấn để thêm vào Menu">
-              <div className={styles.blockIconWrap}>
-                <i className="bi bi-cursor" />
-              </div>
-              <div>
-                <div className={styles.blockTitle}>{n}</div>
+      <div className={styles.grid2}>
+        <div className={styles.blocksGrid}>
+          {baseNames.map((n) => (
+            <div key={n} className={styles.blockCell}>
+              <div className={`${styles.blockCard} ${styles.appCard}`} draggable onDragStart={(e) => onDragStart(e, n)} onClick={() => addByName(n)} title="Kéo thả hoặc nhấn để thêm vào Menu">
+                <div className={styles.blockIconWrap}>
+                  <i className="bi bi-cursor" />
+                </div>
+                <div>
+                  <div className={styles.blockTitle}>{n}</div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <section className={styles.blocksGridRight} aria-label="Suggestions for expanding the menu" style={{ display: "grid", gap: 6 }}>
+          {Object.keys(filteredSuggest).length === 0 ? (
+            <div className={styles.smallHelp}>No more suggestions — you've got all the important points already. 🎉</div>
+          ) : (
+            Object.entries(filteredSuggest).map(([group, items]) => (
+              <div key={group} style={{ marginBottom: 10 }}>
+                <div style={{ fontWeight: 500, marginBottom: 6, color: "rgb(134 134 134)", fontSize: 16 }}>{group}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {items.map((name) => (
+                    <button
+                      type="button"
+                      key={name}
+                      onClick={() => addByName(name)}
+                      onDragStart={(e) => onDragStart(e as any, name)}
+                      draggable
+                      className={styles.btn}
+                      style={{
+                        borderRadius: 20,
+                        border: "1px dashed var(--bd,#cbd5e1)",
+                        background: "var(--chip-bg,rgba(16,185,129,.08))",
+                        padding: "6px 10px",
+                        fontSize: 13,
+                      }}
+                      title="Click to add, or drag and drop into structure">
+                      <i className="bi bi-plus-lg" style={{ marginRight: 6 }} />
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </section>
       </div>
-
-      <div className={styles.divider} />
-
-      <section aria-label="Suggestions for expanding the menu" style={{ display: "grid", gap: 12 }}>
-        {Object.keys(filteredSuggest).length === 0 ? (
-          <div className={styles.smallHelp}>No more suggestions — you've got all the important points already. 🎉</div>
-        ) : (
-          Object.entries(filteredSuggest).map(([group, items]) => (
-            <div key={group}>
-              <div style={{ fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>{group}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {items.map((name) => (
-                  <button
-                    type="button"
-                    key={name}
-                    onClick={() => addByName(name)}
-                    onDragStart={(e) => onDragStart(e as any, name)}
-                    draggable
-                    className={styles.btn}
-                    style={{
-                      borderRadius: 20,
-                      border: "1px dashed var(--bd,#cbd5e1)",
-                      background: "var(--chip-bg,rgba(16,185,129,.08))",
-                      padding: "6px 10px",
-                      fontSize: 13,
-                    }}
-                    title="Click to add, or drag and drop into structure">
-                    <i className="bi bi-plus-lg" style={{ marginRight: 6 }} />
-                    {name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))
-        )}
-      </section>
 
       <div className={styles.divider} />
     </div>

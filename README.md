@@ -143,6 +143,12 @@ Chat
 
 Profile (tuỳ)
 
+Settings
+Store
+Shipping
+Taxes
+Maintenance
+
 1. Enum (các trạng thái/loại để chuẩn hoá dữ liệu)
    CurrencyCode (USD, VND)
 
@@ -433,3 +439,5 @@ EmailRecipient → SENT / FAILED
 Email.successCount / failedCount cập nhật
 ↓
 Email → SENT (khi xong)
+
+Đây là view hoàn chỉnh của tôi bạn hãy kiểm tra xem có bug dư thừa không cần sử dụng với lại làm hao tốn tài nguyên hãy kiểm tra và chỉnh sửa ghi lại toàn bộ file giúp tôi nhé

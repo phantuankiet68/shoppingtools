@@ -44,32 +44,50 @@ async function resolveSiteId(req: Request, maybeSiteId?: string | null) {
     const s = await prisma.site.findUnique({ where: { domain }, select: { id: true } });
     if (s) return s.id;
   }
-
   const first = await prisma.site.findFirst({ select: { id: true }, orderBy: { createdAt: "asc" } });
   if (!first) throw new Error("No Site found. Seed the Site table first.");
   return first.id;
 }
 
+function isMenuSetKey(v: string | null): v is MenuSetKey {
+  return v === "home" || v === "v1";
+}
+
+function isLocale(v: string | null): v is Locale {
+  return v === "vi" || v === "en" || v === "ja";
+}
+
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
+
     const page = coerceInt(url.searchParams.get("page"), 1, 1);
     const size = coerceInt(url.searchParams.get("size"), 20, 1, 200);
     const q = url.searchParams.get("q") ?? undefined;
 
-    // ✅ luôn lấy v1, không cần site
-    const setKey: MenuSetKey = "v1" as MenuSetKey;
+    // ✅ FIX: đọc setKey từ query
+    const setKeyParam = url.searchParams.get("setKey");
+    const setKey: MenuSetKey = isMenuSetKey(setKeyParam) ? setKeyParam : "home";
+
+    // (khuyến nghị) filter theo siteId nếu hệ bạn có nhiều site
+    const siteIdParam = url.searchParams.get("siteId");
+    const siteId = await resolveSiteId(req, siteIdParam);
+
+    // (khuyến nghị) filter theo locale nếu DB có field locale
+    const localeParam = url.searchParams.get("locale");
+    const locale: Locale = isLocale(localeParam) ? localeParam : "vi";
 
     const parentIdRaw = url.searchParams.get("parentId");
     const parentId = parentIdRaw && parentIdRaw !== "null" && parentIdRaw !== "" ? parentIdRaw : undefined;
 
     const lite = url.searchParams.get("lite") === "1";
-
     const { field, dir } = parseSort(url);
-    const ci = (value: string) => ({ contains: value, mode: Prisma.QueryMode.insensitive } as const);
+    const ci = (value: string) => ({ contains: value, mode: Prisma.QueryMode.insensitive }) as const;
 
     const where: Prisma.MenuItemWhereInput = {
-      setKey, // ✅ chỉ lấy menu setKey v1
+      siteId,
+      setKey,
+      locale,
       ...(parentId ? { parentId } : {}),
       ...(q ? { OR: [{ title: ci(q) }, { path: ci(q) }, { icon: ci(q) }] } : {}),
     };
@@ -83,12 +101,7 @@ export async function GET(req: Request) {
         take: size,
         select: { id: true, title: true, path: true },
       });
-      const liteItems = items.map((m) => ({
-        id: m.id,
-        label: m.title,
-        path: m.path ?? "/",
-      }));
-      return NextResponse.json(liteItems);
+      return NextResponse.json(items.map((m) => ({ id: m.id, label: m.title, path: m.path ?? "/" })));
     }
 
     const [total, items] = await Promise.all([
@@ -107,7 +120,9 @@ export async function GET(req: Request) {
       page,
       pageSize: size,
       pageCount: Math.max(1, Math.ceil(total / size)),
-      setKey, // trả về cho client biết đang dùng setKey nào
+      setKey,
+      siteId,
+      locale,
     });
   } catch (e) {
     console.error("GET /api/menu-items error:", e);
@@ -118,10 +133,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const siteId = await resolveSiteId(req, body?.siteId); // 🔑 ưu tiên body, fallback domain/first
+    const siteId = await resolveSiteId(req, body?.siteId);
 
     const data = {
-      siteId, // 🔑 gắn siteId khi tạo
+      siteId,
       title: String(body.title ?? "").trim(),
       path: body.path ?? null,
       icon: body.icon ?? null,
@@ -136,7 +151,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: { title: "Title is required" } }, { status: 400 });
     }
 
-    // (tuỳ chọn) Verify parentId thuộc cùng site
     if (data.parentId) {
       const parent = await prisma.menuItem.findUnique({
         where: { id: data.parentId },

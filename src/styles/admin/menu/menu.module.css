@@ -87,7 +87,7 @@
 /* Grid */
 .grid {
   display: grid;
-  grid-template-columns: 1.5fr 5fr;
+  grid-template-columns: 5fr 5fr;
   gap: 12px;
 }
 .leftCol,
@@ -177,17 +177,44 @@
   color: var(--text);
 }
 
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
 /* Panel left */
 .blocksGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
+  height: 74vh;
+  overflow: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
+
+.blocksGridRight {
+  height: 72.5vh;
+  overflow: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+.blocksGridRight::-webkit-scrollbar {
+  display: none; /* Chrome, Edge, Safari */
+}
+
+.blocksGrid::-webkit-scrollbar {
+  display: none; /* Chrome, Edge, Safari */
+}
+
 .blockCard {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0.7rem 0.5rem;
   border-radius: 10px;
   cursor: -webkit-grab;
   cursor: grab;
@@ -204,12 +231,13 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--bg-green-light);
+  background: #66e4ff1f;
   border: 1px dashed rgba(255, 255, 255, 0.15);
-  color: var(--text-green);
+  color: #31e82d;
 }
 .blockTitle {
   color: var(--text);
+  font-size: 13px;
 }
 
 /* Buttons */
@@ -219,7 +247,6 @@
   border-radius: 6px;
   border: 1px solid #a5a5a533;
   color: var(--text);
-  background: var(--bg-blue-light);
 }
 .btn:hover {
   transform: translateY(-1px);
@@ -239,6 +266,13 @@
   background: #24ff9a1f;
   border-color: #00ff8970;
 }
+
+.btnOutlinePrimary {
+  color: #2e7fcb;
+  background: #2491ff1f;
+  border-color: #00bbff70;
+}
+
 .btnOutlineWarning {
   color: #ff7150;
   background: #ffc10724;
