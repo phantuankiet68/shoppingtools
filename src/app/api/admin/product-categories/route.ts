@@ -42,21 +42,9 @@ async function nextSortForParent(userId: string, parentId: string | null) {
     _max: { sort: true },
   });
   const cur = max._max.sort ?? 0;
-  // step 10 giống UI drag reorder
   return cur + 10;
 }
 
-/**
- * GET /api/admin/product-categories
- * query:
- *  q?              search name/slug
- *  active?         all|true|false (default all)
- *  sort?           newest|nameasc|sortasc|countdesc (default sortasc)
- *  parentId?       filter by parent ("" or "null" => null)
- *  tree?           1 -> ignore pagination and return all rows (for building tree)
- *  lite?           1 -> lightweight payload (sidebar)
- *  page? pageSize?
- */
 export async function GET(req: Request) {
   let userId: string | null = null;
   try {
@@ -87,17 +75,14 @@ export async function GET(req: Request) {
       where.OR = [{ name: { contains: q } }, { slug: { contains: q } }];
     }
 
-    // If parentId explicitly provided: filter. (undefined means "no filter")
     if (parentId !== undefined) {
       where.parentId = parentId;
     }
 
-    // orderBy (no Prisma type usage)
     const orderBy = sort === "nameasc" ? ({ name: "asc" } as const) : sort === "newest" ? ({ createdAt: "desc" } as const) : ({ sort: "asc" } as const); // sortasc default
 
-    // If tree=1 -> return all (no pagination)
     const skip = tree ? 0 : (page - 1) * pageSize;
-    const take = tree ? 5000 : pageSize; // cap safety
+    const take = tree ? 5000 : pageSize;
 
     const [rawItems, total] = await Promise.all([
       prisma.productCategory.findMany({
@@ -139,13 +124,9 @@ export async function GET(req: Request) {
       updatedAt: x.updatedAt,
       count: x._count.products,
     }));
-
-    // Optional app-level sort by count desc
     if (sort === "countdesc") {
       items = items.slice().sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
     }
-
-    // Lite for sidebar checklist
     if (lite) {
       const liteItems = items.map((x) => ({
         id: x.id,
@@ -175,10 +156,6 @@ export async function GET(req: Request) {
   }
 }
 
-/**
- * POST /api/admin/product-categories
- * body: { name*, slug?, isActive?, parentId?, sort?, icon?, coverImage?, seoTitle?, seoDesc? }
- */
 export async function POST(req: Request) {
   let userId: string | null = null;
 
@@ -261,7 +238,7 @@ export async function POST(req: Request) {
           count: created._count.products,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (e: any) {
     console.error("[POST /api/admin/product-categories] ERROR:", e);

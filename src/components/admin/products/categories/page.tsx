@@ -37,6 +37,8 @@ type CategoryRow = {
   count?: number;
 };
 
+type CategoryTreeNode = CategoryRow & { children: CategoryTreeNode[] };
+
 function slugify(input: string) {
   return String(input ?? "")
     .trim()
@@ -56,16 +58,16 @@ function bySort(a: CategoryRow, b: CategoryRow) {
 }
 
 function buildTree(rows: CategoryRow[]) {
-  const map = new Map<string, CategoryRow & { children: CategoryRow[] }>();
+  const map = new Map<string, CategoryTreeNode>();
   rows.forEach((r) => map.set(r.id, { ...r, children: [] }));
-  const roots: (CategoryRow & { children: CategoryRow[] })[] = [];
 
+  const roots: CategoryTreeNode[] = [];
   for (const r of map.values()) {
     if (r.parentId && map.has(r.parentId)) map.get(r.parentId)!.children.push(r);
     else roots.push(r);
   }
 
-  const sortRec = (n: any) => {
+  const sortRec = (n: CategoryTreeNode) => {
     n.children.sort(bySort);
     n.children.forEach(sortRec);
   };
@@ -84,7 +86,17 @@ async function jfetch<T>(url: string, init?: RequestInit): Promise<T> {
     },
     cache: "no-store",
   });
-  const json = await res.json().catch(() => ({}));
+
+  let json: any = {};
+  const text = await res.text().catch(() => "");
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = {};
+    }
+  }
+
   if (!res.ok) {
     const msg = (typeof json?.error === "string" && json.error) || "Request failed";
     throw new Error(msg);
@@ -97,16 +109,39 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string>("");
-
   const [q, setQ] = useState("");
   const [activeId, setActiveId] = useState<string>("");
 
-  // prevent PATCH spam when typing
-  const patchTimer = useRef<any>(null);
+  const patchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextRowsRef = useRef<CategoryRow[]>([]);
+
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+
+  function isExpanded(id: string) {
+    return expanded.has(id);
+  }
+
+  function toggleExpand(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  const activeIdRef = useRef<string>("");
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
 
   const active = useMemo(() => rows.find((x) => x.id === activeId) || null, [rows, activeId]);
-
   const tree = useMemo(() => buildTree(rows), [rows]);
+  const byId = useMemo(() => new Map(rows.map((r) => [r.id, r] as const)), [rows]);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createParentId, setCreateParentId] = useState<string | null>(null);
+  const [createName, setCreateName] = useState("");
+  const createInputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredIds = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -117,21 +152,18 @@ export default function CategoriesPage() {
       if ((r.name + " " + r.slug).toLowerCase().includes(qq)) match.add(r.id);
     }
 
-    // include ancestors
-    const byId = new Map(rows.map((r) => [r.id, r]));
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const id of Array.from(match)) {
-        const p = byId.get(id)?.parentId;
-        if (p && !match.has(p)) {
-          match.add(p);
-          changed = true;
-        }
+    for (const id of Array.from(match)) {
+      let cur = byId.get(id);
+      while (cur?.parentId) {
+        const p = cur.parentId;
+        if (!match.has(p)) match.add(p);
+        cur = byId.get(p);
+        if (!cur) break;
       }
     }
+
     return match;
-  }, [rows, q]);
+  }, [rows, q, byId]);
 
   const flatSiblings = useMemo(() => {
     if (!active) return [];
@@ -140,6 +172,26 @@ export default function CategoriesPage() {
       .slice()
       .sort(bySort);
   }, [rows, active]);
+
+  const PAGE_SIZE = 8;
+  const [page, setPage] = useState(1);
+
+  const pageCount = useMemo(() => {
+    const total = flatSiblings.length;
+    return Math.max(1, Math.ceil(total / PAGE_SIZE));
+  }, [flatSiblings.length]);
+  useEffect(() => {
+    setPage(1);
+  }, [active?.parentId]);
+
+  useEffect(() => {
+    setPage((p) => Math.min(Math.max(1, p), pageCount));
+  }, [pageCount]);
+
+  const pagedSiblings = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return flatSiblings.slice(start, start + PAGE_SIZE);
+  }, [flatSiblings, page]);
 
   async function loadTree() {
     setLoading(true);
@@ -158,13 +210,12 @@ export default function CategoriesPage() {
         coverImage: c.coverImage ?? undefined,
         seoTitle: c.seoTitle ?? undefined,
         seoDesc: c.seoDesc ?? undefined,
-        count: (c as any).count ?? (c as any)._count?.products ?? 0,
+        count: Number((c as any).count ?? (c as any)._count?.products ?? 0),
       }));
 
       mapped.sort(bySort);
       setRows(mapped);
 
-      // choose active
       setActiveId((prev) => {
         if (prev && mapped.some((x) => x.id === prev)) return prev;
         return mapped[0]?.id || "";
@@ -182,20 +233,39 @@ export default function CategoriesPage() {
     loadTree();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (patchTimer.current) clearTimeout(patchTimer.current);
+    };
+  }, []);
+
   function select(id: string) {
     setActiveId(id);
   }
 
-  async function createCategory(parentId: string | null) {
-    const name = prompt("Category name?");
-    if (!name?.trim()) return;
+  function openCreate(parentId: string | null) {
+    setCreateParentId(parentId);
+    setCreateName("");
+    setCreateOpen(true);
+    setTimeout(() => createInputRef.current?.focus(), 0);
+  }
+
+  function closeCreate() {
+    setCreateOpen(false);
+    setCreateName("");
+    setCreateParentId(null);
+  }
+
+  async function submitCreate() {
+    const name = createName.trim();
+    if (!name) return;
 
     setBusy(true);
     try {
       const payload = {
-        name: name.trim(),
+        name,
         slug: slugify(name),
-        parentId,
+        parentId: createParentId,
         isActive: true,
       };
 
@@ -206,7 +276,6 @@ export default function CategoriesPage() {
 
       const created = res.item;
 
-      // update local state fast (no need reload)
       const row: CategoryRow = {
         id: created.id,
         parentId: created.parentId,
@@ -223,6 +292,7 @@ export default function CategoriesPage() {
 
       setRows((prev) => [...prev, row]);
       setActiveId(row.id);
+      closeCreate();
     } catch (e: any) {
       alert(e?.message || "Create failed");
     } finally {
@@ -240,16 +310,17 @@ export default function CategoriesPage() {
 
     setBusy(true);
     try {
-      await jfetch(`/api/admin/product-categories/${id}`, {
-        method: "DELETE",
+      await jfetch(`/api/admin/product-categories/${id}`, { method: "DELETE" });
+      setRows((prev) => {
+        const next = prev.filter((x) => x.id !== id).map((x) => (x.parentId === id ? { ...x, parentId: null } : x));
+        nextRowsRef.current = next;
+        return next;
       });
 
-      // remove locally
-      setRows((prev) => prev.filter((x) => x.id !== id));
-      setActiveId((prev) => {
-        if (prev !== id) return prev;
-        const remain = rows.filter((x) => x.id !== id);
-        return remain[0]?.id || "";
+      setActiveId((prevActive) => {
+        if (prevActive !== id) return prevActive;
+        const next = nextRowsRef.current;
+        return next[0]?.id || "";
       });
     } catch (e: any) {
       alert(e?.message || "Delete failed");
@@ -264,7 +335,6 @@ export default function CategoriesPage() {
 
     const nextEnabled = !cur.enabled;
 
-    // optimistic
     setRows((prev) => prev.map((x) => (x.id === id ? { ...x, enabled: nextEnabled } : x)));
 
     try {
@@ -273,7 +343,6 @@ export default function CategoriesPage() {
         body: JSON.stringify({ isActive: nextEnabled }),
       });
     } catch (e: any) {
-      // rollback
       setRows((prev) => prev.map((x) => (x.id === id ? { ...x, enabled: cur.enabled } : x)));
       alert(e?.message || "Update failed");
     }
@@ -283,20 +352,19 @@ export default function CategoriesPage() {
     if (!active) return;
     setRows((prev) => prev.map((x) => (x.id === active.id ? { ...x, ...patch } : x)));
   }
-
   function patchActiveApiDebounced(patch: Record<string, any>) {
-    if (!active) return;
+    const id = activeIdRef.current;
+    if (!id) return;
 
     if (patchTimer.current) clearTimeout(patchTimer.current);
     patchTimer.current = setTimeout(async () => {
       try {
-        await jfetch(`/api/admin/product-categories/${active.id}`, {
+        await jfetch(`/api/admin/product-categories/${id}`, {
           method: "PATCH",
           body: JSON.stringify(patch),
         });
       } catch (e: any) {
         alert(e?.message || "Save failed");
-        // safest: reload tree to sync
         loadTree();
       }
     }, 350);
@@ -330,7 +398,6 @@ export default function CategoriesPage() {
     patchActiveApiDebounced({ slug: s });
   }
 
-  // drag reorder
   const [dragId, setDragId] = useState<string | null>(null);
   function onDragStart(id: string) {
     setDragId(id);
@@ -356,21 +423,25 @@ export default function CategoriesPage() {
     next.splice(to, 0, moved);
 
     const sortMap = new Map(next.map((x, i) => [x.id, (i + 1) * 10]));
+    const changedEntries = Array.from(sortMap.entries()).filter(([id, sort]) => {
+      const before = rows.find((r) => r.id === id)?.sort ?? 0;
+      return before !== sort;
+    });
 
-    // optimistic local
     setRows((prev) => prev.map((x) => (sortMap.has(x.id) ? { ...x, sort: sortMap.get(x.id)! } : x)));
     setDragId(null);
 
-    // persist: PATCH each sibling (MVP)
+    if (changedEntries.length === 0) return;
+
     try {
       setBusy(true);
       await Promise.all(
-        Array.from(sortMap.entries()).map(([id, sort]) =>
+        changedEntries.map(([id, sort]) =>
           jfetch(`/api/admin/product-categories/${id}`, {
             method: "PATCH",
             body: JSON.stringify({ sort }),
-          })
-        )
+          }),
+        ),
       );
     } catch (e: any) {
       alert(e?.message || "Reorder failed");
@@ -380,27 +451,56 @@ export default function CategoriesPage() {
     }
   }
 
-  function TreeNode({ node, depth }: { node: any; depth: number }) {
+  useEffect(() => {
+    const qq = q.trim().toLowerCase();
+    if (!qq) return;
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      for (const id of filteredIds) next.add(id);
+      return next;
+    });
+  }, [q, filteredIds]);
+
+  function TreeNode({ node, depth }: { node: CategoryTreeNode; depth: number }) {
     const show = filteredIds.has(node.id);
     if (!show) return null;
 
-    const isActive = node.id === activeId;
+    const isActiveNode = node.id === activeId;
+    const hasChildren = (node.children?.length || 0) > 0;
+    const open = hasChildren ? isExpanded(node.id) : false;
 
     return (
       <div className={styles.treeNode}>
-        <button type="button" className={`${styles.treeBtn} ${isActive ? styles.treeActive : ""}`} onClick={() => select(node.id)} style={{ paddingLeft: 10 + depth * 14 }}>
-          <i className={`bi ${node.icon || "bi-folder2"}`} />
-          <span className={styles.treeName}>{node.name}</span>
+        <div className={styles.treeRow}>
+          {hasChildren ? (
+            <button
+              type="button"
+              className={styles.treeCaret}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpand(node.id);
+              }}
+              aria-label={open ? "Collapse" : "Expand"}>
+              <i className={`bi ${open ? "bi-caret-down-fill" : "bi-caret-right-fill"}`} />
+            </button>
+          ) : (
+            <span className={styles.treeCaretPlaceholder} />
+          )}
 
-          {typeof node.count === "number" && <span className={styles.treeCount}>{node.count}</span>}
+          <button type="button" className={`${styles.treeBtn} ${isActiveNode ? styles.treeActive : ""}`} onClick={() => select(node.id)} style={{ paddingLeft: 10 + depth * 14 }}>
+            <div className={styles.treeGroup}>
+              <i className={`bi ${node.icon || "bi-folder2"}`} />
+              <span className={styles.treeName}>{node.name}</span>
+            </div>
+            <span className={styles.treeCount}>{Number(node.count ?? 0)}</span>
 
-          {!node.enabled && <span className={styles.badgeOff}>OFF</span>}
-          <span className={styles.treeSlug}>/{node.slug}</span>
-        </button>
+            {!node.enabled && <span className={styles.badgeOff}>OFF</span>}
+          </button>
+        </div>
 
-        {node.children?.length > 0 && (
+        {hasChildren && open && (
           <div className={styles.treeChildren}>
-            {node.children.map((ch: any) => (
+            {node.children.map((ch) => (
               <TreeNode key={ch.id} node={ch} depth={depth + 1} />
             ))}
           </div>
@@ -411,7 +511,6 @@ export default function CategoriesPage() {
 
   return (
     <div className={styles.shell}>
-      {/* Topbar */}
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <span className={styles.brandDot} />
@@ -425,7 +524,7 @@ export default function CategoriesPage() {
           <button className={styles.ghostBtn} type="button" onClick={() => loadTree()} disabled={busy || loading}>
             <i className="bi bi-arrow-repeat" /> Refresh
           </button>
-          <button className={styles.primaryBtn} type="button" onClick={() => createCategory(active?.parentId ?? null)} disabled={busy}>
+          <button className={styles.primaryBtn} type="button" onClick={() => openCreate(active?.parentId ?? null)} disabled={busy}>
             <i className="bi bi-plus-lg" /> Add sibling
           </button>
         </div>
@@ -439,7 +538,6 @@ export default function CategoriesPage() {
       )}
 
       <div className={styles.body}>
-        {/* Sidebar tree */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
             <div className={styles.sidebarTitle}>Category tree</div>
@@ -469,25 +567,65 @@ export default function CategoriesPage() {
           <div className={styles.sidebarFooter}>
             <div className={styles.tip}>
               <i className="bi bi-lightbulb" />
-              <span>Tip: Drag sort áp dụng trong “Order within parent”.</span>
+              <span>Tip: Drag sort is applied in "Order within parent".</span>
             </div>
           </div>
         </aside>
 
-        {/* Main */}
         <main className={styles.main}>
           <div className={styles.content}>
-            {/* List panel */}
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
                   <div className={styles.panelTitle}>Order within parent</div>
-                  <div className={styles.panelSub}>Drag để sắp xếp (chỉ trong cùng parent)</div>
+                  <div className={styles.panelSub}>Drag to sort (only within the same parent)</div>
                 </div>
 
                 <div className={styles.panelHeaderActions}>
-                  <button className={styles.ghostBtn} type="button" onClick={() => createCategory(active?.id ?? null)} disabled={!active || busy}>
+                  <button className={styles.ghostBtn} type="button" onClick={() => openCreate(active?.id ?? null)} disabled={!active || busy}>
                     <i className="bi bi-node-plus" /> Add child
+                  </button>
+                </div>
+              </div>
+              <div className={styles.pagerBar}>
+                <div className={styles.pagerLeft}>
+                  <span className={styles.pagerLabel}>Showing</span>
+
+                  <span className={styles.pagerRange}>
+                    {flatSiblings.length > 0 ? (
+                      <>
+                        {(page - 1) * PAGE_SIZE + 1}
+                        <span className={styles.pagerDot} />
+                        {Math.min(page * PAGE_SIZE, flatSiblings.length)}
+                        <span style={{ opacity: 0.7, fontWeight: 700 }}>of</span> {flatSiblings.length}
+                      </>
+                    ) : (
+                      <>0</>
+                    )}
+                  </span>
+                </div>
+
+                <div className={styles.pagerRight}>
+                  <button
+                    className={`${styles.ghostBtn} ${styles.pagerBtn}`}
+                    type="button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={busy || page <= 1 || flatSiblings.length === 0}>
+                    <i className="bi bi-chevron-left" /> Prev
+                  </button>
+
+                  <div className={styles.pagerCenter}>
+                    <span>Page</span> <strong>{page}</strong>
+                    <span style={{ opacity: 0.55 }}>/</span>
+                    <strong>{pageCount}</strong>
+                  </div>
+
+                  <button
+                    className={`${styles.ghostBtn} ${styles.pagerBtn}`}
+                    type="button"
+                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                    disabled={busy || page >= pageCount || flatSiblings.length === 0}>
+                    Next <i className="bi bi-chevron-right" />
                   </button>
                 </div>
               </div>
@@ -498,12 +636,12 @@ export default function CategoriesPage() {
                 ) : flatSiblings.length === 0 ? (
                   <div className={styles.empty}>No categories here</div>
                 ) : (
-                  flatSiblings.map((c) => {
-                    const isActive = c.id === activeId;
+                  pagedSiblings.map((c) => {
+                    const isActiveItem = c.id === activeId;
                     return (
                       <div
                         key={c.id}
-                        className={`${styles.item} ${isActive ? styles.itemActive : ""}`}
+                        className={`${styles.item} ${isActiveItem ? styles.itemActive : ""}`}
                         draggable
                         onDragStart={() => onDragStart(c.id)}
                         onDragOver={(e) => e.preventDefault()}
@@ -555,7 +693,6 @@ export default function CategoriesPage() {
               </div>
             </section>
 
-            {/* Inspector */}
             <aside className={styles.inspector}>
               <div className={styles.panel}>
                 {!active ? (
@@ -701,7 +838,7 @@ export default function CategoriesPage() {
                       <div className={styles.tipInline}>
                         <i className="bi bi-lightbulb" />
                         <span>
-                          Khi nối DB: index <span className={styles.mono}>parentId, sort</span> để load tree nhanh.
+                          When connecting to the DB: index <span className={styles.mono}>parentId, sort</span> To load the tree quickly.
                         </span>
                       </div>
                     </div>
@@ -712,6 +849,58 @@ export default function CategoriesPage() {
           </div>
         </main>
       </div>
+
+      {createOpen && (
+        <div
+          className={styles.modalOverlay}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) closeCreate();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") closeCreate();
+          }}>
+          <div className={styles.modal} role="dialog" aria-modal="true">
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle}>Create category</div>
+              <button className={styles.iconBtn} type="button" onClick={closeCreate} disabled={busy}>
+                <i className="bi bi-x-lg" />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <label className={styles.label}>Name</label>
+              <div className={styles.inputWrap}>
+                <i className="bi bi-type" />
+                <input
+                  ref={createInputRef}
+                  className={styles.input}
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") submitCreate();
+                    if (e.key === "Escape") closeCreate();
+                  }}
+                  placeholder="e.g. Accessories"
+                  disabled={busy}
+                />
+              </div>
+
+              <div className={styles.modalHint}>
+                Slug sẽ tự tạo: <span className={styles.mono}>/{slugify(createName)}</span>
+              </div>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button className={styles.ghostBtn} type="button" onClick={closeCreate} disabled={busy}>
+                Cancel
+              </button>
+              <button className={styles.primaryBtn} type="button" onClick={submitCreate} disabled={busy || !createName.trim()}>
+                <i className="bi bi-plus-lg" /> Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

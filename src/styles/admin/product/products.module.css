@@ -54,10 +54,13 @@
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  background: #0f172a2e;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.18);
+  width: 19px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .total {
@@ -90,7 +93,11 @@
 .coverSetBtn {
   border: 1px solid transparent;
   cursor: pointer;
-  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
   user-select: none;
 }
 
@@ -176,7 +183,7 @@
   gap: 5px;
 }
 .checkList {
-  max-height: 30vh;
+  max-height: 39vh;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -479,7 +486,7 @@
 .sideCard {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 6px;
 }
 
 .card {
@@ -504,224 +511,392 @@
   font-weight: 650;
 }
 
-/* =========================
-   Table
-   ========================= */
-.tableWrap {
-  overflow: auto;
-}
-
-.table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.table thead th {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-
-  padding: 12px 14px;
-  background: rgba(15, 23, 42, 0.02);
-  border-bottom: 1px solid var(--border);
-}
-
-.table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
+.listHint {
   font-size: 14px;
-}
-
-.table tbody tr:hover {
-  background: rgba(59, 130, 246, 0.04);
-}
-
-.empty {
-  padding: 22px 14px !important;
-  text-align: center;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.checkAll {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.checkAll input {
-  width: 16px;
-  height: 16px;
-}
-
-/* Product cell */
-.prodCell {
+  background-color: #f5f7ff;
+  color: #313f3a;
+  padding: 5px 10px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px;
+  font-weight: 500;
 }
 
-.prodThumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+.countProductText {
+  color: #fff;
+  background-color: #55a9eb;
+  height: 20px;
+  width: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+/* --- Right area: remove "red-box" feeling by making it airy --- */
+.rightCol {
+  min-height: 100%;
+}
+
+.listCard {
+  background: transparent;
+}
+
+.listTop {
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  display: flex;
+  background: #fff;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.listTop label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+/* grid like cards */
+.prodGrid {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1200px) {
+  .prodGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .prodGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.prodCard {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* media */
+.prodMedia {
+  position: relative;
+  padding: 18px;
+  padding-bottom: 10px;
+}
+
+.prodImg,
+.prodImgEmpty {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
   object-fit: cover;
-  border: 1px solid var(--border);
-}
-
-.prodAvatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.04);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  display: inline-flex;
+  background: #f3f6fb;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.prodMeta {
-  min-width: 0;
+.prodImgEmpty i {
+  font-size: 26px;
+  opacity: 0.5;
 }
 
-.prodNameRow {
+/* decorative corner like sample */
+.cornerRibbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 86px;
+  height: 86px;
+  background: linear-gradient(135deg, rgba(90, 160, 255, 1), rgba(90, 160, 255, 0));
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  opacity: 0.95;
+}
+
+/* top overlay controls */
+.prodMediaTop {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
 }
 
-.prodName {
-  white-space: nowrap;
+.cardCheck {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 6px 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.heartBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.heartBtn i {
+  font-size: 18px;
+}
+
+/* tag */
+.prodTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(30, 60, 120, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+  margin-top: 5px;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+/* body */
+.prodBody {
+  padding: 10px 18px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prodTitle {
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.miniPill {
-  font-size: 12px;
-
-  color: rgba(15, 23, 42, 0.66);
-  background: rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 3px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
 }
 
 .prodSub {
-  margin-top: 3px;
-  font-size: 12.5px;
-  color: var(--muted);
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  font-size: 12px;
+  opacity: 0.85;
 }
 
-.sep {
-  color: rgba(100, 116, 139, 0.6);
+.dot {
+  opacity: 0.5;
 }
 
-.muted {
-  color: var(--muted);
-}
-
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 12.5px;
-}
-
-/* Price column */
-.priceCol {
-  display: grid;
-  gap: 2px;
+.priceRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 2px;
 }
 
 .priceMain {
+  letter-spacing: -0.02em;
+  font-size: 20px;
+  font-weight: 900;
+  text-align: end;
+  color: #3ec614;
 }
 
 .priceSub {
-  font-size: 12.5px;
-  color: var(--muted);
+  font-size: 13px;
+  opacity: 0.75;
 }
 
-/* Badges */
-.badge {
-  display: inline-flex;
+/* bottom row */
+.cardRow {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12.5px;
-
-  border: 1px solid transparent;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 6px;
 }
 
-.badgeOk {
-  color: #065f46;
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.18);
-}
-
-.badgeOff {
-  color: #7c2d12;
-  background: rgba(245, 158, 11, 0.14);
-  border-color: rgba(245, 158, 11, 0.18);
-}
-
-/* Row actions menu */
-.actions {
-  display: inline-flex;
+.cardActions {
+  position: relative;
+  display: flex;
   align-items: center;
   gap: 8px;
-  position: relative;
-  justify-content: flex-end;
 }
 
-.rowMenu {
-  position: absolute;
-  right: 0;
-  top: 46px;
-  width: 220px;
-  background: #fff;
-  border: 1px solid var(--border);
+/* CTA button like sample */
+.ctaBtn {
+  margin-top: 8px;
+  width: 100%;
+  height: 52px;
+  border: none;
   border-radius: 14px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  z-index: 30;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  background: #ffbf1f; /* vàng như ảnh */
+  color: #111;
+  box-shadow: 0 14px 30px rgba(255, 191, 31, 0.35);
+}
+
+/* empty state */
+.emptyGrid {
+  padding: 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* keep your existing .rowMenu styles; ensure it overlays nicely */
+.rowMenu {
+  z-index: 20;
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: 6px;
+  gap: 5px;
+  padding: 10px;
 }
 
 .rowMenuItem {
-  width: 100%;
-  border: none;
-  background: #fff;
-  text-align: left;
-  padding: 11px 12px;
-  display: inline-flex;
+  display: flex;
+  gap: 6px;
   align-items: center;
-  gap: 10px;
-  font-weight: 650;
-  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+  padding: 5px;
 }
 
 .rowMenuItem:hover {
-  background: rgba(59, 130, 246, 0.06);
+  background-color: #c8e1ffa6;
 }
 
-.rowMenuSep {
-  height: 1px;
-  background: var(--border);
+/* đảm bảo media có thể đặt overlay */
+.prodMedia {
+  position: relative;
+  padding: 14px;
+  padding-bottom: 12px;
 }
 
-.rowMenuDanger {
-  color: var(--danger);
+/* nút trên ảnh */
+.prodMediaTop {
+  pointer-events: none;
+  justify-content: space-between;
+  align-items: center;
+  display: flex;
+  position: absolute;
+  top: 5px;
+  left: 9px;
+  right: 9px;
 }
+.cardCheck {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  padding: 6px 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* group actions thay vị trí like */
+.mediaActions {
+  pointer-events: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* icon button trên ảnh */
+.mediaIconBtn {
+  cursor: pointer;
+  background: #ffffffeb;
+  border: 1px solid #1428501a;
+  border-radius: 6px;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  box-shadow: 0 8px 20px #00000014;
+}
+
+.mediaIconBtn i {
+  font-size: 16px;
+}
+
+.mediaIconBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* overlay mờ cuối ảnh (glass) */
+.mediaInfoOverlay {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  padding: 10px 5px;
+
+  background: #c8e1ffa6;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+/* name trong overlay */
+.overlayName {
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.25;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* meta dòng nhỏ */
+.overlayMeta {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: bisque;
+  padding: 5px;
+}
+
+/* để overlay không che tag nếu bạn muốn tag vẫn hiện */
+.prodTag {
+  position: absolute;
+  left: 14px;
+  bottom: 19px;
+  transform: translateY(62px); /* đẩy tag xuống dưới overlay */
+}
+
+/* nếu bạn muốn tag nằm trong overlay thì bỏ prodTag hoặc transform */
 
 /* =========================
    Sidebar (categories)

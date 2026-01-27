@@ -4,9 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/product/products.module.css";
 import RichTextEditor from "@/components/admin/form/RichTextEditor";
 
-/** =========================
- *  Types
- *  ========================= */
 type ApiImage = {
   id?: string;
   url: string;
@@ -103,20 +100,18 @@ function slugify(input: string) {
     .replace(/đ/g, "d")
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-function useClickOutside<T extends HTMLElement>(onOutside: () => void) {
-  const ref = useRef<T | null>(null);
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!ref.current) return;
-      if (e.target instanceof Node && !ref.current.contains(e.target)) onOutside();
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [onOutside]);
-  return ref;
+async function safeJson(res: Response) {
+  const text = await res.text().catch(() => "");
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
 }
 
 function emptyForm(): ProductForm {
@@ -169,31 +164,28 @@ export default function AdminProductsClient() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>("");
 
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortKey>("Newest");
-  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
-
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
-  const [openSuggest, setOpenSuggest] = useState(false);
-  const suggestWrapRef = useClickOutside<HTMLDivElement>(() => setOpenSuggest(false));
-
   const [openRowMenu, setOpenRowMenu] = useState<string | null>(null);
-  const rowMenuWrapRef = useClickOutside<HTMLDivElement>(() => setOpenRowMenu(null));
+  const rowMenuRef = useRef<HTMLDivElement | null>(null);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>("create");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm());
   const [formErr, setFormErr] = useState<string>("");
+
   const modalCardRef = useRef<HTMLDivElement | null>(null);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
+
   const [localFiles, setLocalFiles] = useState<{ file: File; preview: string }[]>([]);
   const [coverIndex, setCoverIndex] = useState(0);
 
-  /** Category state */
+  /** Categories */
   const [categories, setCategories] = useState<ApiCategory[]>([]);
-  const [catLoading, setCatLoading] = useState(false);
-  const [catErr, setCatErr] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
+
+  /** Sidebar filters (source of truth) */
   const [filters, setFilters] = useState({
     q: "",
     categoryIds: [] as string[],
@@ -204,60 +196,91 @@ export default function AdminProductsClient() {
   });
 
   async function loadCategories() {
-    setCatLoading(true);
-    setCatErr("");
     try {
       const res = await fetch("/api/admin/product-categories?page=1&pageSize=200&active=all&sort=nameAsc", { cache: "no-store" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || "Failed to load categories");
-      setCategories(Array.isArray(json?.items) ? json.items : []);
-    } catch (e: any) {
-      setCatErr(e?.message || "Failed to load categories");
-    } finally {
-      setCatLoading(false);
+      const json = await safeJson(res);
+      if (!res.ok) throw new Error((json as any)?.error || "Failed to load categories");
+      setCategories(Array.isArray((json as any)?.items) ? (json as any).items : []);
+    } catch {
+      // UI của bạn hiện không render lỗi categories, nên mình im lặng để tránh spam
+      setCategories([]);
     }
   }
-  async function load() {
+
+  async function loadWithFilters(f: typeof filters) {
     setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams();
-      if (query.trim()) params.set("q", query.trim());
-      params.set("active", activeFilter);
-      params.set("sort", sort === "PriceAsc" ? "priceAsc" : sort === "PriceDesc" ? "priceDesc" : sort === "NameAsc" ? "nameAsc" : "newest");
+
+      if (f.q.trim()) params.set("q", f.q.trim());
+
+      params.set("active", f.active);
+      params.set("sort", f.sort === "PriceAsc" ? "priceAsc" : f.sort === "PriceDesc" ? "priceDesc" : f.sort === "NameAsc" ? "nameAsc" : "newest");
+
+      if (f.categoryIds.length > 0) params.set("categoryIds", f.categoryIds.join(","));
+
+      const min = centsFromInput(f.priceMin);
+      const max = centsFromInput(f.priceMax);
+
+      if (f.priceMin.trim()) params.set("priceMinCents", String(min));
+      if (f.priceMax.trim()) params.set("priceMaxCents", String(max));
+
       params.set("page", "1");
       params.set("pageSize", "50");
 
       const res = await fetch(`/api/admin/products?${params.toString()}`, { cache: "no-store" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || "Failed to load products");
-      setItems(Array.isArray(json?.items) ? json.items : []);
+      const json = await safeJson(res);
+      if (!res.ok) throw new Error((json as any)?.error || "Failed to load products");
+
+      setItems(Array.isArray((json as any)?.items) ? (json as any).items : []);
     } catch (e: any) {
       setError(e?.message || "Failed to load products");
+      setItems([]);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    load();
+    loadWithFilters(filters);
     loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Clean selection when items changed (avoid keeping stale ids)
   useEffect(() => {
-    const t = setTimeout(() => load(), 300);
-    return () => clearTimeout(t);
-  }, [query, sort, activeFilter]);
+    setSelected((prev) => {
+      const alive = new Set(items.map((x) => x.id));
+      const next: Record<string, boolean> = {};
+      for (const [id, v] of Object.entries(prev)) {
+        if (alive.has(id) && v) next[id] = true;
+      }
+      return next;
+    });
+  }, [items]);
 
-  const suggestions = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return items.slice(0, 6);
-    return items.filter((p) => (p.name ?? "").toLowerCase().includes(q) || (p.sku ?? "").toLowerCase().includes(q) || (p.barcode ?? "").toLowerCase().includes(q)).slice(0, 8);
-  }, [items, query]);
+  // Close row menu on click outside
+  useEffect(() => {
+    if (!openRowMenu) return;
+
+    const onDown = (e: MouseEvent) => {
+      if (!rowMenuRef.current) {
+        setOpenRowMenu(null);
+        return;
+      }
+      if (e.target instanceof Node && rowMenuRef.current.contains(e.target)) return;
+      setOpenRowMenu(null);
+    };
+
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [openRowMenu]);
 
   const filtered = useMemo(() => {
+    // server đã trả theo sort/filter, nhưng bạn vẫn muốn sort tại client -> mình giữ y như logic bạn đang có
     const arr = [...items];
-    switch (sort) {
+    switch (filters.sort) {
       case "PriceAsc":
         arr.sort((a, b) => (a.priceCents ?? 0) - (b.priceCents ?? 0));
         break;
@@ -271,7 +294,7 @@ export default function AdminProductsClient() {
         break;
     }
     return arr;
-  }, [items, sort]);
+  }, [items, filters.sort]);
 
   const allChecked = filtered.length > 0 && filtered.every((p) => selected[p.id]);
   const checkedCount = filtered.filter((p) => selected[p.id]).length;
@@ -291,6 +314,7 @@ export default function AdminProductsClient() {
     setModalMode("create");
     setEditingId(null);
 
+    setSlugEdited(false); // ✅ create: auto slug theo name
     const defaultSku = nextSkuFromItems(items);
 
     setForm({
@@ -303,26 +327,35 @@ export default function AdminProductsClient() {
 
     setFormErr("");
     setModalOpen(true);
-    setTimeout(() => modalCardRef.current?.focus(), 0);
+
+    setTimeout(() => {
+      nameInputRef.current?.focus();
+      modalCardRef.current?.focus();
+    }, 0);
   }
 
   async function openEdit(p: ApiProduct) {
     setModalMode("edit");
     setEditingId(p.id);
+
+    setSlugEdited(true); // ✅ edit: đổi name không tự đổi slug (an toàn)
     setFormErr("");
     setBusy(true);
 
     try {
       const res = await fetch(`/api/admin/products/${p.id}`, { cache: "no-store" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || "Failed to load product");
+      const json = await safeJson(res);
+      if (!res.ok) throw new Error((json as any)?.error || "Failed to load product");
 
-      setForm(mapToForm(json.item));
+      setForm(mapToForm((json as any).item));
       setLocalFiles([]);
       setCoverIndex(0);
 
       setModalOpen(true);
-      setTimeout(() => modalCardRef.current?.focus(), 0);
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+        modalCardRef.current?.focus();
+      }, 0);
     } catch (e: any) {
       setFormErr(e?.message || "Failed to load product");
     } finally {
@@ -344,6 +377,12 @@ export default function AdminProductsClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, [modalOpen]);
 
+  useEffect(() => {
+    return () => {
+      localFiles.forEach((x) => URL.revokeObjectURL(x.preview));
+    };
+  }, [localFiles]);
+
   function validateForm(f: ProductForm) {
     const name = f.name.trim();
     const slug = f.slug.trim();
@@ -360,9 +399,6 @@ export default function AdminProductsClient() {
     for (const img of f.images) {
       if (!img.url.trim()) return "Image URL cannot be empty";
     }
-    if (localFiles.length > 0) {
-    }
-
     return "";
   }
 
@@ -370,12 +406,6 @@ export default function AdminProductsClient() {
     const url = p.images?.[0]?.url;
     return url && String(url).trim().length ? String(url) : "";
   }
-
-  useEffect(() => {
-    return () => {
-      localFiles.forEach((x) => URL.revokeObjectURL(x.preview));
-    };
-  }, [localFiles]);
 
   function addFiles(files: FileList | File[]) {
     const arr = Array.from(files || []);
@@ -403,7 +433,7 @@ export default function AdminProductsClient() {
     setForm((s) => {
       const nextImgs = s.images.filter((_, i) => i !== idx);
 
-      let coverIdx = nextImgs.findIndex((x) => x.isCover);
+      const coverIdx = nextImgs.findIndex((x) => x.isCover);
       if (nextImgs.length > 0 && coverIdx < 0) {
         nextImgs[0] = { ...nextImgs[0], isCover: true };
       } else if (nextImgs.length > 0 && coverIdx >= 0) {
@@ -418,13 +448,14 @@ export default function AdminProductsClient() {
     for (const f of files) fd.append("files", f);
 
     const res = await fetch("/api/admin/products/uploads/images", { method: "POST", body: fd });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json?.error || "Upload failed");
+    const json = await safeJson(res);
+    if (!res.ok) throw new Error((json as any)?.error || "Upload failed");
 
-    const urls: string[] = Array.isArray(json?.urls) ? json.urls : [];
+    const urls: string[] = Array.isArray((json as any)?.urls) ? (json as any).urls : [];
     if (urls.length === 0) throw new Error("Upload failed: empty urls");
     return urls;
   }
+
   async function submitForm() {
     const msg = validateForm(form);
     if (msg) {
@@ -444,20 +475,20 @@ export default function AdminProductsClient() {
         }))
         .filter((x) => x.url.length > 0);
 
-      // 2) upload local files (if any) -> urls
+      // 2) upload local files -> urls
       let uploadedUrls: string[] = [];
       if (localFiles.length > 0) {
         uploadedUrls = await uploadLocalImages(localFiles.map((x) => x.file));
       }
 
-      // 3) convert uploaded urls -> images items (cover by coverIndex)
+      // 3) uploaded urls -> images (cover by coverIndex within uploaded group)
       const uploadedImages = uploadedUrls.map((u, i) => ({
         url: String(u).trim(),
         isCover: i === coverIndex,
         sort: urlImages.length + i,
       }));
 
-      // 4) merge images
+      // 4) merge
       const merged = [...urlImages, ...uploadedImages].filter((x) => x.url.length > 0);
 
       // 5) ensure exactly one cover
@@ -469,7 +500,6 @@ export default function AdminProductsClient() {
         merged.forEach((x, i) => (x.isCover = i === coverAt));
       }
 
-      // 6) payload JSON for API
       const payload = {
         name: form.name.trim(),
         slug: slugify(form.slug.trim()),
@@ -501,15 +531,14 @@ export default function AdminProductsClient() {
               body: JSON.stringify(payload),
             });
 
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || "Save failed");
+      const json = await safeJson(res);
+      if (!res.ok) throw new Error((json as any)?.error || "Save failed");
 
-      // clear local preview after save
       setLocalFiles([]);
       setCoverIndex(0);
 
       closeModal();
-      await load();
+      await loadWithFilters(filters);
     } catch (e: any) {
       setFormErr(e?.message || "Save failed");
     } finally {
@@ -522,9 +551,9 @@ export default function AdminProductsClient() {
     setBusy(true);
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || "Delete failed");
-      await load();
+      const json = await safeJson(res);
+      if (!res.ok) throw new Error((json as any)?.error || "Delete failed");
+      await loadWithFilters(filters);
     } catch (e: any) {
       alert(e?.message || "Delete failed");
     } finally {
@@ -533,6 +562,8 @@ export default function AdminProductsClient() {
   }
 
   function exportCsv() {
+    if (filtered.length === 0) return;
+
     const rows = filtered.map((p) => ({
       name: p.name,
       slug: p.slug,
@@ -546,8 +577,7 @@ export default function AdminProductsClient() {
       updatedAt: p.updatedAt,
     }));
 
-    const header = Object.keys(rows[0] ?? { name: "", slug: "", sku: "", barcode: "", category: "", cost: "", price: "", stock: "", status: "", updatedAt: "" });
-
+    const header = Object.keys(rows[0]);
     const csv = header.join(",") + "\n" + rows.map((r) => header.map((k) => `"${String((r as any)[k] ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -561,46 +591,7 @@ export default function AdminProductsClient() {
     URL.revokeObjectURL(url);
   }
 
-  async function loadWithFilters(f: typeof filters) {
-    setLoading(true);
-    setError("");
-    try {
-      const params = new URLSearchParams();
-
-      if (f.q.trim()) params.set("q", f.q.trim());
-
-      params.set("active", f.active);
-
-      params.set("sort", f.sort === "PriceAsc" ? "priceAsc" : f.sort === "PriceDesc" ? "priceDesc" : f.sort === "NameAsc" ? "nameAsc" : "newest");
-
-      if (f.categoryIds.length > 0) {
-        params.set("categoryIds", f.categoryIds.join(","));
-      }
-
-      // price range (USD input) -> cents
-      const min = centsFromInput(f.priceMin);
-      const max = centsFromInput(f.priceMax);
-
-      if (f.priceMin.trim()) params.set("priceMinCents", String(min));
-      if (f.priceMax.trim()) params.set("priceMaxCents", String(max));
-
-      params.set("page", "1");
-      params.set("pageSize", "50");
-
-      const res = await fetch(`/api/admin/products?${params.toString()}`, { cache: "no-store" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || "Failed to load products");
-
-      setItems(Array.isArray(json?.items) ? json.items : []);
-    } catch (e: any) {
-      setError(e?.message || "Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function applyFilters() {
-    // sync to current UI and call load
     loadWithFilters(filters);
   }
 
@@ -621,7 +612,8 @@ export default function AdminProductsClient() {
                   New
                 </button>
               </div>
-              <button type="button" className={styles.iconBtn} title="Refresh" onClick={() => load()} disabled={loading || busy}>
+
+              <button type="button" className={styles.iconBtn} title="Refresh" onClick={() => loadWithFilters(filters)} disabled={loading || busy}>
                 <i className={`bi bi-arrow-clockwise ${loading ? styles.spin : ""}`} />
               </button>
             </div>
@@ -677,7 +669,6 @@ export default function AdminProductsClient() {
 
                           <span className={styles.checkText}>
                             {c.name}
-                            {/* nếu API của bạn có count thì hiện như ảnh */}
                             {typeof (c as any).count === "number" ? <span className={styles.checkCount}>({(c as any).count})</span> : null}
                           </span>
                         </label>
@@ -728,7 +719,7 @@ export default function AdminProductsClient() {
 
               {/* Actions */}
               <div className={styles.sideActions}>
-                <button type="button" className={styles.btnPrimary} onClick={() => applyFilters()} disabled={busy}>
+                <button type="button" className={styles.btnPrimary} onClick={applyFilters} disabled={busy}>
                   <i className="bi bi-check2" />
                   Apply
                 </button>
@@ -738,9 +729,9 @@ export default function AdminProductsClient() {
         </aside>
 
         <section className={styles.rightCol}>
-          {/* Card table */}
-          <div className={styles.card}>
-            <div className={styles.cardTop}>
+          <div className={styles.listCard}>
+            {/* Top bar (giữ select + hint) */}
+            <div className={styles.listTop}>
               <label className={styles.checkAll}>
                 <input
                   type="checkbox"
@@ -754,154 +745,136 @@ export default function AdminProductsClient() {
                 <span>{checkedCount > 0 ? `${checkedCount} selected` : "Select"}</span>
               </label>
 
-              <div className={styles.cardHint}>
+              <div className={styles.listHint}>
                 {loading ? (
                   "Loading..."
                 ) : error ? (
                   <span className={styles.errText}>{error}</span>
                 ) : (
                   <>
-                    Showing <b>{filtered.length}</b> products
+                    Showing <p className={styles.countProductText}>{filtered.length}</p> products
                   </>
                 )}
               </div>
             </div>
 
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={{ width: 46 }} />
-                    <th>Product</th>
-                    <th>SKU</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th style={{ width: 140, textAlign: "right" }}>Actions</th>
-                  </tr>
-                </thead>
+            {/* Grid */}
+            <div className={styles.prodGrid}>
+              {filtered.map((p) => {
+                const thumb = getThumb(p);
+                const isChecked = !!selected[p.id];
 
-                <tbody>
-                  {filtered.map((p) => {
-                    const thumb = getThumb(p);
-                    return (
-                      <tr key={p.id}>
-                        <td>
+                return (
+                  <article key={p.id} className={styles.prodCard}>
+                    {/* media */}
+                    <div className={styles.prodMedia}>
+                      {thumb ? (
+                        <img className={styles.prodImg} src={thumb} alt="" />
+                      ) : (
+                        <div className={styles.prodImgEmpty}>
+                          <i className="bi bi-image" />
+                        </div>
+                      )}
+
+                      {/* corner ribbon (giữ hoặc bỏ tuỳ bạn) */}
+                      <div className={styles.cornerRibbon} />
+
+                      {/* TOP actions: checkbox + edit/delete/more (thay vị trí like) */}
+                      <div className={styles.prodMediaTop}>
+                        <label className={styles.cardCheck}>
                           <input type="checkbox" checked={!!selected[p.id]} onChange={(e) => setSelected((s) => ({ ...s, [p.id]: e.target.checked }))} />
-                        </td>
+                        </label>
 
-                        <td>
-                          <div className={styles.prodCell}>
-                            {thumb ? (
-                              <img className={styles.prodThumb} src={thumb} alt="" />
-                            ) : (
-                              <div className={styles.prodAvatar}>
-                                <i className="bi bi-box-seam" />
-                              </div>
-                            )}
+                        <div className={styles.mediaActions}>
+                          <button type="button" className={styles.mediaIconBtn} title="Edit" onClick={() => openEdit(p)} disabled={busy}>
+                            <i className="bi bi-pencil" />
+                          </button>
 
-                            <div className={styles.prodMeta}>
-                              <div className={styles.prodNameRow}>
-                                <div className={styles.prodName}>{p.name}</div>
-                                {p.barcode ? <span className={styles.miniPill}>#{p.barcode}</span> : null}
-                              </div>
-                              <div className={styles.prodSub}>
-                                <span className={styles.mono}>{p.sku}</span>
-                                <span className={styles.sep}>•</span>
-                                <span className={styles.muted}>Stock {p.stock ?? 0}</span>
-                                {p.category?.name ? (
-                                  <>
-                                    <span className={styles.sep}>•</span>
-                                    <span className={styles.muted}>{p.category.name}</span>
-                                  </>
-                                ) : null}
-                              </div>
+                          <button type="button" className={styles.mediaIconBtn} title="Deactivate" onClick={() => softDeleteOne(p.id)} disabled={busy}>
+                            <i className="bi bi-trash3" />
+                          </button>
+
+                          <button type="button" className={styles.mediaIconBtn} aria-label="More" title="More" onClick={() => setOpenRowMenu((cur) => (cur === p.id ? null : p.id))} disabled={busy}>
+                            <i className="bi bi-three-dots" />
+                          </button>
+
+                          {openRowMenu === p.id && (
+                            <div
+                              className={styles.rowMenu}
+                              ref={(el) => {
+                                rowMenuRef.current = el;
+                              }}>
+                              <button
+                                type="button"
+                                className={styles.rowMenuItem}
+                                onClick={() => {
+                                  setOpenRowMenu(null);
+                                  openEdit(p);
+                                }}>
+                                <i className="bi bi-pencil-square" />
+                                Edit product
+                              </button>
+
+                              <button
+                                type="button"
+                                className={styles.rowMenuItem}
+                                onClick={() => {
+                                  setOpenRowMenu(null);
+                                  navigator.clipboard?.writeText(p.id).catch(() => {});
+                                }}>
+                                <i className="bi bi-clipboard" />
+                                Copy product ID
+                              </button>
+
+                              <div className={styles.rowMenuSep} />
+
+                              <button
+                                type="button"
+                                className={`${styles.rowMenuItem} ${styles.rowMenuDanger}`}
+                                onClick={() => {
+                                  setOpenRowMenu(null);
+                                  softDeleteOne(p.id);
+                                }}>
+                                <i className="bi bi-trash3" />
+                                Deactivate
+                              </button>
                             </div>
-                          </div>
-                        </td>
+                          )}
+                        </div>
+                      </div>
 
-                        <td className={styles.mono}>{p.sku}</td>
+                      {/* BOTTOM overlay mờ: name + meta (đè lên ảnh) */}
+                      <div className={styles.mediaInfoOverlay}>
+                        <div className={styles.overlayName} title={p.name}>
+                          {p.name}
+                        </div>
 
-                        <td>
-                          <div className={styles.priceCol}>
-                            <div className={styles.priceMain}>{moneyFromCents(p.priceCents)}</div>
-                            <div className={styles.priceSub}>Cost {moneyFromCents(p.costCents)}</div>
-                          </div>
-                        </td>
+                        <div className={styles.overlayMeta}>
+                          <span className={styles.mono}>{p.sku}</span>
+                          <span className={styles.dot}>•</span>
+                          <span>Stock {p.stock ?? 0}</span>
+                          {p.barcode ? (
+                            <>
+                              <span className={styles.dot}>•</span>
+                              <span>#{p.barcode}</span>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
 
-                        <td>
-                          <span className={`${styles.badge} ${p.isActive ? styles.badgeOk : styles.badgeOff}`}>
-                            <i className={`bi ${p.isActive ? "bi-check-circle-fill" : "bi-slash-circle"}`} />
-                            {p.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </td>
+                      <div className={styles.prodTag}>{p.category?.name ?? "No category"}</div>
+                    </div>
 
-                        <td style={{ textAlign: "right" }}>
-                          <div className={styles.actions} ref={rowMenuWrapRef}>
-                            <button type="button" className={styles.iconBtn} title="Edit" onClick={() => openEdit(p)} disabled={busy}>
-                              <i className="bi bi-pencil" />
-                            </button>
+                    <div className={styles.prodBody}>
+                      <div className={styles.priceRow}>
+                        <div className={styles.priceMain}>{moneyFromCents(p.priceCents)}</div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
 
-                            <button type="button" className={styles.iconBtn} title="Deactivate" onClick={() => softDeleteOne(p.id)} disabled={busy}>
-                              <i className="bi bi-trash3" />
-                            </button>
-
-                            <button type="button" className={styles.iconBtn} aria-label="More" title="More" onClick={() => setOpenRowMenu((cur) => (cur === p.id ? null : p.id))} disabled={busy}>
-                              <i className="bi bi-three-dots" />
-                            </button>
-
-                            {openRowMenu === p.id && (
-                              <div className={styles.rowMenu}>
-                                <button
-                                  type="button"
-                                  className={styles.rowMenuItem}
-                                  onClick={() => {
-                                    setOpenRowMenu(null);
-                                    openEdit(p);
-                                  }}>
-                                  <i className="bi bi-pencil-square" />
-                                  Edit product
-                                </button>
-
-                                <button
-                                  type="button"
-                                  className={styles.rowMenuItem}
-                                  onClick={() => {
-                                    setOpenRowMenu(null);
-                                    navigator.clipboard?.writeText(p.id).catch(() => {});
-                                  }}>
-                                  <i className="bi bi-clipboard" />
-                                  Copy product ID
-                                </button>
-
-                                <div className={styles.rowMenuSep} />
-
-                                <button
-                                  type="button"
-                                  className={`${styles.rowMenuItem} ${styles.rowMenuDanger}`}
-                                  onClick={() => {
-                                    setOpenRowMenu(null);
-                                    softDeleteOne(p.id);
-                                  }}>
-                                  <i className="bi bi-trash3" />
-                                  Deactivate
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {!loading && filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className={styles.empty}>
-                        No products found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              {!loading && filtered.length === 0 && <div className={styles.emptyGrid}>No products found</div>}
             </div>
           </div>
         </section>
@@ -943,13 +916,13 @@ export default function AdminProductsClient() {
             )}
 
             <div className={styles.modalBody}>
-              {/* Left */}
               <div className={styles.modalLeft}>
                 <div className={styles.section}>
                   <div className={styles.grid2}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Name *</label>
                       <input
+                        ref={nameInputRef}
                         className={styles.input}
                         value={form.name}
                         onChange={(e) => {
@@ -958,7 +931,6 @@ export default function AdminProductsClient() {
                           setForm((s) => ({
                             ...s,
                             name: v,
-                            // ✅ chỉ auto slug khi user CHƯA sửa slug thủ công
                             slug: slugEdited ? s.slug : slugify(v),
                           }));
                         }}
@@ -973,9 +945,7 @@ export default function AdminProductsClient() {
                         className={styles.input}
                         value={form.slug}
                         onChange={(e) => {
-                          // ✅ đánh dấu user đã sửa slug
                           setSlugEdited(true);
-
                           const v = e.target.value;
                           setForm((s) => ({ ...s, slug: slugify(v) }));
                         }}
@@ -1062,7 +1032,6 @@ export default function AdminProductsClient() {
                     <div className={styles.sectionHint}>Upload preview or paste URLs. Pick a cover.</div>
                   </div>
 
-                  {/* Upload dropzone (preview only, backend chưa upload) */}
                   <div
                     className={styles.dropzone}
                     onDragOver={(e) => {
@@ -1094,7 +1063,6 @@ export default function AdminProductsClient() {
                     </div>
                   </div>
 
-                  {/* Uploaded files preview */}
                   {localFiles.length === 0 ? (
                     <div className={styles.imageEmpty}>
                       <div className={styles.imageEmptyIcon}>
@@ -1151,7 +1119,6 @@ export default function AdminProductsClient() {
                     </div>
                   )}
 
-                  {/* URL Images editor */}
                   <div className={styles.imageTip} style={{ marginTop: 12 }}>
                     <i className="bi bi-link-45deg" />
                     Tip: Product API currently stores image URLs. Paste URLs below.

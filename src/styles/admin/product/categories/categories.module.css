@@ -73,7 +73,7 @@
 
 .searchWrap {
   position: relative;
-  padding: 0 14px 12px 14px;
+  padding: 0 11px 11px;
 }
 .searchWrap i {
   position: absolute;
@@ -97,11 +97,20 @@
 }
 
 .tree {
-  padding: 0 10px 14px 10px;
-  display: flex;
-  gap: 6px;
   flex-direction: column;
+  gap: 6px;
+  padding: 0 10px 14px;
+  display: flex;
+  height: 65vh;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
+.tree::-webkit-scrollbar {
+  display: none;
+}
+
 .treeNode {
   display: flex;
   flex-direction: column;
@@ -121,13 +130,17 @@
   align-items: center;
   gap: 10px;
   padding: 10px 10px;
-  border-radius: 14px;
+  border-radius: 6px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   background: #fff;
   cursor: pointer;
   text-align: left;
   font-size: 14px;
-  transition: transform 0.08s ease, border-color 0.12s ease, background 0.12s ease;
+  transition:
+    transform 0.08s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+  justify-content: space-between;
 }
 .treeBtn:hover {
   transform: translateY(-1px);
@@ -143,6 +156,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 174px;
 }
 .treeSlug {
   color: #0f172a8c;
@@ -172,6 +186,12 @@
   background: rgba(239, 68, 68, 0.12);
   color: rgba(185, 28, 28, 0.95);
   border: 1px solid rgba(239, 68, 68, 0.22);
+}
+
+.treeGroup {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .sidebarFooter {
@@ -221,7 +241,8 @@
 }
 .panelTitle {
   font-weight: 900;
-  letter-spacing: -0.02em;
+  color: #f0874f;
+  font-size: 17px;
 }
 .panelSub {
   margin-top: 4px;
@@ -258,7 +279,10 @@
   border: 1px solid rgba(15, 23, 42, 0.1);
   background: #fff;
   cursor: pointer;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.08s ease;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.08s ease;
 }
 .item:hover {
   border-color: rgba(47, 123, 255, 0.35);
@@ -453,7 +477,7 @@
   border-radius: 16px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   outline: none;
-  font-weight: 700;
+  font-size: 14px;
   background: #fff;
 }
 
@@ -475,10 +499,10 @@
 }
 
 .actions {
-  display: flex;
-  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 6px;
+  gap: 10px;
+  margin: 6px;
+  display: flex;
 }
 
 .primaryBtn {
@@ -487,11 +511,13 @@
   gap: 8px;
   padding: 5px 12px;
   border-radius: 6px;
-  color: #166b3d;
+  color: #18ad5c;
   cursor: pointer;
-  background: #94e7bd;
+  background: #c8ffe3;
   border: 1px solid #2fffdc66;
-  transition: transform 0.08s ease, filter 0.12s ease;
+  transition:
+    transform 0.08s ease,
+    filter 0.12s ease;
   font-size: 14px;
 }
 .primaryBtn:hover {
@@ -509,7 +535,10 @@
   background: #fff;
   cursor: pointer;
   color: rgba(15, 23, 42, 0.9);
-  transition: transform 0.08s ease, border-color 0.12s ease, background 0.12s ease;
+  transition:
+    transform 0.08s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
   font-size: 14px;
 }
 .ghostBtn:hover {
@@ -565,4 +594,212 @@
   .inspector {
     position: static;
   }
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+.modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.modalTitle {
+  font-weight: 700;
+}
+
+.modalBody {
+  padding: 0px 13px 13px 13px;
+  margin-top: 5px;
+}
+
+.modalHint {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* =========================
+   Pagination (Order within parent)
+   ========================= */
+
+.pagerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 10px 12px;
+  margin: 10px 12px 0;
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.86));
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+.pagerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pagerLabel {
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.72);
+  white-space: nowrap;
+}
+
+.pagerRange {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(15, 23, 42, 0.86);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pagerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+}
+
+.pagerBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagerBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.pagerBtn:active:not(:disabled) {
+  transform: translateY(0px);
+}
+
+.pagerCenter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.03);
+
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.8);
+  white-space: nowrap;
+}
+
+.pagerCenter strong {
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.pagerDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+/* Mobile: stack nicely */
+@media (max-width: 720px) {
+  .pagerBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagerRight {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .pagerCenter {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+.treeRow {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.treeCaret {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease;
+}
+
+.treeCaret:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.treeCaret:active {
+  transform: scale(0.98);
+}
+
+.treeCaretPlaceholder {
+  width: 30px;
+  min-width: 30px;
 }

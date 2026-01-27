@@ -3,18 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/product/variants/variants.module.css";
 
-/**
- * API sử dụng:
- *  - GET    /api/admin/products/lite
- *  - GET    /api/admin/product-variant?productId=...
- *  - POST   /api/admin/product-variant
- *  - PATCH  /api/admin/product-variant/[id]
- *  - DELETE /api/admin/product-variant/[id]
- *  - GET/POST/PATCH/DELETE /api/admin/product-variant/[id]/image  (id = variantId)
- */
-
 type Currency = "USD" | "VND";
-type VariantStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
+type VariantStatus = "ACTIVE" | "DRAFT"; // ✅ DB only supports isActive
 
 type ProductRow = {
   id: string;
@@ -40,7 +30,6 @@ type VariantRow = {
 
   status: VariantStatus; // map sang DB isActive
 
-  // ✅ map trực tiếp sang DB (không dùng Record nữa để tránh nhầm)
   option1?: string;
   value1?: string;
   option2?: string;
@@ -272,40 +261,36 @@ export default function VariantsPage() {
 
   /** ===== load products ===== */
   useEffect(() => {
-    let cancelled = false;
+    const ac = new AbortController();
 
     async function loadProducts() {
       try {
-        const data = await apiJson<{ items: ProductRow[] }>("/api/admin/products/lite");
-        if (cancelled) return;
-
+        const data = await apiJson<{ items: ProductRow[] }>("/api/admin/products/lite", { signal: ac.signal });
         const items = data.items ?? [];
         setProducts(items);
-        setActiveProductId(items[0]?.id || "");
+        setActiveProductId((prev) => prev || items[0]?.id || "");
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Failed to load products");
+        if (e?.name === "AbortError") return;
+        setError(e?.message || "Failed to load products");
       }
     }
 
     loadProducts();
-    return () => {
-      cancelled = true;
-    };
+    return () => ac.abort();
   }, []);
 
   /** ===== load variants when change product ===== */
   useEffect(() => {
-    let cancelled = false;
+    if (!activeProductId) return;
+
+    const ac = new AbortController();
 
     async function load() {
-      if (!activeProductId) return;
       setLoading(true);
       setError(null);
 
       try {
-        const data = await apiJson<{ items: DbVariant[] }>(`/api/admin/product-variant?productId=${encodeURIComponent(activeProductId)}`);
-        if (cancelled) return;
-
+        const data = await apiJson<{ items: DbVariant[] }>(`/api/admin/product-variant?productId=${encodeURIComponent(activeProductId)}`, { signal: ac.signal });
         const rows = (data.items ?? []).map(dbToUiVariant);
 
         setVariants((prev) => {
@@ -315,16 +300,15 @@ export default function VariantsPage() {
 
         setActiveVariantId(rows[0]?.id || "");
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Failed to load variants");
+        if (e?.name === "AbortError") return;
+        setError(e?.message || "Failed to load variants");
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     }
 
     load();
-    return () => {
-      cancelled = true;
-    };
+    return () => ac.abort();
   }, [activeProductId]);
 
   function selectProduct(id: string) {
@@ -376,7 +360,7 @@ export default function VariantsPage() {
             priceCents: 0,
             stock: 0,
             status: "DRAFT",
-          })
+          }),
         ),
       });
 
@@ -393,8 +377,11 @@ export default function VariantsPage() {
     if (!v) return;
     setError(null);
 
+    const p = products.find((pp) => pp.id === v.productId);
+    const prefix = p?.skuPrefix || "SKU";
+
     const existing = new Set(variants.filter((x) => x.productId === v.productId).map((x) => x.sku));
-    const sku = uniqueSkuForProduct(v.sku, existing, "COPY");
+    const sku = uniqueSkuForProduct(prefix, existing, "COPY");
 
     try {
       const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant`, {
@@ -412,7 +399,7 @@ export default function VariantsPage() {
             value1: v.value1,
             option2: v.option2,
             value2: v.value2,
-          })
+          }),
         ),
       });
 
@@ -501,9 +488,7 @@ export default function VariantsPage() {
       }))
       .filter((d) => d.name && d.values.length);
 
-    if (cleaned.length === 0) {
-      return;
-    }
+    if (cleaned.length === 0) return;
 
     if (cleaned.length > 2) {
       alert("Schema hiện tại chỉ hỗ trợ tối đa 2 options (option1/option2). Hãy giảm còn 2 option.");
@@ -515,7 +500,6 @@ export default function VariantsPage() {
 
     const existingSkus = new Set(variants.filter((v) => v.productId === activeProduct.id).map((v) => v.sku));
 
-    // tạo tuần tự để dễ debug (cần nhanh hơn thì mình sẽ thêm limit concurrency)
     const created: VariantRow[] = [];
 
     for (const opts of combos) {
@@ -531,7 +515,6 @@ export default function VariantsPage() {
 
       if (existingSkus.has(sku)) continue;
 
-      // đảm bảo unique nếu trùng do format
       sku = uniqueSkuForProduct(activeProduct.skuPrefix, existingSkus, sku.replace(activeProduct.skuPrefix + "-", ""));
       existingSkus.add(sku);
 
@@ -550,7 +533,7 @@ export default function VariantsPage() {
               value1: v1,
               option2: o2,
               value2: v2,
-            })
+            }),
           ),
         });
 
@@ -587,8 +570,8 @@ export default function VariantsPage() {
               })),
               updatedAt: nowIso(),
             }
-          : v
-      )
+          : v,
+      ),
     );
   }
 
@@ -789,8 +772,8 @@ export default function VariantsPage() {
                             <td className={styles.mono}>{v.stock}</td>
 
                             <td>
-                              <span className={`${styles.status} ${v.status === "ACTIVE" ? styles.ok : v.status === "DRAFT" ? styles.off : styles.bad}`}>
-                                <i className={`bi ${v.status === "ACTIVE" ? "bi-check2-circle" : v.status === "DRAFT" ? "bi-pencil" : "bi-archive"}`} />
+                              <span className={`${styles.status} ${v.status === "ACTIVE" ? styles.ok : styles.off}`}>
+                                <i className={`bi ${v.status === "ACTIVE" ? "bi-check2-circle" : "bi-pencil"}`} />
                                 {v.status}
                               </span>
                             </td>
@@ -922,7 +905,6 @@ export default function VariantsPage() {
                           <select className={styles.select} value={activeVariant.status} onChange={(e) => patchVariantRemote(activeVariant.id, { status: e.target.value as VariantStatus })}>
                             <option value="ACTIVE">ACTIVE</option>
                             <option value="DRAFT">DRAFT</option>
-                            <option value="ARCHIVED">ARCHIVED</option>
                           </select>
                         </div>
                       </div>
@@ -1016,8 +998,6 @@ export default function VariantsPage() {
                         </div>
                       </div>
                     </div>
-
-                    <div className={styles.hr} />
 
                     <div className={styles.hr} />
 
