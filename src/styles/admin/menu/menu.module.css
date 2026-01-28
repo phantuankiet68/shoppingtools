@@ -86,9 +86,11 @@
 
 /* Grid */
 .grid {
-  display: grid;
-  grid-template-columns: 5fr 5fr;
   gap: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 .leftCol,
 .rightCol {
@@ -99,10 +101,13 @@
 /* ========== Firefox ========== */
 .leftCol,
 .rightCol {
+  scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: #a7b0b2 #adadad26;
   background: #fff;
   border-radius: 5px;
+  padding: 10px;
+  width: 50%;
 }
 
 .searchInput {

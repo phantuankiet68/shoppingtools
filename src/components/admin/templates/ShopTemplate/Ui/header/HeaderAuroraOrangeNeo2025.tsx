@@ -77,7 +77,7 @@ export interface HeaderAuroraOrangeNeo2025Props extends HeaderAuroraOrangeNeo202
 const DEFAULT_CONFIG: HeaderAuroraOrangeNeo2025Config = {
   autoLoadMenu: false,
   menuApiUrl: undefined,
-  locale: "vi",
+  locale: "en",
   siteId: undefined,
   setKey: "home",
 
@@ -241,7 +241,7 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 

@@ -13,12 +13,12 @@ type InItem = {
   icon: string | null;
   sortOrder: number;
   visible: boolean;
-  locale: "vi" | "en" | "ja";
+  locale: "en";
   setKey: "home" | "v1";
 };
 
 type Body = {
-  locale: "vi" | "en" | "ja";
+  locale: "en";
   setKey: "home" | "v1";
   items: InItem[];
   overwrite?: boolean;

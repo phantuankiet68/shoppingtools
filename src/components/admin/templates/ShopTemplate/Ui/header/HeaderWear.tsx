@@ -89,7 +89,7 @@ const DEFAULT_HEADER_WEAR_PROPS: HeaderWearProps = {
   cartCount: 3,
 
   autoLoadMenu: true,
-  locale: "vi",
+  locale: "en",
   setKey: "home",
 
   showNavPromo: true,
@@ -182,7 +182,7 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 

@@ -47,7 +47,7 @@ const HeaderAuroraPinkEditor: React.FC<EditorProps> = ({ props, updateActive }) 
         </LabeledRow>
 
         <LabeledRow label="Locale">
-          <TextInput value={props.locale ?? "vi"} onChange={(v) => updateActive({ locale: v })} placeholder="vi" />
+          <TextInput value={props.locale ?? "en"} onChange={(v) => updateActive({ locale: v })} placeholder="vi" />
         </LabeledRow>
 
         <LabeledRow label="Set key">

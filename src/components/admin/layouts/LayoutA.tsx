@@ -1,17 +1,16 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject, MouseEvent as ReactMouseEvent } from "react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/layouts/LayoutA.module.css";
 import { usePathname } from "next/navigation";
 import { useAdminTitle } from "@/components/admin/AdminTitleContext";
-// import UpdatePopup from "@/components/admin/layouts/UpdatePopup";
+
 type AdminUser = { name: string; role: string };
 type NotiTab = "all" | "messages" | "tasks" | "alerts";
 
-/* ===================== Sidebar Types ===================== */
-type Locale = "vi" | "en" | "ja";
+type Locale = "en";
 
 type ApiMenuItem = {
   id: string;
@@ -34,16 +33,15 @@ type Item = {
   children?: Item[];
 };
 
-/* ===================== Sidebar Utils ===================== */
-const LOCALE_PREFIX = /^\/(vi|en|ja)(?=\/|$)/i;
-const ADD_PAGE_REGEX = /^\/(vi|en|ja)\/v1\/pages\/add(?:\/.*)?$/;
+const LOCALE_PREFIX = /^\/(en)(?=\/|$)/i;
+const ADD_PAGE_REGEX = /^\/(en)\/v1\/pages\/add(?:\/.*)?$/;
 
 function getCurrentLocale(): Locale {
   if (typeof document !== "undefined") {
     const l = (document.documentElement.lang || "vi").toLowerCase();
-    if (l === "vi" || l === "en" || l === "ja") return l;
+    if (l === "en") return l;
   }
-  return "vi";
+  return "en";
 }
 
 function normalize(p?: string | null): string {
@@ -71,7 +69,7 @@ function buildTree(rows: ApiMenuItem[]): Item[] {
       path: normalize(r.path),
       parentKey: r.parentId,
       children: [],
-    })
+    }),
   );
 
   const roots: Item[] = [];
@@ -81,7 +79,6 @@ function buildTree(rows: ApiMenuItem[]): Item[] {
     else roots.push(node);
   });
 
-  // sort theo sortOrder rồi tới title
   const sortMap: Record<string, number> = {};
   rows.forEach((r) => (sortMap[r.id] = r.sortOrder));
 
@@ -95,13 +92,12 @@ function buildTree(rows: ApiMenuItem[]): Item[] {
     });
     arr.forEach((n) => sortRec(n.children));
   };
-  sortRec(roots);
 
+  sortRec(roots);
   return roots;
 }
 
-/** Ripple nhẹ cho các phần tử có data-ripple (không cần CSS riêng) */
-function useRipple(containerRef: React.RefObject<HTMLElement | null>, attrName = "data-ripple", duration = 520) {
+function useRipple(containerRef: RefObject<HTMLElement | null>, attrName = "data-ripple", duration = 520) {
   useEffect(() => {
     const root = containerRef.current;
     if (!root) return;
@@ -145,7 +141,7 @@ function useRipple(containerRef: React.RefObject<HTMLElement | null>, attrName =
           clearTimeout(to);
           remove();
         },
-        { once: true }
+        { once: true },
       );
     };
 
@@ -154,7 +150,6 @@ function useRipple(containerRef: React.RefObject<HTMLElement | null>, attrName =
   }, [containerRef, attrName, duration]);
 }
 
-/* ===================== Match dài nhất ===================== */
 type MatchResult = { hit: Item; trail: string[]; np: string } | null;
 
 function bestMatchWithTrail(items: Item[], currentNoLocale: string): MatchResult {
@@ -182,11 +177,8 @@ function bestMatchWithTrail(items: Item[], currentNoLocale: string): MatchResult
   return best;
 }
 
-/* ===================== Helpers UI ===================== */
 const isAccountItem = (t: string) => /(account|profile|setting|logout|sign\s*out|chat)/i.test(t);
-const isOverviewGroup = (title: string) => !isAccountItem(title);
 
-/* Clamp vị trí flyout theo viewport */
 function positionFlyout(groupEl: HTMLElement, flyEl: HTMLElement) {
   const railRect = groupEl.getBoundingClientRect();
   const flyRect = flyEl.getBoundingClientRect();
@@ -226,11 +218,8 @@ function sectionOfTopItem(title: string): SectionKey {
   return "overview";
 }
 
-/* ===================== LayoutA ===================== */
 export default function LayoutA({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-
-  // ===== LayoutA original states =====
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleSidebar = () => setSidebarOpen((v) => !v);
 
@@ -244,7 +233,6 @@ export default function LayoutA({ children }: { children: ReactNode }) {
 
   const { meta } = useAdminTitle();
 
-  // ===== Sidebar dynamic states (tích hợp từ file đang vận hành) =====
   const [collapsed, setCollapsed] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
@@ -256,7 +244,6 @@ export default function LayoutA({ children }: { children: ReactNode }) {
 
   useRipple(navRef);
 
-  // ===== Load user (giữ nguyên) =====
   useEffect(() => {
     let alive = true;
 
@@ -276,42 +263,23 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // ===== Close user menu (giữ nguyên) =====
   useEffect(() => {
     function onDocMouseDown(e: MouseEvent) {
-      if (!userMenuRef.current) return;
       const target = e.target as Node;
-      if (!userMenuRef.current.contains(target)) {
-        setUserMenuOpen(false);
-      }
+
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) setUserMenuOpen(false);
+      if (notiRef.current && !notiRef.current.contains(target)) setNotiOpen(false);
     }
 
     function onEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") setUserMenuOpen(false);
+      if (e.key !== "Escape") return;
+      setUserMenuOpen(false);
+      setNotiOpen(false);
     }
 
     document.addEventListener("mousedown", onDocMouseDown);
     document.addEventListener("keydown", onEsc);
 
-    return () => {
-      document.removeEventListener("mousedown", onDocMouseDown);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, []);
-
-  // ===== Close noti (giữ nguyên) =====
-  useEffect(() => {
-    function onDocMouseDown(e: MouseEvent) {
-      if (!notiRef.current) return;
-      const target = e.target as Node;
-      if (!notiRef.current.contains(target)) setNotiOpen(false);
-    }
-    function onEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") setNotiOpen(false);
-    }
-
-    document.addEventListener("mousedown", onDocMouseDown);
-    document.addEventListener("keydown", onEsc);
     return () => {
       document.removeEventListener("mousedown", onDocMouseDown);
       document.removeEventListener("keydown", onEsc);
@@ -333,7 +301,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("click", onDocClick);
   }, [collapsed]);
 
-  // ===== Sidebar: Fetch menu (giữ logic cũ) =====
+  // ===== Sidebar: Fetch menu =====
   useEffect(() => {
     let alive = true;
 
@@ -345,10 +313,11 @@ export default function LayoutA({ children }: { children: ReactNode }) {
         params.set("sort", "sortOrder:asc");
         params.set("locale", getCurrentLocale());
         params.set("setKey", "v1");
+
         const siteId = localStorage.getItem("builder_site_id");
         if (siteId) params.set("siteId", siteId);
 
-        const res = await fetch(`/api/admin/menu-items?${params.toString()}`, { cache: "no-store" });
+        const res = await fetch(`/api/admin/menu-items/layout?${params.toString()}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load menu");
         const data = (await res.json()) as { items: ApiMenuItem[] };
 
@@ -370,9 +339,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
   function toggleGroupExclusive(gKey: string) {
     setOpenGroups((prev) => {
       const isOpen = !!prev[gKey];
-      // nếu đang mở -> đóng hết
       if (isOpen) return {};
-      // nếu đang đóng -> đóng hết cái khác và mở cái này
       return { [gKey]: true };
     });
   }
@@ -384,7 +351,6 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     });
   }
 
-  // ===== Sidebar: Active theo URL (match dài nhất) =====
   useEffect(() => {
     if (!pathname || !items.length) return;
 
@@ -415,12 +381,21 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     } catch {}
   }, [pathname, items]);
 
-  // ===== Sidebar: Auto-collapse khi ở trang add page =====
   useEffect(() => {
     const shouldCollapse = ADD_PAGE_REGEX.test(pathname || "");
     setCollapsed(shouldCollapse);
     if (shouldCollapse) setOpenGroups({});
   }, [pathname]);
+
+  useEffect(() => {
+    return () => {
+      const map = closeTimers.current;
+      Object.keys(map).forEach((k) => {
+        const id = map[k];
+        if (id) window.clearTimeout(id);
+      });
+    };
+  }, []);
 
   const sectionBuckets = useMemo(() => {
     const buckets: Record<SectionKey, { flats: Item[]; groups: Item[] }> = {
@@ -449,7 +424,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     }, delay);
   }
 
-  const onGroupMouseEnter = (gKey: string, ev: React.MouseEvent<HTMLDivElement>) => {
+  const onGroupMouseEnter = (gKey: string, ev: ReactMouseEvent<HTMLDivElement>) => {
     if (!collapsed) return;
     openGroupExclusive(gKey);
 
@@ -473,7 +448,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
 
   return (
     <div className={`${styles.shell} ${sidebarOpen ? styles.shellSidebarOpen : styles.shellSidebarClosed}`}>
-      {sidebarOpen && <button className={styles.backdrop} onClick={() => setSidebarOpen(false)} aria-label="Close sidebar" type="button" style={{ display: "none" }} />}
+      {sidebarOpen && <button className={styles.backdrop} onClick={() => setSidebarOpen(false)} aria-label="Close sidebar" type="button" />}
 
       <aside
         ref={(el) => {
@@ -508,6 +483,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
             )}
           </Link>
         </div>
+
         <nav className={styles.nav} ref={navRef}>
           {SECTION_ORDER.map((sec) => {
             const bucket = sectionBuckets[sec];
@@ -518,9 +494,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
               <div key={sec}>
                 <div className={styles.section}>
                   {!collapsed && <div className={styles.sectionTitle}>{SECTION_TITLES[sec]}</div>}
-
                   <div className={styles.sectionList}>
-                    {/* flats */}
                     {bucket.flats.map((it) => (
                       <Link
                         key={it.key}
@@ -546,7 +520,6 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                       </Link>
                     ))}
 
-                    {/* groups */}
                     {bucket.groups.map((g) => {
                       const isOpen = !!openGroups[g.key];
                       return (
@@ -633,18 +606,12 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                     })}
                   </div>
                 </div>
-
-                {/* divider giữa các section */}
                 {sec !== "account" && <div className={styles.sectionDivider} />}
               </div>
             );
           })}
         </nav>
-
-        {/* <UpdatePopup /> */}
       </aside>
-
-      {/* ===================== MAIN (giữ nguyên) ===================== */}
       <div className={styles.main}>
         <header className={styles.topbar}>
           <div className={styles.row1}>

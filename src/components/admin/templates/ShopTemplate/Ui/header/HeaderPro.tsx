@@ -90,7 +90,7 @@ const DEFAULT_HEADER_PRO_PROPS: HeaderProProps = {
   cartCount: 3,
 
   autoLoadMenu: true,
-  locale: "vi",
+  locale: "en",
   setKey: "home",
 
   // Promo mặc định
@@ -184,7 +184,7 @@ export const HeaderPro: React.FC<HeaderProProps> = (props) => {
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 

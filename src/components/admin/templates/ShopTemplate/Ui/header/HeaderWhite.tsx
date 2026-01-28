@@ -89,7 +89,7 @@ const DEFAULT_HEADER_WHITE_PROPS: HeaderWhiteProps = {
   bottomCartCount: 2,
 
   autoLoadMenu: true,
-  locale: "vi",
+  locale: "en",
   setKey: "home",
 
   preview: false,
@@ -176,7 +176,7 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 

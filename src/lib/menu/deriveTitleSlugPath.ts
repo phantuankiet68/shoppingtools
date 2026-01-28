@@ -1,7 +1,7 @@
 // app/(admin)/menu/lib/deriveTitleSlugPath.ts
 import { slugify } from "@/lib/page/utils";
 
-export type Locale = "vi" | "en" | "ja";
+export type Locale = "en";
 
 export type BasicMenuItem = {
   id: string;

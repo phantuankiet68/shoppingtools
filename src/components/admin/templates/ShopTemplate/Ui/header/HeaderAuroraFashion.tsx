@@ -105,7 +105,7 @@ const DEFAULT_HEADER_AURORA_PROPS: HeaderAuroraFashionProps = {
   cartTotalText: "1.250.000₫",
 
   autoLoadMenu: false,
-  locale: "vi",
+  locale: "en",
   setKey: "home",
 
   showBottomNav: true,
@@ -196,7 +196,7 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 

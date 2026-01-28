@@ -15,7 +15,7 @@ type SiteRow = {
   id: string;
   domain: string;
   name: string;
-  localeDefault: "vi" | "en" | "ja";
+  localeDefault: "en";
 };
 type Device = "desktop" | "tablet" | "mobile";
 
@@ -30,7 +30,7 @@ function originFromDomain(domain?: string) {
 }
 
 export default function UiBuilderAddPage() {
-  const { locale: routeLocale } = useParams<{ locale: "vi" | "en" | "ja" }>();
+  const { locale: routeLocale } = useParams<{ locale: "en" }>();
   const sp = useSearchParams();
   const initialId = sp.get("id");
 
@@ -216,14 +216,14 @@ export default function UiBuilderAddPage() {
 
         const nextKind = patch.kind ?? b.kind;
         const kindChanged = nextKind !== b.kind;
-        let nextProps = "props" in patch ? patch.props ?? {} : { ...(b.props ?? {}), ...patch };
+        let nextProps = "props" in patch ? (patch.props ?? {}) : { ...(b.props ?? {}), ...patch };
         if (kindChanged && !("props" in patch)) {
           const def = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
           nextProps = { ...def, ...nextProps };
         }
 
         return { ...b, kind: nextKind, props: nextProps };
-      })
+      }),
     );
   };
 

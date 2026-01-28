@@ -57,7 +57,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
     if (body.sortOrder !== undefined) data.sortOrder = Number(body.sortOrder) || 0;
     if (body.visible !== undefined) data.visible = Boolean(body.visible);
-    if (body.locale !== undefined && ["vi", "en", "ja"].includes(String(body.locale))) data.locale = body.locale;
+    if (body.locale !== undefined && ["en"].includes(String(body.locale))) data.locale = body.locale;
     if (body.parentId !== undefined) data.parentId = body.parentId as string | null;
 
     if (Object.keys(data).length === 0) {

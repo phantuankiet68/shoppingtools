@@ -39,7 +39,7 @@ type Profile = {
   hireDate: string; // YYYY-MM-DD
 
   gender: "male" | "female" | "other";
-  locale: "en" | "vi" | "ja";
+  locale: "en";
   timezone: string;
 
   dobMonth: string;
@@ -102,7 +102,7 @@ const EMPTY: Profile = {
   hireDate: "",
 
   gender: "other",
-  locale: "vi",
+  locale: "en",
   timezone: "Asia/Ho_Chi_Minh",
 
   dobMonth: "",

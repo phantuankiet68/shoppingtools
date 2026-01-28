@@ -83,16 +83,11 @@ type Props = {
 
 export default function MenuStructure({ locale, siteId }: Props) {
   const router = useRouter();
-
   const { activeMenu, setActiveMenu, buildHref } = useMenuStore();
-
   const [editing, setEditing] = useState<MenuItem | null>(null);
-
   const dragInfo = useRef<DragInfo>(null);
   const overRef = useRef<HTMLElement | null>(null);
-
   const [q, setQ] = useState("");
-
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

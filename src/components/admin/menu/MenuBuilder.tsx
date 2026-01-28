@@ -20,7 +20,7 @@ type SiteRow = {
   id: string;
   domain: string;
   name: string;
-  localeDefault: "vi" | "en" | "ja";
+  localeDefault: "en";
 };
 
 function useMounted() {
@@ -35,7 +35,7 @@ export default function MenuBuilder() {
 
   const { currentSet, setCurrentSet, activeMenu, setActiveMenu, loadFromServer, saveToServer, siteKind, setSiteKind, templateKey } = useMenuStore();
 
-  const locale: Locale = "vi";
+  const locale: Locale = "en";
 
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -294,7 +294,7 @@ export default function MenuBuilder() {
                 if (selectedSiteId) {
                   setLoading(true);
                   try {
-                    await loadFromServer("vi", setKey, selectedSiteId);
+                    await loadFromServer("en", setKey, selectedSiteId);
                   } finally {
                     setLoading(false);
                   }

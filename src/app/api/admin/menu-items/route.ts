@@ -1,4 +1,3 @@
-// app/api/menu-items/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma, Locale, MenuSetKey } from "@prisma/client";
@@ -54,7 +53,7 @@ function isMenuSetKey(v: string | null): v is MenuSetKey {
 }
 
 function isLocale(v: string | null): v is Locale {
-  return v === "vi" || v === "en" || v === "ja";
+  return v === "en";
 }
 
 export async function GET(req: Request) {
@@ -65,17 +64,14 @@ export async function GET(req: Request) {
     const size = coerceInt(url.searchParams.get("size"), 20, 1, 200);
     const q = url.searchParams.get("q") ?? undefined;
 
-    // ✅ FIX: đọc setKey từ query
     const setKeyParam = url.searchParams.get("setKey");
     const setKey: MenuSetKey = isMenuSetKey(setKeyParam) ? setKeyParam : "home";
 
-    // (khuyến nghị) filter theo siteId nếu hệ bạn có nhiều site
     const siteIdParam = url.searchParams.get("siteId");
     const siteId = await resolveSiteId(req, siteIdParam);
 
-    // (khuyến nghị) filter theo locale nếu DB có field locale
     const localeParam = url.searchParams.get("locale");
-    const locale: Locale = isLocale(localeParam) ? localeParam : "vi";
+    const locale: Locale = isLocale(localeParam) ? localeParam : "en";
 
     const parentIdRaw = url.searchParams.get("parentId");
     const parentId = parentIdRaw && parentIdRaw !== "null" && parentIdRaw !== "" ? parentIdRaw : undefined;
@@ -142,7 +138,7 @@ export async function POST(req: Request) {
       icon: body.icon ?? null,
       sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
       visible: Boolean(body.visible ?? true),
-      locale: (body.locale as Locale) ?? "vi",
+      locale: (body.locale as Locale) ?? "en",
       parentId: body.parentId ?? null,
       setKey: (body.setKey as MenuSetKey) ?? "home",
     };

@@ -142,7 +142,7 @@ const DEFAULT_CONFIG: HeaderAuroraPinkConfig = {
   cartCount: 3,
   showAuth: true,
   authLabel: "Đăng nhập",
-  locale: "vi",
+  locale: "en",
   setKey: "home",
 };
 
@@ -231,7 +231,7 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 

@@ -13,7 +13,7 @@ export const DEFAULT_HEADER_SIMPLE_PROPS: HeaderSimpleProps = {
   preview: false,
 };
 
-const LOCALES = ["VI", "EN", "JA"];
+const LOCALES = ["EN"];
 const MODES = ["Mode: Tất cả sản phẩm", "Mode: Chỉ áo & quần", "Mode: Gợi ý outfit tự động"];
 
 type NavKey = "new" | "women" | "men" | "kids" | "accessories" | "sale";

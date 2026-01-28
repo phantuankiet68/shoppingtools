@@ -1,10 +1,9 @@
-// src/components/menu/useMenuStore.tsx
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ECOMMERCE_INTERNAL_PAGES, ECOMMERCE_HEADER_FULL, ECOMMERCE_ADMIN_FULL } from "@/contains/config/ecommerce.menu";
 
-export type Locale = "vi" | "en" | "ja";
+export type Locale = "en";
 export type MenuSetKey = "home" | "v1";
 export type SiteKind = "ecommerce";
 export type TemplateKey = "header" | "sidebar" | "mega" | "drawer";
@@ -49,19 +48,21 @@ type DbMenuItem = {
   updatedAt?: string;
 };
 
-function buildTree(rows: DbMenuItem[]): (DbMenuItem & { children: DbMenuItem[] })[] {
-  const byId = new Map<string, DbMenuItem & { children: DbMenuItem[] }>();
-  const roots: (DbMenuItem & { children: DbMenuItem[] })[] = [];
+type DbTreeNode = DbMenuItem & { children: DbTreeNode[] };
 
-  rows
-    .slice()
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    .forEach((r) => byId.set(r.id, { ...r, children: [] }));
+function buildTree(rows: DbMenuItem[]): DbTreeNode[] {
+  const byId = new Map<string, DbTreeNode>();
+  const roots: DbTreeNode[] = [];
+  const sorted = rows.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
 
-  byId.forEach((node) => {
+  for (const r of sorted) {
+    byId.set(r.id, { ...r, children: [] });
+  }
+
+  for (const node of byId.values()) {
     if (node.parentId && byId.has(node.parentId)) byId.get(node.parentId)!.children.push(node);
     else roots.push(node);
-  });
+  }
 
   return roots;
 }
@@ -96,8 +97,8 @@ function inferLinkFromPath(
   return { linkType: "internal", internalPageId: undefined, rawPath: raw };
 }
 
-function mapDbTreeToBuilder(nodes: (DbMenuItem & { children?: DbMenuItem[] })[], internalPages: InternalPage[]): BuilderMenuItem[] {
-  const walk = (n: DbMenuItem & { children?: DbMenuItem[] }): BuilderMenuItem => {
+function mapDbTreeToBuilder(nodes: DbTreeNode[], internalPages: InternalPage[]): BuilderMenuItem[] {
+  const walk = (n: DbTreeNode): BuilderMenuItem => {
     const inferred = inferLinkFromPath(n.path, internalPages);
     return {
       id: n.id,
@@ -124,8 +125,6 @@ function resolvePathFromBuilder(item: BuilderMenuItem, internalPages: InternalPa
     const p = item.internalPageId ? internalPages.find((x) => x.id === item.internalPageId) : undefined;
     return p?.path ? normalizePath(p.path) : null;
   }
-
-  // scheduled: bạn đang không lưu path
   return null;
 }
 
@@ -202,6 +201,7 @@ type Ctx = {
   buildHref: (it: BuilderMenuItem, now: Date) => string;
   TEMPLATE_ALLOWED: TemplateAllowed;
   INTERNAL_PAGES: InternalPage[];
+
   loadFromServer: (locale: Locale, setKey: MenuSetKey, siteId?: string) => Promise<void>;
   saveToServer: (locale: Locale, setKey: MenuSetKey, siteId?: string) => Promise<void>;
 };
@@ -217,20 +217,48 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind], [siteKind]);
   const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind], [siteKind]);
 
-  const inflight = React.useRef<AbortController | null>(null);
-  const lastKey = React.useRef<string>("");
+  // inflight request + cache key đã load (giảm spam fetch)
+  const inflight = useRef<AbortController | null>(null);
+  const inflightKey = useRef<string>("");
+  const loadedKey = useRef<string>("");
 
+  // ---- Load from localStorage (safe)
   useEffect(() => {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) setMenus(JSON.parse(raw));
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") setMenus(parsed);
+    } catch {
+      // ignore bad JSON
+    }
   }, []);
 
+  // ---- Save to localStorage (debounce để tránh hao tài nguyên)
   useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify(menus));
+    const t = window.setTimeout(() => {
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify(menus));
+      } catch {}
+    }, 250);
+
+    return () => window.clearTimeout(t);
   }, [menus]);
 
-  const activeMenu = menus[currentSet];
-  const setActiveMenu = (next: any) => setMenus((m) => ({ ...m, [currentSet]: typeof next === "function" ? next(m[currentSet]) : next }));
+  // ---- Abort request khi unmount (giảm request “lửng” trong StrictMode)
+  useEffect(() => {
+    return () => {
+      inflight.current?.abort();
+      inflight.current = null;
+    };
+  }, []);
+
+  const activeMenu = menus[currentSet] ?? [];
+  const setActiveMenu = (next: any) =>
+    setMenus((m) => ({
+      ...m,
+      [currentSet]: typeof next === "function" ? next(m[currentSet]) : next,
+    }));
 
   function addBlankItem() {
     const item: BuilderMenuItem = {
@@ -259,10 +287,12 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
 
       return pick?.url || "";
     }
+
     if (it.linkType === "external") {
       const raw = typeof it.rawPath === "string" ? it.rawPath.trim() : "";
       return it.externalUrl?.trim() || raw || "";
     }
+
     if (it.linkType === "internal") {
       const raw = typeof it.rawPath === "string" ? it.rawPath.trim() : "";
       if (raw) return raw;
@@ -273,15 +303,16 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
     return "";
   }
 
-  const loadFromServer = React.useCallback(
+  const loadFromServer = useCallback(
     async (locale: Locale, setKey: MenuSetKey, siteId?: string) => {
       const reqKey = `${locale}|${setKey}|${siteId ?? ""}`;
-      if (lastKey.current === reqKey && inflight.current) return;
+      if (inflight.current && inflightKey.current === reqKey) return;
+      if (!inflight.current && loadedKey.current === reqKey) return;
+      if (inflight.current) inflight.current.abort();
 
-      lastKey.current = reqKey;
-      inflight.current?.abort();
       const ac = new AbortController();
       inflight.current = ac;
+      inflightKey.current = reqKey;
 
       const params = new URLSearchParams();
       params.set("page", "1");
@@ -290,28 +321,41 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
       params.set("locale", locale);
       params.set("setKey", setKey);
       if (siteId) params.set("siteId", siteId);
-      if (siteId) params.set("siteId", siteId);
 
-      const res = await fetch(`/api/admin/menu-items?${params.toString()}`, {
-        cache: "no-store",
-        signal: ac.signal,
-      });
-      if (!res.ok) throw new Error(`Load failed (${res.status})`);
-      const data = await res.json();
-      const rows: DbMenuItem[] = data?.items ?? [];
+      try {
+        const res = await fetch(`/api/admin/menu-items?${params.toString()}`, {
+          cache: "no-store",
+          signal: ac.signal,
+        });
 
-      const treeDb = buildTree(rows);
-      const builderTree = mapDbTreeToBuilder(treeDb, INTERNAL_PAGES);
-      setMenus((m) => ({ ...m, [setKey]: builderTree }));
-      if (setKey === currentSet) setActiveMenu(builderTree);
+        if (!res.ok) throw new Error(`Load failed (${res.status})`);
+
+        const data = await res.json();
+        const rows: DbMenuItem[] = data?.items ?? [];
+
+        const treeDb = buildTree(rows);
+        const builderTree = mapDbTreeToBuilder(treeDb, INTERNAL_PAGES);
+
+        setMenus((m) => ({ ...m, [setKey]: builderTree }));
+        loadedKey.current = reqKey;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+        throw err;
+      } finally {
+        if (inflight.current === ac) {
+          inflight.current = null;
+          inflightKey.current = "";
+        }
+      }
     },
-    [INTERNAL_PAGES, setMenus, setActiveMenu, currentSet],
+    [INTERNAL_PAGES],
   );
 
-  const saveToServer = React.useCallback(
+  const saveToServer = useCallback(
     async (locale: Locale, setKey: MenuSetKey, siteId?: string) => {
-      const items = flattenBuilderToDb(activeMenu || [], locale, setKey, INTERNAL_PAGES);
+      const treeToSave = menus[setKey] ?? [];
 
+      const items = flattenBuilderToDb(treeToSave, locale, setKey, INTERNAL_PAGES);
       const payload: any = { locale, setKey, items };
       if (siteId) payload.siteId = siteId;
 
@@ -325,8 +369,10 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
         const t = await res.text().catch(() => "");
         throw new Error(t || "Save failed");
       }
+
+      loadedKey.current = `${locale}|${setKey}|${siteId ?? ""}`;
     },
-    [activeMenu, INTERNAL_PAGES],
+    [menus, INTERNAL_PAGES],
   );
 
   return (

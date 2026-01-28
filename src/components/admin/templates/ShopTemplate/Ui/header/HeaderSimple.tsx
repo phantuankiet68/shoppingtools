@@ -91,7 +91,7 @@ const DEFAULT_HEADER_SIMPLE_PROPS: HeaderSimpleProps = {
   showBottomNav: true,
 
   autoLoadMenu: true,
-  locale: "vi",
+  locale: "en",
   setKey: "home",
 
   preview: false,
@@ -190,7 +190,7 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 

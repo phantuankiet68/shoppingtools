@@ -98,7 +98,7 @@ const DEFAULT_HEADER_GREEN_PROPS: HeaderGreenProps = {
 
   // Nav
   autoLoadMenu: true,
-  locale: "vi",
+  locale: "en",
   setKey: "home",
 
   // Popup suggestions
@@ -202,7 +202,7 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
         params.set("page", "1");
         params.set("size", "200");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", locale ?? "vi");
+        params.set("locale", locale ?? "en");
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 
