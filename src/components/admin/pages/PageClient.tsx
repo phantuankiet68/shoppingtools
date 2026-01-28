@@ -159,7 +159,6 @@ export default function UiBuilderListPage() {
           setPage={setPage}
           total={total}
           totalPages={totalPages}
-          hasMore={hasMore}
         />
 
         <PageInspector

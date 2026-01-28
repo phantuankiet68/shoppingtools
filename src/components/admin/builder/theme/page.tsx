@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import styles from "@/styles/admin/builder/theme/theme-builder.module.css";
 
 type TemplateItem = {
-  path: string; // "header/HeaderPro.tsx"
-  name: string; // "HeaderPro"
-  kind: string; // "header"
+  path: string;
+  name: string;
+  kind: string;
 };
 
 function basenameNoExt(p: string) {
@@ -18,19 +18,20 @@ function kindOf(p: string) {
   return p.split("/")[0] || "unknown";
 }
 
-async function apiList(kind?: string) {
+async function apiList(kind?: string, signal?: AbortSignal) {
   const qs = kind ? `?kind=${encodeURIComponent(kind)}` : "";
-  const res = await fetch(`/api/admin/template-files/list${qs}`, { cache: "no-store" });
+  const res = await fetch(`/api/admin/template-files/list${qs}`, { cache: "no-store", signal });
   const json = await res.json();
   if (!json.ok) throw new Error(json.error || "List failed");
   return (json.files as string[]) || [];
 }
 
-async function apiRead(relPath: string) {
+async function apiRead(relPath: string, signal?: AbortSignal) {
   const res = await fetch("/api/admin/template-files/read", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ path: relPath }),
+    signal,
   });
   const json = await res.json();
   if (!json.ok) throw new Error(json.error || "Read failed");
@@ -48,19 +49,36 @@ async function apiWrite(relPath: string, content: string) {
   return true;
 }
 
-function guessCssModulePath(tsxPath: string, tsxCode: string): string | null {
+function guessCssModulePath(tsxCode: string): string | null {
   const m = tsxCode.match(/from\s+["']([^"']+\.module\.css)["']/);
   if (!m) return null;
 
-  // convert "@/styles/..." -> "styles/..."
   const importPath = m[1];
   if (importPath.startsWith("@/")) return importPath.replace("@/", "");
-  return null; // nếu bạn import relative thì tuỳ bạn mở rộng sau
+
+  return null;
+}
+
+function EditorActions(props: { onReset: () => void; onSave: () => void; disabledReset: boolean; disabledSave: boolean; saving: boolean }) {
+  const { onReset, onSave, disabledReset, disabledSave, saving } = props;
+
+  return (
+    <div className={styles.actions}>
+      <button className={styles.ghostBtn} type="button" onClick={onReset} disabled={disabledReset}>
+        <i className="bi bi-arrow-counterclockwise" /> Reset
+      </button>
+
+      <button className={styles.primaryBtn} type="button" onClick={onSave} disabled={disabledSave}>
+        <i className={`bi ${saving ? "bi-arrow-repeat" : "bi-save2"}`} /> {saving ? "Saving..." : "Save"}
+      </button>
+    </div>
+  );
 }
 
 export default function TemplateCodeEditorPage() {
-  const [kindFilter, setKindFilter] = useState<string>(""); // "" = all
+  const [kindFilter, setKindFilter] = useState<string>("");
   const [query, setQuery] = useState("");
+
   const [items, setItems] = useState<TemplateItem[]>([]);
   const [activePath, setActivePath] = useState<string>("");
 
@@ -69,8 +87,10 @@ export default function TemplateCodeEditorPage() {
   const [cssPath, setCssPath] = useState<string>("");
   const [css, setCss] = useState<string>("");
 
-  const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [fileLoading, setFileLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
   const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
 
   const originalRef = useRef<{ tsx: string; css: string; tsxPath: string; cssPath: string }>({
@@ -80,9 +100,9 @@ export default function TemplateCodeEditorPage() {
     cssPath: "",
   });
 
-  const isDirty = useMemo(() => {
-    return tsx !== originalRef.current.tsx || css !== originalRef.current.css;
-  }, [tsx, css]);
+  const loadSeqRef = useRef(0);
+
+  const isDirty = useMemo(() => tsx !== originalRef.current.tsx || css !== originalRef.current.css, [tsx, css]);
 
   const kinds = useMemo(() => {
     const set = new Set(items.map((x) => x.kind));
@@ -99,61 +119,82 @@ export default function TemplateCodeEditorPage() {
   }, [items, query, kindFilter]);
 
   useEffect(() => {
+    const ac = new AbortController();
+
     (async () => {
       try {
-        setLoading(true);
-        const files = await apiList();
-        const list = files.map((p) => ({
+        setListLoading(true);
+        const files = await apiList(undefined, ac.signal);
+        const list: TemplateItem[] = files.map((p) => ({
           path: p,
           kind: kindOf(p),
           name: basenameNoExt(p),
         }));
+
         setItems(list);
-        if (!activePath && list[0]) setActivePath(list[0].path);
+
+        setActivePath((prev) => prev || list[0]?.path || "");
       } catch (e: any) {
+        if (e?.name === "AbortError") return;
         setToast({ type: "err", msg: e?.message || "Load list failed" });
       } finally {
-        setLoading(false);
+        setListLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => ac.abort();
   }, []);
 
-  // load active file
   useEffect(() => {
     if (!activePath) return;
+
+    const seq = ++loadSeqRef.current;
+    const ac = new AbortController();
+
     (async () => {
       try {
-        setLoading(true);
+        setFileLoading(true);
         setToast(null);
 
-        const code = await apiRead(activePath);
+        const code = await apiRead(activePath, ac.signal);
+        if (ac.signal.aborted || seq !== loadSeqRef.current) return;
 
-        const cssGuess = guessCssModulePath(activePath, code);
+        const cssGuess = guessCssModulePath(code);
         let cssCode = "";
+
         if (cssGuess) {
           try {
-            cssCode = await apiRead(cssGuess);
-          } catch {
-            cssCode = "";
+            cssCode = await apiRead(cssGuess, ac.signal);
+          } catch (err: any) {
+            if (err?.name !== "AbortError") cssCode = "";
           }
         }
+
+        if (ac.signal.aborted || seq !== loadSeqRef.current) return;
 
         setTsxPath(activePath);
         setTsx(code);
         setCssPath(cssGuess || "");
         setCss(cssCode);
 
-        originalRef.current = { tsx: code, css: cssCode, tsxPath: activePath, cssPath: cssGuess || "" };
+        originalRef.current = {
+          tsx: code,
+          css: cssCode,
+          tsxPath: activePath,
+          cssPath: cssGuess || "",
+        };
       } catch (e: any) {
+        if (e?.name === "AbortError") return;
         setToast({ type: "err", msg: e?.message || "Load file failed" });
       } finally {
-        setLoading(false);
+        if (!ac.signal.aborted && seq === loadSeqRef.current) setFileLoading(false);
       }
     })();
+
+    return () => ac.abort();
   }, [activePath]);
 
-  async function save() {
+  const save = useCallback(async () => {
     if (!tsxPath) return;
     try {
       setSaving(true);
@@ -169,18 +210,20 @@ export default function TemplateCodeEditorPage() {
     } finally {
       setSaving(false);
     }
-  }
+  }, [tsxPath, tsx, cssPath, css]);
 
-  function reset() {
+  const reset = useCallback(() => {
     setTsx(originalRef.current.tsx);
     setCss(originalRef.current.css);
     setToast(null);
-  }
+  }, []);
+
+  const disableReset = !isDirty || listLoading || fileLoading || saving;
+  const disableSave = !isDirty || !tsxPath || listLoading || fileLoading || saving;
 
   return (
     <div className={styles.shell}>
       <div className={styles.body}>
-        {/* Sidebar */}
         <aside className={styles.sidebar}>
           <div className={styles.sideTop}>
             <div className={styles.searchRow}>
@@ -205,8 +248,8 @@ export default function TemplateCodeEditorPage() {
           </div>
 
           <div className={styles.list}>
-            {loading && items.length === 0 ? <div className={styles.empty}>Loading...</div> : null}
-            {!loading && filtered.length === 0 ? <div className={styles.empty}>No templates found.</div> : null}
+            {listLoading && items.length === 0 ? <div className={styles.empty}>Loading...</div> : null}
+            {!listLoading && filtered.length === 0 ? <div className={styles.empty}>No templates found.</div> : null}
 
             {filtered.map((it) => {
               const active = it.path === activePath;
@@ -230,7 +273,6 @@ export default function TemplateCodeEditorPage() {
           </div>
         </aside>
 
-        {/* Editor */}
         <main className={styles.main}>
           {!tsxPath ? (
             <div className={styles.blank}>
@@ -249,19 +291,14 @@ export default function TemplateCodeEditorPage() {
                       <div>
                         <i className="bi bi-filetype-tsx" /> TSX
                       </div>
-                      <div className={styles.actions}>
-                        <button className={styles.ghostBtn} type="button" onClick={reset} disabled={!isDirty || loading || saving}>
-                          <i className="bi bi-arrow-counterclockwise" /> Reset
-                        </button>
 
-                        <button className={styles.primaryBtn} type="button" onClick={save} disabled={!isDirty || !tsxPath || loading || saving}>
-                          <i className={`bi ${saving ? "bi-arrow-repeat" : "bi-save2"}`} /> {saving ? "Saving..." : "Save"}
-                        </button>
-                      </div>
+                      <EditorActions onReset={reset} onSave={save} disabledReset={disableReset} disabledSave={disableSave} saving={saving} />
                     </div>
+
                     <div className={styles.panelSub}>
                       <span className={styles.mono}>{tsxPath}</span>
                       {isDirty && <span className={styles.dirty}>• modified</span>}
+                      {fileLoading && <span className={styles.dirty}>• loading</span>}
                     </div>
                   </div>
                 </div>
@@ -276,16 +313,10 @@ export default function TemplateCodeEditorPage() {
                       <div>
                         <i className="bi bi-filetype-css" /> CSS Module
                       </div>
-                      <div className={styles.actions}>
-                        <button className={styles.ghostBtn} type="button" onClick={reset} disabled={!isDirty || loading || saving}>
-                          <i className="bi bi-arrow-counterclockwise" /> Reset
-                        </button>
 
-                        <button className={styles.primaryBtn} type="button" onClick={save} disabled={!isDirty || !tsxPath || loading || saving}>
-                          <i className={`bi ${saving ? "bi-arrow-repeat" : "bi-save2"}`} /> {saving ? "Saving..." : "Save"}
-                        </button>
-                      </div>
+                      <EditorActions onReset={reset} onSave={save} disabledReset={disableReset} disabledSave={disableSave} saving={saving} />
                     </div>
+
                     <div className={styles.panelSub}>
                       <span className={styles.mono}>{cssPath || "No css module import found"}</span>
                     </div>

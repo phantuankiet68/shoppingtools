@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/builder/sites/sites.module.css";
 
 type Site = {
@@ -19,11 +19,33 @@ async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
       ...(init?.headers || {}),
     },
   });
+
+  const text = await res.text().catch(() => "");
+
+  const maybeJson = (() => {
+    try {
+      return text ? JSON.parse(text) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `Request failed: ${res.status}`);
+    const msg =
+      typeof maybeJson?.error === "string"
+        ? maybeJson.error
+        : Object.values(maybeJson?.error?.fieldErrors || {})
+            .flat()
+            .filter(Boolean)[0] ||
+          maybeJson?.error?.formErrors?.[0] ||
+          text ||
+          `Request failed: ${res.status}`;
+
+    throw new Error(msg);
   }
-  return (await res.json()) as T;
+
+  if (maybeJson !== null) return maybeJson as T;
+  return (text ? (JSON.parse(text) as T) : ({} as T)) as T;
 }
 
 function fmt(iso: string) {
@@ -32,46 +54,68 @@ function fmt(iso: string) {
   return d.toLocaleString();
 }
 
+function normalizeDomain(input: string) {
+  return input
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "")
+    .replace(/:\d+$/, "")
+    .trim()
+    .toLowerCase();
+}
+
 export default function SitesPage() {
   const [items, setItems] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-
   const [query, setQuery] = useState("");
   const [activeId, setActiveId] = useState<string>("");
-
-  // create modal
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ domain: "", name: "" });
-
-  // toast
   const [toast, setToast] = useState<string | null>(null);
-  const toastTimer = useRef<any>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function showToast(msg: string) {
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  const showToast = useCallback((msg: string) => {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2500);
-  }
+    toastTimer.current = setTimeout(() => {
+      if (!mountedRef.current) return;
+      setToast(null);
+    }, 2500);
+  }, []);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await jsonFetch<Site[]>("/api/admin/builder/sites", { method: "GET" });
+      if (!mountedRef.current) return;
       setItems(data);
-      if (activeId && !data.some((x) => x.id === activeId)) setActiveId(data[0]?.id || "");
-      if (!activeId) setActiveId(data[0]?.id || "");
+      setActiveId((prev) => {
+        if (prev && data.some((x) => x.id === prev)) return prev;
+        return data[0]?.id || "";
+      });
     } catch (e: any) {
+      if (!mountedRef.current) return;
       showToast(e?.message || "Load failed");
     } finally {
+      if (!mountedRef.current) return;
       setLoading(false);
     }
-  }
+  }, [showToast]);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
   const active = useMemo(() => items.find((x) => x.id === activeId) || null, [items, activeId]);
 
@@ -81,62 +125,49 @@ export default function SitesPage() {
     return items.filter((x) => `${x.name} ${x.domain}`.toLowerCase().includes(q));
   }, [items, query]);
 
-  async function createSite() {
+  const openCreate = useCallback(() => setCreateOpen(true), []);
+  const closeCreate = useCallback(() => setCreateOpen(false), []);
+
+  const createSite = useCallback(async () => {
     const rawDomain = createForm.domain.trim();
     const rawName = createForm.name.trim();
 
     if (!rawDomain) return showToast("Domain is required");
     if (!rawName) return showToast("Site name is required");
 
-    const domain = rawDomain
-      .replace(/^https?:\/\//i, "")
-      .replace(/\/.*$/, "")
-      .replace(/:\d+$/, "") // ✅ bỏ port localhost:3000 -> localhost
-      .trim()
-      .toLowerCase();
+    const domain = normalizeDomain(rawDomain);
+    if (!domain) return showToast("Domain is invalid");
 
     setBusy(true);
     try {
-      const res = await fetch("/api/admin/builder/sites", {
+      const created = await jsonFetch<Site>("/api/admin/builder/sites", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain, name: rawName }),
       });
 
-      const json = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        // ✅ rút message đẹp từ zod flatten hoặc string error
-        const msg =
-          typeof json?.error === "string"
-            ? json.error
-            : Object.values(json?.error?.fieldErrors || {})
-                .flat()
-                .filter(Boolean)[0] ||
-              json?.error?.formErrors?.[0] ||
-              "Create failed";
-
-        throw new Error(msg);
-      }
-
-      const created = json as Site;
+      if (!mountedRef.current) return;
 
       showToast("Created.");
       setCreateOpen(false);
       setCreateForm({ domain: "", name: "" });
-      localStorage.setItem("builder_site_id", created.id);
+
+      try {
+        localStorage.setItem("builder_site_id", created.id);
+      } catch {}
 
       await load();
+      if (!mountedRef.current) return;
       setActiveId(created.id);
     } catch (e: any) {
+      if (!mountedRef.current) return;
       showToast(e?.message || "Create failed");
     } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [createForm.domain, createForm.name, load, showToast]);
 
-  // optional: delete
-  async function deleteActive() {
+  const deleteActive = useCallback(async () => {
     if (!active) return;
     const ok = confirm(`Delete site "${active.name}" (${active.domain}) ?`);
     if (!ok) return;
@@ -144,18 +175,20 @@ export default function SitesPage() {
     setBusy(true);
     try {
       await jsonFetch(`/api/admin/builder/sites/${active.id}`, { method: "DELETE" });
+      if (!mountedRef.current) return;
       showToast("Deleted.");
       await load();
     } catch (e: any) {
+      if (!mountedRef.current) return;
       showToast(e?.message || "Delete failed");
     } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [active, load, showToast]);
 
   return (
     <div className={styles.shell}>
-      {/* Topbar */}
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <span className={styles.brandDot} />
@@ -173,7 +206,7 @@ export default function SitesPage() {
         </section>
 
         <div className={styles.topActions}>
-          <button className={styles.ghostBtn} type="button" onClick={() => setCreateOpen(true)} disabled={busy || loading}>
+          <button className={styles.ghostBtn} type="button" onClick={openCreate} disabled={busy || loading}>
             <i className="bi bi-plus-lg" /> Add Site
           </button>
 
@@ -181,7 +214,6 @@ export default function SitesPage() {
             <i className="bi bi-arrow-repeat" /> Refresh
           </button>
 
-          {/* optional delete */}
           <button className={`${styles.ghostBtn} ${styles.dangerBtn}`} type="button" onClick={deleteActive} disabled={busy || loading || !active}>
             <i className="bi bi-trash3" /> Delete
           </button>
@@ -190,7 +222,6 @@ export default function SitesPage() {
 
       <div className={styles.page}>
         <section className={styles.content}>
-          {/* List */}
           <div className={styles.gridWrap}>
             {loading ? (
               <div className={styles.loadingBox}>
@@ -243,7 +274,6 @@ export default function SitesPage() {
             )}
           </div>
 
-          {/* Detail */}
           <aside className={styles.detail}>
             <div className={styles.panel}>
               <div className={styles.panelHeader}>
@@ -293,17 +323,15 @@ export default function SitesPage() {
         </section>
       </div>
 
-      {/* Toast */}
       {toast && <div className={styles.toast}>{toast}</div>}
 
-      {/* Create Modal */}
       {createOpen && (
         <div
           className={styles.modalOverlay}
           role="dialog"
           aria-modal="true"
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setCreateOpen(false);
+            if (e.target === e.currentTarget) closeCreate();
           }}
           tabIndex={-1}>
           <div className={styles.modal}>
@@ -313,7 +341,7 @@ export default function SitesPage() {
                 <div className={styles.panelSub}>Add a new site to your builder</div>
               </div>
 
-              <button className={styles.iconBtn} type="button" title="Close" onClick={() => setCreateOpen(false)} disabled={busy}>
+              <button className={styles.iconBtn} type="button" title="Close" onClick={closeCreate} disabled={busy}>
                 <i className="bi bi-x-lg" />
               </button>
             </div>
@@ -323,17 +351,17 @@ export default function SitesPage() {
                 <label className={styles.label}>Domain (no https://)</label>
                 <div className={styles.inputWrap}>
                   <i className="bi bi-link-45deg" />
-                  <input className={styles.input} value={createForm.domain} onChange={(e) => setCreateForm((s) => ({ ...s, domain: e.target.value }))} placeholder="example.com" />
+                  <input className={styles.input} value={createForm.domain} onChange={(e) => setCreateForm((s) => ({ ...s, domain: e.target.value }))} placeholder="example.com" disabled={busy} />
                 </div>
 
                 <label className={styles.label}>Site Name</label>
                 <div className={styles.inputWrap}>
                   <i className="bi bi-type" />
-                  <input className={styles.input} value={createForm.name} onChange={(e) => setCreateForm((s) => ({ ...s, name: e.target.value }))} placeholder="My Store" />
+                  <input className={styles.input} value={createForm.name} onChange={(e) => setCreateForm((s) => ({ ...s, name: e.target.value }))} placeholder="My Store" disabled={busy} />
                 </div>
 
                 <div className={styles.smallActions}>
-                  <button className={styles.ghostBtn} type="button" onClick={() => setCreateOpen(false)} disabled={busy}>
+                  <button className={styles.ghostBtn} type="button" onClick={closeCreate} disabled={busy}>
                     Cancel
                   </button>
                   <button className={styles.primaryBtn} type="button" onClick={createSite} disabled={busy}>

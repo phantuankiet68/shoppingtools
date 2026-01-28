@@ -440,4 +440,4 @@ Email.successCount / failedCount cập nhật
 ↓
 Email → SENT (khi xong)
 
-Đây là view hoàn chỉnh của tôi bạn hãy kiểm tra xem có bug dư thừa không cần sử dụng với lại làm hao tốn tài nguyên hãy kiểm tra và chỉnh sửa ghi lại toàn bộ file giúp tôi nhé
+Đây là view hoàn chỉnh của tôi bạn hãy kiểm tra xem có bug dư thừa không cần sử dụng với lại làm hao tốn tài nguyên hãy kiểm tra và chỉnh sửa ghi lại toàn bộ file giúp tôi nhé. hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon.

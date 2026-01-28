@@ -109,15 +109,12 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
                   </Row>
                 );
               }
-
-              // fallback
               return null;
             })}
           </div>
         </div>
       )}
 
-      {/* Footer nút move / delete */}
       <div className={cls.footerBtns}>
         <button className={cls.btnGhost} onClick={() => move(-1)} title="Move up">
           <i className="bi bi-arrow-up" />

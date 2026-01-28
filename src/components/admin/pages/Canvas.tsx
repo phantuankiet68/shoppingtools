@@ -4,23 +4,82 @@ import type { Block } from "@/lib/page/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import cls from "@/styles/admin/pages/canvas.module.css";
 
-const findReg = (kind: string) => REGISTRY.find((r) => r.kind === kind);
-
 type Device = "desktop" | "tablet" | "mobile";
+
+type SectionChildrenMap = Map<string, Block[]>;
+type RowChildrenMap = Map<string, Map<number, Block[]>>;
+type RowColCountsMap = Map<string, Record<number, number>>;
+
+function isRootBlock(b: Block) {
+  const p: any = b.props || {};
+  const inRow = !!p._parentRowId;
+  const inSection = !!p.__parent?.id;
+  return !inRow && !inSection;
+}
+
+function buildRegistryMap() {
+  const m = new Map<string, (typeof REGISTRY)[number]>();
+  for (const r of REGISTRY) m.set(r.kind, r);
+  return m;
+}
+
+function buildIndexes(blocks: Block[]) {
+  const sectionChildren: SectionChildrenMap = new Map();
+  const rowChildren: RowChildrenMap = new Map();
+  const rowColCounts: RowColCountsMap = new Map();
+
+  for (const child of blocks) {
+    const p: any = child.props || {};
+
+    const par = p.__parent;
+    if (par?.id) {
+      const slot = par.slot ?? "children";
+      if (slot === "children") {
+        const arr = sectionChildren.get(par.id) ?? [];
+        arr.push(child);
+        sectionChildren.set(par.id, arr);
+      }
+    }
+
+    const rowId = p._parentRowId;
+    const ciRaw = p._parentColIndex;
+    const ci = Number(ciRaw);
+    if (rowId && Number.isFinite(ci)) {
+      let colMap = rowChildren.get(rowId);
+      if (!colMap) {
+        colMap = new Map<number, Block[]>();
+        rowChildren.set(rowId, colMap);
+      }
+      const arr = colMap.get(ci) ?? [];
+      arr.push(child);
+      colMap.set(ci, arr);
+
+      // counts
+      const counts = rowColCounts.get(rowId) ?? {};
+      counts[ci] = (counts[ci] || 0) + 1;
+      rowColCounts.set(rowId, counts);
+    }
+  }
+
+  return { sectionChildren, rowChildren, rowColCounts };
+}
 
 type RenderBlockProps = {
   b: Block;
   selected: boolean;
   onSelect: () => void;
-  allBlocks: Block[];
   setActiveId: (id: string | null) => void;
   move?: (dir: -1 | 1) => void;
   activeId: string | null;
-  device: Device; // NEW
+  device: Device;
+  registryMap: Map<string, (typeof REGISTRY)[number]>;
+  sectionChildren: SectionChildrenMap;
+  rowChildren: RowChildrenMap;
+  rowColCounts: RowColCountsMap;
 };
 
-function RenderBlock({ b, selected, onSelect, allBlocks, setActiveId, move, activeId, device }: RenderBlockProps) {
-  const reg = findReg(b.kind);
+function RenderBlock({ b, selected, onSelect, setActiveId, move, activeId, device, registryMap, sectionChildren, rowChildren, rowColCounts }: RenderBlockProps) {
+  const reg = registryMap.get(b.kind);
   let content: React.ReactNode;
 
   if (!reg) {
@@ -30,10 +89,7 @@ function RenderBlock({ b, selected, onSelect, allBlocks, setActiveId, move, acti
       const slots = {
         slot: (_name?: string) => {
           if (b.kind !== "Section") return null;
-          const kids = allBlocks.filter((child) => {
-            const par = (child.props as any)?.__parent;
-            return par && par.id === b.id && (par.slot ?? "children") === "children";
-          });
+          const kids = sectionChildren.get(b.id) ?? [];
           if (kids.length === 0) return null;
 
           return (
@@ -44,20 +100,25 @@ function RenderBlock({ b, selected, onSelect, allBlocks, setActiveId, move, acti
                     b={child}
                     selected={activeId === child.id}
                     onSelect={() => setActiveId(child.id)}
-                    allBlocks={allBlocks}
                     setActiveId={setActiveId}
                     move={move}
                     activeId={activeId}
-                    device={device} // NEW
+                    device={device}
+                    registryMap={registryMap}
+                    sectionChildren={sectionChildren}
+                    rowChildren={rowChildren}
+                    rowColCounts={rowColCounts}
                   />
                 </div>
               ))}
             </div>
           );
         },
+
         slotAt: (idx: number, _name?: string) => {
           if (b.kind !== "Row") return null;
-          const kids = allBlocks.filter((child) => (child.props as any)?._parentRowId === b.id && Number((child.props as any)?._parentColIndex) === idx);
+          const colMap = rowChildren.get(b.id);
+          const kids = colMap?.get(idx) ?? [];
           if (kids.length === 0) return null;
 
           return (
@@ -68,11 +129,14 @@ function RenderBlock({ b, selected, onSelect, allBlocks, setActiveId, move, acti
                     b={child}
                     selected={activeId === child.id}
                     onSelect={() => setActiveId(child.id)}
-                    allBlocks={allBlocks}
                     setActiveId={setActiveId}
                     move={move}
                     activeId={activeId}
-                    device={device} // NEW
+                    device={device}
+                    registryMap={registryMap}
+                    sectionChildren={sectionChildren}
+                    rowChildren={rowChildren}
+                    rowColCounts={rowColCounts}
                   />
                 </div>
               ))}
@@ -81,26 +145,14 @@ function RenderBlock({ b, selected, onSelect, allBlocks, setActiveId, move, acti
         },
       };
 
-      let colCounts: Record<number, number> | undefined;
-      if (b.kind === "Row") {
-        colCounts = allBlocks.reduce((acc, x) => {
-          const pid = (x.props as any)?._parentRowId;
-          const ci = (x.props as any)?._parentColIndex;
-          if (pid === b.id && Number.isFinite(ci)) {
-            acc[Number(ci)] = (acc[Number(ci)] || 0) + 1;
-          }
-          return acc;
-        }, {} as Record<number, number>);
-      }
-
       const baseProps = b.props ?? {};
 
       const renderProps =
         b.kind === "Row"
-          ? { ...baseProps, _selfId: b.id, _colCounts: colCounts, _device: device }
+          ? { ...baseProps, _selfId: b.id, _colCounts: rowColCounts.get(b.id), _device: device }
           : b.kind === "Section"
-          ? { ...baseProps, _selfId: b.id, _device: device }
-          : { ...baseProps, _device: device };
+            ? { ...baseProps, _selfId: b.id, _device: device }
+            : { ...baseProps, _device: device };
 
       content = (reg as any).render(renderProps, slots) ?? <div className="text-muted small">No preview from {b.kind}</div>;
     } catch (e: any) {
@@ -129,11 +181,10 @@ function RenderBlock({ b, selected, onSelect, allBlocks, setActiveId, move, acti
           onSelect();
         }
       }}
-      // chặn navigation khi click vào <a> trong preview
       onClickCapture={(e) => {
         const el = e.target as HTMLElement;
-        const a = el.closest("a");
-        if (a) {
+        const a = el.closest("a") as HTMLAnchorElement | null;
+        if (a && a.getAttribute("href")) {
           e.preventDefault();
           e.stopPropagation();
         }
@@ -155,43 +206,54 @@ type Props = {
   setActiveId: (id: string | null) => void;
   onDrop: (e: React.DragEvent) => void;
   move?: (dir: -1 | 1) => void;
-  device: Device; // NEW
+  device: Device;
 };
 
 export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, device }: Props) {
   const [dragOver, setDragOver] = React.useState(false);
+  const dragRafRef = React.useRef<number | null>(null);
+  const dragDesiredRef = React.useRef(false);
 
-  const rootBlocks = React.useMemo(
-    () =>
-      blocks.filter((b) => {
-        const p: any = b.props || {};
-        const inRow = !!p._parentRowId;
-        const inSection = !!p.__parent?.id;
-        return !inRow && !inSection;
-      }),
-    [blocks]
-  );
+  const setDragOverThrottled = React.useCallback((v: boolean) => {
+    dragDesiredRef.current = v;
+    if (dragRafRef.current != null) return;
+    dragRafRef.current = window.requestAnimationFrame(() => {
+      dragRafRef.current = null;
+      setDragOver(dragDesiredRef.current);
+    });
+  }, []);
 
-  function getDropMeta(ev: React.DragEvent) {
-    const target = ev.target as HTMLElement;
+  React.useEffect(() => {
+    return () => {
+      if (dragRafRef.current != null) cancelAnimationFrame(dragRafRef.current);
+    };
+  }, []);
+
+  const registryMap = React.useMemo(() => buildRegistryMap(), []);
+  const { sectionChildren, rowChildren, rowColCounts } = React.useMemo(() => buildIndexes(blocks), [blocks]);
+
+  const rootBlocks = React.useMemo(() => blocks.filter(isRootBlock), [blocks]);
+
+  const getDropMeta = React.useCallback((ev: React.DragEvent) => {
+    const target = ev.target as HTMLElement | null;
     if (!target) return null;
 
     const colEl = target.closest("[data-col-slot]") as HTMLElement | null;
     if (colEl) {
-      const rowId = (colEl as any).dataset.rowId || (colEl as any).dataset.rowid;
-      const colIndex = Number((colEl as any).dataset.colSlot);
+      const rowId = colEl.dataset.rowId || (colEl as any).dataset.rowid;
+      const colIndex = Number(colEl.dataset.colSlot);
       if (rowId != null && Number.isFinite(colIndex)) {
-        return { type: "row-col", parentRowId: String(rowId), colIndex };
+        return { type: "row-col" as const, parentRowId: String(rowId), colIndex };
       }
     }
 
     const secEl = target.closest("[data-section-slot]") as HTMLElement | null;
     if (secEl) {
-      const parentSectionId = (secEl as any).dataset.hostId || (secEl as any).dataset.hostid || (secEl as any).dataset.sectionId;
-      const slot = (secEl as any).dataset.sectionSlot || "children";
+      const parentSectionId = secEl.dataset.hostId || (secEl as any).dataset.hostid || secEl.dataset.sectionId;
+      const slot = secEl.dataset.sectionSlot || "children";
       if (parentSectionId) {
         return {
-          type: "section",
+          type: "section" as const,
           parentSectionId: String(parentSectionId),
           slot,
         };
@@ -199,7 +261,7 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
     }
 
     return null;
-  }
+  }, []);
 
   return (
     <div className={`card ${cls.card}`}>
@@ -208,11 +270,11 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
           className={`${cls.canvas} ${dragOver ? cls.canvasDropping : ""}`}
           onDragOver={(e) => {
             e.preventDefault();
-            setDragOver(true);
+            setDragOverThrottled(true);
           }}
-          onDragLeave={() => setDragOver(false)}
+          onDragLeave={() => setDragOverThrottled(false)}
           onDrop={(e) => {
-            setDragOver(false);
+            setDragOverThrottled(false);
             const meta = getDropMeta(e);
             (e as any).zbMeta = meta;
             onDrop(e);
@@ -229,24 +291,26 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
               <div className={cls.emptyHint}>Thả component từ palette sang để bắt đầu thiết kế ✨</div>
             </div>
           )}
-
-          {/* Viewport theo device */}
           <div className={cls.viewportOuter}>
             <div className={`${cls.viewport} ${device === "desktop" ? cls.viewportDesktop : device === "tablet" ? cls.viewportTablet : cls.viewportMobile}`}>
               <div className={cls.grid}>
                 {rootBlocks.map((b, idx) => {
                   const selected = activeId === b.id;
+
                   return (
                     <div key={b.id} className={cls.gridItem}>
                       <RenderBlock
                         b={b}
                         selected={selected}
                         onSelect={() => setActiveId(b.id)}
-                        allBlocks={blocks}
                         setActiveId={setActiveId}
                         move={move}
                         activeId={activeId}
-                        device={device} // NEW
+                        device={device}
+                        registryMap={registryMap}
+                        sectionChildren={sectionChildren}
+                        rowChildren={rowChildren}
+                        rowColCounts={rowColCounts}
                       />
 
                       {selected && (

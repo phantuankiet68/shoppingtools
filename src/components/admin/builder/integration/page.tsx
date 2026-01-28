@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/builder/integrations/integrations.module.css";
 
 type IntegrationCategory = "all" | "payments" | "email" | "analytics" | "storage" | "ai" | "crm";
@@ -13,18 +13,12 @@ type IntegrationRow = {
   name: string;
   category: Exclude<IntegrationCategory, "all">;
   description?: string | null;
-
-  // UI only
   icon?: string | null;
 
   enabled: boolean;
   status: IntegrationStatus;
   lastSyncAt?: string | null;
-
-  // server config json (public settings only)
   config?: Record<string, any> | null;
-
-  // flags (server)
   hasApiKey?: boolean;
   hasApiSecret?: boolean;
   webhookUrlSet?: boolean;
@@ -32,8 +26,8 @@ type IntegrationRow = {
 
 type IntegrationLog = {
   id?: string;
-  createdAt?: string; // server
-  at?: string; // fallback
+  createdAt?: string;
+  at?: string;
   level: LogLevel;
   message: string;
 };
@@ -59,7 +53,6 @@ const CATS: { key: IntegrationCategory; label: string; icon: string }[] = [
   { key: "crm", label: "CRM", icon: "bi-people" },
 ];
 
-// map key -> icon (bootstrap icons only)
 const ICON_BY_KEY: Record<string, string> = {
   stripe: "bi-credit-card",
   paypal: "bi-credit-card-2-front",
@@ -110,7 +103,6 @@ export default function IntegrationsPage() {
     description: "",
   });
 
-  // form draft (local only, commit via Save)
   const [draft, setDraft] = useState({
     apiKey: "",
     apiSecret: "",
@@ -124,13 +116,25 @@ export default function IntegrationsPage() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  const toastTimer = useRef<any>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
-  function showToast(msg: string) {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  const showToast = useCallback((msg: string) => {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2500);
-  }
+    toastTimer.current = setTimeout(() => {
+      if (!mountedRef.current) return;
+      setToast(null);
+    }, 2500);
+  }, []);
 
   const active = useMemo(() => items.find((x) => x.id === activeId) || null, [items, activeId]);
 
@@ -148,28 +152,7 @@ export default function IntegrationsPage() {
       });
   }, [items, cat, query]);
 
-  async function loadList(selectFirst = false) {
-    setLoading(true);
-    try {
-      const data = await jsonFetch<IntegrationRow[]>("/api/admin/integrations", { method: "GET" });
-      const withIcons = data.map((x) => ({ ...x, icon: iconFor(x) }));
-      setItems(withIcons);
-
-      if (selectFirst) {
-        const first = withIcons[0]?.id || "";
-        setActiveId(first);
-      } else {
-        // giữ active nếu còn tồn tại
-        if (activeId && !withIcons.some((x) => x.id === activeId)) {
-          setActiveId(withIcons[0]?.id || "");
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadLogs(id: string) {
+  const loadLogs = useCallback(async (id: string) => {
     try {
       const data = await jsonFetch<any[]>(`/api/admin/integrations/${id}/logs`, { method: "GET" });
       const mapped: IntegrationLog[] = data.map((l) => ({
@@ -179,12 +162,41 @@ export default function IntegrationsPage() {
         level: l.level,
         message: l.message,
       }));
+      if (!mountedRef.current) return;
       setLogs(mapped);
     } catch {
+      if (!mountedRef.current) return;
       setLogs([]);
     }
-  }
-  async function createIntegration() {
+  }, []);
+
+  const loadList = useCallback(
+    async (selectFirst = false) => {
+      setLoading(true);
+      try {
+        const data = await jsonFetch<IntegrationRow[]>("/api/admin/integrations", { method: "GET" });
+        const withIcons = data.map((x) => ({ ...x, icon: iconFor(x) }));
+
+        if (!mountedRef.current) return;
+
+        setItems(withIcons);
+
+        setActiveId((prev) => {
+          if (selectFirst) return withIcons[0]?.id || "";
+          if (prev && withIcons.some((x) => x.id === prev)) return prev;
+          return withIcons[0]?.id || "";
+        });
+      } catch (e: any) {
+        showToast(String(e?.message || e));
+      } finally {
+        if (!mountedRef.current) return;
+        setLoading(false);
+      }
+    },
+    [showToast],
+  );
+
+  const createIntegration = useCallback(async () => {
     setBusy(true);
     try {
       const body = {
@@ -205,7 +217,6 @@ export default function IntegrationsPage() {
 
       await loadList(false);
 
-      // auto select created
       if (created?.id) {
         setActiveId(created.id);
         setInspectorOpen(true);
@@ -214,21 +225,18 @@ export default function IntegrationsPage() {
     } catch (e: any) {
       showToast(e?.message || "Create failed");
     } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [createForm, loadList, loadLogs, showToast]);
 
-  // initial load
   useEffect(() => {
-    loadList(true).catch((e) => showToast(String(e?.message || e)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadList(true);
+  }, [loadList]);
 
-  // when active changes: open draft from server config flags (never pull secrets)
   useEffect(() => {
     if (!active) return;
 
-    // reset draft (secrets will be entered again if user wants)
     setDraft({
       apiKey: "",
       apiSecret: "",
@@ -237,27 +245,29 @@ export default function IntegrationsPage() {
       extraJson: active?.config?.extra ? JSON.stringify(active.config.extra, null, 2) : "",
     });
 
-    loadLogs(active.id).catch(() => {});
-  }, [active?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadLogs(active.id);
+  }, [active?.id, active?.config, loadLogs]);
 
-  function select(id: string) {
+  const select = useCallback((id: string) => {
     setActiveId(id);
     setInspectorOpen(true);
-  }
+  }, []);
 
-  function closeInspector() {
+  const closeInspector = useCallback(() => {
     setInspectorOpen(false);
-  }
+  }, []);
 
-  function onKeyDownInspector(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === "Escape") closeInspector();
-  }
+  const onKeyDownInspector = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Escape") closeInspector();
+    },
+    [closeInspector],
+  );
 
-  async function saveConfig() {
+  const saveConfig = useCallback(async () => {
     if (!active) return;
     setBusy(true);
     try {
-      // parse extra JSON if any
       let extra: any = undefined;
       const raw = draft.extraJson.trim();
       if (raw) {
@@ -269,7 +279,6 @@ export default function IntegrationsPage() {
       }
 
       const patchBody: any = {
-        // store non-secret settings in config json
         config: {
           ...(active.config || {}),
           region: draft.region || "",
@@ -277,7 +286,6 @@ export default function IntegrationsPage() {
         },
       };
 
-      // only send secrets if user typed something
       if (draft.apiKey.trim()) patchBody.apiKey = draft.apiKey.trim();
       if (draft.apiSecret.trim()) patchBody.apiSecret = draft.apiSecret.trim();
       if (draft.webhookUrl.trim()) patchBody.webhookUrl = draft.webhookUrl.trim();
@@ -290,33 +298,33 @@ export default function IntegrationsPage() {
       showToast("Saved.");
       await loadList(false);
       await loadLogs(active.id);
-      // clear typed secrets after save
+
       setDraft((d) => ({ ...d, apiKey: "", apiSecret: "" }));
     } catch (e: any) {
       showToast(e?.message || "Save failed");
     } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [active, draft, loadList, loadLogs, showToast]);
 
-  async function connect() {
+  const connect = useCallback(async () => {
     if (!active) return;
     setBusy(true);
     try {
       await jsonFetch(`/api/admin/integrations/${active.id}/connect`, { method: "POST" });
       showToast("Connected.");
-      await loadList(false);
-      await loadLogs(active.id);
     } catch (e: any) {
       showToast(e?.message || "Connect failed");
+    } finally {
       await loadList(false);
       await loadLogs(active.id);
-    } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [active, loadList, loadLogs, showToast]);
 
-  async function disconnect() {
+  const disconnect = useCallback(async () => {
     if (!active) return;
     setBusy(true);
     try {
@@ -327,28 +335,28 @@ export default function IntegrationsPage() {
     } catch (e: any) {
       showToast(e?.message || "Disconnect failed");
     } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [active, loadList, loadLogs, showToast]);
 
-  async function testConnection() {
+  const testConnection = useCallback(async () => {
     if (!active) return;
     setBusy(true);
     try {
       await jsonFetch(`/api/admin/integrations/${active.id}/test`, { method: "POST" });
       showToast("Test OK.");
-      await loadList(false);
-      await loadLogs(active.id);
     } catch (e: any) {
       showToast(e?.message || "Test failed");
+    } finally {
       await loadList(false);
       await loadLogs(active.id);
-    } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [active, loadList, loadLogs, showToast]);
 
-  async function resetConfig() {
+  const resetConfig = useCallback(async () => {
     if (!active) return;
     const ok = confirm("Reset config for this integration?");
     if (!ok) return;
@@ -373,9 +381,28 @@ export default function IntegrationsPage() {
     } catch (e: any) {
       showToast(e?.message || "Reset failed");
     } finally {
+      if (!mountedRef.current) return;
       setBusy(false);
     }
-  }
+  }, [active, loadList, loadLogs, showToast]);
+
+  const toggleEnabled = useCallback(async () => {
+    if (!active) return;
+    setBusy(true);
+    try {
+      await jsonFetch(`/api/admin/integrations/${active.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ enabled: !active.enabled }),
+      });
+      await loadList(false);
+      showToast("Updated.");
+    } catch (e: any) {
+      showToast(e?.message || "Update failed");
+    } finally {
+      if (!mountedRef.current) return;
+      setBusy(false);
+    }
+  }, [active, loadList, showToast]);
 
   const headerDisabled = !active || busy || loading;
 
@@ -567,26 +594,7 @@ export default function IntegrationsPage() {
                       </div>
                     </div>
 
-                    <button
-                      className={styles.iconBtn}
-                      type="button"
-                      title="Toggle enabled"
-                      onClick={async () => {
-                        setBusy(true);
-                        try {
-                          await jsonFetch(`/api/admin/integrations/${active.id}`, {
-                            method: "PATCH",
-                            body: JSON.stringify({ enabled: !active.enabled }),
-                          });
-                          await loadList(false);
-                          showToast("Updated.");
-                        } catch (e: any) {
-                          showToast(e?.message || "Update failed");
-                        } finally {
-                          setBusy(false);
-                        }
-                      }}
-                      disabled={busy}>
+                    <button className={styles.iconBtn} type="button" title="Toggle enabled" onClick={toggleEnabled} disabled={busy}>
                       <i className={`bi ${active.enabled ? "bi-toggle2-on" : "bi-toggle2-off"}`} />
                     </button>
                   </div>
@@ -695,6 +703,8 @@ export default function IntegrationsPage() {
           </div>
         </div>
       )}
+
+      {/* Create Modal */}
       {createOpen && (
         <div
           className={styles.modalOverlay}

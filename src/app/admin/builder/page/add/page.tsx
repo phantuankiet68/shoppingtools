@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import styles from "@/styles/admin/pages/add.module.css";
 
@@ -15,7 +15,7 @@ type SiteRow = {
   id: string;
   domain: string;
   name: string;
-  localeDefault: "en";
+  localeDefault: string;
 };
 type Device = "desktop" | "tablet" | "mobile";
 
@@ -23,10 +23,23 @@ function ensureLeadingSlash(p?: string | null) {
   if (!p) return "/";
   return p.startsWith("/") ? p : `/${p}`;
 }
+
 function originFromDomain(domain?: string) {
   if (!domain) return "";
   const isProd = process.env.NODE_ENV === "production";
   return `${isProd ? "https" : "http"}://${domain}`;
+}
+
+function normalizeSlugAndPath(inputSlug: string, inputTitle: string) {
+  const safeTitle = (inputTitle || "").trim() || "Untitled";
+  const raw = (inputSlug || "").trim();
+  const isHome = raw === "/";
+  const slugCore = isHome ? "" : slugify(raw.replace(/^\//, "") || safeTitle);
+
+  const finalSlug = isHome ? "/" : slugCore;
+  const finalPath = isHome ? "/" : `/${slugCore}`;
+
+  return { safeTitle, isHome, finalSlug, finalPath };
 }
 
 export default function UiBuilderAddPage() {
@@ -53,13 +66,13 @@ export default function UiBuilderAddPage() {
   const [search, setSearch] = useState("");
 
   const [seo, setSeo] = useState<SEO>({
-    metaTitle: title,
+    metaTitle: "",
     metaDescription: "",
     keywords: "",
     canonicalUrl: "",
     noindex: false,
     nofollow: false,
-    ogTitle: title,
+    ogTitle: "",
     ogDescription: "",
     ogImage: "",
     twitterCard: "summary_large_image",
@@ -68,24 +81,41 @@ export default function UiBuilderAddPage() {
     structuredData: "",
   });
 
-  const rawSlug = (slug ?? "").trim();
-  const isHome = rawSlug === "/";
-  const computedSlug = isHome ? "" : slugify(rawSlug || title || "trang-moi");
-  const path = `/${isHome || !computedSlug ? "" : `/${computedSlug}`}`;
+  const guardTimeoutRef = useRef<number | null>(null);
+  const setGuard = (msg: string, ms = 1800) => {
+    setGuardMsg(msg);
+    if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
+    guardTimeoutRef.current = window.setTimeout(() => setGuardMsg(""), ms);
+  };
+  useEffect(() => {
+    return () => {
+      if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
+    };
+  }, []);
+
+  const {
+    isHome,
+    finalSlug: derivedSlug,
+    finalPath: derivedPath,
+  } = useMemo(() => {
+    return normalizeSlugAndPath(slug, title);
+  }, [slug, title]);
 
   const active = useMemo(() => blocks.find((b) => b.id === activeId) || null, [blocks, activeId]);
 
   useEffect(() => {
+    const ac = new AbortController();
+
     (async () => {
       try {
-        const r = await fetch("/api/admin/sites", { cache: "no-store" });
+        const r = await fetch("/api/admin/sites", { cache: "no-store", signal: ac.signal });
         if (!r.ok) return;
+
         const data = await r.json();
         const list: SiteRow[] = data.items ?? [];
         setSites(list);
-
         if (initialId) {
-          const d = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store" }); // ✅ fix
+          const d = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store", signal: ac.signal });
           if (d.ok) {
             const dj = await d.json();
             const pid = dj?.page?.siteId as string | undefined;
@@ -102,30 +132,49 @@ export default function UiBuilderAddPage() {
         setSelectedSiteId(pick);
       } catch {}
     })();
+
+    return () => ac.abort();
   }, [initialId, routeLocale]);
 
   useEffect(() => {
     if (selectedSiteId) localStorage.setItem("pages_selected_site", selectedSiteId);
   }, [selectedSiteId]);
 
-  const currentSite = useMemo(() => sites.find((s) => s.id === selectedSiteId) ?? sites[0], [sites, selectedSiteId]);
+  const currentSite = useMemo(() => {
+    if (sites.length === 0) return undefined;
+    return sites.find((s) => s.id === selectedSiteId) ?? sites[0];
+  }, [sites, selectedSiteId]);
 
   useEffect(() => {
     if (!initialId) return;
+    const ac = new AbortController();
+
     (async () => {
-      const r = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store" });
-      if (!r.ok) return;
-      const { page: p } = await r.json();
-      setPageId(p.id);
-      setTitle(p.title ?? "Untitled");
-      setSlug(p.slug ?? "");
-      setSeo((prev) => ({
-        ...prev,
-        metaTitle: p.title ?? prev.metaTitle,
-        ogTitle: p.title ?? prev.ogTitle,
-      }));
+      try {
+        const r = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store", signal: ac.signal });
+        if (!r.ok) return;
+        const { page: p } = await r.json();
+        setPageId(p.id);
+        setTitle(p.title ?? "Untitled");
+        setSlug(p.slug ?? "");
+        setSeo((prev) => ({
+          ...prev,
+          metaTitle: p.title ?? prev.metaTitle,
+          ogTitle: p.title ?? prev.ogTitle,
+        }));
+      } catch {}
     })();
+
+    return () => ac.abort();
   }, [initialId, routeLocale]);
+
+  useEffect(() => {
+    setSeo((prev) => ({
+      ...prev,
+      metaTitle: prev.metaTitle || title,
+      ogTitle: prev.ogTitle || title,
+    }));
+  }, [title]);
 
   const onDragStart = (kind: string) => (e: React.DragEvent) => {
     e.dataTransfer.setData("text/plain", kind);
@@ -139,6 +188,7 @@ export default function UiBuilderAddPage() {
 
     const txt = e.dataTransfer.getData("text/plain") || "";
     const isTemplate = txt.startsWith("template:");
+
     if (isTemplate) {
       try {
         const raw = e.dataTransfer.getData("application/json");
@@ -148,7 +198,8 @@ export default function UiBuilderAddPage() {
         const made = composeTemplateBlocks(templateId);
         if (made.length === 0) return;
 
-        const mapped = made.map((b) => ({ ...b }));
+        const mapped = made.map((b) => ({ ...b, props: JSON.parse(JSON.stringify(b.props || {})) }));
+
         if (meta?.type === "row-col") {
           const roots = getRoots(mapped);
           roots.forEach((rb) => {
@@ -169,13 +220,15 @@ export default function UiBuilderAddPage() {
         setBlocks((prev) => [...prev, ...withIds]);
         setActiveId(withIds[0]?.id ?? null);
         return;
-      } catch {}
+      } catch {
+        return;
+      }
     }
 
-    const kind = e.dataTransfer.getData("text/plain");
+    const kind = txt;
     const reg = REGISTRY.find((r) => r.kind === kind);
     const def = reg?.defaults || {};
-    let props: any = { ...def };
+    const props: any = { ...def };
 
     if (meta?.type === "row-col") {
       props._parentRowId = meta.parentRowId;
@@ -216,6 +269,7 @@ export default function UiBuilderAddPage() {
 
         const nextKind = patch.kind ?? b.kind;
         const kindChanged = nextKind !== b.kind;
+
         let nextProps = "props" in patch ? (patch.props ?? {}) : { ...(b.props ?? {}), ...patch };
         if (kindChanged && !("props" in patch)) {
           const def = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
@@ -230,10 +284,8 @@ export default function UiBuilderAddPage() {
   async function savePage() {
     try {
       setSaving(true);
-      const safeTitle = (title || "").trim() || "Untitled";
-      const normalizedSlug = isHome ? "/" : rawSlug || slugify(safeTitle);
-      const finalSlug = normalizedSlug === "/" ? "/" : slugify(normalizedSlug);
-      const finalPath = `/${finalSlug === "/" ? "" : `/${finalSlug}`}`;
+
+      const { safeTitle, finalSlug, finalPath } = normalizeSlugAndPath(slug, title);
 
       const body = {
         id: pageId ?? undefined,
@@ -261,11 +313,9 @@ export default function UiBuilderAddPage() {
       if (!res.ok || !json?.ok) throw new Error(json?.error || "Save failed");
 
       setPageId(json?.id || pageId);
-      setGuardMsg("Đã lưu vào Page (DRAFT).");
-      setTimeout(() => setGuardMsg(""), 1500);
+      setGuard("Đã lưu vào Page (DRAFT).", 1500);
     } catch (e: any) {
-      setGuardMsg(e?.message || "Save error");
-      setTimeout(() => setGuardMsg(""), 2000);
+      setGuard(e?.message || "Save error", 2000);
     } finally {
       setSaving(false);
     }
@@ -273,12 +323,13 @@ export default function UiBuilderAddPage() {
 
   async function publishPage() {
     if (!pageId) {
-      setGuardMsg("Hãy Save để tạo ID trước");
-      setTimeout(() => setGuardMsg(""), 1800);
+      setGuard("Hãy Save để tạo ID trước", 1800);
       return;
     }
+
     try {
       setPublishing(true);
+
       const res = await fetch(`/api/admin/pages/publish`, {
         method: "POST",
         headers: {
@@ -291,28 +342,19 @@ export default function UiBuilderAddPage() {
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json?.ok === false) throw new Error(json?.error || "Publish failed");
 
-      const safePath = ensureLeadingSlash(path);
+      const safePath = ensureLeadingSlash(derivedPath);
       const siteOrigin = originFromDomain(currentSite?.domain);
       const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
       window.open(url, "_blank");
     } catch (e: any) {
-      setGuardMsg(e?.message || "Publish error");
-      setTimeout(() => setGuardMsg(""), 2000);
+      setGuard(e?.message || "Publish error", 2000);
     } finally {
       setPublishing(false);
     }
   }
 
-  useEffect(() => {
-    setSeo((prev) => ({
-      ...prev,
-      metaTitle: prev.metaTitle || title,
-      ogTitle: prev.ogTitle || title,
-    }));
-  }, [title]);
-
   const openPreview = () => {
-    const safePath = ensureLeadingSlash(path);
+    const safePath = ensureLeadingSlash(derivedPath);
     const siteOrigin = originFromDomain(currentSite?.domain);
     const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
     window.open(url, "_blank");
@@ -329,7 +371,6 @@ export default function UiBuilderAddPage() {
         </div>
       )}
 
-      {/* ====== Site selector */}
       <div className={styles.siteBar}>
         <div className={`${styles.siteRow} ${styles.hidden}`}>
           <i className="bi bi-globe2" />

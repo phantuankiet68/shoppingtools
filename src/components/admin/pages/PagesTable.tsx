@@ -1,4 +1,3 @@
-// app/[locale]/v1/ui-builder/components/PagesTable.tsx
 "use client";
 import React from "react";
 import styles from "@/styles/admin/page/page.module.css";

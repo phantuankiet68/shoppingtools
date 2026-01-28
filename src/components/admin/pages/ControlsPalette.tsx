@@ -10,13 +10,13 @@ type Props = {
 };
 
 type RegistryKind = (typeof REGISTRY)[number]["kind"];
+
 function tpl(id: string, label: string, children: RegistryKind[]) {
   return { id, label, children };
 }
 
-const HEADER_KINDS = [] as const;
-
-const VISIBLE_HEADER_KINDS = new Set<string | (typeof HEADER_KINDS)[number]>(["HeaderShopFlex"]);
+const HEADER_KINDS: readonly string[] = [];
+const VISIBLE_HEADER_KINDS = new Set<string>(["HeaderShopFlex"]);
 
 const TEMPLATES = [
   tpl("tpl-topbar-basic", "Topbar", [
@@ -64,87 +64,89 @@ const TEMPLATES = [
     "FooterWear",
     "FooterYellow",
   ]),
-];
-
-type Tree = Record<string, { id: string; label: string; kind: string }[]>;
+] as const;
 
 export default function ControlsPalette({ search, setSearch, onDragStart }: Props) {
-  const REGISTRY_VISIBLE = React.useMemo(() => {
+  const registryByKind = React.useMemo(() => {
+    const m = new Map<string, (typeof REGISTRY)[number]>();
+    for (const r of REGISTRY) m.set(r.kind, r);
+    return m;
+  }, []);
+
+  const registryVisible = React.useMemo(() => {
+    if (HEADER_KINDS.length === 0) return REGISTRY;
+
     return REGISTRY.filter((r) => {
-      const isHeader = (HEADER_KINDS as readonly string[]).includes(r.kind);
+      const isHeader = HEADER_KINDS.includes(r.kind);
       return isHeader ? VISIBLE_HEADER_KINDS.has(r.kind) : true;
     });
   }, []);
 
-  // 2) Search filter trên REGISTRY_VISIBLE
-  const filtered = React.useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const base = REGISTRY_VISIBLE;
-    if (!q) return base;
-    return base.filter((r) => r.label.toLowerCase().includes(q) || r.kind.toLowerCase().includes(q));
-  }, [search, REGISTRY_VISIBLE]);
+  const q = search.trim().toLowerCase();
 
-  // 3) Build tree theo nhóm
-  const tree: Tree = React.useMemo(() => {
-    const t: Tree = {};
-    for (const r of filtered) {
-      const isHeader = (HEADER_KINDS as readonly string[]).includes(r.kind);
-      const group = isHeader ? "Headers" : "Elements";
-      (t[group] ??= []).push({ id: r.kind, label: r.label, kind: r.kind });
-    }
-    Object.keys(t).forEach((k) => t[k].sort((a, b) => a.label.localeCompare(b.label)));
-    return t;
-  }, [filtered]);
+  const templatesFiltered = React.useMemo(() => {
+    if (!q) return TEMPLATES as readonly { id: string; label: string; children: RegistryKind[] }[];
 
-  const defaultOpen = React.useMemo(() => Object.keys(tree), [tree]);
-  const [open, setOpen] = React.useState<Set<string>>(new Set(defaultOpen));
-  React.useEffect(() => setOpen(new Set(defaultOpen)), [defaultOpen]);
+    return TEMPLATES.map((t) => {
+      const matchTpl = t.label.toLowerCase().includes(q) || t.id.toLowerCase().includes(q);
+      if (matchTpl) return t;
 
-  const toggle = (key: string) =>
-    setOpen((prev) => {
-      const n = new Set(prev);
-      n.has(key) ? n.delete(key) : n.add(key);
-      return n;
-    });
+      const filteredChildren = t.children.filter((k) => {
+        const reg = registryByKind.get(k);
+        const label = (reg?.label ?? "").toLowerCase();
+        return k.toLowerCase().includes(q) || label.includes(q);
+      });
 
-  // Collapsible cho Templates box
-  const [openTpl, setOpenTpl] = React.useState<Set<string>>(new Set(TEMPLATES.map((t) => t.id)));
-  const toggleTpl = (id: string) =>
+      return { ...t, children: filteredChildren };
+    }).filter((t) => t.children.length > 0);
+  }, [q, registryByKind]);
+
+  const [openTpl, setOpenTpl] = React.useState<Set<string>>(() => new Set(TEMPLATES.map((t) => t.id)));
+
+  React.useEffect(() => {
+    if (!q) return;
+    setOpenTpl(new Set(templatesFiltered.map((t) => t.id)));
+  }, [q, templatesFiltered]);
+
+  const toggleTpl = React.useCallback((id: string) => {
     setOpenTpl((prev) => {
       const n = new Set(prev);
       n.has(id) ? n.delete(id) : n.add(id);
       return n;
     });
+  }, []);
 
-  // Kéo toàn bộ template (ghi metadata vào dataTransfer)
-  const onDragTemplate = (tplId: string) => (e: React.DragEvent) => {
-    const tpl = TEMPLATES.find((t) => t.id === tplId);
-    e.dataTransfer.setData("text/plain", `template:${tplId}`);
-    if (tpl) {
-      e.dataTransfer.setData("application/json", JSON.stringify({ templateId: tplId, kinds: tpl.children }));
-    }
-    e.dataTransfer.effectAllowed = "copy";
-  };
+  const onDragTemplate = React.useCallback(
+    (tplId: string) => (e: React.DragEvent) => {
+      e.dataTransfer.setData("text/plain", `template:${tplId}`);
+      e.dataTransfer.setData("application/json", JSON.stringify({ templateId: tplId }));
+      e.dataTransfer.effectAllowed = "copy";
+    },
+    [],
+  );
 
-  const expandAll = () => setOpen(new Set(Object.keys(tree)));
-  const collapseAll = () => setOpen(new Set());
+  const expandAllTemplates = React.useCallback(() => setOpenTpl(new Set(templatesFiltered.map((t) => t.id))), [templatesFiltered]);
+  const collapseAllTemplates = React.useCallback(() => setOpenTpl(new Set()), []);
+
+  const _registryVisible = registryVisible;
 
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
         <div className={styles.tabs}>
-          <button className={`${styles.tab} ${styles.tabActive}`}>
+          <button className={`${styles.tab} ${styles.tabActive}`} type="button">
             <i className="bi bi-grid-3x3-gap me-1" /> Elements
           </button>
-          <button className={styles.tab} title="Variables (coming soon)">
+          <button className={styles.tab} type="button" title="Variables (coming soon)">
             <i className="bi bi-sliders me-1" /> Variables
           </button>
         </div>
+
         <div className={styles.headTools}>
-          <button className={styles.ghostBtn} onClick={expandAll} title="Expand all">
+          <button className={styles.ghostBtn} onClick={expandAllTemplates} title="Expand templates" type="button">
             <i className="bi bi-arrows-expand" />
           </button>
-          <button className={styles.ghostBtn} onClick={collapseAll} title="Collapse all">
+          <button className={styles.ghostBtn} onClick={collapseAllTemplates} title="Collapse templates" type="button">
             <i className="bi bi-arrows-collapse" />
           </button>
         </div>
@@ -156,14 +158,14 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
       </div>
 
       <div className={styles.templatesWrapper}>
-        {/* Templates Box */}
         <div className={styles.templatesBox}>
           <div className={styles.templatesHead}>
             <span className={styles.templatesTitle}>Templates</span>
-            <span className={styles.templatesCount}>{TEMPLATES.length}</span>
+            <span className={styles.templatesCount}>{templatesFiltered.length}</span>
           </div>
+
           <ul className={styles.templatesList}>
-            {TEMPLATES.map((tpl) => (
+            {templatesFiltered.map((tpl) => (
               <li key={tpl.id} className={styles.tplItem}>
                 <div className={styles.tplHeader}>
                   <button type="button" className={styles.tplCaret} onClick={() => toggleTpl(tpl.id)} aria-expanded={openTpl.has(tpl.id)}>
@@ -180,7 +182,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
                 {openTpl.has(tpl.id) && (
                   <ul className={styles.tplChildren}>
                     {tpl.children.map((k, i) => {
-                      const reg = REGISTRY.find((r) => r.kind === k);
+                      const reg = registryByKind.get(k);
                       const label = reg?.label ?? k;
                       const missing = !reg;
 
@@ -199,16 +201,31 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
                             </span>
                           </div>
                           <div className={styles.itemRight}>
-                            <i className="bi bi-arrow-right-circle"></i>
+                            <i className="bi bi-arrow-right-circle" />
                           </div>
                         </li>
                       );
                     })}
+                    {tpl.children.length === 0 && (
+                      <li className={styles.item} aria-disabled="true">
+                        <div className={styles.itemLeft}>
+                          <i className="bi bi-info-circle" />
+                          <span className={styles.itemLabel}>No matches</span>
+                        </div>
+                      </li>
+                    )}
                   </ul>
                 )}
               </li>
             ))}
           </ul>
+
+          {templatesFiltered.length === 0 && (
+            <div className={styles.emptyState}>
+              <i className="bi bi-search me-1" />
+              Không có template nào khớp với “{search.trim()}”
+            </div>
+          )}
         </div>
       </div>
     </div>

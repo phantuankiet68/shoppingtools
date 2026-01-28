@@ -608,7 +608,7 @@ export default function AdminMessagesClient() {
                     time: formatTime(real.createdAt),
                     name: displayName({ email: real.sender?.email, profile: real.sender?.profile ?? null }),
                   }
-                : m
+                : m,
             ),
           };
         });
