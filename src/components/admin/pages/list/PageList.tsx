@@ -1,10 +1,12 @@
 "use client";
-import React from "react";
+
+import React, { useCallback, useMemo } from "react";
 import styles from "@/styles/admin/pages/pageList.module.css";
 import type { PageRow } from "@/lib/page/types";
 
 type SortKey = "updatedAt" | "createdAt" | "title";
 type SortDir = "asc" | "desc";
+type StatusFilter = "all" | "DRAFT" | "PUBLISHED";
 
 type Props = {
   pages: PageRow[];
@@ -13,8 +15,8 @@ type Props = {
   onSelect: (id: string) => void;
   q: string;
   setQ: (v: string) => void;
-  status: "all" | "DRAFT" | "PUBLISHED";
-  setStatus: (v: "all" | "DRAFT" | "PUBLISHED") => void;
+  status: StatusFilter;
+  setStatus: (v: StatusFilter) => void;
   sortKey: SortKey;
   sortDir: SortDir;
   setSortKey: (k: SortKey) => void;
@@ -24,7 +26,6 @@ type Props = {
   setPage: (n: number) => void;
   total: number;
   totalPages: number;
-  hasMore: boolean;
 };
 
 function initialsFromTitle(t?: string) {
@@ -35,16 +36,34 @@ function initialsFromTitle(t?: string) {
 }
 
 export default function PageList({ pages, loading, activeId, onSelect, q, setQ, status, setStatus, sortKey, sortDir, setSortKey, setSortDir, onRefresh, page, setPage, total, totalPages }: Props) {
-  const toggleSort = (k: SortKey) => {
-    if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
-    else {
-      setSortKey(k);
-      setSortDir(k === "title" ? "asc" : "desc");
-    }
-  };
+  const toggleSort = useCallback(
+    (k: SortKey) => {
+      if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
+      else {
+        setSortKey(k);
+        setSortDir(k === "title" ? "asc" : "desc");
+      }
+    },
+    [sortKey, sortDir, setSortDir, setSortKey],
+  );
 
   const canPrev = page > 1;
   const canNext = page < totalPages;
+
+  const dateFormatter = useMemo(() => {
+    return new Intl.DateTimeFormat(undefined, { year: "numeric", month: "2-digit", day: "2-digit" });
+  }, []);
+
+  const onStatusChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setStatus(e.target.value as StatusFilter);
+    },
+    [setStatus],
+  );
+
+  const titleSortIcon = sortKey === "title" ? (sortDir === "asc" ? "bi-sort-alpha-down" : "bi-sort-alpha-up") : "bi-sort-alpha-down";
+
+  const updatedSortIcon = sortKey === "updatedAt" ? (sortDir === "asc" ? "bi-chevron-up" : "bi-chevron-down") : "bi-arrow-down-up";
 
   return (
     <aside className={styles.leftPane}>
@@ -60,19 +79,19 @@ export default function PageList({ pages, loading, activeId, onSelect, q, setQ, 
         </div>
 
         <div className={styles.toolbar}>
-          <select className={styles.select} value={status} onChange={(e) => setStatus(e.target.value as any)} aria-label="Status filter">
+          <select className={styles.select} value={status} onChange={onStatusChange} aria-label="Status filter">
             <option value="all">All</option>
             <option value="PUBLISHED">Published</option>
             <option value="DRAFT">Draft</option>
           </select>
 
           <button className={styles.ghostBtn} type="button" onClick={() => toggleSort("updatedAt")} title="Sort by updated">
-            <i className={`bi ${sortKey === "updatedAt" ? (sortDir === "asc" ? "bi-chevron-up" : "bi-chevron-down") : "bi-arrow-down-up"}`} />
+            <i className={`bi ${updatedSortIcon}`} />
             <span className={styles.btnText}>Updated</span>
           </button>
 
           <button className={styles.ghostBtn} type="button" onClick={() => toggleSort("title")} title="Sort by title">
-            <i className="bi bi-sort-alpha-down" />
+            <i className={`bi ${titleSortIcon}`} />
             <span className={styles.btnText}>Title</span>
           </button>
 
@@ -85,26 +104,31 @@ export default function PageList({ pages, loading, activeId, onSelect, q, setQ, 
       <div className={styles.listWrap} id="listWrap">
         {pages.length === 0 && !loading && <div className={styles.empty}>Không có trang nào.</div>}
 
-        {pages.map((p) => (
-          <button key={p.id} type="button" className={`${styles.item} ${styles.sheen} ${p.id === activeId ? styles.itemActive : ""}`} onClick={() => onSelect(p.id)} title={p.title || p.slug}>
-            <div className={styles.itemIcon}>{initialsFromTitle(p.title || p.slug)}</div>
+        {pages.map((p) => {
+          const ts = p.updatedAt || p.createdAt || Date.now();
+          const dateText = dateFormatter.format(new Date(ts));
 
-            <div className={styles.itemMain}>
-              <div className={styles.itemTitle}>
-                <span className={styles.titleText}>{p.title || "(untitled)"}</span>
-                <span className={`${styles.badge} ${p.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{p.status}</span>
+          return (
+            <button key={p.id} type="button" className={`${styles.item} ${styles.sheen} ${p.id === activeId ? styles.itemActive : ""}`} onClick={() => onSelect(p.id)} title={p.title || p.slug}>
+              <div className={styles.itemIcon}>{initialsFromTitle(p.title || p.slug)}</div>
+
+              <div className={styles.itemMain}>
+                <div className={styles.itemTitle}>
+                  <span className={styles.titleText}>{p.title || "(untitled)"}</span>
+                  <span className={`${styles.badge} ${p.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{p.status}</span>
+                </div>
+
+                <div className={styles.meta}>
+                  <code className={styles.code}>{p.slug}</code>
+                  <span className={styles.dot}>•</span>
+                  <code className={styles.code}>{p.path}</code>
+                </div>
               </div>
 
-              <div className={styles.meta}>
-                <code className={styles.code}>{p.slug}</code>
-                <span className={styles.dot}>•</span>
-                <code className={styles.code}>{p.path}</code>
-              </div>
-            </div>
-
-            <div className={styles.itemTime}>{new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleDateString()}</div>
-          </button>
-        ))}
+              <div className={styles.itemTime}>{dateText}</div>
+            </button>
+          );
+        })}
 
         {loading && (
           <>

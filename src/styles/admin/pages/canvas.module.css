@@ -10,7 +10,9 @@
 
 .viewport {
   width: 100%;
-  transition: max-width 0.2s ease, width 0.2s ease;
+  transition:
+    max-width 0.2s ease,
+    width 0.2s ease;
 }
 
 /* Desktop ~ 1440 / 1200 */
@@ -32,12 +34,17 @@
 .canvas {
   position: relative;
   padding: 2px 1px !important;
-  background: radial-gradient(circle at 1px 1px, rgba(91, 157, 255, 0.18) 1px, transparent 1px) 0 0 / 18px 18px,
-    radial-gradient(circle at 1px 1px, rgba(143, 211, 254, 0.14) 1px, transparent 1px) 9px 9px / 18px 18px, linear-gradient(180deg, #ffffff, #f6f9ff 65%, #ffffff);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(91, 157, 255, 0.18) 1px, transparent 1px) 0 0 / 18px 18px,
+    radial-gradient(circle at 1px 1px, rgba(143, 211, 254, 0.14) 1px, transparent 1px) 9px 9px / 18px 18px,
+    linear-gradient(180deg, #ffffff, #f6f9ff 65%, #ffffff);
   border: 1px dashed rgb(66 66 66 / 51%);
   border-radius: 5px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.25s ease;
-  height: 82.5vh;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.25s ease;
+  height: 90.2vh;
   overflow: auto;
 }
 
@@ -118,7 +125,11 @@
 .block {
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 .block:hover {
   transform: translateY(-2px);
@@ -135,7 +146,9 @@
 /* Selection glow — sáng, màu dễ chịu */
 .selected {
   border-color: var(--ring);
-  box-shadow: 0 0 0 3px rgba(91, 157, 255, 0.12), 0 16px 30px rgba(15, 23, 42, 0.12);
+  box-shadow:
+    0 0 0 3px rgba(91, 157, 255, 0.12),
+    0 16px 30px rgba(15, 23, 42, 0.12);
 }
 .selected::after {
   content: "";
@@ -207,7 +220,10 @@
   background: linear-gradient(180deg, #ffffff, #f4f8ff);
   color: var(--ink-1);
   font-size: 12px;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
 }
 .ftBtn:hover {
   transform: translateY(-1px);

@@ -34,7 +34,7 @@ export default function DesignHeader({ title, setTitle, slug, setSlug, path, sav
             type="button"
             className={cls.iconBtn}
             onClick={() => {
-              window.location.href = "/admin/pages";
+              window.location.href = "/admin/builder/page";
             }}
             title="Refresh"
             aria-label="Refresh">

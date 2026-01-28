@@ -138,7 +138,9 @@
   font-size: 14px;
   border-radius: 8px;
   cursor: grab;
-  transition: background 0.12s ease, transform 0.12s ease;
+  transition:
+    background 0.12s ease,
+    transform 0.12s ease;
 }
 .item:hover {
   background: #f7f8fe;
@@ -257,7 +259,7 @@
 }
 /* templates.module.css (hoặc file hiện tại của bạn) */
 .templatesWrapper {
-  height: 69vh;
+  height: 77vh;
   overflow: auto;
 
   /* Trải nghiệm cuộn mượt + tránh layout shift khi xuất hiện scrollbar */
@@ -296,7 +298,10 @@
   border-radius: var(--sb-radius);
   border: 2px solid transparent; /* tạo “padding” trong suốt cho thumb */
   background-clip: padding-box; /* để gradient không bị tràn vào border */
-  transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
   box-shadow: 0 1px 4px rgba(2, 6, 23, 0.15);
 }
 .templatesWrapper::-webkit-scrollbar-thumb:hover {

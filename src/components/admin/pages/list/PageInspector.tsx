@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/pages/PageInspector.module.css";
 import type { PageRow, SEO } from "@/lib/page/types";
 import { buildAutoSEO } from "@/lib/page/seo-utils";
@@ -22,10 +22,8 @@ function ensureLeadingSlash(p?: string | null) {
   return s.startsWith("/") ? s : `/${s}`;
 }
 
-export default function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDuplicate, onDelete, initialSeo = null }: Props) {
-  const hasPage = !!page;
-
-  const [seo, setSeo] = useState<SEO>(() => ({
+function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
+  return {
     metaTitle: page?.title || "",
     metaDescription: "",
     keywords: "",
@@ -40,11 +38,93 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
     sitemapPriority: 0.7,
     structuredData: "",
     ...(initialSeo || {}),
-  }));
+  };
+}
 
+export default function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDuplicate, onDelete, initialSeo = null }: Props) {
+  const hasPage = !!page;
+
+  const [seo, setSeo] = useState<SEO>(() => buildDefaultSEO(page, initialSeo));
   const [savingSEO, setSavingSEO] = useState(false);
   const [flash, setFlash] = useState("");
+
   const loadedSeoForId = useRef<string | null>(null);
+  const flashTimerRef = useRef<number | null>(null);
+
+  const showFlash = useCallback((msg: string, ms = 1400) => {
+    setFlash(msg);
+    if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = window.setTimeout(() => setFlash(""), ms);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
+    };
+  }, []);
+
+  const pathPretty = useMemo(() => ensureLeadingSlash(page?.path || "/"), [page?.path]);
+
+  const dateTimeFormatter = useMemo(() => {
+    return new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }, []);
+
+  const updatedText = useMemo(() => {
+    if (!page) return "";
+    const ts = page.updatedAt || page.createdAt || Date.now();
+    return dateTimeFormatter.format(new Date(ts));
+  }, [page?.id, page?.updatedAt, page?.createdAt, dateTimeFormatter]);
+
+  useEffect(() => {
+    if (!page?.id) {
+      loadedSeoForId.current = null;
+      setSeo(buildDefaultSEO(null, null));
+      return;
+    }
+    setSeo(buildDefaultSEO(page, initialSeo));
+    loadedSeoForId.current = initialSeo ? page.id : null;
+  }, [page?.id, initialSeo]);
+
+  useEffect(() => {
+    if (!page?.id) return;
+    if (initialSeo) return;
+    if (loadedSeoForId.current === page.id) return;
+
+    loadedSeoForId.current = page.id;
+
+    const controller = new AbortController();
+    const pageId = page.id;
+
+    (async () => {
+      try {
+        const r = await fetch(`/api/admin/pages/${pageId}/seo`, { cache: "no-store", signal: controller.signal });
+
+        if (r.ok) {
+          const data = await r.json();
+          if (data?.seo) setSeo((prev) => ({ ...prev, ...data.seo }));
+          return;
+        }
+        if (r.status === 404) {
+          const rp = await fetch(`/api/admin/pages/${pageId}`, { cache: "no-store", signal: controller.signal });
+          if (rp.ok) {
+            const d = await rp.json();
+            if (d?.page?.seo) setSeo((prev) => ({ ...prev, ...d.page.seo }));
+          }
+        }
+      } catch {}
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, [page?.id, initialSeo]);
+
   useEffect(() => {
     if (!page) return;
     setSeo((prev) => ({
@@ -52,47 +132,27 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
       metaTitle: prev.metaTitle || page.title || "",
       ogTitle: prev.ogTitle || page.title || "",
     }));
-  }, [page?.id]);
-
-  const pathPretty = useMemo(() => ensureLeadingSlash(page?.path || "/"), [page?.path]);
-
-  useEffect(() => {
-    if (!page?.id) return;
-    if (initialSeo) return;
-    if (loadedSeoForId.current === page.id) return;
-    loadedSeoForId.current = page.id;
-
-    let stop = false;
-    const pageId = page.id;
-
-    (async () => {
-      try {
-        const r = await fetch(`/api/admin/pages/${pageId}/seo`, { cache: "no-store" });
-        if (r.ok) {
-          const data = await r.json();
-          if (!stop && data?.seo) setSeo((prev) => ({ ...prev, ...data.seo }));
-          return;
-        }
-        if (r.status === 404) {
-          const rp = await fetch(`/api/admin/pages/${pageId}`, { cache: "no-store" });
-          if (rp.ok) {
-            const d = await rp.json();
-            if (!stop && d?.page?.seo) setSeo((prev) => ({ ...prev, ...d.page.seo }));
-          }
-        }
-      } catch {}
-    })();
-
-    return () => {
-      stop = true;
-    };
-  }, [page?.id, initialSeo]);
+  }, [page?.id, page?.title]);
 
   const metaLen = (seo.metaTitle || "").length;
   const descLen = (seo.metaDescription || "").length;
 
-  const handleAutoSEO = () => {
+  const seoOkTitle = metaLen <= 60 ? "good" : metaLen <= 70 ? "warn" : "bad";
+  const seoOkDesc = descLen <= 160 ? "good" : descLen <= 180 ? "warn" : "bad";
+
+  const jsonLdStatus = useMemo(() => {
+    try {
+      if (!seo.structuredData?.trim()) return "empty" as const;
+      JSON.parse(seo.structuredData);
+      return "valid" as const;
+    } catch {
+      return "invalid" as const;
+    }
+  }, [seo.structuredData]);
+
+  const handleAutoSEO = useCallback(() => {
     if (!page) return;
+
     const suggestion = buildAutoSEO({
       title: page.title || seo.metaTitle || "Trang mới",
       path: pathPretty,
@@ -103,13 +163,14 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
       ...suggestion,
       ogTitle: suggestion.metaTitle || prev.ogTitle,
     }));
-  };
+  }, [page, pathPretty, seo.metaTitle]);
 
-  const handleSaveSEO = async () => {
+  const handleSaveSEO = useCallback(async () => {
     if (!page?.id) return;
 
     try {
       setSavingSEO(true);
+
       const trySeo = await fetch(`/api/admin/pages/${page.id}/seo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,8 +178,7 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
       });
 
       if (trySeo.ok) {
-        setFlash("Đã lưu SEO");
-        setTimeout(() => setFlash(""), 1400);
+        showFlash("Đã lưu SEO", 1400);
         return;
       }
 
@@ -135,6 +195,7 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
 
       const detailRes = await fetch(`/api/admin/pages/${page.id}`, { cache: "no-store" });
       if (!detailRes.ok) throw new Error("Load page detail failed");
+
       const detailJson: PageDetail = await detailRes.json();
       const blocks = detailJson?.page?.blocks ?? [];
 
@@ -153,28 +214,13 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
 
       if (!res.ok) throw new Error("Save SEO failed");
 
-      setFlash("Đã lưu SEO");
-      setTimeout(() => setFlash(""), 1400);
+      showFlash("Đã lưu SEO", 1400);
     } catch (e: any) {
-      setFlash(e?.message || "Save SEO error");
-      setTimeout(() => setFlash(""), 1800);
+      showFlash(e?.message || "Save SEO error", 1800);
     } finally {
       setSavingSEO(false);
     }
-  };
-
-  const seoOkTitle = metaLen <= 60 ? "good" : metaLen <= 70 ? "warn" : "bad";
-  const seoOkDesc = descLen <= 160 ? "good" : descLen <= 180 ? "warn" : "bad";
-
-  const jsonLdStatus = (() => {
-    try {
-      if (!seo.structuredData?.trim()) return "empty";
-      JSON.parse(seo.structuredData);
-      return "valid";
-    } catch {
-      return "invalid";
-    }
-  })();
+  }, [page?.id, page?.title, page?.slug, page?.path, seo, showFlash]);
 
   return (
     <section className={styles.rightPane}>
@@ -190,7 +236,7 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
               </div>
               <div className={styles.kvItem}>
                 <span className={styles.kvLabel}>Updated</span>
-                <span className={styles.kvValue}>{new Date(page!.updatedAt || page!.createdAt || Date.now()).toLocaleString()}</span>
+                <span className={styles.kvValue}>{updatedText}</span>
               </div>
             </div>
           </div>
@@ -246,8 +292,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
       {hasPage && (
         <div className={styles.card}>
           <div className={styles.cardTitle}>SEO</div>
-
-          {/* Meta Title */}
           <div className={styles.field}>
             <div className={styles.fieldTop}>
               <label className={styles.label}>Meta Title</label>
@@ -259,8 +303,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
 
             <input className={styles.input} value={seo.metaTitle} onChange={(e) => setSeo((prev) => ({ ...prev, metaTitle: e.target.value }))} placeholder={page!.title || "Tiêu đề…"} />
           </div>
-
-          {/* Meta Description */}
           <div className={styles.field}>
             <div className={styles.fieldTop}>
               <label className={styles.label}>Meta Description</label>
@@ -278,8 +320,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
               placeholder="Mô tả ngắn gọn, hấp dẫn…"
             />
           </div>
-
-          {/* Keywords & Canonical */}
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>Keywords (optional)</label>
@@ -291,8 +331,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
               <input className={styles.input} value={seo.canonicalUrl} onChange={(e) => setSeo((prev) => ({ ...prev, canonicalUrl: e.target.value }))} placeholder="https://example.com/your-page" />
             </div>
           </div>
-
-          {/* Index flags */}
           <div className={styles.checkRow}>
             <label className={styles.check}>
               <input className={styles.checkInput} type="checkbox" checked={!!seo.noindex} onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))} />
@@ -306,8 +344,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
           </div>
 
           <div className={styles.hr} />
-
-          {/* OG */}
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>OG Title</label>
@@ -335,10 +371,7 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
             </div>
             <input className={styles.input} value={seo.ogImage} onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))} placeholder="https://…" />
           </div>
-
           <div className={styles.hr} />
-
-          {/* Sitemap */}
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>Sitemap Changefreq</label>
@@ -363,14 +396,14 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
                 className={styles.input}
                 value={seo.sitemapPriority}
                 onChange={(e) => {
-                  const v = Math.max(0, Math.min(1, Number(e.target.value)));
-                  setSeo((prev) => ({ ...prev, sitemapPriority: Number.isFinite(v) ? v : 0.7 }));
+                  const raw = e.target.value;
+                  const num = raw === "" ? NaN : Number(raw);
+                  const clamped = Number.isFinite(num) ? Math.max(0, Math.min(1, num)) : 0.7;
+                  setSeo((prev) => ({ ...prev, sitemapPriority: clamped }));
                 }}
               />
             </div>
           </div>
-
-          {/* JSON-LD */}
           <div className={styles.field}>
             <label className={styles.label}>Structured Data (JSON-LD)</label>
             <textarea
@@ -387,8 +420,6 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
               {jsonLdStatus === "invalid" && <span className={styles.jsonBad}>JSON không hợp lệ</span>}
             </div>
           </div>
-
-          {/* Actions */}
           <div className={styles.footerActions}>
             <button className={styles.ghostBtn} type="button" onClick={handleAutoSEO}>
               <i className={`bi bi-magic ${styles.iconLeft}`} />
