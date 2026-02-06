@@ -1,0 +1,621 @@
+/* ===== Header 1 (CSS Module) ===== */
+
+.topbar {
+  background: #fff;
+}
+
+/* containers */
+.containerHeader {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  background: #85dd9e;
+}
+
+.topbarInner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 74px;
+}
+
+/* ===== Logo ===== */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logoBadge {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* for next/image fill */
+}
+
+.logoImg {
+  object-fit: cover;
+  transform: scale(1.05);
+}
+
+.logoText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.logoName {
+  font-weight: 900;
+  font-size: 25px;
+  color: #50d408;
+  text-transform: uppercase;
+}
+
+.logoSub {
+  letter-spacing: 2.5px;
+  color: #1dab83;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* ===== Search ===== */
+.search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border, rgba(148, 163, 184, 0.4));
+  border-radius: 6px;
+  overflow: hidden;
+  height: 40px;
+  min-width: 260px;
+}
+
+.searchIcon {
+  padding: 0 12px;
+  color: #9ca3af;
+  font-size: 18px;
+}
+
+.search input {
+  border: 0;
+  outline: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+}
+
+.search button {
+  border: 0;
+  border-left: 1px solid var(--border, rgba(148, 163, 184, 0.4));
+  background: #40ff892e;
+  height: 100%;
+  padding: 0 16px;
+  cursor: pointer;
+  font-weight: 600;
+  color: rgb(39 199 82);
+  font-size: 13px;
+}
+.search button:hover {
+  background: #e5e7eb;
+}
+
+/* ===== Right actions ===== */
+.tbRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.tbLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #111827;
+  position: relative;
+  font-size: 14px;
+}
+.tbLink:hover {
+  background: #f3f4f6;
+}
+.tbLink span {
+  white-space: nowrap;
+}
+
+.badge {
+  position: absolute;
+  top: 0px;
+  left: 18px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #22c55e;
+  color: #fff;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+}
+
+.caret {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* ===== Nav ===== */
+
+.nav {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 64px;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #fff;
+  padding: 0 16px;
+  min-width: 105.5px;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.icon {
+  font-size: 26px;
+  line-height: 1;
+  opacity: 0.95;
+}
+.label {
+  font-size: 12px;
+  opacity: 0.95;
+  white-space: nowrap;
+}
+
+/* Mega */
+.navItemMega {
+  outline: none;
+}
+.open {
+  background: #57c776;
+}
+
+.mega {
+  position: absolute;
+  left: 0;
+  top: 64px;
+  width: 560px;
+  background: #fff;
+  color: #111827;
+  border-radius: 6px;
+  box-shadow: var(--shadow, 0 18px 38px rgba(2, 6, 23, 0.18));
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 14px 14px 10px;
+  display: none;
+  z-index: 50;
+}
+.open .mega {
+  display: block;
+}
+
+.megaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+.megaCol h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  display: inline-block;
+}
+
+.megaCol a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111827;
+  text-decoration: none;
+}
+.megaCol a:hover {
+  background: #f3f4f6;
+}
+
+.chev {
+  color: #9ca3af;
+}
+
+/* ===== Responsive (simple) ===== */
+@media (max-width: 980px) {
+  .tbLink span {
+    display: none;
+  }
+  .nav {
+    overflow: auto;
+  }
+  .nav::-webkit-scrollbar {
+    height: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .logoBadge {
+    width: 40px;
+    height: 40px;
+  }
+  .logoName {
+    font-size: 18px;
+  }
+  .logoSub {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+}
+@media (min-width: 1920px) {
+  .containerHeader,
+  .container {
+    max-width: 1200px;
+  }
+
+  .topbarInner {
+    gap: 22px; /* 18 -> 22 */
+    height: 78px; /* 74 -> 78 */
+  }
+
+  .logoName {
+    font-size: 25px; /* 25 -> 26 */
+  }
+
+  .navItem {
+    padding: 0 18px;
+  }
+
+  .mega {
+    width: 620px; /* 560 -> 620 */
+  }
+}
+
+/* 1680–1919: nới nhẹ (vừa đủ “đã”) */
+@media (min-width: 1680px) and (max-width: 1919px) {
+  .topbarInner {
+    gap: 20px;
+  }
+
+  .navItem {
+    padding: 0 17px;
+  }
+
+  .mega {
+    width: 600px;
+  }
+}
+
+/* 1366–1679: laptop phổ biến, giảm nhẹ min-width nav để không quá rộng */
+@media (min-width: 1366px) and (max-width: 1679px) {
+  .topbarInner {
+    gap: 16px; /* giảm nhẹ để cân đối */
+  }
+
+  .navItem {
+    padding: 0 14px;
+  }
+
+  .icon {
+    font-size: 24px; /* 26 -> 24 */
+  }
+
+  .label {
+    font-size: 11px; /* 12 -> 11 */
+  }
+
+  .mega {
+    width: 560px; /* giữ nguyên */
+  }
+}
+
+/* 768–979: tablet ngang — tối ưu search + nav, giữ đúng rule hiện tại */
+@media (max-width: 979px) and (min-width: 768px) {
+  .topbarInner {
+    gap: 12px;
+  }
+
+  .search {
+    min-width: 220px; /* 260 -> 220 để đỡ chật */
+  }
+
+  .navItem {
+    padding: 0 12px;
+  }
+
+  .icon {
+    font-size: 22px;
+  }
+
+  .label {
+    font-size: 11px;
+  }
+
+  .mega {
+    width: 520px; /* giảm để vừa tablet */
+  }
+}
+
+/* <768: (bạn đang có rule logo). Bổ sung thêm ẩn text để header gọn hơn */
+@media (max-width: 767px) {
+  .search {
+    min-width: 0;
+  }
+
+  .logoSub {
+    display: none; /* nhỏ quá thì ẩn COSMETICS cho gọn */
+  }
+}
+
+/* =========================
+   AUTH MODAL (Login/Register)
+   ========================= */
+
+.authOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.authPanel {
+  width: min(520px, 100%);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+.authHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.authTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 950;
+  letter-spacing: 0.3px;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.authDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c58b;
+  box-shadow: 0 0 0 6px rgba(34, 197, 139, 0.14);
+}
+
+.authClose {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.authTabs {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px 0;
+}
+
+.authTab {
+  border: 0;
+  background: transparent;
+  color: rgba(100, 116, 139, 1);
+  font-weight: 850;
+  font-size: 13px;
+  padding: 10px 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.authTab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  border-radius: 2px;
+  background: #22c58b;
+  transition: width 0.2s ease;
+}
+
+.authTabActive {
+  color: #0f172a;
+}
+
+.authTabActive::after {
+  width: 100%;
+}
+
+.authError {
+  margin: 12px 14px 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.08);
+  color: #7f1d1d;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.authForm {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.authLabel {
+  display: grid;
+  gap: 8px;
+  font-weight: 850;
+  color: rgba(15, 23, 42, 0.85);
+  font-size: 13px;
+}
+
+.authInputWrap {
+  position: relative;
+}
+
+.authInputIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(100, 116, 139, 1);
+}
+
+.authInput {
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0 44px 0 40px;
+  outline: none;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.authInput:focus {
+  border-color: rgba(34, 197, 139, 0.4);
+  box-shadow: 0 0 0 4px rgba(34, 197, 139, 0.12);
+}
+
+.authEye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.authRow {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.authPrimary {
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(34, 197, 139, 0.25);
+  background: rgba(34, 197, 139, 0.14);
+  color: #0b5f41;
+  font-weight: 950;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.authPrimary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.authGhost {
+  width: 100%;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  color: #0f172a;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.authLink {
+  border: 0;
+  background: transparent;
+  color: rgba(100, 116, 139, 1);
+  font-weight: 850;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
+
+.authNote {
+  color: rgba(100, 116, 139, 1);
+  font-weight: 650;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.authNoteStrong {
+  font-weight: 900;
+  color: #0f172a;
+}

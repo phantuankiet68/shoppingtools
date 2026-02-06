@@ -16,12 +16,7 @@ type LayoutItem = {
   setKey: MenuSetKey;
 };
 
-const LOCALES: Locale[] = ["en"];
 const SET_KEYS: MenuSetKey[] = ["home", "v1"];
-
-function isLocale(v: string | null): v is Locale {
-  return !!v && (LOCALES as string[]).includes(v);
-}
 
 function isMenuSetKey(v: string | null): v is MenuSetKey {
   return !!v && (SET_KEYS as string[]).includes(v);
@@ -74,6 +69,7 @@ function buildTree(rows: LayoutItem[]): TreeNode[] {
     if (r.parentId && map.has(r.parentId)) map.get(r.parentId)!.children!.push(node);
     else roots.push(node);
   });
+
   const sortMap: Record<string, number> = {};
   rows.forEach((r) => (sortMap[r.id] = r.sortOrder));
 
@@ -102,8 +98,9 @@ export async function GET(req: Request) {
     const setKeyParam = url.searchParams.get("setKey");
     const setKey: MenuSetKey = isMenuSetKey(setKeyParam) ? setKeyParam : "v1";
 
+    // ✅ BỎ FILTER LOCALE: locale chỉ là optional param (nếu không truyền => trả tất cả locale)
     const localeParam = url.searchParams.get("locale");
-    const locale: Locale = isLocale(localeParam) ? localeParam : "en";
+    const locale = localeParam && localeParam.trim() ? (localeParam as Locale) : null;
 
     const includeHidden = url.searchParams.get("includeHidden") === "1";
     const tree = url.searchParams.get("tree") === "1";
@@ -111,8 +108,8 @@ export async function GET(req: Request) {
     const where: Prisma.MenuItemWhereInput = {
       siteId,
       setKey,
-      locale,
       ...(includeHidden ? {} : { visible: true }),
+      ...(locale ? { locale } : {}),
     };
 
     const items = await prisma.menuItem.findMany({
@@ -135,7 +132,7 @@ export async function GET(req: Request) {
       return NextResponse.json({
         siteId,
         setKey,
-        locale,
+        locale: locale ?? "all",
         tree: buildTree(items as LayoutItem[]),
       });
     }
@@ -143,7 +140,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       siteId,
       setKey,
-      locale,
+      locale: locale ?? "all",
       items,
     });
   } catch (e) {

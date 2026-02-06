@@ -8,6 +8,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Poppins", sans-serif;
+  overflow: auto;
+  height: 100vh;
 }
 
 html {
@@ -34,7 +36,6 @@ html {
   --ring: #e5e7eb;
   --card: #ffffff;
   --primary-2: #22c55e;
-  --border: 1px dashed rgb(24 18 18 / 45%);
   --sidebar: #3b82f6;
   --sidebar-dark: #1e40af;
   --shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
@@ -48,7 +49,6 @@ html {
   --sb-shadow: 0 10px 30px rgba(2, 6, 23, 0.07), 0 4px 10px rgba(2, 6, 23, 0.05);
   --sb-shadow-hover: 0 16px 40px rgba(2, 6, 23, 0.11), 0 6px 16px rgba(2, 6, 23, 0.08);
   --sb-ring: 0 0 0 4px rgba(59, 130, 246, 0.15);
-  --borderDashed: 1px dashed rgb(24 18 18 / 45%);
   --text-red: #ff1429;
   --bg-card-detail: #ffffff;
   --bg-green-light: rgba(25, 135, 84, 0.12);
@@ -518,7 +518,6 @@ html {
   --sb-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   --sb-shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.45);
   --sb-ring: 0 0 0 4px rgba(96, 165, 250, 0.25);
-  --borderDashed: 1px dashed rgba(255, 255, 255, 0.15);
   --bg-card-detail: rgba(255, 255, 255, 0.03);
   --card-bg: #0b1020;
   --card-bd: #1f2a44;
@@ -624,7 +623,9 @@ label {
   color: #0b1220;
   background: linear-gradient(90deg, #a7f3d0, #67e8f9);
   box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.45);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 [data-tip]:hover::after {
   opacity: 1;
@@ -1186,7 +1187,9 @@ a:visited {
 /* Tránh animation mạnh trên mobile/tablet */
 @media (max-width: 1024.98px) {
   .dd {
-    transition: opacity 120ms ease, transform 120ms ease;
+    transition:
+      opacity 120ms ease,
+      transform 120ms ease;
   }
 }
 
@@ -1222,4 +1225,8 @@ a:visited {
 
   --bottom-nav-bg: #ffffff;
   --bottom-nav-border: rgba(148, 163, 184, 0.35);
+}
+.sectionContainer {
+  width: 1200px;
+  margin: 0 auto;
 }

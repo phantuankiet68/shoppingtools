@@ -440,4 +440,4 @@ Email.successCount / failedCount cập nhật
 ↓
 Email → SENT (khi xong)
 
-Đây là view hoàn chỉnh của tôi bạn hãy kiểm tra xem có bug dư thừa không cần sử dụng với lại làm hao tốn tài nguyên hãy kiểm tra và chỉnh sửa ghi lại toàn bộ file giúp tôi nhé. hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon.
+Đây là view hoàn chỉnh của tôi bạn hãy kiểm tra xem có bug dư thừa không cần sử dụng với lại làm hao tốn tài nguyên hãy kiểm tra và chỉnh sửa ghi lại toàn bộ file giúp tôi nhé. hiện tại tôi đang sử dụng next js 15 và css module và bootstrapt icon. tôi muốn bạn thực hiện code accessories1.tsx giống với mẫu cấu trúc file Hero1. Với lại Trong css module tôi không muốn sử dung var( root) nên hãy thay thế value vào var( root)

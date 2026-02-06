@@ -1,0 +1,231 @@
+/* ================= Root Section ================= */
+.brands {
+  background: var(--bg);
+  border: 1px solid rgb(15 23 41 / 10%);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 25px;
+}
+
+/* ================= Header ================= */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(90deg, rgba(51, 195, 139, 0.18), rgba(100, 230, 194, 0.1));
+  padding: 8px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 0 0 5px rgba(22, 138, 43, 0.12);
+}
+
+.badge {
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(22, 138, 43, 0.12);
+  color: var(--green);
+}
+
+/* ================= View More Button ================= */
+.more {
+  appearance: none;
+  border: 1.5px solid var(--green);
+  color: var(--green);
+  background: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.more:hover {
+  background: rgba(22, 138, 43, 0.06);
+  transform: translateY(-1px);
+}
+
+.arrow {
+  font-weight: 900;
+}
+
+/* ================= Carousel Body ================= */
+.body {
+  position: relative;
+  padding: 16px 44px 18px;
+  background: #fff;
+}
+
+.viewport {
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  gap: 18px;
+  transition: transform 0.45s ease;
+  will-change: transform;
+}
+
+/* ================= Brand Item ================= */
+.item {
+  flex: 0 0 calc((100% - 4 * 18px) / 5);
+  min-width: 0;
+}
+
+.itemLink {
+  display: block;
+  text-decoration: none;
+}
+
+/* ================= Brand Card ================= */
+.card {
+  height: 190px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  transition: 0.22s ease;
+}
+
+/* Logo Box */
+.imgbox {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.item:hover .card {
+  border-color: rgba(22, 138, 43, 0.35);
+  box-shadow: 0 14px 28px rgba(22, 138, 43, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ================= Navigation Buttons ================= */
+.navbtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 20px rgb(131 255 132 / 12%);
+  transition: 0.2s ease;
+  z-index: 5;
+}
+
+.navbtn:hover {
+  transform: translateY(-50%) scale(1.04);
+}
+
+.navbtn:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.navbtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Position arrows */
+.prev {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
+
+/* Icon size */
+.navbtn i {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ================= Responsive ================= */
+@media (max-width: 1120px) {
+  .item {
+    flex: 0 0 calc((100% - 3 * 16px) / 4);
+  }
+
+  .track {
+    gap: 16px;
+  }
+
+  .card {
+    height: 170px;
+  }
+}
+
+@media (max-width: 860px) {
+  .body {
+    padding: 16px 38px 16px;
+  }
+
+  .item {
+    flex: 0 0 calc((100% - 2 * 14px) / 3);
+  }
+
+  .track {
+    gap: 14px;
+  }
+
+  .card {
+    height: 160px;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 620px) {
+  .item {
+    flex: 0 0 calc((100% - 1 * 12px) / 2);
+  }
+
+  .track {
+    gap: 12px;
+  }
+
+  .card {
+    height: 150px;
+  }
+}

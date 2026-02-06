@@ -13,7 +13,9 @@ function ensureLeadingSlash(p: string) {
 export default async function PageByPath({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
 
-  const path = ensureLeadingSlash((Array.isArray(slug) ? slug : []).join("/"));
+  // URL path => "/a/b"
+  const raw = (Array.isArray(slug) ? slug : []).join("/");
+  const path = ensureLeadingSlash(raw);
 
   const h = await headers();
   const hostHeader = h.get("x-site-domain") ?? h.get("host") ?? "";
@@ -24,10 +26,18 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
     select: { id: true },
   });
   if (!site) notFound();
+  const where =
+    path === "/"
+      ? {
+          siteId: site.id,
+          OR: [{ path: "/" }, { path: "home" }, { path: "/home" }],
+        }
+      : {
+          siteId: site.id,
+          path,
+        };
 
-  const page = await prisma.page.findFirst({
-    where: { siteId: site.id, path },
-  });
+  const page = await prisma.page.findFirst({ where });
 
   if (!page || page.status !== "PUBLISHED") notFound();
 

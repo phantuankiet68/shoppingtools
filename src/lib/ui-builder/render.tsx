@@ -1,4 +1,3 @@
-// src/lib/ui-builder/render.tsx
 "use client";
 import React from "react";
 import type { RegItem } from "@/lib/ui-builder/types";

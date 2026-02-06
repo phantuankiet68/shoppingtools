@@ -1,0 +1,354 @@
+/* ===== Section ===== */
+.bs {
+  background: #ffffff;
+  border: 1px solid #e6f3ee;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 25px;
+}
+
+/* Header container */
+.bsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  background: linear-gradient(90deg, rgba(51, 195, 139, 0.18), rgba(100, 230, 194, 0.1));
+  padding: 8px 16px;
+
+  position: relative;
+  overflow: hidden;
+}
+
+.bsHead::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -80px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, rgba(51, 195, 139, 0.25), transparent 65%);
+  pointer-events: none;
+}
+
+.bsLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.bsTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #50d408;
+  letter-spacing: 0.2px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bsBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f44336;
+  background: #ffcccc;
+  border: 1px solid rgb(255 148 148 / 35%);
+  padding: 4px 10px;
+  border-radius: 999px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.bsMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(51, 195, 139, 0.35);
+  color: #0f5132;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(51, 195, 139, 0.12);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+  text-decoration: none;
+}
+
+.bsArrow {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(51, 195, 139, 0.12);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.bsMore:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(51, 195, 139, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+}
+.bsMore:hover .bsArrow {
+  transform: translateX(2px);
+  background: rgba(51, 195, 139, 0.18);
+}
+.bsMore:active {
+  transform: translateY(0px);
+  box-shadow: 0 8px 18px rgba(51, 195, 139, 0.14);
+}
+
+/* ===== Carousel area ===== */
+.bsBody {
+  position: relative;
+  padding: 16px 42px 18px;
+  background: #fff;
+}
+
+.bsViewport {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.bsTrack {
+  display: flex;
+  gap: 18px;
+  transition: transform 0.45s ease;
+  will-change: transform;
+  padding-top: 10px;
+}
+
+/* 5 items desktop */
+.bsItem {
+  flex: 0 0 calc((100% - 4 * 18px) / 5);
+  min-width: 0;
+}
+
+.itemLink {
+  text-decoration: none;
+  color: inherit;
+  display: contents; /* giữ layout card */
+}
+
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.imgbox {
+  height: 250px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  transition: 0.22s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pInfo {
+  padding: 12px 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.pTop {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pName {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #1f2937;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pPriceWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pPrice {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0b5f41;
+  white-space: nowrap;
+}
+
+.pTag {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0b5f41;
+  background: rgba(51, 195, 139, 0.14);
+  border: 1px solid rgba(51, 195, 139, 0.25);
+  padding: 3px 8px;
+  border-radius: 999px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.pCategory {
+  font-size: 10px;
+  font-weight: 700;
+  color: #0b5f41;
+  background: rgba(51, 195, 139, 0.14);
+  border: 1px solid rgba(51, 195, 139, 0.25);
+  padding: 5px 7px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.pRating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.pStars {
+  letter-spacing: 1px;
+  font-size: 12px;
+  color: #f59e0b;
+}
+.pScore {
+  font-size: 12px;
+  font-weight: 900;
+  color: #1f2937;
+}
+.pCount {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+/* Hover */
+.bsItem:hover .imgbox {
+  border-color: rgba(22, 138, 43, 0.35);
+  box-shadow: 0 14px 28px rgba(22, 138, 43, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Arrows */
+.navbtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: 0.2s ease;
+  z-index: 5;
+}
+
+.navbtn:hover {
+  transform: translateY(-50%) scale(1.04);
+}
+.navbtn:active {
+  transform: translateY(-50%) scale(0.98);
+}
+.navbtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.prev {
+  left: 6px;
+}
+.next {
+  right: 6px;
+}
+
+/* Responsive header */
+@media (max-width: 520px) {
+  .bsHead {
+    padding: 12px 12px;
+  }
+  .bsTitle {
+    font-size: 16px;
+  }
+  .bsBadge {
+    display: none;
+  }
+  .bsMore {
+    padding: 9px 12px;
+  }
+}
+
+/* Responsive carousel */
+@media (max-width: 1120px) {
+  .bsItem {
+    flex: 0 0 calc((100% - 3 * 16px) / 4);
+  }
+  .bsTrack {
+    gap: 16px;
+  }
+  .imgbox {
+    height: 230px;
+  }
+}
+
+@media (max-width: 860px) {
+  .bsBody {
+    padding: 16px 38px 16px;
+  }
+  .bsItem {
+    flex: 0 0 calc((100% - 2 * 14px) / 3);
+  }
+  .bsTrack {
+    gap: 14px;
+  }
+  .imgbox {
+    height: 220px;
+  }
+}
+
+@media (max-width: 620px) {
+  .bsItem {
+    flex: 0 0 calc((100% - 1 * 12px) / 2);
+  }
+  .bsTrack {
+    gap: 12px;
+  }
+  .imgbox {
+    height: 200px;
+  }
+}

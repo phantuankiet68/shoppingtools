@@ -19,6 +19,7 @@ const HEADER_KINDS: readonly string[] = [];
 const VISIBLE_HEADER_KINDS = new Set<string>(["HeaderShopFlex"]);
 
 const TEMPLATES = [
+  tpl("tpl-shop-green", "ShopGreen", ["Topbar1", "Header1", "Hero1", "BestSeller1", "Brand1", "Makeup1", "Skincare1", "BodyCare1", "KidsCare1", "MenCare1", "Accessories1", "Footer1"]),
   tpl("tpl-topbar-basic", "Topbar", [
     "TopbarPro",
     "TopbarPink",

@@ -1,6 +1,20 @@
 // lib/ui-builder/registry.ts
 import type { RegItem } from "@/lib/ui-builder/types";
 
+// ===== Web page greens  =====
+import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/templates/shopGreen/topbar/topbar1";
+import { SHOP_HEADER_GREEN_ONE } from "@/components/admin/templates/shopGreen/header/header1";
+import { SHOP_HERO_GREEN_ONE } from "@/components/admin/templates/shopGreen/hero/hero1";
+import { SHOP_BEST_SELLER_GREEN_ONE } from "@/components/admin/templates/shopGreen/bestSeller/bestSeller1";
+import { SHOP_BRAND_GREEN_ONE } from "@/components/admin/templates/shopGreen/brand/brand1";
+import { SHOP_MAKEUP_GREEN_ONE } from "@/components/admin/templates/shopGreen/makeup/makeup1";
+import { SHOP_SKINCARE_GREEN_ONE } from "@/components/admin/templates/shopGreen/skincare/skincare1";
+import { SHOP_BODY_CARE_GREEN_ONE } from "@/components/admin/templates/shopGreen/bodyCare/bodyCare1";
+import { SHOP_KIDS_CARE_GREEN_ONE } from "@/components/admin/templates/shopGreen/kidsCare/kidsCare1";
+import { SHOP_MEN_CARE_GREEN_ONE } from "@/components/admin/templates/shopGreen/menCare/menCare1";
+import { SHOP_ACCESSORIES_GREEN_ONE } from "@/components/admin/templates/shopGreen/accessories/accessories1";
+import { SHOP_FOOTER_GREEN_ONE } from "@/components/admin/templates/shopGreen/footer/footer1";
+
 // ===== Blocks Topbar tách rời  =====
 import { TOPBAR_PRO } from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarMain";
 import { AURORA_TOPBAR_PINK } from "@/components/admin/templates/ShopTemplate/Ui/topbar/AuroraTopbarPink";
@@ -47,6 +61,20 @@ import { FOOTER_YELLOW_REGITEM } from "@/components/admin/templates/ShopTemplate
 export const BASIC: RegItem[] = [];
 
 export const REGISTRY_HOME: RegItem[] = [
+  // ===== Web page greens  =====
+  SHOP_TOPBAR_GREEN_ONE,
+  SHOP_HEADER_GREEN_ONE,
+  SHOP_HERO_GREEN_ONE,
+  SHOP_BEST_SELLER_GREEN_ONE,
+  SHOP_BRAND_GREEN_ONE,
+  SHOP_MAKEUP_GREEN_ONE,
+  SHOP_SKINCARE_GREEN_ONE,
+  SHOP_BODY_CARE_GREEN_ONE,
+  SHOP_KIDS_CARE_GREEN_ONE,
+  SHOP_MEN_CARE_GREEN_ONE,
+  SHOP_ACCESSORIES_GREEN_ONE,
+  SHOP_FOOTER_GREEN_ONE,
+  // ===== end  =====
   TOPBAR_PRO,
   AURORA_TOPBAR_PINK,
   TOPBAR_ORANGE_2025,

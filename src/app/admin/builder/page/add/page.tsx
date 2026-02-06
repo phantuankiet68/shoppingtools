@@ -157,6 +157,7 @@ export default function UiBuilderAddPage() {
         setPageId(p.id);
         setTitle(p.title ?? "Untitled");
         setSlug(p.slug ?? "");
+        setBlocks(normalizeBlocks(p.blocks ?? []));
         setSeo((prev) => ({
           ...prev,
           metaTitle: p.title ?? prev.metaTitle,
@@ -292,7 +293,7 @@ export default function UiBuilderAddPage() {
         title: safeTitle,
         slug: finalSlug,
         path: finalPath,
-        blocks: blocks.map(({ kind, props }) => ({ kind, props })),
+        blocks: blocks.map(({ id, kind, props }) => ({ id, kind, props })),
         seo: {
           ...seo,
           metaTitle: seo.metaTitle || safeTitle,
@@ -359,6 +360,20 @@ export default function UiBuilderAddPage() {
     const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
     window.open(url, "_blank");
   };
+  function normalizeBlocks(raw: any[]): Block[] {
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+      .map((b) => {
+        const id = typeof b?.id === "string" && b.id ? b.id : crypto.randomUUID();
+        const kind = String(b?.kind ?? "");
+        const props = b?.props && typeof b.props === "object" ? b.props : {};
+        return { id, kind, props } as Block;
+      })
+      .filter((b) => b.kind);
+  }
+
+  const normalized = React.useMemo(() => normalizeBlocks(blocks), [blocks]);
 
   return (
     <div className={styles.wrapper}>
@@ -392,7 +407,7 @@ export default function UiBuilderAddPage() {
             </aside>
 
             <main className={styles.center}>
-              <Canvas blocks={blocks} activeId={activeId} setActiveId={setActiveId} onDrop={onDrop} move={move} device={device} />
+              <Canvas blocks={normalized} activeId={activeId} setActiveId={setActiveId} onDrop={onDrop} move={move} device={device} />
             </main>
 
             <aside className={styles.right}>

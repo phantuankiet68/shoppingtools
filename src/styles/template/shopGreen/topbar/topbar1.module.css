@@ -1,0 +1,413 @@
+/* ===== TOPBAR 2026 (CSS Module) ===== */
+
+.topbar2026 {
+  width: 100%;
+  position: relative;
+  z-index: 20;
+  border: 1px solid var(--tb-border, rgba(148, 163, 184, 0.4));
+}
+
+.topbar2026::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  top: 0;
+  height: 1px;
+  pointer-events: none;
+}
+
+.tbInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6px 0px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 18px;
+}
+
+.tbLeft,
+.tbCenter,
+.tbRight {
+  min-width: 0;
+}
+
+/* ===== LEFT ===== */
+.tbLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tbLogoPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #16f949, #48ec9c 45%, #22d3ee 100%);
+  color: #0b1120;
+  font-size: 15px;
+
+  box-shadow:
+    0 0 18px rgba(113, 248, 156, 0.8),
+    0 0 24px rgba(56, 189, 248, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+.isPulse {
+  box-shadow:
+    0 0 18px rgba(113, 248, 156, 0.8),
+    0 0 30px rgba(56, 189, 248, 0.65);
+}
+
+.tbBrandText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tbBrandTitle {
+  font-size: 18px;
+  text-transform: uppercase;
+  color: #309a29;
+  font-weight: 800;
+}
+
+.tbRegionChip {
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 90%);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: rgba(100, 116, 139, 1);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    border 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tbRegionChip :global(i) {
+  font-size: 12px;
+}
+
+.tbRegionChip:hover {
+  border-color: rgba(249, 115, 22, 0.8);
+  color: #53a9ff;
+  box-shadow: 0 0 18px rgba(251, 146, 60, 0.45);
+}
+
+/* ===== CENTER – TICKER ===== */
+.tbCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.tbTicker {
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 11px;
+}
+
+.tbTickerTrack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 0px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.14), rgb(114 244 186 / 13%), rgba(45, 212, 191, 0.12));
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.tbTickerLabel {
+  font-size: 10px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #2b2c2e;
+  font-weight: 800;
+}
+
+.tbTickerText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transform: translateY(0);
+  opacity: 1;
+  transition:
+    transform 0.35s ease,
+    opacity 0.35s ease;
+  color: #2d2d2e;
+}
+
+.main {
+  opacity: 0.9;
+}
+
+.tag {
+  font-size: 10px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #2b2c2e;
+}
+
+.isLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+.isEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.isActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ===== RIGHT ===== */
+.tbRight {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+  gap: 10px;
+}
+
+.tbRightLinks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.tbLink {
+  border: none;
+  background: transparent;
+  padding: 2px 0;
+  color: #292929;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.tbLink:hover {
+  color: #07addf;
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.tbDivider {
+  width: 1px;
+  height: 16px;
+  background: linear-gradient(to bottom, transparent, rgba(148, 163, 184, 0.65), transparent);
+}
+
+.tbStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #40ff892e;
+  border: 1px solid #22c55e99;
+  font-size: 11px;
+  color: #00d04a;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+}
+
+.tbStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+  animation: pulseDot 1.8s infinite;
+}
+
+@keyframes pulseDot {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* More button (mobile) */
+.tbMoreBtn {
+  display: none;
+  border: none;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(100, 116, 139, 1);
+}
+
+.tbMoreBtn:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .tbInner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-inline: 12px;
+  }
+  .tbCenter {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .tbRegionChip {
+    display: none;
+  }
+
+  .tbRightLinks {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 32px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.97);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.9);
+    flex-direction: column;
+    align-items: flex-start;
+    z-index: 5;
+  }
+
+  .tbRightLinks .tbLink {
+    padding: 4px 0;
+    color: rgba(226, 232, 240, 1);
+  }
+
+  .tbMoreBtn {
+    display: inline-flex;
+  }
+
+  .isOpen .tbRightLinks {
+    display: flex;
+  }
+
+  .tbStatusPill {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .tbInner {
+    padding: 6px 10px;
+    column-gap: 12px;
+  }
+
+  .tbLogoPill {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+
+  .tbBrandTitle {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (min-width: 1920px) {
+  .tbInner {
+    max-width: 1200px;
+    column-gap: 22px;
+    padding: 10px 0px;
+  }
+
+  .tbBrandTitle {
+    font-size: 19px;
+  }
+
+  .tbTicker {
+    max-width: 560px;
+  }
+
+  .tbLink {
+    font-size: 14px;
+  }
+}
+
+/* 1680px–1919px: nới nhẹ */
+@media (min-width: 1680px) and (max-width: 1919px) {
+  .tbTicker {
+    max-width: 520px;
+  }
+}
+
+/* 1366px–1679px: tối ưu laptop phổ biến */
+@media (min-width: 1366px) and (max-width: 1679px) {
+  .tbBrandTitle {
+    font-size: 17px;
+  }
+
+  .tbLink {
+    font-size: 13px;
+  }
+}
+
+/* 768px: Tablet (ngang) – giữ ticker lại nếu muốn */
+@media (max-width: 768px) {
+  .tbInner {
+    padding-inline: 12px;
+    column-gap: 14px;
+  }
+
+  /* Giữ ticker hiển thị ở 768 (tablet ngang vẫn đủ chỗ)
+     Nếu bạn muốn ẩn ticker ở 768, hãy xoá block này. */
+  .tbCenter {
+    display: flex;
+  }
+
+  .tbTicker {
+    max-width: 360px;
+  }
+
+  .tbBrandTitle {
+    font-size: 14px;
+  }
+
+  .tbRegionChip {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}

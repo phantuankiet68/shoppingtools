@@ -36,14 +36,6 @@ type Item = {
 const LOCALE_PREFIX = /^\/(en)(?=\/|$)/i;
 const ADD_PAGE_REGEX = /^\/(en)\/v1\/pages\/add(?:\/.*)?$/;
 
-function getCurrentLocale(): Locale {
-  if (typeof document !== "undefined") {
-    const l = (document.documentElement.lang || "vi").toLowerCase();
-    if (l === "en") return l;
-  }
-  return "en";
-}
-
 function normalize(p?: string | null): string {
   if (!p) return "";
   let s = p.split("#")[0].split("?")[0].trim();
@@ -311,17 +303,26 @@ export default function LayoutA({ children }: { children: ReactNode }) {
         params.set("page", "1");
         params.set("size", "1000");
         params.set("sort", "sortOrder:asc");
-        params.set("locale", getCurrentLocale());
         params.set("setKey", "v1");
 
-        const siteId = localStorage.getItem("builder_site_id");
-        if (siteId) params.set("siteId", siteId);
-
+        /**
+         * ✅ FIX QUAN TRỌNG:
+         * Trước đây bạn lấy siteId từ localStorage, nhưng localStorage đang lưu sai ("sitea02"),
+         * trong khi DB menuItem thuộc "sitea01" => items rỗng.
+         *
+         * => Không ép siteId nữa. Để API resolve theo domain/host.
+         * => Sau khi fetch xong, sync lại builder_site_id bằng siteId API trả về.
+         */
         const res = await fetch(`/api/admin/menu-items/layout?${params.toString()}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load menu");
-        const data = (await res.json()) as { items: ApiMenuItem[] };
+        const data = (await res.json()) as { siteId?: string; items?: ApiMenuItem[] };
 
         if (!alive) return;
+
+        // sync builder_site_id cho các chỗ khác dùng (nếu có)
+        try {
+          if (data?.siteId) localStorage.setItem("builder_site_id", data.siteId);
+        } catch {}
 
         const tree = buildTree(data.items || []);
         setItems(tree);
@@ -612,6 +613,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
           })}
         </nav>
       </aside>
+
       <div className={styles.main}>
         <header className={styles.topbar}>
           <div className={styles.row1}>
@@ -660,7 +662,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
               </button>
 
               <div className={styles.notiWrap} ref={notiRef}>
-                <button className={styles.iconBtn} type="button" aria-label="Notifications" aria-haspopup="menu" aria-expanded={notiOpen} onClick={toggleNoti}>
+                <button className={styles.iconBtn} type="button" aria-label="Notifications" aria-haspopup="menu" aria-expanded={notiOpen} onClick={() => setNotiOpen((v) => !v)}>
                   <i className="bi bi-bell" />
                   <span className={styles.dot} />
                 </button>

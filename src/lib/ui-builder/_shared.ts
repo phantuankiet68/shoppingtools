@@ -19,7 +19,6 @@ export const bgClass = (bg?: string) => {
   }
 };
 
-/** Build class cho Bootstrap Col từ props: { xs, sm, md, lg, xl, xxl } */
 export const mkColClass = (p: any) => {
   const seg = (bp: string) => {
     const v = p?.[bp];
@@ -42,7 +41,6 @@ export const mkColClass = (p: any) => {
   return [xs || "col", seg("sm"), seg("md"), seg("lg"), seg("xl"), seg("xxl")].filter(Boolean).join(" ");
 };
 
-/** Chuẩn hoá options (string[] | {value,label}[] | CSV line/”value|label”) */
 export const normalizeOptions = (options: any): { value: string; label: string }[] => {
   if (Array.isArray(options)) {
     if (options.length === 0) return [];
