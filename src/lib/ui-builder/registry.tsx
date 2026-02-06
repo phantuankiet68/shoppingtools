@@ -44,32 +44,6 @@ import { FOOTER_TOP_REGITEM } from "@/components/admin/templates/ShopTemplate/Ui
 import { FOOTER_WEAR_REGITEM } from "@/components/admin/templates/ShopTemplate/Ui/footer/FooterWear";
 import { FOOTER_YELLOW_REGITEM } from "@/components/admin/templates/ShopTemplate/Ui/footer/FooterYellow";
 
-// ===== Blocks tách rời =====
-import { HEADER_SHOP_FLEX } from "@/components/admin/templates/header/HeaderFlex";
-import { HEADER_PRO_LIGHT } from "@/components/admin/templates/header/HeaderProLight";
-import { HEADER_ACCOUNT_NOVA } from "@/components/admin/templates/header/HeaderAccountNova";
-import { HEADER_EDU_BIZ } from "@/components/admin/templates/header/HeaderEduBiz";
-import { HEADER_LUXE_GEMS } from "@/components/admin/templates/header/HeaderLuxeGems";
-import { HEADER_AURORA } from "@/components/admin/templates/header/HeaderAurora";
-import { HEADER_SKYLINE_DUSK } from "@/components/admin/templates/header/HeaderSkylineDusk";
-import { HEADER_PULSE_DAILY } from "@/components/admin/templates/header/HeaderPulseDaily";
-import { HEADER_MOTORTECH } from "@/components/admin/templates/header/HeaderMotorTech";
-import { HEADER_SKYSTACK } from "@/components/admin/templates/header/HeaderSkyStack";
-import { HEADER_PORTFOLIO_FLUX } from "@/components/admin/templates/header/HeaderPortfolioFlux";
-import { HEADER_BOOK_VERSE } from "@/components/admin/templates/header/HeaderBookVerse";
-import { HEADER_TRUST_CREST } from "@/components/admin/templates/header/HeaderTrustCrest";
-import { HEADER_VOYAGE_WAVE } from "@/components/admin/templates/header/HeaderVoyageWave";
-import { HEADER_FARMIFY } from "@/components/admin/templates/header/HeaderFarmify";
-
-import { BANNER_PRO } from "@/components/admin/templates/banner/BannerPro";
-import { TRUST_BADGES } from "@/components/admin/templates/home/TrustBadges";
-import { QUICK_CATS } from "@/components/admin/templates/home/QuickCategories";
-import { PRODUCT_SECTION } from "@/components/admin/templates/home/ProductSection";
-import { BLOG_PREVIEW } from "@/components/admin/templates/home/BlogPreview";
-import { REVIEWS_PRO } from "@/components/admin/templates/home/Reviews";
-import { NEWSLETTER_CTA } from "@/components/admin/templates/home/NewsletterCTA";
-import { FOOTER_PRO } from "@/components/admin/templates/home/FooterPro";
-
 export const BASIC: RegItem[] = [];
 
 export const REGISTRY_HOME: RegItem[] = [
@@ -114,32 +88,8 @@ export const REGISTRY_HOME: RegItem[] = [
   FOOTER_TOP_REGITEM,
   FOOTER_WEAR_REGITEM,
   FOOTER_YELLOW_REGITEM,
-
-  HEADER_SHOP_FLEX,
-  HEADER_PRO_LIGHT,
-  HEADER_ACCOUNT_NOVA,
-  HEADER_EDU_BIZ,
-  HEADER_LUXE_GEMS,
-  HEADER_AURORA,
-  HEADER_SKYLINE_DUSK,
-  HEADER_PULSE_DAILY,
-  HEADER_MOTORTECH,
-  HEADER_SKYSTACK,
-  HEADER_PORTFOLIO_FLUX,
-  HEADER_BOOK_VERSE,
-  HEADER_TRUST_CREST,
-  HEADER_VOYAGE_WAVE,
-  HEADER_FARMIFY,
-
-  TRUST_BADGES,
-  QUICK_CATS,
-  PRODUCT_SECTION,
-  BLOG_PREVIEW,
-  REVIEWS_PRO,
-  NEWSLETTER_CTA,
-  FOOTER_PRO,
 ];
 
-export const REGISTRY: RegItem[] = [...BASIC, HEADER_SHOP_FLEX, BANNER_PRO, ...REGISTRY_HOME];
+export const REGISTRY: RegItem[] = [...BASIC, ...REGISTRY_HOME];
 
 export default REGISTRY;
