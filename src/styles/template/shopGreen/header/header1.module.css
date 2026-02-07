@@ -462,9 +462,9 @@
   border: 0;
   background: transparent;
   color: rgba(100, 116, 139, 1);
-  font-weight: 850;
-  font-size: 13px;
-  padding: 10px 2px;
+  padding: 10px 2px 2px 2px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   position: relative;
 }
@@ -499,8 +499,7 @@
   border: 1px solid rgba(239, 68, 68, 0.25);
   background: rgba(239, 68, 68, 0.08);
   color: #7f1d1d;
-  font-weight: 800;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .authForm {
@@ -512,7 +511,6 @@
 .authLabel {
   display: grid;
   gap: 8px;
-  font-weight: 850;
   color: rgba(15, 23, 42, 0.85);
   font-size: 13px;
 }
@@ -537,8 +535,8 @@
   background: rgba(255, 255, 255, 0.9);
   padding: 0 44px 0 40px;
   outline: none;
-  font-weight: 700;
   color: #0f172a;
+  font-size: 15px;
 }
 
 .authInput:focus {
@@ -574,7 +572,6 @@
   border: 1px solid rgba(34, 197, 139, 0.25);
   background: rgba(34, 197, 139, 0.14);
   color: #0b5f41;
-  font-weight: 950;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -594,15 +591,15 @@
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: rgba(255, 255, 255, 0.8);
   color: #0f172a;
-  font-weight: 900;
   cursor: pointer;
 }
 
 .authLink {
   border: 0;
   background: transparent;
-  color: rgba(100, 116, 139, 1);
-  font-weight: 850;
+  color: rgb(36, 124, 248);
+  font-weight: 500;
+  font-size: 15px;
   cursor: pointer;
   text-align: left;
   padding: 0;
@@ -610,12 +607,10 @@
 
 .authNote {
   color: rgba(100, 116, 139, 1);
-  font-weight: 650;
   font-size: 12px;
   line-height: 1.4;
 }
 
 .authNoteStrong {
-  font-weight: 900;
   color: #0f172a;
 }

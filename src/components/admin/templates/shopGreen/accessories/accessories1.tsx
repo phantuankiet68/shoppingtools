@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
@@ -8,134 +8,128 @@ import cls from "@/styles/template/shopGreen/accessories/accessories1.module.css
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
-export type AccTab = { key: string; label: string };
+type ApiCategory = {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  icon: string | null;
+  sort: number;
+  isActive: boolean;
+  count: number;
+};
 
-export type AccTile = {
-  kind: "tile";
-  cat: string;
-  href: string;
-  tag: string;
+type SidebarCategoryResponse = {
+  siteId: string;
+  domain?: string;
+  activeOnly?: boolean;
+  basePath?: string;
+  items: ApiCategory[];
+  tree?: unknown;
+};
+
+export type SlideItem = {
+  headline: string;
+  sub: string;
+  ctaLabel: string;
+  ctaHref: string;
+  bg?: string;
+  chips?: string[];
+  imageSrc?: string;
+};
+
+export type PromoItem = {
+  icon: string;
   title: string;
   sub: string;
-  cta: string;
-  imageSrc: string;
-  variant?: "hero" | "wide" | "tall";
+  off: string;
+  href: string;
 };
 
-export type AccCard = {
-  kind: "card";
-  cat: string;
-  badge?: string;
-  badgeVariant?: "default" | "new";
-  name: string;
-  brand: string;
-  note: string;
-  imageSrc: string;
+export type RightBanner = {
+  variant: "top" | "bot";
+  badge: string;
+  title: string;
+  sub: string;
+  imageSrc?: string;
+  /** ✅ NEW: nếu không có imageSrc thì dùng icon */
+  icon?: string; // bootstrap icon name, e.g. "bi-share", "bi-ticket-perforated", "bi-truck"
 };
-
-export type AccItem = AccTile | AccCard;
 
 export type Accessories1Props = {
-  title?: string;
-  subtitle?: string;
+  siteId?: string;
+  categoryApiPath?: string;
+  categoryBasePath?: string;
+  activeOnly?: boolean;
+  onlyRootCategories?: boolean;
 
-  tabs?: AccTab[];
-  items?: AccItem[];
+  slides?: SlideItem[];
+  promos?: PromoItem[];
+  rightBanners?: RightBanner[];
 
-  initialCount?: number;
-  step?: number;
+  autoMs?: number;
   preview?: boolean;
 };
 
 /* ================= Defaults ================= */
-/**
- * ✅ IMPORTANT (Next/Image):
- * - src dạng "/images/..." phải tồn tại trong /public/images/...
- * - fallback cũng nên là local để khỏi cần cấu hình hostname
- */
-const DEFAULT_IMAGE = "/images/product.jpg";
-const FALLBACK_IMG = "/images/fallback.png";
-
-const DEFAULT_TABS: AccTab[] = [
-  { key: "all", label: "All" },
-  { key: "tools", label: "Tools" },
-  { key: "brushes", label: "Brushes" },
-  { key: "bags", label: "Bags" },
-  { key: "organizers", label: "Organizers" },
-  { key: "mirrors", label: "Mirrors" },
+const DEFAULT_SLIDES: SlideItem[] = [
+  {
+    headline: "NEW ARRIVALS\nACCESSORIES",
+    sub: "Trendy & Stylish • Best Collection",
+    ctaLabel: "SHOP NOW",
+    ctaHref: "/accessories",
+    chips: ["Jewelry", "Bags", "Watches"],
+    imageSrc: "/assets/images/product.jpg",
+  },
+  {
+    headline: "SUMMER SALE\nUP TO 50% OFF",
+    sub: "Limited-time offers • Best prices",
+    ctaLabel: "VIEW OFFERS",
+    ctaHref: "/promotions",
+    bg: "linear-gradient(135deg, #06dc35ff, #9ffbd5ff 55%, #b6f0efff)",
+    imageSrc: "/assets/images/product.jpg",
+  },
+  {
+    headline: "PREMIUM BRANDS\n100% AUTHENTIC",
+    sub: "Easy returns • Trusted sellers",
+    ctaLabel: "EXPLORE BRANDS",
+    ctaHref: "/brands",
+    bg: "linear-gradient(135deg, #9bd7f5, #8ec6fb 55%, #b6d1fd)",
+    imageSrc: "/assets/images/product.jpg",
+  },
 ];
 
-const DEFAULT_ITEMS: AccItem[] = [
-  {
-    kind: "tile",
-    cat: "tools",
-    href: "/accessories/tools",
-    tag: "Bestseller",
-    title: "Beauty Tools",
-    sub: "Clips • Sponges • Razors",
-    cta: "Explore →",
-    imageSrc: DEFAULT_IMAGE,
-    variant: "hero",
-  },
-  {
-    kind: "tile",
-    cat: "bags",
-    href: "/accessories/bags",
-    tag: "New",
-    title: "Cosmetic Bags",
-    sub: "Neat • Easy to carry",
-    cta: "View collection →",
-    imageSrc: DEFAULT_IMAGE,
-    variant: "wide",
-  },
-  {
-    kind: "tile",
-    cat: "organizers",
-    href: "/accessories/organizers",
-    tag: "Pro",
-    title: "Organizers & Storage",
-    sub: "Optimize your vanity",
-    cta: "Find the right organizer →",
-    imageSrc: DEFAULT_IMAGE,
-    variant: "tall",
-  },
+const DEFAULT_PROMOS: PromoItem[] = [
+  { icon: "bi-gem", title: "JEWELRY", sub: "Save up to 30%", off: "-30%", href: "/jewelry" },
+  { icon: "bi-handbag", title: "BAGS", sub: "Buy 2 get 1", off: "HOT", href: "/bags" },
+  { icon: "bi-watch", title: "WATCHES", sub: "Up to 40% off", off: "-40%", href: "/watches" },
+];
 
+/**
+ * ✅ UPDATED: 3 RIGHT cards: Share / Voucher / Free ship
+ * - Không dùng imageSrc -> sẽ render icon
+ */
+const DEFAULT_RIGHT: RightBanner[] = [
   {
-    kind: "card",
-    cat: "brushes",
-    badge: "HOT",
-    name: "Mini makeup brush set — soft bristles, no shedding",
-    brand: "ProBrush",
-    note: "Travel-friendly",
-    imageSrc: DEFAULT_IMAGE,
+    variant: "top",
+    badge: "SHARE & EARN",
+    title: "SHARE TO GET POINTS",
+    sub: "Invite friends and receive rewards",
+    icon: "bi-share",
   },
   {
-    kind: "card",
-    cat: "tools",
-    badge: "NEW",
-    badgeVariant: "new",
-    name: "Foundation blending sponge — smooth application, no caking",
-    brand: "SoftBlend",
-    note: "Easy to clean",
-    imageSrc: DEFAULT_IMAGE,
+    variant: "bot",
+    badge: "VOUCHER",
+    title: "DAILY DISCOUNT CODES",
+    sub: "Collect vouchers before checkout",
+    icon: "bi-ticket-perforated",
   },
   {
-    kind: "card",
-    cat: "mirrors",
-    badge: "BEST",
-    name: "Double-sided compact mirror — portable, clear reflection",
-    brand: "GlowMirror",
-    note: "Pocket size",
-    imageSrc: DEFAULT_IMAGE,
-  },
-  {
-    kind: "card",
-    cat: "mirrors",
-    badge: "BEST",
-    name: "Double-sided compact mirror — portable, clear reflection",
-    brand: "GlowMirror",
-    note: "Pocket size",
-    imageSrc: DEFAULT_IMAGE,
+    variant: "bot",
+    badge: "FREE SHIP",
+    title: "FREE SHIPPING",
+    sub: "Orders from 299k • Fast delivery",
+    icon: "bi-truck",
   },
 ];
 
@@ -149,55 +143,103 @@ function safeJson<T>(raw?: string): T | undefined {
   }
 }
 
-/**
- * ✅ Next/Image safe fallback:
- * - Nếu src lỗi (404 hoặc decode fail) thì đổi sang FALLBACK_IMG (local)
- * - Không dùng remote placeholder => khỏi cần next.config.js images.domains
- */
-function Img({ src, alt, sizes, className, fill = true }: { src: string; alt: string; sizes?: string; className?: string; fill?: boolean }) {
-  const [okSrc, setOkSrc] = useState<string>(src || FALLBACK_IMG);
+function normalizeBasePath(p: string) {
+  const s = String(p || "").trim();
+  if (!s) return "/category";
+  if (!s.startsWith("/")) return `/${s}`;
+  return s.endsWith("/") ? s.slice(0, -1) : s;
+}
 
-  useEffect(() => {
-    setOkSrc(src || FALLBACK_IMG);
-  }, [src]);
-
-  return (
-    <Image
-      src={okSrc}
-      alt={alt}
-      fill={fill}
-      sizes={sizes}
-      className={className}
-      style={{ objectFit: "cover" }}
-      onError={() => {
-        // đổi 1 lần sang fallback để tránh request lại ảnh hỏng
-        if (okSrc !== FALLBACK_IMG) setOkSrc(FALLBACK_IMG);
-      }}
-    />
-  );
+function ensureBiIcon(icon?: string | null) {
+  if (!icon) return "bi-tag";
+  return icon.startsWith("bi-") ? icon : `bi-${icon}`;
 }
 
 /* ================= Component ================= */
-export function Accessories1({ title = "ACCESSORIES", subtitle = "Tools & add-ons that upgrade your routine.", tabs, items, initialCount = 8, step = 6, preview = false }: Accessories1Props) {
-  const boardRef = useRef<HTMLDivElement | null>(null);
+export function Accessories1({
+  siteId = "sitea01",
+  categoryApiPath = "/api/admin/product-categories/sidebar-category",
+  categoryBasePath = "/category",
+  activeOnly = true,
+  onlyRootCategories = true,
 
-  const tbs = useMemo(() => tabs ?? DEFAULT_TABS, [tabs]);
-  const its = useMemo(() => items ?? DEFAULT_ITEMS, [items]);
+  slides,
+  promos,
+  rightBanners,
 
-  const [active, setActive] = useState<string>("all");
-  const [limit, setLimit] = useState<number>(Math.max(1, initialCount));
+  autoMs = 4500,
+  preview = false,
+}: Accessories1Props) {
+  const [cats, setCats] = useState<ApiCategory[] | null>(null);
 
   useEffect(() => {
-    setLimit(Math.max(1, initialCount));
-  }, [active, initialCount]);
+    if (preview) return;
+    if (!siteId) return;
 
-  const filtered = useMemo(() => {
-    if (active === "all") return its;
-    return its.filter((x) => x.cat === active);
-  }, [its, active]);
+    const controller = new AbortController();
 
-  const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
-  const canLoadMore = filtered.length > limit;
+    (async () => {
+      try {
+        const bp = normalizeBasePath(categoryBasePath);
+        const url =
+          `${categoryApiPath}?siteId=${encodeURIComponent(siteId)}` +
+          `&active=${activeOnly ? "1" : "0"}` +
+          `&basePath=${encodeURIComponent(bp)}`;
+
+        const res = await fetch(url, { cache: "no-store", signal: controller.signal });
+        if (!res.ok) {
+          console.error("[Accessories1] load categories failed:", res.status, await res.text());
+          setCats([]);
+          return;
+        }
+
+        const data = (await res.json()) as SidebarCategoryResponse;
+
+        const items = Array.isArray(data.items) ? data.items : [];
+        const filtered = onlyRootCategories ? items.filter((x) => x.parentId === null) : items;
+
+        const sorted = filtered.slice().sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || a.name.localeCompare(b.name));
+
+        setCats(sorted);
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+        console.error("[Accessories1] load categories error:", err);
+        setCats([]);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [preview, siteId, categoryApiPath, categoryBasePath, activeOnly, onlyRootCategories]);
+
+  const sds = useMemo(() => slides ?? DEFAULT_SLIDES, [slides]);
+  const prs = useMemo(() => promos ?? DEFAULT_PROMOS, [promos]);
+  const rbs = useMemo(() => rightBanners ?? DEFAULT_RIGHT, [rightBanners]);
+
+  const total = sds.length;
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    if (total <= 1) return;
+
+    const t = window.setInterval(
+      () => {
+        setIndex((cur) => (cur + 1) % total);
+      },
+      Math.max(1200, autoMs),
+    );
+
+    return () => window.clearInterval(t);
+  }, [paused, autoMs, total]);
+
+  const goTo = (i: number) => {
+    if (total <= 0) return;
+    setIndex((i + total) % total);
+  };
+
+  const prev = () => goTo(index - 1);
+  const next = () => goTo(index + 1);
 
   const onBlockClick = (e: React.SyntheticEvent) => {
     if (!preview) return;
@@ -205,144 +247,266 @@ export function Accessories1({ title = "ACCESSORIES", subtitle = "Tools & add-on
     e.stopPropagation();
   };
 
-  const jumpToBoard = () => boardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const sliderStyle = useMemo(() => ({ transform: `translateX(-${index * 100}%)` }) as React.CSSProperties, [index]);
+
+  const bp = normalizeBasePath(categoryBasePath);
 
   return (
-    <section className={cls.accSection} aria-label="Accessories">
-      <header className={cls.accHead}>
-        <div className={cls.accTitleWrap}>
-          <h2 className={cls.accTitle}>{title}</h2>
-          <p className={cls.accSubtitle}>{subtitle}</p>
+    <section className={cls.hero}>
+      {/* LEFT: categories */}
+      <aside className={cls.cat} aria-label="Product Categories">
+        <div className={cls.catHeader}>
+          <i className="bi bi-list" />
+          Product Categories
         </div>
 
-        <div className={cls.accActions}>
-          <div className={cls.accTabs} role="tablist" aria-label="Accessories tabs">
-            {tbs.map((t) => {
-              const isActive = t.key === active;
+        <ul className={cls.catList}>
+          {(cats ?? []).length === 0 ? (
+            <li>
+              <span style={{ opacity: 0.7, fontSize: 12 }}>No categories</span>
+            </li>
+          ) : (
+            (cats ?? []).map((c) =>
+              preview ? (
+                <li key={c.id}>
+                  <a href="#" onClick={onBlockClick}>
+                    <i className={`bi ${ensureBiIcon(c.icon)}`} />
+                    {c.name}
+                  </a>
+                </li>
+              ) : (
+                <li key={c.id}>
+                  <Link href={`${bp}/${c.slug}` as Route}>
+                    <i className={`bi ${ensureBiIcon(c.icon)}`} />
+                    {c.name}
+                  </Link>
+                </li>
+              ),
+            )
+          )}
+        </ul>
+      </aside>
+
+      {/* CENTER: slider + promos */}
+      <div className={cls.center}>
+        <div
+          className={cls.slider}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocusCapture={() => setPaused(true)}
+          onBlurCapture={() => setPaused(false)}
+          aria-label="Hero slider"
+        >
+          {/* arrows */}
+          <button className={`${cls.arrow} ${cls.prev}`} aria-label="Previous slide" type="button" onClick={prev}>
+            <i className="bi bi-chevron-left" />
+          </button>
+          <button className={`${cls.arrow} ${cls.next}`} aria-label="Next slide" type="button" onClick={next}>
+            <i className="bi bi-chevron-right" />
+          </button>
+
+          {/* slides */}
+          <div className={cls.slides} style={sliderStyle}>
+            {sds.map((s, i) => {
+              const slideBg = i === 0 ? undefined : s.bg;
+              const lines = s.headline.split("\n");
               return (
-                <button key={t.key} className={`${cls.accTab} ${isActive ? cls.isActive : ""}`} type="button" role="tab" aria-selected={isActive ? "true" : "false"} onClick={() => setActive(t.key)}>
-                  {t.label}
-                </button>
+                <div
+                  key={`${i}-${s.ctaHref}-${s.headline}`}
+                  className={cls.slide}
+                  style={slideBg ? ({ background: slideBg } as React.CSSProperties) : undefined}
+                  aria-hidden={i !== index}
+                >
+                  <div>
+                    <div className={cls.headline}>
+                      {lines.map((line, idx) => (
+                        <React.Fragment key={idx}>
+                          {line}
+                          {idx < lines.length - 1 && <br />}
+                        </React.Fragment>
+                      ))}
+                    </div>
+
+                    <div className={cls.sub}>{s.sub}</div>
+
+                    {preview ? (
+                      <button className={cls.cta} type="button" onClick={onBlockClick}>
+                        {s.ctaLabel} <i className="bi bi-arrow-right" />
+                      </button>
+                    ) : (
+                      <Link className={cls.cta} href={(s.ctaHref || "/") as Route} onClick={(e) => e.stopPropagation()}>
+                        {s.ctaLabel} <i className="bi bi-arrow-right" />
+                      </Link>
+                    )}
+                  </div>
+
+                  <div className={cls.art} aria-hidden="true">
+                    {s.imageSrc ? (
+                      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                        <Image
+                          src={s.imageSrc}
+                          alt=""
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          style={{ objectFit: "contain" }}
+                        />
+                      </div>
+                    ) : (
+                      !!s.chips?.length && (
+                        <div className={cls.mini}>
+                          {s.chips.map((chip) => (
+                            <span key={chip} className={cls.chip}>
+                              {chip}
+                            </span>
+                          ))}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
 
-          <button className={cls.accMoreTop} type="button" onClick={jumpToBoard}>
-            Quick view
-          </button>
+          {/* dots */}
+          <div className={cls.dots} aria-label="Slider dots">
+            {Array.from({ length: total }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`${cls.dot} ${i === index ? cls.dotActive : ""}`}
+                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => goTo(i)}
+              />
+            ))}
+          </div>
         </div>
-      </header>
 
-      <div className={cls.accBoard} ref={boardRef} aria-label="Accessories board">
-        {visible.map((it, idx) => {
-          if (it.kind === "tile") {
-            const v = it.variant ?? "wide";
-            const tileClass = v === "hero" ? `${cls.accTile} ${cls.accTileHero}` : v === "tall" ? `${cls.accTile} ${cls.accTileTall}` : `${cls.accTile} ${cls.accTileWide}`;
-
-            const tileInner = (
-              <>
-                <div className={cls.accTileTag}>{it.tag}</div>
-                <div className={cls.accTileTitle}>{it.title}</div>
-                <div className={cls.accTileSub}>{it.sub}</div>
-                <div className={cls.accTileCta}>{it.cta}</div>
-
-                <div className={cls.accTileImgWrap} aria-hidden="true">
-                  <Img src={it.imageSrc || FALLBACK_IMG} alt="" sizes="(max-width: 760px) 100vw, 33vw" className={cls.accTileImg} fill />
+        {/* promos */}
+        <div className={cls.promos} aria-label="Promo cards">
+          {prs.map((p) =>
+            preview ? (
+              <a key={p.href || p.title} className={cls.promo} href="#" onClick={onBlockClick}>
+                <div className={cls.pIc}>
+                  <i className={`bi ${p.icon}`} />
                 </div>
-              </>
-            );
-
-            return preview ? (
-              <a key={`tile-${idx}`} className={tileClass} href="#" onClick={onBlockClick} aria-label={it.title}>
-                {tileInner}
+                <div>
+                  <div className={cls.pTitle}>{p.title}</div>
+                  <div className={cls.pSub}>{p.sub}</div>
+                </div>
+                <div className={cls.pOff}>{p.off}</div>
               </a>
             ) : (
-              <Link key={`tile-${idx}`} className={tileClass} href={(it.href || "/") as Route} aria-label={it.title}>
-                {tileInner}
+              <Link key={p.href || p.title} className={cls.promo} href={(p.href || "/") as Route}>
+                <div className={cls.pIc}>
+                  <i className={`bi ${p.icon}`} />
+                </div>
+                <div>
+                  <div className={cls.pTitle}>{p.title}</div>
+                  <div className={cls.pSub}>{p.sub}</div>
+                </div>
+                <div className={cls.pOff}>{p.off}</div>
               </Link>
-            );
-          }
+            ),
+          )}
+        </div>
+      </div>
 
-          const badgeCls = it.badgeVariant === "new" ? `${cls.accBadge} ${cls.accBadgeNew}` : cls.accBadge;
+      <aside className={cls.right} aria-label="Right banners">
+        {rbs.map((b, i) => {
+          const variantClass = i === 0 ? cls.rbTop : i === 1 ? cls.rbMid : cls.rbShip;
 
           return (
-            <article key={`card-${idx}`} className={cls.accCard} aria-label={it.name}>
-              <div className={cls.accCardMedia}>
-                <div className={cls.accCardImgWrap} aria-hidden="true">
-                  <Img src={it.imageSrc || FALLBACK_IMG} alt={it.name} sizes="(max-width: 760px) 100vw, 33vw" className={cls.accCardImg} fill />
-                </div>
+            <div key={`${b.badge}-${i}-${b.title}`} className={`${cls.rb} ${variantClass}`}>
+              <span className={cls.rbBadge}>{b.badge}</span>
 
-                {it.badge ? <span className={badgeCls}>{it.badge}</span> : null}
+              <div className={cls.pad}>
+                <div className={cls.rbTitle}>{b.title}</div>
+                <div className={cls.rbSub}>{b.sub}</div>
               </div>
 
-              <div className={cls.accCardBody}>
-                <div className={cls.accName}>{it.name}</div>
-
-                <div className={cls.accMeta}>
-                  <span className={cls.accBrand}>{it.brand}</span>
-                  <span className={cls.accDot}>•</span>
-                  <span className={cls.accNote}>{it.note}</span>
-                </div>
-
-                <div className={cls.accCardCtaRow}>
-                  <button className={`${cls.accBtn} ${cls.accBtnPrimary}`} type="button" onClick={onBlockClick}>
-                    Add to cart
-                  </button>
-                  <button className={`${cls.accBtn} ${cls.accBtnGhost}`} type="button" onClick={onBlockClick}>
-                    Details
-                  </button>
-                </div>
+              <div className={cls.mockImg} aria-hidden="true">
+                {b.imageSrc ? (
+                  <Image
+                    src={b.imageSrc}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 100vw, 25vw"
+                    style={{ objectFit: "cover" }}
+                  />
+                ) : (
+                  <div className={cls.rbIconWrap}>
+                    <i className={`bi ${b.icon} ${cls.rbIcon}`} />
+                  </div>
+                )}
               </div>
-            </article>
+            </div>
           );
         })}
-      </div>
-
-      <div className={cls.accFooter}>
-        {canLoadMore ? (
-          <button className={cls.accLoadMore} type="button" onClick={() => setLimit((v) => v + Math.max(1, step))}>
-            View more
-          </button>
-        ) : null}
-      </div>
+      </aside>
     </section>
   );
 }
 
-/* ================= RegItem ================= */
+/* ================= RegItem (for REGISTRY) ================= */
 export const SHOP_ACCESSORIES_GREEN_ONE: RegItem = {
   kind: "Accessories1",
-  label: "Accessories",
+  label: "Accessories Hero",
   defaults: {
-    title: "ACCESSORIES",
-    subtitle: "Tools & add-ons that upgrade your routine.",
-    initialCount: 8,
-    step: 6,
-    tabs: JSON.stringify(DEFAULT_TABS, null, 2),
-    items: JSON.stringify(DEFAULT_ITEMS, null, 2),
+    autoMs: 4500,
+
+    // API config (categories lấy từ API)
+    siteId: "sitea01",
+    categoryApiPath: "/api/admin/product-categories/sidebar-category",
+    categoryBasePath: "/category",
+    activeOnly: true,
+    onlyRootCategories: true,
+
+    // Các phần khác vẫn editable bằng JSON như cũ
+    slides: JSON.stringify(DEFAULT_SLIDES, null, 2),
+    promos: JSON.stringify(DEFAULT_PROMOS, null, 2),
+
+    // ✅ RIGHT banners now 3 cards (share/voucher/free ship)
+    rightBanners: JSON.stringify(DEFAULT_RIGHT, null, 2),
   },
   inspector: [
-    { key: "title", label: "Title", kind: "text" },
-    { key: "subtitle", label: "Subtitle", kind: "text" },
-    { key: "initialCount", label: "Initial count", kind: "number" },
-    { key: "step", label: "Load more step", kind: "number" },
-    { key: "tabs", label: "Tabs (JSON)", kind: "textarea", rows: 10 },
-    { key: "items", label: "Items (JSON)", kind: "textarea", rows: 14 },
+    { key: "autoMs", label: "Auto slide (ms)", kind: "number" },
+
+    { key: "siteId", label: "Site ID (API)", kind: "text" },
+    { key: "categoryApiPath", label: "Category API path", kind: "text" },
+    { key: "categoryBasePath", label: "Category base path", kind: "text" },
+    { key: "activeOnly", label: "Active only (true/false)", kind: "text" },
+    { key: "onlyRootCategories", label: "Only root categories (true/false)", kind: "text" },
+
+    { key: "slides", label: "Slides (JSON)", kind: "textarea", rows: 12 },
+    { key: "promos", label: "Promos (JSON)", kind: "textarea", rows: 10 },
+    { key: "rightBanners", label: "Right banners (JSON)", kind: "textarea", rows: 10 },
   ],
   render: (p) => {
-    const tabs = safeJson<AccTab[]>(p.tabs);
-    const items = safeJson<AccItem[]>(p.items);
+    const slides = safeJson<SlideItem[]>(p.slides);
+    const promos = safeJson<PromoItem[]>(p.promos);
+    const rightBanners = safeJson<RightBanner[]>(p.rightBanners);
+
+    const siteId = String(p.siteId || "").trim() || "sitea01";
+    const categoryApiPath = String(p.categoryApiPath || "").trim() || "/api/admin/product-categories/sidebar-category";
+    const categoryBasePath = String(p.categoryBasePath || "").trim() || "/category";
+
+    const activeOnly = String(p.activeOnly ?? "true").toLowerCase() !== "false" && String(p.activeOnly ?? "1") !== "0";
+    const onlyRootCategories = String(p.onlyRootCategories ?? "true").toLowerCase() !== "false";
 
     return (
       <div className="sectionContainer" aria-label="Shop Accessories (Green One)">
         <Accessories1
-          title={String(p.title || "ACCESSORIES")}
-          subtitle={String(p.subtitle || "Tools & add-ons that upgrade your routine.")}
-          initialCount={Number(p.initialCount) || 8}
-          step={Number(p.step) || 6}
-          tabs={tabs}
-          items={items}
-          preview={true}
+          autoMs={Number(p.autoMs) || 4500}
+          slides={slides}
+          promos={promos}
+          rightBanners={rightBanners}
+          preview={p.preview}
+          siteId={siteId}
+          categoryApiPath={categoryApiPath}
+          categoryBasePath={categoryBasePath}
+          activeOnly={activeOnly}
+          onlyRootCategories={onlyRootCategories}
         />
       </div>
     );

@@ -12,7 +12,9 @@ export type MegaColumn = {
   items: { label: string; href: string }[];
 };
 
-export type NavItem = { type: "link"; label: string; href: string; icon: string } | { type: "mega"; label: string; icon: string; columns: MegaColumn[] };
+export type NavItem =
+  | { type: "link"; label: string; href: string; icon: string }
+  | { type: "mega"; label: string; icon: string; columns: MegaColumn[] };
 
 export type Header1Props = {
   brandHref?: string;
@@ -26,68 +28,145 @@ export type Header1Props = {
   badgeCart?: number;
   navItems?: NavItem[];
   preview?: boolean;
-
-  /**
-   * ✅ NEW:
-   * - isAuthed: control trạng thái đăng nhập (tạm thời bạn có thể truyền false)
-   * - onLogin/onRegister: callback xử lý submit
-   */
+  menuApiUrl?: string;
+  menuSetKey?: string;
+  menuSiteIdKey?: string;
   isAuthed?: boolean;
   onLogin?: (payload: { email: string; password: string }) => Promise<void> | void;
   onRegister?: (payload: { name: string; email: string; password: string }) => Promise<void> | void;
 };
 
-/* ============== Defaults ============== */
-const DEFAULT_NAV: NavItem[] = [
-  { type: "link", label: "Home", href: "/", icon: "bi-house-door-fill" },
-  { type: "link", label: "Promotions", href: "/promotions", icon: "bi-megaphone" },
-  {
-    type: "mega",
-    label: "Makeup",
-    icon: "bi-bag-heart",
-    columns: [
-      {
-        title: "LIP MAKEUP",
-        items: [
-          { label: "Lip Balm", href: "/makeup/lip-balm" },
-          { label: "Lipstick", href: "/makeup/lipstick" },
-          { label: "Liquid Lipstick", href: "/makeup/liquid-lipstick" },
-        ],
-      },
-      {
-        title: "EYE MAKEUP",
-        items: [
-          { label: "Mascara", href: "/makeup/mascara" },
-          { label: "Eyeshadow", href: "/makeup/eyeshadow" },
-          { label: "Eyeliner", href: "/makeup/eyeliner" },
-          { label: "Eyebrow Pencil / Powder", href: "/makeup/eyebrow" },
-        ],
-      },
-      {
-        title: "BASE MAKEUP",
-        items: [
-          { label: "Primer", href: "/makeup/primer" },
-          { label: "Foundation", href: "/makeup/foundation" },
-          { label: "Concealer", href: "/makeup/concealer" },
-          { label: "Powder", href: "/makeup/powder" },
-          { label: "Cushion / BB Compact", href: "/makeup/cushion" },
-        ],
-      },
-    ],
-  },
-  { type: "link", label: "Skincare", href: "/skincare", icon: "bi-droplet" },
-  { type: "link", label: "Body Care", href: "/body-care", icon: "bi-heart-pulse" },
-  { type: "link", label: "Personal Care", href: "/personal-care", icon: "bi-person-hearts" },
-  { type: "link", label: "Kids", href: "/kids", icon: "bi-emoji-smile" },
-  { type: "link", label: "For Men", href: "/men", icon: "bi-gender-male" },
-  { type: "link", label: "Accessories", href: "/accessories", icon: "bi-tags" },
-  { type: "link", label: "Gift Sets", href: "/gift-sets", icon: "bi-gift" },
-  { type: "link", label: "Brands", href: "/brands", icon: "bi-award" },
-];
-
 type AuthMode = "login" | "register";
 
-/* ================ Component ================ */
+type ApiLayoutItem = {
+  id: string;
+  parentId: string | null;
+  title: string;
+  path: string | null;
+  icon: string | null;
+  sortOrder: number;
+  visible: boolean;
+  locale: string;
+  setKey: string;
+};
+
+type ApiTreeNode = {
+  key: string;
+  title: string;
+  icon: string;
+  path: string | null;
+  parentKey: string | null;
+  children?: ApiTreeNode[];
+};
+
+function normalizePath(p?: string | null): string {
+  const s = String(p || "").trim();
+  if (!s) return "/";
+  return s.startsWith("/") ? s : `/${s}`;
+}
+
+function toIcon(raw?: string | null): string {
+  const s = String(raw || "").trim();
+  if (!s) return "bi-dot";
+  return s
+    .replace(/^bi\s+/i, "")
+    .replace(/^bi\s+bi-/i, "bi-")
+    .replace(/^bi\s+bi\s+/i, "");
+}
+
+function buildTreeFromItems(rows: ApiLayoutItem[]): ApiTreeNode[] {
+  const vis = (rows || []).filter((r) => !!r.visible);
+
+  const map = new Map<string, ApiTreeNode>();
+  vis.forEach((r) => {
+    map.set(r.id, {
+      key: r.id,
+      title: r.title,
+      icon: toIcon(r.icon),
+      path: r.path,
+      parentKey: r.parentId,
+      children: [],
+    });
+  });
+
+  const roots: ApiTreeNode[] = [];
+  vis.forEach((r) => {
+    const node = map.get(r.id)!;
+    if (r.parentId && map.has(r.parentId)) map.get(r.parentId)!.children!.push(node);
+    else roots.push(node);
+  });
+
+  const sortMap: Record<string, number> = {};
+  (rows || []).forEach((r) => (sortMap[r.id] = r.sortOrder));
+
+  const sortRec = (arr?: ApiTreeNode[]) => {
+    if (!arr) return;
+    arr.sort((a, b) => {
+      const sa = sortMap[a.key] ?? 0;
+      const sb = sortMap[b.key] ?? 0;
+      if (sa !== sb) return sa - sb;
+      return a.title.localeCompare(b.title);
+    });
+    arr.forEach((n) => sortRec(n.children));
+  };
+
+  sortRec(roots);
+  return roots;
+}
+
+function treeToNavItems(tree: ApiTreeNode[]): NavItem[] {
+  const out: NavItem[] = [];
+
+  for (const n of tree || []) {
+    const icon = toIcon(n.icon);
+    const children = n.children || [];
+
+    if (!children.length) {
+      out.push({
+        type: "link",
+        label: n.title,
+        href: normalizePath(n.path),
+        icon,
+      });
+      continue;
+    }
+
+    const columns: MegaColumn[] = children
+      .map((c) => {
+        const grand = c.children || [];
+
+        const colItems = grand
+          .filter((g) => !!g?.title && !!g?.path)
+          .map((g) => ({ label: g.title, href: normalizePath(g.path) }));
+        if (!colItems.length && c.path) {
+          return { title: c.title, items: [{ label: c.title, href: normalizePath(c.path) }] };
+        }
+
+        return { title: c.title, items: colItems };
+      })
+      .filter((col) => col.title && col.items.length);
+
+    if (!columns.length) {
+      out.push({
+        type: "link",
+        label: n.title,
+        href: normalizePath(n.path),
+        icon,
+      });
+      continue;
+    }
+
+    out.push({
+      type: "mega",
+      label: n.title,
+      icon,
+      columns,
+    });
+  }
+
+  return out;
+}
+
 export function Header1({
   brandHref = "/",
   brandName = "Tuan Kiet Store",
@@ -103,17 +182,87 @@ export function Header1({
 
   navItems,
   preview = false,
+  menuApiUrl = "/api/admin/menu-items/header-menu",
+  menuSetKey = "home",
+  menuSiteIdKey = "builder_site_id",
 
   isAuthed = false,
   onLogin,
   onRegister,
 }: Header1Props) {
-  const items = useMemo(() => navItems ?? DEFAULT_NAV, [navItems]);
+  const rootRef = useRef<HTMLElement | null>(null);
+
+  const [safeLogo, setSafeLogo] = useState(logoSrc || "/assets/images/logo.jpg");
+  useEffect(() => setSafeLogo(logoSrc || "/assets/images/logo.jpg"), [logoSrc]);
+
+  const [apiNav, setApiNav] = useState<NavItem[]>([]);
+  const [menuLoaded, setMenuLoaded] = useState(false);
+
+  const items = useMemo(() => {
+    if (navItems && navItems.length > 0) return navItems;
+    return apiNav;
+  }, [navItems, apiNav]);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      try {
+        const qs = new URLSearchParams();
+        qs.set("setKey", menuSetKey || "home");
+        qs.set("tree", "1");
+        qs.set("includeHidden", "0");
+        qs.set("page", "1");
+        qs.set("size", "1000");
+        qs.set("sort", "sortOrder:asc");
+
+        const siteId = typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
+        if (siteId) qs.set("siteId", siteId);
+
+        const res = await fetch(`${menuApiUrl}?${qs.toString()}`, {
+          cache: "no-store",
+          credentials: "include",
+          headers: {
+            "x-site-domain": typeof window !== "undefined" ? window.location.host : "",
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to load header menu");
+
+        const data = (await res.json()) as {
+          tree?: ApiTreeNode[];
+          items?: ApiLayoutItem[];
+        };
+
+        let tree: ApiTreeNode[] = [];
+
+        if (Array.isArray(data.tree) && data.tree.length) {
+          tree = data.tree;
+        } else if (Array.isArray(data.items) && data.items.length) {
+          tree = buildTreeFromItems(data.items);
+        } else {
+          tree = [];
+        }
+
+        const mapped = treeToNavItems(tree);
+
+        if (!alive) return;
+        setApiNav(mapped);
+        setMenuLoaded(true);
+      } catch {
+        if (!alive) return;
+        setApiNav([]);
+        setMenuLoaded(true);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [preview, menuApiUrl, menuSetKey, menuSiteIdKey]);
 
   const [query, setQuery] = useState("");
   const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
-
-  const rootRef = useRef<HTMLElement | null>(null);
 
   const onBlockClick = (e: React.SyntheticEvent) => {
     if (!preview) return;
@@ -123,7 +272,6 @@ export function Header1({
 
   const closeAll = () => setOpenMegaIndex(null);
 
-  // close when click outside / ESC (works also in preview)
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
@@ -144,9 +292,6 @@ export function Header1({
     };
   }, []);
 
-  // ===========================
-  // ✅ Auth Modal
-  // ===========================
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [busy, setBusy] = useState(false);
@@ -157,9 +302,8 @@ export function Header1({
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPass, setRegPass] = useState("");
-
   const [showPass, setShowPass] = useState(false);
-  const modalPanelRef = useRef<HTMLDivElement | null>(null);
+
   const firstInputRef = useRef<HTMLInputElement | null>(null);
 
   const openAuth = (mode: AuthMode) => {
@@ -174,50 +318,11 @@ export function Header1({
     setErr("");
   };
 
-  // focus first input when open
   useEffect(() => {
     if (!authOpen) return;
     const t = window.setTimeout(() => firstInputRef.current?.focus(), 0);
     return () => window.clearTimeout(t);
   }, [authOpen, authMode]);
-
-  // ESC close when modal open + focus trap basic
-  useEffect(() => {
-    if (!authOpen) return;
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeAuth();
-        return;
-      }
-
-      if (e.key === "Tab") {
-        const panel = modalPanelRef.current;
-        if (!panel) return;
-
-        const focusables = panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
-        if (!focusables.length) return;
-
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-
-        const active = document.activeElement as HTMLElement | null;
-        if (!active) return;
-
-        if (e.shiftKey && active === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && active === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [authOpen]);
 
   const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(v.trim());
 
@@ -232,7 +337,6 @@ export function Header1({
     setBusy(true);
     try {
       await onLogin?.({ email, password });
-      // demo: nếu bạn chưa nối API thì vẫn đóng để UX ok
       closeAuth();
     } catch (e: any) {
       setErr(e?.message || "Login failed. Please try again.");
@@ -263,7 +367,6 @@ export function Header1({
   };
 
   const onAccountClick = (e: React.SyntheticEvent) => {
-    // preview vẫn cho mở modal để xem UI, nhưng không navigate
     e.preventDefault();
     e.stopPropagation();
 
@@ -272,8 +375,7 @@ export function Header1({
       return;
     }
 
-    // đã login: bạn có thể mở dropdown account ở đây (tạm placeholder)
-    openAuth("login"); // nếu muốn: setUserMenuOpen(true)...
+    openAuth("login");
   };
 
   return (
@@ -283,7 +385,13 @@ export function Header1({
           {preview ? (
             <a className={cls.logo} href="#" aria-label={brandName} onClick={onBlockClick}>
               <span className={cls.logoBadge}>
-                <Image src={logoSrc} alt={logoAlt} fill className={cls.logoImg} />
+                <Image
+                  src={safeLogo}
+                  alt={logoAlt}
+                  fill
+                  className={cls.logoImg}
+                  onError={() => setSafeLogo("/assets/images/logo.jpg")}
+                />
               </span>
               <span className={cls.logoText}>
                 <span className={cls.logoName}>{brandName}</span>
@@ -293,7 +401,16 @@ export function Header1({
           ) : (
             <Link className={cls.logo} href={brandHref as Route} aria-label={brandName}>
               <span className={cls.logoBadge}>
-                <Image src={logoSrc} alt={logoAlt} fill className={cls.logoImg} />
+                <Image
+                  src={safeLogo}
+                  alt={logoAlt}
+                  fill
+                  className={cls.logoImg}
+                  onError={() => {
+                    const fallback = "/assets/images/logo.jpg";
+                    if (safeLogo !== fallback) setSafeLogo(fallback);
+                  }}
+                />
               </span>
               <span className={cls.logoText}>
                 <span className={cls.logoName}>{brandName}</span>
@@ -308,7 +425,8 @@ export function Header1({
               e.preventDefault();
               if (preview) return;
               onSearchSubmit?.(query);
-            }}>
+            }}
+          >
             <i className={`bi bi-search ${cls.searchIcon}`} />
             <input value={query} onChange={(e) => setQuery(e.target.value)} type="text" placeholder={searchPlaceholder} />
             <button type="submit">Search</button>
@@ -327,7 +445,7 @@ export function Header1({
               <span className={cls.badge}>{badgeCart}</span>
             </button>
 
-            <button className={cls.tbLink} type="button" onClick={(e) => (preview ? onBlockClick(e) : onAccountClick(e))} aria-haspopup="dialog" aria-expanded={authOpen}>
+            <button className={cls.tbLink} type="button" onClick={onAccountClick} aria-haspopup="dialog" aria-expanded={authOpen}>
               <i className="bi bi-person" />
               <span>Account</span>
               <i className={`bi bi-caret-down-fill ${cls.caret}`} />
@@ -339,6 +457,8 @@ export function Header1({
       <nav className={cls.navwrap} aria-label="Primary navigation">
         <div className={cls.container}>
           <div className={cls.nav}>
+            {!preview && !menuLoaded ? null : null}
+
             {items.map((it, idx) => {
               const iconCls = `bi ${it.icon}`;
               const isMega = it.type === "mega";
@@ -391,7 +511,8 @@ export function Header1({
                       setOpenMegaIndex((cur) => (cur === idx ? null : idx));
                     }
                     if (e.key === "Escape") setOpenMegaIndex(null);
-                  }}>
+                  }}
+                >
                   <div className={cls.icon}>
                     <i className={iconCls} />
                   </div>
@@ -430,9 +551,6 @@ export function Header1({
         </div>
       </nav>
 
-      {/* ===========================
-          ✅ AUTH MODAL (Login/Register)
-         =========================== */}
       {authOpen && (
         <div
           className={cls.authOverlay}
@@ -440,10 +558,10 @@ export function Header1({
           aria-modal="true"
           aria-label={authMode === "login" ? "Login dialog" : "Register dialog"}
           onMouseDown={(e) => {
-            // click overlay to close
             if (e.target === e.currentTarget) closeAuth();
-          }}>
-          <div className={cls.authPanel} ref={modalPanelRef}>
+          }}
+        >
+          <div className={cls.authPanel}>
             <div className={cls.authHead}>
               <div className={cls.authTitle}>
                 <span className={cls.authDot} aria-hidden="true" />
@@ -464,7 +582,8 @@ export function Header1({
                 onClick={() => {
                   setErr("");
                   setAuthMode("login");
-                }}>
+                }}
+              >
                 Login
               </button>
               <button
@@ -475,7 +594,8 @@ export function Header1({
                 onClick={() => {
                   setErr("");
                   setAuthMode("register");
-                }}>
+                }}
+              >
                 Register
               </button>
             </div>
@@ -494,7 +614,8 @@ export function Header1({
                   e.preventDefault();
                   if (busy) return;
                   submitLogin();
-                }}>
+                }}
+              >
                 <label className={cls.authLabel}>
                   Email
                   <div className={cls.authInputWrap}>
@@ -541,14 +662,11 @@ export function Header1({
                     onClick={() => {
                       setErr("");
                       setAuthMode("register");
-                    }}>
+                    }}
+                  >
                     Create account
                   </button>
                 </div>
-
-                <button className={cls.authLink} type="button" onClick={() => setErr("Please contact support to reset password.")}>
-                  Forgot password?
-                </button>
               </form>
             ) : (
               <form
@@ -557,12 +675,13 @@ export function Header1({
                   e.preventDefault();
                   if (busy) return;
                   submitRegister();
-                }}>
+                }}
+              >
                 <label className={cls.authLabel}>
                   Full name
                   <div className={cls.authInputWrap}>
                     <i className={`bi bi-person ${cls.authInputIcon}`} />
-                    <input ref={firstInputRef} className={cls.authInput} type="text" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Your name" autoComplete="name" />
+                    <input className={cls.authInput} type="text" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Your name" autoComplete="name" />
                   </div>
                 </label>
 
@@ -578,14 +697,7 @@ export function Header1({
                   Password
                   <div className={cls.authInputWrap}>
                     <i className={`bi bi-lock ${cls.authInputIcon}`} />
-                    <input
-                      className={cls.authInput}
-                      type={showPass ? "text" : "password"}
-                      value={regPass}
-                      onChange={(e) => setRegPass(e.target.value)}
-                      placeholder="At least 6 characters"
-                      autoComplete="new-password"
-                    />
+                    <input className={cls.authInput} type={showPass ? "text" : "password"} value={regPass} onChange={(e) => setRegPass(e.target.value)} placeholder="At least 6 characters" autoComplete="new-password" />
                     <button className={cls.authEye} type="button" onClick={() => setShowPass((v) => !v)} aria-label={showPass ? "Hide password" : "Show password"}>
                       <i className={`bi ${showPass ? "bi-eye-slash" : "bi-eye"}`} />
                     </button>
@@ -604,13 +716,10 @@ export function Header1({
                     onClick={() => {
                       setErr("");
                       setAuthMode("login");
-                    }}>
+                    }}
+                  >
                     I already have an account
                   </button>
-                </div>
-
-                <div className={cls.authNote}>
-                  By creating an account, you agree to our <span className={cls.authNoteStrong}>Terms</span> and <span className={cls.authNoteStrong}>Privacy Policy</span>.
                 </div>
               </form>
             )}
@@ -621,7 +730,6 @@ export function Header1({
   );
 }
 
-/* ============== Helpers (giống BannerPro) ============== */
 function parseNavItems(raw?: string): NavItem[] | undefined {
   if (!raw) return undefined;
   try {
@@ -665,16 +773,19 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
     brandHref: "/",
     brandName: "Tuan Kiet Store",
     brandSub: "COSMETICS",
-    logoSrc: "/images/logo.jpg",
+    logoSrc: "/assets/images/logo.jpg",
     logoAlt: "Tuan Kiet Store",
 
     searchPlaceholder: "What are you looking for?",
     badgeStoreLocator: 2,
     badgeCart: 0,
 
-    navItems: JSON.stringify(DEFAULT_NAV, null, 2),
+    navItems: "[]",
 
-    // ✅ new defaults
+    menuApiUrl: "/api/admin/menu-items/header-menu",
+    menuSetKey: "home",
+    menuSiteIdKey: "builder_site_id",
+
     isAuthed: 0,
   },
   inspector: [
@@ -688,9 +799,13 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
     { key: "badgeStoreLocator", label: "Badge (Store)", kind: "number" },
     { key: "badgeCart", label: "Badge (Cart)", kind: "number" },
 
+    { key: "menuApiUrl", label: "Menu API URL", kind: "text" },
+    { key: "menuSetKey", label: "Menu setKey", kind: "text" },
+    { key: "menuSiteIdKey", label: "LocalStorage siteId key", kind: "text" },
+
     { key: "isAuthed", label: "Is Authed (0/1)", kind: "number" },
 
-    { key: "navItems", label: "Nav Items (JSON)", kind: "textarea", rows: 10 },
+    { key: "navItems", label: "Nav Items (JSON, preview)", kind: "textarea", rows: 10 },
   ],
   render: (p) => {
     const navItems = parseNavItems(p.navItems);
@@ -706,8 +821,11 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
           searchPlaceholder={p.searchPlaceholder}
           badgeStoreLocator={p.badgeStoreLocator}
           badgeCart={p.badgeCart}
-          navItems={navItems ?? DEFAULT_NAV}
-          preview={true}
+          preview={p.preview}
+          navItems={navItems ?? []}
+          menuApiUrl={p.menuApiUrl || "/api/admin/menu-items/header-menu"}
+          menuSetKey={p.menuSetKey || "home"}
+          menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
           isAuthed={Number(p.isAuthed) === 1}
         />
       </div>

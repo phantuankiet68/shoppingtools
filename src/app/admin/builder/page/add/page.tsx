@@ -185,7 +185,10 @@ export default function UiBuilderAddPage() {
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
 
-    const meta = (e as any).zbMeta as { type: "row-col"; parentRowId: string; colIndex: number } | { type: "section"; parentSectionId: string; slot: string } | null;
+    const meta = (e as any).zbMeta as
+      | { type: "row-col"; parentRowId: string; colIndex: number }
+      | { type: "section"; parentSectionId: string; slot: string }
+      | null;
 
     const txt = e.dataTransfer.getData("text/plain") || "";
     const isTemplate = txt.startsWith("template:");
@@ -360,6 +363,7 @@ export default function UiBuilderAddPage() {
     const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
     window.open(url, "_blank");
   };
+
   function normalizeBlocks(raw: any[]): Block[] {
     if (!Array.isArray(raw)) return [];
 
@@ -378,10 +382,20 @@ export default function UiBuilderAddPage() {
   return (
     <div className={styles.wrapper}>
       {guardMsg && (
-        <div className={styles.guardWrap}>
-          <div className={styles.guardAlert}>
+        <div className={styles.toastWrap} role="status" aria-live="polite">
+          <div className={styles.toast}>
             <i className="bi bi-exclamation-triangle" />
-            <span>{guardMsg}</span>
+            <span className={styles.toastText}>{guardMsg}</span>
+
+            <button
+              type="button"
+              className={styles.toastClose}
+              onClick={() => setGuardMsg("")}
+              aria-label="Close"
+              title="Close"
+            >
+              <i className="bi bi-x" />
+            </button>
           </div>
         </div>
       )}
@@ -389,7 +403,12 @@ export default function UiBuilderAddPage() {
       <div className={styles.siteBar}>
         <div className={`${styles.siteRow} ${styles.hidden}`}>
           <i className="bi bi-globe2" />
-          <select className={styles.siteSelect} value={selectedSiteId} onChange={(e) => setSelectedSiteId(e.target.value)} aria-label="Chọn site">
+          <select
+            className={styles.siteSelect}
+            value={selectedSiteId}
+            onChange={(e) => setSelectedSiteId(e.target.value)}
+            aria-label="Chọn site"
+          >
             {sites.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name} — {s.domain} ({s.localeDefault})
@@ -407,7 +426,14 @@ export default function UiBuilderAddPage() {
             </aside>
 
             <main className={styles.center}>
-              <Canvas blocks={normalized} activeId={activeId} setActiveId={setActiveId} onDrop={onDrop} move={move} device={device} />
+              <Canvas
+                blocks={normalized}
+                activeId={activeId}
+                setActiveId={setActiveId}
+                onDrop={onDrop}
+                move={move}
+                device={device}
+              />
             </main>
 
             <aside className={styles.right}>

@@ -33,6 +33,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  text-transform: uppercase;
 }
 
 .title::before {
@@ -45,37 +46,64 @@
 }
 
 .badge {
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(22, 138, 43, 0.12);
-  color: var(--green);
+  color: #f44336;
+  background: #fcc;
+  border: 1px solid #ff949459;
+  line-height: 1;
 }
 
 /* ================= View More Button ================= */
 .more {
-  appearance: none;
-  border: 1.5px solid var(--green);
-  color: var(--green);
-  background: #fff;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-weight: 800;
+  color: #02ab5c;
   cursor: pointer;
-  transition: 0.2s ease;
-  display: inline-flex;
+  background: #fff;
+  border: 1px solid #33c38b59;
+  border-radius: 999px;
   align-items: center;
-  gap: 6px;
-}
-
-.more:hover {
-  background: rgba(22, 138, 43, 0.06);
-  transform: translateY(-1px);
+  gap: 10px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s,
+    background 0.18s;
+  display: inline-flex;
+  box-shadow: 0 8px 18px #33c38b1f;
 }
 
 .arrow {
-  font-weight: 900;
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(51, 195, 139, 0.12);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.more:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(51, 195, 139, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.more:hover .arrow {
+  transform: translateX(2px);
+  background: rgba(51, 195, 139, 0.18);
+}
+
+.more:active {
+  transform: translateY(0px);
+  box-shadow: 0 8px 18px rgba(51, 195, 139, 0.14);
 }
 
 /* ================= Carousel Body ================= */

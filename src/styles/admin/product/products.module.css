@@ -170,7 +170,7 @@
 }
 
 .sideLabel {
-  font-size: 14px;
+  font-size: 13px;
   color: #8b8b8b;
 }
 
@@ -193,7 +193,7 @@
   display: flex;
   gap: 10px;
   min-width: 150px;
-  font-size: 14px;
+  font-size: 13px;
 }
 .iconBtn:hover {
   border-color: var(--border-strong);
@@ -558,7 +558,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* grid like cards */
@@ -945,7 +945,6 @@
 
 .label {
   font-size: 13px;
-
   color: rgba(15, 23, 42, 0.72);
 }
 

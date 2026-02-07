@@ -1,14 +1,12 @@
 .shell {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 280px 1fr;
   background: #f5f7ff;
+  overflow: hidden;
 }
 .shell.shellSidebarClosed {
-  grid-template-columns: 1fr !important;
-}
-.shell.shellSidebarClosed .sidebar {
-  display: none !important;
+  grid-template-columns:80px 1fr !important;
 }
 .sidebar {
   height: 100vh;
@@ -134,10 +132,31 @@
 .shellSidebarClosed {
   grid-template-columns: 1fr;
 }
-.shellSidebarClosed .sidebar {
+
+.shellSidebarClosed .brandText {
   display: none;
 }
-
+.shellSidebarClosed .brandLink {
+  justify-content: center;
+}
+.shellSidebarClosed .navLabel {
+  display: none;
+}
+.shellSidebarClosed .chevOpen {
+  display: none;
+}
+.shellSidebarClosed .submenuOpen {
+  margin-left: 0px !important;
+}
+.shellSidebarClosed .subLabel {
+  display: none;
+}
+.shellSidebarClosed .sectionTitle {
+  display: none;
+}
+.shellSidebarClosed .subItem {
+  justify-content: center;
+}
 /* Header.module.css */
 
 .topbar {

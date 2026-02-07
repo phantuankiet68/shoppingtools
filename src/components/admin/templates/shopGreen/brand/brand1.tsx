@@ -88,7 +88,15 @@ function safeJson<T>(raw?: string): T | undefined {
 }
 
 /* ================= Component ================= */
-export function Brand1({ title = "Prominent brand", badgeText = "Hot", moreLabel = "View More", moreHref = "/brands", items, itemsJson, preview = false }: Brand1Props) {
+export function Brand1({
+  title = "Prominent brand",
+  badgeText = "Hot",
+  moreLabel = "View More",
+  moreHref = "/brands",
+  items,
+  itemsJson,
+  preview = false,
+}: Brand1Props) {
   const resolvedItems = React.useMemo(() => {
     return items ?? parseItems(itemsJson) ?? DEFAULT_ITEMS;
   }, [items, itemsJson]);
@@ -288,18 +296,32 @@ export function Brand1({ title = "Prominent brand", badgeText = "Hot", moreLabel
             {moreLabel} <span className={cls.arrow}>→</span>
           </button>
         ) : (
-          <Link className={cls.more} href={(moreHref || "/brands") as Route}>
-            {moreLabel} <span className={cls.arrow}>→</span>
+          <Link className={cls.bsMore} href={moreHref as Route}>
+            {moreLabel} <span className={cls.bsArrow}>→</span>
           </Link>
         )}
       </div>
 
       <div className={cls.body}>
-        <button suppressHydrationWarning className={`${cls.navbtn} ${cls.prev}`} aria-label="Previous" type="button" onClick={preview ? (e) => block(e) : prev} disabled={!canPrev}>
+        <button
+          suppressHydrationWarning
+          className={`${cls.navbtn} ${cls.prev}`}
+          aria-label="Previous"
+          type="button"
+          onClick={preview ? (e) => block(e) : prev}
+          disabled={!canPrev}
+        >
           <i className="bi bi-chevron-left" />
         </button>
 
-        <button suppressHydrationWarning className={`${cls.navbtn} ${cls.next}`} aria-label="Next" type="button" onClick={preview ? (e) => block(e) : next} disabled={!canNext}>
+        <button
+          suppressHydrationWarning
+          className={`${cls.navbtn} ${cls.next}`}
+          aria-label="Next"
+          type="button"
+          onClick={preview ? (e) => block(e) : next}
+          disabled={!canNext}
+        >
           <i className="bi bi-chevron-right" />
         </button>
 
@@ -309,7 +331,13 @@ export function Brand1({ title = "Prominent brand", badgeText = "Hot", moreLabel
               const CardInner = (
                 <div className={cls.card}>
                   <div className={cls.imgbox}>
-                    <Image src={it.logoSrc} alt={it.logoAlt || `${it.name} logo`} fill sizes="20vw" style={{ objectFit: "contain" }} />
+                    <Image
+                      src={it.logoSrc}
+                      alt={it.logoAlt || `${it.name} logo`}
+                      fill
+                      sizes="20vw"
+                      style={{ objectFit: "contain" }}
+                    />
                   </div>
                 </div>
               );

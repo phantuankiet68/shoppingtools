@@ -181,6 +181,8 @@ model ProductCategory {
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  siteId    String
+
   name      String
   slug      String
   isActive  Boolean @default(true)

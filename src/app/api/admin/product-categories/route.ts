@@ -79,7 +79,12 @@ export async function GET(req: Request) {
       where.parentId = parentId;
     }
 
-    const orderBy = sort === "nameasc" ? ({ name: "asc" } as const) : sort === "newest" ? ({ createdAt: "desc" } as const) : ({ sort: "asc" } as const); // sortasc default
+    const orderBy =
+      sort === "nameasc"
+        ? ({ name: "asc" } as const)
+        : sort === "newest"
+          ? ({ createdAt: "desc" } as const)
+          : ({ sort: "asc" } as const); // sortasc default
 
     const skip = tree ? 0 : (page - 1) * pageSize;
     const take = tree ? 5000 : pageSize;
@@ -124,9 +129,11 @@ export async function GET(req: Request) {
       updatedAt: x.updatedAt,
       count: x._count.products,
     }));
+
     if (sort === "countdesc") {
       items = items.slice().sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
     }
+
     if (lite) {
       const liteItems = items.map((x) => ({
         id: x.id,
@@ -171,6 +178,9 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => null);
     if (!body) return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
 
+    const siteId = String(body.siteId ?? "").trim();
+    if (!siteId) return NextResponse.json({ error: "Site ID is required" }, { status: 400 });
+
     const name = String(body.name ?? "").trim();
     if (!name) return NextResponse.json({ error: "Category name is required" }, { status: 400 });
 
@@ -188,11 +198,14 @@ export async function POST(req: Request) {
       if (!ok) return NextResponse.json({ error: "Parent not found" }, { status: 400 });
     }
 
-    const sort = Number.isFinite(Number(body.sort)) ? Math.trunc(Number(body.sort)) : await nextSortForParent(userId, parentId);
+    const sort = Number.isFinite(Number(body.sort))
+      ? Math.trunc(Number(body.sort))
+      : await nextSortForParent(userId, parentId);
 
     const created = await prisma.productCategory.create({
       data: {
         userId,
+        siteId: body.siteId /* Frontend must send siteId */,
         name,
         slug,
         isActive,

@@ -197,7 +197,9 @@ export default function CategoriesPage() {
     setLoading(true);
     setErr("");
     try {
-      const data = await jfetch<{ items: ApiCategory[] }>("/api/admin/product-categories?tree=1&sort=sortasc&pageSize=5000");
+      const data = await jfetch<{ items: ApiCategory[] }>(
+        "/api/admin/product-categories?tree=1&sort=sortasc&pageSize=5000",
+      );
 
       const mapped: CategoryRow[] = (data.items || []).map((c) => ({
         id: c.id,
@@ -263,6 +265,7 @@ export default function CategoriesPage() {
     setBusy(true);
     try {
       const payload = {
+        siteId: localStorage.getItem("builder_site_id"),
         name,
         slug: slugify(name),
         parentId: createParentId,
@@ -305,7 +308,9 @@ export default function CategoriesPage() {
     if (!current) return;
 
     const hasChildren = rows.some((x) => x.parentId === id);
-    const ok = confirm(hasChildren ? `Delete "${current.name}"? (children will become root)` : `Delete "${current.name}"?`);
+    const ok = confirm(
+      hasChildren ? `Delete "${current.name}"? (children will become root)` : `Delete "${current.name}"?`,
+    );
     if (!ok) return;
 
     setBusy(true);
@@ -480,14 +485,20 @@ export default function CategoriesPage() {
                 e.stopPropagation();
                 toggleExpand(node.id);
               }}
-              aria-label={open ? "Collapse" : "Expand"}>
+              aria-label={open ? "Collapse" : "Expand"}
+            >
               <i className={`bi ${open ? "bi-caret-down-fill" : "bi-caret-right-fill"}`} />
             </button>
           ) : (
             <span className={styles.treeCaretPlaceholder} />
           )}
 
-          <button type="button" className={`${styles.treeBtn} ${isActiveNode ? styles.treeActive : ""}`} onClick={() => select(node.id)} style={{ paddingLeft: 10 + depth * 14 }}>
+          <button
+            type="button"
+            className={`${styles.treeBtn} ${isActiveNode ? styles.treeActive : ""}`}
+            onClick={() => select(node.id)}
+            style={{ paddingLeft: 10 + depth * 14 }}
+          >
             <div className={styles.treeGroup}>
               <i className={`bi ${node.icon || "bi-folder2"}`} />
               <span className={styles.treeName}>{node.name}</span>
@@ -524,7 +535,12 @@ export default function CategoriesPage() {
           <button className={styles.ghostBtn} type="button" onClick={() => loadTree()} disabled={busy || loading}>
             <i className="bi bi-arrow-repeat" /> Refresh
           </button>
-          <button className={styles.primaryBtn} type="button" onClick={() => openCreate(active?.parentId ?? null)} disabled={busy}>
+          <button
+            className={styles.primaryBtn}
+            type="button"
+            onClick={() => openCreate(active?.parentId ?? null)}
+            disabled={busy}
+          >
             <i className="bi bi-plus-lg" /> Add sibling
           </button>
         </div>
@@ -545,7 +561,13 @@ export default function CategoriesPage() {
 
           <div className={styles.searchWrap}>
             <i className="bi bi-search" />
-            <input className={styles.search} placeholder={loading ? "Loading..." : "Search name / slug..."} value={q} onChange={(e) => setQ(e.target.value)} disabled={loading} />
+            <input
+              className={styles.search}
+              placeholder={loading ? "Loading..." : "Search name / slug..."}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              disabled={loading}
+            />
           </div>
 
           <div className={styles.tree}>
@@ -582,7 +604,12 @@ export default function CategoriesPage() {
                 </div>
 
                 <div className={styles.panelHeaderActions}>
-                  <button className={styles.ghostBtn} type="button" onClick={() => openCreate(active?.id ?? null)} disabled={!active || busy}>
+                  <button
+                    className={styles.ghostBtn}
+                    type="button"
+                    onClick={() => openCreate(active?.id ?? null)}
+                    disabled={!active || busy}
+                  >
                     <i className="bi bi-node-plus" /> Add child
                   </button>
                 </div>
@@ -610,7 +637,8 @@ export default function CategoriesPage() {
                     className={`${styles.ghostBtn} ${styles.pagerBtn}`}
                     type="button"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={busy || page <= 1 || flatSiblings.length === 0}>
+                    disabled={busy || page <= 1 || flatSiblings.length === 0}
+                  >
                     <i className="bi bi-chevron-left" /> Prev
                   </button>
 
@@ -624,7 +652,8 @@ export default function CategoriesPage() {
                     className={`${styles.ghostBtn} ${styles.pagerBtn}`}
                     type="button"
                     onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                    disabled={busy || page >= pageCount || flatSiblings.length === 0}>
+                    disabled={busy || page >= pageCount || flatSiblings.length === 0}
+                  >
                     Next <i className="bi bi-chevron-right" />
                   </button>
                 </div>
@@ -648,7 +677,8 @@ export default function CategoriesPage() {
                         onDrop={() => onDrop(c.id)}
                         onClick={() => select(c.id)}
                         role="button"
-                        tabIndex={0}>
+                        tabIndex={0}
+                      >
                         <div className={styles.itemLeft}>
                           <span className={styles.dragHandle} title="Drag">
                             <i className="bi bi-grip-vertical" />
@@ -679,10 +709,22 @@ export default function CategoriesPage() {
                         </div>
 
                         <div className={styles.itemActions} onClick={(e) => e.stopPropagation()}>
-                          <button className={styles.iconBtn} type="button" title="Toggle" onClick={() => toggleEnabled(c.id)} disabled={busy}>
+                          <button
+                            className={styles.iconBtn}
+                            type="button"
+                            title="Toggle"
+                            onClick={() => toggleEnabled(c.id)}
+                            disabled={busy}
+                          >
                             <i className={`bi ${c.enabled ? "bi-eye" : "bi-eye-slash"}`} />
                           </button>
-                          <button className={styles.iconBtn} type="button" title="Delete" onClick={() => removeCategory(c.id)} disabled={busy}>
+                          <button
+                            className={styles.iconBtn}
+                            type="button"
+                            title="Delete"
+                            onClick={() => removeCategory(c.id)}
+                            disabled={busy}
+                          >
                             <i className="bi bi-trash" />
                           </button>
                         </div>
@@ -720,7 +762,13 @@ export default function CategoriesPage() {
                         </div>
                       </div>
 
-                      <button className={styles.iconBtn} type="button" title="Toggle enabled" onClick={() => toggleEnabled(active.id)} disabled={busy}>
+                      <button
+                        className={styles.iconBtn}
+                        type="button"
+                        title="Toggle enabled"
+                        onClick={() => toggleEnabled(active.id)}
+                        disabled={busy}
+                      >
                         <i className={`bi ${active.enabled ? "bi-toggle2-on" : "bi-toggle2-off"}`} />
                       </button>
                     </div>
@@ -729,7 +777,12 @@ export default function CategoriesPage() {
                       <label className={styles.label}>Name</label>
                       <div className={styles.inputWrap}>
                         <i className="bi bi-type" />
-                        <input className={styles.input} value={active.name} onChange={(e) => changeName(e.target.value)} disabled={busy} />
+                        <input
+                          className={styles.input}
+                          value={active.name}
+                          onChange={(e) => changeName(e.target.value)}
+                          disabled={busy}
+                        />
                       </div>
 
                       <div className={styles.rowInline}>
@@ -737,7 +790,12 @@ export default function CategoriesPage() {
                           <label className={styles.label}>Slug</label>
                           <div className={styles.inputWrap}>
                             <i className="bi bi-hash" />
-                            <input className={styles.input} value={active.slug} onChange={(e) => changeSlug(e.target.value)} disabled={busy} />
+                            <input
+                              className={styles.input}
+                              value={active.slug}
+                              onChange={(e) => changeSlug(e.target.value)}
+                              disabled={busy}
+                            />
                           </div>
                         </div>
 
@@ -749,7 +807,12 @@ export default function CategoriesPage() {
                       <label className={styles.label}>Parent</label>
                       <div className={styles.selectWrap}>
                         <i className="bi bi-diagram-3" />
-                        <select className={styles.select} value={active.parentId ?? ""} onChange={(e) => moveParent(e.target.value ? e.target.value : null)} disabled={busy}>
+                        <select
+                          className={styles.select}
+                          value={active.parentId ?? ""}
+                          onChange={(e) => moveParent(e.target.value ? e.target.value : null)}
+                          disabled={busy}
+                        >
                           <option value="">(no parent)</option>
                           {rows
                             .filter((x) => x.id !== active.id)
@@ -830,7 +893,12 @@ export default function CategoriesPage() {
                           <i className="bi bi-save2" /> Reload
                         </button>
 
-                        <button className={`${styles.ghostBtn} ${styles.dangerBtn}`} type="button" onClick={() => removeCategory(active.id)} disabled={busy}>
+                        <button
+                          className={`${styles.ghostBtn} ${styles.dangerBtn}`}
+                          type="button"
+                          onClick={() => removeCategory(active.id)}
+                          disabled={busy}
+                        >
                           <i className="bi bi-trash" /> Delete
                         </button>
                       </div>
@@ -838,7 +906,8 @@ export default function CategoriesPage() {
                       <div className={styles.tipInline}>
                         <i className="bi bi-lightbulb" />
                         <span>
-                          When connecting to the DB: index <span className={styles.mono}>parentId, sort</span> To load the tree quickly.
+                          When connecting to the DB: index <span className={styles.mono}>parentId, sort</span> To load
+                          the tree quickly.
                         </span>
                       </div>
                     </div>
@@ -858,7 +927,8 @@ export default function CategoriesPage() {
           }}
           onKeyDown={(e) => {
             if (e.key === "Escape") closeCreate();
-          }}>
+          }}
+        >
           <div className={styles.modal} role="dialog" aria-modal="true">
             <div className={styles.modalHeader}>
               <div className={styles.modalTitle}>Create category</div>
@@ -894,7 +964,12 @@ export default function CategoriesPage() {
               <button className={styles.ghostBtn} type="button" onClick={closeCreate} disabled={busy}>
                 Cancel
               </button>
-              <button className={styles.primaryBtn} type="button" onClick={submitCreate} disabled={busy || !createName.trim()}>
+              <button
+                className={styles.primaryBtn}
+                type="button"
+                onClick={submitCreate}
+                disabled={busy || !createName.trim()}
+              >
                 <i className="bi bi-plus-lg" /> Create
               </button>
             </div>

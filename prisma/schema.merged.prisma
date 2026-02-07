@@ -861,6 +861,8 @@ model ProductCategory {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   name     String
   slug     String
@@ -1520,13 +1522,14 @@ model RefundItem {
 
 // ==== part: Site.prisma ====
 model Site {
-  id        String     @id @default(cuid())
-  domain    String     @unique
-  name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  pages     Page[]
-  menuItems MenuItem[]
+  id                String            @id @default(cuid())
+  domain            String            @unique
+  name              String
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  pages             Page[]
+  menuItems         MenuItem[]
+  productCategories ProductCategory[]
 }
 
 // ==== part: Storage.prisma ====

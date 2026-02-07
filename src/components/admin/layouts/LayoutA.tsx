@@ -383,9 +383,17 @@ export default function LayoutA({ children }: { children: ReactNode }) {
   }, [pathname, items]);
 
   useEffect(() => {
-    const shouldCollapse = ADD_PAGE_REGEX.test(pathname || "");
+    const isBuilderAdd = pathname?.startsWith("/admin/builder/page/add");
+    const matchesRegex = ADD_PAGE_REGEX.test(pathname || "");
+
+    const shouldCollapse = isBuilderAdd || matchesRegex;
     setCollapsed(shouldCollapse);
+
     if (shouldCollapse) setOpenGroups({});
+
+    if (isBuilderAdd) {
+      setSidebarOpen(false);
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -445,7 +453,7 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     }
   };
 
-  const railStyle: React.CSSProperties | undefined = collapsed ? { width: 76 } : undefined;
+  const railStyle: React.CSSProperties | undefined = collapsed ? { width: 80 } : undefined;
 
   return (
     <div className={`${styles.shell} ${sidebarOpen ? styles.shellSidebarOpen : styles.shellSidebarClosed}`}>
