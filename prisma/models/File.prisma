@@ -19,7 +19,7 @@ model FileFolder {
   updatedAt  DateTime @updatedAt
 
   @@index([ownerId, parentId])
-  // chống trùng tên folder trong cùng 1 thư mục (theo user)
+
   @@unique([ownerId, parentId, name])
 }
 

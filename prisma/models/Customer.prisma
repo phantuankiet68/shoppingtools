@@ -4,12 +4,11 @@ model Customer {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // identity
   name      String
   phone     String?
   email     String?
 
-  // optional: default address (for quick-fill)
+
   address1  String?
   address2  String?
   city      String?
@@ -17,9 +16,8 @@ model Customer {
   postal    String?
   country   String?
 
-  // admin helpers
   notes     String?   @db.Text
-  tags      String?   // e.g. "vip,repeat,high_risk"
+  tags      String?
   isActive  Boolean   @default(true)
 
   orders    Order[]
@@ -28,7 +26,6 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Uniques: thường unique theo user + phone/email để tránh trùng trong 1 shop
   @@unique([userId, phone])
   @@unique([userId, email])
 

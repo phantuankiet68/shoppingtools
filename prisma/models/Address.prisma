@@ -10,23 +10,17 @@ enum AddressStatus {
 
 model Address {
   id         String   @id @default(cuid())
-
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   label      String?
   type       AddressType   @default(SHIPPING)
   status     AddressStatus @default(ACTIVE)
-
   isDefault  Boolean  @default(false)
-
   receiverName String
   phone        String?
   email        String?
-
   line1      String
   line2      String?
   ward       String?
@@ -35,15 +29,11 @@ model Address {
   region     String?
   country    String    @default("VN")
   postalCode String?
-
   notes      String?
   meta       Json?
-
   deletedAt  DateTime?
-
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
   @@index([userId, customerId, createdAt])
   @@index([customerId, type, isDefault])
   @@index([status, updatedAt])

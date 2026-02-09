@@ -61,17 +61,13 @@ model StorageIntegration {
 
   createdAt               DateTime        @default(now())
   updatedAt               DateTime        @updatedAt
-
-  buckets                 StorageBucket[]
-  objects                 StorageObject[]
-  logs                    StorageLog[]
 }
 
 model StorageBucket {
-  id          String          @id @default(uuid())
+  id            String          @id @default(uuid())
 
-  integrationId String
-  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  integrationId String?
 
   provider     StorageProvider
   name         String
@@ -92,8 +88,8 @@ model StorageBucket {
 model StorageObject {
   id             String           @id @default(uuid())
 
-  integrationId  String
-  integration    StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  integrationId  String?
 
   provider       StorageProvider
   bucket         String
@@ -120,10 +116,10 @@ model StorageObject {
 model StorageLog {
   id            String   @id @default(uuid())
 
-  integrationId String
-  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  integrationId String?
 
-  at            DateTime @default(now())
+  at            DateTime        @default(now())
   level         StorageLogLevel @default(INFO)
   action        String
   message       String

@@ -19,9 +19,9 @@ enum TxStatus {
 }
 
 enum TxType {
-  EXPENSE      // chi phí
-  INCOME       // thu nhập (nếu sau này bạn muốn)
-  ADJUSTMENT   // điều chỉnh
+  EXPENSE
+  INCOME
+  ADJUSTMENT
 }
 
 enum SpendCategoryType {
@@ -78,21 +78,16 @@ enum FulfillmentStatus {
   RETURNED
 }
 
-
-
-
 model SpendCategory {
   id        String            @id @default(cuid())
   name      String            @unique
   type      SpendCategoryType @default(OTHER)
-  icon      String?           // optional: "bi-cash-stack"...
-  color     String?           // optional: "blue", "#0ea5e9"
+  icon      String?
+  color     String?
   isActive  Boolean           @default(true)
 
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
-
-  transactions Transaction[]
 
   @@index([type])
 }
@@ -107,15 +102,13 @@ model Merchant {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  transactions Transaction[]
 }
 
 model Transaction {
   id            String        @id @default(cuid())
+
   userId        String
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
 
   type          TxType        @default(EXPENSE)
   status        TxStatus      @default(PAID)
@@ -126,10 +119,7 @@ model Transaction {
   description   String?
 
   merchantId    String?
-  merchant      Merchant?     @relation(fields: [merchantId], references: [id], onDelete: SetNull)
-
   categoryId    String?
-  category      SpendCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   subtotalCents Int           @default(0)
   taxCents      Int           @default(0)
@@ -141,8 +131,6 @@ model Transaction {
 
   inventoryReceiptId String? @unique
 
-  lines        TransactionLine[]
-
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -150,23 +138,18 @@ model Transaction {
   @@index([status])
   @@index([categoryId])
   @@index([merchantId])
-
 }
 
-
 model TransactionLine {
-  id            String      @id @default(cuid())
-  transactionId String
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
 
-  // optional: gắn vào product nếu là mua hàng hoá
-  productId     String?
-  product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  transactionId  String?
+  productId      String?
 
-  title         String
-  qty           Int         @default(1)
-  unitPriceCents Int        @default(0)
-  totalCents    Int         @default(0)
+  title          String
+  qty            Int      @default(1)
+  unitPriceCents Int      @default(0)
+  totalCents     Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -175,9 +158,9 @@ model TransactionLine {
   @@index([productId])
 }
 
-
 model ProductCategory {
   id        String @id @default(cuid())
+
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -188,8 +171,6 @@ model ProductCategory {
   isActive  Boolean @default(true)
 
   parentId  String?
-  parent    ProductCategory? @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children  ProductCategory[] @relation("CategoryTree")
 
   sort      Int @default(0)
 
@@ -197,8 +178,6 @@ model ProductCategory {
   coverImage String?
   seoTitle  String?
   seoDesc   String? @db.Text
-
-  products  Product[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -210,10 +189,9 @@ model ProductCategory {
   @@index([userId, parentId, sort])
 }
 
-
-
 model Product {
   id        String @id @default(cuid())
+
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -229,18 +207,12 @@ model Product {
   stock      Int @default(0)
 
   hasVariants       Boolean @default(false)
-  displayPriceCents Int     @default(0)  // ví dụ: min variant price hoặc product price
-  displayStock      Int     @default(0)  // ví dụ: sum variant stock hoặc product stock
+  displayPriceCents Int     @default(0)
+  displayStock      Int     @default(0)
 
   isActive   Boolean @default(true)
 
   categoryId String?
-  category   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-
-  images     ProductImage[]
-  attributes ProductAttribute[]
-  variants   ProductVariant[]
-  stockMovements StockMovement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -255,10 +227,9 @@ model Product {
   @@index([userId, categoryId, isActive])
 }
 
-
-
 model Supplier {
   id        String   @id @default(cuid())
+
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -270,23 +241,18 @@ model Supplier {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  receipts  InventoryReceipt[]
-
   @@unique([userId, name])
   @@index([userId])
 }
 
 model InventoryReceipt {
   id          String        @id @default(cuid())
+
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   supplierId  String?
-  supplier    Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
-
-  // NEW: link to PO
   poId        String?
-  po          PurchaseOrder? @relation(fields: [poId], references: [id], onDelete: SetNull)
 
   status      ReceiptStatus @default(PENDING)
   currency    CurrencyCode  @default(USD)
@@ -300,9 +266,6 @@ model InventoryReceipt {
 
   notes       String?
 
-  items       InventoryReceiptItem[]
-  transaction Transaction?
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -312,27 +275,18 @@ model InventoryReceipt {
   @@index([supplierId])
   @@index([userId, supplierId])
 
-  // NEW
   @@index([poId])
   @@index([userId, poId])
 }
 
-
 model InventoryReceiptItem {
   id        String @id @default(cuid())
 
-  receiptId String
-  receipt   InventoryReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
-
-  // NEW: link to PO line (optional vì có thể nhận hàng không qua PO)
+  receiptId String?
   poLineId  String?
-  poLine    PurchaseOrderLine? @relation(fields: [poLineId], references: [id], onDelete: SetNull)
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
   qty           Int
   unitCostCents Int
@@ -347,27 +301,17 @@ model InventoryReceiptItem {
   @@index([productId, createdAt])
   @@index([variantId, createdAt])
 
-  // NEW
   @@index([poLineId])
 }
-
 
 model ProductImage {
   id        String   @id @default(cuid())
 
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
 
-  // URL ảnh (đã upload lên /uploads hoặc S3...)
   url       String
-
-  // Tên file (optional)
   fileName  String?
-
-  // sắp xếp ảnh trong gallery
   sort      Int      @default(0)
-
-  // ảnh cover (optional nhưng rất hữu ích)
   isCover   Boolean  @default(false)
 
   createdAt DateTime @default(now())
@@ -376,20 +320,17 @@ model ProductImage {
   @@index([productId, sort])
 }
 
-
 model ProductAttribute {
   id        String @id @default(cuid())
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
 
-  key       String   // ví dụ: "Chất liệu"
-  value     String   // ví dụ: "Cotton"
+  key       String
+  value     String
   sort      Int      @default(0)
 
   @@index([productId, sort])
 }
-
 
 model Order {
   id        String @id @default(cuid())
@@ -397,33 +338,26 @@ model Order {
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // customer (optional)
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
-  // status (ops)
   status     OrderStatus @default(PENDING)
 
-  // NEW: tách payment & fulfillment để UI/admin rõ ràng
   paymentStatus     PaymentStatus     @default(UNPAID)
   fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
 
-  // channel / ref
   channel   SalesChannel @default(SHOP)
   currency  CurrencyCode @default(VND)
 
-  // money
   subtotalCents Int @default(0)
-  discountCents Int @default(0) // NEW
+  discountCents Int @default(0)
   shippingCents Int @default(0)
-  taxCents      Int @default(0) // NEW
+  taxCents      Int @default(0)
   totalCents    Int @default(0)
 
-  // NEW: order code / external ref (marketplace)
-  number     String?   // ORD-00001 (optional, nhưng nên có)
-  reference  String?   // marketplace order id / note
+  number     String?
+  reference  String?
 
-  // NEW: shipping/customer snapshot (tránh đổi thông tin làm sai đơn cũ)
   customerNameSnapshot  String?
   customerPhoneSnapshot String?
   customerEmailSnapshot String?
@@ -437,7 +371,6 @@ model Order {
   shipToPostal   String?
   shipToCountry  String?
 
-  // NEW: logistics
   carrier      String?
   trackingCode String?
   shippedAt    DateTime?
@@ -446,11 +379,7 @@ model Order {
   returnedAt   DateTime?
 
   notes     String?
-  tags      String? // optional: "vip, fragile"
-
-  items     OrderItem[]
-
-  payments  Payment[]
+  tags      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -463,35 +392,25 @@ model Order {
   @@unique([userId, number])
 }
 
-
 model OrderItem {
   id        String @id @default(cuid())
 
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-
+  orderId   String?
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
-  // qty ordered
   qty        Int
 
-  // NEW: hỗ trợ partial flow
   qtyReserved Int @default(0)
   qtyShipped  Int @default(0)
   qtyReturned Int @default(0)
 
-  // price snapshot
   unitPriceCents Int
-  subtotalCents  Int @default(0) // unitPriceCents * qty (cache)
-  discountCents  Int @default(0) // NEW
-  taxCents       Int @default(0) // NEW
+  subtotalCents  Int @default(0)
+  discountCents  Int @default(0)
+  taxCents       Int @default(0)
   totalCents     Int @default(0)
 
-  // NEW: snapshot identity (để audit)
   skuSnapshot         String?
   productNameSnapshot String?
   variantNameSnapshot String?
@@ -506,8 +425,6 @@ model OrderItem {
   @@index([variantId])
 }
 
-
-
 enum VariantStatus {
   ACTIVE
   INACTIVE
@@ -516,26 +433,22 @@ enum VariantStatus {
 model ProductVariant {
   id        String   @id @default(cuid())
 
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
 
-  name      String?  // ví dụ: "Đen"
+  name      String?
   sku       String
   barcode   String?
 
   priceCents Int @default(0)
   costCents  Int @default(0)
 
-  // inventory
   stock     Int @default(0)
   isActive  Boolean @default(true)
 
-  option1   String? // "Color"
-  value1    String? // "Black"
+  option1   String?
+  value1    String?
   option2   String?
   value2    String?
-
-  images    ProductVariantImage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -548,8 +461,7 @@ model ProductVariant {
 model ProductVariantImage {
   id        String @id @default(cuid())
 
-  variantId String
-  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantId String?
 
   url       String
   fileName  String?
@@ -582,11 +494,8 @@ model StockMovement {
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   type      StockMovementType
   source    StockMovementSource
@@ -603,7 +512,6 @@ model StockMovement {
   receiptItemId String?
   orderItemId   String?
 
-  // NEW: chống tạo trùng khi user double click / retry
   idempotencyKey String?
 
   createdAt DateTime @default(now())
@@ -618,7 +526,6 @@ model StockMovement {
   @@unique([idempotencyKey])
 }
 
-
 enum POStatus {
   DRAFT
   APPROVED
@@ -627,29 +534,24 @@ enum POStatus {
   CANCELLED
 }
 
-
 model PurchaseOrder {
   id         String   @id @default(cuid())
+
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  number     String   // PO-00012
+  number     String
   status     POStatus @default(DRAFT)
 
   supplierId String?
-  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
 
   currency   CurrencyCode @default(USD)
   expectedAt DateTime?
   notes      String?
 
-  // totals cache (optional but recommended for fast UI)
   subtotalCents Int @default(0)
   taxCents      Int @default(0)
   totalCents    Int @default(0)
-
-  lines     PurchaseOrderLine[]
-  receipts  InventoryReceipt[]   // link ngược qua InventoryReceipt.poId
 
   approvedAt DateTime?
   cancelledAt DateTime?
@@ -666,16 +568,10 @@ model PurchaseOrder {
 model PurchaseOrderLine {
   id        String @id @default(cuid())
 
-  poId      String
-  po        PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-
+  poId      String?
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
-  // snapshots for audit/history
   skuSnapshot  String?
   nameSnapshot String?
 
@@ -683,7 +579,7 @@ model PurchaseOrderLine {
   qtyReceived  Int @default(0)
 
   unitCostCents Int @default(0)
-  totalCents    Int @default(0) // qtyOrdered * unitCostCents (cache)
+  totalCents    Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -692,6 +588,3 @@ model PurchaseOrderLine {
   @@index([productId])
   @@index([variantId])
 }
-
-
-

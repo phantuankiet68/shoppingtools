@@ -1,30 +1,39 @@
 model Page {
   id        String     @id @default(cuid())
+
   siteId    String
   site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  // keep as plain id (no relation)
   menuItemId String?   @db.VarChar(191)
-  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+
   title     String
   slug      String
   path      String
   status    PageStatus @default(DRAFT)
   blocks    Json
+
   seoTitle          String?
   seoDesc           String?
   coverImage        String?
   seoKeywords       String?
   canonicalUrl      String?
+
   noindex           Boolean      @default(false)
   nofollow          Boolean      @default(false)
+
   ogTitle           String?
   ogDescription     String?
+
   twitterCard       TwitterCard  @default(SUMMARY_LARGE_IMAGE)
   sitemapChangefreq Changefreq   @default(WEEKLY)
   sitemapPriority   Float        @default(0.7)
+
   structuredData    Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  sections  Section[]
+
   @@unique([siteId, slug])
   @@unique([siteId, path])
 
@@ -55,18 +64,19 @@ enum Changefreq {
 
 model Section {
   id        String   @id @default(cuid())
+
+  // keep as plain id (no relation)
   pageId    String
-  type      String   // "hero" | "text" | "gallery"...
+
+  type      String
   enabled   Boolean  @default(true)
   sort      Int      @default(0)
 
-  data      Json     // nội dung + props
-  style     Json?    // style override (optional)
+  data      Json
+  style     Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@index([pageId, sort])
   @@index([type])

@@ -14,6 +14,7 @@ enum Locale {
   ja
 }
 
+
 // ==== part: Address.prisma ====
 enum AddressType {
   SHIPPING
@@ -26,46 +27,52 @@ enum AddressStatus {
 }
 
 model Address {
-  id String @id @default(cuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  label  String?
-  type   AddressType   @default(SHIPPING)
-  status AddressStatus @default(ACTIVE)
-
-  isDefault Boolean @default(false)
-
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  label      String?
+  type       AddressType   @default(SHIPPING)
+  status     AddressStatus @default(ACTIVE)
+  isDefault  Boolean  @default(false)
   receiverName String
   phone        String?
   email        String?
-
   line1      String
   line2      String?
   ward       String?
   district   String?
   city       String
   region     String?
-  country    String  @default("VN")
+  country    String    @default("VN")
   postalCode String?
-
-  notes String?
-  meta  Json?
-
-  deletedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  notes      String?
+  meta       Json?
+  deletedAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   @@index([userId, customerId, createdAt])
   @@index([customerId, type, isDefault])
   @@index([status, updatedAt])
   @@index([country, city])
 }
+
+
+// ==== part: Brand.prisma ====
+model Brand {
+  id        String   @id @default(cuid())
+  siteId    String?
+  name      String
+  slug      String
+  image     String?  @db.VarChar(2048)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([siteId])
+  @@index([slug])
+}
+
 
 // ==== part: Calendar.prisma ====
 enum CalendarEventColor {
@@ -78,70 +85,69 @@ enum CalendarEventColor {
 }
 
 model Calendar {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   ownerId   String
   name      String
-  isDefault Boolean @default(true)
+  isDefault Boolean  @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner  User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  events CalendarEvent[]
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  events    CalendarEvent[]
 
-  @@unique([ownerId, name])
   @@index([ownerId])
+  @@unique([ownerId, name])
 }
 
 model CalendarEvent {
-  id         String @id @default(cuid())
-  calendarId String
-  creatorId  String
+  id          String   @id @default(cuid())
+  calendarId  String
+  creatorId   String
 
   title       String
   description String?
   location    String?
 
-  color CalendarEventColor @default(BLUE)
+  color       CalendarEventColor @default(BLUE)
 
-  allDay  Boolean  @default(false)
-  startAt DateTime
-  endAt   DateTime
+  allDay      Boolean  @default(false)
+  startAt     DateTime
+  endAt       DateTime
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  calendar Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
-  creator  User     @relation("UserCreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
+  calendar    Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  creator     User     @relation("UserCreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
 
   @@index([calendarId, startAt])
   @@index([creatorId, startAt])
 }
 
+
 // ==== part: Customer.prisma ====
 model Customer {
-  id String @id @default(cuid())
+  id        String   @id @default(cuid())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // identity
-  name  String
-  phone String?
-  email String?
+  name      String
+  phone     String?
+  email     String?
 
-  // optional: default address (for quick-fill)
-  address1 String?
-  address2 String?
-  city     String?
-  state    String?
-  postal   String?
-  country  String?
 
-  // admin helpers
-  notes    String? @db.Text
-  tags     String? // e.g. "vip,repeat,high_risk"
-  isActive Boolean @default(true)
+  address1  String?
+  address2  String?
+  city      String?
+  state     String?
+  postal    String?
+  country   String?
+
+  notes     String?   @db.Text
+  tags      String?
+  isActive  Boolean   @default(true)
 
   orders    Order[]
   addresses Address[]
@@ -149,15 +155,16 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Uniques: thường unique theo user + phone/email để tránh trùng trong 1 shop
   @@unique([userId, phone])
   @@unique([userId, email])
+
   @@index([userId])
   @@index([userId, name])
   @@index([userId, phone])
   @@index([userId, email])
   @@index([isActive])
 }
+
 
 // ==== part: Email.prisma ====
 enum EmailStatus {
@@ -176,40 +183,41 @@ enum EmailType {
   INTERNAL
 }
 
+
 model Email {
-  id String @id @default(cuid())
+  id            String      @id @default(cuid())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type   EmailType   @default(SYSTEM)
-  status EmailStatus @default(DRAFT)
+  type          EmailType   @default(SYSTEM)
+  status        EmailStatus @default(DRAFT)
 
-  subject     String
-  previewText String?
-  htmlContent String? @db.LongText
-  textContent String? @db.Text
+  subject       String
+  previewText   String?
+  htmlContent   String?     @db.LongText
+  textContent   String?     @db.Text
 
-  templateKey  String?
-  templateData Json?
+  templateKey   String?
+  templateData  Json?
 
-  fromName  String?
-  fromEmail String?
+  fromName      String?
+  fromEmail     String?
 
-  scheduledAt DateTime?
-  sentAt      DateTime?
+  scheduledAt   DateTime?
+  sentAt        DateTime?
 
-  totalRecipients Int @default(0)
-  successCount    Int @default(0)
-  failedCount     Int @default(0)
+  totalRecipients Int       @default(0)
+  successCount   Int        @default(0)
+  failedCount    Int        @default(0)
 
-  lastError String? @db.Text
+  lastError     String?     @db.Text
 
-  recipients EmailRecipient[]
+  recipients    EmailRecipient[]
 
-  createdBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([userId])
   @@index([userId, status])
@@ -218,26 +226,27 @@ model Email {
   @@index([userId, createdAt])
 }
 
+
 model EmailRecipient {
-  id String @id @default(cuid())
+  id          String      @id @default(cuid())
 
-  emailId String
-  email   Email  @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  emailId     String
+  email       Email       @relation(fields: [emailId], references: [id], onDelete: Cascade)
 
-  toEmail String
-  toName  String?
+  toEmail     String
+  toName      String?
 
-  status EmailStatus @default(QUEUED)
-  sentAt DateTime?
-  error  String?     @db.Text
+  status      EmailStatus @default(QUEUED)
+  sentAt      DateTime?
+  error       String?     @db.Text
 
-  openedAt  DateTime?
-  clickedAt DateTime?
+  openedAt    DateTime?
+  clickedAt   DateTime?
 
   providerMessageId String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([emailId])
   @@index([toEmail])
@@ -245,14 +254,14 @@ model EmailRecipient {
 }
 
 model EmailTemplate {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  key     String
-  name    String
-  subject String
+  key       String
+  name      String
+  subject   String
 
   htmlContent String? @db.LongText
   textContent String? @db.Text
@@ -268,80 +277,83 @@ model EmailTemplate {
   @@index([userId, isActive])
 }
 
+
 // ==== part: File.prisma ====
 
 model FileFolder {
-  id   String @id @default(cuid())
-  name String
+  id         String      @id @default(cuid())
+  name       String
 
   // Tree
-  parentId String?
-  parent   FileFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children FileFolder[] @relation("FolderTree")
+  parentId   String?
+  parent     FileFolder? @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children   FileFolder[] @relation("FolderTree")
 
   // Ownership (map vào User.folders)
-  ownerId String
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId    String
+  owner      User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   // Files inside folder
-  files StoredFile[]
+  files      StoredFile[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  // chống trùng tên folder trong cùng 1 thư mục (theo user)
-  @@unique([ownerId, parentId, name])
   @@index([ownerId, parentId])
+
+  @@unique([ownerId, parentId, name])
 }
 
 model StoredFile {
-  id String @id @default(cuid())
+  id         String   @id @default(cuid())
 
-  folderId String?
-  folder   FileFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folderId   String?
+  folder     FileFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   // Ownership (map vào User.files)
-  ownerId String
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   name       String
   mimeType   String
   sizeBytes  Int
-  storageKey String @unique // key để tìm file trong storage private
+  storageKey String   @unique  // key để tìm file trong storage private
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([ownerId, folderId])
   @@index([folderId])
 }
 
+
 // ==== part: Image.prisma ====
 model ImageFolder {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name     String
-  parentId String?
-  parent   ImageFolder?  @relation("ImageFolderTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children ImageFolder[] @relation("ImageFolderTree")
+  name      String
+  parentId  String?
+  parent    ImageFolder? @relation("ImageFolderTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  ImageFolder[] @relation("ImageFolderTree")
 
-  images ImageAsset[]
+  images    ImageAsset[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, parentId, name])
-  @@unique([id, userId])
   @@index([userId, parentId])
+  @@unique([userId, parentId, name])
+
+  @@unique([id, userId])
 }
 
 model ImageAsset {
-  id String @id @default(cuid())
+  id       String @id @default(cuid())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   folderId String?
   folder   ImageFolder? @relation(fields: [folderId, userId], references: [id, userId], onDelete: Restrict)
@@ -351,18 +363,19 @@ model ImageAsset {
   mimeType     String
   sizeBytes    Int
 
-  width  Int?
-  height Int?
+  width   Int?
+  height  Int?
 
-  tag ImageTag?
+  tag     ImageTag?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([fileName])
   @@index([userId, createdAt])
   @@index([userId, tag])
+  @@unique([fileName])
 }
+
 
 enum ImageTag {
   NEW
@@ -374,6 +387,7 @@ enum ImageTag {
   AVATAR
   PRODUCT
 }
+
 
 // ==== part: Integration.prisma ====
 enum IntegrationCategory {
@@ -404,45 +418,46 @@ model Integration {
   category    IntegrationCategory
   description String?
 
-  enabled Boolean           @default(false)
-  status  IntegrationStatus @default(disconnected)
+  enabled     Boolean             @default(false)
+  status      IntegrationStatus   @default(disconnected)
 
-  config Json @default("{}")
+  config      Json                @default("{}")
 
-  apiKeyEnc     String?
-  apiSecretEnc  String?
-  webhookUrlEnc String?
+  apiKeyEnc      String?
+  apiSecretEnc   String?
+  webhookUrlEnc  String?
 
-  lastSyncAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  lastSyncAt   DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
 
-  logs IntegrationLog[]
+  logs         IntegrationLog[]
 }
 
 model IntegrationLog {
-  id            String   @id @default(cuid())
+  id            String       @id @default(cuid())
   integrationId String
-  level         LogLevel @default(info)
+  level         LogLevel     @default(info)
   message       String
-  meta          Json     @default("{}")
-  createdAt     DateTime @default(now())
+  meta          Json         @default("{}")
+  createdAt     DateTime     @default(now())
 
-  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integration   Integration  @relation(fields: [integrationId], references: [id], onDelete: Cascade)
 
   @@index([integrationId, createdAt])
 }
 
+
 // ==== part: MenuItem.prisma ====
 model MenuItem {
-  id String @id @default(cuid())
+  id        String     @id @default(cuid())
 
-  siteId String
-  site   Site   @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  siteId    String
+  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade)
 
-  parentId String?    @db.VarChar(191)
-  parent   MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
-  children MenuItem[] @relation("MenuItemToSelf")
+  parentId  String?    @db.VarChar(191)
+  parent    MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  children  MenuItem[] @relation("MenuItemToSelf")
 
   title     String     @db.VarChar(191)
   path      String?    @db.VarChar(255)
@@ -452,10 +467,10 @@ model MenuItem {
   locale    Locale     @default(vi)
   setKey    MenuSetKey @default(home)
 
-  pages Page[]
+  pages     Page[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@index([parentId])
   @@index([siteId, locale, setKey, sortOrder])
@@ -466,6 +481,7 @@ enum MenuSetKey {
   home
   v1
 }
+
 
 // ==== part: Message.prisma ====
 enum ConversationType {
@@ -488,11 +504,11 @@ model Conversation {
 }
 
 model ConversationMember {
-  id             String    @id @default(cuid())
+  id             String        @id @default(cuid())
   conversationId String
   userId         String
-  role           String    @default("MEMBER")
-  joinedAt       DateTime  @default(now())
+  role           String        @default("MEMBER")
+  joinedAt       DateTime      @default(now())
   lastReadAt     DateTime?
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -552,37 +568,47 @@ model Block {
   @@index([blockedId])
 }
 
+
 // ==== part: Page.prisma ====
 model Page {
-  id                String      @id @default(cuid())
-  siteId            String
-  site              Site        @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  menuItemId        String?     @db.VarChar(191)
-  menuItem          MenuItem?   @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
-  title             String
-  slug              String
-  path              String
-  status            PageStatus  @default(DRAFT)
-  blocks            Json
+  id        String     @id @default(cuid())
+
+  siteId    String
+  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  // keep as plain id (no relation)
+  menuItemId String?   @db.VarChar(191)
+
+  title     String
+  slug      String
+  path      String
+  status    PageStatus @default(DRAFT)
+  blocks    Json
+
   seoTitle          String?
   seoDesc           String?
   coverImage        String?
   seoKeywords       String?
   canonicalUrl      String?
-  noindex           Boolean     @default(false)
-  nofollow          Boolean     @default(false)
+
+  noindex           Boolean      @default(false)
+  nofollow          Boolean      @default(false)
+
   ogTitle           String?
   ogDescription     String?
-  twitterCard       TwitterCard @default(SUMMARY_LARGE_IMAGE)
-  sitemapChangefreq Changefreq  @default(WEEKLY)
-  sitemapPriority   Float       @default(0.7)
+
+  twitterCard       TwitterCard  @default(SUMMARY_LARGE_IMAGE)
+  sitemapChangefreq Changefreq   @default(WEEKLY)
+  sitemapPriority   Float        @default(0.7)
+
   structuredData    Json?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  sections          Section[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([siteId, slug])
   @@unique([siteId, path])
+
   @@index([siteId])
   @@index([siteId, updatedAt])
   @@index([menuItemId])
@@ -609,75 +635,111 @@ enum Changefreq {
 }
 
 model Section {
-  id      String  @id @default(cuid())
-  pageId  String
-  type    String // "hero" | "text" | "gallery"...
-  enabled Boolean @default(true)
-  sort    Int     @default(0)
+  id        String   @id @default(cuid())
 
-  data  Json // nội dung + props
-  style Json? // style override (optional)
+  // keep as plain id (no relation)
+  pageId    String
+
+  type      String
+  enabled   Boolean  @default(true)
+  sort      Int      @default(0)
+
+  data      Json
+  style     Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@index([pageId, sort])
   @@index([type])
 }
 
+
 // ==== part: Payment.prisma ====
-enum PaymentDirection {
-  CAPTURE
-  REFUND
+enum PageStatus {
+  DRAFT
+  PUBLISHED
 }
 
-enum PaymentProvider {
-  MANUAL
-  VNPAY
-  MOMO
-  ZALOPAY
-  STRIPE
-  PAYPAL
-  OTHER
+enum TwitterCard {
+  SUMMARY
+  SUMMARY_LARGE_IMAGE
 }
 
-model Payment {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum Changefreq {
+  ALWAYS
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  NEVER
+}
 
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+model Page {
+  id        String     @id @default(cuid())
 
-  direction PaymentDirection @default(CAPTURE)
-  status    TxStatus         @default(PAID)
-  method    PaymentMethod    @default(CASH)
-  currency  CurrencyCode     @default(VND)
+  siteId    String
+  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
-  amountCents Int @default(0)
+  // keep as plain id (no relation)
+  menuItemId String?   @db.VarChar(191)
 
-  provider  PaymentProvider @default(MANUAL)
-  reference String?
-  notes     String?
+  title     String
+  slug      String
+  path      String
+  status    PageStatus @default(DRAFT)
+  blocks    Json
 
-  occurredAt DateTime @default(now())
+  seoTitle          String?
+  seoDesc           String?
+  coverImage        String?
+  seoKeywords       String?
+  canonicalUrl      String?
 
-  idempotencyKey String? @unique
+  noindex           Boolean      @default(false)
+  nofollow          Boolean      @default(false)
+
+  ogTitle           String?
+  ogDescription     String?
+
+  twitterCard       TwitterCard  @default(SUMMARY_LARGE_IMAGE)
+  sitemapChangefreq Changefreq   @default(WEEKLY)
+  sitemapPriority   Float        @default(0.7)
+
+  structuredData    Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  refundsAsOriginal Refund[] @relation("RefundOriginalPayment")
-  refundFor         Refund?  @relation("RefundPayment")
+  @@unique([siteId, slug])
+  @@unique([siteId, path])
 
-  @@index([userId, occurredAt])
-  @@index([orderId, occurredAt])
-  @@index([status])
-  @@index([method])
-  @@index([reference])
+  @@index([siteId])
+  @@index([siteId, updatedAt])
+  @@index([menuItemId])
 }
+
+model Section {
+  id        String   @id @default(cuid())
+
+  // keep as plain id (no relation)
+  pageId    String?
+
+  type      String   // "hero" | "text" | "gallery"...
+  enabled   Boolean  @default(true)
+  sort      Int      @default(0)
+
+  data      Json
+  style     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageId, sort])
+  @@index([type])
+}
+
 
 // ==== part: Product.prisma ====
 enum CurrencyCode {
@@ -701,9 +763,9 @@ enum TxStatus {
 }
 
 enum TxType {
-  EXPENSE // chi phí
-  INCOME // thu nhập (nếu sau này bạn muốn)
-  ADJUSTMENT // điều chỉnh
+  EXPENSE
+  INCOME
+  ADJUSTMENT
 }
 
 enum SpendCategoryType {
@@ -761,74 +823,60 @@ enum FulfillmentStatus {
 }
 
 model SpendCategory {
-  id       String            @id @default(cuid())
-  name     String            @unique
-  type     SpendCategoryType @default(OTHER)
-  icon     String? // optional: "bi-cash-stack"...
-  color    String? // optional: "blue", "#0ea5e9"
-  isActive Boolean           @default(true)
+  id        String            @id @default(cuid())
+  name      String            @unique
+  type      SpendCategoryType @default(OTHER)
+  icon      String?
+  color     String?
+  isActive  Boolean           @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  transactions Transaction[]
-  user         User?         @relation(fields: [userId], references: [id])
-  userId       String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@index([type])
 }
 
 model Merchant {
-  id      String  @id @default(cuid())
-  name    String  @unique
-  website String?
-  email   String?
-  phone   String?
-  address String?
+  id        String   @id @default(cuid())
+  name      String   @unique
+  website   String?
+  email     String?
+  phone     String?
+  address   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  transactions Transaction[]
-  user         User?         @relation(fields: [userId], references: [id])
-  userId       String?
 }
 
 model Transaction {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String        @id @default(cuid())
 
-  type     TxType        @default(EXPENSE)
-  status   TxStatus      @default(PAID)
-  method   PaymentMethod @default(CARD)
-  currency CurrencyCode  @default(USD)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  title       String
-  description String?
+  type          TxType        @default(EXPENSE)
+  status        TxStatus      @default(PAID)
+  method        PaymentMethod @default(CARD)
+  currency      CurrencyCode  @default(USD)
 
-  merchantId String?
-  merchant   Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
 
-  categoryId String?
-  category   SpendCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  merchantId    String?
+  categoryId    String?
 
-  subtotalCents Int @default(0)
-  taxCents      Int @default(0)
-  totalCents    Int @default(0)
+  subtotalCents Int           @default(0)
+  taxCents      Int           @default(0)
+  totalCents    Int           @default(0)
 
-  occurredAt DateTime
-  reference  String?
-  notes      String?
+  occurredAt    DateTime
+  reference     String?
+  notes         String?
 
   inventoryReceiptId String? @unique
 
-  lines TransactionLine[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  inventoryReceipts InventoryReceipt[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([userId, occurredAt])
   @@index([status])
@@ -837,18 +885,15 @@ model Transaction {
 }
 
 model TransactionLine {
-  id            String      @id @default(cuid())
-  transactionId String
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
 
-  // optional: gắn vào product nếu là mua hàng hoá
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  transactionId  String?
+  productId      String?
 
   title          String
-  qty            Int    @default(1)
-  unitPriceCents Int    @default(0)
-  totalCents     Int    @default(0)
+  qty            Int      @default(1)
+  unitPriceCents Int      @default(0)
+  totalCents     Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -858,28 +903,25 @@ model TransactionLine {
 }
 
 model ProductCategory {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  siteId String
-  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  id        String @id @default(cuid())
 
-  name     String
-  slug     String
-  isActive Boolean @default(true)
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  parentId String?
-  parent   ProductCategory?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children ProductCategory[] @relation("CategoryTree")
+  siteId    String
 
-  sort Int @default(0)
+  name      String
+  slug      String
+  isActive  Boolean @default(true)
 
-  icon       String?
+  parentId  String?
+
+  sort      Int @default(0)
+
+  icon      String?
   coverImage String?
-  seoTitle   String?
-  seoDesc    String? @db.Text
-
-  products Product[]
+  seoTitle  String?
+  seoDesc   String? @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -892,41 +934,32 @@ model ProductCategory {
 }
 
 model Product {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String @id @default(cuid())
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name        String
   slug        String
   description String? @db.Text
 
-  sku     String
-  barcode String?
+  sku       String
+  barcode   String?
 
   priceCents Int @default(0)
   costCents  Int @default(0)
   stock      Int @default(0)
 
   hasVariants       Boolean @default(false)
-  displayPriceCents Int     @default(0) // ví dụ: min variant price hoặc product price
-  displayStock      Int     @default(0) // ví dụ: sum variant stock hoặc product stock
+  displayPriceCents Int     @default(0)
+  displayStock      Int     @default(0)
 
-  isActive Boolean @default(true)
+  isActive   Boolean @default(true)
 
   categoryId String?
-  category   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  images         ProductImage[]
-  attributes     ProductAttribute[]
-  variants       ProductVariant[]
-  stockMovements StockMovement[]
-
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  transactionLines      TransactionLine[]
-  inventoryReceiptItems InventoryReceiptItem[]
-  orderItems            OrderItem[]
-  purchaseOrderLines    PurchaseOrderLine[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, sku])
   @@unique([userId, slug])
@@ -939,81 +972,65 @@ model Product {
 }
 
 model Supplier {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
 
-  name    String
-  email   String?
-  phone   String?
-  address String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  email     String?
+  phone     String?
+  address   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  receipts       InventoryReceipt[]
-  purchaseOrders PurchaseOrder[]
 
   @@unique([userId, name])
   @@index([userId])
 }
 
 model InventoryReceipt {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String        @id @default(cuid())
 
-  supplierId String?
-  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // NEW: link to PO
-  poId String?
-  po   PurchaseOrder? @relation(fields: [poId], references: [id], onDelete: SetNull)
+  supplierId  String?
+  poId        String?
 
-  status   ReceiptStatus @default(PENDING)
-  currency CurrencyCode  @default(USD)
+  status      ReceiptStatus @default(PENDING)
+  currency    CurrencyCode  @default(USD)
 
-  receivedAt DateTime?
-  reference  String?
+  receivedAt  DateTime?
+  reference   String?
 
   subtotalCents Int @default(0)
   taxCents      Int @default(0)
   totalCents    Int @default(0)
 
-  notes String?
+  notes       String?
 
-  items       InventoryReceiptItem[]
-  transaction Transaction?           @relation(fields: [transactionId], references: [id])
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  transactionId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([userId, createdAt])
   @@index([userId, receivedAt])
   @@index([status])
   @@index([supplierId])
   @@index([userId, supplierId])
-  // NEW
+
   @@index([poId])
   @@index([userId, poId])
 }
 
 model InventoryReceiptItem {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  receiptId String
-  receipt   InventoryReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  receiptId String?
+  poLineId  String?
 
-  // NEW: link to PO line (optional vì có thể nhận hàng không qua PO)
-  poLineId String?
-  poLine   PurchaseOrderLine? @relation(fields: [poLineId], references: [id], onDelete: SetNull)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
   qty           Int
   unitCostCents Int
@@ -1027,27 +1044,19 @@ model InventoryReceiptItem {
   @@index([variantId])
   @@index([productId, createdAt])
   @@index([variantId, createdAt])
-  // NEW
+
   @@index([poLineId])
 }
 
 model ProductImage {
-  id String @id @default(cuid())
+  id        String   @id @default(cuid())
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
 
-  // URL ảnh (đã upload lên /uploads hoặc S3...)
-  url String
-
-  // Tên file (optional)
-  fileName String?
-
-  // sắp xếp ảnh trong gallery
-  sort Int @default(0)
-
-  // ảnh cover (optional nhưng rất hữu ích)
-  isCover Boolean @default(false)
+  url       String
+  fileName  String?
+  sort      Int      @default(0)
+  isCover   Boolean  @default(false)
 
   createdAt DateTime @default(now())
 
@@ -1056,51 +1065,43 @@ model ProductImage {
 }
 
 model ProductAttribute {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
 
-  key   String // ví dụ: "Chất liệu"
-  value String // ví dụ: "Cotton"
-  sort  Int    @default(0)
+  key       String
+  value     String
+  sort      Int      @default(0)
 
   @@index([productId, sort])
 }
 
 model Order {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // customer (optional)
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
-  // status (ops)
-  status OrderStatus @default(PENDING)
+  status     OrderStatus @default(PENDING)
 
-  // NEW: tách payment & fulfillment để UI/admin rõ ràng
   paymentStatus     PaymentStatus     @default(UNPAID)
   fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
 
-  // channel / ref
-  channel  SalesChannel @default(SHOP)
-  currency CurrencyCode @default(VND)
+  channel   SalesChannel @default(SHOP)
+  currency  CurrencyCode @default(VND)
 
-  // money
   subtotalCents Int @default(0)
-  discountCents Int @default(0) // NEW
+  discountCents Int @default(0)
   shippingCents Int @default(0)
-  taxCents      Int @default(0) // NEW
+  taxCents      Int @default(0)
   totalCents    Int @default(0)
 
-  // NEW: order code / external ref (marketplace)
-  number    String? // ORD-00001 (optional, nhưng nên có)
-  reference String? // marketplace order id / note
+  number     String?
+  reference  String?
 
-  // NEW: shipping/customer snapshot (tránh đổi thông tin làm sai đơn cũ)
   customerNameSnapshot  String?
   customerPhoneSnapshot String?
   customerEmailSnapshot String?
@@ -1114,7 +1115,6 @@ model Order {
   shipToPostal   String?
   shipToCountry  String?
 
-  // NEW: logistics
   carrier      String?
   trackingCode String?
   shippedAt    DateTime?
@@ -1122,62 +1122,47 @@ model Order {
   cancelledAt  DateTime?
   returnedAt   DateTime?
 
-  notes String?
-  tags  String? // optional: "vip, fragile"
-
-  items OrderItem[]
-
-  payments Payment[]
+  notes     String?
+  tags      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  refunds   Refund[]
 
-  @@unique([userId, number])
   @@index([userId, createdAt])
   @@index([status])
   @@index([paymentStatus])
   @@index([fulfillmentStatus])
   @@index([userId, customerId])
+  @@unique([userId, number])
 }
 
 model OrderItem {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-
+  orderId   String?
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
-  // qty ordered
-  qty Int
+  qty        Int
 
-  // NEW: hỗ trợ partial flow
   qtyReserved Int @default(0)
   qtyShipped  Int @default(0)
   qtyReturned Int @default(0)
 
-  // price snapshot
   unitPriceCents Int
-  subtotalCents  Int @default(0) // unitPriceCents * qty (cache)
-  discountCents  Int @default(0) // NEW
-  taxCents       Int @default(0) // NEW
+  subtotalCents  Int @default(0)
+  discountCents  Int @default(0)
+  taxCents       Int @default(0)
   totalCents     Int @default(0)
 
-  // NEW: snapshot identity (để audit)
   skuSnapshot         String?
   productNameSnapshot String?
   variantNameSnapshot String?
 
   note String?
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  refundItems RefundItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([productId])
@@ -1190,35 +1175,27 @@ enum VariantStatus {
 }
 
 model ProductVariant {
-  id String @id @default(cuid())
+  id        String   @id @default(cuid())
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?
 
-  name    String? // ví dụ: "Đen"
-  sku     String
-  barcode String?
+  name      String?
+  sku       String
+  barcode   String?
 
   priceCents Int @default(0)
   costCents  Int @default(0)
 
-  // inventory
-  stock    Int     @default(0)
-  isActive Boolean @default(true)
+  stock     Int @default(0)
+  isActive  Boolean @default(true)
 
-  option1 String? // "Color"
-  value1  String? // "Black"
-  option2 String?
-  value2  String?
+  option1   String?
+  value1    String?
+  option2   String?
+  value2    String?
 
-  images ProductVariantImage[]
-
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  inventoryReceiptItems InventoryReceiptItem[]
-  orderItems            OrderItem[]
-  stockMovements        StockMovement[]
-  purchaseOrderLines    PurchaseOrderLine[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([productId, sku])
   @@index([productId])
@@ -1226,15 +1203,14 @@ model ProductVariant {
 }
 
 model ProductVariantImage {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  variantId String
-  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantId String?
 
-  url      String
-  fileName String?
-  sort     Int     @default(0)
-  isCover  Boolean @default(false)
+  url       String
+  fileName  String?
+  sort      Int     @default(0)
+  isCover   Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -1257,21 +1233,18 @@ enum StockMovementSource {
 }
 
 model StockMovement {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
-  type   StockMovementType
-  source StockMovementSource
+  type      StockMovementType
+  source    StockMovementSource
 
-  qtyDelta   Int
+  qtyDelta  Int
   occurredAt DateTime
 
   beforeStock Int?
@@ -1283,18 +1256,18 @@ model StockMovement {
   receiptItemId String?
   orderItemId   String?
 
-  // NEW: chống tạo trùng khi user double click / retry
   idempotencyKey String?
 
   createdAt DateTime @default(now())
 
-  @@unique([receiptItemId])
-  // REMOVE: @@unique([orderItemId])
-  @@unique([idempotencyKey])
   @@index([userId, occurredAt])
   @@index([productId, occurredAt])
   @@index([variantId, occurredAt])
   @@index([orderItemId, occurredAt])
+
+  @@unique([receiptItemId])
+  // REMOVE: @@unique([orderItemId])
+  @@unique([idempotencyKey])
 }
 
 enum POStatus {
@@ -1306,29 +1279,25 @@ enum POStatus {
 }
 
 model PurchaseOrder {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
 
-  number String // PO-00012
-  status POStatus @default(DRAFT)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  number     String
+  status     POStatus @default(DRAFT)
 
   supplierId String?
-  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
 
   currency   CurrencyCode @default(USD)
   expectedAt DateTime?
   notes      String?
 
-  // totals cache (optional but recommended for fast UI)
   subtotalCents Int @default(0)
   taxCents      Int @default(0)
   totalCents    Int @default(0)
 
-  lines    PurchaseOrderLine[]
-  receipts InventoryReceipt[] // link ngược qua InventoryReceipt.poId
-
-  approvedAt  DateTime?
+  approvedAt DateTime?
   cancelledAt DateTime?
 
   createdAt DateTime @default(now())
@@ -1341,40 +1310,34 @@ model PurchaseOrder {
 }
 
 model PurchaseOrderLine {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
-  poId String
-  po   PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-
+  poId      String?
+  productId String?
   variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
-  // snapshots for audit/history
   skuSnapshot  String?
   nameSnapshot String?
 
-  qtyOrdered  Int
-  qtyReceived Int @default(0)
+  qtyOrdered   Int
+  qtyReceived  Int @default(0)
 
   unitCostCents Int @default(0)
-  totalCents    Int @default(0) // qtyOrdered * unitCostCents (cache)
+  totalCents    Int @default(0)
 
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  inventoryReceiptItems InventoryReceiptItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([poId])
   @@index([productId])
   @@index([variantId])
 }
 
+
 // ==== part: Profile.prisma ====
 // schema.prisma
 
-enum ProfileRole {
+enum ProfileRole  {
   admin
   staff
   viewer
@@ -1392,7 +1355,7 @@ enum Gender {
 }
 
 model Profile {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1409,11 +1372,11 @@ model Profile {
   role   ProfileRole   @default(viewer)
   status AccountStatus @default(active)
 
-  company    String?
-  department String?
-  jobTitle   String?
-  manager    String?
-  hireDate   DateTime?
+  company     String?
+  department  String?
+  jobTitle    String?
+  manager     String?
+  hireDate    DateTime?
 
   gender   Gender? @default(other)
   locale   Locale  @default(vi)
@@ -1440,14 +1403,15 @@ model Profile {
   updatedAt DateTime @updatedAt
 }
 
+
 // ==== part: Refund.prisma ====
 enum RefundStatus {
-  PENDING // tạo yêu cầu
-  APPROVED // duyệt (tuỳ bạn có cần duyệt hay không)
-  PROCESSING // đang hoàn qua cổng
-  SUCCEEDED // hoàn thành
-  FAILED // thất bại
-  CANCELLED // huỷ yêu cầu
+  PENDING
+  APPROVED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
 }
 
 enum RefundReason {
@@ -1461,41 +1425,32 @@ enum RefundReason {
 }
 
 model Refund {
-  id String @id @default(cuid())
+  id        String       @id @default(cuid())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
+  // keep as plain ids (no relations)
+  orderId           String?
   originalPaymentId String?
-  originalPayment   Payment? @relation("RefundOriginalPayment", fields: [originalPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_original_payment")
+  refundPaymentId   String?  @unique
 
-  refundPaymentId String?  @unique
-  refundPayment   Payment? @relation("RefundPayment", fields: [refundPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_refund_payment")
+  status    RefundStatus @default(PENDING)
+  reason    RefundReason @default(OTHER)
 
-  status RefundStatus @default(PENDING)
-  reason RefundReason @default(OTHER)
-
-  // số tiền hoàn (đơn vị cents theo currency của order/payment)
   amountCents Int
+  currency  CurrencyCode @default(VND)
 
-  currency CurrencyCode @default(VND)
-
-  // tracking / note
-  reference String? // mã refund từ gateway (nếu muốn tách khỏi Payment.reference)
+  reference String?
   notes     String?
 
-  // workflow meta
-  requestedAt DateTime  @default(now())
+  requestedAt DateTime @default(now())
   approvedAt  DateTime?
   processedAt DateTime?
   completedAt DateTime?
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  refundItems RefundItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId, createdAt])
   @@index([orderId, createdAt])
@@ -1504,13 +1459,11 @@ model Refund {
 }
 
 model RefundItem {
-  id String @id @default(cuid())
+  id        String  @id @default(cuid())
 
-  refundId String
-  refund   Refund @relation(fields: [refundId], references: [id], onDelete: Cascade)
-
+  // keep as plain ids (no relations)
+  refundId   String?
   orderItemId String?
-  orderItem   OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
 
   qty         Int     @default(1)
   amountCents Int     @default(0)
@@ -1520,17 +1473,17 @@ model RefundItem {
   @@index([orderItemId])
 }
 
+
 // ==== part: Site.prisma ====
 model Site {
-  id                String            @id @default(cuid())
-  domain            String            @unique
-  name              String
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  pages             Page[]
-  menuItems         MenuItem[]
-  productCategories ProductCategory[]
+  id        String   @id @default(cuid())
+  domain    String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pages     Page[]
 }
+
 
 // ==== part: Storage.prisma ====
 enum StorageProvider {
@@ -1557,94 +1510,90 @@ enum StorageLogLevel {
 }
 
 model StorageIntegration {
-  id String @id @default(uuid())
+  id                     String          @id @default(uuid())
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 String          @unique
+  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  provider StorageProvider @default(R2)
-  status   StorageStatus   @default(DISCONNECTED)
+  provider               StorageProvider @default(R2)
+  status                 StorageStatus   @default(DISCONNECTED)
 
   // Common
-  publicBaseUrl       String
-  rootPrefix          String  @default("uploads/")
-  privateByDefault    Boolean @default(true)
-  signedUrlEnabled    Boolean @default(true)
-  signedUrlTtlSeconds Int     @default(900)
+  publicBaseUrl           String
+  rootPrefix              String          @default("uploads/")
+  privateByDefault        Boolean         @default(true)
+  signedUrlEnabled        Boolean         @default(true)
+  signedUrlTtlSeconds     Int             @default(900)
 
-  maxUploadMb             Int     @default(50)
-  allowedMime             String  @default("image/*,application/pdf")
-  enableImageOptimization Boolean @default(true)
+  maxUploadMb             Int             @default(50)
+  allowedMime             String          @default("image/*,application/pdf")
+  enableImageOptimization Boolean         @default(true)
 
   // Local
-  localDir String?
+  localDir                String?
 
   // S3/R2
-  region             String?
-  bucket             String?
-  endpointUrl        String?
-  accessKeyIdEnc     String?
-  secretAccessKeyEnc String?
+  region                  String?
+  bucket                  String?
+  endpointUrl             String?
+  accessKeyIdEnc          String?
+  secretAccessKeyEnc      String?
 
   // CDN
-  cacheControl String  @default("public,max-age=31536000,immutable")
-  purgeEnabled Boolean @default(false)
+  cacheControl            String          @default("public,max-age=31536000,immutable")
+  purgeEnabled            Boolean         @default(false)
 
   // Diagnostics
-  lastTestedAt DateTime?
-  lastError    String?
+  lastTestedAt            DateTime?
+  lastError               String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  buckets StorageBucket[]
-  objects StorageObject[]
-  logs    StorageLog[]
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
 }
 
 model StorageBucket {
-  id String @id @default(uuid())
+  id            String          @id @default(uuid())
 
-  integrationId String
-  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  integrationId String?
 
-  provider    StorageProvider
-  name        String
-  region      String?
-  endpointUrl String?
-  isDefault   Boolean         @default(false)
+  provider     StorageProvider
+  name         String
+  region       String?
+  endpointUrl  String?
+  isDefault    Boolean        @default(false)
 
-  objectsCount Int    @default(0)
-  sizeBytes    BigInt @default(0)
+  objectsCount Int            @default(0)
+  sizeBytes    BigInt         @default(0)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
-  @@unique([integrationId, provider, name])
   @@index([integrationId, provider])
+  @@unique([integrationId, provider, name])
 }
 
 model StorageObject {
-  id String @id @default(uuid())
+  id             String           @id @default(uuid())
 
-  integrationId String
-  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  integrationId  String?
 
-  provider StorageProvider
-  bucket   String
-  key      String
+  provider       StorageProvider
+  bucket         String
+  key            String
 
-  sizeBytes  BigInt
-  mimeType   String
-  visibility ObjectVisibility @default(PRIVATE)
+  sizeBytes      BigInt
+  mimeType       String
+  visibility     ObjectVisibility @default(PRIVATE)
 
   etag           String?
   checksum       String?
   lastModifiedAt DateTime?
 
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  deletedAt      DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@unique([integrationId, provider, bucket, key])
   @@index([integrationId, key])
@@ -1653,20 +1602,21 @@ model StorageObject {
 }
 
 model StorageLog {
-  id String @id @default(uuid())
+  id            String   @id @default(uuid())
 
-  integrationId String
-  integration   StorageIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  integrationId String?
 
-  at      DateTime        @default(now())
-  level   StorageLogLevel @default(INFO)
-  action  String
-  message String
-  meta    Json?
+  at            DateTime        @default(now())
+  level         StorageLogLevel @default(INFO)
+  action        String
+  message       String
+  meta          Json?
 
   @@index([integrationId, at(sort: Desc)])
   @@index([integrationId, level])
 }
+
 
 // ==== part: Webhook.prisma ====
 // ===== ENUMS =====
@@ -1710,13 +1660,13 @@ model Webhook {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId String // chỉ lưu id, không FK
+  userId String // chỉ lưu id, không FK (no relation)
 
   name      String
   direction WebhookDirection
-  status    WebhookStatus    @default(active)
+  status    WebhookStatus @default(active)
 
-  eventKey String
+  eventKey  String
 
   endpointPath   String?
   destinationUrl String?
@@ -1727,10 +1677,8 @@ model Webhook {
   retryPolicy Json?
 
   lastTriggeredAt DateTime?
-  success24h      Int       @default(0)
-  fail24h         Int       @default(0)
-
-  deliveries WebhookDelivery[]
+  success24h      Int @default(0)
+  fail24h         Int @default(0)
 
   @@index([userId])
   @@index([userId, direction, status])
@@ -1741,13 +1689,14 @@ model WebhookDelivery {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
-  webhookId String
-  webhook   Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  webhookId String?
 
   status WebhookDeliveryStatus @default(success)
 
   payload Json?
 }
+
 
 // ==== part: user.prisma ====
 enum UserRole {
@@ -1779,31 +1728,31 @@ enum SessionType {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  emailVerifiedAt DateTime?
-  role            UserRole  @default(USER)
-  isActive        Boolean   @default(true)
+  id                String   @id @default(cuid())
+  email             String   @unique
+  emailVerifiedAt   DateTime?
+  role              UserRole @default(USER)
+  isActive          Boolean  @default(true)
 
-  image String?
+  image             String?
 
   passwordHash      String
   passwordUpdatedAt DateTime @default(now())
 
-  failedLoginCount Int       @default(0)
-  lockedUntil      DateTime?
+  failedLoginCount  Int      @default(0)
+  lockedUntil       DateTime?
 
-  requireReauthAt DateTime?
+  requireReauthAt   DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  sessions    Session[]
-  twoFactor   TwoFactor?
-  backupCodes BackupCode[]
-  auditLogs   AuditLog[]
+  sessions          Session[]
+  twoFactor         TwoFactor?
+  backupCodes       BackupCode[]
+  auditLogs         AuditLog[]
 
-  profile Profile?
+  profile           Profile?
 
   // ✅ FRIEND RELATIONS
   friendRequestsSent     FriendRequest[] @relation("FriendReqFrom")
@@ -1813,83 +1762,74 @@ model User {
   blocksSent     Block[] @relation("Blocker")
   blocksReceived Block[] @relation("Blocked")
 
+
   calendars      Calendar[]
   calendarEvents CalendarEvent[] @relation("UserCreatedEvents")
 
   folders FileFolder[]
   files   StoredFile[]
 
-  images       ImageAsset[]
+  images    ImageAsset[]
   imageFolders ImageFolder[]
 
-  // Spending / finance
+    // Spending / finance
   transactions    Transaction[]
   spendCategories SpendCategory[]
   merchants       Merchant[]
 
   // Inventory / sales
-  products          Product[]
-  suppliers         Supplier[]
+  products        Product[]
+  suppliers       Supplier[]
   inventoryReceipts InventoryReceipt[]
 
-  customers           Customer[]
-  orders              Order[]
-  addresses           Address[]
-  emails              Email[]
-  emailTemplates      EmailTemplate[]
-  conversationMembers ConversationMember[]
-  messages            Message[]
-  payments            Payment[]
-  productCategories   ProductCategory[]
-  stockMovements      StockMovement[]
-  purchaseOrders      PurchaseOrder[]
-  refunds             Refund[]
-  storageIntegration  StorageIntegration?
+ customers Customer[]
+  orders    Order[]
+
 
   @@index([role])
   @@index([lockedUntil])
 }
 
-model Session {
-  id           String      @id @default(cuid())
-  userId       String
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type         SessionType @default(USER)
-  tokenHash    String      @unique
-  createdAt    DateTime    @default(now())
-  expiresAt    DateTime
-  lastSeenAt   DateTime    @default(now())
-  ip           String?
-  userAgent    String?
-  country      String?
-  revokedAt    DateTime?
-  revokeReason String?
 
+
+model Session {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            SessionType @default(USER)
+  tokenHash       String      @unique
+  createdAt       DateTime    @default(now())
+  expiresAt       DateTime
+  lastSeenAt      DateTime    @default(now())
+  ip              String?
+  userAgent       String?
+  country         String?
+  revokedAt       DateTime?
+  revokeReason    String?
   @@index([userId, type])
   @@index([expiresAt])
   @@index([revokedAt])
 }
 
 model TwoFactor {
-  id         String    @id @default(cuid())
-  userId     String    @unique
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enabled    Boolean   @default(false)
-  secretEnc  String?
-  lastUsedAt DateTime?
-  enabledAt  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled       Boolean  @default(false)
+  secretEnc     String?
+  lastUsedAt    DateTime?
+  enabledAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model BackupCode {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codeHash  String
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash    String
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
   @@unique([userId, codeHash])
   @@index([userId, usedAt])
 }
@@ -1901,23 +1841,21 @@ model LoginAttempt {
   fingerprint String?
   success     Boolean  @default(false)
   createdAt   DateTime @default(now())
-
   @@index([ip, createdAt])
   @@index([email, createdAt])
   @@index([fingerprint, createdAt])
 }
 
 model AuditLog {
-  id        String      @id @default(cuid())
-  userId    String?
-  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action    AuditAction
-  result    AuditResult
-  ip        String?
-  userAgent String?
-  metaJson  Json?
-  createdAt DateTime    @default(now())
-
+  id          String      @id @default(cuid())
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      AuditAction
+  result      AuditResult
+  ip          String?
+  userAgent   String?
+  metaJson    Json?
+  createdAt   DateTime    @default(now())
   @@index([userId, createdAt])
   @@index([action, createdAt])
 }

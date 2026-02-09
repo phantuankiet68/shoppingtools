@@ -1,50 +1,83 @@
-enum PaymentDirection {
-  CAPTURE
-  REFUND
+enum PageStatus {
+  DRAFT
+  PUBLISHED
 }
 
-enum PaymentProvider {
-  MANUAL
-  VNPAY
-  MOMO
-  ZALOPAY
-  STRIPE
-  PAYPAL
-  OTHER
+enum TwitterCard {
+  SUMMARY
+  SUMMARY_LARGE_IMAGE
 }
 
-model Payment {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum Changefreq {
+  ALWAYS
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  NEVER
+}
 
-  orderId   String
-  order     Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+model Page {
+  id        String     @id @default(cuid())
 
-  direction PaymentDirection @default(CAPTURE)
-  status    TxStatus         @default(PAID)
-  method    PaymentMethod    @default(CASH)
-  currency  CurrencyCode     @default(VND)
+  siteId    String
+  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
-  amountCents Int            @default(0)
+  // keep as plain id (no relation)
+  menuItemId String?   @db.VarChar(191)
 
-  provider  PaymentProvider  @default(MANUAL)
-  reference String?
-  notes     String?
+  title     String
+  slug      String
+  path      String
+  status    PageStatus @default(DRAFT)
+  blocks    Json
 
-  occurredAt DateTime        @default(now())
+  seoTitle          String?
+  seoDesc           String?
+  coverImage        String?
+  seoKeywords       String?
+  canonicalUrl      String?
 
-  idempotencyKey String?     @unique
+  noindex           Boolean      @default(false)
+  nofollow          Boolean      @default(false)
+
+  ogTitle           String?
+  ogDescription     String?
+
+  twitterCard       TwitterCard  @default(SUMMARY_LARGE_IMAGE)
+  sitemapChangefreq Changefreq   @default(WEEKLY)
+  sitemapPriority   Float        @default(0.7)
+
+  structuredData    Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  refundsAsOriginal Refund[] @relation("RefundOriginalPayment")
-  refundFor         Refund?  @relation("RefundPayment")
+  @@unique([siteId, slug])
+  @@unique([siteId, path])
 
-  @@index([userId, occurredAt])
-  @@index([orderId, occurredAt])
-  @@index([status])
-  @@index([method])
-  @@index([reference])
+  @@index([siteId])
+  @@index([siteId, updatedAt])
+  @@index([menuItemId])
+}
+
+model Section {
+  id        String   @id @default(cuid())
+
+  // keep as plain id (no relation)
+  pageId    String?
+
+  type      String   // "hero" | "text" | "gallery"...
+  enabled   Boolean  @default(true)
+  sort      Int      @default(0)
+
+  data      Json
+  style     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageId, sort])
+  @@index([type])
 }

@@ -445,3 +445,7 @@ Email → SENT (khi xong)
 Tôi muốn tạo ảnh về sản phẩm tên akura Cleansing Oil – Deep Cleansing & Moisturizing Makeup Remover (160ml) với kích thước ảnh 206x250. bạn có thể giúp tôi tạo được không
 
 Hãy tạo hinhg ảnh với phong cách khác
+
+Tôi muôn khi tạo model chir khi có userId hoặc customerId là ràng buộc còn lại không cần thiết phải rang buộc vui lòng chỉnh sửa. nếu không được khai báo userId hoặc customerId thì không được khai báo thêm vào trong model nhé và ghi lại toàn bộ file giúp tôi
+Tôi chỉ muốn userId String customerId String? thì bắt buộc thêm user User @relation(fields: [userId], references: [id], onDelete: Cascade) và customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull) còn nhưng page còn lại thì không cần thiết hãy xóa ràng buộc ra giúp tôi nhé
+không chỉ userId String customerId mà siteId nửa nhé

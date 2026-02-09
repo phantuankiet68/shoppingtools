@@ -39,7 +39,7 @@ model Webhook {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId String // chỉ lưu id, không FK
+  userId String // chỉ lưu id, không FK (no relation)
 
   name      String
   direction WebhookDirection
@@ -59,8 +59,6 @@ model Webhook {
   success24h      Int @default(0)
   fail24h         Int @default(0)
 
-  deliveries WebhookDelivery[]
-
   @@index([userId])
   @@index([userId, direction, status])
   @@index([userId, eventKey])
@@ -70,8 +68,8 @@ model WebhookDelivery {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
-  webhookId String
-  webhook   Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  // keep as plain id (no relation)
+  webhookId String?
 
   status WebhookDeliveryStatus @default(success)
 

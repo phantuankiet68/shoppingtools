@@ -1,10 +1,10 @@
 enum RefundStatus {
-  PENDING     // tạo yêu cầu
-  APPROVED    // duyệt (tuỳ bạn có cần duyệt hay không)
-  PROCESSING  // đang hoàn qua cổng
-  SUCCEEDED   // hoàn thành
-  FAILED      // thất bại
-  CANCELLED   // huỷ yêu cầu
+  PENDING
+  APPROVED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
 }
 
 enum RefundReason {
@@ -23,29 +23,20 @@ model Refund {
   userId    String
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  orderId   String
-  order     Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
+  // keep as plain ids (no relations)
+  orderId           String?
   originalPaymentId String?
-  originalPayment   Payment? @relation("RefundOriginalPayment", fields: [originalPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_original_payment")
-
   refundPaymentId   String?  @unique
-  refundPayment     Payment? @relation("RefundPayment", fields: [refundPaymentId], references: [id], onDelete: SetNull, map: "fk_refund_refund_payment")
-
 
   status    RefundStatus @default(PENDING)
   reason    RefundReason @default(OTHER)
 
-  // số tiền hoàn (đơn vị cents theo currency của order/payment)
   amountCents Int
-
   currency  CurrencyCode @default(VND)
 
-  // tracking / note
-  reference String? // mã refund từ gateway (nếu muốn tách khỏi Payment.reference)
+  reference String?
   notes     String?
 
-  // workflow meta
   requestedAt DateTime @default(now())
   approvedAt  DateTime?
   processedAt DateTime?
@@ -60,21 +51,17 @@ model Refund {
   @@index([reason, createdAt])
 }
 
-
 model RefundItem {
   id        String  @id @default(cuid())
 
-  refundId  String
-  refund    Refund  @relation(fields: [refundId], references: [id], onDelete: Cascade)
-
+  // keep as plain ids (no relations)
+  refundId   String?
   orderItemId String?
-  orderItem   OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
 
-  qty        Int     @default(1)
-  amountCents Int    @default(0)
-  notes      String?
+  qty         Int     @default(1)
+  amountCents Int     @default(0)
+  notes       String?
 
   @@index([refundId])
   @@index([orderItemId])
 }
-
