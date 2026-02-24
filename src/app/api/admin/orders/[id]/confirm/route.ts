@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 import { computeFulfillmentFromItems, normalizeIdempotencyKey } from "@/lib/api/adminOrderHelpers";
 
-export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdminAuthUser();
     const userId = admin.id;

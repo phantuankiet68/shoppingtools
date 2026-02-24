@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
@@ -54,13 +54,13 @@ async function applyStockDeltaFromReceiptItems(receiptId: string, direction: 1 |
  * GET /api/admin/inventory/receipt/[id]
  * returns receipt + items
  */
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { id } = await params;
+    const { id } = await ctx.params;
 
     const item = await prisma.inventoryReceipt.findFirst({
       where: { id, userId },
@@ -110,13 +110,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
  * body: { supplierId?, status?, currency?, receivedAt?, reference?, notes?, taxCents? }
  * - If status changes to/from RECEIVED -> apply stock delta based on items
  */
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { id } = await params;
+    const { id } = await ctx.params;
 
     const current = await ensureReceiptBelongsToUser(userId, id);
     if (!current) return NextResponse.json({ error: "Receipt not found" }, { status: 404 });
@@ -143,14 +143,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     if (nextStatus !== undefined) data.status = nextStatus;
 
-    const updated = await prisma.$transaction(async (tx) => {
+    // ✅ FIX: tx có type để không implicit any
+    const updated = await prisma.$transaction(async (tx: typeof prisma) => {
       // apply stock delta if toggling RECEIVED
       if (nextStatus && nextStatus !== current.status) {
         if (current.status !== "RECEIVED" && nextStatus === "RECEIVED") {
-          // increase stock
           await applyStockDeltaFromReceiptItems(id, 1);
         } else if (current.status === "RECEIVED" && nextStatus !== "RECEIVED") {
-          // revert stock
           await applyStockDeltaFromReceiptItems(id, -1);
         }
       }
@@ -214,18 +213,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
  * DELETE /api/admin/inventory/receipt/[id]
  * - If receipt was RECEIVED, revert stock before delete
  */
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { id } = await params;
+    const { id } = await ctx.params;
 
     const current = await ensureReceiptBelongsToUser(userId, id);
     if (!current) return NextResponse.json({ error: "Receipt not found" }, { status: 404 });
 
-    await prisma.$transaction(async (tx) => {
+    // ✅ FIX: tx typed
+    await prisma.$transaction(async (tx: typeof prisma) => {
       if (current.status === "RECEIVED") {
         await applyStockDeltaFromReceiptItems(id, -1);
       }

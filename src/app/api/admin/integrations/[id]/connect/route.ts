@@ -5,8 +5,12 @@ import { addIntegrationLog } from "@/lib/integrations/integrationLogs";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_: Request, { params }: { params: { id: string } }) {
-  const it = await prisma.integration.findUnique({ where: { id: params.id } });
+type Params = { params: Promise<{ id: string }> };
+
+export async function POST(_: Request, { params }: Params) {
+  const { id } = await params;
+
+  const it = await prisma.integration.findUnique({ where: { id } });
   if (!it) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (!it.apiKeyEnc) {

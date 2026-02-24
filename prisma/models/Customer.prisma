@@ -1,37 +1,70 @@
 model Customer {
-  id        String   @id @default(cuid())
+  id          String   @id @default(cuid())
+  siteId       String   @map("site_id")
+  userId       String?  @map("user_id")
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  email        String?
+  phone        String?
+  avatarUrl    String?  @map("avatar_url")
+  notes        String?
+  tags         Json?
+  isActive     Boolean  @default(true) @map("is_active")
 
-  name      String
-  phone     String?
-  email     String?
+  lastOrderAt  DateTime? @map("last_order_at")
+  totalOrders  Int       @default(0) @map("total_orders")
+  totalSpent   Decimal   @default(0) @map("total_spent") @db.Decimal(18, 2)
 
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
 
-  address1  String?
-  address2  String?
-  city      String?
-  state     String?
-  postal    String?
-  country   String?
+  site         Site      @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  addresses    Address[]
 
-  notes     String?   @db.Text
-  tags      String?
-  isActive  Boolean   @default(true)
+  @@unique([siteId, email], map: "uq_customers_site_email")
+  @@index([siteId, phone], map: "idx_customers_site_phone")
+  @@index([siteId, createdAt], map: "idx_customers_site_created_at")
+  @@index([siteId, lastOrderAt], map: "idx_customers_site_last_order_at")
+  @@map("customers")
+}
 
-  orders    Order[]
-  addresses Address[]
+enum AddressType {
+  SHIPPING
+  BILLING
+  BOTH
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Address {
+  id           String      @id @default(cuid())
+  siteId        String      @map("site_id")
+  customerId    String      @map("customer_id")
 
-  @@unique([userId, phone])
-  @@unique([userId, email])
+  type          AddressType
+  isDefault     Boolean     @default(false) @map("is_default")
 
-  @@index([userId])
-  @@index([userId, name])
-  @@index([userId, phone])
-  @@index([userId, email])
-  @@index([isActive])
+  receiverName  String      @map("receiver_name")
+  phone         String
+  email         String?
+  line1         String
+  line2         String?
+  ward          String?
+  district      String?
+  city          String
+  region        String?
+  country       String      @default("VN")
+  postalCode    String?     @map("postal_code")
+  companyName   String?     @map("company_name")
+  taxCode       String?     @map("tax_code")
+
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  deletedAt     DateTime?   @map("deleted_at")
+
+  site          Site        @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, customerId], map: "idx_addresses_site_customer")
+  @@map("addresses")
 }

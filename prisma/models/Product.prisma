@@ -1,590 +1,125 @@
-enum CurrencyCode {
-  USD
-  VND
-}
-
-enum PaymentMethod {
-  CARD
-  BANK
-  CASH
-  EWALLET
-  COD
-}
-
-enum TxStatus {
-  PENDING
-  PAID
-  REFUNDED
-  CANCELLED
-}
-
-enum TxType {
-  EXPENSE
-  INCOME
-  ADJUSTMENT
-}
-
-enum SpendCategoryType {
-  INVENTORY
-  SOFTWARE
-  MARKETING
-  OPS
-  TRAVEL
-  OFFICE
-  OTHER
-}
-
-enum ReceiptStatus {
-  PENDING
-  RECEIVED
-  CANCELLED
-}
-
-enum SalesChannel {
-  SHOP
-  MARKETPLACE
-  WHOLESALE
-}
-
-enum SalesStatus {
-  DELIVERING
-  DELIVERED
-  RETURNED
-  CANCELLED
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  DELIVERING
-  DELIVERED
-  CANCELLED
-  RETURNED
-}
-
-enum PaymentStatus {
-  UNPAID
-  PARTIAL
-  PAID
-  REFUNDED
-  CANCELLED
-}
-
-enum FulfillmentStatus {
-  UNFULFILLED
-  PARTIAL
-  FULFILLED
-  CANCELLED
-  RETURNED
-}
-
-model SpendCategory {
-  id        String            @id @default(cuid())
-  name      String            @unique
-  type      SpendCategoryType @default(OTHER)
-  icon      String?
-  color     String?
-  isActive  Boolean           @default(true)
-
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  @@index([type])
-}
-
-model Merchant {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  website   String?
-  email     String?
-  phone     String?
-  address   String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Transaction {
-  id            String        @id @default(cuid())
-
-  userId        String
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  type          TxType        @default(EXPENSE)
-  status        TxStatus      @default(PAID)
-  method        PaymentMethod @default(CARD)
-  currency      CurrencyCode  @default(USD)
-
-  title         String
-  description   String?
-
-  merchantId    String?
-  categoryId    String?
-
-  subtotalCents Int           @default(0)
-  taxCents      Int           @default(0)
-  totalCents    Int           @default(0)
-
-  occurredAt    DateTime
-  reference     String?
-  notes         String?
-
-  inventoryReceiptId String? @unique
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([userId, occurredAt])
-  @@index([status])
-  @@index([categoryId])
-  @@index([merchantId])
-}
-
-model TransactionLine {
-  id             String   @id @default(cuid())
-
-  transactionId  String?
-  productId      String?
-
-  title          String
-  qty            Int      @default(1)
-  unitPriceCents Int      @default(0)
-  totalCents     Int      @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([transactionId])
-  @@index([productId])
-}
-
-model ProductCategory {
-  id        String @id @default(cuid())
-
-  userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  siteId    String
-
-  name      String
-  slug      String
-  isActive  Boolean @default(true)
-
-  parentId  String?
-
-  sort      Int @default(0)
-
-  icon      String?
-  coverImage String?
-  seoTitle  String?
-  seoDesc   String? @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, slug])
-  @@unique([userId, name])
-  @@index([userId])
-  @@index([userId, parentId])
-  @@index([userId, parentId, sort])
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
 }
 
 model Product {
-  id        String @id @default(cuid())
-
-  userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String        @id @default(cuid())
+  siteId      String        @map("site_id")
 
   name        String
   slug        String
-  description String? @db.Text
+  description String?
 
-  sku       String
-  barcode   String?
+  status      ProductStatus @default(DRAFT)
 
-  priceCents Int @default(0)
-  costCents  Int @default(0)
-  stock      Int @default(0)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
 
-  hasVariants       Boolean @default(false)
-  displayPriceCents Int     @default(0)
-  displayStock      Int     @default(0)
+  // relations
+  site        Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  variants    ProductVariant[]
+  optionValues ProductOptionValue[]
+  images      ProductImage[]
+  categoryMap ProductCategoryMap[]
 
-  isActive   Boolean @default(true)
-
-  categoryId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, sku])
-  @@unique([userId, slug])
-  @@unique([userId, barcode])
-  @@index([userId])
-  @@index([userId, name])
-  @@index([userId, isActive])
-  @@index([userId, hasVariants])
-  @@index([userId, categoryId, isActive])
+  @@unique([siteId, slug])
+  @@index([siteId])
+  @@index([siteId, status])
+  @@map("products")
 }
 
-model Supplier {
-  id        String   @id @default(cuid())
+model ProductVariant {
+  id             String   @id @default(cuid())
+  productId       String   @map("product_id")
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // "sku UNIQUE trong site" -> để enforce đúng, cần thêm siteId (denormalize) hoặc unique composite qua relation (Prisma không làm unique join)
+  siteId          String   @map("site_id") // ✅ thêm để unique(sku, siteId) đúng yêu cầu
+  sku             String
 
-  name      String
-  email     String?
-  phone     String?
-  address   String?
+  price           Decimal  @db.Decimal(12, 2)
+  compareAtPrice  Decimal? @db.Decimal(12, 2) @map("compare_at_price")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  stockQty        Int      @default(0) @map("stock_qty")
+  barcode         String?
+  weight          Decimal? @db.Decimal(12, 3)
 
-  @@unique([userId, name])
-  @@index([userId])
-}
+  isDefault       Boolean  @default(false) @map("is_default")
 
-model InventoryReceipt {
-  id          String        @id @default(cuid())
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
 
-  userId      String
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // relations
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  images          ProductImage[]
 
-  supplierId  String?
-  poId        String?
-
-  status      ReceiptStatus @default(PENDING)
-  currency    CurrencyCode  @default(USD)
-
-  receivedAt  DateTime?
-  reference   String?
-
-  subtotalCents Int @default(0)
-  taxCents      Int @default(0)
-  totalCents    Int @default(0)
-
-  notes       String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId, createdAt])
-  @@index([userId, receivedAt])
-  @@index([status])
-  @@index([supplierId])
-  @@index([userId, supplierId])
-
-  @@index([poId])
-  @@index([userId, poId])
-}
-
-model InventoryReceiptItem {
-  id        String @id @default(cuid())
-
-  receiptId String?
-  poLineId  String?
-
-  productId String?
-  variantId String?
-
-  qty           Int
-  unitCostCents Int
-  totalCents    Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([receiptId])
   @@index([productId])
-  @@index([variantId])
-  @@index([productId, createdAt])
-  @@index([variantId, createdAt])
+  @@index([siteId])
+  @@unique([siteId, sku]) // ✅ sku unique trong site
+  @@map("product_variants")
+}
 
-  @@index([poLineId])
+model ProductOptionValue {
+  id          String   @id @default(cuid())
+  productId   String   @map("product_id")
+
+  optionName  String   @map("option_name")  // vd: Color, Size
+  optionValue String   @map("option_value") // vd: Red, XL
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  // tuỳ bạn: tránh trùng option y hệt trong 1 product
+  @@unique([productId, optionName, optionValue])
+  @@map("product_option_values")
 }
 
 model ProductImage {
   id        String   @id @default(cuid())
-
-  productId String?
-
-  url       String
-  fileName  String?
-  sort      Int      @default(0)
-  isCover   Boolean  @default(false)
-
-  createdAt DateTime @default(now())
-
-  @@index([productId])
-  @@index([productId, sort])
-}
-
-model ProductAttribute {
-  id        String @id @default(cuid())
-
-  productId String?
-
-  key       String
-  value     String
-  sort      Int      @default(0)
-
-  @@index([productId, sort])
-}
-
-model Order {
-  id        String @id @default(cuid())
-
-  userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-
-  status     OrderStatus @default(PENDING)
-
-  paymentStatus     PaymentStatus     @default(UNPAID)
-  fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
-
-  channel   SalesChannel @default(SHOP)
-  currency  CurrencyCode @default(VND)
-
-  subtotalCents Int @default(0)
-  discountCents Int @default(0)
-  shippingCents Int @default(0)
-  taxCents      Int @default(0)
-  totalCents    Int @default(0)
-
-  number     String?
-  reference  String?
-
-  customerNameSnapshot  String?
-  customerPhoneSnapshot String?
-  customerEmailSnapshot String?
-
-  shipToName     String?
-  shipToPhone    String?
-  shipToAddress1 String?
-  shipToAddress2 String?
-  shipToCity     String?
-  shipToState    String?
-  shipToPostal   String?
-  shipToCountry  String?
-
-  carrier      String?
-  trackingCode String?
-  shippedAt    DateTime?
-  deliveredAt  DateTime?
-  cancelledAt  DateTime?
-  returnedAt   DateTime?
-
-  notes     String?
-  tags      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId, createdAt])
-  @@index([status])
-  @@index([paymentStatus])
-  @@index([fulfillmentStatus])
-  @@index([userId, customerId])
-  @@unique([userId, number])
-}
-
-model OrderItem {
-  id        String @id @default(cuid())
-
-  orderId   String?
-  productId String?
-  variantId String?
-
-  qty        Int
-
-  qtyReserved Int @default(0)
-  qtyShipped  Int @default(0)
-  qtyReturned Int @default(0)
-
-  unitPriceCents Int
-  subtotalCents  Int @default(0)
-  discountCents  Int @default(0)
-  taxCents       Int @default(0)
-  totalCents     Int @default(0)
-
-  skuSnapshot         String?
-  productNameSnapshot String?
-  variantNameSnapshot String?
-
-  note String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([orderId])
+  productId String   @map("product_id")
+  variantId String?  @map("variant_id")
+  imageUrl  String   @map("image_url")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
   @@index([productId])
   @@index([variantId])
+  @@index([productId, sortOrder])
+  @@map("product_images")
 }
 
-enum VariantStatus {
-  ACTIVE
-  INACTIVE
-}
-
-model ProductVariant {
+model ProductCategory {
   id        String   @id @default(cuid())
-
-  productId String?
-
-  name      String?
-  sku       String
-  barcode   String?
-
-  priceCents Int @default(0)
-  costCents  Int @default(0)
-
-  stock     Int @default(0)
-  isActive  Boolean @default(true)
-
-  option1   String?
-  value1    String?
-  option2   String?
-  value2    String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([productId, sku])
-  @@index([productId])
-  @@index([productId, isActive])
+  siteId    String   @map("site_id")
+  name      String
+  slug      String
+  parentId  String?  @map("parent_id")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  parent    ProductCategory? @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  ProductCategory[] @relation("CategoryTree")
+  products  ProductCategoryMap[]
+  @@unique([siteId, slug])
+  @@index([siteId])
+  @@index([parentId])
+  @@index([siteId, sortOrder])
+  @@map("product_categories")
 }
 
-model ProductVariantImage {
-  id        String @id @default(cuid())
-
-  variantId String?
-
-  url       String
-  fileName  String?
-  sort      Int     @default(0)
-  isCover   Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  @@index([variantId])
-  @@index([variantId, sort])
-}
-
-enum StockMovementType {
-  IN
-  OUT
-  ADJUST
-  RETURN_IN
-  VOID
-}
-
-enum StockMovementSource {
-  RECEIPT
-  ORDER
-  MANUAL
-}
-
-model StockMovement {
-  id        String @id @default(cuid())
-
-  userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  productId String?
-  variantId String?
-
-  type      StockMovementType
-  source    StockMovementSource
-
-  qtyDelta  Int
-  occurredAt DateTime
-
-  beforeStock Int?
-  afterStock  Int?
-
-  note      String?
-  reference String?
-
-  receiptItemId String?
-  orderItemId   String?
-
-  idempotencyKey String?
-
-  createdAt DateTime @default(now())
-
-  @@index([userId, occurredAt])
-  @@index([productId, occurredAt])
-  @@index([variantId, occurredAt])
-  @@index([orderItemId, occurredAt])
-
-  @@unique([receiptItemId])
-  // REMOVE: @@unique([orderItemId])
-  @@unique([idempotencyKey])
-}
-
-enum POStatus {
-  DRAFT
-  APPROVED
-  PARTIAL
-  RECEIVED
-  CANCELLED
-}
-
-model PurchaseOrder {
-  id         String   @id @default(cuid())
-
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  number     String
-  status     POStatus @default(DRAFT)
-
-  supplierId String?
-
-  currency   CurrencyCode @default(USD)
-  expectedAt DateTime?
-  notes      String?
-
-  subtotalCents Int @default(0)
-  taxCents      Int @default(0)
-  totalCents    Int @default(0)
-
-  approvedAt DateTime?
-  cancelledAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, number])
-  @@index([userId, createdAt])
-  @@index([status])
-  @@index([supplierId])
-}
-
-model PurchaseOrderLine {
-  id        String @id @default(cuid())
-
-  poId      String?
-  productId String?
-  variantId String?
-
-  skuSnapshot  String?
-  nameSnapshot String?
-
-  qtyOrdered   Int
-  qtyReceived  Int @default(0)
-
-  unitCostCents Int @default(0)
-  totalCents    Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([poId])
-  @@index([productId])
-  @@index([variantId])
+model ProductCategoryMap {
+  productId  String @map("product_id")
+  categoryId String @map("category_id")
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  @@id([productId, categoryId])
+  @@index([categoryId])
+  @@map("product_category_map")
 }

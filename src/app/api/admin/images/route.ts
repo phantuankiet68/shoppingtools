@@ -1,14 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 import { makeImageFileName, savePublicImage } from "@/lib/storage/publicImages";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB
 
+type ImageAssetListRow = {
+  id: string;
+  originalName: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  tag: string | null;
+  folderId: string | null;
+  createdAt: Date;
+  fileName: string;
+  userId: string;
+};
+
 // =======================
 // GET: list images
 // =======================
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const user = await requireAdminAuthUser();
     const { searchParams } = new URL(req.url);
@@ -30,7 +43,7 @@ export async function GET(req: Request) {
       where.createdAt = { gte: since };
     }
 
-    const items = await prisma.imageAsset.findMany({
+    const items = (await prisma.imageAsset.findMany({
       where,
       orderBy: { createdAt: "desc" },
       select: {
@@ -45,10 +58,10 @@ export async function GET(req: Request) {
         fileName: true,
         userId: true,
       },
-    });
+    })) as ImageAssetListRow[];
 
     // map public url
-    const mapped = items.map((it) => ({
+    const mapped = items.map((it: ImageAssetListRow) => ({
       ...it,
       url: `/upload/images/${it.userId}/${it.fileName}`,
     }));
@@ -62,7 +75,7 @@ export async function GET(req: Request) {
 // =======================
 // POST: upload image
 // =======================
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const user = await requireAdminAuthUser();
 
@@ -73,9 +86,13 @@ export async function POST(req: Request) {
 
     if (!file) return NextResponse.json({ error: "Missing file" }, { status: 400 });
 
-    if (!file.type.startsWith("image/")) return NextResponse.json({ error: "Only image files allowed" }, { status: 400 });
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json({ error: "Only image files allowed" }, { status: 400 });
+    }
 
-    if (file.size > MAX_BYTES) return NextResponse.json({ error: "Max size 10MB" }, { status: 400 });
+    if (file.size > MAX_BYTES) {
+      return NextResponse.json({ error: "Max size 10MB" }, { status: 400 });
+    }
 
     // check folder ownership
     if (folderId) {
@@ -99,7 +116,17 @@ export async function POST(req: Request) {
         fileName,
         mimeType: file.type,
         sizeBytes: file.size,
-        tag: tag === "NEW" || tag === "HDR" || tag === "AI" || tag === "FAVORITE" || tag === "COVER" || tag === "BANNER" || tag === "AVATAR" || tag === "PRODUCT" ? (tag as any) : null,
+        tag:
+          tag === "NEW" ||
+          tag === "HDR" ||
+          tag === "AI" ||
+          tag === "FAVORITE" ||
+          tag === "COVER" ||
+          tag === "BANNER" ||
+          tag === "AVATAR" ||
+          tag === "PRODUCT"
+            ? (tag as any)
+            : null,
       },
     });
 
@@ -110,7 +137,7 @@ export async function POST(req: Request) {
           url: publicUrl,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

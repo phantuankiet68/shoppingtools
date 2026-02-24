@@ -279,7 +279,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     if (e?.code === "P2002") return NextResponse.json({ error: "Unique constraint failed" }, { status: 409 });
 
     // đừng trả 401 cho mọi lỗi prisma
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: e?.message?.includes("Unauthorized") ? 401 : 500 });
+    return NextResponse.json(
+      { error: e?.message || "Server error" },
+      { status: e?.message?.includes("Unauthorized") ? 401 : 500 },
+    );
   }
 }
 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
@@ -79,13 +79,8 @@ async function applyStockDeltaLine(productId: string, variantId: string | null, 
 
 /**
  * GET /api/admin/inventory/receipt/item
- * query:
- *  receiptId?  filter (recommended)
- *  productId?  filter
- *  variantId?  filter
- *  page? pageSize?
  */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
@@ -145,13 +140,8 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/admin/inventory/receipt/item
- * body: { receiptId*, productId*, variantId?, qty*, unitCostCents* }
- *
- * - auto totalCents
- * - if receipt.status=RECEIVED -> increment stock
- * - recalc receipt totals
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
@@ -186,7 +176,7 @@ export async function POST(req: Request) {
     const line = computeLineTotal(Number(body.qty), Number(body.unitCostCents));
     if (line.qty <= 0) return NextResponse.json({ error: "qty must be > 0" }, { status: 400 });
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: typeof prisma) => {
       const item = await tx.inventoryReceiptItem.create({
         data: {
           receiptId,

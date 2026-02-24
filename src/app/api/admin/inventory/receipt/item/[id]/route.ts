@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
@@ -81,13 +81,13 @@ async function applyStockDeltaLine(productId: string, variantId: string | null, 
 /**
  * GET /api/admin/inventory/receipt/item/[id]
  */
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { id } = await params;
+    const { id } = await ctx.params;
 
     const item = await ensureItemBelongsToUser(userId, id);
     if (!item) return NextResponse.json({ error: "Item not found" }, { status: 404 });
@@ -102,19 +102,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 /**
  * PATCH /api/admin/inventory/receipt/item/[id]
  * body: { productId?, variantId?, qty?, unitCostCents? }
- *
- * - validate variant belongs to product
- * - auto recompute totalCents
- * - if receipt.status=RECEIVED -> apply stock delta based on qty change and/or variant change
- * - recalc receipt totals
  */
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { id } = await params;
+    const { id } = await ctx.params;
 
     const ct = req.headers.get("content-type") || "";
     if (!ct.includes("application/json")) {
@@ -130,7 +125,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const receiptStatus = cur.receipt.status;
 
     const nextProductId = body.productId !== undefined ? String(body.productId) : cur.productId;
-    const nextVariantId = body.variantId !== undefined ? (body.variantId ? String(body.variantId) : null) : cur.variantId ?? null;
+    const nextVariantId =
+      body.variantId !== undefined ? (body.variantId ? String(body.variantId) : null) : (cur.variantId ?? null);
 
     if (nextVariantId) {
       const okV = await ensureVariantBelongsToProduct(nextVariantId, nextProductId);
@@ -142,12 +138,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const line = computeLineTotal(nextQty, nextUnit);
     if (line.qty <= 0) return NextResponse.json({ error: "qty must be > 0" }, { status: 400 });
 
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: typeof prisma) => {
       // If RECEIVED, revert old stock then apply new stock
       if (receiptStatus === "RECEIVED") {
-        // revert old
         await applyStockDeltaLine(cur.productId, cur.variantId ?? null, cur.qty, -1);
-        // apply new
         await applyStockDeltaLine(nextProductId, nextVariantId, line.qty, 1);
       }
 
@@ -187,23 +181,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
 /**
  * DELETE /api/admin/inventory/receipt/item/[id]
- * - if receipt.status=RECEIVED -> revert stock
- * - recalc receipt totals
  */
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { id } = await params;
+    const { id } = await ctx.params;
 
     const cur = await ensureItemBelongsToUser(userId, id);
     if (!cur) return NextResponse.json({ error: "Item not found" }, { status: 404 });
 
     const receiptStatus = cur.receipt.status;
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: typeof prisma) => {
       if (receiptStatus === "RECEIVED") {
         await applyStockDeltaLine(cur.productId, cur.variantId ?? null, cur.qty, -1);
       }

@@ -1,9 +1,11 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-type Ctx = { params: { id: string } };
+// ✅ Next 16 validator expects params to be Promise
+type Ctx = { params: Promise<{ id: string }> };
 
 const AddressPatchSchema = z
   .object({
@@ -57,11 +59,13 @@ function mapToUi(r: any) {
   };
 }
 
-export async function GET(_req: NextRequest, ctx: Ctx) {
+export async function GET(_req: NextRequest, { params }: Ctx) {
   await requireAdminAuthUser();
 
+  const { id } = await params;
+
   const row = await prisma.address.findUnique({
-    where: { id: ctx.params.id },
+    where: { id },
     select: {
       id: true,
       customerId: true,
@@ -96,32 +100,39 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
   return NextResponse.json(mapToUi(row));
 }
 
-export async function PATCH(req: NextRequest, ctx: Ctx) {
+export async function PATCH(req: NextRequest, { params }: Ctx) {
   await requireAdminAuthUser();
+
+  const { id } = await params;
 
   const body = await req.json();
   const input = AddressPatchSchema.parse(body);
 
   const existing = await prisma.address.findUnique({
-    where: { id: ctx.params.id },
+    where: { id },
     select: { id: true, customerId: true, type: true, isDefault: true },
   });
   if (!existing) return NextResponse.json({ error: "Address not found" }, { status: 404 });
 
-  const updated = await prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // Nếu set isDefault=true => clear default khác trong cùng customer + type
     // (type có thể đổi trong cùng request)
     const nextType = (input.type ?? existing.type) as "SHIPPING" | "BILLING";
 
     if (input.isDefault === true) {
       await tx.address.updateMany({
-        where: { customerId: existing.customerId, type: nextType, isDefault: true },
+        where: {
+          customerId: existing.customerId,
+          type: nextType,
+          isDefault: true,
+          NOT: { id }, // ✅ tránh tự clear chính nó
+        },
         data: { isDefault: false },
       });
     }
 
     return tx.address.update({
-      where: { id: ctx.params.id },
+      where: { id },
       data: {
         ...input,
         // ensure nullables are set properly
@@ -166,15 +177,17 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   return NextResponse.json(mapToUi(updated));
 }
 
-export async function DELETE(_req: NextRequest, ctx: Ctx) {
+export async function DELETE(_req: NextRequest, { params }: Ctx) {
   await requireAdminAuthUser();
 
+  const { id } = await params;
+
   const existing = await prisma.address.findUnique({
-    where: { id: ctx.params.id },
+    where: { id },
     select: { id: true },
   });
   if (!existing) return NextResponse.json({ error: "Address not found" }, { status: 404 });
 
-  await prisma.address.delete({ where: { id: ctx.params.id } });
+  await prisma.address.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

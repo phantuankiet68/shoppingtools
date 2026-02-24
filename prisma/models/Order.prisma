@@ -1,0 +1,242 @@
+// ===== Enums =====
+enum OrderStatus {
+  DRAFT
+  PLACED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+enum FulfillmentStatus {
+  UNFULFILLED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELLED
+}
+
+enum PaymentDirection {
+  CAPTURE
+  REFUND
+}
+
+enum PaymentTxStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum PaymentMethod {
+  COD
+  CARD
+  BANK_TRANSFER
+  WALLET
+}
+
+enum ShipmentStatus {
+  PENDING
+  CONFIRMED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+enum ShippingMethod {
+  STANDARD
+  EXPRESS
+}
+
+// ===== Models =====
+
+model Order {
+  id        String   @id @default(cuid())
+  siteId     String   @map("site_id")
+  customerId String?  @map("customer_id")
+
+  orderNumber String  @map("order_number")
+
+  status           OrderStatus
+  paymentStatus    PaymentStatus    @map("payment_status")
+  fulfillmentStatus FulfillmentStatus @map("fulfillment_status")
+
+  currency       String   @default("VND")
+  subtotalCents  Int      @default(0) @map("subtotal_cents")
+  discountCents  Int      @default(0) @map("discount_cents")
+  shippingCents  Int      @default(0) @map("shipping_cents")
+  taxCents       Int      @default(0) @map("tax_cents")
+  totalCents     Int      @default(0) @map("total_cents")
+
+  customerNameSnapshot  String? @map("customer_name_snapshot")
+  customerEmailSnapshot String? @map("customer_email_snapshot")
+  customerPhoneSnapshot String? @map("customer_phone_snapshot")
+
+  shipToName    String? @map("ship_to_name")
+  shipToPhone   String? @map("ship_to_phone")
+  shipAddr1     String? @map("ship_addr1")
+  shipAddr2     String? @map("ship_addr2")
+  shipCity      String? @map("ship_city")
+  shipRegion    String? @map("ship_region")
+  shipPostal    String? @map("ship_postal")
+  shipCountry   String? @map("ship_country")
+
+  source    String?
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+
+  placedAt    DateTime? @map("placed_at")
+  paidAt      DateTime? @map("paid_at")
+  cancelledAt DateTime? @map("cancelled_at")
+  completedAt DateTime? @map("completed_at")
+
+  notes         String?
+  internalNotes String? @map("internal_notes")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  site       Site       @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items      OrderItem[]
+  payments   Payment[]
+  fulfillments Fulfillment[]
+
+  @@unique([siteId, orderNumber], map: "uq_orders_site_order_number")
+  @@index([siteId, createdAt], map: "idx_orders_site_created_at")
+  @@index([siteId, placedAt], map: "idx_orders_site_placed_at")
+  @@index([siteId, status], map: "idx_orders_site_status")
+  @@index([customerId], map: "idx_orders_customer")
+  @@map("orders")
+}
+
+model OrderItem {
+  id       String  @id @default(cuid())
+  orderId   String  @map("order_id")
+  siteId    String  @map("site_id")
+
+  productId String? @map("product_id")
+  variantId String? @map("variant_id")
+
+  productNameSnapshot String  @map("product_name_snapshot")
+  variantNameSnapshot String? @map("variant_name_snapshot")
+  skuSnapshot         String? @map("sku_snapshot")
+  imageSnapshot       String? @map("image_snapshot")
+
+  qty            Int
+  unitPriceCents Int @map("unit_price_cents")
+  subtotalCents  Int @map("subtotal_cents")
+  discountCents  Int @default(0) @map("discount_cents")
+  taxCents       Int @default(0) @map("tax_cents")
+  totalCents     Int @map("total_cents")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  site      Site      @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  fulfillmentItems FulfillmentItem[]
+
+  @@index([orderId], map: "idx_order_items_order")
+  @@index([siteId, createdAt], map: "idx_order_items_site_created_at")
+  @@index([productId], map: "idx_order_items_product")
+  @@index([variantId], map: "idx_order_items_variant")
+  @@map("order_items")
+}
+
+model Payment {
+  id       String   @id @default(cuid())
+  siteId    String   @map("site_id")
+  orderId   String   @map("order_id")
+
+  direction PaymentDirection
+  status    PaymentTxStatus
+
+  method    PaymentMethod
+  provider  String?
+  providerTransactionId String? @map("provider_transaction_id")
+
+  amountCents Int    @map("amount_cents")
+  currency    String @default("VND")
+
+  idempotencyKey String? @map("idempotency_key")
+  reference      String?
+
+  occurredAt DateTime @map("occurred_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  site  Site  @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, occurredAt], map: "idx_payments_site_occurred_at")
+  @@index([orderId], map: "idx_payments_order")
+  @@unique([siteId, idempotencyKey], map: "uq_payments_site_idempotency_key")
+  @@map("payments")
+}
+
+model Fulfillment {
+  id       String   @id @default(cuid())
+  siteId    String   @map("site_id")
+  orderId   String   @map("order_id")
+
+  status   ShipmentStatus
+
+  carrier        String?
+  trackingNumber String? @map("tracking_number")
+  trackingUrl    String? @map("tracking_url")
+
+  estimatedDeliveryAt DateTime? @map("estimated_delivery_at")
+  pickedUpAt          DateTime? @map("picked_up_at")
+  shippedAt           DateTime? @map("shipped_at")
+  outForDeliveryAt    DateTime? @map("out_for_delivery_at")
+  deliveredAt         DateTime? @map("delivered_at")
+  failedAt            DateTime? @map("failed_at")
+
+  shippingMethod   ShippingMethod @map("shipping_method")
+  shippingFeeCents Int            @default(0) @map("shipping_fee_cents")
+  notes            String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  site    Site    @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  items   FulfillmentItem[]
+
+  @@index([orderId], map: "idx_fulfillments_order")
+  @@index([siteId, status], map: "idx_fulfillments_site_status")
+  @@index([trackingNumber], map: "idx_fulfillments_tracking_number")
+  @@map("fulfillments")
+}
+
+model FulfillmentItem {
+  id            String @id @default(cuid())
+  fulfillmentId  String @map("fulfillment_id")
+  orderItemId    String @map("order_item_id")
+  qty           Int
+
+  fulfillment   Fulfillment @relation(fields: [fulfillmentId], references: [id], onDelete: Cascade)
+  orderItem     OrderItem   @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
+
+  @@index([fulfillmentId], map: "idx_fulfillment_items_fulfillment")
+  @@index([orderItemId], map: "idx_fulfillment_items_order_item")
+  @@unique([fulfillmentId, orderItemId], map: "uq_fulfillment_items_unique_pair")
+  @@map("fulfillment_items")
+}

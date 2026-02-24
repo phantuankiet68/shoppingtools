@@ -1,160 +1,159 @@
 enum UserRole {
   USER
+  SUB_USER
   ADMIN
 }
 
-enum AuditAction {
-  ADMIN_LOGIN_SUCCESS
-  ADMIN_LOGIN_FAIL
-  ADMIN_LOGOUT
-  PASSWORD_CHANGE
-  TWOFA_ENABLED
-  TWOFA_DISABLED
-  TWOFA_CHALLENGE_FAIL
-  SESSION_REVOKED
-  SESSION_REVOKE_ALL
-  ADMIN_SENSITIVE_ACTION
-}
-
-enum AuditResult {
-  SUCCESS
-  FAIL
-}
-
-enum SessionType {
-  ADMIN
-  USER
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
 }
 
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  emailVerifiedAt   DateTime?
-  role              UserRole @default(USER)
-  isActive          Boolean  @default(true)
-
-  image             String?
-
-  passwordHash      String
-  passwordUpdatedAt DateTime @default(now())
-
-  failedLoginCount  Int      @default(0)
-  lockedUntil       DateTime?
-
-  requireReauthAt   DateTime?
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  sessions          Session[]
-  twoFactor         TwoFactor?
-  backupCodes       BackupCode[]
-  auditLogs         AuditLog[]
-
-  profile           Profile?
-
-  // ✅ FRIEND RELATIONS
-  friendRequestsSent     FriendRequest[] @relation("FriendReqFrom")
-  friendRequestsReceived FriendRequest[] @relation("FriendReqTo")
-
-  // ✅ BLOCK RELATIONS
-  blocksSent     Block[] @relation("Blocker")
-  blocksReceived Block[] @relation("Blocked")
-
-
-  calendars      Calendar[]
-  calendarEvents CalendarEvent[] @relation("UserCreatedEvents")
-
-  folders FileFolder[]
-  files   StoredFile[]
-
-  images    ImageAsset[]
-  imageFolders ImageFolder[]
-
-    // Spending / finance
-  transactions    Transaction[]
-  spendCategories SpendCategory[]
-  merchants       Merchant[]
-
-  // Inventory / sales
-  products        Product[]
-  suppliers       Supplier[]
-  inventoryReceipts InventoryReceipt[]
-
- customers Customer[]
-  orders    Order[]
-
-
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String   @map("password_hash")
+  role            UserRole @default(USER)
+  status          UserStatus @default(ACTIVE)
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  sessions        UserSession[]
+  passwordResets  PasswordResetToken[]
+  emailVerifs     EmailVerificationToken[]
+  loginAttempts   LoginAttempt[]
+  auditActorLogs  AuditLog[] @relation("AuditActor")
+  auditTargetLogs AuditLog[] @relation("AuditTarget")
+  twoFactor       UserTwoFactor?
+  backupCodes     UserBackupCode[]
+  devices         UserDevice[]
   @@index([role])
-  @@index([lockedUntil])
+  @@index([status])
+  @@map("users")
 }
 
-
-
-model Session {
-  id              String      @id @default(cuid())
-  userId          String
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type            SessionType @default(USER)
-  tokenHash       String      @unique
-  createdAt       DateTime    @default(now())
-  expiresAt       DateTime
-  lastSeenAt      DateTime    @default(now())
-  ip              String?
-  userAgent       String?
-  country         String?
-  revokedAt       DateTime?
-  revokeReason    String?
-  @@index([userId, type])
+model UserSession {
+  id                    String   @id @default(cuid())
+  userId                String   @map("user_id")
+  refreshTokenHash      String   @unique @map("refresh_token_hash")
+  expiresAt             DateTime @map("expires_at")
+  revokedAt             DateTime? @map("revoked_at")
+  ipAddress             String?  @map("ip_address")
+  userAgent             String?  @map("user_agent")
+  deviceId              String?  @map("device_id")
+  lastSeenAt            DateTime? @map("last_seen_at")
+  rotatedFromSessionId  String?  @map("rotated_from_session_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rotatedFromSession    UserSession? @relation("SessionRotation", fields: [rotatedFromSessionId], references: [id])
+  rotatedToSessions     UserSession[] @relation("SessionRotation")
+  @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
+  @@map("user_sessions")
 }
 
-model TwoFactor {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enabled       Boolean  @default(false)
-  secretEnc     String?
-  lastUsedAt    DateTime?
-  enabledAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 
-model BackupCode {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codeHash    String
-  usedAt      DateTime?
-  createdAt   DateTime @default(now())
-  @@unique([userId, codeHash])
-  @@index([userId, usedAt])
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([tokenHash])
+  @@map("email_verification_tokens")
 }
 
 model LoginAttempt {
-  id          String   @id @default(cuid())
-  email       String?
-  ip          String
-  fingerprint String?
-  success     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  @@index([ip, createdAt])
+  id        String   @id @default(cuid())
+  email     String?
+  userId    String?  @map("user_id")
+  ipAddress String   @map("ip_address")
+  userAgent String?  @map("user_agent")
+  success   Boolean
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([ipAddress, createdAt])
   @@index([email, createdAt])
-  @@index([fingerprint, createdAt])
+  @@index([userId, createdAt])
+  @@map("login_attempts")
 }
 
 model AuditLog {
-  id          String      @id @default(cuid())
-  userId      String?
-  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action      AuditAction
-  result      AuditResult
-  ip          String?
-  userAgent   String?
-  metaJson    Json?
-  createdAt   DateTime    @default(now())
-  @@index([userId, createdAt])
+  id           String   @id @default(cuid())
+  actorUserId  String?  @map("actor_user_id")
+  action       String
+  targetUserId String?  @map("target_user_id")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  metaJson     Json?    @map("meta_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+  actorUser    User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  targetUser   User? @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  @@index([actorUserId, createdAt])
   @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model UserTwoFactor {
+  userId     String  @id @map("user_id")
+  enabled    Boolean @default(false)
+  secretEnc  String? @map("secret_enc")
+  enabledAt  DateTime? @map("enabled_at")
+  lastUsedAt DateTime? @map("last_used_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("user_two_factor")
+}
+
+model UserBackupCode {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  codeHash  String   @map("code_hash")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@unique([userId, codeHash])
+  @@map("user_backup_codes")
+}
+
+model UserDevice {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  deviceUid     String   @unique @map("device_uid")
+  deviceName    String?  @map("device_name")
+  platform      String?
+  trusted       Boolean  @default(false)
+  firstSeenAt   DateTime @map("first_seen_at")
+  lastSeenAt    DateTime @map("last_seen_at")
+  lastIp        String?  @map("last_ip")
+  lastUserAgent String?  @map("last_user_agent")
+  revokedAt     DateTime? @map("revoked_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([userId, trusted])
+  @@index([lastSeenAt])
+  @@map("user_devices")
 }

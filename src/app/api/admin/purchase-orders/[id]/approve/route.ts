@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 import { isUnauthorized } from "@/lib/errors/errors";
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdminAuthUser();
 

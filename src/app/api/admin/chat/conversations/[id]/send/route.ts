@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 import Ably from "ably";
 
+type ConversationForPublish = {
+  id: string;
+  members: Array<{ userId: string | null }>;
+};
+
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const me = await requireAdminAuthUser();
   const { id } = await ctx.params;
@@ -10,17 +15,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!id) return NextResponse.json({ error: "Missing conversation id" }, { status: 400 });
 
   const body = await req.json().catch(() => ({}));
-  const text = String(body?.text || "").trim();
+  const text = String((body as any)?.text || "").trim();
   if (!text) return NextResponse.json({ error: "Text is required" }, { status: 400 });
 
   // ✅ verify membership + lấy members để publish inbox
-  const conv = await prisma.conversation.findFirst({
+  const conv = (await prisma.conversation.findFirst({
     where: { id, members: { some: { userId: me.id } } },
     select: {
       id: true,
       members: { select: { userId: true } },
     },
-  });
+  })) as ConversationForPublish | null;
 
   if (!conv) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -29,7 +34,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     include: { sender: { select: { id: true, email: true, profile: true } } },
   });
 
-  const senderName = msg.sender?.profile?.firstName || msg.sender?.profile?.lastName || msg.sender?.email || "User";
+  const senderName =
+    (msg.sender as any)?.profile?.firstName ||
+    (msg.sender as any)?.profile?.lastName ||
+    (msg.sender as any)?.email ||
+    "User";
 
   let realtimeOk = false;
   let realtimeError: string | null = null;
@@ -52,18 +61,18 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     await ably.channels.get(`chat:${id}`).publish("message:new", payload);
 
     // 2) publish inbox per member
-    const memberIds = conv.members.map((m) => m.userId).filter(Boolean);
+    const memberIds = conv.members.map((m: { userId: string | null }) => m.userId).filter(Boolean) as string[];
 
     await Promise.all(
-      memberIds.map((uid) =>
+      memberIds.map((uid: string) =>
         ably.channels.get(`inbox:${uid}`).publish("inbox:new", {
           conversationId: id,
           messageId: msg.id,
           lastText: msg.text,
           lastMessageAt: msg.createdAt,
           sender: { id: me.id, name: senderName },
-        })
-      )
+        }),
+      ),
     );
 
     realtimeOk = true;

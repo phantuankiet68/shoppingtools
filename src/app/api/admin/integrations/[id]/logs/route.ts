@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> } | { params: { id: string } }) {
+export async function GET(
+  _req: Request,
+  ctx: { params: Promise<{ id: string }> } | { params: Promise<{ id: string }> },
+) {
   const params = "then" in (ctx as any).params ? await (ctx as any).params : (ctx as any).params;
   const id = params?.id;
 

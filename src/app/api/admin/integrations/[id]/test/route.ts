@@ -1,12 +1,16 @@
 // app/api/integrations/[id]/test/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { addIntegrationLog } from "@/lib/integrations/integrationLogs";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_: Request, { params }: { params: { id: string } }) {
-  const it = await prisma.integration.findUnique({ where: { id: params.id } });
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function POST(_req: NextRequest, ctx: Ctx) {
+  const { id } = await ctx.params;
+
+  const it = await prisma.integration.findUnique({ where: { id } });
   if (!it) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (it.status !== "connected") {

@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -14,11 +15,14 @@ const RetryBodySchema = z.object({
   onlyFailed: z.boolean().optional().default(true),
 });
 
-type Params = { params: { id: string } };
+// ✅ Next 16 validator expects params to be Promise
+type Params = { params: Promise<{ id: string }> };
 
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const admin = await requireAdminAuthUser();
+    const { id } = await params;
+
     const body = await req.json().catch(() => ({}));
     const parsed = RetryBodySchema.safeParse(body);
 
@@ -27,7 +31,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     }
 
     const email = await prisma.email.findFirst({
-      where: { id: params.id, userId: admin.id },
+      where: { id, userId: admin.id },
       select: { id: true, status: true },
     });
     if (!email) return jsonErr("Email not found", 404);
@@ -37,12 +41,12 @@ export async function POST(req: NextRequest, { params }: Params) {
       return jsonErr("Cannot retry recipients for a SENT email", 409);
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      // retry recipients FAILED
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // retry recipients FAILED (hoặc all nếu onlyFailed=false)
       const updated = await tx.emailRecipient.updateMany({
         where: {
-          emailId: params.id,
-          status: "FAILED",
+          emailId: id,
+          ...(parsed.data.onlyFailed ? { status: "FAILED" } : {}),
         },
         data: {
           status: "QUEUED",
@@ -52,9 +56,9 @@ export async function POST(req: NextRequest, { params }: Params) {
         },
       });
 
-      // set email back to QUEUED if needed
+      // set email back to QUEUED
       await tx.email.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           status: "QUEUED",
           lastError: null,
@@ -63,13 +67,13 @@ export async function POST(req: NextRequest, { params }: Params) {
 
       // recompute counters from recipients (recommended)
       const [successCount, failedCount, totalRecipients] = await Promise.all([
-        tx.emailRecipient.count({ where: { emailId: params.id, status: "SENT" } }),
-        tx.emailRecipient.count({ where: { emailId: params.id, status: "FAILED" } }),
-        tx.emailRecipient.count({ where: { emailId: params.id } }),
+        tx.emailRecipient.count({ where: { emailId: id, status: "SENT" } }),
+        tx.emailRecipient.count({ where: { emailId: id, status: "FAILED" } }),
+        tx.emailRecipient.count({ where: { emailId: id } }),
       ]);
 
       await tx.email.update({
-        where: { id: params.id },
+        where: { id },
         data: { successCount, failedCount, totalRecipients },
       });
 

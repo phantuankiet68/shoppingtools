@@ -4,7 +4,7 @@ import { requireAdminAuthUser } from "@/lib/auth/auth";
 
 export async function GET(
   _req: Request,
-  ctx: { params: Promise<{ id: string }> } // ✅ Next 15: params là Promise
+  ctx: { params: Promise<{ id: string }> }, // ✅ Next 15: params là Promise
 ) {
   const me = await requireAdminAuthUser();
 

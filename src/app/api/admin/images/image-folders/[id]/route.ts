@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
@@ -6,7 +6,7 @@ function normName(s: string) {
   return s.trim().replace(/\s+/g, " ");
 }
 
-export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAdminAuthUser();
     const { id } = await ctx.params;
@@ -17,7 +17,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     });
     if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}) as any);
     const name = normName(String(body?.name ?? ""));
     if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
     if (name.length > 80) return NextResponse.json({ error: "Name is too long (max 80)" }, { status: 400 });
@@ -38,7 +38,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 }
 
-export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAdminAuthUser();
     const { id } = await ctx.params;
@@ -70,7 +70,7 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
     }
 
     // mode=detach
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: typeof prisma) => {
       let detached = 0;
 
       if (imgCount > 0) {

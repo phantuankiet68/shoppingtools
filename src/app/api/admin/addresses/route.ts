@@ -26,6 +26,35 @@ const AddressCreateSchema = z.object({
   note: z.string().optional().nullable(),
 });
 
+type AddressRow = {
+  id: string;
+  customerId: string;
+
+  label: string;
+  type: "SHIPPING" | "BILLING";
+  status: "ACTIVE" | "INACTIVE";
+  isDefault: boolean;
+
+  receiverName: string;
+  phone: string | null;
+
+  line1: string;
+  line2: string | null;
+  ward: string | null;
+  district: string | null;
+  city: string;
+  region: string | null;
+  country: string;
+  postalCode: string | null;
+
+  note: string | null;
+
+  createdAt: Date;
+  updatedAt: Date;
+
+  customer: { name: string } | null;
+};
+
 function toListWhere(searchParams: URLSearchParams) {
   const q = (searchParams.get("q") || "").trim();
   const customerId = searchParams.get("customerId") || undefined;
@@ -57,7 +86,11 @@ function toListWhere(searchParams: URLSearchParams) {
       { postalCode: { contains: q, mode: "insensitive" } },
       {
         customer: {
-          OR: [{ name: { contains: q, mode: "insensitive" } }, { phone: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }],
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+          ],
         },
       },
     ];
@@ -65,6 +98,34 @@ function toListWhere(searchParams: URLSearchParams) {
 
   return where;
 }
+
+const addressSelect = {
+  id: true,
+  customerId: true,
+
+  label: true,
+  type: true,
+  status: true,
+  isDefault: true,
+
+  receiverName: true,
+  phone: true,
+
+  line1: true,
+  line2: true,
+  ward: true,
+  district: true,
+  city: true,
+  region: true,
+  country: true,
+  postalCode: true,
+
+  note: true,
+  createdAt: true,
+  updatedAt: true,
+
+  customer: { select: { name: true } },
+} as const;
 
 export async function GET(req: NextRequest) {
   await requireAdminAuthUser();
@@ -77,7 +138,12 @@ export async function GET(req: NextRequest) {
 
   const sort = (searchParams.get("sort") || "UPDATED_AT").toUpperCase();
 
-  const orderBy = sort === "CREATED_AT" ? [{ createdAt: "desc" as const }] : sort === "CUSTOMER" ? [{ customer: { name: "asc" as const } }] : [{ updatedAt: "desc" as const }];
+  const orderBy =
+    sort === "CREATED_AT"
+      ? [{ createdAt: "desc" as const }]
+      : sort === "CUSTOMER"
+        ? [{ customer: { name: "asc" as const } }]
+        : [{ updatedAt: "desc" as const }];
 
   const where = toListWhere(searchParams);
 
@@ -88,37 +154,10 @@ export async function GET(req: NextRequest) {
       skip,
       take: limit,
       orderBy,
-      select: {
-        id: true,
-        customerId: true,
-
-        label: true,
-        type: true,
-        status: true,
-        isDefault: true,
-
-        receiverName: true,
-        phone: true,
-
-        line1: true,
-        line2: true,
-        ward: true,
-        district: true,
-        city: true,
-        region: true,
-        country: true,
-        postalCode: true,
-
-        note: true,
-        createdAt: true,
-        updatedAt: true,
-
-        customer: { select: { name: true } },
-      },
-    }),
+      select: addressSelect,
+    }) as Promise<AddressRow[]>,
   ]);
 
-  // Map sang đúng field UI: customerName
   const items = rows.map((r) => ({
     id: r.id,
     customerId: r.customerId,
@@ -155,7 +194,6 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const input = AddressCreateSchema.parse(body);
 
-  // Check customer tồn tại (dựa theo model Customer)
   const customer = await prisma.customer.findUnique({
     where: { id: input.customerId },
     select: { id: true, name: true },
@@ -164,8 +202,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Customer not found" }, { status: 404 });
   }
 
-  const created = await prisma.$transaction(async (tx) => {
-    // default unique per customer + type
+  // ✅ CHỈ SỬA Ở ĐÂY: gán type cho tx để hết implicit any
+  const created = await prisma.$transaction(async (tx: typeof prisma) => {
     if (input.isDefault) {
       await tx.address.updateMany({
         where: { customerId: input.customerId, type: input.type, isDefault: true },
@@ -196,34 +234,8 @@ export async function POST(req: NextRequest) {
 
         note: input.note ?? null,
       },
-      select: {
-        id: true,
-        customerId: true,
-
-        label: true,
-        type: true,
-        status: true,
-        isDefault: true,
-
-        receiverName: true,
-        phone: true,
-
-        line1: true,
-        line2: true,
-        ward: true,
-        district: true,
-        city: true,
-        region: true,
-        country: true,
-        postalCode: true,
-
-        note: true,
-        createdAt: true,
-        updatedAt: true,
-
-        customer: { select: { name: true } },
-      },
-    });
+      select: addressSelect,
+    }) as unknown as AddressRow;
   });
 
   return NextResponse.json(

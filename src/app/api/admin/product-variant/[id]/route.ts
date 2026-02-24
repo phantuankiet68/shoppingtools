@@ -34,7 +34,7 @@ async function getVariantOwned(userId: string, id: string) {
 }
 
 // ✅ Next 15: params may be Promise
-type Ctx = { params: Promise<{ id: string }> | { id: string } };
+type Ctx = { params: Promise<{ id: string }> | Promise<{ id: string }> };
 
 /** GET /api/admin/product-variant/:id */
 export async function GET(_req: Request, ctx: Ctx) {
@@ -86,7 +86,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
     userId = user.id;
 
     const ct = req.headers.get("content-type") || "";
-    if (!ct.includes("application/json")) return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+    if (!ct.includes("application/json"))
+      return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
 
     const body = await req.json().catch(() => null);
     if (!body) return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
@@ -160,7 +161,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (e?.code === "P2002") {
       const target = e?.meta?.target;
       const t = Array.isArray(target) ? target.join(",") : String(target ?? "");
-      if (t.includes("sku")) return NextResponse.json({ error: "SKU already exists for this product" }, { status: 409 });
+      if (t.includes("sku"))
+        return NextResponse.json({ error: "SKU already exists for this product" }, { status: 409 });
       return NextResponse.json({ error: "Conflict" }, { status: 409 });
     }
 

@@ -9,7 +9,7 @@ type ReturnBody = {
   note?: string;
 };
 
-export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdminAuthUser();
     const userId = admin.id;
@@ -91,7 +91,8 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
     if (e?.message === "UNAUTHORIZED") return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     if (e?.message === "NOT_FOUND") return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
     if (e?.message === "ORDER_CANCELLED") return NextResponse.json({ error: "ORDER_CANCELLED" }, { status: 400 });
-    if (e?.message === "RETURN_ITEMS_REQUIRED") return NextResponse.json({ error: "RETURN_ITEMS_REQUIRED" }, { status: 400 });
+    if (e?.message === "RETURN_ITEMS_REQUIRED")
+      return NextResponse.json({ error: "RETURN_ITEMS_REQUIRED" }, { status: 400 });
     return NextResponse.json({ error: e?.message || "SERVER_ERROR" }, { status: 500 });
   }
 }

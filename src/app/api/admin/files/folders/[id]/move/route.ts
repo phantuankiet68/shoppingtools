@@ -1,16 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-type Ctx = { params: Promise<{ id: string }> | { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-export async function PATCH(req: Request, ctx: Ctx) {
+export async function PATCH(req: NextRequest, ctx: Ctx) {
   try {
     const user = await requireAdminAuthUser();
-    const params = "then" in (ctx.params as any) ? await (ctx.params as Promise<{ id: string }>) : (ctx.params as { id: string });
-    const id = params.id;
+    const { id } = await ctx.params;
 
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}) as any);
     const parentId = (body?.parentId ?? null) as string | null;
 
     const current = await prisma.fileFolder.findFirst({
@@ -21,6 +20,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
     if (parentId) {
       if (parentId === id) return NextResponse.json({ error: "Invalid parent" }, { status: 400 });
+
       const parent = await prisma.fileFolder.findFirst({
         where: { id: parentId, ownerId: user.id },
         select: { id: true },

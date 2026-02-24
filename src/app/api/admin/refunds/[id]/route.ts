@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
@@ -189,7 +189,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         if (paymentPatch.status) pd.status = String(paymentPatch.status);
         if (paymentPatch.method) pd.method = String(paymentPatch.method);
         if (paymentPatch.provider) pd.provider = String(paymentPatch.provider);
-        if (paymentPatch.reference !== undefined) pd.reference = paymentPatch.reference === null ? null : String(paymentPatch.reference);
+        if (paymentPatch.reference !== undefined)
+          pd.reference = paymentPatch.reference === null ? null : String(paymentPatch.reference);
         if (paymentPatch.occurredAt) pd.occurredAt = new Date(String(paymentPatch.occurredAt));
 
         if (Object.keys(pd).length) {

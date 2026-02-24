@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdminAuthUser();
     const userId = admin.id;
@@ -53,7 +53,7 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
  *   shipTo?: { name?, phone?, address1?, address2?, city?, state?, postal?, country? }
  * }
  */
-export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdminAuthUser();
     const userId = admin.id;

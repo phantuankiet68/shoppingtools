@@ -1,0 +1,271 @@
+// ===== Enums =====
+enum AutomationTriggerEvent {
+  PRODUCT_PUBLISHED
+  PRODUCT_UPDATED
+}
+
+enum AutomationActionType {
+  SEND_EMAIL
+  POST_FACEBOOK
+  POST_TIKTOK
+  CREATE_TIKTOK_AD
+}
+
+enum ChannelConnectionChannel {
+  EMAIL_PROVIDER
+  META
+  TIKTOK
+}
+
+enum ChannelConnectionStatus {
+  CONNECTED
+  EXPIRED
+  REVOKED
+  ERROR
+}
+
+enum AutomationEventType {
+  PRODUCT_PUBLISHED
+  PRODUCT_UPDATED
+}
+
+enum AutomationEntityType {
+  PRODUCT
+}
+
+enum OutboxStatus {
+  NEW
+  PROCESSING
+  DONE
+  FAILED
+}
+
+enum JobRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum ActionRunStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  SKIPPED
+}
+
+enum MessageChannel {
+  EMAIL
+  FACEBOOK
+  TIKTOK
+}
+
+enum AudienceMemberStatus {
+  SUBSCRIBED
+  UNSUBSCRIBED
+  BOUNCED
+}
+
+// ===== Models =====
+
+model AutomationRule {
+  id              String   @id @default(cuid())
+  siteId          String
+  name            String
+  enabled         Boolean  @default(true)
+
+  triggerEvent    AutomationTriggerEvent
+  filterJson      Json?
+  cooldownSeconds Int?
+
+  createdByUserId String
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  createdBy       User     @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  actions         AutomationAction[]
+  jobRuns         AutomationJobRun[]
+
+  @@index([siteId, triggerEvent])
+  @@index([siteId, enabled])
+  @@map("automation_rules")
+}
+
+model AutomationAction {
+  id         String   @id @default(cuid())
+  ruleId     String
+
+  type       AutomationActionType
+  configJson Json
+  sortOrder  Int      @default(0)
+  enabled    Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  rule       AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  actionRuns AutomationActionRun[]
+
+  @@index([ruleId, sortOrder])
+  @@index([ruleId, enabled])
+  @@map("automation_actions")
+}
+
+model ChannelConnection {
+  id              String                  @id @default(cuid())
+  siteId           String
+
+  channel         ChannelConnectionChannel
+  provider        String
+  accountId       String?
+
+  accessTokenEnc  String
+  refreshTokenEnc String?
+  tokenExpiresAt  DateTime?
+  scopes          String?
+  status          ChannelConnectionStatus @default(CONNECTED)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Restrict)
+
+  @@index([siteId, channel])
+  @@index([siteId, status])
+  @@map("channel_connections")
+}
+
+model AutomationEventOutbox {
+  id         String             @id @default(cuid())
+  siteId      String
+
+  eventType   AutomationEventType
+  entityType  AutomationEntityType
+  entityId    String
+
+  payloadJson Json
+  status      OutboxStatus       @default(NEW)
+  attempts    Int                @default(0)
+  nextRetryAt DateTime?
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  site        Site               @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  jobRuns     AutomationJobRun[]
+
+  @@index([siteId, status, nextRetryAt])
+  @@index([eventType, entityType, entityId])
+  @@map("automation_event_outbox")
+}
+
+model AutomationJobRun {
+  id           String      @id @default(cuid())
+  siteId        String
+  ruleId        String
+  eventOutboxId String
+
+  status       JobRunStatus @default(QUEUED)
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  errorMessage String?
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  site         Site                @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  rule         AutomationRule      @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  eventOutbox  AutomationEventOutbox @relation(fields: [eventOutboxId], references: [id], onDelete: Restrict)
+
+  actionRuns   AutomationActionRun[]
+
+  @@index([siteId, status, createdAt])
+  @@index([ruleId, createdAt])
+  @@index([eventOutboxId])
+  @@map("automation_job_runs")
+}
+
+model AutomationActionRun {
+  id                 String       @id @default(cuid())
+  jobRunId            String
+  actionId            String
+
+  channel             ChannelConnectionChannel
+  status              ActionRunStatus @default(PENDING)
+
+  requestPayloadJson  Json?
+  responsePayloadJson Json?
+  externalReferenceId String?
+
+  attempts            Int          @default(0)
+  lastError           String?
+
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  jobRun              AutomationJobRun @relation(fields: [jobRunId], references: [id], onDelete: Cascade)
+  action              AutomationAction @relation(fields: [actionId], references: [id], onDelete: Restrict)
+
+  @@index([jobRunId, status])
+  @@index([actionId])
+  @@map("automation_action_runs")
+}
+
+model MessageTemplate {
+  id             String         @id @default(cuid())
+  siteId          String
+
+  channel         MessageChannel
+  name            String
+  subject         String?
+  body            String         @db.Text
+  variablesSchema Json?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  site            Site           @relation(fields: [siteId], references: [id], onDelete: Restrict)
+
+  @@index([siteId, channel])
+  @@map("message_templates")
+}
+
+model Audience {
+  id        String   @id @default(cuid())
+  siteId     String
+  name      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  members   AudienceMember[]
+
+  @@index([siteId, name])
+  @@map("audiences")
+}
+
+model AudienceMember {
+  id         String              @id @default(cuid())
+  audienceId String
+
+  customerId String?
+  email      String
+  status     AudienceMemberStatus @default(SUBSCRIBED)
+
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  audience   Audience            @relation(fields: [audienceId], references: [id], onDelete: Cascade)
+  customer   Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([audienceId, status])
+  @@index([email])
+  @@map("audience_members")
+}

@@ -60,7 +60,11 @@ export async function GET(req: NextRequest) {
       ...(type ? { type } : {}),
       ...(q
         ? {
-            OR: [{ subject: { contains: q, mode: "insensitive" } }, { templateKey: { contains: q, mode: "insensitive" } }, { fromEmail: { contains: q, mode: "insensitive" } }],
+            OR: [
+              { subject: { contains: q, mode: "insensitive" } },
+              { templateKey: { contains: q, mode: "insensitive" } },
+              { fromEmail: { contains: q, mode: "insensitive" } },
+            ],
           }
         : {}),
     };
@@ -105,7 +109,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (e: any) {
-    // requireAdminAuthUser() thường sẽ throw 401/403; nếu bạn có error class riêng thì map tại đây
     console.error(e);
     return jsonErr("Failed to fetch emails", 500);
   }
@@ -131,7 +134,8 @@ export async function POST(req: NextRequest) {
       return jsonErr("Provide htmlContent/textContent or templateKey", 422);
     }
 
-    const email = await prisma.$transaction(async (tx) => {
+    // ✅ FIX: gán type cho tx để hết implicit any
+    const email = await prisma.$transaction(async (tx: typeof prisma) => {
       return tx.email.create({
         data: {
           userId,
@@ -145,7 +149,6 @@ export async function POST(req: NextRequest) {
           fromName: input.fromName ?? null,
           fromEmail: input.fromEmail ?? null,
 
-          // optional: store createdBy for audit (if you still keep it)
           createdBy: admin.id,
 
           totalRecipients: input.recipients.length,

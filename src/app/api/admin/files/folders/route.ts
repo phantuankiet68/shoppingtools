@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const user = await requireAdminAuthUser();
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}) as any);
 
     const name = String(body?.name ?? "").trim();
     const parentId = (body?.parentId ?? null) as string | null;

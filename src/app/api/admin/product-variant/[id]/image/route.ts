@@ -46,7 +46,7 @@ async function setCover(variantId: string, imageId: string) {
  * GET /api/admin/product-variant/:id/image
  * - list images of a variant
  */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
 
   try {
@@ -83,7 +83,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
  * POST /api/admin/product-variant/:id/image
  * body: { url*, fileName?, sort?, isCover? }
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
 
   try {
@@ -156,7 +156,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
  * PATCH /api/admin/product-variant/:id/image
  * body: { imageId*, url?, fileName?, sort?, isCover? }
  */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
 
   try {
@@ -242,7 +242,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 /**
  * DELETE /api/admin/product-variant/:id/image?imageId=...
  */
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   let userId: string | null = null;
 
   try {

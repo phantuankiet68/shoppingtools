@@ -12,11 +12,14 @@ function jsonErr(message: string, status = 400, details?: unknown) {
 
 const EmailStatusEnum = z.enum(["DRAFT", "QUEUED", "SENDING", "SENT", "FAILED", "CANCELLED"]);
 
-type Params = { params: { id: string } };
+// ✅ Next 16 validator expects params to be Promise
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(req: NextRequest, { params }: Params) {
   try {
     const admin = await requireAdminAuthUser();
+    const { id } = await params;
+
     const { searchParams } = new URL(req.url);
 
     const status = searchParams.get("status");
@@ -34,12 +37,16 @@ export async function GET(req: NextRequest, { params }: Params) {
     }
 
     const where: any = {
-      emailId: params.id,
+      emailId: id,
       email: { userId: admin.id },
       ...(status ? { status } : {}),
       ...(q
         ? {
-            OR: [{ toEmail: { contains: q, mode: "insensitive" } }, { toName: { contains: q, mode: "insensitive" } }, { providerMessageId: { contains: q, mode: "insensitive" } }],
+            OR: [
+              { toEmail: { contains: q, mode: "insensitive" } },
+              { toName: { contains: q, mode: "insensitive" } },
+              { providerMessageId: { contains: q, mode: "insensitive" } },
+            ],
           }
         : {}),
       ...(opened === "true" ? { openedAt: { not: null } } : opened === "false" ? { openedAt: null } : {}),

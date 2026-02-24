@@ -7,7 +7,10 @@ function isUnauthorized(e: any) {
   return e?.message === "UNAUTHORIZED";
 }
 
-async function applyStockDelta(tx: Prisma.TransactionClient, args: { productId: string; variantId?: string | null; qtyDelta: number }) {
+async function applyStockDelta(
+  tx: Prisma.TransactionClient,
+  args: { productId: string; variantId?: string | null; qtyDelta: number },
+) {
   const { productId, variantId, qtyDelta } = args;
 
   if (variantId) {
@@ -23,7 +26,7 @@ async function applyStockDelta(tx: Prisma.TransactionClient, args: { productId: 
   }
 }
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdminAuthUser();
     const userId = admin.id;
@@ -52,7 +55,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
 
 type VoidBody = { note?: string };
 
-export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdminAuthUser();
     const userId = admin.id;

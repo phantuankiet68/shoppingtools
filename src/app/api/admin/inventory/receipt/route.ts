@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
@@ -111,15 +111,8 @@ async function applyStockDeltaFromReceiptItems(receiptId: string, direction: 1 |
 
 /**
  * GET /api/admin/inventory/receipt
- * query:
- *  q?             search reference/notes
- *  status?        all|PENDING|RECEIVED|CANCELLED (default all)
- *  supplierId?    filter
- *  includeItems?  1 -> include items
- *  sort?          newest|receiveddesc (default newest)
- *  page? pageSize?
  */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
@@ -201,20 +194,8 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/admin/inventory/receipt
- * body:
- * {
- *   supplierId?,
- *   status?, currency?,
- *   receivedAt?, reference?, notes?,
- *   taxCents?,
- *   items?: [{ productId, variantId?, qty, unitCostCents }]
- * }
- *
- * Note:
- * - auto compute item.totalCents, receipt.subtotal/total
- * - if status=RECEIVED -> apply stock increment
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   let userId: string | null = null;
   try {
     const user = await requireAdminAuthUser();
@@ -249,7 +230,14 @@ export async function POST(req: Request) {
     const itemsInput = Array.isArray(body.items) ? body.items : [];
 
     // validate + compute lines
-    const lines = [];
+    const lines: Array<{
+      productId: string;
+      variantId: string | null;
+      qty: number;
+      unitCostCents: number;
+      totalCents: number;
+    }> = [];
+
     for (const it of itemsInput) {
       const productId = String(it.productId ?? "").trim();
       if (!productId) return NextResponse.json({ error: "Item.productId is required" }, { status: 400 });
@@ -280,7 +268,7 @@ export async function POST(req: Request) {
     const subtotal = lines.reduce((s, x) => s + x.totalCents, 0);
     const totalCents = subtotal + taxCents;
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: typeof prisma) => {
       const receipt = await tx.inventoryReceipt.create({
         data: {
           userId,
@@ -312,7 +300,6 @@ export async function POST(req: Request) {
       });
 
       if (status === "RECEIVED" && lines.length) {
-        // apply stock increment
         for (const it of lines) {
           if (it.variantId) {
             await tx.productVariant.update({

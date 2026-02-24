@@ -19,14 +19,16 @@ const EmailTemplatePatchSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-type Params = { params: { id: string } };
+// ✅ Next 16 validator expects params to be Promise
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_: NextRequest, { params }: Params) {
   try {
     const admin = await requireAdminAuthUser();
+    const { id } = await params;
 
     const template = await prisma.emailTemplate.findFirst({
-      where: { id: params.id, userId: admin.id },
+      where: { id, userId: admin.id },
       select: {
         id: true,
         userId: true,
@@ -53,6 +55,8 @@ export async function GET(_: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const admin = await requireAdminAuthUser();
+    const { id } = await params;
+
     const body = await req.json();
 
     const parsed = EmailTemplatePatchSchema.safeParse(body);
@@ -62,7 +66,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     // Ensure owner
     const existing = await prisma.emailTemplate.findFirst({
-      where: { id: params.id, userId: admin.id },
+      where: { id, userId: admin.id },
       select: { id: true },
     });
     if (!existing) return jsonErr("Template not found", 404);
@@ -75,7 +79,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     const updated = await prisma.emailTemplate.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...parsed.data,
       },
@@ -107,9 +111,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(_: NextRequest, { params }: Params) {
   try {
     const admin = await requireAdminAuthUser();
+    const { id } = await params;
 
     const existing = await prisma.emailTemplate.findFirst({
-      where: { id: params.id, userId: admin.id },
+      where: { id, userId: admin.id },
       select: { id: true, isActive: true },
     });
     if (!existing) return jsonErr("Template not found", 404);
@@ -117,7 +122,7 @@ export async function DELETE(_: NextRequest, { params }: Params) {
     if (!existing.isActive) return jsonOk({ deleted: true }); // idempotent
 
     await prisma.emailTemplate.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false },
     });
 
