@@ -1,10 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
-
-function hashToken(rawToken: string) {
-  return crypto.createHash("sha256").update(rawToken).digest("hex");
-}
+import { hashToken } from "@/lib/session";
 
 function toRoleLabel(role: string) {
   return role === "ADMIN" ? "Admin" : "User";
@@ -12,7 +8,7 @@ function toRoleLabel(role: string) {
 
 export async function GET() {
   const cookieStore = await cookies();
-  const rawToken = cookieStore.get("admin_session")?.value;
+  const rawToken = cookieStore.get("admin_session")?.value ?? null;
 
   if (!rawToken) {
     return Response.json({ user: null }, { status: 401 });
@@ -20,10 +16,9 @@ export async function GET() {
 
   const tokenHash = hashToken(rawToken);
 
-  const session = await prisma.session.findFirst({
+  const session = await prisma.userSession.findFirst({
     where: {
-      tokenHash,
-      type: "ADMIN",
+      refreshTokenHash: tokenHash,
       revokedAt: null,
       expiresAt: { gt: new Date() },
     },
@@ -34,30 +29,33 @@ export async function GET() {
           id: true,
           email: true,
           role: true,
-          isActive: true,
-          image: true,
+          status: true, // ✅ thay isActive
         },
       },
     },
   });
 
-  if (!session?.user || !session.user.isActive) {
+  // chỉ cho ADMIN + ACTIVE
+  if (!session?.user || session.user.role !== "ADMIN" || session.user.status !== "ACTIVE") {
     return Response.json({ user: null }, { status: 401 });
   }
 
-  const displayName = session.user.email.split("@")[0];
+  const displayName = session.user.email.includes("@") ? session.user.email.split("@")[0] : session.user.email;
 
-  await prisma.session.update({
-    where: { id: session.id },
-    data: { lastSeenAt: new Date() },
-  });
+  // update lastSeenAt (best-effort)
+  await prisma.userSession
+    .update({
+      where: { id: session.id },
+      data: { lastSeenAt: new Date() },
+    })
+    .catch(() => {});
 
   return Response.json({
     user: {
       name: displayName,
       role: toRoleLabel(session.user.role),
       email: session.user.email,
-      image: session.user.image,
+      image: null, // ✅ schema User chưa có image
     },
   });
 }

@@ -1,119 +1,66 @@
-// app/(admin)/menu/lib/deriveTitleSlugPath.ts
 import { slugify } from "@/lib/page/utils";
 
-export type Locale = "en";
+export type InternalPage = {
+  id: string;
+  path: string;
+};
+
+export type MenuItemType = "PAGE" | "CUSTOM_URL";
 
 export type BasicMenuItem = {
   id: string;
-  title?: string;
-  label?: string;
-  name?: string;
-
-  linkType?: "internal" | "external" | "scheduled";
-  internalPageId?: string | null;
-  externalUrl?: string | null;
-
-  href?: string | null;
-  path?: string | null;
-  url?: string | null;
-  rawPath?: string | null;
-
-  // ✅ optional (nếu menu có field visible)
+  title?: string | null;
+  type: MenuItemType;
+  pageId?: string | null;
+  customUrl?: string | null;
   visible?: boolean;
-
   children?: BasicMenuItem[];
 };
 
 export type TSP = { title: string; slug: string; path: string };
 
-function pickTitle(it: BasicMenuItem) {
-  return (it.title || it.label || it.name || "").trim();
+function normalizePath(p?: string | null) {
+  if (!p) return "";
+  let s = String(p).trim();
+  s = s.split("#")[0].split("?")[0];
+  if (s && !/^https?:\/\//i.test(s) && !s.startsWith("/")) s = `/${s}`;
+  if (s.length > 1 && s.endsWith("/")) s = s.slice(0, -1);
+  return s;
 }
 
-function pickHref(it: BasicMenuItem) {
-  // ưu tiên rawPath vì đây là thứ bạn đang lưu/preview trong builder
-  return (it.rawPath ?? it.href ?? it.path ?? it.url ?? "").trim();
+function slugFromPath(path: string) {
+  const clean = normalizePath(path);
+  if (!clean || clean === "/") return "/";
+  const segs = clean.split("/").filter(Boolean);
+  return segs[segs.length - 1] || "/";
 }
 
-function isExternalHref(href: string) {
-  return /^https?:\/\//i.test(href);
-}
-
-function isLocalePrefixed(href: string, locale: Locale) {
-  return href === `/` || href.startsWith(``);
-}
-
-function looksLikeHome(href: string) {
-  const h = href.trim();
-  return h === "/" || h === "";
-}
-
-// ✅ route legacy: không ép locale
-function isV1Path(href: string) {
-  return href === "/v1" || href.startsWith("/v1/");
-}
-
-// chỉ chấp nhận internal path kiểu "/a/b-c"
-function isCleanInternalPath(href: string) {
-  return /^\/[a-z0-9\-\/]*$/i.test(href);
-}
-
-export function deriveTriple(locale: Locale, it: BasicMenuItem): TSP | null {
-  // ✅ bỏ qua item ẩn (nếu dùng visible)
+export function deriveTriple(it: BasicMenuItem, internalPages: InternalPage[]): TSP | null {
   if (it.visible === false) return null;
 
-  // chỉ sync seo cho internal
-  if (it.linkType && it.linkType !== "internal") return null;
+  if (it.type !== "PAGE") return null;
 
-  const title = pickTitle(it) || "Untitled";
-  const hrefRaw = pickHref(it);
+  const title = String(it.title ?? "").trim() || "Untitled";
 
-  // external -> bỏ
-  if (hrefRaw && isExternalHref(hrefRaw)) return null;
+  const pid = it.pageId ?? null;
+  const pagePath = pid ? internalPages.find((p) => p.id === pid)?.path : undefined;
+  const path = normalizePath(pagePath);
 
-  // home
-  if (looksLikeHome(hrefRaw)) {
-    return { title, slug: "/", path: `/` };
+  if (path) {
+    return { title, slug: slugFromPath(path), path };
   }
 
-  // v1: không ép locale
-  if (hrefRaw && isV1Path(hrefRaw) && isCleanInternalPath(hrefRaw)) {
-    const segs = hrefRaw.split("/").filter(Boolean);
-    const last = segs.pop() || "";
-    const slug = hrefRaw === "/v1" ? "v1" : last;
-    return { title, slug, path: hrefRaw };
-  }
-
-  // path nội bộ hợp lệ
-  if (hrefRaw && isCleanInternalPath(hrefRaw)) {
-    // nếu đã có /vi /en /ja -> giữ nguyên
-    if (isLocalePrefixed(hrefRaw, locale)) {
-      const segs = hrefRaw.split("/").filter(Boolean);
-      const last = segs.pop() || "";
-      const slug = hrefRaw === `/` ? "/" : last;
-      return { title, slug, path: hrefRaw };
-    }
-
-    // chưa có locale -> prefix
-    const withPrefix = hrefRaw === "/" ? `/` : `${hrefRaw.replace(/^\//, "")}`;
-    const segs = withPrefix.split("/").filter(Boolean);
-    const last = segs.pop() || "";
-    const slug = withPrefix === `/` ? "/" : last;
-    return { title, slug, path: withPrefix };
-  }
-
-  // fallback: tạo slug từ title
   const s = slugify(title) || "untitled";
-  return { title, slug: s, path: `${s}` };
+  return { title, slug: s, path: `/${s}` };
 }
 
-export function flattenTriples(locale: Locale, items: BasicMenuItem[]): TSP[] {
+export function flattenTriples(items: BasicMenuItem[], internalPages: InternalPage[]): TSP[] {
   const out: TSP[] = [];
 
   const walk = (nodes?: BasicMenuItem[]) => {
     if (!nodes) return;
     for (const n of nodes) {
-      const t = deriveTriple(locale, n);
+      const t = deriveTriple(n, internalPages);
       if (t) out.push(t);
       if (n.children?.length) walk(n.children);
     }
@@ -121,7 +68,6 @@ export function flattenTriples(locale: Locale, items: BasicMenuItem[]): TSP[] {
 
   walk(items);
 
-  // unique theo path
   const seen = new Set<string>();
   return out.filter((x) => {
     if (seen.has(x.path)) return false;

@@ -7,17 +7,26 @@ function getClientIp(req: NextRequest) {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? null;
 }
 
-const ADMIN_SESSION_DAYS = 1; // admin session ngắn (khuyến nghị)
-const MAX_FAILS = 5;
+const ADMIN_SESSION_DAYS = 1;
+
+const MAX_FAILS_WINDOW = 5;
+const WINDOW_MINUTES = 15;
+const LOCK_MINUTES = 15;
+
+function genericFail() {
+  return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+}
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   const userAgent = req.headers.get("user-agent") ?? null;
   const origin = req.headers.get("origin") ?? "";
 
-  // (Bổ trợ CSRF/Origin) – login là endpoint nhạy cảm
-  // Nếu bạn deploy cùng domain, có thể check origin bắt đầu bằng base url của bạn
-  const allowedOrigin = process.env.APP_ORIGIN; // ví dụ: https://example.com
+  const allowedOrigin = process.env.APP_ORIGIN;
   if (allowedOrigin && origin && origin !== allowedOrigin) {
     return NextResponse.json({ message: "Invalid origin" }, { status: 403 });
   }
@@ -26,144 +35,119 @@ export async function POST(req: NextRequest) {
   const email = (body?.email ?? "").toString().trim().toLowerCase();
   const password = (body?.password ?? "").toString();
 
-  // UX bảo mật: không leak email tồn tại hay không
-  const genericFail = () => NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+  const ipAddressForAttempt = ip ?? "0.0.0.0";
 
-  if (!email || !password) return genericFail();
+  if (!email || !password) {
+    await sleep(150);
+    return genericFail();
+  }
+
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - WINDOW_MINUTES * 60 * 1000);
+  const recentFails = await prisma.loginAttempt.count({
+    where: {
+      email,
+      ipAddress: ipAddressForAttempt,
+      success: false,
+      createdAt: { gte: windowStart },
+    },
+  });
+
+  if (recentFails >= MAX_FAILS_WINDOW) {
+    await prisma.auditLog
+      .create({
+        data: {
+          action: "ADMIN_LOGIN_BLOCKED",
+          ipAddress: ip,
+          userAgent,
+          metaJson: {
+            email,
+            reason: "rate_limited",
+            windowMinutes: WINDOW_MINUTES,
+            maxFails: MAX_FAILS_WINDOW,
+          },
+        },
+      })
+      .catch(() => {});
+    await sleep(150);
+    return genericFail();
+  }
 
   const user = await prisma.user.findUnique({ where: { email } });
 
-  // Log attempt (optional table)
+  const isEligible = !!user && user.role === "ADMIN" && user.status === "ACTIVE";
+
+  const ok = isEligible ? await verifyPassword(password, user!.passwordHash) : false;
+
   await prisma.loginAttempt
     .create({
-      data: { email, ip: ip ?? "", success: false },
+      data: {
+        email,
+        userId: user?.id ?? null,
+        ipAddress: ipAddressForAttempt,
+        userAgent,
+        success: ok,
+      },
     })
     .catch(() => {});
 
-  if (!user || !user.isActive) {
-    // Audit log fail (không gắn userId nếu không tồn tại)
-    await prisma.auditLog
-      .create({
-        data: {
-          action: "ADMIN_LOGIN_FAIL",
-          result: "FAIL",
-          ip,
-          userAgent,
-          metaJson: { email },
-        },
-      })
-      .catch(() => {});
-    return genericFail();
-  }
-
-  // Must be admin
-  if (user.role !== "ADMIN") {
-    await prisma.auditLog
-      .create({
-        data: {
-          userId: user.id,
-          action: "ADMIN_LOGIN_FAIL",
-          result: "FAIL",
-          ip,
-          userAgent,
-          metaJson: { reason: "not_admin" },
-        },
-      })
-      .catch(() => {});
-    return genericFail();
-  }
-
-  // Lockout check
-  if (user.lockedUntil && user.lockedUntil > new Date()) {
-    await prisma.auditLog
-      .create({
-        data: {
-          userId: user.id,
-          action: "ADMIN_LOGIN_FAIL",
-          result: "FAIL",
-          ip,
-          userAgent,
-          metaJson: { reason: "locked" },
-        },
-      })
-      .catch(() => {});
-    return genericFail();
-  }
-
-  const ok = await verifyPassword(password, user.passwordHash);
-
   if (!ok) {
-    const nextFails = user.failedLoginCount + 1;
-
-    // progressive lockout
-    let lockedUntil: Date | null = null;
-    if (nextFails >= MAX_FAILS) {
-      // ví dụ: khoá 15 phút
-      lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        failedLoginCount: nextFails,
-        lockedUntil,
-      },
-    });
-
     await prisma.auditLog
       .create({
         data: {
-          userId: user.id,
+          actorUserId: user?.id ?? null,
           action: "ADMIN_LOGIN_FAIL",
-          result: "FAIL",
-          ip,
+          ipAddress: ip,
           userAgent,
-          metaJson: { reason: "bad_password", fails: nextFails },
+          metaJson: {
+            email,
+            reason: !user
+              ? "no_user_or_ineligible"
+              : user.status !== "ACTIVE"
+                ? "suspended"
+                : user.role !== "ADMIN"
+                  ? "not_admin"
+                  : "bad_password",
+          },
         },
       })
       .catch(() => {});
 
+    await sleep(150);
     return genericFail();
   }
 
-  // Success: reset fails + rotate session (revoke old ADMIN sessions)
   const token = newSessionToken();
   const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + ADMIN_SESSION_DAYS * 24 * 60 * 60 * 1000);
 
   await prisma.$transaction([
-    prisma.session.updateMany({
-      where: { userId: user.id, type: "ADMIN", revokedAt: null },
-      data: { revokedAt: new Date(), revokeReason: "rotated_on_login" },
+    prisma.userSession.updateMany({
+      where: { userId: user!.id, revokedAt: null },
+      data: { revokedAt: new Date() },
     }),
-    prisma.user.update({
-      where: { id: user.id },
-      data: { failedLoginCount: 0, lockedUntil: null },
-    }),
-    prisma.session.create({
+    prisma.userSession.create({
       data: {
-        userId: user.id,
-        type: "ADMIN",
-        tokenHash,
+        userId: user!.id,
+        refreshTokenHash: tokenHash,
         expiresAt,
-        ip,
+        ipAddress: ip,
         userAgent,
       },
     }),
     prisma.auditLog.create({
       data: {
-        userId: user.id,
+        actorUserId: user!.id,
         action: "ADMIN_LOGIN_SUCCESS",
-        result: "SUCCESS",
-        ip,
+        ipAddress: ip,
         userAgent,
+        metaJson: { email },
       },
     }),
   ]);
 
   const res = NextResponse.json({ ok: true });
 
-  // Cookie HttpOnly + Secure + SameSite
   res.cookies.set("admin_session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

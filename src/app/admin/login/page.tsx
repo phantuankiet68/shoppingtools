@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "@/styles/admin/login/login.module.css";
+import { adminAuthService } from "@/services/auth/adminAuthService";
+import { useAdminAuthStore } from "@/store/auth/adminAuthStore";
 
 type FormState = { email: string; password: string };
 
@@ -65,6 +67,8 @@ export default function AdminLoginPage() {
     setError(null);
   }
 
+  const setAuthenticated = useAdminAuthStore((s) => s.setAuthenticated);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isLocked) return;
@@ -73,34 +77,19 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      if (!res.ok) {
-        // treat as fail
-        setFailCount((prev) => {
-          const next = prev + 1;
-          if (next >= MAX_FAIL) lockFor10s();
-          return next;
-        });
-
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.message || "Invalid credentials");
-      }
-
-      // success -> reset fail states
+      await adminAuthService.login(form);
       setFailCount(0);
       setLockedUntil(null);
       setSecondsLeft(0);
-
+      setAuthenticated(true);
       router.replace(nextUrl);
     } catch (err: any) {
-      // if locked already, show lock message instead of normal error
-      if (isLocked) return;
-      setError(err?.message || "Login failed");
+      setFailCount((prev) => {
+        const next = prev + 1;
+        if (next >= MAX_FAIL) lockFor10s();
+        return next;
+      });
+      if (!isLocked) setError(err?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -161,7 +150,11 @@ export default function AdminLoginPage() {
 
               {/* Floating status badge (top-left) */}
               {(isLocked || failCount > 0) && (
-                <div className={`${styles.statusBadge} ${isLocked ? styles.statusLocked : styles.statusWarn}`} role="status" aria-live="polite">
+                <div
+                  className={`${styles.statusBadge} ${isLocked ? styles.statusLocked : styles.statusWarn}`}
+                  role="status"
+                  aria-live="polite"
+                >
                   <i className={`bi ${isLocked ? "bi-lock-fill" : "bi-exclamation-triangle"}`} />
                   <div className={styles.statusText}>
                     {isLocked ? (
@@ -221,7 +214,13 @@ export default function AdminLoginPage() {
                   required
                   disabled={isLocked || loading}
                 />
-                <button type="button" className={styles.eyeBtn} onClick={() => setShowPw((s) => !s)} aria-label={showPw ? "Hide password" : "Show password"} disabled={isLocked || loading}>
+                <button
+                  type="button"
+                  className={styles.eyeBtn}
+                  onClick={() => setShowPw((s) => !s)}
+                  aria-label={showPw ? "Hide password" : "Show password"}
+                  disabled={isLocked || loading}
+                >
                   <i className={`bi ${showPw ? "bi-eye-slash" : "bi-eye"}`} />
                 </button>
               </div>

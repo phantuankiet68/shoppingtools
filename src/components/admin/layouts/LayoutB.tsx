@@ -169,8 +169,14 @@ export function AvatarMenu() {
 
   return (
     <div ref={wrapRef} className={styles.avatarWrap}>
-      <button type="button" className={styles.avatarBtn} onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-controls={menuId}>
-        {/* Nếu bạn có ảnh thật thì thay background bằng <img/> */}
+      <button
+        type="button"
+        className={styles.avatarBtn}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+      >
         <span className={styles.avatarImg} aria-hidden="true" />
         <span className={styles.avatarOnline} aria-hidden="true" />
       </button>

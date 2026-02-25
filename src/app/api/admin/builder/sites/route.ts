@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { cookies } from "next/headers";
+import { hashToken } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +22,11 @@ const CreateSchema = z.object({
 });
 
 async function nextSiteId(prefix = "sitea") {
-  // lấy tất cả id bắt đầu bằng prefix, sort giảm dần để lấy cái lớn nhất
   const rows = await prisma.site.findMany({
     where: { id: { startsWith: prefix } },
     select: { id: true },
     orderBy: { id: "desc" },
-    take: 50, // đủ để lấy max theo dạng siteaNN
+    take: 50,
   });
 
   let max = 0;
@@ -43,6 +44,30 @@ async function nextSiteId(prefix = "sitea") {
   return `${prefix}${suffix}`.toLowerCase();
 }
 
+async function requireAdminUser() {
+  const cookieStore = await cookies();
+  const rawToken = cookieStore.get("admin_session")?.value ?? null;
+  if (!rawToken) return null;
+
+  const tokenHash = hashToken(rawToken);
+
+  const session = await prisma.userSession.findFirst({
+    where: {
+      refreshTokenHash: tokenHash,
+      revokedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    select: {
+      user: { select: { id: true, role: true, status: true } },
+    },
+  });
+
+  if (!session?.user) return null;
+  if (session.user.role !== "ADMIN" || session.user.status !== "ACTIVE") return null;
+
+  return session.user;
+}
+
 export async function GET() {
   const items = await prisma.site.findMany({
     orderBy: { updatedAt: "desc" },
@@ -51,24 +76,30 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const admin = await requireAdminUser();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const parsed = CreateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   try {
-    const id = await nextSiteId("sitea"); // ✅ sitea01, sitea02, ...
+    const id = await nextSiteId("sitea");
 
     const created = await prisma.site.create({
       data: {
-        id, // ✅ set id theo format bạn muốn
+        id,
         domain: parsed.data.domain,
         name: parsed.data.name,
+        owner: { connect: { id: admin.id } },
       },
     });
 
     return NextResponse.json(created, { status: 201 });
   } catch (e: any) {
-    // domain unique
-    return NextResponse.json({ error: "Domain already exists." }, { status: 409 });
+    const msg = String(e?.message ?? "");
+    if (msg.toLowerCase().includes("unique") || msg.toLowerCase().includes("constraint")) {
+      return NextResponse.json({ error: "Domain already exists." }, { status: 409 });
+    }
+    return NextResponse.json({ error: "Failed to create site." }, { status: 500 });
   }
 }

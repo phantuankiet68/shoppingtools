@@ -190,18 +190,16 @@ export default function SitesPage() {
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
-        <div className={styles.brand}>
-          <span className={styles.brandDot} />
-          <div className={styles.brandText}>
-            <div className={styles.brandTitle}>Sites</div>
-            <div className={styles.brandSub}>Manage sites · Create · View details</div>
-          </div>
-        </div>
-
         <section className={styles.sectionInline}>
           <div className={styles.searchWrap}>
             <i className="bi bi-search" />
-            <input className={styles.search} placeholder={loading ? "Loading..." : "Search sites..."} value={query} onChange={(e) => setQuery(e.target.value)} disabled={loading} />
+            <input
+              className={styles.search}
+              placeholder={loading ? "Loading..." : "Search sites..."}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              disabled={loading}
+            />
           </div>
         </section>
 
@@ -214,7 +212,12 @@ export default function SitesPage() {
             <i className="bi bi-arrow-repeat" /> Refresh
           </button>
 
-          <button className={`${styles.ghostBtn} ${styles.dangerBtn}`} type="button" onClick={deleteActive} disabled={busy || loading || !active}>
+          <button
+            className={`${styles.ghostBtn} ${styles.dangerBtn}`}
+            type="button"
+            onClick={deleteActive}
+            disabled={busy || loading || !active}
+          >
             <i className="bi bi-trash3" /> Delete
           </button>
         </div>
@@ -246,7 +249,8 @@ export default function SitesPage() {
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") setActiveId(s.id);
-                      }}>
+                      }}
+                    >
                       <div className={styles.cardTop}>
                         <div className={styles.cardIcon}>
                           <i className="bi bi-globe2" />
@@ -333,7 +337,8 @@ export default function SitesPage() {
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) closeCreate();
           }}
-          tabIndex={-1}>
+          tabIndex={-1}
+        >
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
               <div>
@@ -351,13 +356,25 @@ export default function SitesPage() {
                 <label className={styles.label}>Domain (no https://)</label>
                 <div className={styles.inputWrap}>
                   <i className="bi bi-link-45deg" />
-                  <input className={styles.input} value={createForm.domain} onChange={(e) => setCreateForm((s) => ({ ...s, domain: e.target.value }))} placeholder="example.com" disabled={busy} />
+                  <input
+                    className={styles.input}
+                    value={createForm.domain}
+                    onChange={(e) => setCreateForm((s) => ({ ...s, domain: e.target.value }))}
+                    placeholder="example.com"
+                    disabled={busy}
+                  />
                 </div>
 
                 <label className={styles.label}>Site Name</label>
                 <div className={styles.inputWrap}>
                   <i className="bi bi-type" />
-                  <input className={styles.input} value={createForm.name} onChange={(e) => setCreateForm((s) => ({ ...s, name: e.target.value }))} placeholder="My Store" disabled={busy} />
+                  <input
+                    className={styles.input}
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm((s) => ({ ...s, name: e.target.value }))}
+                    placeholder="My Store"
+                    disabled={busy}
+                  />
                 </div>
 
                 <div className={styles.smallActions}>
@@ -372,7 +389,8 @@ export default function SitesPage() {
                 <div className={styles.tipInline}>
                   <i className="bi bi-shield-check" />
                   <span>
-                    Domain phải unique. Ví dụ: <span className={styles.mono}>shop-test-01.local</span> hoặc <span className={styles.mono}>demo.yourdomain.com</span>
+                    Domain phải unique. Ví dụ: <span className={styles.mono}>shop-test-01.local</span> hoặc{" "}
+                    <span className={styles.mono}>demo.yourdomain.com</span>
                   </span>
                 </div>
               </div>

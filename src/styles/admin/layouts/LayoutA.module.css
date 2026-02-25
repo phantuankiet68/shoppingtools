@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 .shell.shellSidebarClosed {
-  grid-template-columns:80px 1fr !important;
+  grid-template-columns: 80px 1fr !important;
 }
 .sidebar {
   height: 100vh;
@@ -195,7 +195,10 @@
   place-items: center;
   cursor: pointer;
   color: #0f172a;
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 .burger :global(i) {
   font-size: 24px;
@@ -301,7 +304,10 @@
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  transition: box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+  transition:
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 .search:focus-within {
@@ -382,7 +388,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 .segBtn :global(i) {
   font-size: 14px;
@@ -407,7 +416,10 @@
   cursor: pointer;
   font-weight: 950;
   font-size: 14px;
-  transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
 }
 .primaryBtn :global(i) {
   font-size: 16px;
@@ -431,7 +443,10 @@
   place-items: center;
   color: #334155;
   position: relative;
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 .iconBtn :global(i) {
   font-size: 16px;
@@ -473,7 +488,10 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
   user-select: none;
 }
 .userBtn:hover {
@@ -614,7 +632,10 @@
   gap: 8px;
   color: #0f172a;
   font-size: 14px;
-  transition: box-shadow 160ms ease, border-color 160ms ease, transform 120ms ease;
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
 }
 .ghostBtn :global(i) {
   font-size: 14px;
@@ -877,14 +898,20 @@
 .lineGrid {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px) 0 0/28px 28px, linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px) 0 0/28px 28px;
+  background:
+    linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px) 0 0/28px 28px,
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px) 0 0/28px 28px;
   opacity: 0.55;
 }
 .linePath {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 12% 62%, #5b5ce9 2px, transparent 3px), radial-gradient(circle at 32% 40%, #5b5ce9 2px, transparent 3px),
-    radial-gradient(circle at 52% 55%, #5b5ce9 2px, transparent 3px), radial-gradient(circle at 72% 30%, #5b5ce9 2px, transparent 3px), radial-gradient(circle at 88% 48%, #5b5ce9 2px, transparent 3px);
+  background:
+    radial-gradient(circle at 12% 62%, #5b5ce9 2px, transparent 3px),
+    radial-gradient(circle at 32% 40%, #5b5ce9 2px, transparent 3px),
+    radial-gradient(circle at 52% 55%, #5b5ce9 2px, transparent 3px),
+    radial-gradient(circle at 72% 30%, #5b5ce9 2px, transparent 3px),
+    radial-gradient(circle at 88% 48%, #5b5ce9 2px, transparent 3px);
 }
 .lineFill {
   position: absolute;
@@ -1201,7 +1228,10 @@
   overflow: hidden;
 
   transform: translateY(-4px);
-  transition: max-height 220ms ease, opacity 180ms ease, transform 180ms ease;
+  transition:
+    max-height 220ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 .submenuOpen {
   max-height: 520px;
@@ -1231,7 +1261,9 @@
   background: rgba(99, 102, 241, 0.35); /* xanh nhạt */
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
   opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 /* Hover menu */
@@ -1259,7 +1291,10 @@
   text-decoration: none;
   color: inherit;
   background: #fff3e6;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .brandLogo {
@@ -1452,7 +1487,9 @@
   justify-content: center;
   align-items: center;
   height: 43px;
-  transition: transform 0.18s, box-shadow 0.18s;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
   display: flex;
   gap: 4px;
   padding: 0 10px;
@@ -1460,7 +1497,9 @@
 
 /* hover tinh tế */
 .shortcutCard:hover {
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14), 0 0 0 2px rgba(68, 122, 239, 0.12);
+  box-shadow:
+    0 12px 26px rgba(15, 23, 42, 0.14),
+    0 0 0 2px rgba(68, 122, 239, 0.12);
 }
 
 /* F1 */
@@ -1554,7 +1593,9 @@
   text-decoration: none;
   color: #0f172a;
   font-size: 14px;
-  transition: background 140ms ease, transform 120ms ease;
+  transition:
+    background 140ms ease,
+    transform 120ms ease;
 }
 
 .menuItem:hover {
@@ -1580,10 +1621,6 @@
 
 .menuIcon :global(i) {
   font-size: 16px;
-}
-
-.menuText {
-  flex: 1;
 }
 
 .danger {
@@ -1902,7 +1939,10 @@
   width: 100%;
   padding: 5px 12px;
   text-decoration: none;
-  transition: transform 0.12s, background 0.16s, border-color 0.16s;
+  transition:
+    transform 0.12s,
+    background 0.16s,
+    border-color 0.16s;
   display: flex;
 }
 
@@ -1952,7 +1992,9 @@
   display: grid;
   place-items: center;
   color: rgba(17, 24, 39, 0.55);
-  transition: transform 180ms ease, background 160ms ease;
+  transition:
+    transform 180ms ease,
+    background 160ms ease;
 }
 
 .navItem:hover .chev {
@@ -1980,7 +2022,10 @@
   opacity: 0;
   transform: translateY(-2px);
 
-  transition: max-height 220ms ease, opacity 180ms ease, transform 180ms ease;
+  transition:
+    max-height 220ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 /* Khi mở mới có height -> không tạo khoảng trống khi đóng */
@@ -2000,7 +2045,9 @@
   margin-bottom: 8px;
   padding: 12px 10px;
   text-decoration: none;
-  transition: background 0.16s, border-color 0.16s;
+  transition:
+    background 0.16s,
+    border-color 0.16s;
   display: flex;
 }
 

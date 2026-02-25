@@ -4,9 +4,9 @@ import type { ReactNode, RefObject, MouseEvent as ReactMouseEvent } from "react"
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/layouts/LayoutA.module.css";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAdminTitle } from "@/components/admin/AdminTitleContext";
-
+import { API_ROUTES } from "@/constants/api";
 type AdminUser = { name: string; role: string };
 type NotiTab = "all" | "messages" | "tasks" | "alerts";
 
@@ -153,7 +153,9 @@ function bestMatchWithTrail(items: Item[], currentNoLocale: string): MatchResult
       stack.push(n);
 
       const np = stripLocale(n.path || "");
-      const ok = !!np && (currentNoLocale === np || currentNoLocale.startsWith(np + "/") || (np === "/" && currentNoLocale === "/"));
+      const ok =
+        !!np &&
+        (currentNoLocale === np || currentNoLocale.startsWith(np + "/") || (np === "/" && currentNoLocale === "/"));
 
       if (ok) {
         const trail = stack.slice(0, -1).map((x) => x.key);
@@ -233,13 +235,14 @@ export default function LayoutA({ children }: { children: ReactNode }) {
   const navRef = useRef<HTMLDivElement>(null);
   const asideRef = useRef<HTMLElement | null>(null);
   const closeTimers = useRef<Record<string, number | undefined>>({});
+  const router = useRouter();
 
   useRipple(navRef);
 
   useEffect(() => {
     let alive = true;
 
-    fetch("/api/admin/me", { credentials: "include" })
+    fetch(API_ROUTES.ADMIN_ME, { credentials: "include" })
       .then(async (r) => {
         if (!r.ok) return null;
         return r.json();
@@ -278,9 +281,6 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const toggleNoti = () => setNotiOpen((v) => !v);
-
-  // ===== Sidebar: click outside đóng flyout khi collapsed =====
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       const root = asideRef.current;
@@ -292,11 +292,8 @@ export default function LayoutA({ children }: { children: ReactNode }) {
     document.addEventListener("click", onDocClick);
     return () => document.removeEventListener("click", onDocClick);
   }, [collapsed]);
-
-  // ===== Sidebar: Fetch menu =====
   useEffect(() => {
     let alive = true;
-
     (async () => {
       try {
         const params = new URLSearchParams();
@@ -304,22 +301,10 @@ export default function LayoutA({ children }: { children: ReactNode }) {
         params.set("size", "1000");
         params.set("sort", "sortOrder:asc");
         params.set("setKey", "v1");
-
-        /**
-         * ✅ FIX QUAN TRỌNG:
-         * Trước đây bạn lấy siteId từ localStorage, nhưng localStorage đang lưu sai ("sitea02"),
-         * trong khi DB menuItem thuộc "sitea01" => items rỗng.
-         *
-         * => Không ép siteId nữa. Để API resolve theo domain/host.
-         * => Sau khi fetch xong, sync lại builder_site_id bằng siteId API trả về.
-         */
         const res = await fetch(`/api/admin/menu-items/layout?${params.toString()}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load menu");
         const data = (await res.json()) as { siteId?: string; items?: ApiMenuItem[] };
-
         if (!alive) return;
-
-        // sync builder_site_id cho các chỗ khác dùng (nếu có)
         try {
           if (data?.siteId) localStorage.setItem("builder_site_id", data.siteId);
         } catch {}
@@ -455,9 +440,31 @@ export default function LayoutA({ children }: { children: ReactNode }) {
 
   const railStyle: React.CSSProperties | undefined = collapsed ? { width: 80 } : undefined;
 
+  async function handleLogout() {
+    setUserMenuOpen(false);
+
+    try {
+      await fetch(API_ROUTES.ADMIN_LOGOUT, {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+      });
+    } finally {
+      router.replace("/admin/login");
+      router.refresh();
+    }
+  }
+
   return (
     <div className={`${styles.shell} ${sidebarOpen ? styles.shellSidebarOpen : styles.shellSidebarClosed}`}>
-      {sidebarOpen && <button className={styles.backdrop} onClick={() => setSidebarOpen(false)} aria-label="Close sidebar" type="button" />}
+      {sidebarOpen && (
+        <button
+          className={styles.backdrop}
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close sidebar"
+          type="button"
+        />
+      )}
 
       <aside
         ref={(el) => {
@@ -465,14 +472,16 @@ export default function LayoutA({ children }: { children: ReactNode }) {
         }}
         className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}
         style={railStyle}
-        aria-label="Sidebar">
+        aria-label="Sidebar"
+      >
         <div className={styles.brandWrap}>
           <Link
             href="/admin"
             className={styles.brandLink}
             onClick={() => {
               closeSidebarIfMobile();
-            }}>
+            }}
+          >
             <div className={styles.brandLogo}>
               <span className={styles.brandLogoText}>A</span>
               <span className={styles.brandGlow} />
@@ -521,7 +530,8 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                             localStorage.setItem("sb_active_key", it.key);
                           } catch {}
                           closeSidebarIfMobile();
-                        }}>
+                        }}
+                      >
                         <span className={styles.navIcon}>
                           <i className={it.icon} />
                         </span>
@@ -532,7 +542,12 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                     {bucket.groups.map((g) => {
                       const isOpen = !!openGroups[g.key];
                       return (
-                        <div className={styles.navGroup} key={g.key} onMouseEnter={(e) => onGroupMouseEnter(g.key, e)} onMouseLeave={() => onGroupMouseLeave(g.key)}>
+                        <div
+                          className={styles.navGroup}
+                          key={g.key}
+                          onMouseEnter={(e) => onGroupMouseEnter(g.key, e)}
+                          onMouseLeave={() => onGroupMouseLeave(g.key)}
+                        >
                           <button
                             type="button"
                             data-sb-key={g.key}
@@ -545,7 +560,8 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                               if (collapsed) return;
                               e.preventDefault();
                               toggleGroupExclusive(g.key);
-                            }}>
+                            }}
+                          >
                             <span className={styles.navIcon}>
                               <i className={g.icon} />
                             </span>
@@ -575,7 +591,8 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                                       localStorage.setItem("sb_active_key", s.key);
                                     } catch {}
                                     closeSidebarIfMobile();
-                                  }}>
+                                  }}
+                                >
                                   <span className={styles.subDot} />
                                   <span className={styles.subLabel}>{s.title}</span>
                                 </Link>
@@ -602,7 +619,8 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                                       closeSidebarIfMobile();
                                       toggleGroupExclusive(g.key);
                                     }}
-                                    className={`${styles.flyoutItem} ${activeKey === s.key ? styles.flyoutItemActive : ""}`}>
+                                    className={`${styles.flyoutItem} ${activeKey === s.key ? styles.flyoutItemActive : ""}`}
+                                  >
                                     <i className={s.icon} />
                                     <span>{s.title}</span>
                                   </Link>
@@ -626,7 +644,13 @@ export default function LayoutA({ children }: { children: ReactNode }) {
         <header className={styles.topbar}>
           <div className={styles.row1}>
             <div className={styles.left}>
-              <button className={styles.burger} type="button" onClick={toggleSidebar} aria-label="Toggle sidebar" aria-expanded={sidebarOpen}>
+              <button
+                className={styles.burger}
+                type="button"
+                onClick={toggleSidebar}
+                aria-label="Toggle sidebar"
+                aria-expanded={sidebarOpen}
+              >
                 <i className={`bi ${sidebarOpen ? "bi-arrow-bar-left" : "bi-list"}`} />
               </button>
 
@@ -670,7 +694,14 @@ export default function LayoutA({ children }: { children: ReactNode }) {
               </button>
 
               <div className={styles.notiWrap} ref={notiRef}>
-                <button className={styles.iconBtn} type="button" aria-label="Notifications" aria-haspopup="menu" aria-expanded={notiOpen} onClick={() => setNotiOpen((v) => !v)}>
+                <button
+                  className={styles.iconBtn}
+                  type="button"
+                  aria-label="Notifications"
+                  aria-haspopup="menu"
+                  aria-expanded={notiOpen}
+                  onClick={() => setNotiOpen((v) => !v)}
+                >
                   <i className="bi bi-bell" />
                   <span className={styles.dot} />
                 </button>
@@ -685,19 +716,35 @@ export default function LayoutA({ children }: { children: ReactNode }) {
                     </div>
 
                     <div className={styles.notiTabs}>
-                      <button type="button" className={`${styles.notiTab} ${notiTab === "all" ? styles.notiTabActive : ""}`} onClick={() => setNotiTab("all")}>
+                      <button
+                        type="button"
+                        className={`${styles.notiTab} ${notiTab === "all" ? styles.notiTabActive : ""}`}
+                        onClick={() => setNotiTab("all")}
+                      >
                         All <span className={styles.notiBadge}>3</span>
                       </button>
 
-                      <button type="button" className={`${styles.notiTab} ${notiTab === "messages" ? styles.notiTabActive : ""}`} onClick={() => setNotiTab("messages")}>
+                      <button
+                        type="button"
+                        className={`${styles.notiTab} ${notiTab === "messages" ? styles.notiTabActive : ""}`}
+                        onClick={() => setNotiTab("messages")}
+                      >
                         Messages <span className={styles.notiBadgeMuted}>2</span>
                       </button>
 
-                      <button type="button" className={`${styles.notiTab} ${notiTab === "tasks" ? styles.notiTabActive : ""}`} onClick={() => setNotiTab("tasks")}>
+                      <button
+                        type="button"
+                        className={`${styles.notiTab} ${notiTab === "tasks" ? styles.notiTabActive : ""}`}
+                        onClick={() => setNotiTab("tasks")}
+                      >
                         Tasks <span className={styles.notiBadgeMuted}>1</span>
                       </button>
 
-                      <button type="button" className={`${styles.notiTab} ${notiTab === "alerts" ? styles.notiTabActive : ""}`} onClick={() => setNotiTab("alerts")}>
+                      <button
+                        type="button"
+                        className={`${styles.notiTab} ${notiTab === "alerts" ? styles.notiTabActive : ""}`}
+                        onClick={() => setNotiTab("alerts")}
+                      >
                         Alerts
                       </button>
                     </div>
@@ -749,7 +796,14 @@ export default function LayoutA({ children }: { children: ReactNode }) {
               <span className={styles.divider} />
 
               <div className={styles.userMenu} ref={userMenuRef}>
-                <button className={styles.userBtn} type="button" aria-label="User menu" aria-haspopup="menu" aria-expanded={userMenuOpen} onClick={() => setUserMenuOpen((v) => !v)}>
+                <button
+                  className={styles.userBtn}
+                  type="button"
+                  aria-label="User menu"
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                >
                   <div className={styles.avatarWrap}>
                     <div className={styles.avatar}>A</div>
                     <span className={styles.status} />
@@ -767,14 +821,24 @@ export default function LayoutA({ children }: { children: ReactNode }) {
 
                 {userMenuOpen && (
                   <div className={styles.userDropdown} role="menu" aria-label="User options">
-                    <Link className={styles.menuItem} href="/admin/profile" role="menuitem" onClick={() => setUserMenuOpen(false)}>
+                    <Link
+                      className={styles.menuItem}
+                      href="/admin/profile"
+                      role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
                       <span className={styles.menuIcon}>
                         <i className="bi bi-person" />
                       </span>
                       <span className={styles.menuText}>Profile</span>
                     </Link>
 
-                    <Link className={styles.menuItem} href="/admin/settings" role="menuitem" onClick={() => setUserMenuOpen(false)}>
+                    <Link
+                      className={styles.menuItem}
+                      href="/admin/settings"
+                      role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
                       <span className={styles.menuIcon}>
                         <i className="bi bi-gear" />
                       </span>
@@ -783,12 +847,17 @@ export default function LayoutA({ children }: { children: ReactNode }) {
 
                     <div className={styles.userDropdownDivider} />
 
-                    <Link className={`${styles.menuItem} ${styles.danger}`} href="/admin/logout" role="menuitem" onClick={() => setUserMenuOpen(false)}>
+                    <button
+                      type="button"
+                      className={`${styles.menuItem} ${styles.danger}`}
+                      role="menuitem"
+                      onClick={handleLogout}
+                    >
                       <span className={styles.menuIcon}>
                         <i className="bi bi-box-arrow-right" />
                       </span>
                       <span className={styles.menuText}>Logout</span>
-                    </Link>
+                    </button>
                   </div>
                 )}
               </div>

@@ -7,3 +7,9 @@ export const API_ENDPOINTS = {
     GET_CLIENT_IP: "/api/admin/me/get-client-ip",
   },
 } as const;
+
+export const API_ROUTES = {
+  ADMIN_LOGIN: "/api/admin/login",
+  ADMIN_ME: "/api/admin/me",
+  ADMIN_LOGOUT: "/api/admin/logout",
+} as const;
