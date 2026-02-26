@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/ProductTopWeek/product-top-week.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/ProductTopWeek/product-top-week.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type ProductItem = {

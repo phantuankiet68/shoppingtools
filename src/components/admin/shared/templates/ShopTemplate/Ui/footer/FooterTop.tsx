@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterTop.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterTop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type FooterTopVariant = "classic" | "split" | "minimal";
@@ -133,13 +133,25 @@ const FooterTop: FC<FooterTopProps> = ({ initialVariant = "classic" }) => {
         {/* RIGHT: Switcher + Hotline + Newsletter */}
         <section className={styles.BtRight}>
           <div className={styles.BtSwitcher}>
-            <button type="button" className={`${styles.BtSwitchBtn} ${variant === "classic" ? styles.IsActive : ""}`} onClick={() => handleChangeVariant("classic")}>
+            <button
+              type="button"
+              className={`${styles.BtSwitchBtn} ${variant === "classic" ? styles.IsActive : ""}`}
+              onClick={() => handleChangeVariant("classic")}
+            >
               Classic
             </button>
-            <button type="button" className={`${styles.BtSwitchBtn} ${variant === "split" ? styles.IsActive : ""}`} onClick={() => handleChangeVariant("split")}>
+            <button
+              type="button"
+              className={`${styles.BtSwitchBtn} ${variant === "split" ? styles.IsActive : ""}`}
+              onClick={() => handleChangeVariant("split")}
+            >
               Editorial
             </button>
-            <button type="button" className={`${styles.BtSwitchBtn} ${variant === "minimal" ? styles.IsActive : ""}`} onClick={() => handleChangeVariant("minimal")}>
+            <button
+              type="button"
+              className={`${styles.BtSwitchBtn} ${variant === "minimal" ? styles.IsActive : ""}`}
+              onClick={() => handleChangeVariant("minimal")}
+            >
               Compact
             </button>
           </div>
@@ -159,7 +171,12 @@ const FooterTop: FC<FooterTopProps> = ({ initialVariant = "classic" }) => {
               <strong>Nhận lookbook &amp; mã giảm giá</strong>
               <span>Gửi 1–2 email/tuần, đúng style bạn theo dõi.</span>
               <div className={styles.BtInputRow}>
-                <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <button type="button" onClick={handleSubscribe}>
                   Đăng ký
                 </button>

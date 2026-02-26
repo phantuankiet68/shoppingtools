@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroWear.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroWear.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ========== TYPES & DEFAULTS ========== */
@@ -192,7 +192,7 @@ export const HeroWear: React.FC<HeroWearProps> = ({ preview }) => {
           }
         });
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
 
     observer.observe(el);
@@ -223,8 +223,8 @@ export const HeroWear: React.FC<HeroWearProps> = ({ preview }) => {
             </h1>
 
             <p className={styles.heroSub}>
-              Thiết kế hero &amp; header thời trang đa layout, gợi ý outfit theo xu hướng, tối ưu trải nghiệm tìm kiếm, giỏ hàng và Flash Sale ngay ở phần đầu trang – nơi khách chạm vào thương hiệu
-              đầu tiên.
+              Thiết kế hero &amp; header thời trang đa layout, gợi ý outfit theo xu hướng, tối ưu trải nghiệm tìm kiếm,
+              giỏ hàng và Flash Sale ngay ở phần đầu trang – nơi khách chạm vào thương hiệu đầu tiên.
             </p>
 
             <div className={styles.heroCtas}>
@@ -233,7 +233,8 @@ export const HeroWear: React.FC<HeroWearProps> = ({ preview }) => {
                 className={`${styles.btn} ${styles.btnPrimary}`}
                 onClick={(e) => {
                   if (preview) e.preventDefault();
-                }}>
+                }}
+              >
                 <span className={styles.iconDot} />
                 Xem bộ sưu tập Aurora Blue
               </button>
@@ -242,7 +243,8 @@ export const HeroWear: React.FC<HeroWearProps> = ({ preview }) => {
                 className={`${styles.btn} ${styles.btnSecondary}`}
                 onClick={(e) => {
                   if (preview) e.preventDefault();
-                }}>
+                }}
+              >
                 Khám phá template header thời trang
                 <span>⟶</span>
               </button>
@@ -303,13 +305,25 @@ export const HeroWear: React.FC<HeroWearProps> = ({ preview }) => {
 
               {/* Tabs */}
               <div className={styles.previewTabs}>
-                <button type="button" className={`${styles.previewTab} ${activeTab === "outfits" ? styles.previewTabActive : ""}`} onClick={() => handleTabClick("outfits")}>
+                <button
+                  type="button"
+                  className={`${styles.previewTab} ${activeTab === "outfits" ? styles.previewTabActive : ""}`}
+                  onClick={() => handleTabClick("outfits")}
+                >
                   Outfit hot
                 </button>
-                <button type="button" className={`${styles.previewTab} ${activeTab === "traffic" ? styles.previewTabActive : ""}`} onClick={() => handleTabClick("traffic")}>
+                <button
+                  type="button"
+                  className={`${styles.previewTab} ${activeTab === "traffic" ? styles.previewTabActive : ""}`}
+                  onClick={() => handleTabClick("traffic")}
+                >
                   Lượt xem
                 </button>
-                <button type="button" className={`${styles.previewTab} ${activeTab === "perf" ? styles.previewTabActive : ""}`} onClick={() => handleTabClick("perf")}>
+                <button
+                  type="button"
+                  className={`${styles.previewTab} ${activeTab === "perf" ? styles.previewTabActive : ""}`}
+                  onClick={() => handleTabClick("perf")}
+                >
                   Hiệu suất shop
                 </button>
               </div>
@@ -321,7 +335,12 @@ export const HeroWear: React.FC<HeroWearProps> = ({ preview }) => {
                     <div className={styles.previewStatLabel}>{s.label}</div>
                     <div className={styles.previewStatValue}>
                       <span>
-                        <Counter value={s.value} inView={inView} decimals={s.decimals ?? 0} key={`${activeTab}-${idx}-${inView}`} />
+                        <Counter
+                          value={s.value}
+                          inView={inView}
+                          decimals={s.decimals ?? 0}
+                          key={`${activeTab}-${idx}-${inView}`}
+                        />
                       </span>
                       <span className={styles.previewStatSub}>{s.suffix}</span>
                     </div>

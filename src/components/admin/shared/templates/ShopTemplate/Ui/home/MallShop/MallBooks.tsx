@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/MallShop/mall-books.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/MallShop/mall-books.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type MallItem = {
@@ -138,7 +138,12 @@ export default function MallBooks({
         {/* Slider phải (2 hàng) */}
         <section className={cls.mallSlider} aria-label="Ưu đãi Bán Sách Mall">
           {canPrev && (
-            <button type="button" className={`${cls.nav} ${cls.prev}`} aria-label="Trước" onClick={() => scrollByStep("prev")}>
+            <button
+              type="button"
+              className={`${cls.nav} ${cls.prev}`}
+              aria-label="Trước"
+              onClick={() => scrollByStep("prev")}
+            >
               <i className="bi bi-chevron-left" aria-hidden="true" />
             </button>
           )}
@@ -153,7 +158,12 @@ export default function MallBooks({
           </div>
 
           {canNext && (
-            <button type="button" className={`${cls.nav} ${cls.next}`} aria-label="Sau" onClick={() => scrollByStep("next")}>
+            <button
+              type="button"
+              className={`${cls.nav} ${cls.next}`}
+              aria-label="Sau"
+              onClick={() => scrollByStep("next")}
+            >
               <i className="bi bi-chevron-right" aria-hidden="true" />
             </button>
           )}

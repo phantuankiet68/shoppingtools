@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterFashion.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterFashion.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterFashionMode = "fashionGrid" | "boutiqueShell" | "minimalBar";
@@ -52,15 +52,27 @@ const FooterFashion: FC<FooterFashionProps> = ({ initialMode = "fashionGrid", in
         <div className={styles.AbInner}>
           {/* MODE SWITCH */}
           <div className={styles.AbModeSwitch}>
-            <button type="button" className={`${styles.AbModeBtn} ${mode === "fashionGrid" ? styles.IsActive : ""}`} onClick={() => handleChangeMode("fashionGrid")}>
+            <button
+              type="button"
+              className={`${styles.AbModeBtn} ${mode === "fashionGrid" ? styles.IsActive : ""}`}
+              onClick={() => handleChangeMode("fashionGrid")}
+            >
               <i className="bi bi-grid-3x3-gap" aria-hidden="true" />
               <span>Fashion Grid</span>
             </button>
-            <button type="button" className={`${styles.AbModeBtn} ${mode === "boutiqueShell" ? styles.IsActive : ""}`} onClick={() => handleChangeMode("boutiqueShell")}>
+            <button
+              type="button"
+              className={`${styles.AbModeBtn} ${mode === "boutiqueShell" ? styles.IsActive : ""}`}
+              onClick={() => handleChangeMode("boutiqueShell")}
+            >
               <i className="bi bi-layers" aria-hidden="true" />
               <span>Boutique Shell</span>
             </button>
-            <button type="button" className={`${styles.AbModeBtn} ${mode === "minimalBar" ? styles.IsActive : ""}`} onClick={() => handleChangeMode("minimalBar")}>
+            <button
+              type="button"
+              className={`${styles.AbModeBtn} ${mode === "minimalBar" ? styles.IsActive : ""}`}
+              onClick={() => handleChangeMode("minimalBar")}
+            >
               <i className="bi bi-sliders2" aria-hidden="true" />
               <span>Minimal Bar</span>
             </button>
@@ -172,7 +184,12 @@ const FooterFashion: FC<FooterFashionProps> = ({ initialMode = "fashionGrid", in
                 <p>Nhận lookbook, trend phối đồ, mã giảm giá giới hạn và thông báo flash sale qua email mỗi tuần.</p>
                 <div className={styles.AbInputWrap}>
                   <i className="bi bi-envelope" aria-hidden="true" />
-                  <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <input
+                    type="email"
+                    placeholder="Nhập email của bạn"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                   <button type="button" onClick={handleSubscribe}>
                     <span>Đăng ký</span>
                     <i className="bi bi-arrow-right-short" aria-hidden="true" />
@@ -237,10 +254,18 @@ const FooterFashion: FC<FooterFashionProps> = ({ initialMode = "fashionGrid", in
 
             <div className={styles.AbViewMode}>
               <i className="bi bi-columns-gap" aria-hidden="true" />
-              <button type="button" className={`${styles.AbViewModeBtn} ${viewMode === "content" ? styles.IsActive : ""}`} onClick={() => handleChangeViewMode("content")}>
+              <button
+                type="button"
+                className={`${styles.AbViewModeBtn} ${viewMode === "content" ? styles.IsActive : ""}`}
+                onClick={() => handleChangeViewMode("content")}
+              >
                 Xem đầy đủ
               </button>
-              <button type="button" className={`${styles.AbViewModeBtn} ${viewMode === "summary" ? styles.IsActive : ""}`} onClick={() => handleChangeViewMode("summary")}>
+              <button
+                type="button"
+                className={`${styles.AbViewModeBtn} ${viewMode === "summary" ? styles.IsActive : ""}`}
+                onClick={() => handleChangeViewMode("summary")}
+              >
                 Chỉ tóm tắt
               </button>
             </div>

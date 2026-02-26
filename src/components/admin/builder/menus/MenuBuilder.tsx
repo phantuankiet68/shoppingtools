@@ -3,9 +3,14 @@
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/menu/menu.module.css";
-import { useMenuStore, type Locale, type MenuSetKey, type SiteKind } from "@/components/admin/menu/state/useMenuStore";
-import AllowedBlocks from "@/components/admin/menu/state/AllowedBlocks";
-import MenuStructure from "@/components/admin/menu/state/MenuStructure";
+import {
+  useMenuStore,
+  type Locale,
+  type MenuSetKey,
+  type SiteKind,
+} from "@/components/admin/builder/menus/state/useMenuStore";
+import AllowedBlocks from "@/components/admin/builder/menus/state/AllowedBlocks";
+import MenuStructure from "@/components/admin/builder/menus/state/MenuStructure";
 import { flattenTriples } from "@/lib/menu/deriveTitleSlugPath";
 import PopupNotice from "@/components/ui/PopupNotice";
 

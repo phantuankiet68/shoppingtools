@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, FormEvent, MouseEvent } from "react";
 import type { FC } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterPro.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterPro.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterVariant = "default" | "soft" | "dark";
@@ -100,7 +100,8 @@ export const DEFAULT_FOOTER_PRO_PROPS: FooterProProps = {
   ],
 
   newsletterTitle: "Nhận ưu đãi & lookbook mới",
-  newsletterDescription: "Đăng ký email để nhận thông báo bộ sưu tập mới, voucher độc quyền và gợi ý mix & match theo phong cách của bạn.",
+  newsletterDescription:
+    "Đăng ký email để nhận thông báo bộ sưu tập mới, voucher độc quyền và gợi ý mix & match theo phong cách của bạn.",
   emailPlaceholder: "Nhập email của bạn...",
   subscribeButtonLabel: "Theo dõi ưu đãi",
   newsletterEmptyMessage: "Vui lòng nhập email trước khi đăng ký nhé!",
@@ -302,7 +303,13 @@ const FooterPro: FC<FooterProProps> = (props) => {
     setActiveVariant(key);
   };
 
-  const footerClassNames = [styles.MallFooter, activeVariant === "soft" ? styles.VariantSoft : "", activeVariant === "dark" ? styles.VariantDark : ""].filter(Boolean).join(" ");
+  const footerClassNames = [
+    styles.MallFooter,
+    activeVariant === "soft" ? styles.VariantSoft : "",
+    activeVariant === "dark" ? styles.VariantDark : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={styles.MallFooterWrap}>
@@ -329,7 +336,8 @@ const FooterPro: FC<FooterProProps> = (props) => {
                     type="button"
                     className={`${styles.VariantButton} ${activeVariant === opt.key ? styles.VariantButtonActive : ""}`}
                     data-variant={opt.key}
-                    onClick={() => handleVariantClick(opt.key)}>
+                    onClick={() => handleVariantClick(opt.key)}
+                  >
                     {opt.iconClass && <i className={opt.iconClass} aria-hidden="true" />}
                     {opt.label}
                   </button>
@@ -348,7 +356,13 @@ const FooterPro: FC<FooterProProps> = (props) => {
               <form className={styles.NewsletterForm} onSubmit={handleNewsletterSubmit}>
                 <div className={styles.InputWrap}>
                   <i className="bi bi-envelope" aria-hidden="true" />
-                  <input className={styles.Input} type="email" placeholder={emailPlaceholder} value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} />
+                  <input
+                    className={styles.Input}
+                    type="email"
+                    placeholder={emailPlaceholder}
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                  />
                 </div>
                 <button type="submit" className={styles.PrimaryButton}>
                   <i className="bi bi-bell" aria-hidden="true" />
@@ -415,7 +429,12 @@ const FooterPro: FC<FooterProProps> = (props) => {
               {appBadges && appBadges.length > 0 && (
                 <div className={styles.Badges}>
                   {appBadges.map((badge) => (
-                    <a key={badge.id} href={badge.href || "#"} onClick={handleAnchorClick(badge.href)} className={styles.BadgeStore}>
+                    <a
+                      key={badge.id}
+                      href={badge.href || "#"}
+                      onClick={handleAnchorClick(badge.href)}
+                      className={styles.BadgeStore}
+                    >
                       {badge.iconClass && <i className={badge.iconClass} aria-hidden="true" />}
                       <span>
                         <small>{badge.labelTop}</small>
@@ -429,7 +448,13 @@ const FooterPro: FC<FooterProProps> = (props) => {
               {socialLinks && socialLinks.length > 0 && (
                 <div className={styles.SocialRow}>
                   {socialLinks.map((social) => (
-                    <a key={social.id} href={social.href || "#"} aria-label={social.ariaLabel} onClick={handleAnchorClick(social.href)} className={styles.SocialButton}>
+                    <a
+                      key={social.id}
+                      href={social.href || "#"}
+                      aria-label={social.ariaLabel}
+                      onClick={handleAnchorClick(social.href)}
+                      className={styles.SocialButton}
+                    >
                       <i className={social.iconClass} aria-hidden="true" />
                     </a>
                   ))}

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarBlue.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarBlue.module.css";
 
 export interface TopbarBlueTickerItem {
   text: string;

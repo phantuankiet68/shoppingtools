@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterBlue.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterBlue.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterBlueProps = Record<string, never>;
@@ -109,7 +109,12 @@ const FooterBlue: FC<FooterBlueProps> = () => {
                 <span className={styles.AfInputIcon}>
                   <i className="bi bi-at" aria-hidden="true" />
                 </span>
-                <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <button type="button" className={styles.AfBtnPrimary} onClick={handleNewsletterSubmit}>
                 Đăng ký

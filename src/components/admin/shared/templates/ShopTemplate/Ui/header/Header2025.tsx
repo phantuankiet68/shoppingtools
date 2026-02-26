@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, FormEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/Header2025.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/Header2025.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types DB giống HeaderPro ===== */
@@ -240,7 +240,9 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
 
   /** ===== JSX ===== */
   return (
-    <div className={`${styles.pageWrapper} ${isMobileSearchOpen ? styles.pageWrapperSearchOpen : ""} ${isMobileNavOpen ? styles.pageWrapperMobileNavOpen : ""}`}>
+    <div
+      className={`${styles.pageWrapper} ${isMobileSearchOpen ? styles.pageWrapperSearchOpen : ""} ${isMobileNavOpen ? styles.pageWrapperMobileNavOpen : ""}`}
+    >
       <header className={styles.siteHeader}>
         <div className={styles.headerInner}>
           {/* ROW 1 */}
@@ -268,7 +270,14 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
 
                     <div className={styles.searchInputWrap}>
                       <i className="bi bi-search" />
-                      <input id="searchInput" type="text" className={styles.searchInput} placeholder={searchPlaceholder} value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+                      <input
+                        id="searchInput"
+                        type="text"
+                        className={styles.searchInput}
+                        placeholder={searchPlaceholder}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                      />
                     </div>
 
                     <div className={styles.searchUtils}>
@@ -282,7 +291,8 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                                 console.log("[Header2025 preview] mic click");
                               }
                             : undefined
-                        }>
+                        }
+                      >
                         <i className="bi bi-mic" />
                       </button>
                       <button
@@ -295,7 +305,8 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                                 console.log("[Header2025 preview] qr click");
                               }
                             : undefined
-                        }>
+                        }
+                      >
                         <i className="bi bi-qr-code-scan" />
                       </button>
                     </div>
@@ -310,7 +321,12 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                 <div className={styles.searchTags}>
                   <span className={styles.searchTagsLabel}>Gợi ý nhanh:</span>
                   {quickTags.map((tag) => (
-                    <button key={tag} className={styles.searchTagBtn} type="button" onClick={() => handleQuickTagClick(tag)}>
+                    <button
+                      key={tag}
+                      className={styles.searchTagBtn}
+                      type="button"
+                      onClick={() => handleQuickTagClick(tag)}
+                    >
                       {tag}
                     </button>
                   ))}
@@ -330,7 +346,8 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                         console.log("[Header2025 preview] hotline click");
                       }
                     : undefined
-                }>
+                }
+              >
                 <i className="bi bi-headset" />
                 <div className={styles.haItemMain}>
                   <span className={styles.haLabel}>Hotline</span>
@@ -348,7 +365,8 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                         console.log("[Header2025 preview] account click");
                       }
                     : undefined
-                }>
+                }
+              >
                 <i className="bi bi-person-circle" />
                 <div className={styles.haItemMain}>
                   <span className={styles.haLabel}>Xin chào</span>
@@ -366,13 +384,16 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                         console.log("[Header2025 preview] cart click");
                       }
                     : undefined
-                }>
+                }
+              >
                 <i className="bi bi-bag-check" />
                 <div className={styles.haItemMain}>
                   <span className={styles.haLabel}>Giỏ hàng</span>
                   <span className={styles.haValue}>{cartText}</span>
                 </div>
-                {typeof cartCount === "number" && cartCount > 0 && <div className={styles.badgeDot}>{cartCount > 99 ? "99+" : cartCount}</div>}
+                {typeof cartCount === "number" && cartCount > 0 && (
+                  <div className={styles.badgeDot}>{cartCount > 99 ? "99+" : cartCount}</div>
+                )}
               </button>
             </div>
           </div>
@@ -390,7 +411,8 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                         console.log("[Header2025 preview] main collection");
                       }
                     : undefined
-                }>
+                }
+              >
                 <i className="bi bi-stars" />
                 <div>
                   <span>Bộ sưu tập mới</span>
@@ -572,7 +594,8 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                             } else if (item.href && item.href !== "#") {
                               window.location.href = item.href;
                             }
-                          }}>
+                          }}
+                        >
                           <span className={styles.navLinkText}>{item.label}</span>
                         </button>
                       )}
@@ -627,8 +650,14 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
             </li>
 
             {/* Nữ */}
-            <li className={`${styles.mobileNavItem} ${openMobileNavItemId === "female" ? styles.mobileNavItemOpen : ""}`}>
-              <button className={`${styles.mobileNavBtn} ${styles.mobileToggle}`} type="button" onClick={() => handleMobileNavToggleItem("female")}>
+            <li
+              className={`${styles.mobileNavItem} ${openMobileNavItemId === "female" ? styles.mobileNavItemOpen : ""}`}
+            >
+              <button
+                className={`${styles.mobileNavBtn} ${styles.mobileToggle}`}
+                type="button"
+                onClick={() => handleMobileNavToggleItem("female")}
+              >
                 <div className={styles.mobileNavBtnMain}>
                   <i className="bi bi-gender-female" />
                   <span>Nữ</span>
@@ -649,7 +678,11 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
 
             {/* Nam */}
             <li className={`${styles.mobileNavItem} ${openMobileNavItemId === "male" ? styles.mobileNavItemOpen : ""}`}>
-              <button className={`${styles.mobileNavBtn} ${styles.mobileToggle}`} type="button" onClick={() => handleMobileNavToggleItem("male")}>
+              <button
+                className={`${styles.mobileNavBtn} ${styles.mobileToggle}`}
+                type="button"
+                onClick={() => handleMobileNavToggleItem("male")}
+              >
                 <div className={styles.mobileNavBtnMain}>
                   <i className="bi bi-gender-male" />
                   <span>Nam</span>
@@ -668,8 +701,14 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
             </li>
 
             {/* Unisex */}
-            <li className={`${styles.mobileNavItem} ${openMobileNavItemId === "unisex" ? styles.mobileNavItemOpen : ""}`}>
-              <button className={`${styles.mobileNavBtn} ${styles.mobileToggle}`} type="button" onClick={() => handleMobileNavToggleItem("unisex")}>
+            <li
+              className={`${styles.mobileNavItem} ${openMobileNavItemId === "unisex" ? styles.mobileNavItemOpen : ""}`}
+            >
+              <button
+                className={`${styles.mobileNavBtn} ${styles.mobileToggle}`}
+                type="button"
+                onClick={() => handleMobileNavToggleItem("unisex")}
+              >
                 <div className={styles.mobileNavBtnMain}>
                   <i className="bi bi-people" />
                   <span>Unisex</span>
@@ -726,7 +765,8 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                             } else if (item.href && item.href !== "#") {
                               window.location.href = item.href;
                             }
-                          }}>
+                          }}
+                        >
                           <div className={styles.mobileNavBtnMain}>
                             {item.iconClass && <i className={item.iconClass} />}
                             <span>{item.label}</span>
@@ -737,8 +777,15 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
                   }
 
                   return (
-                    <li key={item.id} className={`${styles.mobileNavItem} ${openMobileNavItemId === id ? styles.mobileNavItemOpen : ""}`}>
-                      <button className={`${styles.mobileNavBtn} ${styles.mobileToggle}`} type="button" onClick={() => handleMobileNavToggleItem(id)}>
+                    <li
+                      key={item.id}
+                      className={`${styles.mobileNavItem} ${openMobileNavItemId === id ? styles.mobileNavItemOpen : ""}`}
+                    >
+                      <button
+                        className={`${styles.mobileNavBtn} ${styles.mobileToggle}`}
+                        type="button"
+                        onClick={() => handleMobileNavToggleItem(id)}
+                      >
                         <div className={styles.mobileNavBtnMain}>
                           {item.iconClass && <i className={item.iconClass} />}
                           <span>{item.label}</span>
@@ -784,12 +831,20 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
       {/* BOTTOM NAV – mobile tab bar */}
       <nav className={styles.bottomNav} aria-label="Aurora Wear navigation">
         <div className={styles.bottomNavInner}>
-          <button className={`${styles.bottomNavItem} ${activeBottomTab === "home" ? styles.bottomNavItemActive : ""}`} type="button" onClick={() => handleBottomTabClick("home")}>
+          <button
+            className={`${styles.bottomNavItem} ${activeBottomTab === "home" ? styles.bottomNavItemActive : ""}`}
+            type="button"
+            onClick={() => handleBottomTabClick("home")}
+          >
             <i className="bi bi-house-door" />
             <span>Trang chủ</span>
           </button>
 
-          <button className={`${styles.bottomNavItem} ${activeBottomTab === "category" ? styles.bottomNavItemActive : ""}`} type="button" onClick={() => handleBottomTabClick("category")}>
+          <button
+            className={`${styles.bottomNavItem} ${activeBottomTab === "category" ? styles.bottomNavItemActive : ""}`}
+            type="button"
+            onClick={() => handleBottomTabClick("category")}
+          >
             <i className="bi bi-grid-3x3-gap" />
             <span>Danh mục</span>
           </button>
@@ -800,12 +855,20 @@ export const Header2025: React.FC<Header2025Props> = (props) => {
             </button>
           </div>
 
-          <button className={`${styles.bottomNavItem} ${activeBottomTab === "wishlist" ? styles.bottomNavItemActive : ""}`} type="button" onClick={() => handleBottomTabClick("wishlist")}>
+          <button
+            className={`${styles.bottomNavItem} ${activeBottomTab === "wishlist" ? styles.bottomNavItemActive : ""}`}
+            type="button"
+            onClick={() => handleBottomTabClick("wishlist")}
+          >
             <i className="bi bi-heart" />
             <span>Yêu thích</span>
           </button>
 
-          <button className={`${styles.bottomNavItem} ${activeBottomTab === "account" ? styles.bottomNavItemActive : ""}`} type="button" onClick={() => handleBottomTabClick("account")}>
+          <button
+            className={`${styles.bottomNavItem} ${activeBottomTab === "account" ? styles.bottomNavItemActive : ""}`}
+            type="button"
+            onClick={() => handleBottomTabClick("account")}
+          >
             <i className="bi bi-person" />
             <span>Tài khoản</span>
           </button>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarOrange2025.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarOrange2025.module.css";
 
 export interface TopbarOrangeLink {
   label: string;
@@ -126,7 +126,12 @@ export const TopbarOrange2025: React.FC<TopbarOrange2025Props> = ({
         <div ref={rightRef} className={tbRightClassName}>
           <div className={styles.tbLinks}>
             {linkList.map((l, i) => (
-              <a key={i} className={styles.tbLink} href={preview ? "#" : l.href} onClick={(e) => preview && e.preventDefault()}>
+              <a
+                key={i}
+                className={styles.tbLink}
+                href={preview ? "#" : l.href}
+                onClick={(e) => preview && e.preventDefault()}
+              >
                 {l.icon && <i className={`bi ${l.icon}`} />}
                 {l.label}
               </a>
@@ -148,7 +153,8 @@ export const TopbarOrange2025: React.FC<TopbarOrange2025Props> = ({
               e.stopPropagation();
               setIsMobileOpen((v) => !v);
             }}
-            aria-label="Mở menu">
+            aria-label="Mở menu"
+          >
             <i className="bi bi-list" />
           </button>
         </div>

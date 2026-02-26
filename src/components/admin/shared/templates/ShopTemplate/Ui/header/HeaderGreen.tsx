@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState, FormEvent, MouseEvent as ReactMouseEvent, KeyboardEvent } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderGreen.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderGreen.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB ===== */
@@ -365,7 +365,8 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
                 : () => {
                     // Theo dõi đơn hàng - tuỳ bạn xử lý real link
                   }
-            }>
+            }
+          >
             {topbarLinkText}
           </button>
         </div>
@@ -417,7 +418,8 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
                       : () => {
                           alert("Bạn chưa có sản phẩm yêu thích nào. Hãy thêm vài item ♥");
                         }
-                  }>
+                  }
+                >
                   <i className="bi bi-heart" />
                 </button>
               )}
@@ -433,7 +435,8 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
                       : () => {
                           alert("Đi đến tài khoản (demo).");
                         }
-                  }>
+                  }
+                >
                   <i className="bi bi-person" />
                 </button>
               )}
@@ -449,7 +452,8 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
                       : () => {
                           alert("Đi đến giỏ hàng (demo). Ở dự án thật bạn chuyển sang /cart.");
                         }
-                  }>
+                  }
+                >
                   <i className="bi bi-bag-heart" />
                   {typeof cartCount === "number" && <span className={styles.cartCount}>{cartCount}</span>}
                   <span>Giỏ</span>
@@ -457,12 +461,24 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
               )}
 
               {/* Mobile search */}
-              <button className={`${styles.btnIcon} ${styles.mobileOnly}`} id="openSearch" title="Tìm kiếm" type="button" onClick={openSearchPopup}>
+              <button
+                className={`${styles.btnIcon} ${styles.mobileOnly}`}
+                id="openSearch"
+                title="Tìm kiếm"
+                type="button"
+                onClick={openSearchPopup}
+              >
                 <i className="bi bi-search" />
               </button>
 
               {/* Mobile menu */}
-              <button className={`${styles.btnIcon} ${styles.mobileOnly}`} id="openMenu" title="Menu" type="button" onClick={toggleMobileMenu}>
+              <button
+                className={`${styles.btnIcon} ${styles.mobileOnly}`}
+                id="openMenu"
+                title="Menu"
+                type="button"
+                onClick={toggleMobileMenu}
+              >
                 <i className="bi bi-list" />
               </button>
             </div>
@@ -473,7 +489,11 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
             <ul className={styles.navMain}>
               {/* Static buttons giống design gốc */}
               <li className={styles.navItem}>
-                <button className={`${styles.navBtn} ${styles.navPrimary}`} type="button" onClick={handleAnchorClick("#")}>
+                <button
+                  className={`${styles.navBtn} ${styles.navPrimary}`}
+                  type="button"
+                  onClick={handleAnchorClick("#")}
+                >
                   <i className="bi bi-stars" />
                   Mới về
                 </button>
@@ -530,7 +550,8 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
           if (e.target === e.currentTarget) {
             closeSearchPopup();
           }
-        }}>
+        }}
+      >
         <div className={styles.searchPopup}>
           <div className={styles.searchPopupHeader}>
             <div className={styles.searchPopupTitle}>Tìm kiếm sản phẩm</div>
@@ -540,7 +561,12 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
           </div>
 
           <div className={styles.searchPopupRow}>
-            <input ref={popupSearchInputRef} type="text" placeholder="Nhập từ khóa: áo, quần, váy..." onKeyDown={handlePopupInputKeyDown} />
+            <input
+              ref={popupSearchInputRef}
+              type="text"
+              placeholder="Nhập từ khóa: áo, quần, váy..."
+              onKeyDown={handlePopupInputKeyDown}
+            />
             <button type="button" onClick={preview ? undefined : handlePopupSearch}>
               <i className="bi bi-search" />
             </button>
@@ -549,7 +575,12 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
           <div className={styles.searchPopupSuggestLabel}>Gợi ý nhanh:</div>
           <div className={styles.searchPopupChips}>
             {popupSuggestions?.map((label) => (
-              <button key={label} type="button" className={styles.searchPopupChip} onClick={() => handleSuggestionClick(label)}>
+              <button
+                key={label}
+                type="button"
+                className={styles.searchPopupChip}
+                onClick={() => handleSuggestionClick(label)}
+              >
                 {label}
               </button>
             ))}
@@ -558,7 +589,10 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
       </div>
 
       {/* MOBILE MENU OVERLAY */}
-      <div className={`${styles.mobileMenuOverlay} ${isMobileMenuOpen ? styles.isOpen : ""}`} onClick={handleMobileOverlayClick}>
+      <div
+        className={`${styles.mobileMenuOverlay} ${isMobileMenuOpen ? styles.isOpen : ""}`}
+        onClick={handleMobileOverlayClick}
+      >
         <div className={styles.mobileMenuPanel}>
           <div className={styles.mobileMenuHeader}>
             <div className={styles.mobileMenuTitle}>Danh mục thời trang {brandTitle}</div>
@@ -587,7 +621,11 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
               const isOpen = openMobileIndex === idx;
               return (
                 <li key={item.id} className={`${styles.mobileMenuItem} ${isOpen ? styles.isOpen : ""}`}>
-                  <button className={styles.mobileMenuToggle} type="button" onClick={handleMobileItemToggle(idx, hasSub)}>
+                  <button
+                    className={styles.mobileMenuToggle}
+                    type="button"
+                    onClick={handleMobileItemToggle(idx, hasSub)}
+                  >
                     <span>{item.label}</span>
                     {hasSub && <i className="bi bi-chevron-down" />}
                   </button>
@@ -609,23 +647,43 @@ export const HeaderGreen: React.FC<HeaderGreenProps> = (props) => {
 
       {/* BOTTOM TAB BAR (MOBILE) */}
       <div className={styles.bottomTabbar}>
-        <button className={`${styles.tabItem} ${activeTab === "home" ? styles.active : ""}`} type="button" onClick={setTab("home")}>
+        <button
+          className={`${styles.tabItem} ${activeTab === "home" ? styles.active : ""}`}
+          type="button"
+          onClick={setTab("home")}
+        >
           <i className="bi bi-house" />
           <span>Home</span>
         </button>
-        <button className={`${styles.tabItem} ${activeTab === "category" ? styles.active : ""}`} type="button" onClick={setTab("category")}>
+        <button
+          className={`${styles.tabItem} ${activeTab === "category" ? styles.active : ""}`}
+          type="button"
+          onClick={setTab("category")}
+        >
           <i className="bi bi-grid-3x3-gap" />
           <span>Danh mục</span>
         </button>
-        <button className={`${styles.tabItem} ${activeTab === "cart" ? styles.active : ""}`} type="button" onClick={setTab("cart")}>
+        <button
+          className={`${styles.tabItem} ${activeTab === "cart" ? styles.active : ""}`}
+          type="button"
+          onClick={setTab("cart")}
+        >
           <i className="bi bi-bag" />
           <span>Giỏ</span>
         </button>
-        <button className={`${styles.tabItem} ${activeTab === "wishlist" ? styles.active : ""}`} type="button" onClick={setTab("wishlist")}>
+        <button
+          className={`${styles.tabItem} ${activeTab === "wishlist" ? styles.active : ""}`}
+          type="button"
+          onClick={setTab("wishlist")}
+        >
           <i className="bi bi-heart" />
           <span>Yêu thích</span>
         </button>
-        <button className={`${styles.tabItem} ${activeTab === "account" ? styles.active : ""}`} type="button" onClick={setTab("account")}>
+        <button
+          className={`${styles.tabItem} ${activeTab === "account" ? styles.active : ""}`}
+          type="button"
+          onClick={setTab("account")}
+        >
           <i className="bi bi-person" />
           <span>Tài khoản</span>
         </button>

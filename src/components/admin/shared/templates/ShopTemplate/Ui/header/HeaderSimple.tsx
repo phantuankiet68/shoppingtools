@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, FormEvent, useEffect } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderSimple.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderSimple.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB (giống HeaderPro) ===== */
@@ -335,7 +335,8 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
                       e.preventDefault();
                       console.log("[HeaderSimple preview] quick grid click");
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-grid-3x3-gap" />
                 </button>
               )}
@@ -351,7 +352,8 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
                       e.preventDefault();
                       console.log("[HeaderSimple preview] person icon click");
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-person" />
                 </button>
                 <button
@@ -363,9 +365,12 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
                       console.log("[HeaderSimple preview] bag icon click");
                       return;
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-bag" />
-                  {cartCount && cartCount > 0 && <span className={styles.badge}>{cartCount > 99 ? "99+" : cartCount}</span>}
+                  {cartCount && cartCount > 0 && (
+                    <span className={styles.badge}>{cartCount > 99 ? "99+" : cartCount}</span>
+                  )}
                 </button>
               </div>
 
@@ -398,13 +403,23 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
             <nav className={styles.hdrNav} aria-label="HeaderSimple navigation">
               {/* Static Aurora menu */}
               <div className={styles.hdrNavItem}>
-                <button className={`${styles.hdrNavLink} ${activeNav === "moi-ve" ? styles.hdrNavLinkActive : ""}`} type="button" onClick={handleNavClick("moi-ve", false)}>
+                <button
+                  className={`${styles.hdrNavLink} ${activeNav === "moi-ve" ? styles.hdrNavLinkActive : ""}`}
+                  type="button"
+                  onClick={handleNavClick("moi-ve", false)}
+                >
                   Mới về
                 </button>
               </div>
 
-              <div className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === "nu" ? styles.hdrNavItemOpen : ""}`}>
-                <button className={`${styles.hdrNavLink} ${activeNav === "nu" ? styles.hdrNavLinkActive : ""}`} type="button" onClick={handleNavClick("nu", true)}>
+              <div
+                className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === "nu" ? styles.hdrNavItemOpen : ""}`}
+              >
+                <button
+                  className={`${styles.hdrNavLink} ${activeNav === "nu" ? styles.hdrNavLinkActive : ""}`}
+                  type="button"
+                  onClick={handleNavClick("nu", true)}
+                >
                   Nữ
                   <i className={`bi bi-chevron-down ${styles.chevron}`} />
                 </button>
@@ -441,8 +456,14 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
                 </div>
               </div>
 
-              <div className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === "nam" ? styles.hdrNavItemOpen : ""}`}>
-                <button className={`${styles.hdrNavLink} ${activeNav === "nam" ? styles.hdrNavLinkActive : ""}`} type="button" onClick={handleNavClick("nam", true)}>
+              <div
+                className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === "nam" ? styles.hdrNavItemOpen : ""}`}
+              >
+                <button
+                  className={`${styles.hdrNavLink} ${activeNav === "nam" ? styles.hdrNavLinkActive : ""}`}
+                  type="button"
+                  onClick={handleNavClick("nam", true)}
+                >
                   Nam
                   <i className={`bi bi-chevron-down ${styles.chevron}`} />
                 </button>
@@ -480,13 +501,23 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
               </div>
 
               <div className={styles.hdrNavItem}>
-                <button className={`${styles.hdrNavLink} ${activeNav === "unisex" ? styles.hdrNavLinkActive : ""}`} type="button" onClick={handleNavClick("unisex", false)}>
+                <button
+                  className={`${styles.hdrNavLink} ${activeNav === "unisex" ? styles.hdrNavLinkActive : ""}`}
+                  type="button"
+                  onClick={handleNavClick("unisex", false)}
+                >
                   Unisex
                 </button>
               </div>
 
-              <div className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === "sale" ? styles.hdrNavItemOpen : ""}`}>
-                <button className={`${styles.hdrNavLink} ${activeNav === "sale" ? styles.hdrNavLinkActive : ""}`} type="button" onClick={handleNavClick("sale", true)}>
+              <div
+                className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === "sale" ? styles.hdrNavItemOpen : ""}`}
+              >
+                <button
+                  className={`${styles.hdrNavLink} ${activeNav === "sale" ? styles.hdrNavLinkActive : ""}`}
+                  type="button"
+                  onClick={handleNavClick("sale", true)}
+                >
                   Sale %
                   <i className={`bi bi-chevron-down ${styles.chevron}`} />
                 </button>
@@ -521,7 +552,11 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
               </div>
 
               <div className={styles.hdrNavItem}>
-                <button className={`${styles.hdrNavLink} ${activeNav === "lookbook" ? styles.hdrNavLinkActive : ""}`} type="button" onClick={handleNavClick("lookbook", false)}>
+                <button
+                  className={`${styles.hdrNavLink} ${activeNav === "lookbook" ? styles.hdrNavLinkActive : ""}`}
+                  type="button"
+                  onClick={handleNavClick("lookbook", false)}
+                >
                   Lookbook
                 </button>
               </div>
@@ -549,7 +584,10 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
                 }
 
                 return (
-                  <div key={item.id} className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === key ? styles.hdrNavItemOpen : ""}`}>
+                  <div
+                    key={item.id}
+                    className={`${styles.hdrNavItem} ${styles.hasSub} ${openMobileSub === key ? styles.hdrNavItemOpen : ""}`}
+                  >
                     <button className={styles.hdrNavLink} type="button" onClick={handleDbNavClick(item.id, true)}>
                       {item.iconClass && <i className={item.iconClass} />}
                       <span>{item.label}</span>
@@ -567,7 +605,8 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
                                 e.preventDefault();
                                 console.log("[HeaderSimple preview] DB sub click", sub.href);
                               }
-                            }}>
+                            }}
+                          >
                             {sub.iconClass && <i className={sub.iconClass} />}
                             <span>{sub.label}</span>
                           </button>
@@ -611,7 +650,8 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
           if (e.target === e.currentTarget) {
             closeMobileSearch();
           }
-        }}>
+        }}
+      >
         <div className={styles.mobileSearchPanel}>
           <div className={styles.mobileSearchHeader}>
             <span>Tìm kiếm nhanh</span>
@@ -630,12 +670,20 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
       {showBottomNav && (
         <nav className={styles.bottomNav} aria-label="HeaderSimple bottom navigation">
           <div className={styles.bottomNavInner}>
-            <button className={`${styles.bottomNavItem} ${activeBottomTab === "home" ? styles.bottomNavItemActive : ""}`} type="button" onClick={handleBottomTabClick("home")}>
+            <button
+              className={`${styles.bottomNavItem} ${activeBottomTab === "home" ? styles.bottomNavItemActive : ""}`}
+              type="button"
+              onClick={handleBottomTabClick("home")}
+            >
               <i className="bi bi-house-door" />
               <span>Trang chủ</span>
             </button>
 
-            <button className={`${styles.bottomNavItem} ${activeBottomTab === "category" ? styles.bottomNavItemActive : ""}`} type="button" onClick={handleBottomTabClick("category")}>
+            <button
+              className={`${styles.bottomNavItem} ${activeBottomTab === "category" ? styles.bottomNavItemActive : ""}`}
+              type="button"
+              onClick={handleBottomTabClick("category")}
+            >
               <i className="bi bi-grid-3x3-gap" />
               <span>Danh mục</span>
             </button>
@@ -646,12 +694,20 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
               </button>
             </div>
 
-            <button className={`${styles.bottomNavItem} ${activeBottomTab === "wishlist" ? styles.bottomNavItemActive : ""}`} type="button" onClick={handleBottomTabClick("wishlist")}>
+            <button
+              className={`${styles.bottomNavItem} ${activeBottomTab === "wishlist" ? styles.bottomNavItemActive : ""}`}
+              type="button"
+              onClick={handleBottomTabClick("wishlist")}
+            >
               <i className="bi bi-heart" />
               <span>Yêu thích</span>
             </button>
 
-            <button className={`${styles.bottomNavItem} ${activeBottomTab === "account" ? styles.bottomNavItemActive : ""}`} type="button" onClick={handleBottomTabClick("account")}>
+            <button
+              className={`${styles.bottomNavItem} ${activeBottomTab === "account" ? styles.bottomNavItemActive : ""}`}
+              type="button"
+              onClick={handleBottomTabClick("account")}
+            >
               <i className="bi bi-person" />
               <span>Tài khoản</span>
             </button>

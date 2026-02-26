@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, FormEvent, MouseEvent as ReactMouseEvent, KeyboardEvent } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderAurora.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderAurora.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Nav types (chuẩn giống HeaderPro) ===== */
@@ -128,7 +128,13 @@ const DEFAULT_HEADER_AURORA_PROPS: HeaderAuroraProps = {
   searchMobilePlaceholder: "Tìm outfit, sản phẩm, mã đơn...",
   searchButtonLabel: "Tìm outfit",
   searchHints: ["Lookbook Thu Đông 2025", "Basic Capsule Wardrobe", "Sale cuối mùa -50%", "Sneaker & Túi mini"],
-  searchSuggests: ["Set suit công sở nữ", "Áo thun basic oversize", "Sneaker trắng phối đồ", "Đầm satin dự tiệc", "Cardigan len Hàn Quốc"],
+  searchSuggests: [
+    "Set suit công sở nữ",
+    "Áo thun basic oversize",
+    "Sneaker trắng phối đồ",
+    "Đầm satin dự tiệc",
+    "Cardigan len Hàn Quốc",
+  ],
 
   welcomeName: "Xin chào, Bạn",
   userRole: "Aurora Member",
@@ -261,10 +267,20 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (categoryBtnRef.current && categoryDropdownRef.current && !categoryBtnRef.current.contains(target) && !categoryDropdownRef.current.contains(target)) {
+      if (
+        categoryBtnRef.current &&
+        categoryDropdownRef.current &&
+        !categoryBtnRef.current.contains(target) &&
+        !categoryDropdownRef.current.contains(target)
+      ) {
         setIsCategoryOpen(false);
       }
-      if (categoryBtnModalRef.current && categoryDropdownModalRef.current && !categoryBtnModalRef.current.contains(target) && !categoryDropdownModalRef.current.contains(target)) {
+      if (
+        categoryBtnModalRef.current &&
+        categoryDropdownModalRef.current &&
+        !categoryBtnModalRef.current.contains(target) &&
+        !categoryDropdownModalRef.current.contains(target)
+      ) {
         setIsCategoryOpenModal(false);
       }
     };
@@ -339,27 +355,32 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
     (isModal = false) =>
     () => {
       if (preview) return;
-      console.log(isModal ? "Giả lập: bắt đầu lắng nghe giọng nói (mobile popup)." : "Giả lập: bắt đầu lắng nghe giọng nói (desktop).");
+      console.log(
+        isModal
+          ? "Giả lập: bắt đầu lắng nghe giọng nói (mobile popup)."
+          : "Giả lập: bắt đầu lắng nghe giọng nói (desktop).",
+      );
     };
 
   /** ===== Nav active & submenu open ===== */
   const [activeNavIndex, setActiveNavIndex] = useState<number>(0);
   const [openSubIndex, setOpenSubIndex] = useState<number | null>(null);
 
-  const handleNavPillClick = (idx: number, hasSub: boolean, href: string) => (e: ReactMouseEvent<HTMLButtonElement>) => {
-    if (hasSub) {
-      e.stopPropagation();
-      setOpenSubIndex((prev) => (prev === idx ? null : idx));
-    } else {
-      setOpenSubIndex(null);
-      setActiveNavIndex(idx);
-      if (preview || !href || href === "#") {
-        e.preventDefault();
-        return;
+  const handleNavPillClick =
+    (idx: number, hasSub: boolean, href: string) => (e: ReactMouseEvent<HTMLButtonElement>) => {
+      if (hasSub) {
+        e.stopPropagation();
+        setOpenSubIndex((prev) => (prev === idx ? null : idx));
+      } else {
+        setOpenSubIndex(null);
+        setActiveNavIndex(idx);
+        if (preview || !href || href === "#") {
+          e.preventDefault();
+          return;
+        }
+        // navigate nếu cần
       }
-      // navigate nếu cần
-    }
-  };
+    };
 
   useEffect(() => {
     const handleDocClick = () => {
@@ -456,11 +477,16 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsCategoryOpen((v) => !v);
-                      }}>
+                      }}
+                    >
                       <span id="categoryLabel">{categoryLabel}</span>
                       <i className="bi bi-chevron-down" />
                     </button>
-                    <div className={`${styles["select-dropdown"]} ${isCategoryOpen ? styles["open"] : ""}`} id="categoryDropdown" ref={categoryDropdownRef}>
+                    <div
+                      className={`${styles["select-dropdown"]} ${isCategoryOpen ? styles["open"] : ""}`}
+                      id="categoryDropdown"
+                      ref={categoryDropdownRef}
+                    >
                       {[
                         {
                           label: "Tất cả danh mục",
@@ -490,7 +516,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                             e.preventDefault();
                             setCategoryLabel(opt.label);
                             setIsCategoryOpen(false);
-                          }}>
+                          }}
+                        >
                           <i className={opt.icon} />
                           {opt.label}
                         </div>
@@ -525,13 +552,17 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                               return;
                             }
                             console.log("Fake QR scan click");
-                          }}>
+                          }}
+                        >
                           <i className="bi bi-qr-code-scan" />
                         </button>
                       </div>
                     </div>
 
-                    <div className={`${styles["search-suggest"]} ${showSuggest ? styles["visible"] : ""}`} id="searchSuggest">
+                    <div
+                      className={`${styles["search-suggest"]} ${showSuggest ? styles["visible"] : ""}`}
+                      id="searchSuggest"
+                    >
                       <div className={styles["suggest-title"]}>Gợi ý tìm nhanh</div>
                       <div className={styles["suggest-list"]}>
                         {searchSuggests.map((text) => (
@@ -542,7 +573,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                             onMouseDown={(e) => {
                               e.preventDefault();
                               handleSelectSuggest(text);
-                            }}>
+                            }}
+                          >
                             {text}
                           </button>
                         ))}
@@ -558,7 +590,12 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
 
                 <div className={styles["search-hints"]}>
                   {searchHints.map((hint) => (
-                    <button key={hint} type="button" className={styles["hint-pill"]} onClick={() => handleSelectHint(hint)}>
+                    <button
+                      key={hint}
+                      type="button"
+                      className={styles["hint-pill"]}
+                      onClick={() => handleSelectHint(hint)}
+                    >
                       {hint}
                     </button>
                   ))}
@@ -578,7 +615,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                           return;
                         }
                         console.log("Open notifications");
-                      }}>
+                      }}
+                    >
                       <i className="bi bi-bell" />
                     </button>
                     {notifCount && notifCount > 0 && (
@@ -598,13 +636,19 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                           return;
                         }
                         console.log("Open cart");
-                      }}>
+                      }}
+                    >
                       <i className="bi bi-bag" />
                     </button>
                     {cartCount && cartCount > 0 && <span className={styles["badge-count"]}>{cartCount}</span>}
                   </div>
 
-                  <button type="button" className={styles["theme-toggle"]} onClick={handleThemeToggle} title="Đổi giao diện sáng/tối">
+                  <button
+                    type="button"
+                    className={styles["theme-toggle"]}
+                    onClick={handleThemeToggle}
+                    title="Đổi giao diện sáng/tối"
+                  >
                     <i className={isLightTheme ? "bi bi-moon-stars" : "bi bi-brightness-high"} />
                   </button>
 
@@ -617,7 +661,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                         return;
                       }
                       console.log("Open user menu");
-                    }}>
+                    }}
+                  >
                     <span className={styles["user-avatar"]}>AW</span>
                     <span className={styles["user-chip-main"]}>
                       <span className={styles["user-name"]}>{welcomeName}</span>
@@ -643,8 +688,15 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                   const isOpen = openSubIndex === idx;
 
                   return (
-                    <div key={item.id} className={`${styles["nav-item"]} ${item.hasSub ? styles["has-sub"] : ""} ${isOpen ? styles["open"] : ""}`}>
-                      <button type="button" className={`${styles["nav-pill"]} ${isActive || isOpen ? styles["active"] : ""}`} onClick={handleNavPillClick(idx, item.hasSub, item.href)}>
+                    <div
+                      key={item.id}
+                      className={`${styles["nav-item"]} ${item.hasSub ? styles["has-sub"] : ""} ${isOpen ? styles["open"] : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className={`${styles["nav-pill"]} ${isActive || isOpen ? styles["active"] : ""}`}
+                        onClick={handleNavPillClick(idx, item.hasSub, item.href)}
+                      >
                         {item.iconClass && <i className={item.iconClass} aria-hidden="true" />}
                         {item.label}
                         {item.hasSub && <i className={`bi bi-chevron-down ${styles["caret"]}`} />}
@@ -654,7 +706,12 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                         <div className={styles["nav-sub"]}>
                           <div className={styles["nav-sub-grid"]}>
                             {item.subItems.map((sub) => (
-                              <a key={sub.id} href={sub.href} className={styles["nav-sub-link"]} onClick={handleAnchorClick(sub.href)}>
+                              <a
+                                key={sub.id}
+                                href={sub.href}
+                                className={styles["nav-sub-link"]}
+                                onClick={handleAnchorClick(sub.href)}
+                              >
                                 {sub.iconClass && <i className={sub.iconClass} />}
                                 {sub.label}
                               </a>
@@ -683,7 +740,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                       return;
                     }
                     console.log("Change locale");
-                  }}>
+                  }}
+                >
                   <span className={styles["flag"]}>🇻🇳</span>
                   <span>VI</span>
                   <i className="bi bi-chevron-down" />
@@ -722,7 +780,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
               type="button"
               className={`${styles["bottom-nav-item"]} ${activeBottomTab === item.id ? styles["active"] : ""}`}
               data-tab={item.id}
-              onClick={handleBottomNavClick(item.id)}>
+              onClick={handleBottomNavClick(item.id)}
+            >
               <i className={item.iconClass} />
               <span>{item.label}</span>
             </button>
@@ -731,7 +790,11 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
       </nav>
 
       {/* ===== POPUP SEARCH MOBILE ===== */}
-      <div className={`${styles["search-modal"]} ${isSearchModalOpen ? styles["open"] : ""}`} id="searchModal" onClick={handleSearchModalOverlayClick}>
+      <div
+        className={`${styles["search-modal"]} ${isSearchModalOpen ? styles["open"] : ""}`}
+        id="searchModal"
+        onClick={handleSearchModalOverlayClick}
+      >
         <div className={styles["search-modal-panel"]} ref={searchModalPanelRef}>
           <div className={styles["search-modal-header"]}>
             <div className={styles["search-modal-title"]}>Tìm kiếm outfit &amp; sản phẩm</div>
@@ -742,7 +805,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
               onClick={(e) => {
                 e.stopPropagation();
                 closeSearchModal();
-              }}>
+              }}
+            >
               <i className="bi bi-x-lg" />
             </button>
           </div>
@@ -756,11 +820,16 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsCategoryOpenModal((v) => !v);
-                }}>
+                }}
+              >
                 <span id="categoryLabelModal">{categoryLabelModal}</span>
                 <i className="bi bi-chevron-down" />
               </button>
-              <div className={`${styles["select-dropdown"]} ${isCategoryOpenModal ? styles["open"] : ""}`} id="categoryDropdownModal" ref={categoryDropdownModalRef}>
+              <div
+                className={`${styles["select-dropdown"]} ${isCategoryOpenModal ? styles["open"] : ""}`}
+                id="categoryDropdownModal"
+                ref={categoryDropdownModalRef}
+              >
                 {[
                   {
                     label: "Tất cả danh mục",
@@ -790,7 +859,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                       e.preventDefault();
                       setCategoryLabelModal(opt.label);
                       setIsCategoryOpenModal(false);
-                    }}>
+                    }}
+                  >
                     <i className={opt.icon} />
                     {opt.label}
                   </div>
@@ -801,7 +871,13 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
             <div className={styles["search-input-wrap"]}>
               <div className={styles["search-input-inner"]}>
                 <i className="bi bi-search" />
-                <input id="searchInputModal" type="text" placeholder={searchPlaceholder} value={searchModalValue} onChange={(e) => setSearchModalValue(e.target.value)} />
+                <input
+                  id="searchInputModal"
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  value={searchModalValue}
+                  onChange={(e) => setSearchModalValue(e.target.value)}
+                />
                 <div className={styles["search-input-right"]}>
                   <button type="button" className={styles["icon-btn"]} onClick={handleVoiceClick(true)}>
                     <i className="bi bi-mic" />
@@ -815,7 +891,8 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
                         return;
                       }
                       console.log("Fake QR scan click (modal)");
-                    }}>
+                    }}
+                  >
                     <i className="bi bi-qr-code-scan" />
                   </button>
                 </div>
@@ -831,7 +908,12 @@ export const HeaderAurora: React.FC<HeaderAuroraProps> = (props) => {
           <div className={styles["search-modal-hints"]}>
             <span>Gợi ý:</span>
             {searchHints.map((hint) => (
-              <button key={`modal-${hint}`} type="button" className={styles["hint-pill"]} onClick={() => handleSelectHint(hint)}>
+              <button
+                key={`modal-${hint}`}
+                type="button"
+                className={styles["hint-pill"]}
+                onClick={() => handleSelectHint(hint)}
+              >
                 {hint}
               </button>
             ))}

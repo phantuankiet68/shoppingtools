@@ -1,7 +1,7 @@
 // src/components/templates/TopbarProLang.tsx
 
 import React, { useEffect, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarProLang.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarProLang.module.css";
 
 /**
  * ===== 1) Types =====
@@ -217,7 +217,8 @@ export const TopbarProLang: React.FC<TopbarProLangProps> = ({
           ["--tb-bg" as string]: backgroundFrom,
           ["--tb-bg-to" as string]: backgroundTo,
         } as React.CSSProperties
-      }>
+      }
+    >
       <div className={styles.topbarInner}>
         {/* Left */}
         <div className={styles.tbLeft}>
@@ -231,7 +232,8 @@ export const TopbarProLang: React.FC<TopbarProLangProps> = ({
               // không alert trong UI Builder, để trống hoặc implement sau
               onClick={() => {
                 // no-op
-              }}>
+              }}
+            >
               <i className="bi bi-geo-alt" />
               <span className={styles.regionText}>{regionLabel}</span>
               <i className="bi bi-chevron-down" />
@@ -268,7 +270,12 @@ export const TopbarProLang: React.FC<TopbarProLangProps> = ({
               <>
                 <div className={styles.tbDivider} />
                 <div className={styles.tbLangSelectWrap}>
-                  <select className={styles.tbLangSelect} value={selectedLang} onChange={(e) => setSelectedLang(e.target.value)} disabled={preview}>
+                  <select
+                    className={styles.tbLangSelect}
+                    value={selectedLang}
+                    onChange={(e) => setSelectedLang(e.target.value)}
+                    disabled={preview}
+                  >
                     {langs.map((lang) => (
                       <option key={lang.value} value={lang.value}>
                         {lang.label}

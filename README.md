@@ -72,3 +72,9 @@ services business/service layer
 features domain module
 constants enum/static
 utils pure helpers
+
+tôi muốn tách services/builder/menus/index.ts và store/builder/menus/index.ts và features/builder/menus/errors.ts, features/builder/menus/messages.ts, features/builder/menus/types.ts, features/builder/menus/validation.ts
+
+tôi đang sử dụng next 16 Hiện tại mục folder store với mục service trong next js sẽ thực hiện những gì
+vậy bạn hãy tách store và service trông file code này giúp tôi nhé
+Vậy page này sẽ sửa lại như nào với lại bạn kiểm tra giúp tôi ở đây có validation.ts hay messages.ts gì không nhé

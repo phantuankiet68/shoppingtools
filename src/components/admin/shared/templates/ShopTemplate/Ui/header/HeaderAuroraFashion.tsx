@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, MouseEvent, FormEvent } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderAuroraFashion.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderAuroraFashion.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB ===== */
@@ -344,7 +344,8 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                   onClick={() => {
                     if (preview) return;
                     alert("Mở popover chọn danh mục (Women / Men / Phụ kiện...) 📂");
-                  }}>
+                  }}
+                >
                   <i className="bi bi-grid" />
                   <span className={styles.label}>Danh mục</span>
                   <span className={styles.chevron}>
@@ -353,7 +354,13 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                 </button>
 
                 <div className={styles.searchInputWrap}>
-                  <input className={styles.searchInput} type="text" placeholder={searchPlaceholder} value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+                  <input
+                    className={styles.searchInput}
+                    type="text"
+                    placeholder={searchPlaceholder}
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                  />
                   <span className={styles.searchShortcut}>Enter</span>
                 </div>
 
@@ -363,7 +370,8 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                   onClick={() => {
                     if (preview) return;
                     alert("Tính năng tìm kiếm bằng giọng nói sẽ được cập nhật ✨");
-                  }}>
+                  }}
+                >
                   <i className="bi bi-mic-fill" />
                 </button>
 
@@ -400,7 +408,8 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                   onClick={() => {
                     if (preview) return;
                     alert("Danh sách sản phẩm yêu thích của bạn đang trống.");
-                  }}>
+                  }}
+                >
                   <div className={styles.iconCircle}>
                     <i className="bi bi-heart" />
                   </div>
@@ -415,7 +424,8 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                   onClick={() => {
                     if (preview) return;
                     alert("Đi tới màn đăng nhập / tài khoản.");
-                  }}>
+                  }}
+                >
                   <div className={styles.iconCircle}>
                     <i className="bi bi-person" />
                   </div>
@@ -434,7 +444,8 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                 onClick={() => {
                   if (preview) return;
                   alert("Mở mega menu tất cả bộ sưu tập (sẽ gắn UI sau) 🛍️");
-                }}>
+                }}
+              >
                 <i className="bi bi-list-ul" />
                 <span>Tất cả bộ sưu tập</span>
               </button>
@@ -453,7 +464,11 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                 <>
                   {/* Thời trang nữ */}
                   <div className={`${styles.navItem} ${openNavIndex === 0 ? styles.isOpen : ""}`}>
-                    <button className={`${styles.navLinkMain} ${activeNavIndex === 0 ? styles.active : ""}`} type="button" onClick={handleNavMainClick(0, true)}>
+                    <button
+                      className={`${styles.navLinkMain} ${activeNavIndex === 0 ? styles.active : ""}`}
+                      type="button"
+                      onClick={handleNavMainClick(0, true)}
+                    >
                       Thời trang nữ
                       <i className="bi bi-chevron-down" />
                     </button>
@@ -467,7 +482,11 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
 
                   {/* Thời trang nam */}
                   <div className={`${styles.navItem} ${openNavIndex === 1 ? styles.isOpen : ""}`}>
-                    <button className={`${styles.navLinkMain} ${activeNavIndex === 1 ? styles.active : ""}`} type="button" onClick={handleNavMainClick(1, true)}>
+                    <button
+                      className={`${styles.navLinkMain} ${activeNavIndex === 1 ? styles.active : ""}`}
+                      type="button"
+                      onClick={handleNavMainClick(1, true)}
+                    >
                       Thời trang nam
                       <i className="bi bi-chevron-down" />
                     </button>
@@ -481,7 +500,11 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
 
                   {/* Đồ couple */}
                   <div className={`${styles.navItem} ${openNavIndex === 2 ? styles.isOpen : ""}`}>
-                    <button className={`${styles.navLinkMain} ${activeNavIndex === 2 ? styles.active : ""}`} type="button" onClick={handleNavMainClick(2, true)}>
+                    <button
+                      className={`${styles.navLinkMain} ${activeNavIndex === 2 ? styles.active : ""}`}
+                      type="button"
+                      onClick={handleNavMainClick(2, true)}
+                    >
                       Đồ couple
                       <i className="bi bi-chevron-down" />
                     </button>
@@ -494,7 +517,11 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
 
                   {/* Phụ kiện */}
                   <div className={`${styles.navItem} ${openNavIndex === 3 ? styles.isOpen : ""}`}>
-                    <button className={`${styles.navLinkMain} ${activeNavIndex === 3 ? styles.active : ""}`} type="button" onClick={handleNavMainClick(3, true)}>
+                    <button
+                      className={`${styles.navLinkMain} ${activeNavIndex === 3 ? styles.active : ""}`}
+                      type="button"
+                      onClick={handleNavMainClick(3, true)}
+                    >
                       Phụ kiện
                       <i className="bi bi-chevron-down" />
                     </button>
@@ -508,7 +535,11 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
 
                   {/* Sale */}
                   <div className={styles.navItem}>
-                    <button className={`${styles.navLinkMain} ${activeNavIndex === 4 ? styles.active : ""}`} type="button" onClick={handleNavMainClick(4, false)}>
+                    <button
+                      className={`${styles.navLinkMain} ${activeNavIndex === 4 ? styles.active : ""}`}
+                      type="button"
+                      onClick={handleNavMainClick(4, false)}
+                    >
                       Sale cuối mùa
                     </button>
                   </div>
@@ -519,8 +550,15 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
               {navItems &&
                 navItems.length > 0 &&
                 navItems.map((item, idx) => (
-                  <div key={item.id} className={`${styles.navItem} ${item.hasSub && openNavIndex === idx ? styles.isOpen : ""}`}>
-                    <button type="button" className={`${styles.navLinkMain} ${activeNavIndex === idx ? styles.active : ""}`} onClick={handleNavMainClick(idx, item.hasSub)}>
+                  <div
+                    key={item.id}
+                    className={`${styles.navItem} ${item.hasSub && openNavIndex === idx ? styles.isOpen : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className={`${styles.navLinkMain} ${activeNavIndex === idx ? styles.active : ""}`}
+                      onClick={handleNavMainClick(idx, item.hasSub)}
+                    >
                       <span>{item.label}</span>
                       {item.hasSub && <i className="bi bi-chevron-down" />}
                     </button>
@@ -532,7 +570,8 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                             href={sub.href}
                             onClick={(e) => {
                               if (preview) e.preventDefault();
-                            }}>
+                            }}
+                          >
                             {sub.label}
                           </a>
                         ))}
@@ -553,10 +592,13 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
                   onClick={() => {
                     if (preview) return;
                     alert("Đi tới trang giỏ hàng của bạn 💜");
-                  }}>
+                  }}
+                >
                   <div className={styles.cartIconWrap}>
                     <i className="bi bi-bag-check" />
-                    {typeof cartCount === "number" && cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
+                    {typeof cartCount === "number" && cartCount > 0 && (
+                      <span className={styles.cartBadge}>{cartCount}</span>
+                    )}
                   </div>
                   <div className={styles.cartText}>
                     <span className={styles.cartLabel}>Giỏ hàng</span>
@@ -573,27 +615,47 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
       {showBottomNav && (
         <nav className={styles.bottomNav} aria-label="Thanh điều hướng dưới mobile">
           <div className={styles.bottomNavInner}>
-            <button type="button" className={`${styles.bottomNavItem} ${bottomActive === "home" ? styles.active : ""}`} onClick={handleBottomNavClick("home")}>
+            <button
+              type="button"
+              className={`${styles.bottomNavItem} ${bottomActive === "home" ? styles.active : ""}`}
+              onClick={handleBottomNavClick("home")}
+            >
               <i className="bi bi-house-door" />
               <span>Trang chủ</span>
             </button>
 
-            <button type="button" className={`${styles.bottomNavItem} ${bottomActive === "category" ? styles.active : ""}`} onClick={handleBottomNavClick("category")}>
+            <button
+              type="button"
+              className={`${styles.bottomNavItem} ${bottomActive === "category" ? styles.active : ""}`}
+              onClick={handleBottomNavClick("category")}
+            >
               <i className="bi bi-grid-3x3-gap" />
               <span>Danh mục</span>
             </button>
 
-            <button type="button" className={`${styles.bottomNavItem} ${bottomActive === "style" ? styles.active : ""}`} onClick={handleBottomNavClick("style")}>
+            <button
+              type="button"
+              className={`${styles.bottomNavItem} ${bottomActive === "style" ? styles.active : ""}`}
+              onClick={handleBottomNavClick("style")}
+            >
               <i className="bi bi-magic" />
               <span>Mix đồ</span>
             </button>
 
-            <button type="button" className={`${styles.bottomNavItem} ${bottomActive === "cart" ? styles.active : ""}`} onClick={handleBottomNavClick("cart")}>
+            <button
+              type="button"
+              className={`${styles.bottomNavItem} ${bottomActive === "cart" ? styles.active : ""}`}
+              onClick={handleBottomNavClick("cart")}
+            >
               <i className="bi bi-bag" />
               <span>Giỏ hàng</span>
             </button>
 
-            <button type="button" className={`${styles.bottomNavItem} ${bottomActive === "account" ? styles.active : ""}`} onClick={handleBottomNavClick("account")}>
+            <button
+              type="button"
+              className={`${styles.bottomNavItem} ${bottomActive === "account" ? styles.active : ""}`}
+              onClick={handleBottomNavClick("account")}
+            >
               <i className="bi bi-person" />
               <span>Tài khoản</span>
             </button>
@@ -607,8 +669,19 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
         <div className={styles.searchModalPanel}>
           <div className={styles.searchModalHeader}>
             <i className="bi bi-search" />
-            <input className={styles.searchModalInput} type="text" placeholder={searchPlaceholder} value={searchValueMobile} onChange={(e) => setSearchValueMobile(e.target.value)} />
-            <button className={styles.searchCloseBtn} type="button" onClick={closeSearchModal} aria-label="Đóng tìm kiếm">
+            <input
+              className={styles.searchModalInput}
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchValueMobile}
+              onChange={(e) => setSearchValueMobile(e.target.value)}
+            />
+            <button
+              className={styles.searchCloseBtn}
+              type="button"
+              onClick={closeSearchModal}
+              aria-label="Đóng tìm kiếm"
+            >
               <i className="bi bi-x-lg" />
             </button>
           </div>
@@ -621,7 +694,12 @@ export const HeaderAuroraFashion: React.FC<HeaderAuroraFashionProps> = (props) =
             <div className={styles.searchModalTagsTitle}>Gợi ý nhanh</div>
             <div className={styles.searchModalTagsGrid}>
               {searchChips.map((chip) => (
-                <button key={chip} type="button" className={styles.searchChipMobile} onClick={() => setSearchValueMobile(chip)}>
+                <button
+                  key={chip}
+                  type="button"
+                  className={styles.searchChipMobile}
+                  onClick={() => setSearchValueMobile(chip)}
+                >
                   {chip}
                 </button>
               ))}

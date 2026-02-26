@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeaderWhite.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeaderWhite.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface HeroWhiteProps {
@@ -87,10 +87,18 @@ const HeroWhite: React.FC<HeroWhiteProps> = () => {
       <div className={styles["aurora-hero-inner"]}>
         {/* Toggle style A/B */}
         <div className={styles["ah-style-toggle"]}>
-          <button type="button" className={`${styles["ah-style-btn"]} ${variant === "a" ? styles["active"] : ""}`} onClick={() => handleToggleVariant("a")}>
+          <button
+            type="button"
+            className={`${styles["ah-style-btn"]} ${variant === "a" ? styles["active"] : ""}`}
+            onClick={() => handleToggleVariant("a")}
+          >
             Studio
           </button>
-          <button type="button" className={`${styles["ah-style-btn"]} ${variant === "b" ? styles["active"] : ""}`} onClick={() => handleToggleVariant("b")}>
+          <button
+            type="button"
+            className={`${styles["ah-style-btn"]} ${variant === "b" ? styles["active"] : ""}`}
+            onClick={() => handleToggleVariant("b")}
+          >
             Street
           </button>
         </div>
@@ -113,7 +121,8 @@ const HeroWhite: React.FC<HeroWhiteProps> = () => {
           </h1>
 
           <p className={styles["ah-desc"]}>
-            Chọn mood, không gian và dịp mặc – Aurora sẽ gợi ý outfit hoàn chỉnh từ áo, quần, phụ kiện đến đôi giày phù hợp, tối ưu theo phong cách và ngân sách của bạn.
+            Chọn mood, không gian và dịp mặc – Aurora sẽ gợi ý outfit hoàn chỉnh từ áo, quần, phụ kiện đến đôi giày phù
+            hợp, tối ưu theo phong cách và ngân sách của bạn.
           </p>
 
           <div className={styles["ah-cta-row"]}>
@@ -130,7 +139,12 @@ const HeroWhite: React.FC<HeroWhiteProps> = () => {
           {/* Mood chips */}
           <div className={styles["ah-mood-row"]}>
             {(Object.entries(MOODS) as [MoodKey, MoodConfig][]).map(([key, cfg]) => (
-              <button key={key} type="button" className={`${styles["ah-mood-chip"]} ${activeMood === key ? styles["active"] : ""}`} onClick={() => setActiveMood(key)}>
+              <button
+                key={key}
+                type="button"
+                className={`${styles["ah-mood-chip"]} ${activeMood === key ? styles["active"] : ""}`}
+                onClick={() => setActiveMood(key)}
+              >
                 <i className={cfg.iconClass} />
                 {cfg.label}
               </button>

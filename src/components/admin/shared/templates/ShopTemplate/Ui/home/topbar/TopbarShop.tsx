@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/topbar/topbar-shop.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/topbar/topbar-shop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type TopbarShopProps = {
@@ -44,7 +44,11 @@ export default function TopbarShop({
   };
 
   return (
-    <div className={[cls.topbar, hideOnMobile ? cls.hideMobile : "", className || ""].join(" ")} onClick={preview ? stop : undefined} aria-hidden={preview || undefined}>
+    <div
+      className={[cls.topbar, hideOnMobile ? cls.hideMobile : "", className || ""].join(" ")}
+      onClick={preview ? stop : undefined}
+      aria-hidden={preview || undefined}
+    >
       <div className={cls.container}>
         <div className={cls.row}>
           <div className={cls.left}>{message}</div>

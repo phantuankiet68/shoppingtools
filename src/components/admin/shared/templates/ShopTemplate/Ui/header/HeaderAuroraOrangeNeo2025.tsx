@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, FormEvent, MouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderAuroraOrangeNeo2025.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderAuroraOrangeNeo2025.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type HeaderAuroraOrangeNeo2025MenuItem = {
@@ -321,10 +321,21 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
     }
   };
 
-  const wrapperClassName = [styles.siteHeader, isMenuOpen ? styles.headerOpen : "", className ?? "", isPreviewMode ? styles.previewMode : ""].filter(Boolean).join(" ");
+  const wrapperClassName = [
+    styles.siteHeader,
+    isMenuOpen ? styles.headerOpen : "",
+    className ?? "",
+    isPreviewMode ? styles.previewMode : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <header className={wrapperClassName} data-preview-block={onPreviewBlockClickKey} onClick={isPreviewMode ? handlePreviewClick : undefined}>
+    <header
+      className={wrapperClassName}
+      data-preview-block={onPreviewBlockClickKey}
+      onClick={isPreviewMode ? handlePreviewClick : undefined}
+    >
       <div className={styles.hdInner}>
         {/* LEFT: Brand / Logo */}
         <div className={styles.hdLeft}>
@@ -341,7 +352,12 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
         <div className={styles.hdMid}>
           <div className={styles.navRow}>
             {topLevelMenu.map((item) => (
-              <a key={item.id} href={item.href || "#"} className={styles.navLink} onClick={(e) => handleNavClick(e, item)}>
+              <a
+                key={item.id}
+                href={item.href || "#"}
+                className={styles.navLink}
+                onClick={(e) => handleNavClick(e, item)}
+              >
                 {item.label}
               </a>
             ))}
@@ -358,7 +374,11 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
 
           <form className={styles.searchShell} onSubmit={handleSearchSubmit} onClick={(e) => e.stopPropagation()}>
             {showCategoryDropdown && (
-              <button className={styles.searchCategoryBtn} type="button" onClick={isPreviewMode ? handlePreviewClick : undefined}>
+              <button
+                className={styles.searchCategoryBtn}
+                type="button"
+                onClick={isPreviewMode ? handlePreviewClick : undefined}
+              >
                 <i className="bi bi-grid-3x3-gap-fill" />
                 <span>{categoryLabel}</span>
                 <i className="bi bi-chevron-down" />
@@ -367,9 +387,19 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
 
             <div className={styles.searchInputWrap}>
               <div className={styles.searchInputRow}>
-                <input type="text" className={styles.searchInput} placeholder={searchPlaceholder} value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} />
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder={searchPlaceholder}
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
                 {showFilterButton && (
-                  <button className={styles.searchFilterBtn} type="button" onClick={isPreviewMode ? handlePreviewClick : undefined}>
+                  <button
+                    className={styles.searchFilterBtn}
+                    type="button"
+                    onClick={isPreviewMode ? handlePreviewClick : undefined}
+                  >
                     <i className="bi bi-sliders" />
                   </button>
                 )}
@@ -377,7 +407,12 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
               {highlightChips && highlightChips.length > 0 && (
                 <div className={styles.searchChips}>
                   {highlightChips.map((chip) => (
-                    <button key={chip} type="button" className={chip === activeChip ? `${styles.chip} ${styles.chipActive}` : styles.chip} onClick={() => handleChipClick(chip)}>
+                    <button
+                      key={chip}
+                      type="button"
+                      className={chip === activeChip ? `${styles.chip} ${styles.chipActive}` : styles.chip}
+                      onClick={() => handleChipClick(chip)}
+                    >
                       {chip}
                     </button>
                   ))}
@@ -385,7 +420,11 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
               )}
             </div>
 
-            <button className={styles.searchBtn} type="submit" onClick={isPreviewMode ? (e) => handlePreviewClick(e) : undefined}>
+            <button
+              className={styles.searchBtn}
+              type="submit"
+              onClick={isPreviewMode ? (e) => handlePreviewClick(e) : undefined}
+            >
               <i className="bi bi-search" />
             </button>
           </form>
@@ -395,7 +434,11 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
         <div className={styles.hdRight}>
           <div className={styles.actionCol}>
             {showVoucherPill && voucherLabel && (
-              <button className={styles.voucherPill} type="button" onClick={isPreviewMode ? handlePreviewClick : undefined}>
+              <button
+                className={styles.voucherPill}
+                type="button"
+                onClick={isPreviewMode ? handlePreviewClick : undefined}
+              >
                 <i className="bi bi-ticket-perforated" />
                 {voucherLabel}
               </button>
@@ -403,20 +446,34 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
 
             <div className={styles.iconsRow}>
               {showWishlist && (
-                <button className={styles.iconBtn} type="button" title="Yêu thích" onClick={isPreviewMode ? handlePreviewClick : undefined}>
+                <button
+                  className={styles.iconBtn}
+                  type="button"
+                  title="Yêu thích"
+                  onClick={isPreviewMode ? handlePreviewClick : undefined}
+                >
                   <i className="bi bi-heart" />
                 </button>
               )}
 
               {showCart && (
-                <button className={styles.iconBtn} type="button" title="Giỏ hàng" onClick={isPreviewMode ? handlePreviewClick : undefined}>
+                <button
+                  className={styles.iconBtn}
+                  type="button"
+                  title="Giỏ hàng"
+                  onClick={isPreviewMode ? handlePreviewClick : undefined}
+                >
                   <i className="bi bi-bag" />
                   {effectiveCartCount > 0 && <span className={styles.cartBadge}>{effectiveCartCount}</span>}
                 </button>
               )}
 
               {showAuth && authLabel && (
-                <button className={styles.loginBtn} type="button" onClick={isPreviewMode ? handlePreviewClick : undefined}>
+                <button
+                  className={styles.loginBtn}
+                  type="button"
+                  onClick={isPreviewMode ? handlePreviewClick : undefined}
+                >
                   <i className="bi bi-person" />
                   {authLabel}
                 </button>
@@ -432,7 +489,8 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
                     return;
                   }
                   setIsMenuOpen((prev) => !prev);
-                }}>
+                }}
+              >
                 <i className="bi bi-list" />
               </button>
             </div>

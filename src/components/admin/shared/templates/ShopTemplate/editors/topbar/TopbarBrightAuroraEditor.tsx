@@ -8,7 +8,11 @@ import LabeledRow from "../parts/LabeledRow";
 import Checkbox from "../parts/Checkbox";
 import Button from "../parts/Button";
 
-import type { TopbarBrightAuroraProps, TopbarProTickerItem, TopbarProLinkItem } from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarBrightAurora";
+import type {
+  TopbarBrightAuroraProps,
+  TopbarProTickerItem,
+  TopbarProLinkItem,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/TopbarBrightAurora";
 
 type TopbarBrightAuroraEditorProps = {
   props: TopbarBrightAuroraProps;
@@ -69,34 +73,61 @@ const TopbarBrightAuroraEditor: React.FC<TopbarBrightAuroraEditorProps> = ({ pro
       {/* Logo & Brand */}
       <Section title="Logo & thương hiệu">
         <LabeledRow label="Icon class (Bootstrap Icons)">
-          <TextInput value={props.logoIconClass ?? "bi bi-stars"} onChange={(value) => updateActive({ logoIconClass: value })} placeholder="VD: bi bi-stars" />
+          <TextInput
+            value={props.logoIconClass ?? "bi bi-stars"}
+            onChange={(value) => updateActive({ logoIconClass: value })}
+            placeholder="VD: bi bi-stars"
+          />
         </LabeledRow>
 
         <LabeledRow label="Tiêu đề thương hiệu">
-          <TextInput value={props.brandTitle ?? ""} onChange={(value) => updateActive({ brandTitle: value })} placeholder="VD: Aurora Hub" />
+          <TextInput
+            value={props.brandTitle ?? ""}
+            onChange={(value) => updateActive({ brandTitle: value })}
+            placeholder="VD: Aurora Hub"
+          />
         </LabeledRow>
 
         <LabeledRow label="Mô tả ngắn">
-          <TextArea value={props.brandSubtitle ?? ""} onChange={(value) => updateActive({ brandSubtitle: value })} placeholder="Không gian đọc & trải nghiệm 2026" />
+          <TextArea
+            value={props.brandSubtitle ?? ""}
+            onChange={(value) => updateActive({ brandSubtitle: value })}
+            placeholder="Không gian đọc & trải nghiệm 2026"
+          />
         </LabeledRow>
       </Section>
 
       {/* Region / KV */}
       <Section title="Khu vực hiển thị (Region)">
         <LabeledRow label="Hiển thị nút KV">
-          <Checkbox checked={props.showRegionButton ?? true} onChange={(checked) => updateActive({ showRegionButton: checked })} />
+          <Checkbox
+            checked={props.showRegionButton ?? true}
+            onChange={(checked) => updateActive({ showRegionButton: checked })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Text khu vực">
-          <TextInput value={props.regionLabel ?? ""} onChange={(value) => updateActive({ regionLabel: value })} placeholder="VD: KV: Hồ Chí Minh" />
+          <TextInput
+            value={props.regionLabel ?? ""}
+            onChange={(value) => updateActive({ regionLabel: value })}
+            placeholder="VD: KV: Hồ Chí Minh"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon trái (class)">
-          <TextInput value={props.regionIconClass ?? "bi bi-geo-alt"} onChange={(value) => updateActive({ regionIconClass: value })} placeholder="VD: bi bi-geo-alt" />
+          <TextInput
+            value={props.regionIconClass ?? "bi bi-geo-alt"}
+            onChange={(value) => updateActive({ regionIconClass: value })}
+            placeholder="VD: bi bi-geo-alt"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon chevron phải (class)">
-          <TextInput value={props.regionChevronIconClass ?? "bi bi-chevron-down"} onChange={(value) => updateActive({ regionChevronIconClass: value })} placeholder="VD: bi bi-chevron-down" />
+          <TextInput
+            value={props.regionChevronIconClass ?? "bi bi-chevron-down"}
+            onChange={(value) => updateActive({ regionChevronIconClass: value })}
+            placeholder="VD: bi bi-chevron-down"
+          />
         </LabeledRow>
       </Section>
 
@@ -107,17 +138,29 @@ const TopbarBrightAuroraEditor: React.FC<TopbarBrightAuroraEditorProps> = ({ pro
         </LabeledRow>
 
         <LabeledRow label="Nhãn ticker (label)">
-          <TextInput value={props.tickerLabel ?? "Updates"} onChange={(value) => updateActive({ tickerLabel: value })} placeholder="VD: Updates" />
+          <TextInput
+            value={props.tickerLabel ?? "Updates"}
+            onChange={(value) => updateActive({ tickerLabel: value })}
+            placeholder="VD: Updates"
+          />
         </LabeledRow>
 
         {tickerItems.map((item, index) => (
           <Section key={index} title={`Ticker #${index + 1}`}>
             <LabeledRow label="Nội dung">
-              <TextArea value={item.text} onChange={(value) => updateTickerItem(index, { text: value })} placeholder="Text hiển thị của ticker" />
+              <TextArea
+                value={item.text}
+                onChange={(value) => updateTickerItem(index, { text: value })}
+                placeholder="Text hiển thị của ticker"
+              />
             </LabeledRow>
 
             <LabeledRow label="Badge (nhãn nhỏ)">
-              <TextInput value={item.badge ?? ""} onChange={(value) => updateTickerItem(index, { badge: value })} placeholder="VD: New, Premium, Update..." />
+              <TextInput
+                value={item.badge ?? ""}
+                onChange={(value) => updateTickerItem(index, { badge: value })}
+                placeholder="VD: New, Premium, Update..."
+              />
             </LabeledRow>
 
             <Button type="button" onClick={() => removeTickerItem(index)}>
@@ -136,15 +179,27 @@ const TopbarBrightAuroraEditor: React.FC<TopbarBrightAuroraEditorProps> = ({ pro
         {links.map((link, index) => (
           <Section key={index} title={`Link #${index + 1}`}>
             <LabeledRow label="Label">
-              <TextInput value={link.label} onChange={(value) => updateLinkItem(index, { label: value })} placeholder="VD: Trung tâm hỗ trợ" />
+              <TextInput
+                value={link.label}
+                onChange={(value) => updateLinkItem(index, { label: value })}
+                placeholder="VD: Trung tâm hỗ trợ"
+              />
             </LabeledRow>
 
             <LabeledRow label="URL">
-              <TextInput value={link.href ?? ""} onChange={(value) => updateLinkItem(index, { href: value })} placeholder="VD: /support" />
+              <TextInput
+                value={link.href ?? ""}
+                onChange={(value) => updateLinkItem(index, { href: value })}
+                placeholder="VD: /support"
+              />
             </LabeledRow>
 
             <LabeledRow label="Icon class">
-              <TextInput value={link.iconClass ?? ""} onChange={(value) => updateLinkItem(index, { iconClass: value })} placeholder="VD: bi bi-life-preserver" />
+              <TextInput
+                value={link.iconClass ?? ""}
+                onChange={(value) => updateLinkItem(index, { iconClass: value })}
+                placeholder="VD: bi bi-life-preserver"
+              />
             </LabeledRow>
 
             <Button type="button" onClick={() => removeLinkItem(index)}>
@@ -165,18 +220,30 @@ const TopbarBrightAuroraEditor: React.FC<TopbarBrightAuroraEditorProps> = ({ pro
         </LabeledRow>
 
         <LabeledRow label="Text trạng thái">
-          <TextInput value={props.statusText ?? ""} onChange={(value) => updateActive({ statusText: value })} placeholder="VD: Online" />
+          <TextInput
+            value={props.statusText ?? ""}
+            onChange={(value) => updateActive({ statusText: value })}
+            placeholder="VD: Online"
+          />
         </LabeledRow>
 
         <LabeledRow label="Màu chấm (dot color)">
-          <TextInput value={props.statusDotColor ?? "#22c55e"} onChange={(value) => updateActive({ statusDotColor: value })} placeholder="VD: #22c55e" />
+          <TextInput
+            value={props.statusDotColor ?? "#22c55e"}
+            onChange={(value) => updateActive({ statusDotColor: value })}
+            placeholder="VD: #22c55e"
+          />
         </LabeledRow>
       </Section>
 
       {/* Background */}
       <Section title="Màu nền gradient">
         <LabeledRow label="Màu g1 (chính)">
-          <TextInput value={props.backgroundColor ?? "#ffe8d6"} onChange={(value) => updateActive({ backgroundColor: value })} placeholder="VD: #ffe8d6" />
+          <TextInput
+            value={props.backgroundColor ?? "#ffe8d6"}
+            onChange={(value) => updateActive({ backgroundColor: value })}
+            placeholder="VD: #ffe8d6"
+          />
         </LabeledRow>
       </Section>
 

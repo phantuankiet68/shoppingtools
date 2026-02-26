@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, MouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroOne.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroOne.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type LookKey = "office" | "street" | "party";
@@ -55,7 +55,8 @@ const DEFAULT_HERO_ONE_PROPS: HeroOneProps = {
   headingHighlight: "đẹp như lookbook",
   headingSuffix: "mà không cần đau đầu chọn từng món.",
 
-  description: "Aurora Wear Mall gợi ý sẵn outfit công sở, dạo phố, hẹn hò… chỉ cần chọn mood, phần còn lại để chúng mình lo.",
+  description:
+    "Aurora Wear Mall gợi ý sẵn outfit công sở, dạo phố, hẹn hò… chỉ cần chọn mood, phần còn lại để chúng mình lo.",
 
   primaryCtaLabel: "Bắt đầu mua sắm",
   secondaryCtaLabel: "Xem outfit “đi làm hôm nay”",
@@ -167,11 +168,19 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
           </div>
 
           <div className={styles.heroCtaRow}>
-            <button className={styles.btnPrimaryGradient} type="button" onClick={preview ? (e) => e.preventDefault() : undefined}>
+            <button
+              className={styles.btnPrimaryGradient}
+              type="button"
+              onClick={preview ? (e) => e.preventDefault() : undefined}
+            >
               {primaryCtaLabel}
               <i>➜</i>
             </button>
-            <button className={styles.btnGhostLight} type="button" onClick={preview ? (e) => e.preventDefault() : undefined}>
+            <button
+              className={styles.btnGhostLight}
+              type="button"
+              onClick={preview ? (e) => e.preventDefault() : undefined}
+            >
               {secondaryCtaLabel}
               <i>★</i>
             </button>
@@ -190,7 +199,8 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
             <div className={styles.heroPaymentsLabel}>Thanh toán an toàn với:</div>
             <div className={styles.paymentLogos}>
               {paymentLogos.map((logo) => {
-                const variantClass = logo.variant && logo.variant !== "default" ? styles[`paymentLogo_${logo.variant}`] : "";
+                const variantClass =
+                  logo.variant && logo.variant !== "default" ? styles[`paymentLogo_${logo.variant}`] : "";
                 return (
                   <div key={logo.label} className={`${styles.paymentLogo} ${variantClass}`}>
                     {logo.label}
@@ -203,7 +213,12 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
 
         <div className={styles.heroQuickCats}>
           {quickCategories.map((cat) => (
-            <button key={cat} className={styles.heroChip} type="button" onClick={preview ? (e) => e.preventDefault() : undefined}>
+            <button
+              key={cat}
+              className={styles.heroChip}
+              type="button"
+              onClick={preview ? (e) => e.preventDefault() : undefined}
+            >
               {cat}
             </button>
           ))}
@@ -236,7 +251,9 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
             </div>
             <div className={styles.dealMainInfo}>
               <div className={styles.dealMainTitle}>Set váy + blazer công sở chuẩn trend</div>
-              <div className={styles.dealMainDesc}>Form tôn dáng, ít nhăn – mix là đi làm, họp hoặc gặp đối tác được ngay.</div>
+              <div className={styles.dealMainDesc}>
+                Form tôn dáng, ít nhăn – mix là đi làm, họp hoặc gặp đối tác được ngay.
+              </div>
               <div className={styles.dealLabelRow}>
                 <span className={styles.dealLabelPill}>Flash Sale sáng nay</span>
                 <span className={styles.dealLabelTagline}>Giảm thêm cho đơn từ 799k</span>
@@ -288,9 +305,18 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
               <strong>{lookTitle}:</strong> {lookRest?.trim()}
             </span>
             <div className={styles.heroLookDots}>
-              <span className={`${styles.lookDot} ${activeLook === "office" ? styles.lookDotActive : ""}`} onClick={handleDotClick("office")} />
-              <span className={`${styles.lookDot} ${activeLook === "street" ? styles.lookDotActive : ""}`} onClick={handleDotClick("street")} />
-              <span className={`${styles.lookDot} ${activeLook === "party" ? styles.lookDotActive : ""}`} onClick={handleDotClick("party")} />
+              <span
+                className={`${styles.lookDot} ${activeLook === "office" ? styles.lookDotActive : ""}`}
+                onClick={handleDotClick("office")}
+              />
+              <span
+                className={`${styles.lookDot} ${activeLook === "street" ? styles.lookDotActive : ""}`}
+                onClick={handleDotClick("street")}
+              />
+              <span
+                className={`${styles.lookDot} ${activeLook === "party" ? styles.lookDotActive : ""}`}
+                onClick={handleDotClick("party")}
+              />
             </div>
           </div>
         </div>

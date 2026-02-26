@@ -5,7 +5,7 @@ import Section from "../parts/Section";
 import TextArea from "../parts/TextArea";
 import TextInput from "../parts/TextInput";
 import LabeledRow from "../parts/LabeledRow";
-import type { TopbarMainProps } from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarMain"; // chỉnh path nếu khác
+import type { TopbarMainProps } from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/TopbarMain"; // chỉnh path nếu khác
 
 type TopbarProEditorProps = {
   props: TopbarMainProps;
@@ -105,7 +105,11 @@ export default function TopbarProEditor({ props, updateActive }: TopbarProEditor
       {/* Tuỳ chọn */}
       <Section title="Tùy chọn hiển thị">
         <LabeledRow label="Giữ cố định trên đầu (sticky)">
-          <input type="checkbox" checked={!!props.sticky} onChange={(e) => updateActive({ sticky: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={!!props.sticky}
+            onChange={(e) => updateActive({ sticky: e.target.checked })}
+          />
         </LabeledRow>
       </Section>
     </>

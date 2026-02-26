@@ -2,7 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/menu/offcanvasBackdrop.module.css";
-import { useMenuStore, type BuilderMenuItem, type InternalPage } from "@/components/admin/menu/state/useMenuStore";
+import {
+  useMenuStore,
+  type BuilderMenuItem,
+  type InternalPage,
+} from "@/components/admin/builder/menus/state/useMenuStore";
 
 type ScheduleRow = { when: string; url: string };
 

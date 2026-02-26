@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, FormEvent, MouseEvent } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderWhite.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderWhite.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB (reuse từ HeaderPro) ===== */
@@ -255,7 +255,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
         onClick={() => {
           if (preview) return;
           closeDrawer();
-        }}></div>
+        }}
+      ></div>
 
       {/* NAV DRAWER MOBILE */}
       <aside className={`${styles.navDrawer} ${isDrawerOpen ? styles.navDrawerOpen : ""}`}>
@@ -275,7 +276,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
             onClick={() => {
               if (preview) return;
               closeDrawer();
-            }}>
+            }}
+          >
             <i className="bi bi-x-lg" />
           </button>
         </div>
@@ -309,7 +311,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
           onClick={() => {
             if (preview) return;
             setIsDrawerCollectionsOpen((v) => !v);
-          }}>
+          }}
+        >
           <span className={styles.drawerNavLeft}>
             <i className="bi bi-layers" />
             Bộ sưu tập
@@ -388,7 +391,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleDrawer();
-                  }}>
+                  }}
+                >
                   <i className="bi bi-list" />
                 </button>
               </div>
@@ -411,7 +415,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                             e.stopPropagation();
                             return;
                           }
-                        }}>
+                        }}
+                      >
                         <i className="bi bi-funnel" />
                         {searchFilterLabel}
                       </button>
@@ -430,7 +435,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                       e.preventDefault();
                       return;
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-grid-3x3-gap" />
                   <span>{quickOutfitLabel}</span>
                 </button>
@@ -443,7 +449,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                       e.preventDefault();
                       return;
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-journal-text" />
                   <span>{blogLabel}</span>
                 </button>
@@ -458,7 +465,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                       e.preventDefault();
                       return;
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-person" />
                   <span>{loginLabel}</span>
                 </button>
@@ -472,7 +480,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                       e.preventDefault();
                       return;
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-heart" />
                 </button>
                 <button
@@ -484,7 +493,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                       e.preventDefault();
                       return;
                     }
-                  }}>
+                  }}
+                >
                   <i className="bi bi-bag" />
                 </button>
               </div>
@@ -509,7 +519,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                 onClick={() => {
                   if (preview) return;
                   toggleDesktopSub("clothing");
-                }}>
+                }}
+              >
                 Trang phục nữ
                 <i className={`bi bi-chevron-down ${styles.navCaret}`} />
                 <div className={styles.submenu}>
@@ -582,7 +593,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                 onClick={() => {
                   if (preview) return;
                   toggleDesktopSub("outer");
-                }}>
+                }}
+              >
                 Áo khoác &amp; Layer
                 <i className={`bi bi-chevron-down ${styles.navCaret}`} />
                 <div className={styles.submenu}>
@@ -650,7 +662,8 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
                 onClick={() => {
                   if (preview) return;
                   toggleDesktopSub("accessory");
-                }}>
+                }}
+              >
                 Phụ kiện
                 <i className={`bi bi-chevron-down ${styles.navCaret}`} />
                 <div className={styles.submenu}>
@@ -731,7 +744,12 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
               {navItems.map((item) => {
                 if (!item.hasSub) {
                   return (
-                    <button key={item.id} className={styles.navItem} type="button" onClick={handleNavLinkClick(item.href)}>
+                    <button
+                      key={item.id}
+                      className={styles.navItem}
+                      type="button"
+                      onClick={handleNavLinkClick(item.href)}
+                    >
                       {item.iconClass && <i className={item.iconClass} />}
                       <span>{item.label}</span>
                     </button>
@@ -762,23 +780,43 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
       {/* BOTTOM NAV MOBILE */}
       <nav className={styles.bottomNav} aria-label="Aurora Wear navigation">
         <div className={styles.bottomInner}>
-          <button className={`${styles.bottomItem} ${activeBottomTab === "home" ? styles.bottomItemActive : ""}`} type="button" onClick={handleBottomTabClick("home")}>
+          <button
+            className={`${styles.bottomItem} ${activeBottomTab === "home" ? styles.bottomItemActive : ""}`}
+            type="button"
+            onClick={handleBottomTabClick("home")}
+          >
             <i className="bi bi-house-door" />
             <span>Trang chủ</span>
           </button>
-          <button className={`${styles.bottomItem} ${activeBottomTab === "category" ? styles.bottomItemActive : ""}`} type="button" onClick={handleBottomTabClick("category")}>
+          <button
+            className={`${styles.bottomItem} ${activeBottomTab === "category" ? styles.bottomItemActive : ""}`}
+            type="button"
+            onClick={handleBottomTabClick("category")}
+          >
             <i className="bi bi-grid-3x3-gap" />
             <span>Danh mục</span>
           </button>
-          <button className={`${styles.bottomItem} ${activeBottomTab === "style" ? styles.bottomItemActive : ""}`} type="button" onClick={handleBottomTabClick("style")}>
+          <button
+            className={`${styles.bottomItem} ${activeBottomTab === "style" ? styles.bottomItemActive : ""}`}
+            type="button"
+            onClick={handleBottomTabClick("style")}
+          >
             <i className="bi bi-stars" />
             <span>Style feed</span>
           </button>
-          <button className={`${styles.bottomItem} ${activeBottomTab === "wish" ? styles.bottomItemActive : ""}`} type="button" onClick={handleBottomTabClick("wish")}>
+          <button
+            className={`${styles.bottomItem} ${activeBottomTab === "wish" ? styles.bottomItemActive : ""}`}
+            type="button"
+            onClick={handleBottomTabClick("wish")}
+          >
             <i className="bi bi-heart" />
             <span>Yêu thích</span>
           </button>
-          <button className={`${styles.bottomItem} ${styles.bottomItemCart} ${activeBottomTab === "cart" ? styles.bottomItemActive : ""}`} type="button" onClick={handleBottomTabClick("cart")}>
+          <button
+            className={`${styles.bottomItem} ${styles.bottomItemCart} ${activeBottomTab === "cart" ? styles.bottomItemActive : ""}`}
+            type="button"
+            onClick={handleBottomTabClick("cart")}
+          >
             <i className="bi bi-bag" />
             <span>Giỏ hàng</span>
             {bottomCartCount && bottomCartCount > 0 && <span className={styles.bottomBadge}>{bottomCartCount}</span>}

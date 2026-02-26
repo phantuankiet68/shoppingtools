@@ -2,7 +2,7 @@
 
 import React, { FC, useState } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterDarkOne.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterDarkOne.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 export type FooterDarkOneProps = Record<string, never>;
 
@@ -57,7 +57,9 @@ const FooterDarkOne: FC<FooterDarkOneProps> = () => {
               <div className={styles.awNewsletterHeader}>
                 <div>
                   <div className={styles.awNewsletterTitle}>Nhận ưu đãi riêng cho thành viên</div>
-                  <div className={styles.awNewsletterText}>Đăng ký email để nhận mã giảm giá, lookbook &amp; trend mới nhất mỗi tuần.</div>
+                  <div className={styles.awNewsletterText}>
+                    Đăng ký email để nhận mã giảm giá, lookbook &amp; trend mới nhất mỗi tuần.
+                  </div>
                 </div>
                 <div className={styles.awNewsletterBadge}>
                   <i className="bi bi-envelope-heart" aria-hidden="true" />
@@ -80,16 +82,36 @@ const FooterDarkOne: FC<FooterDarkOneProps> = () => {
             <div className={styles.awSocialRow}>
               <span className={styles.awSocialLabel}>Kết nối với Aurora Fashion:</span>
               <div className={styles.awSocialIcons}>
-                <button type="button" className={styles.awSocialBtn} aria-label="Facebook" onClick={() => handleSocialClick("facebook")}>
+                <button
+                  type="button"
+                  className={styles.awSocialBtn}
+                  aria-label="Facebook"
+                  onClick={() => handleSocialClick("facebook")}
+                >
                   <i className="bi bi-facebook" aria-hidden="true" />
                 </button>
-                <button type="button" className={styles.awSocialBtn} aria-label="Instagram" onClick={() => handleSocialClick("instagram")}>
+                <button
+                  type="button"
+                  className={styles.awSocialBtn}
+                  aria-label="Instagram"
+                  onClick={() => handleSocialClick("instagram")}
+                >
                   <i className="bi bi-instagram" aria-hidden="true" />
                 </button>
-                <button type="button" className={styles.awSocialBtn} aria-label="Tiktok" onClick={() => handleSocialClick("tiktok")}>
+                <button
+                  type="button"
+                  className={styles.awSocialBtn}
+                  aria-label="Tiktok"
+                  onClick={() => handleSocialClick("tiktok")}
+                >
                   <i className="bi bi-tiktok" aria-hidden="true" />
                 </button>
-                <button type="button" className={styles.awSocialBtn} aria-label="Youtube" onClick={() => handleSocialClick("youtube")}>
+                <button
+                  type="button"
+                  className={styles.awSocialBtn}
+                  aria-label="Youtube"
+                  onClick={() => handleSocialClick("youtube")}
+                >
                   <i className="bi bi-youtube" aria-hidden="true" />
                 </button>
               </div>
@@ -161,7 +183,8 @@ const FooterDarkOne: FC<FooterDarkOneProps> = () => {
                 <span className={styles.awUptime}>Đánh giá 4.9/5 từ khách hàng</span>
               </div>
               <div className={styles.awStatusText}>
-                Đơn hàng <strong>được đóng gói kỹ</strong>, kiểm tra trước khi nhận. Hỗ trợ đổi size trong <strong>7 ngày</strong>.
+                Đơn hàng <strong>được đóng gói kỹ</strong>, kiểm tra trước khi nhận. Hỗ trợ đổi size trong{" "}
+                <strong>7 ngày</strong>.
               </div>
               <div className={styles.awMiniBadges}>
                 <span className={styles.awMiniBadge}>
@@ -214,20 +237,40 @@ const FooterDarkOne: FC<FooterDarkOneProps> = () => {
 
         <div className={styles.awBottomRight}>
           <div className={styles.awToggleGroup}>
-            <button type="button" className={theme === "blue" ? `${styles.awToggleButton} ${styles.awToggleButtonActive}` : styles.awToggleButton} onClick={() => handleThemeChange("blue")}>
+            <button
+              type="button"
+              className={
+                theme === "blue" ? `${styles.awToggleButton} ${styles.awToggleButtonActive}` : styles.awToggleButton
+              }
+              onClick={() => handleThemeChange("blue")}
+            >
               Soft Blue
             </button>
-            <button type="button" className={theme === "mint" ? `${styles.awToggleButton} ${styles.awToggleButtonActive}` : styles.awToggleButton} onClick={() => handleThemeChange("mint")}>
+            <button
+              type="button"
+              className={
+                theme === "mint" ? `${styles.awToggleButton} ${styles.awToggleButtonActive}` : styles.awToggleButton
+              }
+              onClick={() => handleThemeChange("mint")}
+            >
               Fresh Mint
             </button>
-            <button type="button" className={theme === "peach" ? `${styles.awToggleButton} ${styles.awToggleButtonActive}` : styles.awToggleButton} onClick={() => handleThemeChange("peach")}>
+            <button
+              type="button"
+              className={
+                theme === "peach" ? `${styles.awToggleButton} ${styles.awToggleButtonActive}` : styles.awToggleButton
+              }
+              onClick={() => handleThemeChange("peach")}
+            >
               Warm Peach
             </button>
           </div>
 
           <div className={styles.awTicker}>
             <span className={styles.awTickerLabel}>NEWS</span>
-            <span className={styles.awTickerTrack}>BST Xuân – Hè 2025 đã lên kệ • Giảm thêm 10% khi thanh toán bằng thẻ • Freeship đơn từ 499K •</span>
+            <span className={styles.awTickerTrack}>
+              BST Xuân – Hè 2025 đã lên kệ • Giảm thêm 10% khi thanh toán bằng thẻ • Freeship đơn từ 499K •
+            </span>
           </div>
         </div>
       </div>

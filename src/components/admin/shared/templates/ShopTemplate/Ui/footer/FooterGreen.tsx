@@ -2,7 +2,7 @@
 
 import React, { FC, useState } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterGreen.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterGreen.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type LayoutMode = "classic" | "split" | "minimal";
@@ -68,7 +68,10 @@ const FooterGreen: FC<FooterGreenProps> = (_props) => {
           <section className={`${styles.FtCol} ${styles.FtColAbout}`}>
             <div>
               <h3 className={styles.FtColTitle}>Thời trang xanh – chuẩn gu, chuẩn chất</h3>
-              <p className={styles.FtDesc}>Aurora Green Wear lựa chọn chất liệu hữu cơ, tái chế và quy trình sản xuất có trách nhiệm, để mỗi outfit bạn mặc đều nhẹ nhàng hơn với Trái Đất.</p>
+              <p className={styles.FtDesc}>
+                Aurora Green Wear lựa chọn chất liệu hữu cơ, tái chế và quy trình sản xuất có trách nhiệm, để mỗi outfit
+                bạn mặc đều nhẹ nhàng hơn với Trái Đất.
+              </p>
 
               <div className={styles.FtBadgesRow}>
                 <div className={styles.FtPill}>
@@ -177,10 +180,18 @@ const FooterGreen: FC<FooterGreenProps> = (_props) => {
             <h3 className={styles.FtColTitle}>Nhận ưu đãi &amp; ý tưởng phối đồ</h3>
 
             <div className={styles.FtNewsletter}>
-              <p className={styles.FtDesc}>Đăng ký để nhận ưu đãi thành viên, gợi ý outfit theo phong cách của bạn &amp; tin tức về các BST xanh mới nhất.</p>
+              <p className={styles.FtDesc}>
+                Đăng ký để nhận ưu đãi thành viên, gợi ý outfit theo phong cách của bạn &amp; tin tức về các BST xanh
+                mới nhất.
+              </p>
 
               <div className={styles.FtInputWrap}>
-                <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <button className={styles.FtBtn} type="button" onClick={handleSubscribe}>
                   <i className="bi bi-send" aria-hidden="true" />
                   Nhận ưu đãi
@@ -265,15 +276,27 @@ const FooterGreen: FC<FooterGreenProps> = (_props) => {
               <span>{lang === "vi" ? "VI / EN" : "EN / VI"}</span>
             </button>
 
-            <button className={`${styles.FtStyleBtn} ${layout === "classic" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeLayout("classic")}>
+            <button
+              className={`${styles.FtStyleBtn} ${layout === "classic" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeLayout("classic")}
+            >
               <i className="bi bi-grid-1x2" aria-hidden="true" />
               Full
             </button>
-            <button className={`${styles.FtStyleBtn} ${layout === "split" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeLayout("split")}>
+            <button
+              className={`${styles.FtStyleBtn} ${layout === "split" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeLayout("split")}
+            >
               <i className="bi bi-columns" aria-hidden="true" />
               Lookbook
             </button>
-            <button className={`${styles.FtStyleBtn} ${layout === "minimal" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeLayout("minimal")}>
+            <button
+              className={`${styles.FtStyleBtn} ${layout === "minimal" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeLayout("minimal")}
+            >
               <i className="bi bi-dash-lg" aria-hidden="true" />
               Compact
             </button>

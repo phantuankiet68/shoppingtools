@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroGreen.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroGreen.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Props HeroGreen ===== */
@@ -166,18 +166,27 @@ export const HeroGreen: React.FC<HeroGreenProps> = (props) => {
                 <span className={styles.dot}></span>
                 <span>Bộ sưu tập Aurora Green – Thu 2025</span>
               </div>
-              <div className={styles.agPillSub}>Thời trang bền vững &bull; Vải thân thiện môi trường &bull; Mặc nhẹ nhàng cả ngày</div>
+              <div className={styles.agPillSub}>
+                Thời trang bền vững &bull; Vải thân thiện môi trường &bull; Mặc nhẹ nhàng cả ngày
+              </div>
             </div>
 
             <div className={styles.agTitle}>
               <h1>
                 Tủ đồ <span className={styles.highlight}>xanh trendy</span> cho mọi ngày đi làm, café và dạo phố.
               </h1>
-              <p>Mix &amp; match set đồ văn phòng, dạo phố, hẹn hò chỉ trong vài cú click. Gợi ý sẵn outfit, size dễ chọn, chất liệu mát – nhẹ – ít nhăn.</p>
+              <p>
+                Mix &amp; match set đồ văn phòng, dạo phố, hẹn hò chỉ trong vài cú click. Gợi ý sẵn outfit, size dễ
+                chọn, chất liệu mát – nhẹ – ít nhăn.
+              </p>
             </div>
 
             <div className={styles.agCtaRow}>
-              <button className={styles.agBtnPrimary} type="button" onClick={preview ? (e) => e.preventDefault() : undefined}>
+              <button
+                className={styles.agBtnPrimary}
+                type="button"
+                onClick={preview ? (e) => e.preventDefault() : undefined}
+              >
                 Mua ngay bộ sưu tập mới
                 <i>➜</i>
               </button>
@@ -207,7 +216,12 @@ export const HeroGreen: React.FC<HeroGreenProps> = (props) => {
             {/* QUICK CHIPS */}
             <div className={styles.agQuickRow}>
               {QUICK_CHIPS.map((label, idx) => (
-                <button key={label} type="button" className={`${styles.agChip} ${idx === activeChipIndex ? styles.agChipActive : ""}`} onClick={() => handleChipClick(idx)}>
+                <button
+                  key={label}
+                  type="button"
+                  className={`${styles.agChip} ${idx === activeChipIndex ? styles.agChipActive : ""}`}
+                  onClick={() => handleChipClick(idx)}
+                >
                   {label}
                 </button>
               ))}
@@ -246,7 +260,8 @@ export const HeroGreen: React.FC<HeroGreenProps> = (props) => {
                     transition: "all 0.25s ease",
                     transform: "scale(1)",
                   }
-            }>
+            }
+          >
             <div className={styles.agSpark}></div>
 
             <div className={styles.agCardTop}>
@@ -263,13 +278,25 @@ export const HeroGreen: React.FC<HeroGreenProps> = (props) => {
 
             {/* TABS */}
             <div className={styles.agTabs}>
-              <button type="button" className={`${styles.agTab} ${activeLook === "office" ? styles.agTabActive : ""}`} onClick={() => handleChangeLook("office")}>
+              <button
+                type="button"
+                className={`${styles.agTab} ${activeLook === "office" ? styles.agTabActive : ""}`}
+                onClick={() => handleChangeLook("office")}
+              >
                 Đi làm
               </button>
-              <button type="button" className={`${styles.agTab} ${activeLook === "weekend" ? styles.agTabActive : ""}`} onClick={() => handleChangeLook("weekend")}>
+              <button
+                type="button"
+                className={`${styles.agTab} ${activeLook === "weekend" ? styles.agTabActive : ""}`}
+                onClick={() => handleChangeLook("weekend")}
+              >
                 Cuối tuần
               </button>
-              <button type="button" className={`${styles.agTab} ${activeLook === "date" ? styles.agTabActive : ""}`} onClick={() => handleChangeLook("date")}>
+              <button
+                type="button"
+                className={`${styles.agTab} ${activeLook === "date" ? styles.agTabActive : ""}`}
+                onClick={() => handleChangeLook("date")}
+              >
                 Hẹn hò
               </button>
             </div>

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarBlueAurora.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarBlueAurora.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarProTickerItem {
@@ -209,7 +209,12 @@ export const TopbarBlueAurora: React.FC<TopbarBlueAuroraProps> = (props) => {
 
   const tbRightClassName = [styles.tbRight, isMenuOpen ? styles.tbRightOpen : ""].filter(Boolean).join(" ");
 
-  const tickerTextClassName = [styles.tickerText, phase === "leaving" ? styles.isLeaving : phase === "entering" ? styles.isEntering : styles.isActive].filter(Boolean).join(" ");
+  const tickerTextClassName = [
+    styles.tickerText,
+    phase === "leaving" ? styles.isLeaving : phase === "entering" ? styles.isEntering : styles.isActive,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const topbarStyle: CSSProperties | undefined = backgroundColor ? { backgroundColor } : undefined;
 
@@ -253,7 +258,12 @@ export const TopbarBlueAurora: React.FC<TopbarBlueAuroraProps> = (props) => {
         <div className={tbRightClassName} ref={tbRightRef}>
           <div className={styles.tbLinks}>
             {(links ?? []).map((link, index) => (
-              <a key={`${link.label}-${index}`} className={styles.tbLink} href={link.href ?? "#"} onClick={handleLinkClick}>
+              <a
+                key={`${link.label}-${index}`}
+                className={styles.tbLink}
+                href={link.href ?? "#"}
+                onClick={handleLinkClick}
+              >
                 {link.iconClass && <i className={link.iconClass} />}
                 <span>{link.label}</span>
               </a>

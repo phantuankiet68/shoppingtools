@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, MouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroPink.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroPink.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types cho hero data bên phải ===== */
@@ -66,7 +66,8 @@ const DEFAULT_HERO_PINK_PROPS: HeroPinkProps = {
   titleLine1Prefix: "Chạm vào",
   titleHighlight: "thế giới pastel",
   titleLine2: "dịu nhẹ & nữ tính.",
-  subtitle: "Những thiết kế mềm mại, tông hồng sữa – kem – nude, được sinh ra để xuất hiện trong tủ đồ của bạn. Mix & match nhẹ nhàng nhưng vẫn nổi bật trong mọi khung hình.",
+  subtitle:
+    "Những thiết kế mềm mại, tông hồng sữa – kem – nude, được sinh ra để xuất hiện trong tủ đồ của bạn. Mix & match nhẹ nhàng nhưng vẫn nổi bật trong mọi khung hình.",
   badges: [
     { iconClass: "bi bi-truck", text: "Freeship đơn từ 299k" },
     { iconClass: "bi bi-arrow-repeat", text: "Đổi trả trong 7 ngày" },
@@ -330,15 +331,27 @@ export const HeroPink: React.FC<HeroPinkProps> = (props) => {
               {/* Tabs + mini list */}
               <div>
                 <div className={styles.heroTabs}>
-                  <button type="button" className={`${styles.heroTab} ${activeTab === "new" ? styles.heroTabActive : ""}`} onClick={handleTabClick("new")}>
+                  <button
+                    type="button"
+                    className={`${styles.heroTab} ${activeTab === "new" ? styles.heroTabActive : ""}`}
+                    onClick={handleTabClick("new")}
+                  >
                     <i className="bi bi-magic" />
                     New in
                   </button>
-                  <button type="button" className={`${styles.heroTab} ${activeTab === "best" ? styles.heroTabActive : ""}`} onClick={handleTabClick("best")}>
+                  <button
+                    type="button"
+                    className={`${styles.heroTab} ${activeTab === "best" ? styles.heroTabActive : ""}`}
+                    onClick={handleTabClick("best")}
+                  >
                     <i className="bi bi-heart" />
                     Best seller
                   </button>
-                  <button type="button" className={`${styles.heroTab} ${activeTab === "sale" ? styles.heroTabActive : ""}`} onClick={handleTabClick("sale")}>
+                  <button
+                    type="button"
+                    className={`${styles.heroTab} ${activeTab === "sale" ? styles.heroTabActive : ""}`}
+                    onClick={handleTabClick("sale")}
+                  >
                     <i className="bi bi-percent" />
                     Sale pastel
                   </button>
@@ -346,7 +359,11 @@ export const HeroPink: React.FC<HeroPinkProps> = (props) => {
 
                 <div className={styles.heroCardList}>
                   {tabData.items.map((item, idx) => (
-                    <article key={item.title} className={`${styles.heroMiniItem} ${idx === activeMiniIndex ? styles.heroMiniItemActive : ""}`} onMouseEnter={() => setActiveMiniIndex(idx)}>
+                    <article
+                      key={item.title}
+                      className={`${styles.heroMiniItem} ${idx === activeMiniIndex ? styles.heroMiniItemActive : ""}`}
+                      onMouseEnter={() => setActiveMiniIndex(idx)}
+                    >
                       <div className={styles.heroMiniThumb} />
                       <div>
                         <h4 className={styles.heroMiniTitle}>{item.title}</h4>

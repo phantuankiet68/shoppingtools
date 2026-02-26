@@ -2,7 +2,7 @@
 import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarBrightAurora.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarBrightAurora.module.css";
 
 export interface TopbarProTickerItem {
   text: string;
@@ -135,9 +135,11 @@ export const TopbarBrightAurora: React.FC<TopbarBrightAuroraProps> = (props) => 
   } = props;
 
   // Ticker & links derive từ props (hoặc dùng default nếu rỗng)
-  const tickerItems: TopbarProTickerItem[] = props.tickerItems && props.tickerItems.length > 0 ? props.tickerItems : DEFAULT_TOPBAR_BRIGHT_AURORA_TICKERS;
+  const tickerItems: TopbarProTickerItem[] =
+    props.tickerItems && props.tickerItems.length > 0 ? props.tickerItems : DEFAULT_TOPBAR_BRIGHT_AURORA_TICKERS;
 
-  const links: TopbarProLinkItem[] = props.links && props.links.length > 0 ? props.links : DEFAULT_TOPBAR_BRIGHT_AURORA_LINKS;
+  const links: TopbarProLinkItem[] =
+    props.links && props.links.length > 0 ? props.links : DEFAULT_TOPBAR_BRIGHT_AURORA_LINKS;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
@@ -219,7 +221,12 @@ export const TopbarBrightAurora: React.FC<TopbarBrightAuroraProps> = (props) => 
 
   const tbRightClassName = isMenuOpen ? `${styles.tbRight} ${styles.tbRightOpen}` : styles.tbRight;
 
-  const tickerTextClassName = [styles.tickerText, tickerPhase === "leaving" && styles.isLeaving, tickerPhase === "entering" && styles.isEntering, tickerPhase === "active" && styles.isActive]
+  const tickerTextClassName = [
+    styles.tickerText,
+    tickerPhase === "leaving" && styles.isLeaving,
+    tickerPhase === "entering" && styles.isEntering,
+    tickerPhase === "active" && styles.isActive,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -270,7 +277,12 @@ export const TopbarBrightAurora: React.FC<TopbarBrightAuroraProps> = (props) => 
         <div className={tbRightClassName} ref={tbRightRef}>
           <div className={styles.tbLinks}>
             {links.map((link: TopbarProLinkItem, idx: number) => (
-              <a key={`${link.label}-${idx}`} href={link.href || "#"} className={styles.tbLink} onClick={handleLinkClick}>
+              <a
+                key={`${link.label}-${idx}`}
+                href={link.href || "#"}
+                className={styles.tbLink}
+                onClick={handleLinkClick}
+              >
                 {link.iconClass && <i className={link.iconClass} />}
                 <span>{link.label}</span>
               </a>

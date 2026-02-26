@@ -1,6 +1,6 @@
 // src/components/templates/AuroraTopbarGreen.tsx
 import React, { useEffect, useRef, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/AuroraTopbarGreen.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/AuroraTopbarGreen.module.css";
 
 export interface AuroraTopbarGreenTickerItem {
   text: string;
@@ -232,7 +232,12 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
             </div>
           )}
 
-          <button className={styles.moreBtn} id="auroraTopbarGreenMoreBtn" type="button" onClick={() => setMenuOpen((open) => !open)}>
+          <button
+            className={styles.moreBtn}
+            id="auroraTopbarGreenMoreBtn"
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
             <i className="bi bi-list" />
           </button>
         </div>

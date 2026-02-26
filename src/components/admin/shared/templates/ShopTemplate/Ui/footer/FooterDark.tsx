@@ -2,7 +2,7 @@
 
 import React, { FC, useState } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterDark.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterDark.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterDarkProps = Record<string, never>;
@@ -40,7 +40,9 @@ const FooterDark: FC<FooterDarkProps> = () => {
             </div>
             <div className={styles.abBrandText}>
               <div className={styles.abBrandTitle}>AURORA WEAR</div>
-              <div className={styles.abBrandSub}>Nền tảng thời trang trực tuyến với trải nghiệm mua sắm nhanh, đẹp và thông minh.</div>
+              <div className={styles.abBrandSub}>
+                Nền tảng thời trang trực tuyến với trải nghiệm mua sắm nhanh, đẹp và thông minh.
+              </div>
             </div>
           </div>
 
@@ -68,7 +70,9 @@ const FooterDark: FC<FooterDarkProps> = () => {
               <i className="bi bi-gift" aria-hidden="true" />
               Xem ưu đãi hôm nay
             </button>
-            <span className={styles.abSmallNote}>Miễn phí vận chuyển cho đơn từ 499k • Hỗ trợ đổi size nếu không vừa</span>
+            <span className={styles.abSmallNote}>
+              Miễn phí vận chuyển cho đơn từ 499k • Hỗ trợ đổi size nếu không vừa
+            </span>
           </div>
         </div>
 
@@ -155,16 +159,36 @@ const FooterDark: FC<FooterDarkProps> = () => {
               </div>
             </div>
             <div className={styles.abSocialRow}>
-              <button type="button" className={styles.abSocialBtn} aria-label="Facebook" onClick={() => handleSocialClick("facebook")}>
+              <button
+                type="button"
+                className={styles.abSocialBtn}
+                aria-label="Facebook"
+                onClick={() => handleSocialClick("facebook")}
+              >
                 <i className="bi bi-facebook" aria-hidden="true" />
               </button>
-              <button type="button" className={styles.abSocialBtn} aria-label="Instagram" onClick={() => handleSocialClick("instagram")}>
+              <button
+                type="button"
+                className={styles.abSocialBtn}
+                aria-label="Instagram"
+                onClick={() => handleSocialClick("instagram")}
+              >
                 <i className="bi bi-instagram" aria-hidden="true" />
               </button>
-              <button type="button" className={styles.abSocialBtn} aria-label="TikTok" onClick={() => handleSocialClick("tiktok")}>
+              <button
+                type="button"
+                className={styles.abSocialBtn}
+                aria-label="TikTok"
+                onClick={() => handleSocialClick("tiktok")}
+              >
                 <i className="bi bi-tiktok" aria-hidden="true" />
               </button>
-              <button type="button" className={styles.abSocialBtn} aria-label="YouTube" onClick={() => handleSocialClick("youtube")}>
+              <button
+                type="button"
+                className={styles.abSocialBtn}
+                aria-label="YouTube"
+                onClick={() => handleSocialClick("youtube")}
+              >
                 <i className="bi bi-youtube" aria-hidden="true" />
               </button>
             </div>
@@ -199,26 +223,62 @@ const FooterDark: FC<FooterDarkProps> = () => {
         <div className={styles.abBottomRight}>
           {/* layout toggle */}
           <div className={styles.abToggleGroup}>
-            <button type="button" className={layout === "default" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton} onClick={() => handleLayoutChange("default")}>
+            <button
+              type="button"
+              className={
+                layout === "default" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton
+              }
+              onClick={() => handleLayoutChange("default")}
+            >
               Default
             </button>
-            <button type="button" className={layout === "compact" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton} onClick={() => handleLayoutChange("compact")}>
+            <button
+              type="button"
+              className={
+                layout === "compact" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton
+              }
+              onClick={() => handleLayoutChange("compact")}
+            >
               Compact
             </button>
-            <button type="button" className={layout === "minimal" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton} onClick={() => handleLayoutChange("minimal")}>
+            <button
+              type="button"
+              className={
+                layout === "minimal" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton
+              }
+              onClick={() => handleLayoutChange("minimal")}
+            >
               Minimal
             </button>
           </div>
 
           {/* theme toggle */}
           <div className={styles.abToggleGroup}>
-            <button type="button" className={theme === "cyan" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton} onClick={() => handleThemeChange("cyan")}>
+            <button
+              type="button"
+              className={
+                theme === "cyan" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton
+              }
+              onClick={() => handleThemeChange("cyan")}
+            >
               Cyan
             </button>
-            <button type="button" className={theme === "magenta" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton} onClick={() => handleThemeChange("magenta")}>
+            <button
+              type="button"
+              className={
+                theme === "magenta" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton
+              }
+              onClick={() => handleThemeChange("magenta")}
+            >
               Magenta
             </button>
-            <button type="button" className={theme === "emerald" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton} onClick={() => handleThemeChange("emerald")}>
+            <button
+              type="button"
+              className={
+                theme === "emerald" ? `${styles.abToggleButton} ${styles.abToggleButtonActive}` : styles.abToggleButton
+              }
+              onClick={() => handleThemeChange("emerald")}
+            >
               Emerald
             </button>
           </div>
@@ -226,7 +286,10 @@ const FooterDark: FC<FooterDarkProps> = () => {
           {/* ticker */}
           <div className={styles.abTicker}>
             <span className={styles.abTickerLabel}>Aurora Updates</span>
-            <span className={styles.abTickerTrack}>Deal 12.12 • Giảm đến 70% toàn bộ áo khoác • Miễn phí vận chuyển đơn từ 499k • Thành viên Aurora Club nhận voucher độc quyền mỗi tuần •</span>
+            <span className={styles.abTickerTrack}>
+              Deal 12.12 • Giảm đến 70% toàn bộ áo khoác • Miễn phí vận chuyển đơn từ 499k • Thành viên Aurora Club nhận
+              voucher độc quyền mỗi tuần •
+            </span>
           </div>
         </div>
       </div>

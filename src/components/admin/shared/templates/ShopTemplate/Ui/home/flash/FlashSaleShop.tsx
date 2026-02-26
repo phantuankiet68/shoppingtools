@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/flash/flash-sale-shop.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/flash/flash-sale-shop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FlashItem = {
@@ -86,7 +86,10 @@ export default function FlashSaleShop({
     return () => clearInterval(timer);
   }, [autoScrollMs]);
 
-  const nf = useMemo(() => new Intl.NumberFormat(currencyLocale, { style: "currency", currency }), [currencyLocale, currency]);
+  const nf = useMemo(
+    () => new Intl.NumberFormat(currencyLocale, { style: "currency", currency }),
+    [currencyLocale, currency],
+  );
 
   const stop = (e: React.MouseEvent) => {
     if (!preview) return;
@@ -100,7 +103,8 @@ export default function FlashSaleShop({
         <div className={cls.fsTitle}>
           {title}
           <div className={cls.fsTimer} aria-label="Countdown">
-            <span className={cls.fsBox}>{hh}</span>:<span className={cls.fsBox}>{mm}</span>:<span className={cls.fsBox}>{ss}</span>
+            <span className={cls.fsBox}>{hh}</span>:<span className={cls.fsBox}>{mm}</span>:
+            <span className={cls.fsBox}>{ss}</span>
           </div>
         </div>
         <a className={cls.fsViewall} href={viewAllHref} onClick={preview ? stop : undefined}>

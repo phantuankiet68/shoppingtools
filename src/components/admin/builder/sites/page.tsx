@@ -1,52 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/builder/sites/sites.module.css";
-
-type Site = {
-  id: string;
-  domain: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-  });
-
-  const text = await res.text().catch(() => "");
-
-  const maybeJson = (() => {
-    try {
-      return text ? JSON.parse(text) : null;
-    } catch {
-      return null;
-    }
-  })();
-
-  if (!res.ok) {
-    const msg =
-      typeof maybeJson?.error === "string"
-        ? maybeJson.error
-        : Object.values(maybeJson?.error?.fieldErrors || {})
-            .flat()
-            .filter(Boolean)[0] ||
-          maybeJson?.error?.formErrors?.[0] ||
-          text ||
-          `Request failed: ${res.status}`;
-
-    throw new Error(msg);
-  }
-
-  if (maybeJson !== null) return maybeJson as T;
-  return (text ? (JSON.parse(text) as T) : ({} as T)) as T;
-}
+import { useSitesStore } from "@/store/builder/site/index";
 
 function fmt(iso: string) {
   const d = new Date(iso);
@@ -65,53 +21,11 @@ function normalizeDomain(input: string) {
 }
 
 export default function SitesPage() {
-  const [items, setItems] = useState<Site[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const { items, loading, busy, activeId, setActiveId, load, createSite, deleteActive, toast } = useSitesStore();
+
   const [query, setQuery] = useState("");
-  const [activeId, setActiveId] = useState<string>("");
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ domain: "", name: "" });
-  const [toast, setToast] = useState<string | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-    };
-  }, []);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => {
-      if (!mountedRef.current) return;
-      setToast(null);
-    }, 2500);
-  }, []);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await jsonFetch<Site[]>("/api/admin/builder/sites", { method: "GET" });
-      if (!mountedRef.current) return;
-      setItems(data);
-      setActiveId((prev) => {
-        if (prev && data.some((x) => x.id === prev)) return prev;
-        return data[0]?.id || "";
-      });
-    } catch (e: any) {
-      if (!mountedRef.current) return;
-      showToast(e?.message || "Load failed");
-    } finally {
-      if (!mountedRef.current) return;
-      setLoading(false);
-    }
-  }, [showToast]);
 
   useEffect(() => {
     load();
@@ -125,67 +39,28 @@ export default function SitesPage() {
     return items.filter((x) => `${x.name} ${x.domain}`.toLowerCase().includes(q));
   }, [items, query]);
 
-  const openCreate = useCallback(() => setCreateOpen(true), []);
-  const closeCreate = useCallback(() => setCreateOpen(false), []);
+  const openCreate = () => setCreateOpen(true);
+  const closeCreate = () => setCreateOpen(false);
 
-  const createSite = useCallback(async () => {
+  const handleCreate = async () => {
     const rawDomain = createForm.domain.trim();
     const rawName = createForm.name.trim();
 
-    if (!rawDomain) return showToast("Domain is required");
-    if (!rawName) return showToast("Site name is required");
-
     const domain = normalizeDomain(rawDomain);
-    if (!domain) return showToast("Domain is invalid");
+    const created = await createSite(domain, rawName);
 
-    setBusy(true);
-    try {
-      const created = await jsonFetch<Site>("/api/admin/builder/sites", {
-        method: "POST",
-        body: JSON.stringify({ domain, name: rawName }),
-      });
-
-      if (!mountedRef.current) return;
-
-      showToast("Created.");
+    if (created) {
       setCreateOpen(false);
       setCreateForm({ domain: "", name: "" });
-
-      try {
-        localStorage.setItem("builder_site_id", created.id);
-      } catch {}
-
-      await load();
-      if (!mountedRef.current) return;
-      setActiveId(created.id);
-    } catch (e: any) {
-      if (!mountedRef.current) return;
-      showToast(e?.message || "Create failed");
-    } finally {
-      if (!mountedRef.current) return;
-      setBusy(false);
     }
-  }, [createForm.domain, createForm.name, load, showToast]);
+  };
 
-  const deleteActive = useCallback(async () => {
+  const handleDelete = async () => {
     if (!active) return;
     const ok = confirm(`Delete site "${active.name}" (${active.domain}) ?`);
     if (!ok) return;
-
-    setBusy(true);
-    try {
-      await jsonFetch(`/api/admin/builder/sites/${active.id}`, { method: "DELETE" });
-      if (!mountedRef.current) return;
-      showToast("Deleted.");
-      await load();
-    } catch (e: any) {
-      if (!mountedRef.current) return;
-      showToast(e?.message || "Delete failed");
-    } finally {
-      if (!mountedRef.current) return;
-      setBusy(false);
-    }
-  }, [active, load, showToast]);
+    await deleteActive();
+  };
 
   return (
     <div className={styles.shell}>
@@ -215,7 +90,7 @@ export default function SitesPage() {
           <button
             className={`${styles.ghostBtn} ${styles.dangerBtn}`}
             type="button"
-            onClick={deleteActive}
+            onClick={handleDelete}
             disabled={busy || loading || !active}
           >
             <i className="bi bi-trash3" /> Delete
@@ -381,7 +256,7 @@ export default function SitesPage() {
                   <button className={styles.ghostBtn} type="button" onClick={closeCreate} disabled={busy}>
                     Cancel
                   </button>
-                  <button className={styles.primaryBtn} type="button" onClick={createSite} disabled={busy}>
+                  <button className={styles.primaryBtn} type="button" onClick={handleCreate} disabled={busy}>
                     <i className="bi bi-plus-lg" /> Create
                   </button>
                 </div>

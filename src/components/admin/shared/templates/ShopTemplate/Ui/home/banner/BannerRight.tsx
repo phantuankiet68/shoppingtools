@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/banner/banner-right.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/banner/banner-right.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type Banner = { src: string; alt?: string };

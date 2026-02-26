@@ -9,7 +9,7 @@ export const API_ENDPOINTS = {
 } as const;
 
 export const API_ROUTES = {
-  ADMIN_LOGIN: "/api/admin/login",
-  ADMIN_ME: "/api/admin/me",
-  ADMIN_LOGOUT: "/api/admin/logout",
+  ADMIN_LOGIN: "/api/admin/auth/login",
+  ADMIN_ME: "/api/admin/auth/me",
+  ADMIN_LOGOUT: "/api/admin/auth/logout",
 } as const;

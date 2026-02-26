@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { useMenuStore, type BuilderMenuItem } from "@/components/admin/menu/state/useMenuStore";
+import { useMenuStore, type BuilderMenuItem } from "@/components/admin/builder/menus/state/useMenuStore";
 import styles from "@/styles/admin/menu/menu.module.css";
 
 type TabKey = "home" | "dashboard";

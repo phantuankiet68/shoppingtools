@@ -1,6 +1,10 @@
 // src/components/templates/editors/AuroraTopbarGreenEditor.tsx
 import React from "react";
-import type { AuroraTopbarGreenProps, AuroraTopbarGreenTickerItem, AuroraTopbarGreenLinkItem } from "@/components/admin/templates/ShopTemplate/Ui/topbar/AuroraTopbarGreen";
+import type {
+  AuroraTopbarGreenProps,
+  AuroraTopbarGreenTickerItem,
+  AuroraTopbarGreenLinkItem,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/AuroraTopbarGreen";
 // 🔁 Dùng đúng style import mà bạn đang dùng
 import Section from "../parts/Section";
 import TextArea from "../parts/TextArea";
@@ -72,38 +76,69 @@ const AuroraTopbarGreenEditor: React.FC<AuroraTopbarGreenEditorProps> = ({ props
       {/* Nội dung chính */}
       <Section title="Nội dung chính">
         <LabeledRow label="Logo icon class">
-          <TextInput value={props.logoIconClass ?? "bi bi-leaf-fill"} onChange={(v) => updateActive({ logoIconClass: v })} placeholder="bi bi-leaf-fill" />
+          <TextInput
+            value={props.logoIconClass ?? "bi bi-leaf-fill"}
+            onChange={(v) => updateActive({ logoIconClass: v })}
+            placeholder="bi bi-leaf-fill"
+          />
         </LabeledRow>
 
         <LabeledRow label="Tiêu đề">
-          <TextInput value={props.brandTitle ?? ""} onChange={(v) => updateActive({ brandTitle: v })} placeholder="Aurora Green" />
+          <TextInput
+            value={props.brandTitle ?? ""}
+            onChange={(v) => updateActive({ brandTitle: v })}
+            placeholder="Aurora Green"
+          />
         </LabeledRow>
 
         <LabeledRow label="Mô tả ngắn">
-          <TextArea value={props.brandSubtitle ?? ""} onChange={(v) => updateActive({ brandSubtitle: v })} placeholder="Topbar 2025 – Xanh lá nhạt, nhẹ mắt" />
+          <TextArea
+            value={props.brandSubtitle ?? ""}
+            onChange={(v) => updateActive({ brandSubtitle: v })}
+            placeholder="Topbar 2025 – Xanh lá nhạt, nhẹ mắt"
+          />
         </LabeledRow>
 
         <LabeledRow label="Màu nền">
-          <TextInput value={props.backgroundColor ?? "#a7f3d0"} onChange={(v) => updateActive({ backgroundColor: v })} placeholder="#a7f3d0" />
+          <TextInput
+            value={props.backgroundColor ?? "#a7f3d0"}
+            onChange={(v) => updateActive({ backgroundColor: v })}
+            placeholder="#a7f3d0"
+          />
         </LabeledRow>
       </Section>
 
       {/* Region button */}
       <Section title="Khu vực (Region button)">
         <LabeledRow label="Hiển thị nút KV">
-          <Checkbox checked={props.showRegionButton ?? true} onChange={(checked) => updateActive({ showRegionButton: checked })} />
+          <Checkbox
+            checked={props.showRegionButton ?? true}
+            onChange={(checked) => updateActive({ showRegionButton: checked })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Text khu vực">
-          <TextInput value={props.regionLabel ?? ""} onChange={(v) => updateActive({ regionLabel: v })} placeholder="KV: Hồ Chí Minh" />
+          <TextInput
+            value={props.regionLabel ?? ""}
+            onChange={(v) => updateActive({ regionLabel: v })}
+            placeholder="KV: Hồ Chí Minh"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon location class">
-          <TextInput value={props.regionIconClass ?? "bi bi-geo-alt"} onChange={(v) => updateActive({ regionIconClass: v })} placeholder="bi bi-geo-alt" />
+          <TextInput
+            value={props.regionIconClass ?? "bi bi-geo-alt"}
+            onChange={(v) => updateActive({ regionIconClass: v })}
+            placeholder="bi bi-geo-alt"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon chevron class">
-          <TextInput value={props.regionChevronIconClass ?? "bi bi-chevron-down"} onChange={(v) => updateActive({ regionChevronIconClass: v })} placeholder="bi bi-chevron-down" />
+          <TextInput
+            value={props.regionChevronIconClass ?? "bi bi-chevron-down"}
+            onChange={(v) => updateActive({ regionChevronIconClass: v })}
+            placeholder="bi bi-chevron-down"
+          />
         </LabeledRow>
       </Section>
 
@@ -114,11 +149,17 @@ const AuroraTopbarGreenEditor: React.FC<AuroraTopbarGreenEditorProps> = ({ props
         </LabeledRow>
 
         <LabeledRow label="Label">
-          <TextInput value={props.tickerLabel ?? "Tin mới"} onChange={(v) => updateActive({ tickerLabel: v })} placeholder="Tin mới" />
+          <TextInput
+            value={props.tickerLabel ?? "Tin mới"}
+            onChange={(v) => updateActive({ tickerLabel: v })}
+            placeholder="Tin mới"
+          />
         </LabeledRow>
 
         <div className="listBox">
-          {tickerItems.length === 0 && <div className="hint">Chưa có ticker nào. Nhấn &quot;Thêm ticker&quot; để tạo.</div>}
+          {tickerItems.length === 0 && (
+            <div className="hint">Chưa có ticker nào. Nhấn &quot;Thêm ticker&quot; để tạo.</div>
+          )}
 
           {tickerItems.map((item, index) => (
             <div key={index} className="listItem">
@@ -130,11 +171,19 @@ const AuroraTopbarGreenEditor: React.FC<AuroraTopbarGreenEditorProps> = ({ props
               </div>
 
               <LabeledRow label="Badge">
-                <TextInput value={item.badge ?? ""} onChange={(v) => updateTickerItem(index, { badge: v })} placeholder="Hot / Eco / Support..." />
+                <TextInput
+                  value={item.badge ?? ""}
+                  onChange={(v) => updateTickerItem(index, { badge: v })}
+                  placeholder="Hot / Eco / Support..."
+                />
               </LabeledRow>
 
               <LabeledRow label="Text">
-                <TextInput value={item.text ?? ""} onChange={(v) => updateTickerItem(index, { text: v })} placeholder="Nội dung ticker" />
+                <TextInput
+                  value={item.text ?? ""}
+                  onChange={(v) => updateTickerItem(index, { text: v })}
+                  placeholder="Nội dung ticker"
+                />
               </LabeledRow>
             </div>
           ))}
@@ -160,15 +209,27 @@ const AuroraTopbarGreenEditor: React.FC<AuroraTopbarGreenEditorProps> = ({ props
               </div>
 
               <LabeledRow label="Label">
-                <TextInput value={item.label ?? ""} onChange={(v) => updateLinkItem(index, { label: v })} placeholder="Hỗ trợ" />
+                <TextInput
+                  value={item.label ?? ""}
+                  onChange={(v) => updateLinkItem(index, { label: v })}
+                  placeholder="Hỗ trợ"
+                />
               </LabeledRow>
 
               <LabeledRow label="Href">
-                <TextInput value={item.href ?? ""} onChange={(v) => updateLinkItem(index, { href: v })} placeholder="https://..." />
+                <TextInput
+                  value={item.href ?? ""}
+                  onChange={(v) => updateLinkItem(index, { href: v })}
+                  placeholder="https://..."
+                />
               </LabeledRow>
 
               <LabeledRow label="Icon class">
-                <TextInput value={item.iconClass ?? ""} onChange={(v) => updateLinkItem(index, { iconClass: v })} placeholder="bi bi-life-preserver" />
+                <TextInput
+                  value={item.iconClass ?? ""}
+                  onChange={(v) => updateLinkItem(index, { iconClass: v })}
+                  placeholder="bi bi-life-preserver"
+                />
               </LabeledRow>
             </div>
           ))}
@@ -186,11 +247,19 @@ const AuroraTopbarGreenEditor: React.FC<AuroraTopbarGreenEditorProps> = ({ props
         </LabeledRow>
 
         <LabeledRow label="Text status">
-          <TextInput value={props.statusText ?? "Online"} onChange={(v) => updateActive({ statusText: v })} placeholder="Online" />
+          <TextInput
+            value={props.statusText ?? "Online"}
+            onChange={(v) => updateActive({ statusText: v })}
+            placeholder="Online"
+          />
         </LabeledRow>
 
         <LabeledRow label="Màu chấm status">
-          <TextInput value={props.statusDotColor ?? "#16a34a"} onChange={(v) => updateActive({ statusDotColor: v })} placeholder="#16a34a" />
+          <TextInput
+            value={props.statusDotColor ?? "#16a34a"}
+            onChange={(v) => updateActive({ statusDotColor: v })}
+            placeholder="#16a34a"
+          />
         </LabeledRow>
 
         <LabeledRow label="Preview (chặn click link)">

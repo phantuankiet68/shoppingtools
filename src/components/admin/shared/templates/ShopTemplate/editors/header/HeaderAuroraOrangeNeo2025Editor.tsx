@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import type { HeaderAuroraOrangeNeo2025Props } from "@/components/admin/templates/ShopTemplate/Ui/header/HeaderAuroraOrangeNeo2025";
+import type { HeaderAuroraOrangeNeo2025Props } from "@/components/admin/shared/templates/ShopTemplate/Ui/header/HeaderAuroraOrangeNeo2025";
 import Section from "../parts/Section";
 import LabeledRow from "../parts/LabeledRow";
 import TextInput from "../parts/TextInput";
@@ -37,7 +37,10 @@ const HeaderAuroraOrangeNeo2025Editor: React.FC<EditorProps> = ({ props, updateA
       {/* Menu & API */}
       <Section title="Menu & API">
         <LabeledRow label="Tự động load menu">
-          <Checkbox checked={props.autoLoadMenu ?? false} onChange={(checked) => updateActive({ autoLoadMenu: checked })} />
+          <Checkbox
+            checked={props.autoLoadMenu ?? false}
+            onChange={(checked) => updateActive({ autoLoadMenu: checked })}
+          />
         </LabeledRow>
         <LabeledRow label="Menu API URL (ưu tiên nếu có)">
           <TextInput value={props.menuApiUrl ?? ""} onChange={(v) => updateActive({ menuApiUrl: v })} />
@@ -59,13 +62,19 @@ const HeaderAuroraOrangeNeo2025Editor: React.FC<EditorProps> = ({ props, updateA
           <TextInput value={props.searchPlaceholder ?? ""} onChange={(v) => updateActive({ searchPlaceholder: v })} />
         </LabeledRow>
         <LabeledRow label="Hiện nút chọn Danh mục">
-          <Checkbox checked={props.showCategoryDropdown ?? false} onChange={(checked) => updateActive({ showCategoryDropdown: checked })} />
+          <Checkbox
+            checked={props.showCategoryDropdown ?? false}
+            onChange={(checked) => updateActive({ showCategoryDropdown: checked })}
+          />
         </LabeledRow>
         <LabeledRow label="Label nút Danh mục">
           <TextInput value={props.categoryLabel ?? ""} onChange={(v) => updateActive({ categoryLabel: v })} />
         </LabeledRow>
         <LabeledRow label="Hiện nút bộ lọc (sliders)">
-          <Checkbox checked={props.showFilterButton ?? false} onChange={(checked) => updateActive({ showFilterButton: checked })} />
+          <Checkbox
+            checked={props.showFilterButton ?? false}
+            onChange={(checked) => updateActive({ showFilterButton: checked })}
+          />
         </LabeledRow>
         <LabeledRow label="Từ khóa gợi ý (chips, cách nhau bởi dấu phẩy)">
           <TextInput
@@ -85,7 +94,10 @@ const HeaderAuroraOrangeNeo2025Editor: React.FC<EditorProps> = ({ props, updateA
       {/* Actions */}
       <Section title="Actions">
         <LabeledRow label="Hiện nút Yêu thích">
-          <Checkbox checked={props.showWishlist ?? false} onChange={(checked) => updateActive({ showWishlist: checked })} />
+          <Checkbox
+            checked={props.showWishlist ?? false}
+            onChange={(checked) => updateActive({ showWishlist: checked })}
+          />
         </LabeledRow>
         <LabeledRow label="Hiện nút Giỏ hàng">
           <Checkbox checked={props.showCart ?? false} onChange={(checked) => updateActive({ showCart: checked })} />
@@ -108,13 +120,19 @@ const HeaderAuroraOrangeNeo2025Editor: React.FC<EditorProps> = ({ props, updateA
           <TextInput value={props.authLabel ?? ""} onChange={(v) => updateActive({ authLabel: v })} />
         </LabeledRow>
         <LabeledRow label="Hiện pill voucher">
-          <Checkbox checked={props.showVoucherPill ?? false} onChange={(checked) => updateActive({ showVoucherPill: checked })} />
+          <Checkbox
+            checked={props.showVoucherPill ?? false}
+            onChange={(checked) => updateActive({ showVoucherPill: checked })}
+          />
         </LabeledRow>
         <LabeledRow label="Text pill voucher">
           <TextInput value={props.voucherLabel ?? ""} onChange={(v) => updateActive({ voucherLabel: v })} />
         </LabeledRow>
         <LabeledRow label="Hiện badge nav (Mã giảm giá mới hôm nay)">
-          <Checkbox checked={props.showNavBadge ?? false} onChange={(checked) => updateActive({ showNavBadge: checked })} />
+          <Checkbox
+            checked={props.showNavBadge ?? false}
+            onChange={(checked) => updateActive({ showNavBadge: checked })}
+          />
         </LabeledRow>
         <LabeledRow label="Text badge nav">
           <TextInput value={props.navBadgeText ?? ""} onChange={(v) => updateActive({ navBadgeText: v })} />
@@ -124,10 +142,16 @@ const HeaderAuroraOrangeNeo2025Editor: React.FC<EditorProps> = ({ props, updateA
       {/* Khác */}
       <Section title="Khác">
         <LabeledRow label="Preview mode">
-          <Checkbox checked={props.isPreviewMode ?? false} onChange={(checked) => updateActive({ isPreviewMode: checked })} />
+          <Checkbox
+            checked={props.isPreviewMode ?? false}
+            onChange={(checked) => updateActive({ isPreviewMode: checked })}
+          />
         </LabeledRow>
         <LabeledRow label="Preview block key">
-          <TextInput value={props.onPreviewBlockClickKey ?? ""} onChange={(v) => updateActive({ onPreviewBlockClickKey: v })} />
+          <TextInput
+            value={props.onPreviewBlockClickKey ?? ""}
+            onChange={(v) => updateActive({ onPreviewBlockClickKey: v })}
+          />
         </LabeledRow>
       </Section>
     </>

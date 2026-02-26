@@ -1,6 +1,6 @@
 import React from "react";
 import type { CSSProperties } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarGreenYellowGradient2025.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarGreenYellowGradient2025.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarGreenYellowGradient2025TickerItem {
@@ -158,7 +158,12 @@ export const TopbarGreenYellowGradient2025: React.FC<TopbarGreenYellowGradient20
 
   const currentTicker = tickerList[activeTickerIndex];
 
-  const tickerClassName = [styles.tickerText, tickerPhase === "active" ? styles.isActive : tickerPhase === "leaving" ? styles.isLeaving : styles.isEntering].filter(Boolean).join(" ");
+  const tickerClassName = [
+    styles.tickerText,
+    tickerPhase === "active" ? styles.isActive : tickerPhase === "leaving" ? styles.isLeaving : styles.isEntering,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const tbRightClassName = [styles.tbRight, isMenuOpen ? styles.tbRightOpen : ""].filter(Boolean).join(" ");
 

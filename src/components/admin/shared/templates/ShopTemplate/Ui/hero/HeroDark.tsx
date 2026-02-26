@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroDark.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroDark.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ========== TYPES & DEFAULTS ========== */
@@ -119,7 +119,8 @@ export const HeroDark: React.FC<HeroDarkProps> = ({ preview }) => {
             className={styles.heroCtaPrimary}
             onClick={(e) => {
               if (preview) e.preventDefault();
-            }}>
+            }}
+          >
             Mở lookbook hôm nay
             <span className={styles.heroCtaPrimaryBadge}>Gợi ý outfit theo thời tiết</span>
           </button>
@@ -128,7 +129,8 @@ export const HeroDark: React.FC<HeroDarkProps> = ({ preview }) => {
             className={styles.heroCtaGhost}
             onClick={(e) => {
               if (preview) e.preventDefault();
-            }}>
+            }}
+          >
             <i className="bi bi-play-circle-fill" />
             Xem cách phối đồ nhanh
           </button>
@@ -140,7 +142,8 @@ export const HeroDark: React.FC<HeroDarkProps> = ({ preview }) => {
               key={scenario.id}
               type="button"
               className={`${styles.scenarioChip} ${scenario.id === activeScenarioId ? styles.scenarioChipActive : ""}`}
-              onClick={() => handleScenarioClick(scenario.id)}>
+              onClick={() => handleScenarioClick(scenario.id)}
+            >
               <i className={`bi ${scenario.iconClass}`} />
               {scenario.label}
             </button>
@@ -189,7 +192,10 @@ export const HeroDark: React.FC<HeroDarkProps> = ({ preview }) => {
 
             <div className={styles.lookInfo}>
               <div className={styles.lookInfoTitle}>Set 3 món: sơ mi pastel, quần suông, túi mini.</div>
-              <p className={styles.lookInfoDesc}>Combo đã mix sẵn theo màu &amp; dáng, phù hợp với hầu hết dáng người. Chỉ cần chọn size, không phải suy nghĩ phối đồ.</p>
+              <p className={styles.lookInfoDesc}>
+                Combo đã mix sẵn theo màu &amp; dáng, phù hợp với hầu hết dáng người. Chỉ cần chọn size, không phải suy
+                nghĩ phối đồ.
+              </p>
               <div className={styles.lookSizes}>
                 <span className={`${styles.sizePill} ${styles.sizePillMain}`}>Size M</span>
                 <span className={styles.sizePill}>Size S</span>

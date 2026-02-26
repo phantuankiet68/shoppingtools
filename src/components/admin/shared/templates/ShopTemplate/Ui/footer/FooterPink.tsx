@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, FormEvent, MouseEvent } from "react";
 import type { FC } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterPink.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterPink.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterPinkVariant = "aurora" | "glass" | "dusk";
@@ -140,7 +140,8 @@ export const DEFAULT_FOOTER_PINK_PROPS: FooterPinkProps = {
   ],
 
   newsletterTitle: "Nhận bản tin outfit",
-  newsletterDescription: "Mỗi tuần một email: outfit gợi ý cho từng mood, ưu đãi bí mật & thông báo drop bộ sưu tập giới hạn.",
+  newsletterDescription:
+    "Mỗi tuần một email: outfit gợi ý cho từng mood, ưu đãi bí mật & thông báo drop bộ sưu tập giới hạn.",
   emailPlaceholder: "Nhập email để nhận ưu đãi 50K...",
   subscribeButtonLabel: "Đăng ký ngay",
   newsletterEmptyMessage: "Bạn vui lòng nhập email trước khi đăng ký nha 💌",
@@ -363,7 +364,13 @@ const FooterPink: FC<FooterPinkProps> = (props) => {
     setActiveVariant(key);
   };
 
-  const footerClassNames = [styles.Footer, activeVariant === "glass" ? styles.FooterGlass : "", activeVariant === "dusk" ? styles.FooterDusk : ""].filter(Boolean).join(" ");
+  const footerClassNames = [
+    styles.Footer,
+    activeVariant === "glass" ? styles.FooterGlass : "",
+    activeVariant === "dusk" ? styles.FooterDusk : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={styles.FooterWrap}>
@@ -390,7 +397,8 @@ const FooterPink: FC<FooterPinkProps> = (props) => {
                     type="button"
                     className={`${styles.VariantButton} ${activeVariant === opt.key ? styles.VariantButtonActive : ""}`}
                     onClick={() => handleVariantClick(opt.key)}
-                    data-variant={opt.key}>
+                    data-variant={opt.key}
+                  >
                     {opt.iconClass && <i className={opt.iconClass} aria-hidden="true" />}
                     {opt.label}
                   </button>
@@ -421,7 +429,13 @@ const FooterPink: FC<FooterPinkProps> = (props) => {
               <form className={styles.NewsForm} onSubmit={handleNewsletterSubmit}>
                 <div className={styles.InputWrap}>
                   <i className="bi bi-envelope-heart" aria-hidden="true" />
-                  <input type="email" className={styles.Input} placeholder={emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <input
+                    type="email"
+                    className={styles.Input}
+                    placeholder={emailPlaceholder}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <button type="submit" className={styles.PrimaryButton}>
                   <i className="bi bi-bell" aria-hidden="true" />

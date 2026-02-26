@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, FormEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderAuroraPink.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderAuroraPink.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types menu dùng trong UI ===== */
@@ -181,7 +181,9 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
     className,
   } = props;
 
-  const [internalMenu, setInternalMenu] = useState<HeaderAuroraPinkMenuItem[]>(menuItems && menuItems.length ? menuItems : defaultMenu);
+  const [internalMenu, setInternalMenu] = useState<HeaderAuroraPinkMenuItem[]>(
+    menuItems && menuItems.length ? menuItems : defaultMenu,
+  );
   const [activeMenuId, setActiveMenuId] = useState<string | null>(internalMenu[0]?.id ?? null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [keyword, setKeyword] = useState("");
@@ -336,7 +338,8 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
                     onClick={(e) => {
                       if (isPreviewMode) e.preventDefault();
                       handleMenuClick(item);
-                    }}>
+                    }}
+                  >
                     {item.label}
                   </a>
 
@@ -350,7 +353,8 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
                           onClick={(e) => {
                             if (isPreviewMode) e.preventDefault();
                             handleMenuClick(child);
-                          }}>
+                          }}
+                        >
                           {child.label}
                         </a>
                       ))}
@@ -369,14 +373,21 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   // chỗ để mở dropdown category nếu sau này cần
-                }}>
+                }}
+              >
                 <i className="bi bi-grid-3x3-gap" />
                 {categoryLabel && <span>{categoryLabel}</span>}
                 <i className="bi bi-chevron-down" />
               </button>
             )}
 
-            <input type="text" className={styles.hdSearchInput} placeholder={searchPlaceholder} value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+            <input
+              type="text"
+              className={styles.hdSearchInput}
+              placeholder={searchPlaceholder}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+            />
             <button className={styles.hdSearchBtn} type="submit">
               <i className="bi bi-search" />
             </button>
@@ -386,15 +397,27 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
         {/* RIGHT – actions */}
         <div className={styles.hdRight}>
           {showWishlist && (
-            <button className={styles.hdIconBtn} type="button" title="Yêu thích" onClick={(e) => isPreviewMode && e.preventDefault()}>
+            <button
+              className={styles.hdIconBtn}
+              type="button"
+              title="Yêu thích"
+              onClick={(e) => isPreviewMode && e.preventDefault()}
+            >
               <i className="bi bi-heart" />
             </button>
           )}
 
           {showCart && (
-            <button className={cx(styles.hdIconBtn, styles.hdCart)} type="button" title="Giỏ hàng" onClick={(e) => isPreviewMode && e.preventDefault()}>
+            <button
+              className={cx(styles.hdIconBtn, styles.hdCart)}
+              type="button"
+              title="Giỏ hàng"
+              onClick={(e) => isPreviewMode && e.preventDefault()}
+            >
               <i className="bi bi-bag" />
-              {typeof cartCount === "number" && cartCount > 0 && <span className={styles.hdCartBadge}>{cartCount}</span>}
+              {typeof cartCount === "number" && cartCount > 0 && (
+                <span className={styles.hdCartBadge}>{cartCount}</span>
+              )}
             </button>
           )}
 
@@ -411,7 +434,8 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
             onClick={(e) => {
               e.stopPropagation();
               setIsMobileOpen((v) => !v);
-            }}>
+            }}
+          >
             <i className="bi bi-list" />
           </button>
         </div>

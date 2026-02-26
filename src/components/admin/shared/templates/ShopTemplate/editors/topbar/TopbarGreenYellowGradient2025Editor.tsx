@@ -4,7 +4,7 @@ import type {
   TopbarGreenYellowGradient2025Props,
   TopbarGreenYellowGradient2025TickerItem,
   TopbarGreenYellowGradient2025LinkItem,
-} from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarGreenYellowGradient2025";
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/TopbarGreenYellowGradient2025";
 
 // ✅ Đổi sang import theo parts đúng với project của bạn
 import Section from "../parts/Section";
@@ -73,34 +73,61 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
       {/* BRAND */}
       <Section title="Brand">
         <LabeledRow label="Logo icon class">
-          <TextInput value={props.logoIconClass ?? ""} onChange={(v) => updateActive({ logoIconClass: v })} placeholder="bi bi-sun-fill" />
+          <TextInput
+            value={props.logoIconClass ?? ""}
+            onChange={(v) => updateActive({ logoIconClass: v })}
+            placeholder="bi bi-sun-fill"
+          />
         </LabeledRow>
 
         <LabeledRow label="Tiêu đề">
-          <TextInput value={props.brandTitle ?? ""} onChange={(v) => updateActive({ brandTitle: v })} placeholder="Aurora Green" />
+          <TextInput
+            value={props.brandTitle ?? ""}
+            onChange={(v) => updateActive({ brandTitle: v })}
+            placeholder="Aurora Green"
+          />
         </LabeledRow>
 
         <LabeledRow label="Subtitle">
-          <TextInput value={props.brandSubtitle ?? ""} onChange={(v) => updateActive({ brandSubtitle: v })} placeholder="Topbar 2025 – Gradient xanh lá → vàng" />
+          <TextInput
+            value={props.brandSubtitle ?? ""}
+            onChange={(v) => updateActive({ brandSubtitle: v })}
+            placeholder="Topbar 2025 – Gradient xanh lá → vàng"
+          />
         </LabeledRow>
       </Section>
 
       {/* REGION BUTTON */}
       <Section title="Khu vực / Region button">
         <LabeledRow label="Hiển thị nút khu vực">
-          <Checkbox checked={props.showRegionButton ?? true} onChange={(checked) => updateActive({ showRegionButton: checked })} />
+          <Checkbox
+            checked={props.showRegionButton ?? true}
+            onChange={(checked) => updateActive({ showRegionButton: checked })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Text khu vực">
-          <TextInput value={props.regionLabel ?? ""} onChange={(v) => updateActive({ regionLabel: v })} placeholder="KV: Hồ Chí Minh" />
+          <TextInput
+            value={props.regionLabel ?? ""}
+            onChange={(v) => updateActive({ regionLabel: v })}
+            placeholder="KV: Hồ Chí Minh"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon location (class)">
-          <TextInput value={props.regionIconClass ?? ""} onChange={(v) => updateActive({ regionIconClass: v })} placeholder="bi bi-geo-alt" />
+          <TextInput
+            value={props.regionIconClass ?? ""}
+            onChange={(v) => updateActive({ regionIconClass: v })}
+            placeholder="bi bi-geo-alt"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon chevron (class)">
-          <TextInput value={props.regionChevronIconClass ?? ""} onChange={(v) => updateActive({ regionChevronIconClass: v })} placeholder="bi bi-chevron-down" />
+          <TextInput
+            value={props.regionChevronIconClass ?? ""}
+            onChange={(v) => updateActive({ regionChevronIconClass: v })}
+            placeholder="bi bi-chevron-down"
+          />
         </LabeledRow>
       </Section>
 
@@ -111,11 +138,19 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
         </LabeledRow>
 
         <LabeledRow label="Label nhỏ">
-          <TextInput value={props.tickerLabel ?? ""} onChange={(v) => updateActive({ tickerLabel: v })} placeholder="Tin mới" />
+          <TextInput
+            value={props.tickerLabel ?? ""}
+            onChange={(v) => updateActive({ tickerLabel: v })}
+            placeholder="Tin mới"
+          />
         </LabeledRow>
 
         <div style={{ marginTop: 8 }}>
-          {tickers.length === 0 && <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>Chưa có ticker nào. Nhấn "Thêm ticker" để tạo.</div>}
+          {tickers.length === 0 && (
+            <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>
+              Chưa có ticker nào. Nhấn "Thêm ticker" để tạo.
+            </div>
+          )}
 
           {tickers.map((item, index) => (
             <div
@@ -125,14 +160,16 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
                 borderRadius: 6,
                 padding: 8,
                 marginBottom: 8,
-              }}>
+              }}
+            >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                   marginBottom: 6,
-                }}>
+                }}
+              >
                 <strong style={{ fontSize: 12 }}>Ticker #{index + 1}</strong>
                 <Button type="button" onClick={() => removeLinkItem(index)}>
                   Xóa
@@ -140,11 +177,19 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
               </div>
 
               <LabeledRow label="Badge">
-                <TextInput value={item.badge ?? ""} onChange={(v) => updateTickerItem(index, { badge: v })} placeholder="Hot / Eco / Free..." />
+                <TextInput
+                  value={item.badge ?? ""}
+                  onChange={(v) => updateTickerItem(index, { badge: v })}
+                  placeholder="Hot / Eco / Free..."
+                />
               </LabeledRow>
 
               <LabeledRow label="Text">
-                <TextInput value={item.text ?? ""} onChange={(v) => updateTickerItem(index, { text: v })} placeholder="Ưu đãi mùa xanh – giao nhanh trong ngày." />
+                <TextInput
+                  value={item.text ?? ""}
+                  onChange={(v) => updateTickerItem(index, { text: v })}
+                  placeholder="Ưu đãi mùa xanh – giao nhanh trong ngày."
+                />
               </LabeledRow>
             </div>
           ))}
@@ -162,18 +207,30 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
         </LabeledRow>
 
         <LabeledRow label="Text status">
-          <TextInput value={props.statusText ?? ""} onChange={(v) => updateActive({ statusText: v })} placeholder="Online" />
+          <TextInput
+            value={props.statusText ?? ""}
+            onChange={(v) => updateActive({ statusText: v })}
+            placeholder="Online"
+          />
         </LabeledRow>
 
         <LabeledRow label="Màu chấm (hex)">
-          <TextInput value={props.statusDotColor ?? ""} onChange={(v) => updateActive({ statusDotColor: v })} placeholder="#16a34a" />
+          <TextInput
+            value={props.statusDotColor ?? ""}
+            onChange={(v) => updateActive({ statusDotColor: v })}
+            placeholder="#16a34a"
+          />
         </LabeledRow>
       </Section>
 
       {/* LINKS */}
       <Section title="Links bên phải">
         <div style={{ marginBottom: 8 }}>
-          {links.length === 0 && <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>Chưa có link nào. Nhấn "Thêm link" để tạo.</div>}
+          {links.length === 0 && (
+            <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>
+              Chưa có link nào. Nhấn "Thêm link" để tạo.
+            </div>
+          )}
 
           {links.map((item, index) => (
             <div
@@ -183,14 +240,16 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
                 borderRadius: 6,
                 padding: 8,
                 marginBottom: 8,
-              }}>
+              }}
+            >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                   marginBottom: 6,
-                }}>
+                }}
+              >
                 <strong style={{ fontSize: 12 }}>Link #{index + 1}</strong>
                 <Button type="button" onClick={() => removeLinkItem(index)}>
                   Xóa
@@ -198,15 +257,27 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
               </div>
 
               <LabeledRow label="Label">
-                <TextInput value={item.label ?? ""} onChange={(v) => updateLinkItem(index, { label: v })} placeholder="Hỗ trợ / Tài khoản..." />
+                <TextInput
+                  value={item.label ?? ""}
+                  onChange={(v) => updateLinkItem(index, { label: v })}
+                  placeholder="Hỗ trợ / Tài khoản..."
+                />
               </LabeledRow>
 
               <LabeledRow label="Href">
-                <TextInput value={item.href ?? ""} onChange={(v) => updateLinkItem(index, { href: v })} placeholder="/support" />
+                <TextInput
+                  value={item.href ?? ""}
+                  onChange={(v) => updateLinkItem(index, { href: v })}
+                  placeholder="/support"
+                />
               </LabeledRow>
 
               <LabeledRow label="Icon class">
-                <TextInput value={item.iconClass ?? ""} onChange={(v) => updateLinkItem(index, { iconClass: v })} placeholder="bi bi-life-preserver" />
+                <TextInput
+                  value={item.iconClass ?? ""}
+                  onChange={(v) => updateLinkItem(index, { iconClass: v })}
+                  placeholder="bi bi-life-preserver"
+                />
               </LabeledRow>
             </div>
           ))}
@@ -220,7 +291,11 @@ const TopbarGreenYellowGradient2025Editor: React.FC<EditorProps> = ({ props, upd
       {/* KHÁC */}
       <Section title="Khác">
         <LabeledRow label="Màu đầu gradient (g1)">
-          <TextInput value={props.backgroundColor ?? ""} onChange={(v) => updateActive({ backgroundColor: v })} placeholder="#a7f3d0" />
+          <TextInput
+            value={props.backgroundColor ?? ""}
+            onChange={(v) => updateActive({ backgroundColor: v })}
+            placeholder="#a7f3d0"
+          />
         </LabeledRow>
 
         <LabeledRow label="Preview mode (chặn click link)">

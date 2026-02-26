@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, FC } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterOne.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterOne.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type TickerMessage = {
@@ -105,7 +105,12 @@ const FooterOne: FC<FooterOneProps> = (_props) => {
 
   const ticker = TICKER_MESSAGES[tickerIndex];
 
-  const tickerClassName = [styles.TbTickerText, tickerPhase === "active" && styles.IsActive, tickerPhase === "leaving" && styles.IsLeaving, tickerPhase === "entering" && styles.IsEntering]
+  const tickerClassName = [
+    styles.TbTickerText,
+    tickerPhase === "active" && styles.IsActive,
+    tickerPhase === "leaving" && styles.IsLeaving,
+    tickerPhase === "entering" && styles.IsEntering,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -158,7 +163,13 @@ const FooterOne: FC<FooterOneProps> = (_props) => {
 
             {/* Language select */}
             <div className={styles.TbLangSelectWrap}>
-              <select id="langSelect" className={styles.TbLangSelect} value={language} onChange={handleLanguageChange} aria-label="Chọn ngôn ngữ">
+              <select
+                id="langSelect"
+                className={styles.TbLangSelect}
+                value={language}
+                onChange={handleLanguageChange}
+                aria-label="Chọn ngôn ngữ"
+              >
                 <option value="vi">Tiếng Việt</option>
                 <option value="en">English</option>
               </select>

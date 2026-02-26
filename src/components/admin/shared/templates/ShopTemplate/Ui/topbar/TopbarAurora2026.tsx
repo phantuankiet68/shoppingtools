@@ -1,6 +1,6 @@
 // Ui/topbar/TopbarAurora2026.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarAurora2026.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarAurora2026.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarProTickerItem {
@@ -170,7 +170,12 @@ export const TopbarAurora2026: React.FC<TopbarAurora2026Props> = (props) => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const tickerTextClassName = cx(styles.tickerText, tickerPhase === "leaving" && styles.isLeaving, tickerPhase === "entering" && styles.isEntering, tickerPhase === "active" && styles.isActive);
+  const tickerTextClassName = cx(
+    styles.tickerText,
+    tickerPhase === "leaving" && styles.isLeaving,
+    tickerPhase === "entering" && styles.isEntering,
+    tickerPhase === "active" && styles.isActive,
+  );
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href?: string) => {
     if (preview || !href || href === "#") {
@@ -179,7 +184,9 @@ export const TopbarAurora2026: React.FC<TopbarAurora2026Props> = (props) => {
     }
   };
 
-  const style: React.CSSProperties | undefined = backgroundColor ? ({ "--g1": backgroundColor } as React.CSSProperties) : undefined;
+  const style: React.CSSProperties | undefined = backgroundColor
+    ? ({ "--g1": backgroundColor } as React.CSSProperties)
+    : undefined;
 
   const currentTicker = tickerEnabled ? tickerItemsSafe[Math.min(tickerIndex, tickerItemsSafe.length - 1)] : null;
 
@@ -226,7 +233,12 @@ export const TopbarAurora2026: React.FC<TopbarAurora2026Props> = (props) => {
         <div className={cx(styles.tbRight, isMenuOpen && styles.tbRightOpen)} ref={tbRightRef}>
           <div className={styles.tbLinks}>
             {safeLinks.map((link, idx) => (
-              <a key={`${link.label}-${idx}`} className={styles.tbLink} href={link.href || "#"} onClick={(e) => handleLinkClick(e, link.href)}>
+              <a
+                key={`${link.label}-${idx}`}
+                className={styles.tbLink}
+                href={link.href || "#"}
+                onClick={(e) => handleLinkClick(e, link.href)}
+              >
                 {link.iconClass && <i className={link.iconClass} />}
                 <span>{link.label}</span>
               </a>

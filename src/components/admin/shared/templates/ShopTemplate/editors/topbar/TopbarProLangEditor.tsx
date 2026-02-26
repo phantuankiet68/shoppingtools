@@ -7,7 +7,7 @@ import type {
   TopbarProLangLinkItem,
   TopbarProLangSocialItem,
   TopbarProLangLanguageOption,
-} from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarProLang";
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/TopbarProLang";
 
 /**
  * Các component editor dưới đây là phiên bản tối giản, tự chứa.
@@ -38,7 +38,8 @@ const LabeledRow: React.FC<LabeledRowProps> = ({ label, children }) => (
       alignItems: "center",
       marginBottom: 8,
       gap: 8,
-    }}>
+    }}
+  >
     <div style={{ width: 140, fontSize: 13 }}>{label}</div>
     <div style={{ flex: 1 }}>{children}</div>
   </div>
@@ -51,7 +52,12 @@ type TextInputProps = {
 };
 
 const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder }) => (
-  <input style={{ width: "100%", padding: "4px 8px", fontSize: 13 }} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+  <input
+    style={{ width: "100%", padding: "4px 8px", fontSize: 13 }}
+    value={value}
+    placeholder={placeholder}
+    onChange={(e) => onChange(e.target.value)}
+  />
 );
 
 type CheckboxProps = {
@@ -59,7 +65,9 @@ type CheckboxProps = {
   onChange: (checked: boolean) => void;
 };
 
-const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange }) => <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />;
+const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange }) => (
+  <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+);
 
 type TopbarProLangEditorProps = {
   props: TopbarProLangProps;
@@ -188,11 +196,19 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
       {/* Màu nền */}
       <Section title="Màu nền">
         <LabeledRow label="Background from">
-          <TextInput value={props.backgroundFrom ?? ""} onChange={(v) => updateActive({ backgroundFrom: v })} placeholder="#fff8ed" />
+          <TextInput
+            value={props.backgroundFrom ?? ""}
+            onChange={(v) => updateActive({ backgroundFrom: v })}
+            placeholder="#fff8ed"
+          />
         </LabeledRow>
 
         <LabeledRow label="Background to">
-          <TextInput value={props.backgroundTo ?? ""} onChange={(v) => updateActive({ backgroundTo: v })} placeholder="#ffffff" />
+          <TextInput
+            value={props.backgroundTo ?? ""}
+            onChange={(v) => updateActive({ backgroundTo: v })}
+            placeholder="#ffffff"
+          />
         </LabeledRow>
       </Section>
 
@@ -208,8 +224,13 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
             borderRadius: 6,
             padding: 8,
             marginTop: 8,
-          }}>
-          {tickerItems.length === 0 && <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>Chưa có ticker nào. Nhấn "Thêm ticker" để tạo.</div>}
+          }}
+        >
+          {tickerItems.length === 0 && (
+            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+              Chưa có ticker nào. Nhấn "Thêm ticker" để tạo.
+            </div>
+          )}
 
           {tickerItems.map((item, index) => (
             <div
@@ -218,13 +239,15 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                 borderBottom: index === tickerItems.length - 1 ? "none" : "1px solid #f3f4f6",
                 paddingBottom: 8,
                 marginBottom: 8,
-              }}>
+              }}
+            >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   marginBottom: 4,
-                }}>
+                }}
+              >
                 <strong style={{ fontSize: 12 }}>Ticker #{index + 1}</strong>
                 <button
                   type="button"
@@ -235,16 +258,25 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                     color: "#ef4444",
                     fontSize: 12,
                     cursor: "pointer",
-                  }}>
+                  }}
+                >
                   Xóa
                 </button>
               </div>
 
               <LabeledRow label="Badge">
-                <TextInput value={item.badge ?? ""} onChange={(v) => updateTickerItem(index, { badge: v })} placeholder="NEW / SALE / GIFT..." />
+                <TextInput
+                  value={item.badge ?? ""}
+                  onChange={(v) => updateTickerItem(index, { badge: v })}
+                  placeholder="NEW / SALE / GIFT..."
+                />
               </LabeledRow>
               <LabeledRow label="Text">
-                <TextInput value={item.text ?? ""} onChange={(v) => updateTickerItem(index, { text: v })} placeholder="Nội dung ticker" />
+                <TextInput
+                  value={item.text ?? ""}
+                  onChange={(v) => updateTickerItem(index, { text: v })}
+                  placeholder="Nội dung ticker"
+                />
               </LabeledRow>
             </div>
           ))}
@@ -260,7 +292,8 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
               border: "1px solid #d1d5db",
               background: "#f9fafb",
               cursor: "pointer",
-            }}>
+            }}
+          >
             + Thêm ticker
           </button>
         </div>
@@ -274,8 +307,13 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
             borderRadius: 6,
             padding: 8,
             marginTop: 8,
-          }}>
-          {helpLinks.length === 0 && <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>Chưa có link nào. Nhấn "Thêm link" để tạo.</div>}
+          }}
+        >
+          {helpLinks.length === 0 && (
+            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+              Chưa có link nào. Nhấn "Thêm link" để tạo.
+            </div>
+          )}
 
           {helpLinks.map((item, index) => (
             <div
@@ -284,13 +322,15 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                 borderBottom: index === helpLinks.length - 1 ? "none" : "1px solid #f3f4f6",
                 paddingBottom: 8,
                 marginBottom: 8,
-              }}>
+              }}
+            >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   marginBottom: 4,
-                }}>
+                }}
+              >
                 <strong style={{ fontSize: 12 }}>Link #{index + 1}</strong>
                 <button
                   type="button"
@@ -301,19 +341,32 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                     color: "#ef4444",
                     fontSize: 12,
                     cursor: "pointer",
-                  }}>
+                  }}
+                >
                   Xóa
                 </button>
               </div>
 
               <LabeledRow label="Label">
-                <TextInput value={item.label ?? ""} onChange={(v) => updateHelpLinkItem(index, { label: v })} placeholder="Trung tâm trợ giúp" />
+                <TextInput
+                  value={item.label ?? ""}
+                  onChange={(v) => updateHelpLinkItem(index, { label: v })}
+                  placeholder="Trung tâm trợ giúp"
+                />
               </LabeledRow>
               <LabeledRow label="Href">
-                <TextInput value={item.href ?? ""} onChange={(v) => updateHelpLinkItem(index, { href: v })} placeholder="/help" />
+                <TextInput
+                  value={item.href ?? ""}
+                  onChange={(v) => updateHelpLinkItem(index, { href: v })}
+                  placeholder="/help"
+                />
               </LabeledRow>
               <LabeledRow label="Icon class">
-                <TextInput value={item.iconClass ?? ""} onChange={(v) => updateHelpLinkItem(index, { iconClass: v })} placeholder="bi bi-life-preserver" />
+                <TextInput
+                  value={item.iconClass ?? ""}
+                  onChange={(v) => updateHelpLinkItem(index, { iconClass: v })}
+                  placeholder="bi bi-life-preserver"
+                />
               </LabeledRow>
             </div>
           ))}
@@ -329,7 +382,8 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
               border: "1px solid #d1d5db",
               background: "#f9fafb",
               cursor: "pointer",
-            }}>
+            }}
+          >
             + Thêm link
           </button>
         </div>
@@ -343,8 +397,13 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
             borderRadius: 6,
             padding: 8,
             marginTop: 8,
-          }}>
-          {socialLinks.length === 0 && <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>Chưa có social nào. Nhấn "Thêm social" để tạo.</div>}
+          }}
+        >
+          {socialLinks.length === 0 && (
+            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+              Chưa có social nào. Nhấn "Thêm social" để tạo.
+            </div>
+          )}
 
           {socialLinks.map((item, index) => (
             <div
@@ -353,13 +412,15 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                 borderBottom: index === socialLinks.length - 1 ? "none" : "1px solid #f3f4f6",
                 paddingBottom: 8,
                 marginBottom: 8,
-              }}>
+              }}
+            >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   marginBottom: 4,
-                }}>
+                }}
+              >
                 <strong style={{ fontSize: 12 }}>Social #{index + 1}</strong>
                 <button
                   type="button"
@@ -370,19 +431,32 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                     color: "#ef4444",
                     fontSize: 12,
                     cursor: "pointer",
-                  }}>
+                  }}
+                >
                   Xóa
                 </button>
               </div>
 
               <LabeledRow label="Href">
-                <TextInput value={item.href ?? ""} onChange={(v) => updateSocialItem(index, { href: v })} placeholder="https://facebook.com/..." />
+                <TextInput
+                  value={item.href ?? ""}
+                  onChange={(v) => updateSocialItem(index, { href: v })}
+                  placeholder="https://facebook.com/..."
+                />
               </LabeledRow>
               <LabeledRow label="Icon class">
-                <TextInput value={item.iconClass ?? ""} onChange={(v) => updateSocialItem(index, { iconClass: v })} placeholder="bi bi-facebook" />
+                <TextInput
+                  value={item.iconClass ?? ""}
+                  onChange={(v) => updateSocialItem(index, { iconClass: v })}
+                  placeholder="bi bi-facebook"
+                />
               </LabeledRow>
               <LabeledRow label="Aria label">
-                <TextInput value={item.ariaLabel ?? ""} onChange={(v) => updateSocialItem(index, { ariaLabel: v })} placeholder="Facebook" />
+                <TextInput
+                  value={item.ariaLabel ?? ""}
+                  onChange={(v) => updateSocialItem(index, { ariaLabel: v })}
+                  placeholder="Facebook"
+                />
               </LabeledRow>
             </div>
           ))}
@@ -398,7 +472,8 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
               border: "1px solid #d1d5db",
               background: "#f9fafb",
               cursor: "pointer",
-            }}>
+            }}
+          >
             + Thêm social
           </button>
         </div>
@@ -407,11 +482,18 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
       {/* Language select */}
       <Section title="Ngôn ngữ">
         <LabeledRow label="Hiện language select">
-          <Checkbox checked={props.showLanguageSelect ?? true} onChange={(checked) => updateActive({ showLanguageSelect: checked })} />
+          <Checkbox
+            checked={props.showLanguageSelect ?? true}
+            onChange={(checked) => updateActive({ showLanguageSelect: checked })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Current language value">
-          <TextInput value={props.currentLanguage ?? ""} onChange={(v) => updateActive({ currentLanguage: v })} placeholder="vi" />
+          <TextInput
+            value={props.currentLanguage ?? ""}
+            onChange={(v) => updateActive({ currentLanguage: v })}
+            placeholder="vi"
+          />
         </LabeledRow>
 
         <div
@@ -420,8 +502,13 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
             borderRadius: 6,
             padding: 8,
             marginTop: 8,
-          }}>
-          {languageOptions.length === 0 && <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>Chưa có ngôn ngữ nào. Nhấn "Thêm ngôn ngữ" để tạo.</div>}
+          }}
+        >
+          {languageOptions.length === 0 && (
+            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+              Chưa có ngôn ngữ nào. Nhấn "Thêm ngôn ngữ" để tạo.
+            </div>
+          )}
 
           {languageOptions.map((item, index) => (
             <div
@@ -430,13 +517,15 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                 borderBottom: index === languageOptions.length - 1 ? "none" : "1px solid #f3f4f6",
                 paddingBottom: 8,
                 marginBottom: 8,
-              }}>
+              }}
+            >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   marginBottom: 4,
-                }}>
+                }}
+              >
                 <strong style={{ fontSize: 12 }}>Ngôn ngữ #{index + 1}</strong>
                 <button
                   type="button"
@@ -447,16 +536,25 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
                     color: "#ef4444",
                     fontSize: 12,
                     cursor: "pointer",
-                  }}>
+                  }}
+                >
                   Xóa
                 </button>
               </div>
 
               <LabeledRow label="Value">
-                <TextInput value={item.value ?? ""} onChange={(v) => updateLangItem(index, { value: v })} placeholder="vi" />
+                <TextInput
+                  value={item.value ?? ""}
+                  onChange={(v) => updateLangItem(index, { value: v })}
+                  placeholder="vi"
+                />
               </LabeledRow>
               <LabeledRow label="Label">
-                <TextInput value={item.label ?? ""} onChange={(v) => updateLangItem(index, { label: v })} placeholder="Tiếng Việt" />
+                <TextInput
+                  value={item.label ?? ""}
+                  onChange={(v) => updateLangItem(index, { label: v })}
+                  placeholder="Tiếng Việt"
+                />
               </LabeledRow>
             </div>
           ))}
@@ -472,7 +570,8 @@ const TopbarProLangEditor: React.FC<TopbarProLangEditorProps> = ({ props, update
               border: "1px solid #d1d5db",
               background: "#f9fafb",
               cursor: "pointer",
-            }}>
+            }}
+          >
             + Thêm ngôn ngữ
           </button>
         </div>

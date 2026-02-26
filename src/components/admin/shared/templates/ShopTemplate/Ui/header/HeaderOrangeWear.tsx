@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, FormEvent, MouseEvent as ReactMouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderOrangeWear.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderOrangeWear.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB ===== */
@@ -212,7 +212,12 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | globalThis.MouseEvent) => {
       const target = e.target as Node;
-      if (catBtnRef.current && catDropdownRef.current && !catBtnRef.current.contains(target) && !catDropdownRef.current.contains(target)) {
+      if (
+        catBtnRef.current &&
+        catDropdownRef.current &&
+        !catBtnRef.current.contains(target) &&
+        !catDropdownRef.current.contains(target)
+      ) {
         setIsCatOpen(false);
       }
     };
@@ -346,7 +351,8 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsCatOpen((v) => !v);
-                  }}>
+                  }}
+                >
                   <i className="bi bi-stars" />
                   <span>{activeCollection}</span>
                   <i className="bi bi-chevron-down" />
@@ -360,7 +366,8 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
                           e.stopPropagation();
                           setActiveCollection(c.label);
                           setIsCatOpen(false);
-                        }}>
+                        }}
+                      >
                         <i className={c.iconClass} />
                         <span>{c.description}</span>
                       </div>
@@ -422,7 +429,8 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
                       : () => {
                           // login click handler tuỳ bạn
                         }
-                  }>
+                  }
+                >
                   <i className="bi bi-person-circle" />
                   <span>{loginLabel}</span>
                 </button>
@@ -435,7 +443,8 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
                       : () => {
                           handleCartClick();
                         }
-                  }>
+                  }
+                >
                   <i className="bi bi-bag-heart" />
                   <span>{cartLabel}</span>
                   {typeof cartCount === "number" && <span className={styles.hdrCartCount}>{cartCount}</span>}
@@ -443,10 +452,20 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
 
                 {/* MOBILE TOGGLE */}
                 <div className={styles.hdrMobileToggle}>
-                  <button type="button" className={styles.hdrMobileSearchBtn} title="Tìm nhanh" onClick={focusSearchInput}>
+                  <button
+                    type="button"
+                    className={styles.hdrMobileSearchBtn}
+                    title="Tìm nhanh"
+                    onClick={focusSearchInput}
+                  >
                     <i className="bi bi-search" />
                   </button>
-                  <button type="button" className={`${styles.hdrMobileBurger} ${isMobilePanelOpen ? styles.isActive : ""}`} aria-label="Mở menu" onClick={toggleMobilePanel}>
+                  <button
+                    type="button"
+                    className={`${styles.hdrMobileBurger} ${isMobilePanelOpen ? styles.isActive : ""}`}
+                    aria-label="Mở menu"
+                    onClick={toggleMobilePanel}
+                  >
                     <i className="bi bi-list" />
                   </button>
                 </div>
@@ -479,7 +498,11 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
 
                 {/* Nữ */}
                 <li className={styles.hdrNavMobileItem}>
-                  <button className={styles.hdrNavMobileParent} type="button" onClick={() => handleMobileParentClick("mSubWomen")}>
+                  <button
+                    className={styles.hdrNavMobileParent}
+                    type="button"
+                    onClick={() => handleMobileParentClick("mSubWomen")}
+                  >
                     <span>
                       <i className="bi bi-gender-female" />
                       <span>Nữ</span>
@@ -513,7 +536,11 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
 
                 {/* Nam */}
                 <li className={styles.hdrNavMobileItem}>
-                  <button className={styles.hdrNavMobileParent} type="button" onClick={() => handleMobileParentClick("mSubMen")}>
+                  <button
+                    className={styles.hdrNavMobileParent}
+                    type="button"
+                    onClick={() => handleMobileParentClick("mSubMen")}
+                  >
                     <span>
                       <i className="bi bi-gender-male" />
                       <span>Nam</span>
@@ -540,7 +567,11 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
 
                 {/* Trẻ em */}
                 <li className={styles.hdrNavMobileItem}>
-                  <button className={styles.hdrNavMobileParent} type="button" onClick={() => handleMobileParentClick("mSubKids")}>
+                  <button
+                    className={styles.hdrNavMobileParent}
+                    type="button"
+                    onClick={() => handleMobileParentClick("mSubKids")}
+                  >
                     <span>
                       <i className="bi bi-emoji-smile" />
                       <span>Trẻ em</span>
@@ -567,7 +598,11 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
 
                 {/* Sale */}
                 <li className={styles.hdrNavMobileItem}>
-                  <button className={styles.hdrNavMobileParent} type="button" onClick={() => handleMobileParentClick("mSubSale")}>
+                  <button
+                    className={styles.hdrNavMobileParent}
+                    type="button"
+                    onClick={() => handleMobileParentClick("mSubSale")}
+                  >
                     <span>
                       <i className="bi bi-percent" />
                       <span>Sale cuối tuần</span>
@@ -610,14 +645,29 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
                 <form className={styles.hdrSearch} onSubmit={handleSearchSubmit}>
                   <div className={styles.hdrSearchInputWrap}>
                     <i className="bi bi-search" />
-                    <input ref={searchInputRef} type="text" className={styles.hdrSearchInput} placeholder={searchPlaceholder} />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      className={styles.hdrSearchInput}
+                      placeholder={searchPlaceholder}
+                    />
                   </div>
 
                   <div className={styles.hdrSearchActions}>
-                    <button type="button" className={styles.hdrIconBtn} title="Tìm bằng giọng nói" onClick={preview ? undefined : () => {}}>
+                    <button
+                      type="button"
+                      className={styles.hdrIconBtn}
+                      title="Tìm bằng giọng nói"
+                      onClick={preview ? undefined : () => {}}
+                    >
                       <i className="bi bi-mic" />
                     </button>
-                    <button type="button" className={styles.hdrIconBtn} title="Quét mã sản phẩm" onClick={preview ? undefined : () => {}}>
+                    <button
+                      type="button"
+                      className={styles.hdrIconBtn}
+                      title="Quét mã sản phẩm"
+                      onClick={preview ? undefined : () => {}}
+                    >
                       <i className="bi bi-qr-code-scan" />
                     </button>
                     <button type="submit" className={styles.hdrSearchSubmit}>
@@ -642,7 +692,11 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
       {/* BOTTOM NAVIGATION (MOBILE TAB BAR) */}
       <nav className={styles.mobileTabbar} aria-label="Mobile navigation">
         <div className={styles.mobileTabbarInner}>
-          <button type="button" className={`${styles.mobileTabBtn} ${styles.mobileTabBtnPrimary}`} onClick={scrollToTop}>
+          <button
+            type="button"
+            className={`${styles.mobileTabBtn} ${styles.mobileTabBtnPrimary}`}
+            onClick={scrollToTop}
+          >
             <i className="bi bi-house-door" />
             <span>Trang chủ</span>
           </button>
@@ -652,7 +706,8 @@ export const HeaderOrangeWear: React.FC<HeaderOrangeWearProps> = (props) => {
             className={styles.mobileTabBtn}
             onClick={() => {
               setIsMobilePanelOpen((v) => !v);
-            }}>
+            }}
+          >
             <i className="bi bi-grid-3x3-gap" />
             <span>Danh mục</span>
           </button>

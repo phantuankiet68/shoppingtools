@@ -1,7 +1,7 @@
 // Ui/topbar/TopbarBlueDark.tsx
 import React, { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarBlueDark.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarBlueDark.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarProTickerItem {
@@ -133,7 +133,8 @@ export function TopbarBlueDark(rawProps: TopbarBlueDarkProps) {
     preview = false,
   } = props;
 
-  const tickerItems = inputTickerItems && inputTickerItems.length > 0 ? inputTickerItems : DEFAULT_TOPBAR_BLUEDARK_TICKERS;
+  const tickerItems =
+    inputTickerItems && inputTickerItems.length > 0 ? inputTickerItems : DEFAULT_TOPBAR_BLUEDARK_TICKERS;
 
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerPhase, setTickerPhase] = useState<"active" | "leaving" | "entering">("active");
@@ -246,7 +247,12 @@ export function TopbarBlueDark(rawProps: TopbarBlueDarkProps) {
         <div className={tbRightClassName} ref={rightRef}>
           <div className={styles.tbLinks}>
             {links?.map((link, idx) => (
-              <a key={`${link.label}-${idx}`} className={styles.tbLink} href={link.href || "#"} onClick={handleLinkClick}>
+              <a
+                key={`${link.label}-${idx}`}
+                className={styles.tbLink}
+                href={link.href || "#"}
+                onClick={handleLinkClick}
+              >
                 {link.iconClass && <i className={link.iconClass} />}
                 <span>{link.label}</span>
               </a>
@@ -255,7 +261,10 @@ export function TopbarBlueDark(rawProps: TopbarBlueDarkProps) {
 
           {showStatus && statusText && (
             <div className={styles.statusPill}>
-              <span className={styles.dot} style={statusDotColor ? ({ backgroundColor: statusDotColor } as CSSProperties) : undefined} />
+              <span
+                className={styles.dot}
+                style={statusDotColor ? ({ backgroundColor: statusDotColor } as CSSProperties) : undefined}
+              />
               <span>{statusText}</span>
             </div>
           )}

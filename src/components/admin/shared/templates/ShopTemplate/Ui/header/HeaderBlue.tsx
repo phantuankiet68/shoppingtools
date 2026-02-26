@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, FormEvent, MouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderBlue.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderBlue.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ===========================
@@ -130,7 +130,13 @@ export const DEFAULT_AURORA_HEADER_COMPONENT_PROPS: HeaderBlueProps = {
 
   searchPlaceholder: "Tìm áo, quần, váy, giày hoặc bộ sưu tập...",
   searchQuickTitle: "Gợi ý nhanh hôm nay",
-  searchQuickChips: ["Flash Sale áo khoác xanh", "Bộ sưu tập NEW ARRIVAL", "Set đồ được yêu thích nhất", "Outfit đi làm tối giản", "Mix đồ đi biển"],
+  searchQuickChips: [
+    "Flash Sale áo khoác xanh",
+    "Bộ sưu tập NEW ARRIVAL",
+    "Set đồ được yêu thích nhất",
+    "Outfit đi làm tối giản",
+    "Mix đồ đi biển",
+  ],
   searchCategoryOptions: ["Tất cả danh mục", "Thời trang nữ", "Thời trang nam", "Giày & phụ kiện", "Bộ sưu tập mới"],
 
   orderCenterLabel: "Trung tâm đơn hàng",
@@ -254,7 +260,12 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
     const handleClick = (e: MouseEvent | globalThis.MouseEvent) => {
       const target = e.target as Node | null;
       if (!suggestOpen) return;
-      if (searchSuggestRef.current && !searchSuggestRef.current.contains(target as Node) && searchInputRef.current && target !== searchInputRef.current) {
+      if (
+        searchSuggestRef.current &&
+        !searchSuggestRef.current.contains(target as Node) &&
+        searchInputRef.current &&
+        target !== searchInputRef.current
+      ) {
         setSuggestOpen(false);
       }
     };
@@ -364,7 +375,8 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
     // Hành vi điều hướng/scroll thực tế xử lý bên ngoài (SPA routing)
   };
 
-  const currentCategoryLabel = searchCategoryOptions && searchCategoryOptions.length ? searchCategoryOptions[categoryIndex] : undefined;
+  const currentCategoryLabel =
+    searchCategoryOptions && searchCategoryOptions.length ? searchCategoryOptions[categoryIndex] : undefined;
 
   /* ===========================
      Render
@@ -372,9 +384,16 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
 
   return (
     <>
-      <header ref={headerRef} className={isStuck ? `${styles["site-header"]} ${styles["is-stuck"]}` : styles["site-header"]} id="siteHeader">
+      <header
+        ref={headerRef}
+        className={isStuck ? `${styles["site-header"]} ${styles["is-stuck"]}` : styles["site-header"]}
+        id="siteHeader"
+      >
         <div className={styles["header-shell"]}>
-          <div className={navOpen ? `${styles["header-inner"]} ${styles["nav-open"]}` : styles["header-inner"]} id="headerInner">
+          <div
+            className={navOpen ? `${styles["header-inner"]} ${styles["nav-open"]}` : styles["header-inner"]}
+            id="headerInner"
+          >
             {/* ROW TOP */}
             <div className={styles["header-row-top"]}>
               {/* Logo + brand */}
@@ -398,7 +417,12 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
               {/* Search */}
               <form className={styles["search-block"]} onSubmit={handleSearchSubmit}>
                 {currentCategoryLabel && (
-                  <button type="button" className={styles["search-category"]} id="btnCategory" onClick={handleCategoryClick}>
+                  <button
+                    type="button"
+                    className={styles["search-category"]}
+                    id="btnCategory"
+                    onClick={handleCategoryClick}
+                  >
                     <i className="bi bi-grid-3x3-gap" />
                     <span id="categoryLabel">{currentCategoryLabel}</span>
                     <i className="bi bi-chevron-down" />
@@ -427,7 +451,8 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
                           return;
                         }
                         // mở tìm kiếm voice - xử lý bên ngoài nếu cần
-                      }}>
+                      }}
+                    >
                       <i className="bi bi-mic" />
                     </button>
                     <button
@@ -441,7 +466,8 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
                           return;
                         }
                         // mở quét mã / QR - xử lý bên ngoài nếu cần
-                      }}>
+                      }}
+                    >
                       <i className="bi bi-qr-code-scan" />
                     </button>
                     <button type="submit" className={styles["btn-search"]} id="btnSearch">
@@ -452,7 +478,13 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
                 </div>
 
                 {/* Suggest */}
-                <div className={suggestOpen ? `${styles["search-suggest"]} ${styles["visible"]}` : styles["search-suggest"]} id="searchSuggest" ref={searchSuggestRef}>
+                <div
+                  className={
+                    suggestOpen ? `${styles["search-suggest"]} ${styles["visible"]}` : styles["search-suggest"]
+                  }
+                  id="searchSuggest"
+                  ref={searchSuggestRef}
+                >
                   <div className={styles["suggest-row-title"]}>{searchQuickTitle}</div>
                   <div className={styles["suggest-chips"]} id="suggestChips">
                     {(searchQuickChips ?? []).map((chip) => (
@@ -463,7 +495,8 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
                         onClick={() => {
                           setSearchValue(chip);
                           searchInputRef.current?.focus();
-                        }}>
+                        }}
+                      >
                         <i className="bi bi-stars" />
                         {chip}
                       </button>
@@ -486,7 +519,12 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
                       <div className={styles["icon-label"]}>{accountLabel}</div>
                     </button>
                   </div>
-                  <button type="button" className={styles["btn-menu-mobile"]} id="btnMenuMobile" onClick={() => setNavOpen((v) => !v)}>
+                  <button
+                    type="button"
+                    className={styles["btn-menu-mobile"]}
+                    id="btnMenuMobile"
+                    onClick={() => setNavOpen((v) => !v)}
+                  >
                     <i className="bi bi-list" />
                   </button>
                 </div>
@@ -511,7 +549,10 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
                   {navItems.map((item) => {
                     const hasSub = item.hasSub && item.subItems?.length > 0;
                     return (
-                      <div key={item.id} className={hasSub ? `${styles["nav-item"]} ${styles["has-sub"]}` : styles["nav-item"]}>
+                      <div
+                        key={item.id}
+                        className={hasSub ? `${styles["nav-item"]} ${styles["has-sub"]}` : styles["nav-item"]}
+                      >
                         <a href={item.href} onClick={handleAnchorClick(item.href)}>
                           {item.label}
                         </a>
@@ -539,7 +580,12 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
               <div className={styles["nav-tags"]}>
                 <div className={styles["icon-box-list"]}>
                   <div className={styles["icon-with-label"]}>
-                    <button type="button" className={styles["icon-box-help"]} id="btnSupport" onClick={handleSupportClick}>
+                    <button
+                      type="button"
+                      className={styles["icon-box-help"]}
+                      id="btnSupport"
+                      onClick={handleSupportClick}
+                    >
                       <i className="bi bi-chat-dots" />
                       <span className={styles["icon-badge"]}>3</span>
                       <div className={styles["icon-label"]}>{supportLabel}</div>
@@ -571,41 +617,66 @@ const HeaderBlue: React.FC<HeaderBlueProps> = (props) => {
         <div className={styles["bottom-nav-inner"]}>
           <button
             type="button"
-            className={activeBottomTab === "home" ? `${styles["bottom-nav-item"]} ${styles["active"]}` : styles["bottom-nav-item"]}
+            className={
+              activeBottomTab === "home"
+                ? `${styles["bottom-nav-item"]} ${styles["active"]}`
+                : styles["bottom-nav-item"]
+            }
             data-tab="home"
-            onClick={() => handleBottomNavClick("home")}>
+            onClick={() => handleBottomNavClick("home")}
+          >
             <i className="bi bi-house-door" />
             <span>{bottomNavHomeLabel}</span>
           </button>
           <button
             type="button"
-            className={activeBottomTab === "category" ? `${styles["bottom-nav-item"]} ${styles["active"]}` : styles["bottom-nav-item"]}
+            className={
+              activeBottomTab === "category"
+                ? `${styles["bottom-nav-item"]} ${styles["active"]}`
+                : styles["bottom-nav-item"]
+            }
             data-tab="category"
-            onClick={() => handleBottomNavClick("category")}>
+            onClick={() => handleBottomNavClick("category")}
+          >
             <i className="bi bi-grid-3x3-gap" />
             <span>{bottomNavCategoryLabel}</span>
           </button>
           <button
             type="button"
-            className={activeBottomTab === "style" ? `${styles["bottom-nav-item"]} ${styles["active"]}` : styles["bottom-nav-item"]}
+            className={
+              activeBottomTab === "style"
+                ? `${styles["bottom-nav-item"]} ${styles["active"]}`
+                : styles["bottom-nav-item"]
+            }
             data-tab="style"
-            onClick={() => handleBottomNavClick("style")}>
+            onClick={() => handleBottomNavClick("style")}
+          >
             <i className="bi bi-magic" />
             <span>{bottomNavStyleLabel}</span>
           </button>
           <button
             type="button"
-            className={activeBottomTab === "cart" ? `${styles["bottom-nav-item"]} ${styles["active"]}` : styles["bottom-nav-item"]}
+            className={
+              activeBottomTab === "cart"
+                ? `${styles["bottom-nav-item"]} ${styles["active"]}`
+                : styles["bottom-nav-item"]
+            }
             data-tab="cart"
-            onClick={() => handleBottomNavClick("cart")}>
+            onClick={() => handleBottomNavClick("cart")}
+          >
             <i className="bi bi-bag" />
             <span>{bottomNavCartLabel}</span>
           </button>
           <button
             type="button"
-            className={activeBottomTab === "account" ? `${styles["bottom-nav-item"]} ${styles["active"]}` : styles["bottom-nav-item"]}
+            className={
+              activeBottomTab === "account"
+                ? `${styles["bottom-nav-item"]} ${styles["active"]}`
+                : styles["bottom-nav-item"]
+            }
             data-tab="account"
-            onClick={() => handleBottomNavClick("account")}>
+            onClick={() => handleBottomNavClick("account")}
+          >
             <i className="bi bi-person" />
             <span>{bottomNavAccountLabel}</span>
           </button>

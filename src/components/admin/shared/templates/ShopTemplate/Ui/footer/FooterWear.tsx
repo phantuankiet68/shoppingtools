@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterWear.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterWear.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterWearProps = Record<string, never>;
@@ -45,7 +45,10 @@ const FooterWear: FC<FooterWearProps> = () => {
               </div>
             </div>
 
-            <p className={styles.AwBrandSub}>Nơi bạn tìm thấy mọi phong cách từ basic đến streetwear – mix &amp; match nhanh với gợi ý outfit thông minh, giao hàng toàn quốc.</p>
+            <p className={styles.AwBrandSub}>
+              Nơi bạn tìm thấy mọi phong cách từ basic đến streetwear – mix &amp; match nhanh với gợi ý outfit thông
+              minh, giao hàng toàn quốc.
+            </p>
 
             <div className={styles.AwTagsRow}>
               <button className={styles.AwChip} type="button">
@@ -125,12 +128,19 @@ const FooterWear: FC<FooterWearProps> = () => {
             <div className={styles.AwNewsCard}>
               <div>
                 <h4 className={styles.AwColTitle}>Nhận ưu đãi sớm</h4>
-                <p>Đăng ký để nhận thông báo về flash sale, mã giảm giá độc quyền và các bộ sưu tập mới của Aurora Wear.</p>
+                <p>
+                  Đăng ký để nhận thông báo về flash sale, mã giảm giá độc quyền và các bộ sưu tập mới của Aurora Wear.
+                </p>
               </div>
 
               <div className={styles.AwInputRow}>
                 <i className="bi bi-envelope" aria-hidden="true" />
-                <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <button type="button" onClick={handleSubscribe}>
                   <span>Đăng ký</span>
                   <i className="bi bi-arrow-right-short" aria-hidden="true" />

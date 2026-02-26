@@ -1,12 +1,16 @@
 "use client";
 
 import React from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/sections/main-hero-shop.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/sections/main-hero-shop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
-import CategoryShop, { type CategoryShopProps } from "@/components/admin/templates/ShopTemplate/Ui/home/category/CategoryShop";
-import HeroShop, { type HeroShopProps } from "@/components/admin/templates/ShopTemplate/Ui/home/hero/HeroShop";
-import BannerRight, { type BannerRightProps } from "@/components/admin/templates/ShopTemplate/Ui/home/banner/BannerRight";
+import CategoryShop, {
+  type CategoryShopProps,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/home/category/CategoryShop";
+import HeroShop, { type HeroShopProps } from "@/components/admin/shared/templates/ShopTemplate/Ui/home/hero/HeroShop";
+import BannerRight, {
+  type BannerRightProps,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/home/banner/BannerRight";
 
 export type MainHeroShopProps = {
   showCategory?: boolean;
@@ -21,7 +25,16 @@ export type MainHeroShopProps = {
   gap?: number;
 };
 
-export default function MainHeroShop({ showCategory = true, showRightBanners = true, catWidth = 260, rightWidth = 260, categoryProps, heroProps, rightBannersProps, gap = 16 }: MainHeroShopProps) {
+export default function MainHeroShop({
+  showCategory = true,
+  showRightBanners = true,
+  catWidth = 260,
+  rightWidth = 260,
+  categoryProps,
+  heroProps,
+  rightBannersProps,
+  gap = 16,
+}: MainHeroShopProps) {
   return (
     <section
       className={cls.mainHero}
@@ -29,7 +42,8 @@ export default function MainHeroShop({ showCategory = true, showRightBanners = t
         ["--cat-w" as any]: `${catWidth}px`,
         ["--right-w" as any]: `${rightWidth}px`,
         ["--gap" as any]: `${gap}px`,
-      }}>
+      }}
+    >
       {showCategory && (
         <div className={cls.colCat}>
           <CategoryShop {...(categoryProps || {})} />

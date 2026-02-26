@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroYellow.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroYellow.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* =========================================
@@ -89,12 +89,19 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
             Phối đồ <span>xanh – chuẩn gu</span> cho cả tuần chỉ trong một lần chạm.
           </h1>
 
-          <p className={styles.heroSub}>Outfit công sở, streetwear, activewear & capsule wardrobe tối giản — gợi ý sẵn theo từng ngày, từng mood, giữ phong cách nhưng vẫn thân thiện môi trường.</p>
+          <p className={styles.heroSub}>
+            Outfit công sở, streetwear, activewear & capsule wardrobe tối giản — gợi ý sẵn theo từng ngày, từng mood,
+            giữ phong cách nhưng vẫn thân thiện môi trường.
+          </p>
 
           {/* Category pills */}
           <div className={styles.categoryRow}>
             {CATEGORY_LIST.map((c, idx) => (
-              <button key={idx} className={`${styles.categoryPill} ${idx === activeCat ? styles.active : ""}`} onClick={() => !preview && setActiveCat(idx)}>
+              <button
+                key={idx}
+                className={`${styles.categoryPill} ${idx === activeCat ? styles.active : ""}`}
+                onClick={() => !preview && setActiveCat(idx)}
+              >
                 <i className={c.icon}></i>
                 {c.label}
               </button>
@@ -108,7 +115,13 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
               Gợi ý nhanh
             </div>
 
-            <input type="text" placeholder="Tìm outfit / set đồ bạn muốn…" value={search} onChange={(e) => setSearch(e.target.value)} disabled={preview} />
+            <input
+              type="text"
+              placeholder="Tìm outfit / set đồ bạn muốn…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              disabled={preview}
+            />
 
             <button type="button" onClick={(e) => preview && e.preventDefault()}>
               <i className="bi bi-search" />
@@ -119,7 +132,11 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
           {/* Quick tags */}
           <div className={styles.tagsRow}>
             {QUICK_TAGS.map((t, idx) => (
-              <button key={idx} className={`${styles.tag} ${t.hot ? styles.tagHot : ""}`} onClick={() => !preview && setSearch(t.label)}>
+              <button
+                key={idx}
+                className={`${styles.tag} ${t.hot ? styles.tagHot : ""}`}
+                onClick={() => !preview && setSearch(t.label)}
+              >
                 {t.label}
               </button>
             ))}
@@ -156,7 +173,9 @@ export const HeroOne: React.FC<HeroOneProps> = (props) => {
                 <span className={styles.newBadge}>Mới</span>
               </div>
 
-              <p className={styles.lookSub}>Ít món đồ hơn, mix-match thông minh cho cả tuần đi làm mà vẫn giữ vibe “xanh” & gọn tủ.</p>
+              <p className={styles.lookSub}>
+                Ít món đồ hơn, mix-match thông minh cho cả tuần đi làm mà vẫn giữ vibe “xanh” & gọn tủ.
+              </p>
 
               <div className={styles.statLine}>
                 <i className="bi bi-clock-history"></i>

@@ -6,7 +6,7 @@
 import React, { useEffect, useId, useMemo } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/header/header-shop.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/header/header-shop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ===================== Types ===================== */

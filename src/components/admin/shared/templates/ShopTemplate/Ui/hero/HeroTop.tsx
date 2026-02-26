@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroTop.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroTop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types"; // chỉnh lại path cho đúng project của bạn
 
 export interface HeroTopProps {

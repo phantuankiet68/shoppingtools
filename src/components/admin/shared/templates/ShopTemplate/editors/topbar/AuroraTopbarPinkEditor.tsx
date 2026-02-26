@@ -5,7 +5,10 @@ import Section from "../parts/Section";
 import TextArea from "../parts/TextArea";
 import TextInput from "../parts/TextInput";
 import LabeledRow from "../parts/LabeledRow";
-import type { AuroraTopbarPinkProps, AuroraTopbarTickerItem } from "@/components/admin/templates/ShopTemplate/Ui/topbar/AuroraTopbarPink";
+import type {
+  AuroraTopbarPinkProps,
+  AuroraTopbarTickerItem,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/AuroraTopbarPink";
 
 type AuroraTopbarPinkEditorProps = {
   props: AuroraTopbarPinkProps;
@@ -51,7 +54,11 @@ export default function AuroraTopbarPinkEditor({ props, updateActive }: AuroraTo
         </LabeledRow>
 
         <LabeledRow label="Hiện nút chọn vùng">
-          <input type="checkbox" checked={props.showRegionButton ?? true} onChange={(e) => updateActive({ showRegionButton: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={props.showRegionButton ?? true}
+            onChange={(e) => updateActive({ showRegionButton: e.target.checked })}
+          />
         </LabeledRow>
       </Section>
 
@@ -62,7 +69,11 @@ export default function AuroraTopbarPinkEditor({ props, updateActive }: AuroraTo
         </LabeledRow>
 
         <LabeledRow label="Hiện ticker">
-          <input type="checkbox" checked={props.showTicker ?? true} onChange={(e) => updateActive({ showTicker: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={props.showTicker ?? true}
+            onChange={(e) => updateActive({ showTicker: e.target.checked })}
+          />
         </LabeledRow>
 
         {tickerItems.map((item, idx) => (
@@ -108,7 +119,11 @@ export default function AuroraTopbarPinkEditor({ props, updateActive }: AuroraTo
       {/* STATUS */}
       <Section title="Status">
         <LabeledRow label="Hiện badge Online">
-          <input type="checkbox" checked={props.showStatus ?? true} onChange={(e) => updateActive({ showStatus: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={props.showStatus ?? true}
+            onChange={(e) => updateActive({ showStatus: e.target.checked })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Text status">

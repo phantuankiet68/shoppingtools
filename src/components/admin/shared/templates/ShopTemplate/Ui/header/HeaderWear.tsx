@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, MouseEvent, FormEvent } from "react";
 
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderWear.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderWear.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB ===== */
@@ -222,7 +222,12 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | globalThis.MouseEvent) => {
       const target = e.target as Node;
-      if (catBtnRef.current && catDropRef.current && !catBtnRef.current.contains(target) && !catDropRef.current.contains(target)) {
+      if (
+        catBtnRef.current &&
+        catDropRef.current &&
+        !catBtnRef.current.contains(target) &&
+        !catDropRef.current.contains(target)
+      ) {
         setIsCatOpen(false);
       }
     };
@@ -302,7 +307,8 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsCatOpen((v) => !v);
-                  }}>
+                  }}
+                >
                   <i className="bi bi-grid" />
                   <span>{activeCat}</span>
                   <i className="bi bi-chevron-down" />
@@ -316,7 +322,16 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
 
               {/* CATEGORY DROPDOWN */}
               <div className={`${styles.hdCatDropdown} ${isCatOpen ? styles.isOpen : ""}`} ref={catDropRef}>
-                {["Tất cả danh mục", "Thời trang nữ", "Thời trang nam", "Đồ trẻ em", "Đồ thể thao", "Đồ mặc nhà / ngủ", "Phụ kiện & Túi ví", "Giày dép"].map((label) => (
+                {[
+                  "Tất cả danh mục",
+                  "Thời trang nữ",
+                  "Thời trang nam",
+                  "Đồ trẻ em",
+                  "Đồ thể thao",
+                  "Đồ mặc nhà / ngủ",
+                  "Phụ kiện & Túi ví",
+                  "Giày dép",
+                ].map((label) => (
                   <button
                     key={label}
                     className={label === activeCat ? styles.isActive : undefined}
@@ -324,7 +339,8 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
                     onClick={() => {
                       setActiveCat(label);
                       setIsCatOpen(false);
-                    }}>
+                    }}
+                  >
                     {label}
                   </button>
                 ))}
@@ -370,7 +386,8 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
             onClick={(e) => {
               e.stopPropagation();
               setIsNavOpen((v) => !v);
-            }}>
+            }}
+          >
             <i className="bi bi-list" />
           </button>
         </div>
@@ -395,7 +412,11 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
             if (!item.hasSub) {
               return (
                 <li className={styles.hdNavItem} key={item.id}>
-                  <a href={item.href} className={styles.hdNavLinkSimple ?? styles.hdNavLink} onClick={handleLinkClick(item.href)}>
+                  <a
+                    href={item.href}
+                    className={styles.hdNavLinkSimple ?? styles.hdNavLink}
+                    onClick={handleLinkClick(item.href)}
+                  >
                     {item.iconClass && <i className={item.iconClass} />}
                     <span>{item.label}</span>
                   </a>
@@ -406,8 +427,15 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
             const isOpen = openSubIndex === idx;
 
             return (
-              <li key={item.id} className={`${styles.hdNavItem} ${styles.hasSub ?? ""} ${isOpen ? styles.isOpenSub : ""}`}>
-                <button className={`${styles.hdNavLink} ${idx === 0 ? styles.isActive : ""}`} type="button" onClick={handleRootNavClick(idx, true, item.href)}>
+              <li
+                key={item.id}
+                className={`${styles.hdNavItem} ${styles.hasSub ?? ""} ${isOpen ? styles.isOpenSub : ""}`}
+              >
+                <button
+                  className={`${styles.hdNavLink} ${idx === 0 ? styles.isActive : ""}`}
+                  type="button"
+                  onClick={handleRootNavClick(idx, true, item.href)}
+                >
                   <span>
                     {item.iconClass && <i className={item.iconClass} />}
                     {item.label}
@@ -434,7 +462,11 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
           {/* Promo khu vực bên phải nav */}
           {showNavPromo && (
             <li className={`${styles.hdNavItem} ${styles.hdNavPromo ?? ""}`}>
-              <button type="button" className={styles.hdNavPromoBtn || styles.hdNavLink} onClick={preview ? (e) => e.preventDefault() : undefined}>
+              <button
+                type="button"
+                className={styles.hdNavPromoBtn || styles.hdNavLink}
+                onClick={preview ? (e) => e.preventDefault() : undefined}
+              >
                 {navPromoBadge && <span className={styles.hdNavPromoBadge}>{navPromoBadge}</span>}
                 <div className={styles.hdNavPromoTextWrapper ?? ""}>
                   <span className={styles.hdNavPromoLabel ?? ""}>{navPromoLabel}</span>

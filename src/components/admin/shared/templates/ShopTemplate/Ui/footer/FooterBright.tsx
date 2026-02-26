@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterBright.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterBright.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterBrightMode = "storeClassic" | "highlightBrand" | "ultraMinimal";
@@ -45,15 +45,27 @@ const FooterBright: FC<FooterBrightProps> = ({ initialMode = "storeClassic" }) =
         <div className={styles.AwInner}>
           {/* MODE SWITCH */}
           <div className={styles.AwModeSwitch}>
-            <button className={`${styles.AwModeBtn} ${mode === "storeClassic" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeMode("storeClassic")}>
+            <button
+              className={`${styles.AwModeBtn} ${mode === "storeClassic" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeMode("storeClassic")}
+            >
               <i className="bi bi-grid-3x3-gap-fill" aria-hidden="true" />
               <span>Store Classic</span>
             </button>
-            <button className={`${styles.AwModeBtn} ${mode === "highlightBrand" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeMode("highlightBrand")}>
+            <button
+              className={`${styles.AwModeBtn} ${mode === "highlightBrand" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeMode("highlightBrand")}
+            >
               <i className="bi bi-stars" aria-hidden="true" />
               <span>Highlight Brand</span>
             </button>
-            <button className={`${styles.AwModeBtn} ${mode === "ultraMinimal" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeMode("ultraMinimal")}>
+            <button
+              className={`${styles.AwModeBtn} ${mode === "ultraMinimal" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeMode("ultraMinimal")}
+            >
               <i className="bi bi-dash-lg" aria-hidden="true" />
               <span>Ultra Minimal</span>
             </button>
@@ -75,7 +87,10 @@ const FooterBright: FC<FooterBrightProps> = ({ initialMode = "storeClassic" }) =
                 <span className={styles.AwTagline}>• Thời trang pastel 2026</span>
               </div>
 
-              <p className={styles.AwBrandDesc}>Cửa hàng thời trang với tông màu dịu, thiết kế clean – giúp bạn mix đồ nhanh, lên outfit đẹp cho mọi mood trong tuần.</p>
+              <p className={styles.AwBrandDesc}>
+                Cửa hàng thời trang với tông màu dịu, thiết kế clean – giúp bạn mix đồ nhanh, lên outfit đẹp cho mọi
+                mood trong tuần.
+              </p>
             </section>
 
             {/* Newsletter */}
@@ -84,7 +99,12 @@ const FooterBright: FC<FooterBrightProps> = ({ initialMode = "storeClassic" }) =
               <p>Nhập email để nhận mã giảm giá, gợi ý phối đồ và tin mới từ Aurora Wear.</p>
               <div className={styles.AwInputWrap}>
                 <i className="bi bi-envelope" aria-hidden="true" />
-                <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <button type="button" onClick={handleSubscribe}>
                   <span>Đăng ký</span>
                   <i className="bi bi-arrow-right-short" aria-hidden="true" />

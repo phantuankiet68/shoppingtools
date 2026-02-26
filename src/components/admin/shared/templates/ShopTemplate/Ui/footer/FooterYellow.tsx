@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterYellow.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterYellow.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type FooterYellowLayout = "classic" | "split";
@@ -58,7 +58,8 @@ const FooterYellow: FC<FooterYellowProps> = (_props) => {
           <section className={`${styles.AgCol} ${styles.AgColAbout}`}>
             <h3 className={styles.AgColTitle}>Tủ đồ xanh cho thế hệ mới</h3>
             <p className={styles.AgDesc}>
-              Aurora Green Wear mang đến các bộ sưu tập làm từ chất liệu tái chế, cotton hữu cơ và thiết kế tối giản, phù hợp đi làm, đi chơi và cả những chuyến du lịch cuối tuần.
+              Aurora Green Wear mang đến các bộ sưu tập làm từ chất liệu tái chế, cotton hữu cơ và thiết kế tối giản,
+              phù hợp đi làm, đi chơi và cả những chuyến du lịch cuối tuần.
             </p>
 
             <div className={styles.AgPillRow}>
@@ -166,9 +167,16 @@ const FooterYellow: FC<FooterYellowProps> = (_props) => {
           <section className={styles.AgCol}>
             <h3 className={styles.AgColTitle}>Nhận lookbook &amp; ưu đãi</h3>
             <div className={styles.AgNewsletter}>
-              <p className={styles.AgDesc}>Đăng ký nhận email để cập nhật lookbook mới, ưu đãi độc quyền và tips phối đồ bền vững mỗi tuần.</p>
+              <p className={styles.AgDesc}>
+                Đăng ký nhận email để cập nhật lookbook mới, ưu đãi độc quyền và tips phối đồ bền vững mỗi tuần.
+              </p>
               <div className={styles.AgInputWrap}>
-                <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <button className={styles.AgBtn} type="button" onClick={handleSubscribe}>
                   <i className="bi bi-send" aria-hidden="true" />
                   Đăng ký ngay
@@ -206,11 +214,19 @@ const FooterYellow: FC<FooterYellowProps> = (_props) => {
           </div>
 
           <div className={styles.AgStyleSwitch}>
-            <button className={`${styles.AgStyleBtn} ${layout === "classic" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeLayout("classic")}>
+            <button
+              className={`${styles.AgStyleBtn} ${layout === "classic" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeLayout("classic")}
+            >
               <i className="bi bi-grid-1x2" aria-hidden="true" />
               Classic
             </button>
-            <button className={`${styles.AgStyleBtn} ${layout === "split" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeLayout("split")}>
+            <button
+              className={`${styles.AgStyleBtn} ${layout === "split" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeLayout("split")}
+            >
               <i className="bi bi-columns-gap" aria-hidden="true" />
               Split
             </button>

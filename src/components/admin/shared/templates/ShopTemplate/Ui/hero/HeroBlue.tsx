@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroBlue.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroBlue.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ========== TYPES & DEFAULTS ========== */
@@ -96,7 +96,10 @@ export const HeroBlue: React.FC<HeroBlueProps> = (props) => {
             với bộ sưu tập Xuân 2026.
           </h1>
 
-          <p className={styles.heroSub}>Đặt trọn tủ đồ cho tuần mới: từ outfit đi làm, đi chơi đến hẹn hò cuối tuần. Hơn 2.000 sản phẩm được cập nhật mỗi tuần, ưu đãi riêng cho thành viên Aurora.</p>
+          <p className={styles.heroSub}>
+            Đặt trọn tủ đồ cho tuần mới: từ outfit đi làm, đi chơi đến hẹn hò cuối tuần. Hơn 2.000 sản phẩm được cập
+            nhật mỗi tuần, ưu đãi riêng cho thành viên Aurora.
+          </p>
 
           {/* Filter categories */}
           <div className={styles.filterRow}>
@@ -106,7 +109,12 @@ export const HeroBlue: React.FC<HeroBlueProps> = (props) => {
             </div>
             <div className={styles.filterChips} id="filter-chips">
               {FILTER_ITEMS.map((item) => (
-                <button key={item.key} type="button" className={`${styles.filterChip} ${activeFilter === item.key ? styles.filterChipActive : ""}`} onClick={() => handleFilterClick(item.key)}>
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`${styles.filterChip} ${activeFilter === item.key ? styles.filterChipActive : ""}`}
+                  onClick={() => handleFilterClick(item.key)}
+                >
                   <i className={item.icon} />
                   {item.label}
                 </button>
@@ -147,7 +155,9 @@ export const HeroBlue: React.FC<HeroBlueProps> = (props) => {
                 </span>
               </div>
               <div className={styles.featuredTitle}>Set blazer & chân váy Aurora Skyline</div>
-              <div className={styles.featuredMeta}>Chất liệu thoáng nhẹ, giữ form tốt, phối được cả đi làm lẫn đi chơi. Thiết kế độc quyền tại Aurora Wear.</div>
+              <div className={styles.featuredMeta}>
+                Chất liệu thoáng nhẹ, giữ form tốt, phối được cả đi làm lẫn đi chơi. Thiết kế độc quyền tại Aurora Wear.
+              </div>
 
               <div className={styles.priceRow}>
                 <span className={styles.priceMain}>1.290.000đ</span>
@@ -161,7 +171,12 @@ export const HeroBlue: React.FC<HeroBlueProps> = (props) => {
               <div className={styles.sizesRow}>
                 <span>Size còn lại:</span>
                 {SIZE_LIST.map((s) => (
-                  <button key={s} type="button" className={`${styles.sizePill} ${activeSize === s ? styles.sizePillActive : ""}`} onClick={() => handleSizeClick(s)}>
+                  <button
+                    key={s}
+                    type="button"
+                    className={`${styles.sizePill} ${activeSize === s ? styles.sizePillActive : ""}`}
+                    onClick={() => handleSizeClick(s)}
+                  >
                     {s}
                   </button>
                 ))}

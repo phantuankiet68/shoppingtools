@@ -1,6 +1,10 @@
 // editors/topbar/TopbarMultiEditor.tsx
 import React from "react";
-import type { TopbarMultiProps, TopbarProTickerItem, TopbarProLinkItem } from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarMulti";
+import type {
+  TopbarMultiProps,
+  TopbarProTickerItem,
+  TopbarProLinkItem,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/TopbarMulti";
 import Section from "../parts/Section";
 import TextArea from "../parts/TextArea";
 import TextInput from "../parts/TextInput";
@@ -51,33 +55,60 @@ const TopbarMultiEditor: React.FC<TopbarMultiEditorProps> = ({ props, updateActi
     <>
       <Section title="Logo & Thương hiệu">
         <LabeledRow label="Logo icon class (Bootstrap Icons)">
-          <TextInput value={props.logoIconClass ?? ""} onChange={(v) => updateActive({ logoIconClass: v })} placeholder="ví dụ: bi bi-stars" />
+          <TextInput
+            value={props.logoIconClass ?? ""}
+            onChange={(v) => updateActive({ logoIconClass: v })}
+            placeholder="ví dụ: bi bi-stars"
+          />
         </LabeledRow>
 
         <LabeledRow label="Tiêu đề thương hiệu">
-          <TextInput value={props.brandTitle ?? ""} onChange={(v) => updateActive({ brandTitle: v })} placeholder="Aurora Neo" />
+          <TextInput
+            value={props.brandTitle ?? ""}
+            onChange={(v) => updateActive({ brandTitle: v })}
+            placeholder="Aurora Neo"
+          />
         </LabeledRow>
 
         <LabeledRow label="Mô tả ngắn">
-          <TextArea value={props.brandSubtitle ?? ""} onChange={(v) => updateActive({ brandSubtitle: v })} placeholder="Trải nghiệm mua sắm đa vũ trụ 2026." />
+          <TextArea
+            value={props.brandSubtitle ?? ""}
+            onChange={(v) => updateActive({ brandSubtitle: v })}
+            placeholder="Trải nghiệm mua sắm đa vũ trụ 2026."
+          />
         </LabeledRow>
       </Section>
 
       <Section title="Khu vực / Region">
         <LabeledRow label="Hiển thị nút KV">
-          <Checkbox checked={props.showRegionButton ?? true} onChange={(checked) => updateActive({ showRegionButton: checked })} />
+          <Checkbox
+            checked={props.showRegionButton ?? true}
+            onChange={(checked) => updateActive({ showRegionButton: checked })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Text KV">
-          <TextInput value={props.regionLabel ?? ""} onChange={(v) => updateActive({ regionLabel: v })} placeholder="KV: Hồ Chí Minh" />
+          <TextInput
+            value={props.regionLabel ?? ""}
+            onChange={(v) => updateActive({ regionLabel: v })}
+            placeholder="KV: Hồ Chí Minh"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon trái (regionIconClass)">
-          <TextInput value={props.regionIconClass ?? ""} onChange={(v) => updateActive({ regionIconClass: v })} placeholder="bi bi-geo-alt" />
+          <TextInput
+            value={props.regionIconClass ?? ""}
+            onChange={(v) => updateActive({ regionIconClass: v })}
+            placeholder="bi bi-geo-alt"
+          />
         </LabeledRow>
 
         <LabeledRow label="Icon phải (chevron)">
-          <TextInput value={props.regionChevronIconClass ?? ""} onChange={(v) => updateActive({ regionChevronIconClass: v })} placeholder="bi bi-chevron-down" />
+          <TextInput
+            value={props.regionChevronIconClass ?? ""}
+            onChange={(v) => updateActive({ regionChevronIconClass: v })}
+            placeholder="bi bi-chevron-down"
+          />
         </LabeledRow>
       </Section>
 
@@ -87,7 +118,11 @@ const TopbarMultiEditor: React.FC<TopbarMultiEditorProps> = ({ props, updateActi
         </LabeledRow>
 
         <LabeledRow label="Label ticker">
-          <TextInput value={props.tickerLabel ?? ""} onChange={(v) => updateActive({ tickerLabel: v })} placeholder="LIVE UPDATE" />
+          <TextInput
+            value={props.tickerLabel ?? ""}
+            onChange={(v) => updateActive({ tickerLabel: v })}
+            placeholder="LIVE UPDATE"
+          />
         </LabeledRow>
 
         {tickerItems.map((item, index) => (
@@ -115,15 +150,27 @@ const TopbarMultiEditor: React.FC<TopbarMultiEditorProps> = ({ props, updateActi
         </LabeledRow>
 
         <LabeledRow label="Text trạng thái">
-          <TextInput value={props.statusText ?? ""} onChange={(v) => updateActive({ statusText: v })} placeholder="Online" />
+          <TextInput
+            value={props.statusText ?? ""}
+            onChange={(v) => updateActive({ statusText: v })}
+            placeholder="Online"
+          />
         </LabeledRow>
 
         <LabeledRow label="Màu chấm trạng thái">
-          <TextInput value={props.statusDotColor ?? ""} onChange={(v) => updateActive({ statusDotColor: v })} placeholder="#22c55e" />
+          <TextInput
+            value={props.statusDotColor ?? ""}
+            onChange={(v) => updateActive({ statusDotColor: v })}
+            placeholder="#22c55e"
+          />
         </LabeledRow>
 
         <LabeledRow label="Background color override (tùy chọn)">
-          <TextInput value={props.backgroundColor ?? ""} onChange={(v) => updateActive({ backgroundColor: v })} placeholder="VD: #f97316" />
+          <TextInput
+            value={props.backgroundColor ?? ""}
+            onChange={(v) => updateActive({ backgroundColor: v })}
+            placeholder="VD: #f97316"
+          />
         </LabeledRow>
       </Section>
 
@@ -134,10 +181,18 @@ const TopbarMultiEditor: React.FC<TopbarMultiEditorProps> = ({ props, updateActi
               <TextInput value={link.label} onChange={(v) => updateLinkItem(index, { label: v })} />
             </LabeledRow>
             <LabeledRow label="Href">
-              <TextInput value={link.href ?? ""} onChange={(v) => updateLinkItem(index, { href: v })} placeholder="# hoặc https://..." />
+              <TextInput
+                value={link.href ?? ""}
+                onChange={(v) => updateLinkItem(index, { href: v })}
+                placeholder="# hoặc https://..."
+              />
             </LabeledRow>
             <LabeledRow label="Icon class">
-              <TextInput value={link.iconClass ?? ""} onChange={(v) => updateLinkItem(index, { iconClass: v })} placeholder="bi bi-truck" />
+              <TextInput
+                value={link.iconClass ?? ""}
+                onChange={(v) => updateLinkItem(index, { iconClass: v })}
+                placeholder="bi bi-truck"
+              />
             </LabeledRow>
             <Button type="button" onClick={() => removeLinkItem(index)}>
               Xóa link

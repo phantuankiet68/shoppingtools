@@ -1,6 +1,6 @@
 // Ui/topbar/TopbarMulti.tsx
 import React, { useEffect, useRef, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarMulti.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarMulti.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarProTickerItem {
@@ -202,7 +202,12 @@ const TopbarMulti: React.FC<TopbarMultiProps> = (props) => {
   };
 
   // ===== Ticker className =====
-  const tickerClasses = [styles.tickerText, phase === "leaving" ? styles.isLeaving : "", phase === "entering" ? styles.isEntering : "", phase === "active" ? styles.isActive : ""]
+  const tickerClasses = [
+    styles.tickerText,
+    phase === "leaving" ? styles.isLeaving : "",
+    phase === "entering" ? styles.isEntering : "",
+    phase === "active" ? styles.isActive : "",
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -228,7 +233,8 @@ const TopbarMulti: React.FC<TopbarMultiProps> = (props) => {
               // Ở preview chỉ là demo, không mở popup thật
               onClick={() => {
                 // có thể gắn callback thực tế ở phía app nếu cần
-              }}>
+              }}
+            >
               {regionIconClass && <i className={regionIconClass} />}
               <span>{regionLabel}</span>
               {regionChevronIconClass && <i className={regionChevronIconClass} />}
@@ -252,11 +258,19 @@ const TopbarMulti: React.FC<TopbarMultiProps> = (props) => {
         </div>
 
         {/* RIGHT */}
-        <div ref={tbRightRef} className={[styles.tbRight, isMenuOpen ? styles.tbRightOpen : ""].filter(Boolean).join(" ")}>
+        <div
+          ref={tbRightRef}
+          className={[styles.tbRight, isMenuOpen ? styles.tbRightOpen : ""].filter(Boolean).join(" ")}
+        >
           {/* Links desktop */}
           <div className={styles.tbLinks}>
             {(links ?? []).map((link, idx) => (
-              <a key={idx} href={link.href ?? "#"} className={styles.tbLink} onClick={(e) => handleLinkClick(e, link.href)}>
+              <a
+                key={idx}
+                href={link.href ?? "#"}
+                className={styles.tbLink}
+                onClick={(e) => handleLinkClick(e, link.href)}
+              >
                 {link.iconClass && <i className={link.iconClass} />}
                 <span>{link.label}</span>
                 <i className={`bi bi-arrow-right-short ${styles.tbLinkArrow}`} />
@@ -274,13 +288,28 @@ const TopbarMulti: React.FC<TopbarMultiProps> = (props) => {
 
           {/* Theme switcher */}
           <div className={styles.themeSwitcher}>
-            <button type="button" className={[styles.themeBtn, scheme === "sunrise" ? styles.themeBtnActive : ""].filter(Boolean).join(" ")} onClick={() => setScheme("sunrise")} title="Sunrise">
+            <button
+              type="button"
+              className={[styles.themeBtn, scheme === "sunrise" ? styles.themeBtnActive : ""].filter(Boolean).join(" ")}
+              onClick={() => setScheme("sunrise")}
+              title="Sunrise"
+            >
               <i className="bi bi-sun-fill" />
             </button>
-            <button type="button" className={[styles.themeBtn, scheme === "mint" ? styles.themeBtnActive : ""].filter(Boolean).join(" ")} onClick={() => setScheme("mint")} title="Mint">
+            <button
+              type="button"
+              className={[styles.themeBtn, scheme === "mint" ? styles.themeBtnActive : ""].filter(Boolean).join(" ")}
+              onClick={() => setScheme("mint")}
+              title="Mint"
+            >
               <i className="bi bi-droplet-half" />
             </button>
-            <button type="button" className={[styles.themeBtn, scheme === "slate" ? styles.themeBtnActive : ""].filter(Boolean).join(" ")} onClick={() => setScheme("slate")} title="Slate">
+            <button
+              type="button"
+              className={[styles.themeBtn, scheme === "slate" ? styles.themeBtnActive : ""].filter(Boolean).join(" ")}
+              onClick={() => setScheme("slate")}
+              title="Slate"
+            >
               <i className="bi bi-moon-stars-fill" />
             </button>
           </div>
@@ -293,7 +322,12 @@ const TopbarMulti: React.FC<TopbarMultiProps> = (props) => {
           {/* Dropdown links mobile */}
           <div className={styles.tbLinksDropdown}>
             {(links ?? []).map((link, idx) => (
-              <a key={idx} href={link.href ?? "#"} className={styles.tbLink} onClick={(e) => handleLinkClick(e, link.href)}>
+              <a
+                key={idx}
+                href={link.href ?? "#"}
+                className={styles.tbLink}
+                onClick={(e) => handleLinkClick(e, link.href)}
+              >
                 {link.iconClass && <i className={link.iconClass} />}
                 <span>{link.label}</span>
                 <i className={`bi bi-arrow-right-short ${styles.tbLinkArrow}`} />

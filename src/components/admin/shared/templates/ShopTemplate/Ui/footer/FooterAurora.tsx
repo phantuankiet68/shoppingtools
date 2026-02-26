@@ -1,6 +1,6 @@
 "use client";
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterAurora.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterAurora.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type FooterAuroraVariant = "pill" | "grid" | "compact";
@@ -139,13 +139,25 @@ const FooterAurora: FC<FooterAuroraProps> = ({ initialVariant = "pill" }) => {
         <div className={styles.AfRight}>
           {/* Switch variant */}
           <div className={styles.AfVariantSwitcher}>
-            <button className={`${styles.AfVariantBtn} ${variant === "pill" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeVariant("pill")}>
+            <button
+              className={`${styles.AfVariantBtn} ${variant === "pill" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeVariant("pill")}
+            >
               Capsule
             </button>
-            <button className={`${styles.AfVariantBtn} ${variant === "grid" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeVariant("grid")}>
+            <button
+              className={`${styles.AfVariantBtn} ${variant === "grid" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeVariant("grid")}
+            >
               Blocks
             </button>
-            <button className={`${styles.AfVariantBtn} ${variant === "compact" ? styles.IsActive : ""}`} type="button" onClick={() => handleChangeVariant("compact")}>
+            <button
+              className={`${styles.AfVariantBtn} ${variant === "compact" ? styles.IsActive : ""}`}
+              type="button"
+              onClick={() => handleChangeVariant("compact")}
+            >
               Compact
             </button>
           </div>
@@ -164,7 +176,12 @@ const FooterAurora: FC<FooterAuroraProps> = ({ initialVariant = "pill" }) => {
               <strong>Nhận ý tưởng phối đồ mỗi tuần</strong>
               <span>Một email nhẹ nhàng với outfit gợi ý, trend &amp; ưu đãi dành riêng cho bạn.</span>
               <div className={styles.AfInputWrap}>
-                <input type="email" placeholder="Nhập email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <button type="button" onClick={handleNewsletter}>
                   Đăng ký
                 </button>

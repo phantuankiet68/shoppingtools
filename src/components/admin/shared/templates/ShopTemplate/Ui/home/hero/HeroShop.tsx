@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/hero/hero-shop.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/hero/hero-shop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type Slide = { src: string; alt?: string };
@@ -19,9 +19,18 @@ export type HeroShopProps = {
 
 export default function HeroShop({
   slides = [
-    { src: "https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=1600&auto=format&fit=crop", alt: "Hero 1" },
-    { src: "https://images.unsplash.com/photo-1520975682031-a47de81f1e5e?q=80&w=1600&auto=format&fit=crop", alt: "Hero 2" },
-    { src: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop", alt: "Hero 3" },
+    {
+      src: "https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=1600&auto=format&fit=crop",
+      alt: "Hero 1",
+    },
+    {
+      src: "https://images.unsplash.com/photo-1520975682031-a47de81f1e5e?q=80&w=1600&auto=format&fit=crop",
+      alt: "Hero 2",
+    },
+    {
+      src: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop",
+      alt: "Hero 3",
+    },
   ],
   height = 385,
   intervalMs = 3500,
@@ -87,15 +96,33 @@ export default function HeroShop({
   };
 
   return (
-    <section className={cls.hero} ref={rootRef as any} onMouseEnter={onEnter} onMouseLeave={onLeave} onClick={preview ? stop : undefined}>
+    <section
+      className={cls.hero}
+      ref={rootRef as any}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onClick={preview ? stop : undefined}
+    >
       <div className={cls.slides} style={{ ...tx }}>
         {slides.map((s, i) => (
-          <div key={i} className={cls.slide} style={{ backgroundImage: `url('${s.src}')`, height }} role="img" aria-label={s.alt || `Slide ${i + 1}`}></div>
+          <div
+            key={i}
+            className={cls.slide}
+            style={{ backgroundImage: `url('${s.src}')`, height }}
+            role="img"
+            aria-label={s.alt || `Slide ${i + 1}`}
+          ></div>
         ))}
       </div>
       <div className={cls.dots}>
         {slides.map((_, i) => (
-          <button key={i} className={[cls.dot, i === idx ? cls.active : ""].join(" ")} aria-label={`Go to slide ${i + 1}`} aria-current={i === idx} onClick={() => go(i)} />
+          <button
+            key={i}
+            className={[cls.dot, i === idx ? cls.active : ""].join(" ")}
+            aria-label={`Go to slide ${i + 1}`}
+            aria-current={i === idx}
+            onClick={() => go(i)}
+          />
         ))}
       </div>
     </section>
@@ -108,9 +135,18 @@ export const HERO_SHOP: RegItem = {
   label: "Hero — Shop Slider",
   defaults: {
     slides: [
-      { src: "https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=1600&auto=format&fit=crop", alt: "Hero 1" },
-      { src: "https://images.unsplash.com/photo-1520975682031-a47de81f1e5e?q=80&w=1600&auto=format&fit=crop", alt: "Hero 2" },
-      { src: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop", alt: "Hero 3" },
+      {
+        src: "https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=1600&auto=format&fit=crop",
+        alt: "Hero 1",
+      },
+      {
+        src: "https://images.unsplash.com/photo-1520975682031-a47de81f1e5e?q=80&w=1600&auto=format&fit=crop",
+        alt: "Hero 2",
+      },
+      {
+        src: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop",
+        alt: "Hero 3",
+      },
     ],
     height: 385,
     intervalMs: 3500,

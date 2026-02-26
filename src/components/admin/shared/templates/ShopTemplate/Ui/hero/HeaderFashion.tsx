@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeaderFashion.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeaderFashion.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface HeaderFashionProps {
@@ -55,7 +55,9 @@ export const HeaderFashion: React.FC<HeaderFashionProps> = () => {
                 <span>For Everyone</span>
               </h1>
 
-              <p className={styles.fsMainSub}>Bộ sưu tập áo thun, jeans và sneaker cho mùa hè – mix &amp; match nhanh, lên outfit đẹp ngay.</p>
+              <p className={styles.fsMainSub}>
+                Bộ sưu tập áo thun, jeans và sneaker cho mùa hè – mix &amp; match nhanh, lên outfit đẹp ngay.
+              </p>
 
               <div className={styles.fsMainPrice}>From 499K</div>
 
@@ -71,7 +73,10 @@ export const HeaderFashion: React.FC<HeaderFashionProps> = () => {
             <div className={styles.fsMainRight}>
               <div className={styles.fsMainImage}>
                 {/* Thay bằng ảnh thật của bạn nếu cần */}
-                <img src="https://images.pexels.com/photos/9945235/pexels-photo-9945235.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="Streetwear collection" />
+                <img
+                  src="https://images.pexels.com/photos/9945235/pexels-photo-9945235.jpeg?auto=compress&cs=tinysrgb&w=1600"
+                  alt="Streetwear collection"
+                />
               </div>
             </div>
           </article>
@@ -91,7 +96,10 @@ export const HeaderFashion: React.FC<HeaderFashionProps> = () => {
                   </div>
                 </div>
                 <div className={styles.fsCardImg}>
-                  <img src="https://images.pexels.com/photos/7671166/pexels-photo-7671166.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Hoodie set" />
+                  <img
+                    src="https://images.pexels.com/photos/7671166/pexels-photo-7671166.jpeg?auto=compress&cs=tinysrgb&w=800"
+                    alt="Hoodie set"
+                  />
                 </div>
               </article>
             </div>
@@ -108,7 +116,10 @@ export const HeaderFashion: React.FC<HeaderFashionProps> = () => {
                   </div>
                 </div>
                 <div className={styles.fsCardImg}>
-                  <img src="https://images.pexels.com/photos/7671247/pexels-photo-7671247.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Baby tee" />
+                  <img
+                    src="https://images.pexels.com/photos/7671247/pexels-photo-7671247.jpeg?auto=compress&cs=tinysrgb&w=800"
+                    alt="Baby tee"
+                  />
                 </div>
               </article>
 
@@ -123,7 +134,10 @@ export const HeaderFashion: React.FC<HeaderFashionProps> = () => {
                   </div>
                 </div>
                 <div className={styles.fsCardImg}>
-                  <img src="https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Sneaker" />
+                  <img
+                    src="https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=800"
+                    alt="Sneaker"
+                  />
                 </div>
                 <div className={styles.fsDiscount}>
                   <span className={styles.fsDiscountOff}>15% OFF</span>

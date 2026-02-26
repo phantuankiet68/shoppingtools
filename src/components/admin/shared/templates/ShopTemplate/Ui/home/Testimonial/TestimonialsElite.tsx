@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/Testimonial/testimonials-elite.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/Testimonial/testimonials-elite.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type TestimonialItem = {
@@ -26,7 +26,8 @@ export default function TestimonialsElite({
   subheading = "Esteemed clients share their exceptional experiences with our unparalleled service",
   items = [
     {
-      quote: "The discretion and sophistication of their service matches what we expect from our most exclusive properties.",
+      quote:
+        "The discretion and sophistication of their service matches what we expect from our most exclusive properties.",
       name: "Henri Delacroix",
       role: "General Manager, The Ritz Paris",
       avatar: "https://placehold.co/100x100/jpg?text=H",
@@ -40,7 +41,8 @@ export default function TestimonialsElite({
       stars: 5,
     },
     {
-      quote: "They operate with rare professionalism and quiet excellence. Our clients constantly compliment the service.",
+      quote:
+        "They operate with rare professionalism and quiet excellence. Our clients constantly compliment the service.",
       name: "James Whitmore",
       role: "Partner, Whitmore & Co.",
       avatar: "https://placehold.co/100x100/jpg?text=J",
@@ -130,11 +132,22 @@ export default function TestimonialsElite({
 
       {/* Slider shell */}
       <div className={cls.tsWrap}>
-        <button type="button" className={`${cls.tsNav} ${cls.tsPrev}`} aria-label="Prev" onClick={goPrev} disabled={totalPages <= 1}>
+        <button
+          type="button"
+          className={`${cls.tsNav} ${cls.tsPrev}`}
+          aria-label="Prev"
+          onClick={goPrev}
+          disabled={totalPages <= 1}
+        >
           ‹
         </button>
 
-        <div className={cls.tsViewport} ref={viewportRef} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+        <div
+          className={cls.tsViewport}
+          ref={viewportRef}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+        >
           <div className={cls.tsTrack}>
             {items.map((d, idx) => (
               <article key={idx} className={cls.tsCard}>
@@ -159,7 +172,13 @@ export default function TestimonialsElite({
           </div>
         </div>
 
-        <button type="button" className={`${cls.tsNav} ${cls.tsNext}`} aria-label="Next" onClick={goNext} disabled={totalPages <= 1}>
+        <button
+          type="button"
+          className={`${cls.tsNav} ${cls.tsNext}`}
+          aria-label="Next"
+          onClick={goNext}
+          disabled={totalPages <= 1}
+        >
           ›
         </button>
       </div>
@@ -167,7 +186,13 @@ export default function TestimonialsElite({
       {/* Dots */}
       <div className={cls.tsDots}>
         {Array.from({ length: totalPages }).map((_, i) => (
-          <button key={i} type="button" className={`${cls.tsDot} ${i === page ? cls.active : ""}`} onClick={() => goTo(i)} aria-label={`Trang ${i + 1}`} />
+          <button
+            key={i}
+            type="button"
+            className={`${cls.tsDot} ${i === page ? cls.active : ""}`}
+            onClick={() => goTo(i)}
+            aria-label={`Trang ${i + 1}`}
+          />
         ))}
       </div>
     </section>
@@ -184,7 +209,8 @@ export const TESTIMONIALS_ELITE: RegItem = {
     intervalMs: 5000,
     items: [
       {
-        quote: "The discretion and sophistication of their service matches what we expect from our most exclusive properties.",
+        quote:
+          "The discretion and sophistication of their service matches what we expect from our most exclusive properties.",
         name: "Henri Delacroix",
         role: "General Manager, The Ritz Paris",
         avatar: "https://placehold.co/100x100/jpg?text=H",
@@ -198,7 +224,8 @@ export const TESTIMONIALS_ELITE: RegItem = {
         stars: 5,
       },
       {
-        quote: "They operate with rare professionalism and quiet excellence. Our clients constantly compliment the service.",
+        quote:
+          "They operate with rare professionalism and quiet excellence. Our clients constantly compliment the service.",
         name: "James Whitmore",
         role: "Partner, Whitmore & Co.",
         avatar: "https://placehold.co/100x100/jpg?text=J",

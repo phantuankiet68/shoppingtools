@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, MouseEvent as ReactMouseEvent } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/AuroraTopbarPink.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/AuroraTopbarPink.module.css";
 
 export type AuroraTopbarTickerItem = {
   text: string;
@@ -167,7 +167,12 @@ export const AuroraTopbarPink: React.FC<AuroraTopbarPinkProps> = ({
 
   const currentItem = items[tickerIndex];
 
-  const tickerClassName = [styles.tickerText, tickerPhase === "leaving" ? styles.isLeaving : "", tickerPhase === "entering" ? styles.isEntering : "", tickerPhase === "active" ? styles.isActive : ""]
+  const tickerClassName = [
+    styles.tickerText,
+    tickerPhase === "leaving" ? styles.isLeaving : "",
+    tickerPhase === "entering" ? styles.isEntering : "",
+    tickerPhase === "active" ? styles.isActive : "",
+  ]
     .filter(Boolean)
     .join(" ");
 

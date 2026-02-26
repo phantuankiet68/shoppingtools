@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import type { HeaderGreenProps } from "@/components/admin/templates/ShopTemplate/Ui/header/HeaderGreen";
+import type { HeaderGreenProps } from "@/components/admin/shared/templates/ShopTemplate/Ui/header/HeaderGreen";
 
 import Section from "../parts/Section";
 import LabeledRow from "../parts/LabeledRow";
@@ -24,45 +24,81 @@ const HeaderGreenEditor: React.FC<EditorProps> = ({ props, updateActive }) => {
       {/* Topbar */}
       <Section title="Topbar">
         <LabeledRow label="Thông điệp bên trái">
-          <TextInput value={p.topbarMessage ?? ""} onChange={(v) => updateActive({ topbarMessage: v })} placeholder="Miễn phí vận chuyển đơn từ 199K" />
+          <TextInput
+            value={p.topbarMessage ?? ""}
+            onChange={(v) => updateActive({ topbarMessage: v })}
+            placeholder="Miễn phí vận chuyển đơn từ 199K"
+          />
         </LabeledRow>
 
         <LabeledRow label="Link bên phải">
-          <TextInput value={p.topbarLinkText ?? ""} onChange={(v) => updateActive({ topbarLinkText: v })} placeholder="Theo dõi đơn hàng" />
+          <TextInput
+            value={p.topbarLinkText ?? ""}
+            onChange={(v) => updateActive({ topbarLinkText: v })}
+            placeholder="Theo dõi đơn hàng"
+          />
         </LabeledRow>
       </Section>
 
       {/* Brand / Logo */}
       <Section title="Logo / Thương hiệu">
         <LabeledRow label="Icon class (Bootstrap Icons)">
-          <TextInput value={p.brandIconClass ?? ""} onChange={(v) => updateActive({ brandIconClass: v })} placeholder="bi bi-flower2" />
+          <TextInput
+            value={p.brandIconClass ?? ""}
+            onChange={(v) => updateActive({ brandIconClass: v })}
+            placeholder="bi bi-flower2"
+          />
         </LabeledRow>
 
         <LabeledRow label="Tên thương hiệu">
-          <TextInput value={p.brandTitle ?? ""} onChange={(v) => updateActive({ brandTitle: v })} placeholder="Aurora Green" />
+          <TextInput
+            value={p.brandTitle ?? ""}
+            onChange={(v) => updateActive({ brandTitle: v })}
+            placeholder="Aurora Green"
+          />
         </LabeledRow>
 
         <LabeledRow label="Subtitle (dòng mô tả)">
-          <TextInput value={p.brandSubtitle ?? ""} onChange={(v) => updateActive({ brandSubtitle: v })} placeholder="Thời trang dành cho" />
+          <TextInput
+            value={p.brandSubtitle ?? ""}
+            onChange={(v) => updateActive({ brandSubtitle: v })}
+            placeholder="Thời trang dành cho"
+          />
         </LabeledRow>
 
         <LabeledRow label="Highlight (chữ màu xanh)">
-          <TextInput value={p.brandHighlight ?? ""} onChange={(v) => updateActive({ brandHighlight: v })} placeholder="người sống xanh" />
+          <TextInput
+            value={p.brandHighlight ?? ""}
+            onChange={(v) => updateActive({ brandHighlight: v })}
+            placeholder="người sống xanh"
+          />
         </LabeledRow>
       </Section>
 
       {/* Search */}
       <Section title="Search">
         <LabeledRow label="Placeholder ô tìm kiếm (desktop)">
-          <TextInput value={p.searchPlaceholder ?? ""} onChange={(v) => updateActive({ searchPlaceholder: v })} placeholder="Tìm: áo thun, áo croptop, chân váy..." />
+          <TextInput
+            value={p.searchPlaceholder ?? ""}
+            onChange={(v) => updateActive({ searchPlaceholder: v })}
+            placeholder="Tìm: áo thun, áo croptop, chân váy..."
+          />
         </LabeledRow>
 
         <LabeledRow label="Tagline trước hashtag">
-          <TextInput value={p.searchTaglinePrefix ?? ""} onChange={(v) => updateActive({ searchTaglinePrefix: v })} placeholder="Gợi ý:" />
+          <TextInput
+            value={p.searchTaglinePrefix ?? ""}
+            onChange={(v) => updateActive({ searchTaglinePrefix: v })}
+            placeholder="Gợi ý:"
+          />
         </LabeledRow>
 
         <LabeledRow label="Hashtag gợi ý (ví dụ: #OOTD)">
-          <TextInput value={p.searchTaglineTag ?? ""} onChange={(v) => updateActive({ searchTaglineTag: v })} placeholder="#OOTD" />
+          <TextInput
+            value={p.searchTaglineTag ?? ""}
+            onChange={(v) => updateActive({ searchTaglineTag: v })}
+            placeholder="#OOTD"
+          />
         </LabeledRow>
       </Section>
 

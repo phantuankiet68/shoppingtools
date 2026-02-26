@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useId, useRef } from "react";
-import cls from "@/components/admin/templates/ShopTemplate/styles/home/category/category-shop.module.css";
+import cls from "@/components/admin/shared/templates/ShopTemplate/styles/home/category/category-shop.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type CatItem = { icon?: string; label: string };
@@ -50,7 +50,12 @@ export default function CategoryShop({
   };
 
   return (
-    <aside id={id} ref={rootRef as any} className={[cls.cats, hideOnMobile ? cls.hideMobile : ""].join(" ")} onClick={preview ? stop : undefined}>
+    <aside
+      id={id}
+      ref={rootRef as any}
+      className={[cls.cats, hideOnMobile ? cls.hideMobile : ""].join(" ")}
+      onClick={preview ? stop : undefined}
+    >
       <h3 className={cls.title}>{title}</h3>
       <ul className={cls.catList}>
         {items.map((it, idx) => (

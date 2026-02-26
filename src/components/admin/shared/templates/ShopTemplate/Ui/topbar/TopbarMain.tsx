@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import styles from "@/components/admin/templates/ShopTemplate/styles/topbar/TopbarMain.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarMain.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type SocialLink = {
@@ -24,7 +24,11 @@ export type TopbarMainProps = {
   backgroundColor?: string;
   _device?: Device; // NEW: chỉ dùng trong builder
 };
-const DEFAULT_TICKER_MESSAGES = ["Flash Sale 11.11 – Giảm đến 70% cho sách best-seller", "Tặng bookmark cho mọi đơn từ 3 cuốn trở lên", "Giao nhanh trong 2h tại Hà Nội & TP.HCM"];
+const DEFAULT_TICKER_MESSAGES = [
+  "Flash Sale 11.11 – Giảm đến 70% cho sách best-seller",
+  "Tặng bookmark cho mọi đơn từ 3 cuốn trở lên",
+  "Giao nhanh trong 2h tại Hà Nội & TP.HCM",
+];
 
 const DEFAULT_BADGES = ["HOT", "NEW", "FAST"];
 
@@ -79,7 +83,12 @@ export const TopbarMain: React.FC<TopbarMainProps> = ({
     setIsMobileOpen((v) => !v);
   };
 
-  const tickerClassNames = [styles.tickerText, tickerPhase === "active" && styles.tickerActive, tickerPhase === "leaving" && styles.tickerLeaving, tickerPhase === "entering" && styles.tickerEntering]
+  const tickerClassNames = [
+    styles.tickerText,
+    tickerPhase === "active" && styles.tickerActive,
+    tickerPhase === "leaving" && styles.tickerLeaving,
+    tickerPhase === "entering" && styles.tickerEntering,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -156,10 +165,18 @@ export const TopbarMain: React.FC<TopbarMainProps> = ({
 
             <div className={styles.tbSocial}>
               {socialLinks.map((s) => {
-                const iconClass = s.icon === "facebook" ? "bi-facebook" : s.icon === "tiktok" ? "bi-tiktok" : "bi-youtube";
+                const iconClass =
+                  s.icon === "facebook" ? "bi-facebook" : s.icon === "tiktok" ? "bi-tiktok" : "bi-youtube";
 
                 return (
-                  <a key={s.icon} href={s.href} aria-label={s.icon} className={styles.tbSocialIcon} target="_blank" rel="noopener noreferrer">
+                  <a
+                    key={s.icon}
+                    href={s.href}
+                    aria-label={s.icon}
+                    className={styles.tbSocialIcon}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className={`bi ${iconClass}`} aria-hidden />
                   </a>
                 );

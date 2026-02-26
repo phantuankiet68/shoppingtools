@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useEffect, useMemo, useState, FormEvent, MouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/footer/FooterOrange.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterOrange.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterOrangeVariant = "aurora" | "glass" | "night";
@@ -372,7 +372,13 @@ const FooterOrange: FC<FooterOrangeProps> = (props) => {
     setActiveVariant(key);
   };
 
-  const footerClassNames = [styles.Footer, activeVariant === "glass" ? styles.FooterGlass : "", activeVariant === "night" ? styles.FooterNight : ""].filter(Boolean).join(" ");
+  const footerClassNames = [
+    styles.Footer,
+    activeVariant === "glass" ? styles.FooterGlass : "",
+    activeVariant === "night" ? styles.FooterNight : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={styles.FooterWrap}>
@@ -413,7 +419,8 @@ const FooterOrange: FC<FooterOrangeProps> = (props) => {
                     type="button"
                     className={`${styles.VariantButton} ${activeVariant === opt.key ? styles.VariantButtonActive : ""}`}
                     data-variant={opt.key}
-                    onClick={() => handleVariantClick(opt.key)}>
+                    onClick={() => handleVariantClick(opt.key)}
+                  >
                     {opt.iconClass && <i className={opt.iconClass} aria-hidden="true" />}
                     {opt.label}
                   </button>
@@ -432,7 +439,13 @@ const FooterOrange: FC<FooterOrangeProps> = (props) => {
               <form className={styles.NewsForm} onSubmit={handleNewsletterSubmit}>
                 <div className={styles.InputWrap}>
                   <i className="bi bi-envelope" aria-hidden="true" />
-                  <input type="email" className={styles.Input} placeholder={emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <input
+                    type="email"
+                    className={styles.Input}
+                    placeholder={emailPlaceholder}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <button type="submit" className={styles.PrimaryButton}>
                   <i className="bi bi-bell" aria-hidden="true" />

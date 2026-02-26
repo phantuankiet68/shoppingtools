@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, MouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroPro.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroPro.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types ===== */
@@ -79,7 +79,8 @@ const DEFAULT_HERO_PRO_PROPS: HeroProProps = {
   badgeText: "Ưu đãi outfit hôm nay • Aurora Wear",
   titleLine1: "Outfit đẹp, nhẹ nhàng,",
   titleHighlight: "deal cam siêu “lời”",
-  subtitle: "Chọn nhanh set phù hợp phong cách của bạn tại Aurora Wear Mall. Hàng chính hãng, đổi size dễ, giao nhanh nội thành.",
+  subtitle:
+    "Chọn nhanh set phù hợp phong cách của bạn tại Aurora Wear Mall. Hàng chính hãng, đổi size dễ, giao nhanh nội thành.",
 
   primaryLabel: "Bắt đầu mua sắm",
   secondaryLabel: "Xem Flash Sale",
@@ -370,7 +371,14 @@ export const HeroPro: React.FC<HeroProProps> = (props) => {
                   <div className={styles.heroMainExtra}>
                     <div className={styles.heroMainSizes}>
                       {mainDealSizes?.map((size) => (
-                        <span key={size} className={size === mainDealActiveSize ? `${styles.heroMainSize} ${styles.heroMainSizeActive}` : styles.heroMainSize}>
+                        <span
+                          key={size}
+                          className={
+                            size === mainDealActiveSize
+                              ? `${styles.heroMainSize} ${styles.heroMainSizeActive}`
+                              : styles.heroMainSize
+                          }
+                        >
                           {size}
                         </span>
                       ))}
@@ -419,7 +427,10 @@ export const HeroPro: React.FC<HeroProProps> = (props) => {
 
             <div className={styles.heroShowcaseFooter}>
               <span>{flashFooterText}</span>
-              <a href={flashSectionId ? `#${flashSectionId}` : "#"} onClick={preview ? (e) => e.preventDefault() : undefined}>
+              <a
+                href={flashSectionId ? `#${flashSectionId}` : "#"}
+                onClick={preview ? (e) => e.preventDefault() : undefined}
+              >
                 {flashFooterLinkLabel}
                 <i className="bi bi-arrow-right-short" />
               </a>

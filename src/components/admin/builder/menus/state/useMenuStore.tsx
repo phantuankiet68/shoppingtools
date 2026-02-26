@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ECOMMERCE_INTERNAL_PAGES, ECOMMERCE_HEADER_FULL, ECOMMERCE_ADMIN_FULL } from "@/config/ecommerce.menu";
+import { ECOMMERCE_INTERNAL_PAGES, ECOMMERCE_HEADER_FULL, ECOMMERCE_ADMIN_FULL } from "@/constants/ecommerce.menu";
 
 export type Locale = "en";
 export type MenuSetKey = "home" | "v1";

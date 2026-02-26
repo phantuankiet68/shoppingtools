@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, FormEvent, MouseEvent, KeyboardEvent } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/components/admin/templates/ShopTemplate/styles/header/HeaderFashion.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderFashion.module.css";
 
 /* ============================
  * Types cho menu / nav
@@ -327,21 +327,22 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
     // nếu cần, xử lý SPA routing tại đây (next/router,...)
   };
 
-  const handleSearch = (source: "header" | "popup") => (e?: MouseEvent<HTMLButtonElement> | FormEvent<HTMLFormElement>) => {
-    if (e) {
-      e.preventDefault();
-    }
-    if (preview) return;
+  const handleSearch =
+    (source: "header" | "popup") => (e?: MouseEvent<HTMLButtonElement> | FormEvent<HTMLFormElement>) => {
+      if (e) {
+        e.preventDefault();
+      }
+      if (preview) return;
 
-    const value = source === "header" ? headerSearchQuery.trim() : popupSearchQuery.trim();
+      const value = source === "header" ? headerSearchQuery.trim() : popupSearchQuery.trim();
 
-    if (!value) {
-      window.alert(searchEmptyMessage ?? "");
-      return;
-    }
+      if (!value) {
+        window.alert(searchEmptyMessage ?? "");
+        return;
+      }
 
-    window.alert(`${searchAlertPrefix}: “${value}”`);
-  };
+      window.alert(`${searchAlertPrefix}: “${value}”`);
+    };
 
   const handleSearchKeyDown = (source: "header" | "popup") => (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -423,11 +424,20 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
 
   /* Class names */
 
-  const headerClassName = [styles.headerAurora, headerShrink ? styles.isShrink : "", headerHidden ? styles.headerAuroraHidden : ""].filter(Boolean).join(" ");
+  const headerClassName = [
+    styles.headerAurora,
+    headerShrink ? styles.isShrink : "",
+    headerHidden ? styles.headerAuroraHidden : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   /* Render */
 
-  const currentCategoryLabel = searchCategoryOptions && searchCategoryOptions.length ? searchCategoryOptions[headerCategoryIndex % searchCategoryOptions.length] : undefined;
+  const currentCategoryLabel =
+    searchCategoryOptions && searchCategoryOptions.length
+      ? searchCategoryOptions[headerCategoryIndex % searchCategoryOptions.length]
+      : undefined;
 
   return (
     <>
@@ -443,7 +453,12 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
             </div>
 
             {/* Mobile menu button */}
-            <button type="button" className={`${styles.btnIcon} ${styles.mobileMenuBtn}`} onClick={() => setMobileMenuOpen(true)} aria-label="Mở menu">
+            <button
+              type="button"
+              className={`${styles.btnIcon} ${styles.mobileMenuBtn}`}
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Mở menu"
+            >
               <i className="bi bi-list" />
             </button>
           </div>
@@ -475,7 +490,12 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
                 <button type="button" className={styles.btnIcon} title="Tìm bằng giọng nói" onClick={handleVoiceClick}>
                   <i className="bi bi-mic" />
                 </button>
-                <button type="button" className={styles.btnSearchMain} title="Tìm kiếm" onClick={handleSearch("header")}>
+                <button
+                  type="button"
+                  className={styles.btnSearchMain}
+                  title="Tìm kiếm"
+                  onClick={handleSearch("header")}
+                >
                   <i className="bi bi-search" />
                 </button>
               </div>
@@ -497,7 +517,12 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
                   <span className={styles.badge}>{cartCount}</span>
                 </button>
               )}
-              <button type="button" className={`${styles.modeToggle} ${isNight ? styles.isNight : ""}`} id="modeToggle" onClick={toggleMode}>
+              <button
+                type="button"
+                className={`${styles.modeToggle} ${isNight ? styles.isNight : ""}`}
+                id="modeToggle"
+                onClick={toggleMode}
+              >
                 <span className={styles.dot} />
                 <i className={isNight ? "bi bi-moon-stars" : "bi bi-sun"} />
                 <span className={styles.label} id="modeLabel">
@@ -527,9 +552,13 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
                 const hasSub = item.hasSub && item.subItems.length > 0;
                 const isOpen = openNavId === item.id;
 
-                const groupClassName = [styles.navGroup, hasSub ? styles.hasSub : "", isOpen ? styles.isOpen : ""].filter(Boolean).join(" ");
+                const groupClassName = [styles.navGroup, hasSub ? styles.hasSub : "", isOpen ? styles.isOpen : ""]
+                  .filter(Boolean)
+                  .join(" ");
 
-                const pillClassName = [styles.navPill, item.id === primaryNavId ? styles.isPrimary : ""].filter(Boolean).join(" ");
+                const pillClassName = [styles.navPill, item.id === primaryNavId ? styles.isPrimary : ""]
+                  .filter(Boolean)
+                  .join(" ");
 
                 return (
                   <li key={item.id} className={groupClassName}>
@@ -541,7 +570,8 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleDesktopNavSub(item.id);
-                          }}>
+                          }}
+                        >
                           {item.iconClass && <i className={item.iconClass} />}
                           {item.label}
                           <i className={`bi bi-chevron-down ${styles.chevron}`} />
@@ -627,12 +657,20 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
       {/* BOTTOM NAV – mobile tab bar */}
       <nav className={styles.bottomNav} aria-label="Aurora Wear navigation">
         <div className={styles.bottomNavInner}>
-          <button type="button" className={`${styles.bottomNavItem} ${activeBottomTab === "home" ? styles.active : ""}`} onClick={() => handleBottomNavClick("home")}>
+          <button
+            type="button"
+            className={`${styles.bottomNavItem} ${activeBottomTab === "home" ? styles.active : ""}`}
+            onClick={() => handleBottomNavClick("home")}
+          >
             <i className="bi bi-house-door" />
             <span>{bottomNavHomeLabel}</span>
           </button>
 
-          <button type="button" className={`${styles.bottomNavItem} ${activeBottomTab === "category" ? styles.active : ""}`} onClick={() => handleBottomNavClick("category")}>
+          <button
+            type="button"
+            className={`${styles.bottomNavItem} ${activeBottomTab === "category" ? styles.active : ""}`}
+            onClick={() => handleBottomNavClick("category")}
+          >
             <i className="bi bi-grid-3x3-gap" />
             <span>{bottomNavCategoryLabel}</span>
           </button>
@@ -643,12 +681,20 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
             </button>
           </div>
 
-          <button type="button" className={`${styles.bottomNavItem} ${activeBottomTab === "wishlist" ? styles.active : ""}`} onClick={() => handleBottomNavClick("wishlist")}>
+          <button
+            type="button"
+            className={`${styles.bottomNavItem} ${activeBottomTab === "wishlist" ? styles.active : ""}`}
+            onClick={() => handleBottomNavClick("wishlist")}
+          >
             <i className="bi bi-heart" />
             <span>{bottomNavWishlistLabel}</span>
           </button>
 
-          <button type="button" className={`${styles.bottomNavItem} ${activeBottomTab === "account" ? styles.active : ""}`} onClick={() => handleBottomNavClick("account")}>
+          <button
+            type="button"
+            className={`${styles.bottomNavItem} ${activeBottomTab === "account" ? styles.active : ""}`}
+            onClick={() => handleBottomNavClick("account")}
+          >
             <i className="bi bi-person" />
             <span>{bottomNavAccountLabel}</span>
           </button>
@@ -663,7 +709,8 @@ const HeaderAuroraWear: React.FC<HeaderFashionProps> = (props) => {
           if (e.target === e.currentTarget) {
             handleCloseSearchPopup();
           }
-        }}>
+        }}
+      >
         <div className={styles.searchPopupInner}>
           <form className={styles.searchPopupHeader} onSubmit={handleSearch("popup")}>
             <input

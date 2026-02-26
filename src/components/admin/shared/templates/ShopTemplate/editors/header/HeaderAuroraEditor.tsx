@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import type { HeaderAuroraProps } from "@/components/admin/templates/ShopTemplate/Ui/header/HeaderAurora";
+import type { HeaderAuroraProps } from "@/components/admin/shared/templates/ShopTemplate/Ui/header/HeaderAurora";
 
 import Section from "../parts/Section";
 import LabeledRow from "../parts/LabeledRow";
@@ -22,32 +22,54 @@ const HeaderAuroraEditor: React.FC<EditorProps> = ({ props, updateActive }) => {
 
   const tickerItemsText = (props.tickerItems ?? []).map((item) => `${item.tag}|${item.content}`).join("\n");
 
-  const bottomNavItemsText = (props.bottomNavItems ?? []).map((item) => `${item.id}|${item.iconClass}|${item.label}`).join("\n");
+  const bottomNavItemsText = (props.bottomNavItems ?? [])
+    .map((item) => `${item.id}|${item.iconClass}|${item.label}`)
+    .join("\n");
 
   return (
     <>
       {/* BRAND */}
       <Section title="Brand">
         <LabeledRow label="Tên thương hiệu">
-          <TextInput value={props.brandName ?? ""} onChange={(v) => updateActive({ brandName: v })} placeholder="Aurora Wear" />
+          <TextInput
+            value={props.brandName ?? ""}
+            onChange={(v) => updateActive({ brandName: v })}
+            placeholder="Aurora Wear"
+          />
         </LabeledRow>
         <LabeledRow label="Chip nhỏ dưới brand">
-          <TextInput value={props.brandChip ?? ""} onChange={(v) => updateActive({ brandChip: v })} placeholder="Fashion Studio" />
+          <TextInput
+            value={props.brandChip ?? ""}
+            onChange={(v) => updateActive({ brandChip: v })}
+            placeholder="Fashion Studio"
+          />
         </LabeledRow>
       </Section>
 
       {/* SEARCH */}
       <Section title="Tìm kiếm">
         <LabeledRow label="Placeholder search (desktop)">
-          <TextInput value={props.searchPlaceholder ?? ""} onChange={(v) => updateActive({ searchPlaceholder: v })} placeholder="Tìm đầm maxi, áo blazer, sneaker trắng hoặc mã đơn hàng..." />
+          <TextInput
+            value={props.searchPlaceholder ?? ""}
+            onChange={(v) => updateActive({ searchPlaceholder: v })}
+            placeholder="Tìm đầm maxi, áo blazer, sneaker trắng hoặc mã đơn hàng..."
+          />
         </LabeledRow>
 
         <LabeledRow label="Placeholder nút search (mobile)">
-          <TextInput value={props.searchMobilePlaceholder ?? ""} onChange={(v) => updateActive({ searchMobilePlaceholder: v })} placeholder="Tìm outfit, sản phẩm, mã đơn..." />
+          <TextInput
+            value={props.searchMobilePlaceholder ?? ""}
+            onChange={(v) => updateActive({ searchMobilePlaceholder: v })}
+            placeholder="Tìm outfit, sản phẩm, mã đơn..."
+          />
         </LabeledRow>
 
         <LabeledRow label="Label nút submit">
-          <TextInput value={props.searchButtonLabel ?? ""} onChange={(v) => updateActive({ searchButtonLabel: v })} placeholder="Tìm outfit" />
+          <TextInput
+            value={props.searchButtonLabel ?? ""}
+            onChange={(v) => updateActive({ searchButtonLabel: v })}
+            placeholder="Tìm outfit"
+          />
         </LabeledRow>
 
         <LabeledRow label="Search hints (gợi ý dưới ô - mỗi dòng 1 item)">
@@ -84,11 +106,19 @@ const HeaderAuroraEditor: React.FC<EditorProps> = ({ props, updateActive }) => {
       {/* USER / BADGES */}
       <Section title="User & Badge">
         <LabeledRow label="Lời chào (user name)">
-          <TextInput value={props.welcomeName ?? ""} onChange={(v) => updateActive({ welcomeName: v })} placeholder="Xin chào, Bạn" />
+          <TextInput
+            value={props.welcomeName ?? ""}
+            onChange={(v) => updateActive({ welcomeName: v })}
+            placeholder="Xin chào, Bạn"
+          />
         </LabeledRow>
 
         <LabeledRow label="User role / cấp độ">
-          <TextInput value={props.userRole ?? ""} onChange={(v) => updateActive({ userRole: v })} placeholder="Aurora Member" />
+          <TextInput
+            value={props.userRole ?? ""}
+            onChange={(v) => updateActive({ userRole: v })}
+            placeholder="Aurora Member"
+          />
         </LabeledRow>
 
         <LabeledRow label="Số thông báo (notifCount)">
@@ -121,7 +151,11 @@ const HeaderAuroraEditor: React.FC<EditorProps> = ({ props, updateActive }) => {
       {/* TICKER */}
       <Section title="Thanh ticker (Updates)">
         <LabeledRow label="Tiêu đề ticker">
-          <TextInput value={props.tickerTitle ?? ""} onChange={(v) => updateActive({ tickerTitle: v })} placeholder="Aurora Wear Updates" />
+          <TextInput
+            value={props.tickerTitle ?? ""}
+            onChange={(v) => updateActive({ tickerTitle: v })}
+            placeholder="Aurora Wear Updates"
+          />
         </LabeledRow>
 
         <LabeledRow label="Danh sách ticker (mỗi dòng: TAG|Nội dung)">
@@ -178,7 +212,10 @@ const HeaderAuroraEditor: React.FC<EditorProps> = ({ props, updateActive }) => {
       {/* MENU / API */}
       <Section title="Menu từ API">
         <LabeledRow label="Tự động load menu từ API">
-          <Checkbox checked={props.autoLoadMenu ?? true} onChange={(checked) => updateActive({ autoLoadMenu: checked })} />
+          <Checkbox
+            checked={props.autoLoadMenu ?? true}
+            onChange={(checked) => updateActive({ autoLoadMenu: checked })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Locale">
@@ -190,7 +227,11 @@ const HeaderAuroraEditor: React.FC<EditorProps> = ({ props, updateActive }) => {
         </LabeledRow>
 
         <LabeledRow label="Site ID (nếu dùng multi-site)">
-          <TextInput value={props.siteId ?? ""} onChange={(v) => updateActive({ siteId: v || undefined })} placeholder="(optional) cmhogc..." />
+          <TextInput
+            value={props.siteId ?? ""}
+            onChange={(v) => updateActive({ siteId: v || undefined })}
+            placeholder="(optional) cmhogc..."
+          />
         </LabeledRow>
       </Section>
 

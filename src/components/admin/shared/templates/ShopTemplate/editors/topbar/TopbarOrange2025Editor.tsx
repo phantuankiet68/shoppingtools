@@ -6,9 +6,16 @@ import TextArea from "../parts/TextArea";
 import TextInput from "../parts/TextInput";
 import LabeledRow from "../parts/LabeledRow";
 import { JsonListEditor } from "../JsonListEditor";
-import type { TopbarOrange2025Props, TopbarOrangeTickerItem, TopbarOrangeLink } from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarOrange2025";
+import type {
+  TopbarOrange2025Props,
+  TopbarOrangeTickerItem,
+  TopbarOrangeLink,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/TopbarOrange2025";
 
-import { TOPBAR_ORANGE_DEFAULT_TICKERS, TOPBAR_ORANGE_DEFAULT_LINKS } from "@/components/admin/templates/ShopTemplate/Ui/topbar/TopbarOrange2025";
+import {
+  TOPBAR_ORANGE_DEFAULT_TICKERS,
+  TOPBAR_ORANGE_DEFAULT_LINKS,
+} from "@/components/admin/shared/templates/ShopTemplate/Ui/topbar/TopbarOrange2025";
 
 type TopbarOrange2025EditorProps = {
   props: TopbarOrange2025Props;
@@ -99,7 +106,10 @@ const TopbarOrange2025Editor: React.FC<TopbarOrange2025EditorProps> = ({ props, 
         />
 
         <LabeledRow label="Hiện trạng thái Online">
-          <TextInput value={props.showStatus ? "true" : "false"} onChange={(val) => updateActive({ showStatus: val === "true" || val === "1" })} />
+          <TextInput
+            value={props.showStatus ? "true" : "false"}
+            onChange={(val) => updateActive({ showStatus: val === "true" || val === "1" })}
+          />
         </LabeledRow>
 
         <LabeledRow label="Status text">
@@ -107,7 +117,12 @@ const TopbarOrange2025Editor: React.FC<TopbarOrange2025EditorProps> = ({ props, 
         </LabeledRow>
 
         <LabeledRow label="Màu nền">
-          <input type="color" value={props.backgroundColor ?? "#f97316"} onChange={(e) => updateActive({ backgroundColor: e.target.value })} style={{ width: 50, height: 32, cursor: "pointer" }} />
+          <input
+            type="color"
+            value={props.backgroundColor ?? "#f97316"}
+            onChange={(e) => updateActive({ backgroundColor: e.target.value })}
+            style={{ width: 50, height: 32, cursor: "pointer" }}
+          />
         </LabeledRow>
       </Section>
     </>

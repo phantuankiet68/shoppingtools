@@ -6,7 +6,7 @@ import type { Block } from "@/lib/page/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import cls from "@/styles/admin/pages/inspector.module.css";
 
-import { CUSTOM_EDITORS } from "@/components/admin/templates/ShopTemplate/editors";
+import { CUSTOM_EDITORS } from "@/components/admin/shared/templates/ShopTemplate/editors";
 
 type Props = {
   active: Block | null;
@@ -66,7 +66,11 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
               if (field.kind === "text") {
                 return (
                   <Row key={field.key} label={field.label}>
-                    <input className={cls.input} value={value} onChange={(e) => updateActive({ [field.key]: e.target.value })} />
+                    <input
+                      className={cls.input}
+                      value={value}
+                      onChange={(e) => updateActive({ [field.key]: e.target.value })}
+                    />
                   </Row>
                 );
               }
@@ -91,7 +95,12 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
               if (field.kind === "textarea") {
                 return (
                   <Row key={field.key} label={field.label} stack>
-                    <textarea className={cls.textarea} rows={6} value={value} onChange={(e) => updateActive({ [field.key]: e.target.value })} />
+                    <textarea
+                      className={cls.textarea}
+                      rows={6}
+                      value={value}
+                      onChange={(e) => updateActive({ [field.key]: e.target.value })}
+                    />
                   </Row>
                 );
               }
@@ -99,7 +108,11 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
               if (field.kind === "select") {
                 return (
                   <Row key={field.key} label={field.label}>
-                    <select className={cls.select} value={value} onChange={(e) => updateActive({ [field.key]: e.target.value })}>
+                    <select
+                      className={cls.select}
+                      value={value}
+                      onChange={(e) => updateActive({ [field.key]: e.target.value })}
+                    >
                       {field.options?.map((opt: string) => (
                         <option key={opt} value={opt}>
                           {opt}

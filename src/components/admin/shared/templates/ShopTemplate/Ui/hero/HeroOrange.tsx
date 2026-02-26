@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState, MouseEvent } from "react";
-import styles from "@/components/admin/templates/ShopTemplate/styles/hero/HeroOrange.module.css";
+import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroOrange.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type HeroOrangeTabKey = "flash" | "electronics" | "home" | "fashion";
@@ -105,7 +105,8 @@ const DEFAULT_HERO_ORANGE_PROPS: HeroOrangeProps = {
   brandSubtitle: "Neo Flash Deals • 2025",
   taglineText: "Nền cam pastel & glow mềm giống topbar",
   heading: "Chạm nhẹ là săn ngay deal cam rực – mềm mắt, cháy giá 🔥",
-  description: 'Gom đồ điện tử, gia dụng & thời trang trong một khung tìm kiếm cam pastel. Mỗi lần gõ là một lần "bốc trúng" ưu đãi mới.',
+  description:
+    'Gom đồ điện tử, gia dụng & thời trang trong một khung tìm kiếm cam pastel. Mỗi lần gõ là một lần "bốc trúng" ưu đãi mới.',
   pills: [
     {
       iconClass: "bi bi-broadcast-pin",
@@ -213,7 +214,13 @@ export const HeroOrange: React.FC<HeroOrangeProps> = (props) => {
   const [cardWidth, setCardWidth] = useState(190);
   const firstCardRef = useRef<HTMLDivElement | null>(null);
 
-  const filteredDeals = useMemo(() => HERO_ORANGE_DEALS.filter((deal) => (activeTab === "flash" ? deal.categories.includes("flash") : deal.categories.includes(activeTab))), [activeTab]);
+  const filteredDeals = useMemo(
+    () =>
+      HERO_ORANGE_DEALS.filter((deal) =>
+        activeTab === "flash" ? deal.categories.includes("flash") : deal.categories.includes(activeTab),
+      ),
+    [activeTab],
+  );
 
   const visibleCount = 3;
   const maxIndex = Math.max(0, filteredDeals.length - visibleCount);
@@ -374,16 +381,32 @@ export const HeroOrange: React.FC<HeroOrangeProps> = (props) => {
       {/* STRIP DEALS */}
       <div className={styles.heroDealsStrip}>
         <div className={styles.heroTabs}>
-          <button type="button" className={`${styles.heroTabBtn} ${activeTab === "flash" ? styles.heroTabBtnActive : ""}`} onClick={handleTabClick("flash")}>
+          <button
+            type="button"
+            className={`${styles.heroTabBtn} ${activeTab === "flash" ? styles.heroTabBtnActive : ""}`}
+            onClick={handleTabClick("flash")}
+          >
             Flash sale hôm nay
           </button>
-          <button type="button" className={`${styles.heroTabBtn} ${activeTab === "electronics" ? styles.heroTabBtnActive : ""}`} onClick={handleTabClick("electronics")}>
+          <button
+            type="button"
+            className={`${styles.heroTabBtn} ${activeTab === "electronics" ? styles.heroTabBtnActive : ""}`}
+            onClick={handleTabClick("electronics")}
+          >
             Điện tử
           </button>
-          <button type="button" className={`${styles.heroTabBtn} ${activeTab === "home" ? styles.heroTabBtnActive : ""}`} onClick={handleTabClick("home")}>
+          <button
+            type="button"
+            className={`${styles.heroTabBtn} ${activeTab === "home" ? styles.heroTabBtnActive : ""}`}
+            onClick={handleTabClick("home")}
+          >
             Nhà cửa
           </button>
-          <button type="button" className={`${styles.heroTabBtn} ${activeTab === "fashion" ? styles.heroTabBtnActive : ""}`} onClick={handleTabClick("fashion")}>
+          <button
+            type="button"
+            className={`${styles.heroTabBtn} ${activeTab === "fashion" ? styles.heroTabBtnActive : ""}`}
+            onClick={handleTabClick("fashion")}
+          >
             Thời trang
           </button>
         </div>
@@ -406,10 +429,18 @@ export const HeroOrange: React.FC<HeroOrangeProps> = (props) => {
 
           {filteredDeals.length > 0 && (
             <>
-              <button type="button" className={`${styles.dealsArrow} ${styles.dealsArrowLeft}`} onClick={handlePrevClick}>
+              <button
+                type="button"
+                className={`${styles.dealsArrow} ${styles.dealsArrowLeft}`}
+                onClick={handlePrevClick}
+              >
                 <i className="bi bi-chevron-left" />
               </button>
-              <button type="button" className={`${styles.dealsArrow} ${styles.dealsArrowRight}`} onClick={handleNextClick}>
+              <button
+                type="button"
+                className={`${styles.dealsArrow} ${styles.dealsArrowRight}`}
+                onClick={handleNextClick}
+              >
                 <i className="bi bi-chevron-right" />
               </button>
             </>
