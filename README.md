@@ -63,3 +63,12 @@ src/
 └── styles/
 
 sang kiểu core (schema + renderer + runtime + action registry) theo mức MVP đủ chạy (không over-engineer), và vẫn dùng API route Prisma bạn đã có (không đổi).
+
+tôi muốn chuyển service và store bạn có thể tách giúp tôi được không
+
+Folder Vai trò
+lib hạ tầng (db, auth helpers, fetch wrapper)
+services business/service layer
+features domain module
+constants enum/static
+utils pure helpers

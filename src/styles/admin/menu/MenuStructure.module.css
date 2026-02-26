@@ -1,4 +1,3 @@
-/* MenuStructure.module.css */
 .menuStructure {
   border: 1px dashed rgba(15, 23, 42, 0.2);
   border-radius: 16px;
@@ -11,7 +10,6 @@
   overflow: auto;
   height: 74vh;
 }
-/* ===== Root tokens (tuỳ bạn đưa lên :root) ===== */
 .itemContainer {
   padding: 10px 10px 14px;
   border-radius: 14px;
@@ -20,7 +18,6 @@
   margin-bottom: 12px;
 }
 
-/* ===== Menu item row ===== */
 .menuItem {
   display: flex;
   align-items: center;
@@ -48,7 +45,6 @@
   transform: translateY(0px);
 }
 
-/* ===== Order badge (blue circle) ===== */
 .order {
   width: 28px;
   height: 28px;
@@ -63,7 +59,6 @@
   background: #47b8fff2;
 }
 
-/* ===== Drag handle ===== */
 .handle {
   font-size: 18px;
   color: rgba(15, 23, 42, 0.38);
@@ -87,7 +82,6 @@
   cursor: grabbing;
 }
 
-/* ===== Pills ===== */
 .depthBadge,
 .typeBadge {
   display: inline-flex;
@@ -97,9 +91,6 @@
   height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-
-  font-size: 12px;
-  font-weight: 700;
   letter-spacing: 0.2px;
 
   border: 1px solid rgba(15, 23, 42, 0.1);
@@ -119,8 +110,6 @@
   color: #1d4ed8;
 }
 
-/* Bạn đã có typeBadgeClass trong JSX (internal/external/scheduled)
-   => chỉ cần tạo vài class để map */
 .typeInternal {
   background: rgba(16, 185, 129, 0.1);
   border-color: rgba(16, 185, 129, 0.22);
@@ -139,7 +128,6 @@
   color: #6d28d9;
 }
 
-/* ===== Title flexible area ===== */
 .flex1 {
   flex: 1;
   min-width: 220px;
@@ -150,14 +138,12 @@
   border-radius: 10px;
 }
 
-/* Highlight (nếu highlight() của bạn bọc <mark>) */
 .menuItem mark {
   background: rgba(250, 204, 21, 0.3);
   padding: 0 4px;
   border-radius: 6px;
 }
 
-/* ===== Buttons ===== */
 .btn {
   border: 1px solid transparent;
   background: transparent;
@@ -171,7 +157,6 @@
   border-radius: 999px;
   display: grid;
   place-items: center;
-
   transition:
     transform 120ms ease,
     background 120ms ease,
@@ -209,7 +194,6 @@
   border-color: rgba(239, 68, 68, 0.28);
 }
 
-/* ===== Submenu wrapper (dashed zone) ===== */
 .subwrap {
   margin-top: 10px;
   padding: 10px 10px 12px;
@@ -218,7 +202,6 @@
   background: rgba(248, 250, 252, 0.6);
 }
 
-/* Small helper row like "Submenu của ..." */
 .smallHelp {
   display: inline-flex;
   align-items: center;
@@ -235,7 +218,6 @@
   color: rgba(15, 23, 42, 0.45);
 }
 
-/* ===== Dropzone ===== */
 .dropzone {
   margin-top: 8px;
   border-radius: 14px;
@@ -259,20 +241,17 @@
   background: rgba(37, 99, 235, 0.03);
 }
 
-/* Optional: khi drag over, bạn setOver(...) có thể add class .isOver */
 .isOver {
   border-color: rgba(37, 99, 235, 0.4);
   background: rgba(37, 99, 235, 0.06);
   box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
-/* Optional: spacing cho nested children */
 .subwrap .itemContainer {
   margin-top: 10px;
   margin-bottom: 0;
 }
 
-/* Responsive tweaks */
 @media (max-width: 900px) {
   .linkPill {
     display: none;
@@ -281,7 +260,7 @@
     min-width: 140px;
   }
 }
-/* ===== Card layout ===== */
+
 .cardHeader {
   display: flex;
   align-items: center;
@@ -308,7 +287,6 @@
   padding: 12px 8px;
 }
 
-/* ===== Search ===== */
 .headerRight {
   display: flex;
   gap: 10px;
@@ -349,7 +327,6 @@
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.16);
 }
 
-/* ===== Dropzone root ===== */
 .dropzone {
   border-radius: 16px;
   border: 1.5px dashed rgba(99, 102, 241, 0.26);
@@ -365,18 +342,14 @@
   border-color: rgba(99, 102, 241, 0.62);
 }
 
-/* ===== Menu item row ===== */
 .itemContainer {
   margin-bottom: 12px;
 }
-
-/* Drag ghost */
 .ghost {
   opacity: 0.45;
   transform: scale(0.99);
 }
 
-/* ===== Small pieces in row ===== */
 .order {
   width: 26px;
   height: 26px;
@@ -395,8 +368,7 @@
 .depthBadge {
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 650;
+  font-size: 13px;
   border: 1px solid rgba(2, 6, 23, 0.1);
   background: rgba(2, 6, 23, 0.03);
   white-space: nowrap;
@@ -417,15 +389,12 @@
 .typeBadge {
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 650;
+  font-size: 13px;
   border: 1px solid rgba(2, 6, 23, 0.1);
   background: rgba(255, 255, 255, 0.9);
   white-space: nowrap;
 }
 
-/* You already have badgeSuccess / badgeWarning / badgePrimary
-   keep them, or style lightly: */
 .badgeSuccess {
   background: rgba(16, 185, 129, 0.1);
   border-color: rgba(16, 185, 129, 0.22);
@@ -449,7 +418,6 @@
   color: rgba(244, 172, 77, 0.92);
 }
 
-/* Link pill */
 .linkPill {
   max-width: 280px;
   padding: 6px 10px;
@@ -463,7 +431,6 @@
   white-space: nowrap;
 }
 
-/* ===== Buttons (actions) ===== */
 .btn {
   border-radius: 6px;
   border: 1px solid rgba(2, 6, 23, 0.12);
@@ -480,7 +447,6 @@
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Make actions “clean”: only strong on hover */
 .menuItem .btn {
   opacity: 0.55;
 }
@@ -497,10 +463,9 @@
   color: rgba(153, 27, 27, 0.95);
 }
 
-/* ===== Submenu area (the part you highlighted) ===== */
 .subwrap {
   margin-top: 10px;
-  margin-left: 40px; /* tạo hierarchy rõ */
+  margin-left: 40px;
   padding: 12px;
   border-radius: 16px;
   border: 1px solid rgba(2, 6, 23, 0.08);
@@ -508,7 +473,6 @@
   position: relative;
 }
 
-/* a subtle “connector line” from parent */
 .subwrap::before {
   content: "";
   position: absolute;
@@ -527,19 +491,15 @@
   margin-bottom: 10px;
 }
 
-/* Submenu dropzone inside subwrap */
 .subwrap .dropzone {
   background: rgba(99, 102, 241, 0.04);
   border-color: rgba(99, 102, 241, 0.28);
   padding: 12px;
 }
 
-/* Better empty hint */
 .subwrap .smallHelp.m-0 {
   opacity: 0.8;
 }
-
-/* Mark highlight from your search */
 .subwrap mark {
   background: rgba(245, 158, 11, 0.22);
   color: rgba(2, 6, 23, 0.92);

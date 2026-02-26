@@ -1,21 +1,5 @@
 import { slugify } from "@/lib/page/utils";
-
-export type InternalPage = {
-  id: string;
-  path: string;
-};
-
-export type MenuItemType = "PAGE" | "CUSTOM_URL";
-
-export type BasicMenuItem = {
-  id: string;
-  title?: string | null;
-  type: MenuItemType;
-  pageId?: string | null;
-  customUrl?: string | null;
-  visible?: boolean;
-  children?: BasicMenuItem[];
-};
+import type { BuilderMenuItem, InternalPage } from "@/components/admin/menu/state/useMenuStore";
 
 export type TSP = { title: string; slug: string; path: string };
 
@@ -35,18 +19,33 @@ function slugFromPath(path: string) {
   return segs[segs.length - 1] || "/";
 }
 
-export function deriveTriple(it: BasicMenuItem, internalPages: InternalPage[]): TSP | null {
-  if (it.visible === false) return null;
+function resolveInternalPath(it: BuilderMenuItem, internalPages: InternalPage[]) {
+  // Ưu tiên page theo internalPageId
+  const pid = it.internalPageId || "";
+  const pagePath = pid ? internalPages.find((p) => p.id === pid)?.path : undefined;
 
-  if (it.type !== "PAGE") return null;
+  // Nếu không có pagePath thì dùng rawPath (user nhập tay)
+  const raw = typeof it.rawPath === "string" ? it.rawPath : "";
+  return normalizePath(pagePath || raw || "");
+}
+
+/**
+ * Chỉ tạo triple cho item:
+ * - visible !== false
+ * - linkType === "internal"
+ * - path là internal path (không phải external url)
+ */
+export function deriveTriple(it: BuilderMenuItem, internalPages: InternalPage[]): TSP | null {
+  if (it.visible === false) return null;
+  if (it.linkType !== "internal") return null;
 
   const title = String(it.title ?? "").trim() || "Untitled";
 
-  const pid = it.pageId ?? null;
-  const pagePath = pid ? internalPages.find((p) => p.id === pid)?.path : undefined;
-  const path = normalizePath(pagePath);
+  const path = resolveInternalPath(it, internalPages);
 
   if (path) {
+    // Nếu path là external (lỡ user nhập http), bỏ qua
+    if (/^https?:\/\//i.test(path)) return null;
     return { title, slug: slugFromPath(path), path };
   }
 
@@ -54,10 +53,10 @@ export function deriveTriple(it: BasicMenuItem, internalPages: InternalPage[]): 
   return { title, slug: s, path: `/${s}` };
 }
 
-export function flattenTriples(items: BasicMenuItem[], internalPages: InternalPage[]): TSP[] {
+export function flattenTriples(items: BuilderMenuItem[], internalPages: InternalPage[]): TSP[] {
   const out: TSP[] = [];
 
-  const walk = (nodes?: BasicMenuItem[]) => {
+  const walk = (nodes?: BuilderMenuItem[]) => {
     if (!nodes) return;
     for (const n of nodes) {
       const t = deriveTriple(n, internalPages);
@@ -68,6 +67,7 @@ export function flattenTriples(items: BasicMenuItem[], internalPages: InternalPa
 
   walk(items);
 
+  // unique theo path
   const seen = new Set<string>();
   return out.filter((x) => {
     if (seen.has(x.path)) return false;

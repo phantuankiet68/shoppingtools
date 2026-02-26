@@ -10,7 +10,6 @@ const poppins = Poppins({
   variable: "--font-poppins",
   display: "swap",
 });
-
 export const metadata: Metadata = {
   title: "Admin",
   description: "Admin dashboard",

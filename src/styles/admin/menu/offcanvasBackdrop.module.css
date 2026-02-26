@@ -1,4 +1,3 @@
-/* Backdrop */
 .offcanvasBackdrop {
   position: fixed;
   inset: 0;
@@ -10,11 +9,10 @@
   padding: 16px;
 }
 
-/* Offcanvas (modal-like) */
 .offcanvas {
-  width: 720px;
+  width: 500px;
   max-width: calc(100vw - 32px);
-  height: min(92vh, 860px);
+  height: min(79vh, 860px);
   background: var(--card-bg, #fff);
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.35);
@@ -36,7 +34,6 @@
   }
 }
 
-/* Header */
 .ocHeader {
   padding: 14px 16px;
   display: flex;
@@ -98,13 +95,17 @@
   background: rgba(148, 163, 184, 0.15);
 }
 
-/* Body */
 .ocBody {
   padding: 14px 16px 16px;
   overflow: auto;
 }
 
-/* Panels */
+.formGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .panel {
   background: rgba(248, 250, 252, 0.55);
   border: 1px solid rgba(148, 163, 184, 0.22);
@@ -117,12 +118,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 800;
+  font-weight: 500;
   color: rgb(15 23 42);
   margin-bottom: 10px;
+  font-size: 14px;
 }
 
-/* Layout helpers */
 .grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -142,7 +143,6 @@
   gap: 12px;
 }
 
-/* Form */
 .formLabel {
   display: block;
   margin-bottom: 6px;
@@ -160,6 +160,7 @@
   background: #fff;
   padding: 0 12px;
   outline: none;
+  font-size: 13px;
 }
 
 .formControl:focus,
@@ -169,7 +170,6 @@
 }
 
 .smallHelp {
-  margin-top: 6px;
   font-size: 12.5px;
   color: rgb(100 116 139);
 }
@@ -204,12 +204,10 @@
   color: rgb(51 65 85);
 }
 
-/* Buttons */
 .btn {
   height: 38px;
-  padding: 0 14px;
+  padding: 0 18px;
   border-radius: 10px;
-  font-weight: 800;
   font-size: 13px;
   display: inline-flex;
   align-items: center;
@@ -265,7 +263,6 @@
   background: rgba(239, 68, 68, 0.14);
 }
 
-/* Scheduled */
 .scheduleList {
   display: grid;
   gap: 10px;
@@ -297,7 +294,6 @@
   color: rgb(51 65 85);
 }
 
-/* Empty state */
 .emptyBox {
   margin-top: 10px;
   border-radius: 14px;
@@ -315,7 +311,6 @@
   color: rgb(15 23 42);
 }
 
-/* Preview */
 .previewBox {
   margin-top: 10px;
   display: flex;
@@ -354,7 +349,6 @@
   font-size: 12.5px;
 }
 
-/* Footer sticky */
 .ocFooter {
   padding: 12px 16px;
   border-top: 1px solid rgba(148, 163, 184, 0.2);
@@ -366,7 +360,6 @@
   bottom: 0;
 }
 
-/* Small pill */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -381,7 +374,6 @@
   margin-left: 6px;
 }
 
-/* Spinner */
 .spinner {
   width: 14px;
   height: 14px;

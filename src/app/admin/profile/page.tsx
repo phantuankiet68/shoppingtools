@@ -3,15 +3,15 @@
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
 import styles from "@/styles/admin/profile/ProfilePage.module.css";
 import { useEffect, useMemo, useState, useRef } from "react";
-import ProfileForm from "@/components/admin/profile/ProfileForm";
-import ChangePassword from "@/components/admin/profile/ChangePassword";
-import AdminMessagesClient from "@/components/admin/profile/AdminMessagesClient";
-import CalendarClient from "@/components/admin/profile/Calendar";
-import AdminFilesClient from "@/components/admin/profile/AdminFilesClient";
-import AdminImagesClient from "@/components/admin/profile/AdminImagesClient";
-import AdminSpendingClient from "@/components/admin/profile/AdminSpendingClient";
-import AdminPrivacyClient from "@/components/admin/profile/AdminPrivacyClient";
-import AvatarUploadModal from "@/components/admin/profile/AvatarUploadModal";
+import ProfileForm from "@/components/admin/system/profile/ProfileForm";
+import ChangePassword from "@/components/admin/system/profile/ChangePassword";
+import AdminMessagesClient from "@/components/admin/system/profile/AdminMessagesClient";
+import CalendarClient from "@/components/admin/system/profile/Calendar";
+import AdminFilesClient from "@/components/admin/system/profile/AdminFilesClient";
+import AdminImagesClient from "@/components/admin/system/profile/AdminImagesClient";
+import AdminSpendingClient from "@/components/admin/system/profile/AdminSpendingClient";
+import AdminPrivacyClient from "@/components/admin/system/profile/AdminPrivacyClient";
+import AvatarUploadModal from "@/components/admin/system/profile/AvatarUploadModal";
 
 const responsibilities = ["Security", "Encryption", "Keys and Secrets"];
 
@@ -68,34 +68,58 @@ export default function AdminProfilePage() {
               {user?.image ? (
                 <img src={user.image} alt={user.name ?? "User avatar"} className={styles.avatarImg} />
               ) : (
-                <span className={styles.avatarFallback}>{(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}</span>
+                <span className={styles.avatarFallback}>
+                  {(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
+                </span>
               )}
             </div>
 
-            <button className={styles.addBtn} type="button" aria-label="Change avatar" onClick={() => setOpenAvatar(true)}>
+            <button
+              className={styles.addBtn}
+              type="button"
+              aria-label="Change avatar"
+              onClick={() => setOpenAvatar(true)}
+            >
               <i className="bi bi-plus" />
             </button>
           </div>
 
           <h3 className={styles.personName}>{user?.name ?? "—"}</h3>
         </div>
-        <AvatarUploadModal open={openAvatar} onClose={() => setOpenAvatar(false)} currentImage={user?.image} onUploaded={(newUrl) => setUser((u) => (u ? { ...u, image: newUrl } : u))} />
+        <AvatarUploadModal
+          open={openAvatar}
+          onClose={() => setOpenAvatar(false)}
+          currentImage={user?.image}
+          onUploaded={(newUrl) => setUser((u) => (u ? { ...u, image: newUrl } : u))}
+        />
         {/* Menu */}
         <nav className={styles.nav}>
           <div className={styles.navSection}>
             <div className={styles.navTitle}>Account</div>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "profile" ? styles.active : ""}`} onClick={() => setSection("profile")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "profile" ? styles.active : ""}`}
+              onClick={() => setSection("profile")}
+            >
               <i className="bi bi-person-circle" />
               <span>Profile</span>
             </button>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "changePassword" ? styles.active : ""}`} onClick={() => setSection("changePassword")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "changePassword" ? styles.active : ""}`}
+              onClick={() => setSection("changePassword")}
+            >
               <i className="bi bi-shield-lock" />
               <span>Change password</span>
             </button>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "message" ? styles.active : ""}`} onClick={() => setSection("message")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "message" ? styles.active : ""}`}
+              onClick={() => setSection("message")}
+            >
               <i className="bi bi-file-earmark-person" />
               <span>Messages</span>
             </button>
@@ -104,22 +128,38 @@ export default function AdminProfilePage() {
           <div className={styles.navSection}>
             <div className={styles.navTitle}>Workspace</div>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "calendar" ? styles.active : ""}`} onClick={() => setSection("calendar")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "calendar" ? styles.active : ""}`}
+              onClick={() => setSection("calendar")}
+            >
               <i className="bi bi-calendar3" />
               <span>Calendar</span>
             </button>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "file" ? styles.active : ""}`} onClick={() => setSection("file")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "file" ? styles.active : ""}`}
+              onClick={() => setSection("file")}
+            >
               <i className="bi bi-folder2-open" />
               <span>Files</span>
             </button>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "image" ? styles.active : ""}`} onClick={() => setSection("image")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "image" ? styles.active : ""}`}
+              onClick={() => setSection("image")}
+            >
               <i className="bi bi-images" />
               <span>Images</span>
             </button>
 
-            <button type="button" className={`${styles.navItem} ${activeSection === "spending" ? styles.active : ""}`} onClick={() => setSection("spending")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "spending" ? styles.active : ""}`}
+              onClick={() => setSection("spending")}
+            >
               <i className="bi bi-credit-card" />
               <span>Spending</span>
               <span className={styles.badge}>NEW</span>
@@ -127,7 +167,11 @@ export default function AdminProfilePage() {
           </div>
 
           <div className={styles.navFooter}>
-            <button type="button" className={`${styles.navItem} ${activeSection === "privacy" ? styles.active : styles.danger}`} onClick={() => setSection("privacy")}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${activeSection === "privacy" ? styles.active : styles.danger}`}
+              onClick={() => setSection("privacy")}
+            >
               <i className="bi bi-shield-lock" />
               <span>Privacy</span>
             </button>
