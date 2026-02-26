@@ -1,21 +1,21 @@
-// app/(admin)/menu/components/AllowedBlocks.tsx
 "use client";
 
 import React from "react";
 import { useMenuStore, type BuilderMenuItem } from "@/components/admin/builder/menus/state/useMenuStore";
 import styles from "@/styles/admin/menu/menu.module.css";
 
-type TabKey = "home" | "dashboard";
+import { useAllowedBlocksStore } from "@/store/builder/menus/useAllowedBlocksStore";
+import {
+  filterSuggest,
+  forcedTabFromSet,
+  getSuggestBySite,
+  isTabbedConfig,
+  pickBaseNames,
+  buildExistingPagesSet,
+  buildExistingTitlesSet,
+} from "@/services/builder/menus/allowedBlocks.service";
 
-function isTabbedConfig(v: unknown): v is { home: string[]; dashboard?: string[] } {
-  return (
-    !!v &&
-    typeof v === "object" &&
-    !Array.isArray(v) &&
-    Array.isArray((v as any).home) &&
-    ((v as any).dashboard === undefined || Array.isArray((v as any).dashboard))
-  );
-}
+type TabKey = "home" | "dashboard";
 
 export default function AllowedBlocks() {
   const {
@@ -29,143 +29,31 @@ export default function AllowedBlocks() {
     currentSet,
   } = useMenuStore();
 
+  const { addByName, onDragStart } = useAllowedBlocksStore();
+
   const tpl = TEMPLATE_ALLOWED[templateKey];
   const hasTabs = isTabbedConfig(tpl);
 
-  // ✅ Ép tab theo currentSet, không dùng state tab để tránh user đổi tay + tránh re-render dư
-  const forcedTab: TabKey = currentSet === "v1" ? "dashboard" : "home";
+  const forcedTab: TabKey = forcedTabFromSet(currentSet);
 
-  const baseNames: string[] = React.useMemo(() => {
-    if (!tpl) return [];
-    if (Array.isArray(tpl)) return tpl;
+  const baseNames: string[] = React.useMemo(() => pickBaseNames(tpl as any, forcedTab), [tpl, forcedTab]);
 
-    // ✅ dashboard có thể undefined
-    return forcedTab === "dashboard" ? (tpl.dashboard ?? []) : tpl.home;
-  }, [tpl, forcedTab]);
+  const existingPages = React.useMemo(() => buildExistingPagesSet(INTERNAL_PAGES || []), [INTERNAL_PAGES]);
 
-  const existingPages = React.useMemo(() => {
-    const set = new Set<string>();
+  const SUGGEST = React.useMemo(() => getSuggestBySite(siteKind), [siteKind]);
 
-    (INTERNAL_PAGES || []).forEach((p) => {
-      if (p.label) set.add(p.label.toLowerCase().trim());
-      if (p.labelVi) set.add(p.labelVi.toLowerCase().trim());
-      (p.aliases || []).forEach((a) => set.add(a.toLowerCase().trim()));
-    });
+  const existingTitles = React.useMemo(() => buildExistingTitlesSet(activeMenu || []), [activeMenu]);
 
-    return set;
-  }, [INTERNAL_PAGES]);
-
-  const SUGGEST = React.useMemo(() => {
-    const out: Record<string, string[]> = {};
-
-    if (siteKind === "ecommerce") {
-      out["Product Experience"] = [
-        "Product Detail",
-        "Product Reviews",
-        "Compare Products",
-        "Recently Viewed",
-        "Related Products",
-      ];
-      out["Trust & Conversion"] = [
-        "Customer Reviews",
-        "Testimonials",
-        "Warranty Policy",
-        "Return Process",
-        "Payment Methods",
-      ];
-      out["Order & After Sale"] = ["Order Tracking", "Track My Order", "Order History", "Reorder"];
-      out["Content & Growth"] = ["News", "Press", "Promotions Detail", "Campaigns"];
-      out["Engagement"] = ["Notifications", "Subscriptions", "Newsletter", "Loyalty Program", "Reward Points"];
-      out["Utilities"] = ["Store Locator", "Size Guide", "Help Center", "Live Chat"];
-    }
-
-    return out;
-  }, [siteKind]);
-
-  const existingTitles = React.useMemo(() => {
-    const all: string[] = [];
-
-    const walk = (arr: BuilderMenuItem[]) => {
-      arr.forEach((n) => {
-        if (n?.title) all.push(String(n.title).toLowerCase().trim());
-        if (n?.children?.length) walk(n.children);
-      });
-    };
-
-    walk(activeMenu || []);
-    return new Set(all);
-  }, [activeMenu]);
-
-  const findPageByName = React.useCallback(
-    (name: string) => {
-      const needle = name
-        .toLowerCase()
-        .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
-        .trim();
-
-      return INTERNAL_PAGES.find((p) => {
-        const pool = [p.label, p.labelVi, ...(p.aliases || [])]
-          .filter(Boolean)
-          .map((s) => String(s).toLowerCase().trim());
-
-        return pool.includes(needle);
-      });
-    },
-    [INTERNAL_PAGES],
+  const filteredSuggest = React.useMemo(
+    () =>
+      filterSuggest({
+        suggest: SUGGEST,
+        baseNames,
+        existingTitles,
+        existingPages,
+      }),
+    [SUGGEST, baseNames, existingTitles, existingPages],
   );
-
-  const addByName = React.useCallback(
-    (name: string) => {
-      const page = findPageByName(name);
-
-      const item: BuilderMenuItem = {
-        id: `s_${Math.random().toString(36).slice(2, 9)}`,
-        title: name,
-        icon: "",
-        linkType: "internal",
-        externalUrl: "",
-        internalPageId: page?.id ?? "home",
-        rawPath: page?.path ?? "/",
-        schedules: [],
-        children: [],
-      };
-
-      setActiveMenu([...(activeMenu || []), item]);
-    },
-    [activeMenu, findPageByName, setActiveMenu],
-  );
-
-  const onDragStart = React.useCallback(
-    (e: React.DragEvent, name: string) => {
-      const page = findPageByName(name);
-
-      const payload = page
-        ? { type: "new", name, linkType: "internal" as const, internalPageId: page.id, rawPath: page.path }
-        : { type: "new", name, linkType: "internal" as const, internalPageId: "home", rawPath: "/" };
-
-      const json = JSON.stringify(payload);
-      e.dataTransfer.setData("application/json", json);
-      e.dataTransfer.setData("text/plain", json);
-      e.dataTransfer.effectAllowed = "copy";
-    },
-    [findPageByName],
-  );
-
-  const filteredSuggest = React.useMemo(() => {
-    const out: Record<string, string[]> = {};
-    const baseSet = new Set(baseNames.map((s) => s.toLowerCase().trim()));
-
-    Object.entries(SUGGEST).forEach(([group, arr]) => {
-      const items = arr.filter((name) => {
-        const key = name.toLowerCase().trim();
-        return !baseSet.has(key) && !existingTitles.has(key) && !existingPages.has(key);
-      });
-
-      if (items.length) out[group] = items;
-    });
-
-    return out;
-  }, [SUGGEST, baseNames, existingTitles, existingPages]);
 
   return (
     <div className={styles.cardform}>
@@ -190,8 +78,15 @@ export default function AllowedBlocks() {
               <div
                 className={`${styles.blockCard} ${styles.appCard}`}
                 draggable
-                onDragStart={(e) => onDragStart(e, n)}
-                onClick={() => addByName(n)}
+                onDragStart={(e) => onDragStart(e, { name: n, internalPages: INTERNAL_PAGES || [] })}
+                onClick={() =>
+                  addByName({
+                    name: n,
+                    activeMenu: activeMenu || [],
+                    setActiveMenu,
+                    internalPages: INTERNAL_PAGES || [],
+                  })
+                }
                 title="Kéo thả hoặc nhấn để thêm vào Menu"
               >
                 <div className={styles.blockIconWrap}>
@@ -223,8 +118,15 @@ export default function AllowedBlocks() {
                     <button
                       type="button"
                       key={name}
-                      onClick={() => addByName(name)}
-                      onDragStart={(e) => onDragStart(e as any, name)}
+                      onClick={() =>
+                        addByName({
+                          name,
+                          activeMenu: activeMenu || [],
+                          setActiveMenu,
+                          internalPages: INTERNAL_PAGES || [],
+                        })
+                      }
+                      onDragStart={(e) => onDragStart(e as any, { name, internalPages: INTERNAL_PAGES || [] })}
                       draggable
                       className={styles.btn}
                       style={{

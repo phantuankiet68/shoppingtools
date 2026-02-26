@@ -2,8 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ECOMMERCE_INTERNAL_PAGES, ECOMMERCE_HEADER_FULL, ECOMMERCE_ADMIN_FULL } from "@/constants/ecommerce.menu";
+import { fetchMenuItems, saveMenuTree, type DbMenuItem } from "@/services/builder/menus/menuItems.service";
 
-export type Locale = "en";
 export type MenuSetKey = "home" | "v1";
 export type SiteKind = "ecommerce";
 export type TemplateKey = "header" | "sidebar" | "mega" | "drawer";
@@ -25,6 +25,7 @@ export type BuilderMenuItem = {
   id: string;
   title: string;
   icon?: string | null;
+  visible?: boolean;
   linkType: "external" | "internal" | "scheduled";
   externalUrl?: string;
   newTab?: boolean;
@@ -34,20 +35,6 @@ export type BuilderMenuItem = {
   children?: BuilderMenuItem[];
 };
 
-type DbMenuItem = {
-  id: string;
-  parentId: string | null;
-  title: string;
-  path: string | null;
-  icon: string | null;
-  sortOrder: number;
-  visible: boolean;
-  locale: Locale;
-  setKey: MenuSetKey;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
 type DbTreeNode = DbMenuItem & { children: DbTreeNode[] };
 
 function buildTree(rows: DbMenuItem[]): DbTreeNode[] {
@@ -55,9 +42,7 @@ function buildTree(rows: DbMenuItem[]): DbTreeNode[] {
   const roots: DbTreeNode[] = [];
   const sorted = rows.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
 
-  for (const r of sorted) {
-    byId.set(r.id, { ...r, children: [] });
-  }
+  for (const r of sorted) byId.set(r.id, { ...r, children: [] });
 
   for (const node of byId.values()) {
     if (node.parentId && byId.has(node.parentId)) byId.get(node.parentId)!.children.push(node);
@@ -130,11 +115,28 @@ function resolvePathFromBuilder(item: BuilderMenuItem, internalPages: InternalPa
 
 function flattenBuilderToDb(
   tree: BuilderMenuItem[],
-  locale: Locale,
   setKey: MenuSetKey,
   internalPages: InternalPage[],
-): Omit<DbMenuItem, "createdAt" | "updatedAt">[] {
-  const out: Omit<DbMenuItem, "createdAt" | "updatedAt">[] = [];
+): Array<{
+  id: string;
+  parentId: string | null;
+  title: string;
+  path: string | null;
+  icon: string | null;
+  sortOrder: number;
+  visible: boolean;
+  setKey: MenuSetKey;
+}> {
+  const out: Array<{
+    id: string;
+    parentId: string | null;
+    title: string;
+    path: string | null;
+    icon: string | null;
+    sortOrder: number;
+    visible: boolean;
+    setKey: MenuSetKey;
+  }> = [];
 
   const walk = (nodes: BuilderMenuItem[], parentId: string | null) => {
     nodes.forEach((n, idx) => {
@@ -146,7 +148,6 @@ function flattenBuilderToDb(
         icon: (n.icon ?? null) as any,
         sortOrder: idx + 1,
         visible: true,
-        locale,
         setKey,
       });
       if (n.children?.length) walk(n.children, n.id);
@@ -207,8 +208,9 @@ type Ctx = {
   TEMPLATE_ALLOWED: TemplateAllowed;
   INTERNAL_PAGES: InternalPage[];
 
-  loadFromServer: (locale: Locale, setKey: MenuSetKey, siteId?: string) => Promise<void>;
-  saveToServer: (locale: Locale, setKey: MenuSetKey, siteId?: string) => Promise<void>;
+  // ✅ locale removed
+  loadFromServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
+  saveToServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
 };
 
 const MenuCtx = createContext<Ctx | null>(null);
@@ -309,8 +311,9 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   }
 
   const loadFromServer = useCallback(
-    async (locale: Locale, setKey: MenuSetKey, siteId?: string) => {
-      const reqKey = `${locale}|${setKey}|${siteId ?? ""}`;
+    async (setKey: MenuSetKey, siteId?: string) => {
+      const reqKey = `${setKey}|${siteId ?? ""}`;
+
       if (inflight.current && inflightKey.current === reqKey) return;
       if (!inflight.current && loadedKey.current === reqKey) return;
       if (inflight.current) inflight.current.abort();
@@ -319,24 +322,14 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
       inflight.current = ac;
       inflightKey.current = reqKey;
 
-      const params = new URLSearchParams();
-      params.set("page", "1");
-      params.set("size", "1000");
-      params.set("sort", "sortOrder:asc");
-      params.set("locale", locale);
-      params.set("setKey", setKey);
-      if (siteId) params.set("siteId", siteId);
-
       try {
-        const res = await fetch(`/api/admin/menu-items?${params.toString()}`, {
-          cache: "no-store",
+        const rows = await fetchMenuItems({
+          setKey,
+          siteId,
+          page: 1,
+          size: 1000,
           signal: ac.signal,
         });
-
-        if (!res.ok) throw new Error(`Load failed (${res.status})`);
-
-        const data = await res.json();
-        const rows: DbMenuItem[] = data?.items ?? [];
 
         const treeDb = buildTree(rows);
         const builderTree = mapDbTreeToBuilder(treeDb, INTERNAL_PAGES);
@@ -357,25 +350,13 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   );
 
   const saveToServer = useCallback(
-    async (locale: Locale, setKey: MenuSetKey, siteId?: string) => {
+    async (setKey: MenuSetKey, siteId?: string) => {
       const treeToSave = menus[setKey] ?? [];
+      const items = flattenBuilderToDb(treeToSave, setKey, INTERNAL_PAGES);
 
-      const items = flattenBuilderToDb(treeToSave, locale, setKey, INTERNAL_PAGES);
-      const payload: any = { locale, setKey, items };
-      if (siteId) payload.siteId = siteId;
+      await saveMenuTree({ setKey, siteId, items });
 
-      const res = await fetch("/api/admin/menu-items/save-tree", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        throw new Error(t || "Save failed");
-      }
-
-      loadedKey.current = `${locale}|${setKey}|${siteId ?? ""}`;
+      loadedKey.current = `${setKey}|${siteId ?? ""}`;
     },
     [menus, INTERNAL_PAGES],
   );

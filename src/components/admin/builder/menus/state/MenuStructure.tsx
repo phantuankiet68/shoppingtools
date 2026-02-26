@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/menu/MenuStructure.module.css";
 import EditOffcanvas from "./EditOffcanvas";
 import { useMenuStore, type BuilderMenuItem } from "@/components/admin/builder/menus/state/useMenuStore";
 import ConfirmDialog from "@/components/admin/shared/popup/delete/ConfirmDialog";
+
+import { deleteMenuItem } from "@/services/builder/menus/menuStructure.service";
+import { useMenuStructureStore } from "@/store/builder/menus/useMenuStructureStore";
 
 type MenuItem = BuilderMenuItem;
 
@@ -87,18 +90,22 @@ export default function MenuStructure({ siteId }: Props) {
   const router = useRouter();
   const { activeMenu, setActiveMenu, buildHref } = useMenuStore();
 
-  const [editing, setEditing] = useState<MenuItem | null>(null);
   const dragInfo = useRef<DragInfo>(null);
   const overRef = useRef<HTMLElement | null>(null);
-  const [q, setQ] = useState("");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
-  const askDelete = useCallback((id: string) => {
-    setPendingDeleteId(id);
-    setConfirmOpen(true);
-  }, []);
+  const {
+    editing,
+    q,
+    confirmOpen,
+    pendingDeleteId,
+    busy,
+    setEditing,
+    setQ,
+    askDelete,
+    closeConfirm,
+    setBusy,
+    clearDeleteState,
+  } = useMenuStructureStore();
 
   const doDelete = useCallback(async () => {
     if (!pendingDeleteId) return;
@@ -108,8 +115,7 @@ export default function MenuStructure({ siteId }: Props) {
 
     try {
       setBusy(true);
-      const res = await fetch(`/api/admin/menu-items/${pendingDeleteId}`, { method: "DELETE", cache: "no-store" });
-      if (!res.ok) throw new Error(await res.text());
+      await deleteMenuItem(pendingDeleteId);
 
       const { next } = removeItemByIdFromTree(activeMenu, pendingDeleteId);
       setActiveMenu(next);
@@ -120,10 +126,9 @@ export default function MenuStructure({ siteId }: Props) {
       if (el) el.style.opacity = "";
     } finally {
       setBusy(false);
-      setConfirmOpen(false);
-      setPendingDeleteId(null);
+      clearDeleteState();
     }
-  }, [pendingDeleteId, activeMenu, setActiveMenu, router]);
+  }, [pendingDeleteId, activeMenu, setActiveMenu, router, setBusy, clearDeleteState]);
 
   const filteredTree = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -366,7 +371,19 @@ export default function MenuStructure({ siteId }: Props) {
         </div>
       );
     },
-    [askDelete, buildHref, highlight, onDragEndRow, onDragStartRow, onDropMove, onDropNew, onDropzoneOver, q, setOver],
+    [
+      askDelete,
+      buildHref,
+      highlight,
+      onDragEndRow,
+      onDragStartRow,
+      onDropMove,
+      onDropNew,
+      onDropzoneOver,
+      q,
+      setEditing,
+      setOver,
+    ],
   );
 
   return (
@@ -434,8 +451,7 @@ export default function MenuStructure({ siteId }: Props) {
         message={busy ? "Deleting..." : "Are you sure you want to delete this item? This action will be saved."}
         onCancel={() => {
           if (busy) return;
-          setConfirmOpen(false);
-          setPendingDeleteId(null);
+          closeConfirm();
         }}
         onConfirm={() => {
           if (!busy) void doDelete();

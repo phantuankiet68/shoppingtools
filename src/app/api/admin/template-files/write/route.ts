@@ -11,8 +11,8 @@ function assertExt(p: string) {
 function sanitizeTemplatePath(p: string) {
   let rel = normalizeRel(p);
   if (rel.startsWith("components/")) rel = rel.slice("components/".length);
-  if (!(rel.startsWith("templates/") || rel.startsWith("admin/templates/"))) {
-    throw new Error('Path must start with "templates/" or "admin/templates/"');
+  if (!(rel.startsWith("templates/") || rel.startsWith("admin/shared/templates/"))) {
+    throw new Error('Path must start with "templates/" or "admin/shared/templates/"');
   }
   return rel;
 }
@@ -20,8 +20,8 @@ function sanitizeTemplatePath(p: string) {
 function sanitizeStylesPath(p: string) {
   let rel = normalizeRel(p);
   if (rel.startsWith("styles/")) rel = rel.slice("styles/".length);
-  if (!rel.startsWith("admin/templates/")) {
-    throw new Error('Style path must start with "admin/templates/"');
+  if (!rel.startsWith("admin/shared/templates/")) {
+    throw new Error('Style path must start with "admin/shared/templates/"');
   }
   return rel;
 }

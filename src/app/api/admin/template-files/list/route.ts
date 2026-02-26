@@ -17,13 +17,8 @@ async function walk(dir: string): Promise<string[]> {
 }
 
 export async function GET(req: Request) {
-  // TODO: await requireAdminAuthUser();
-
   const { componentsRoot } = getAllowedRoots();
-
-  // ✅ chỉ list trong src/components/templates và src/components/admin/templates
-  const allowPrefixes = ["templates/", "admin/templates/"];
-
+  const allowPrefixes = ["templates/", "admin/shared/templates/"];
   const all = (await walk(componentsRoot))
     .filter((p) => p.endsWith(".tsx"))
     .map((abs) => normalizeRel(path.relative(componentsRoot, abs)))

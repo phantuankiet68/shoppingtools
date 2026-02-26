@@ -1,42 +1,20 @@
 "use client";
 
-import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/menu/menu.module.css";
-import {
-  useMenuStore,
-  type Locale,
-  type MenuSetKey,
-  type SiteKind,
-} from "@/components/admin/builder/menus/state/useMenuStore";
+
+import { useMenuStore, type MenuSetKey, type SiteKind } from "@/components/admin/builder/menus/state/useMenuStore";
 import AllowedBlocks from "@/components/admin/builder/menus/state/AllowedBlocks";
 import MenuStructure from "@/components/admin/builder/menus/state/MenuStructure";
 import { flattenTriples } from "@/lib/menu/deriveTitleSlugPath";
 import PopupNotice from "@/components/ui/PopupNotice";
 
-type NoticeState = {
-  open: boolean;
-  title?: string;
-  message?: string;
-  variant?: "success" | "error" | "info" | "warning";
-};
-
-type SiteRow = {
-  id: string;
-  domain: string;
-  name: string;
-  localeDefault: "en";
-};
-
-function useMounted() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  return mounted;
-}
+import { fetchSites, syncPagesFromMenu } from "@/services/builder/menus/menuBuilder.service";
+import { useMenuBuilderUIStore } from "@/store/builder/menus/useMenuBuilderUIStore";
 
 export default function MenuBuilder() {
   const router = useRouter();
-  const mounted = useMounted();
 
   const {
     currentSet,
@@ -47,41 +25,66 @@ export default function MenuBuilder() {
     saveToServer,
     siteKind,
     setSiteKind,
-    templateKey,
     INTERNAL_PAGES,
   } = useMenuStore();
 
-  const locale: Locale = "en";
-
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [notice, setNotice] = useState<NoticeState>({ open: false });
-
-  const [sites, setSites] = useState<SiteRow[]>([]);
-  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
-  const [hideSiteSelect, setHideSiteSelect] = useState(false);
+  const {
+    saving,
+    loading,
+    refreshing,
+    notice,
+    sites,
+    selectedSiteId,
+    hideSiteSelect,
+    setSaving,
+    setLoading,
+    setRefreshing,
+    setNotice,
+    setSites,
+    setSelectedSiteId,
+    setHideSiteSelect,
+  } = useMenuBuilderUIStore();
 
   const ioJson = useMemo(() => JSON.stringify(activeMenu, null, 2), [activeMenu]);
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
       try {
-        const res = await fetch("/api/admin/sites", { cache: "no-store" });
-        if (!res.ok) throw new Error("Load sites failed");
-        const data = await res.json();
-        const list: SiteRow[] = data.items || [];
+        const list = await fetchSites();
+        if (cancelled) return;
         setSites(list);
-        if (!mounted) return;
-        const saved = localStorage.getItem("ui.selectedSiteId") || "";
-        if (saved && list.some((s) => s.id === saved)) setSelectedSiteId(saved);
-        else if (list.length) setSelectedSiteId(list[0].id);
       } catch (e) {
-        console.error(e);
+        console.error("fetchSites failed:", e);
+        setSites([]);
       }
     })();
-  }, [mounted]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [setSites]);
+
+  useEffect(() => {
+    if (!sites.length) return;
+
+    const saved = localStorage.getItem("ui.selectedSiteId") || "";
+    const nextId = saved && sites.some((s) => s.id === saved) ? saved : sites[0].id;
+
+    if (!selectedSiteId || !sites.some((s) => s.id === selectedSiteId)) {
+      setSelectedSiteId(nextId);
+    }
+  }, [sites, selectedSiteId, setSelectedSiteId]);
+
+  useEffect(() => {
+    if (!selectedSiteId) return;
+    localStorage.setItem("ui.selectedSiteId", selectedSiteId);
+  }, [selectedSiteId]);
+
+  useEffect(() => {
+    setHideSiteSelect(currentSet === "v1");
+  }, [currentSet, setHideSiteSelect]);
 
   useEffect(() => {
     if (!selectedSiteId) return;
@@ -89,17 +92,11 @@ export default function MenuBuilder() {
     let cancelled = false;
 
     (async () => {
-      const key = `ui.menu.currentSet.${selectedSiteId}`;
-      const saved = typeof window !== "undefined" ? (localStorage.getItem(key) as MenuSetKey | null) : null;
-      const effectiveSet = saved || currentSet;
-
-      if (effectiveSet !== currentSet) {
-        setCurrentSet(effectiveSet);
-      }
-
       try {
         setLoading(true);
-        await loadFromServer(locale, effectiveSet, selectedSiteId);
+        await loadFromServer(currentSet, selectedSiteId);
+      } catch (e) {
+        console.error("loadFromServer failed:", e);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -108,58 +105,15 @@ export default function MenuBuilder() {
     return () => {
       cancelled = true;
     };
-  }, [selectedSiteId, locale]);
-
-  const loadMenu = useCallback(
-    async (setKey: MenuSetKey, siteId: string) => {
-      if (!siteId) return;
-      setLoading(true);
-      try {
-        await loadFromServer(locale, setKey, siteId);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [loadFromServer],
-  );
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (!selectedSiteId) return;
-
-    const key = `ui.menu.currentSet.${selectedSiteId}`;
-    const saved = (localStorage.getItem(key) as MenuSetKey | null) || null;
-    const effectiveSet: MenuSetKey = saved || currentSet;
-
-    if (effectiveSet !== currentSet) {
-      setCurrentSet(effectiveSet);
-      void loadMenu(effectiveSet, selectedSiteId);
-    } else {
-      void loadMenu(currentSet, selectedSiteId);
-    }
-  }, [mounted, selectedSiteId]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (!selectedSiteId) return;
-
-    localStorage.setItem(`ui.menu.currentSet.${selectedSiteId}`, currentSet);
-    setHideSiteSelect(currentSet === "v1");
-
-    void loadMenu(currentSet, selectedSiteId);
-  }, [mounted, currentSet, selectedSiteId, loadMenu]);
+  }, [currentSet, selectedSiteId, loadFromServer, setLoading]);
 
   async function reloadAll({ hard = false }: { hard?: boolean } = {}) {
     if (!selectedSiteId) return;
     try {
       setRefreshing(true);
-      await loadFromServer(locale, currentSet, selectedSiteId);
-
-      startTransition(() => router.refresh());
-
-      if (hard) {
-        setTimeout(() => window.location.reload(), 150);
-      }
+      await loadFromServer(currentSet, selectedSiteId);
+      router.refresh();
+      if (hard) setTimeout(() => window.location.reload(), 150);
     } finally {
       setRefreshing(false);
     }
@@ -167,25 +121,19 @@ export default function MenuBuilder() {
 
   async function handleSaveAll() {
     if (!selectedSiteId) return;
+
     try {
       setSaving(true);
 
-      await saveToServer(locale, currentSet, selectedSiteId);
-      const triples = flattenTriples((activeMenu as any) ?? [], INTERNAL_PAGES);
-      if (triples.length > 0) {
-        const res = await fetch("/api/admin/pages/sync-from-menu", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            siteId: selectedSiteId || undefined,
-            locale,
-            items: triples,
-          }),
-          cache: "no-store",
-        });
+      await saveToServer(currentSet, selectedSiteId);
 
-        const raw = await res.text().catch(() => "");
-        if (!res.ok) throw new Error(`Sync SEO failed: ${raw || res.status}`);
+      const triples = flattenTriples((activeMenu as any) ?? [], INTERNAL_PAGES);
+
+      if (triples.length > 0) {
+        await syncPagesFromMenu({
+          siteId: selectedSiteId || undefined,
+          items: triples,
+        });
 
         await reloadAll({ hard: false });
 
@@ -199,6 +147,7 @@ export default function MenuBuilder() {
       }
 
       await reloadAll({ hard: false });
+
       setNotice({
         open: true,
         title: "Menu saved",
@@ -245,6 +194,7 @@ export default function MenuBuilder() {
       if (!Array.isArray(data)) throw new Error("Invalid JSON: It must be an array");
 
       setActiveMenu(data);
+
       setNotice({
         open: true,
         title: "Import successful",
@@ -252,7 +202,7 @@ export default function MenuBuilder() {
         variant: "success",
       });
 
-      startTransition(() => router.refresh());
+      router.refresh();
     } catch (e: any) {
       setNotice({
         open: true,
@@ -282,12 +232,10 @@ export default function MenuBuilder() {
               <select
                 className={`${styles.formSelectSm} ${styles.selectStyled}`}
                 value={selectedSiteId}
-                onChange={(e) => {
-                  setSelectedSiteId(e.target.value);
-                  startTransition(() => router.refresh());
-                }}
+                onChange={(e) => setSelectedSiteId(e.target.value)}
                 aria-label="Chọn Site"
               >
+                {!sites.length ? <option value="">No sites</option> : null}
                 {sites.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} — {s.domain} ({s.localeDefault})
@@ -314,21 +262,12 @@ export default function MenuBuilder() {
             <select
               className={`${styles.formSelectSm} ${styles.selectStyled}`}
               value={currentSet}
-              onChange={async (e) => {
+              onChange={(e) => {
                 const setKey = e.target.value as MenuSetKey;
                 setCurrentSet(setKey);
-                if (typeof window !== "undefined" && selectedSiteId) {
+                if (selectedSiteId) {
                   localStorage.setItem(`ui.menu.currentSet.${selectedSiteId}`, setKey);
                 }
-                if (selectedSiteId) {
-                  setLoading(true);
-                  try {
-                    await loadFromServer("en", setKey, selectedSiteId);
-                  } finally {
-                    setLoading(false);
-                  }
-                }
-                startTransition(() => router.refresh());
               }}
               aria-label="Select menu set"
             >
@@ -347,19 +286,19 @@ export default function MenuBuilder() {
                 if (!selectedSiteId) return;
                 try {
                   setLoading(true);
-                  await loadFromServer(locale, currentSet, selectedSiteId);
+                  await loadFromServer(currentSet, selectedSiteId);
                   setNotice({
                     open: true,
                     title: "Loaded from DB",
-                    message: "The menu has been loaded based on site, locale, and set.",
+                    message: "The menu has been loaded based on site and set.",
                     variant: "info",
                   });
                 } finally {
                   setLoading(false);
                 }
-                startTransition(() => router.refresh());
+                router.refresh();
               }}
-              title="Load menu from database based on site, locale, and set."
+              title="Load menu from database based on site and set."
               type="button"
             >
               <i className="bi bi-download" /> {loading ? "Loading..." : refreshing ? "Refreshing..." : "Load from DB"}
