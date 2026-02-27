@@ -70,6 +70,7 @@ async function requireAdminUser() {
 
 export async function GET() {
   const items = await prisma.site.findMany({
+    where: { deletedAt: null },
     orderBy: { updatedAt: "desc" },
   });
   return NextResponse.json(items);

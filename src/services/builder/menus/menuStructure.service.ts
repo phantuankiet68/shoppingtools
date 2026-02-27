@@ -1,3 +1,5 @@
+import { API_ROUTES } from "@/constants/api";
+
 async function safeText(res: Response) {
   try {
     return await res.text();
@@ -7,7 +9,7 @@ async function safeText(res: Response) {
 }
 
 export async function deleteMenuItem(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/menu-items/${id}`, {
+  const res = await fetch(API_ROUTES.ADMIN_BUILDER_MENUS(id), {
     method: "DELETE",
     cache: "no-store",
   });

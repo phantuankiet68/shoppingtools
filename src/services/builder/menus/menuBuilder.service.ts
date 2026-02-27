@@ -1,4 +1,5 @@
 // services/builder/menus/menuBuilder.service.ts
+import { API_ROUTES } from "@/constants/api";
 
 export type SiteRow = {
   id: string;
@@ -16,7 +17,7 @@ async function safeText(res: Response) {
 }
 
 export async function fetchSites(): Promise<SiteRow[]> {
-  const res = await fetch("/api/admin/builder/sites", { cache: "no-store" });
+  const res = await fetch(API_ROUTES.ADMIN_BUILDER_SITES, { cache: "no-store" });
   if (!res.ok) throw new Error("Load sites failed");
   const data = await res.json();
   if (Array.isArray(data)) return data as SiteRow[];
@@ -25,7 +26,7 @@ export async function fetchSites(): Promise<SiteRow[]> {
 }
 
 export async function syncPagesFromMenu(payload: { siteId?: string; items: any[] }) {
-  const res = await fetch("/api/admin/builder/pages/sync-from-menu", {
+  const res = await fetch(API_ROUTES.ADMIN_BUILDER_PAGE_SYNC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

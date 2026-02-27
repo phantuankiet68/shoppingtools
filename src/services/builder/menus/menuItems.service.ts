@@ -1,4 +1,5 @@
 // services/builder/menus/state/menuItems.service.ts
+import { API_ROUTES } from "@/constants/api";
 
 export type MenuSetKey = "home" | "v1";
 
@@ -54,12 +55,11 @@ export async function saveMenuTree(payload: {
     setKey: MenuSetKey;
   }>;
 }): Promise<void> {
-  const res = await fetch("/api/admin/builder/menus/save-tree", {
+  const res = await fetch(API_ROUTES.ADMIN_BUILDER_MENUS_SAVE_TREE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
   if (!res.ok) {
     const t = await res.text().catch(() => "");
     throw new Error(t || "Save failed");

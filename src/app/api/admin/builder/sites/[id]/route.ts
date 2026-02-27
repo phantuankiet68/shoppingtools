@@ -3,20 +3,22 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function DELETE(
-  _req: Request,
-  ctx: { params: Promise<{ id: string }> } | { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
-    const params = "then" in (ctx as any).params ? await (ctx as any).params : (ctx as any).params;
-    const id = params?.id;
-
+    const { id } = await ctx.params;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-    await prisma.site.delete({ where: { id } });
-    return NextResponse.json({ ok: true });
+    const result = await prisma.site.updateMany({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+    return NextResponse.json({ ok: true, updated: result.count });
   } catch (e: any) {
-    // domain unique / not found / etc
     return NextResponse.json({ error: e?.message || "Delete failed" }, { status: 400 });
   }
 }

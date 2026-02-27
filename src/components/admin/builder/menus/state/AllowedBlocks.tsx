@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
-import { useMenuStore, type BuilderMenuItem } from "@/components/admin/builder/menus/state/useMenuStore";
+import React, { useMemo } from "react";
 import styles from "@/styles/admin/menu/menu.module.css";
 
+import { useMenuStore } from "@/components/admin/builder/menus/state/useMenuStore";
 import { useAllowedBlocksStore } from "@/store/builder/menus/useAllowedBlocksStore";
+
 import {
   filterSuggest,
   forcedTabFromSet,
@@ -14,6 +15,8 @@ import {
   buildExistingPagesSet,
   buildExistingTitlesSet,
 } from "@/services/builder/menus/allowedBlocks.service";
+
+import { MENU_MESSAGES as M } from "@/features/builder/menus/messages";
 
 type TabKey = "home" | "dashboard";
 
@@ -36,97 +39,105 @@ export default function AllowedBlocks() {
 
   const forcedTab: TabKey = forcedTabFromSet(currentSet);
 
-  const baseNames: string[] = React.useMemo(() => pickBaseNames(tpl as any, forcedTab), [tpl, forcedTab]);
+  const internalPages = INTERNAL_PAGES || [];
+  const menu = activeMenu || [];
 
-  const existingPages = React.useMemo(() => buildExistingPagesSet(INTERNAL_PAGES || []), [INTERNAL_PAGES]);
+  // Compute base names for left panel blocks
+  const baseNames = useMemo(() => pickBaseNames(tpl as any, forcedTab), [tpl, forcedTab]);
 
-  const SUGGEST = React.useMemo(() => getSuggestBySite(siteKind), [siteKind]);
+  // Precompute sets for suggestion filtering
+  const existingPages = useMemo(() => buildExistingPagesSet(internalPages), [internalPages]);
+  const existingTitles = useMemo(() => buildExistingTitlesSet(menu), [menu]);
 
-  const existingTitles = React.useMemo(() => buildExistingTitlesSet(activeMenu || []), [activeMenu]);
+  const suggestSource = useMemo(() => getSuggestBySite(siteKind), [siteKind]);
 
-  const filteredSuggest = React.useMemo(
+  const filteredSuggest = useMemo(
     () =>
       filterSuggest({
-        suggest: SUGGEST,
+        suggest: suggestSource,
         baseNames,
         existingTitles,
         existingPages,
       }),
-    [SUGGEST, baseNames, existingTitles, existingPages],
+    [suggestSource, baseNames, existingTitles, existingPages],
   );
+
+  const forcedTabLabel = forcedTab === "dashboard" ? M.allowedBlocks.tabDashboard : M.allowedBlocks.tabHome;
 
   return (
     <div className={styles.cardform}>
       <div className={styles.cardHeader}>
         <button className={`${styles.btn} ${styles.btnOutlineLight}`} onClick={addBlankItem} type="button">
-          <i className="bi bi-plus-lg" /> Add empty item
+          <i className="bi bi-plus-lg" /> {M.allowedBlocks.addEmptyItem}
         </button>
 
         {hasTabs && (
           <div className={styles.smallHelp} style={{ marginLeft: "auto" }}>
-            <button type="button" className={`${styles.btn} ${styles.btnOutlinePrimary}`}>
-              Showing: <b>{forcedTab === "dashboard" ? "Dashboard" : "Home"}</b>
+            <button type="button" className={`${styles.btn} ${styles.btnOutlinePrimary}`} disabled>
+              {M.allowedBlocks.showingPrefix} <b>{forcedTabLabel}</b>
             </button>
           </div>
         )}
       </div>
 
       <div className={styles.grid2}>
+        {/* LEFT: base blocks */}
         <div className={styles.blocksGrid}>
-          {baseNames.map((n) => (
-            <div key={n} className={styles.blockCell}>
+          {baseNames.map((name) => (
+            <div key={name} className={styles.blockCell}>
               <div
                 className={`${styles.blockCard} ${styles.appCard}`}
                 draggable
-                onDragStart={(e) => onDragStart(e, { name: n, internalPages: INTERNAL_PAGES || [] })}
+                onDragStart={(e) => onDragStart(e, { name, internalPages })}
                 onClick={() =>
                   addByName({
-                    name: n,
-                    activeMenu: activeMenu || [],
+                    name,
+                    activeMenu: menu,
                     setActiveMenu,
-                    internalPages: INTERNAL_PAGES || [],
+                    internalPages,
                   })
                 }
-                title="Kéo thả hoặc nhấn để thêm vào Menu"
+                title={M.allowedBlocks.baseBlockTooltip}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    addByName({ name, activeMenu: menu, setActiveMenu, internalPages });
+                  }
+                }}
               >
                 <div className={styles.blockIconWrap}>
                   <i className="bi bi-cursor" />
                 </div>
                 <div>
-                  <div className={styles.blockTitle}>{n}</div>
+                  <div className={styles.blockTitle}>{name}</div>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* RIGHT: suggestions */}
         <section
           className={styles.blocksGridRight}
-          aria-label="Suggestions for expanding the menu"
+          aria-label={M.allowedBlocks.suggestionsAria}
           style={{ display: "grid", gap: 6 }}
         >
           {Object.keys(filteredSuggest).length === 0 ? (
-            <div className={styles.smallHelp}>
-              No more suggestions — you've got all the important points already. 🎉
-            </div>
+            <div className={styles.smallHelp}>{M.allowedBlocks.noMoreSuggestions}</div>
           ) : (
             Object.entries(filteredSuggest).map(([group, items]) => (
               <div key={group} style={{ marginBottom: 10 }}>
                 <div style={{ fontWeight: 500, marginBottom: 6, color: "rgb(134 134 134)", fontSize: 16 }}>{group}</div>
+
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {items.map((name) => (
                     <button
                       type="button"
                       key={name}
-                      onClick={() =>
-                        addByName({
-                          name,
-                          activeMenu: activeMenu || [],
-                          setActiveMenu,
-                          internalPages: INTERNAL_PAGES || [],
-                        })
-                      }
-                      onDragStart={(e) => onDragStart(e as any, { name, internalPages: INTERNAL_PAGES || [] })}
+                      onClick={() => addByName({ name, activeMenu: menu, setActiveMenu, internalPages })}
+                      onDragStart={(e) => onDragStart(e as any, { name, internalPages })}
                       draggable
                       className={styles.btn}
                       style={{
@@ -136,7 +147,7 @@ export default function AllowedBlocks() {
                         padding: "6px 10px",
                         fontSize: 13,
                       }}
-                      title="Click to add, or drag and drop into structure"
+                      title={M.allowedBlocks.suggestChipTooltip}
                     >
                       <i className="bi bi-plus-lg" style={{ marginRight: 6 }} />
                       {name}

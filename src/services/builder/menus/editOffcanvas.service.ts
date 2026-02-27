@@ -1,3 +1,5 @@
+import { API_ROUTES } from "@/constants/api";
+
 async function safeText(res: Response) {
   try {
     return await res.text();
@@ -10,7 +12,7 @@ export async function patchMenuItem(
   id: string,
   payload: { title: string; icon: string | null; path: string | null; visible?: boolean },
 ): Promise<void> {
-  const url = new URL(`/api/admin/menu-items/${id}`, window.location.origin);
+  const url = new URL(API_ROUTES.ADMIN_BUILDER_MENUS(id), window.location.origin);
 
   const res = await fetch(url.toString(), {
     method: "PATCH",

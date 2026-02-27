@@ -207,8 +207,6 @@ type Ctx = {
   buildHref: (it: BuilderMenuItem, now: Date) => string;
   TEMPLATE_ALLOWED: TemplateAllowed;
   INTERNAL_PAGES: InternalPage[];
-
-  // ✅ locale removed
   loadFromServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
   saveToServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
 };
@@ -220,28 +218,20 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   const [templateKey, setTemplateKey] = useState<TemplateKey>("header");
   const [menus, setMenus] = useState<MenuState>({ home: [], v1: [] });
   const [currentSet, setCurrentSet] = useState<MenuSetKey>("home");
-
   const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind], [siteKind]);
   const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind], [siteKind]);
-
-  // inflight request + cache key đã load (giảm spam fetch)
   const inflight = useRef<AbortController | null>(null);
   const inflightKey = useRef<string>("");
   const loadedKey = useRef<string>("");
-
-  // ---- Load from localStorage (safe)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object") setMenus(parsed);
-    } catch {
-      // ignore bad JSON
-    }
+    } catch {}
   }, []);
 
-  // ---- Save to localStorage (debounce để tránh hao tài nguyên)
   useEffect(() => {
     const t = window.setTimeout(() => {
       try {
@@ -252,7 +242,6 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(t);
   }, [menus]);
 
-  // ---- Abort request khi unmount (giảm request “lửng” trong StrictMode)
   useEffect(() => {
     return () => {
       inflight.current?.abort();

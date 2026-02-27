@@ -78,7 +78,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
     return NextResponse.json(updated);
   } catch (e: any) {
-    console.error("PATCH /api/admin/menu-items/[id] error:", e);
+    console.error("PATCH /api/admin/builder/menus/[id] error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -95,7 +95,7 @@ export async function DELETE(_req: Request, ctx: Ctx) {
     await prisma.menuItem.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    console.error("DELETE /api/admin/menu-items/[id] error:", e);
+    console.error("DELETE /api/admin/builder/menus/[id] error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

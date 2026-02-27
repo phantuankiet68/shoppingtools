@@ -1,4 +1,6 @@
 // services/admin/builder/sites.service.ts
+import { API_ROUTES } from "@/constants/api";
+
 export type Site = {
   id: string;
   domain: string;
@@ -48,15 +50,15 @@ async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
 
 export const sitesService = {
   list(): Promise<Site[]> {
-    return jsonFetch("/api/admin/builder/sites", { method: "GET" });
+    return jsonFetch(API_ROUTES.ADMIN_BUILDER_SITES, { method: "GET" });
   },
   create(payload: { domain: string; name: string }): Promise<Site> {
-    return jsonFetch("/api/admin/builder/sites", {
+    return jsonFetch(API_ROUTES.ADMIN_BUILDER_SITES, {
       method: "POST",
       body: JSON.stringify(payload),
     });
   },
   remove(id: string): Promise<void> {
-    return jsonFetch(`/api/admin/builder/sites/${id}`, { method: "DELETE" });
+    return jsonFetch(API_ROUTES.ADMIN_BUILDER_SITE(id), { method: "DELETE" });
   },
 };

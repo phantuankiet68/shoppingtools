@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/menu/menu.module.css";
 
@@ -13,9 +13,12 @@ import PopupNotice from "@/components/ui/PopupNotice";
 import { fetchSites, syncPagesFromMenu } from "@/services/builder/menus/menuBuilder.service";
 import { useMenuBuilderUIStore } from "@/store/builder/menus/useMenuBuilderUIStore";
 
+import { MENU_MESSAGES as M } from "@/features/builder/menus/messages";
+
 export default function MenuBuilder() {
   const router = useRouter();
 
+  // Builder data store
   const {
     currentSet,
     setCurrentSet,
@@ -28,6 +31,7 @@ export default function MenuBuilder() {
     INTERNAL_PAGES,
   } = useMenuStore();
 
+  // UI store
   const {
     saving,
     loading,
@@ -47,6 +51,39 @@ export default function MenuBuilder() {
 
   const ioJson = useMemo(() => JSON.stringify(activeMenu, null, 2), [activeMenu]);
 
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  const openNotice = useCallback(
+    (next: { title: string; message: string; variant: "success" | "info" | "warning" | "error" }) => {
+      setNotice({ open: true, ...next });
+    },
+    [setNotice],
+  );
+
+  const reloadAll = useCallback(
+    async ({ hard = false }: { hard?: boolean } = {}) => {
+      if (!selectedSiteId) return;
+
+      try {
+        setRefreshing(true);
+        await loadFromServer(currentSet, selectedSiteId);
+        router.refresh();
+
+        if (hard) {
+          // Keep it small; reload is optional and controlled by the caller
+          setTimeout(() => window.location.reload(), 150);
+        }
+      } finally {
+        setRefreshing(false);
+      }
+    },
+    [selectedSiteId, setRefreshing, loadFromServer, currentSet, router],
+  );
+
+  // -----------------------------
+  // Effects: fetch sites
+  // -----------------------------
   useEffect(() => {
     let cancelled = false;
 
@@ -57,7 +94,7 @@ export default function MenuBuilder() {
         setSites(list);
       } catch (e) {
         console.error("fetchSites failed:", e);
-        setSites([]);
+        if (!cancelled) setSites([]);
       }
     })();
 
@@ -66,6 +103,7 @@ export default function MenuBuilder() {
     };
   }, [setSites]);
 
+  // Pick initial site
   useEffect(() => {
     if (!sites.length) return;
 
@@ -77,15 +115,18 @@ export default function MenuBuilder() {
     }
   }, [sites, selectedSiteId, setSelectedSiteId]);
 
+  // Persist selected site
   useEffect(() => {
     if (!selectedSiteId) return;
     localStorage.setItem("ui.selectedSiteId", selectedSiteId);
   }, [selectedSiteId]);
 
+  // Hide site selector for some sets
   useEffect(() => {
     setHideSiteSelect(currentSet === "v1");
   }, [currentSet, setHideSiteSelect]);
 
+  // Load menu data whenever set/site changes
   useEffect(() => {
     if (!selectedSiteId) return;
 
@@ -107,19 +148,29 @@ export default function MenuBuilder() {
     };
   }, [currentSet, selectedSiteId, loadFromServer, setLoading]);
 
-  async function reloadAll({ hard = false }: { hard?: boolean } = {}) {
+  // -----------------------------
+  // Actions
+  // -----------------------------
+  const handleLoadFromDb = useCallback(async () => {
     if (!selectedSiteId) return;
-    try {
-      setRefreshing(true);
-      await loadFromServer(currentSet, selectedSiteId);
-      router.refresh();
-      if (hard) setTimeout(() => window.location.reload(), 150);
-    } finally {
-      setRefreshing(false);
-    }
-  }
 
-  async function handleSaveAll() {
+    try {
+      setLoading(true);
+      await loadFromServer(currentSet, selectedSiteId);
+
+      openNotice({
+        title: M.notice.loadDbTitle,
+        message: M.notice.loadDbMsg,
+        variant: "info",
+      });
+    } finally {
+      setLoading(false);
+    }
+
+    router.refresh();
+  }, [selectedSiteId, setLoading, loadFromServer, currentSet, openNotice, router]);
+
+  const handleSaveAll = useCallback(async () => {
     if (!selectedSiteId) return;
 
     try {
@@ -137,10 +188,9 @@ export default function MenuBuilder() {
 
         await reloadAll({ hard: false });
 
-        setNotice({
-          open: true,
-          title: "SEO Saved & Synchronized",
-          message: "Menus and pages (title/slug/path) have been synchronized (according to the selected site).",
+        openNotice({
+          title: M.notice.seoSavedTitle,
+          message: M.notice.seoSavedMsg,
           variant: "success",
         });
         return;
@@ -148,70 +198,69 @@ export default function MenuBuilder() {
 
       await reloadAll({ hard: false });
 
-      setNotice({
-        open: true,
-        title: "Menu saved",
-        message: "No changes have been made to SEO synchronization. The data has been reloaded.",
+      openNotice({
+        title: M.notice.menuSavedTitle,
+        message: M.notice.menuSavedMsg,
         variant: "info",
       });
     } catch (e: any) {
-      setNotice({
-        open: true,
-        title: "Save failed",
-        message: e?.message ?? "Unknown error",
+      openNotice({
+        title: M.notice.saveFailedTitle,
+        message: e?.message ?? M.error.unknown,
         variant: "error",
       });
     } finally {
       setSaving(false);
     }
-  }
+  }, [selectedSiteId, setSaving, saveToServer, currentSet, activeMenu, INTERNAL_PAGES, reloadAll, openNotice]);
 
-  function exportJSON() {
+  const exportJSON = useCallback(() => {
     navigator.clipboard?.writeText(ioJson).then(
       () =>
-        setNotice({
-          open: true,
-          title: "JSON has been copied.",
-          message: "The current menu content has been copied to the clipboard.",
+        openNotice({
+          title: M.notice.jsonCopiedTitle,
+          message: M.notice.jsonCopiedMsg,
           variant: "success",
         }),
       () =>
-        setNotice({
-          open: true,
-          title: "Copy failed",
-          message: "The browser does not allow automatic copying.",
+        openNotice({
+          title: M.notice.copyFailedTitle,
+          message: M.notice.copyFailedMsg,
           variant: "warning",
         }),
     );
-  }
+  }, [ioJson, openNotice]);
 
-  function importJSONFromPrompt() {
-    const text = prompt("Paste JSON for the current set.");
+  const importJSONFromPrompt = useCallback(() => {
+    const text = prompt(M.prompt.pasteJson);
     if (!text) return;
 
     try {
       const data = JSON.parse(text);
-      if (!Array.isArray(data)) throw new Error("Invalid JSON: It must be an array");
+      if (!Array.isArray(data)) throw new Error(M.error.invalidJsonArray);
 
       setActiveMenu(data);
 
-      setNotice({
-        open: true,
-        title: "Import successful",
-        message: "The menu has been updated according to the JSON that was just imported.",
+      openNotice({
+        title: M.notice.importSuccessTitle,
+        message: M.notice.importSuccessMsg,
         variant: "success",
       });
 
       router.refresh();
     } catch (e: any) {
-      setNotice({
-        open: true,
-        title: "Import error",
-        message: e?.message ?? "Unknown error",
+      openNotice({
+        title: M.notice.importErrorTitle,
+        message: e?.message ?? M.error.unknown,
         variant: "error",
       });
     }
-  }
+  }, [setActiveMenu, openNotice, router]);
+
+  // -----------------------------
+  // Render
+  // -----------------------------
+  const loadBtnLabel = loading ? M.btn.loading : refreshing ? M.btn.refreshing : M.btn.loadFromDb;
 
   return (
     <div className={styles.container}>
@@ -233,12 +282,12 @@ export default function MenuBuilder() {
                 className={`${styles.formSelectSm} ${styles.selectStyled}`}
                 value={selectedSiteId}
                 onChange={(e) => setSelectedSiteId(e.target.value)}
-                aria-label="Chọn Site"
+                aria-label={M.aria.chooseSite}
               >
-                {!sites.length ? <option value="">No sites</option> : null}
+                {!sites.length ? <option value="">{M.misc.noSites}</option> : null}
                 {sites.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} — {s.domain} ({s.localeDefault})
+                    {s.name} — {s.domain} ({(s as any).localeDefault})
                   </option>
                 ))}
               </select>
@@ -251,7 +300,7 @@ export default function MenuBuilder() {
               className={`${styles.formSelectSm} ${styles.selectStyled}`}
               value={siteKind}
               onChange={(e) => setSiteKind(e.target.value as SiteKind)}
-              aria-label="Loại website"
+              aria-label={M.aria.siteKind}
             >
               <option value="ecommerce">eCommerce</option>
             </select>
@@ -269,7 +318,7 @@ export default function MenuBuilder() {
                   localStorage.setItem(`ui.menu.currentSet.${selectedSiteId}`, setKey);
                 }
               }}
-              aria-label="Select menu set"
+              aria-label={M.aria.selectMenuSet}
             >
               <option value="home">Menu Home</option>
               <option value="v1">Menu admin</option>
@@ -282,26 +331,11 @@ export default function MenuBuilder() {
             <button
               className={`${styles.btn} ${styles.btnOutlineSecondary}`}
               disabled={loading || refreshing || !selectedSiteId}
-              onClick={async () => {
-                if (!selectedSiteId) return;
-                try {
-                  setLoading(true);
-                  await loadFromServer(currentSet, selectedSiteId);
-                  setNotice({
-                    open: true,
-                    title: "Loaded from DB",
-                    message: "The menu has been loaded based on site and set.",
-                    variant: "info",
-                  });
-                } finally {
-                  setLoading(false);
-                }
-                router.refresh();
-              }}
-              title="Load menu from database based on site and set."
+              onClick={() => void handleLoadFromDb()}
+              title={M.tooltip.loadFromDb}
               type="button"
             >
-              <i className="bi bi-download" /> {loading ? "Loading..." : refreshing ? "Refreshing..." : "Load from DB"}
+              <i className="bi bi-download" /> {loadBtnLabel}
             </button>
           </div>
 
@@ -310,21 +344,21 @@ export default function MenuBuilder() {
             className={`${styles.btn} ${styles.btnOutlinePrimary}`}
             disabled={!selectedSiteId || saving}
             onClick={() => void handleSaveAll()}
-            title="Save the database; then synchronize the page according to the menu (current site)."
+            title={M.tooltip.saveDb}
           >
-            <i className="bi bi-save" /> {saving ? "Saving..." : "Save DB"}
+            <i className="bi bi-save" /> {saving ? M.btn.saving : M.btn.saveDb}
           </button>
 
           <div className={styles.inline} style={{ gap: 6 }}>
             <button className={`${styles.btn} ${styles.btnOutlineSuccess}`} onClick={exportJSON} type="button">
-              <i className="bi bi-clipboard" /> Copy JSON
+              <i className="bi bi-clipboard" /> {M.btn.copyJson}
             </button>
             <button
               className={`${styles.btn} ${styles.btnOutlineWarning}`}
               onClick={importJSONFromPrompt}
               type="button"
             >
-              <i className="bi bi-upload" /> Import JSON
+              <i className="bi bi-upload" /> {M.btn.importJson}
             </button>
           </div>
         </div>
@@ -334,13 +368,16 @@ export default function MenuBuilder() {
         <div className={styles.leftCol}>
           <AllowedBlocks />
         </div>
+
         <div className={styles.rightCol}>
           <MenuStructure key={`ms-${currentSet}-${selectedSiteId}`} siteId={selectedSiteId} />
+
+          {/* Hidden textarea to allow quick copy/paste via developer tools if needed */}
           <textarea
             className={`${styles.formControl} ${styles.mt}`}
             style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, width: 0 }}
             rows={6}
-            placeholder="Export/Import JSON for the current set"
+            placeholder={M.misc.exportImportPlaceholder}
             value={ioJson}
             readOnly
           />

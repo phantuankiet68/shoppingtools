@@ -135,7 +135,7 @@ export async function GET(req: Request) {
       items,
     });
   } catch (e) {
-    console.error("GET /api/admin/menu-items/layout error:", e);
+    console.error("GET /api/admin/builder/menus/layout error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

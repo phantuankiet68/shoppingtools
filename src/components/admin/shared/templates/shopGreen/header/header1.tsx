@@ -182,7 +182,7 @@ export function Header1({
 
   navItems,
   preview = false,
-  menuApiUrl = "/api/admin/menu-items/header-menu",
+  menuApiUrl = "/api/admin/builder/menus/header-menu",
   menuSetKey = "home",
   menuSiteIdKey = "builder_site_id",
 
@@ -428,7 +428,12 @@ export function Header1({
             }}
           >
             <i className={`bi bi-search ${cls.searchIcon}`} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} type="text" placeholder={searchPlaceholder} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              type="text"
+              placeholder={searchPlaceholder}
+            />
             <button type="submit">Search</button>
           </form>
 
@@ -445,7 +450,13 @@ export function Header1({
               <span className={cls.badge}>{badgeCart}</span>
             </button>
 
-            <button className={cls.tbLink} type="button" onClick={onAccountClick} aria-haspopup="dialog" aria-expanded={authOpen}>
+            <button
+              className={cls.tbLink}
+              type="button"
+              onClick={onAccountClick}
+              aria-haspopup="dialog"
+              aria-expanded={authOpen}
+            >
               <i className="bi bi-person" />
               <span>Account</span>
               <i className={`bi bi-caret-down-fill ${cls.caret}`} />
@@ -644,7 +655,12 @@ export function Header1({
                       placeholder="••••••••"
                       autoComplete="current-password"
                     />
-                    <button className={cls.authEye} type="button" onClick={() => setShowPass((v) => !v)} aria-label={showPass ? "Hide password" : "Show password"}>
+                    <button
+                      className={cls.authEye}
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      aria-label={showPass ? "Hide password" : "Show password"}
+                    >
                       <i className={`bi ${showPass ? "bi-eye-slash" : "bi-eye"}`} />
                     </button>
                   </div>
@@ -681,7 +697,14 @@ export function Header1({
                   Full name
                   <div className={cls.authInputWrap}>
                     <i className={`bi bi-person ${cls.authInputIcon}`} />
-                    <input className={cls.authInput} type="text" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Your name" autoComplete="name" />
+                    <input
+                      className={cls.authInput}
+                      type="text"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      placeholder="Your name"
+                      autoComplete="name"
+                    />
                   </div>
                 </label>
 
@@ -689,7 +712,14 @@ export function Header1({
                   Email
                   <div className={cls.authInputWrap}>
                     <i className={`bi bi-envelope ${cls.authInputIcon}`} />
-                    <input className={cls.authInput} type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
+                    <input
+                      className={cls.authInput}
+                      type="email"
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                    />
                   </div>
                 </label>
 
@@ -697,8 +727,20 @@ export function Header1({
                   Password
                   <div className={cls.authInputWrap}>
                     <i className={`bi bi-lock ${cls.authInputIcon}`} />
-                    <input className={cls.authInput} type={showPass ? "text" : "password"} value={regPass} onChange={(e) => setRegPass(e.target.value)} placeholder="At least 6 characters" autoComplete="new-password" />
-                    <button className={cls.authEye} type="button" onClick={() => setShowPass((v) => !v)} aria-label={showPass ? "Hide password" : "Show password"}>
+                    <input
+                      className={cls.authInput}
+                      type={showPass ? "text" : "password"}
+                      value={regPass}
+                      onChange={(e) => setRegPass(e.target.value)}
+                      placeholder="At least 6 characters"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      className={cls.authEye}
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      aria-label={showPass ? "Hide password" : "Show password"}
+                    >
                       <i className={`bi ${showPass ? "bi-eye-slash" : "bi-eye"}`} />
                     </button>
                   </div>
