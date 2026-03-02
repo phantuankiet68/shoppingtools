@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/bodyCare/bodyCare1.module.css";
+import cls from "@/styles/templates/shopGreen/bodyCare/bodyCare1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -269,7 +269,8 @@ export function BodyCare1({
                   onClick={(e) => {
                     if (preview) return block(e);
                     setActive(t.value);
-                  }}>
+                  }}
+                >
                   {t.label}
                 </button>
               );
@@ -318,10 +319,16 @@ export function BodyCare1({
               </>
             ) : (
               <>
-                <Link className={`${cls.bodyCareBtn} ${cls.bodyCareBtnPrimary}`} href={(sp.primaryHref || "/bundles") as Route}>
+                <Link
+                  className={`${cls.bodyCareBtn} ${cls.bodyCareBtnPrimary}`}
+                  href={(sp.primaryHref || "/bundles") as Route}
+                >
                   {sp.primaryLabel}
                 </Link>
-                <Link className={`${cls.bodyCareBtn} ${cls.bodyCareBtnGhost}`} href={(sp.ghostHref || "/consultation") as Route}>
+                <Link
+                  className={`${cls.bodyCareBtn} ${cls.bodyCareBtnGhost}`}
+                  href={(sp.ghostHref || "/consultation") as Route}
+                >
                   {sp.ghostLabel}
                 </Link>
               </>
@@ -331,7 +338,13 @@ export function BodyCare1({
 
         <div className={cls.bodyCareSpotMedia} aria-hidden="true">
           <div className={cls.bodyCareSpotMediaInner}>
-            <Image src={sp.mediaSrc} alt={sp.mediaAlt || ""} fill sizes="(max-width: 980px) 100vw, 40vw" style={{ objectFit: "cover" }} />
+            <Image
+              src={sp.mediaSrc}
+              alt={sp.mediaAlt || ""}
+              fill
+              sizes="(max-width: 980px) 100vw, 40vw"
+              style={{ objectFit: "cover" }}
+            />
           </div>
         </div>
       </div>
@@ -344,7 +357,11 @@ export function BodyCare1({
 
             const Card = (
               <article className={cls.bodyCareItem} data-cat={it.cat} aria-label={it.name}>
-                {!!it.badge && <span className={`${cls.bodyCareBadge} ${it.badgeVariant === "hot" ? cls.bodyCareBadgeHot : ""}`}>{it.badge}</span>}
+                {!!it.badge && (
+                  <span className={`${cls.bodyCareBadge} ${it.badgeVariant === "hot" ? cls.bodyCareBadgeHot : ""}`}>
+                    {it.badge}
+                  </span>
+                )}
 
                 <button
                   suppressHydrationWarning
@@ -354,13 +371,20 @@ export function BodyCare1({
                   onClick={(e) => {
                     if (preview) return block(e);
                     toggleLike(it.id);
-                  }}>
+                  }}
+                >
                   <i className={`bi ${isLiked ? "bi-heart-fill" : "bi-heart"}`} />
                 </button>
 
                 <div className={cls.bodyCareThumb}>
                   <div className={cls.bodyCareThumbInner}>
-                    <Image src={it.imageSrc} alt={it.imageAlt || it.name} fill sizes="160px" style={{ objectFit: "contain" }} />
+                    <Image
+                      src={it.imageSrc}
+                      alt={it.imageAlt || it.name}
+                      fill
+                      sizes="160px"
+                      style={{ objectFit: "contain" }}
+                    />
                   </div>
                 </div>
 
@@ -422,10 +446,22 @@ export function BodyCare1({
         </div>
 
         <div className={cls.bodyCareNav}>
-          <button suppressHydrationWarning className={cls.bodyCareNavBtn} type="button" aria-label="Previous" onClick={(e) => (preview ? block(e) : scrollRail(-1))}>
+          <button
+            suppressHydrationWarning
+            className={cls.bodyCareNavBtn}
+            type="button"
+            aria-label="Previous"
+            onClick={(e) => (preview ? block(e) : scrollRail(-1))}
+          >
             <i className="bi bi-arrow-left" />
           </button>
-          <button suppressHydrationWarning className={cls.bodyCareNavBtn} type="button" aria-label="Next" onClick={(e) => (preview ? block(e) : scrollRail(1))}>
+          <button
+            suppressHydrationWarning
+            className={cls.bodyCareNavBtn}
+            type="button"
+            aria-label="Next"
+            onClick={(e) => (preview ? block(e) : scrollRail(1))}
+          >
             <i className="bi bi-arrow-right" />
           </button>
         </div>

@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/kidsCare/kidsCare1.module.css";
+import cls from "@/styles/templates/shopGreen/kidsCare/kidsCare1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type Ribbon = "NEW" | "HOT" | "BEST";

@@ -9,7 +9,9 @@ function assertExt(p: string) {
 }
 
 function sanitizeTemplatePath(p: string) {
-  let rel = normalizeRel(p);
+  let rel = p.replace(/\\/g, "/").trim();
+  if (rel.startsWith("@/")) rel = rel.slice(2);
+  if (rel.startsWith("src/")) rel = rel.slice("src/".length);
   if (rel.startsWith("components/")) rel = rel.slice("components/".length);
   if (!(rel.startsWith("templates/") || rel.startsWith("admin/shared/templates/"))) {
     throw new Error('Path must start with "templates/" or "admin/shared/templates/"');
@@ -21,7 +23,7 @@ function sanitizeTemplatePath(p: string) {
 function sanitizeStylesPath(p: string) {
   let rel = normalizeRel(p);
   if (rel.startsWith("styles/")) rel = rel.slice("styles/".length);
-  if (!rel.startsWith("admin/shared/templates/")) {
+  if (!rel.startsWith("templates/")) {
     throw new Error('Style path must start with "admin/shared/templates/"');
   }
   return rel;
@@ -29,15 +31,17 @@ function sanitizeStylesPath(p: string) {
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
-  const scope = body.scope === "styles" ? "styles" : "templates";
-  const rawPath = String(body.path || "");
+  const rawPath = String(body.path || "").trim();
 
   try {
     assertExt(rawPath);
 
+    const scope: "styles" | "templates" = rawPath.endsWith(".css") ? "styles" : "templates";
+
     const { componentsRoot, stylesRoot } = getAllowedRoots();
 
     const relPath = scope === "styles" ? sanitizeStylesPath(rawPath) : sanitizeTemplatePath(rawPath);
+
     const root = scope === "styles" ? stylesRoot : componentsRoot;
 
     const abs = safeJoin(root, relPath);

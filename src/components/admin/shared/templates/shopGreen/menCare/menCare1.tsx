@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/menCare/menCare1.module.css";
+import cls from "@/styles/templates/shopGreen/menCare/menCare1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -272,7 +272,8 @@ export function MenCare1({
                     if (preview) return block(e);
                     setActive(t.value);
                     railRef.current?.scrollTo({ left: 0, behavior: "smooth" });
-                  }}>
+                  }}
+                >
                   {t.label}
                 </button>
               );
@@ -337,7 +338,9 @@ export function MenCare1({
 
             const CardInner = (
               <>
-                {!!it.badge && <span className={`${cls.menBadge} ${it.badge === "HOT" ? cls.menBadgeHot : ""}`}>{it.badge}</span>}
+                {!!it.badge && (
+                  <span className={`${cls.menBadge} ${it.badge === "HOT" ? cls.menBadgeHot : ""}`}>{it.badge}</span>
+                )}
 
                 <button
                   className={`${cls.menWish} ${isLiked ? cls.isLiked : ""}`}
@@ -348,12 +351,19 @@ export function MenCare1({
                     e.stopPropagation();
                     if (preview) return;
                     toggleWish(it.id);
-                  }}>
+                  }}
+                >
                   <i className={`bi ${isLiked ? "bi-heart-fill" : "bi-heart"}`} />
                 </button>
 
                 <div className={cls.menThumb}>
-                  <Image src={it.imageSrc} alt={it.imageAlt || it.name} fill sizes="160px" style={{ objectFit: "contain" }} />
+                  <Image
+                    src={it.imageSrc}
+                    alt={it.imageAlt || it.name}
+                    fill
+                    sizes="160px"
+                    style={{ objectFit: "contain" }}
+                  />
                 </div>
 
                 <div className={cls.menInfo}>
@@ -405,10 +415,20 @@ export function MenCare1({
         </div>
 
         <div className={cls.menNav}>
-          <button className={cls.menNavBtn} type="button" aria-label="Previous" onClick={preview ? (e) => block(e) : () => onNav(-1)}>
+          <button
+            className={cls.menNavBtn}
+            type="button"
+            aria-label="Previous"
+            onClick={preview ? (e) => block(e) : () => onNav(-1)}
+          >
             <i className="bi bi-chevron-left" />
           </button>
-          <button className={cls.menNavBtn} type="button" aria-label="Next" onClick={preview ? (e) => block(e) : () => onNav(1)}>
+          <button
+            className={cls.menNavBtn}
+            type="button"
+            aria-label="Next"
+            onClick={preview ? (e) => block(e) : () => onNav(1)}
+          >
             <i className="bi bi-chevron-right" />
           </button>
         </div>
@@ -475,7 +495,9 @@ export const SHOP_MEN_CARE_GREEN_ONE: RegItem = {
   ],
   render: (p: any) => {
     const tabs = parseTabs(typeof p.tabs === "string" ? p.tabs : undefined);
-    const spotStats = safeJson<Array<{ num: string; text: string }>>(typeof p.spotStats === "string" ? p.spotStats : undefined);
+    const spotStats = safeJson<Array<{ num: string; text: string }>>(
+      typeof p.spotStats === "string" ? p.spotStats : undefined,
+    );
 
     return (
       <div className="sectionContainer" aria-label="Shop Men Care (Green One)">

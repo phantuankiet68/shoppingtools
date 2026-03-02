@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/footer/footer1.module.css";
+import cls from "@/styles/templates/shopGreen/footer/footer1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -204,7 +204,13 @@ export function Footer1({
             {bd.cert ? (
               <div className={cls.footerCert}>
                 <div className={cls.footerCertImgWrap} aria-hidden="true">
-                  <Image src={bd.cert.imageSrc} alt="Certification" width={72} height={48} className={cls.footerCertImg} />
+                  <Image
+                    src={bd.cert.imageSrc}
+                    alt="Certification"
+                    width={72}
+                    height={48}
+                    className={cls.footerCertImg}
+                  />
                 </div>
                 <div className={cls.footerCertText}>
                   <div className={cls.footerCertTitle}>{bd.cert.title}</div>
@@ -258,7 +264,12 @@ export function Footer1({
                 onChange={(e) => setEmail(e.target.value)}
               />
 
-              <button className={cls.footerSubmit} type="submit" aria-label={submitAriaLabel} onClick={preview ? onBlockClick : undefined}>
+              <button
+                className={cls.footerSubmit}
+                type="submit"
+                aria-label={submitAriaLabel}
+                onClick={preview ? onBlockClick : undefined}
+              >
                 <i className={`bi bi-arrow-right ${cls.footerSubmitIcon}`} aria-hidden="true" />
               </button>
             </form>
@@ -269,7 +280,13 @@ export function Footer1({
               {hls.map((h, i) => {
                 const telHref = `tel:${h.phone.replace(/[^\d+]/g, "")}`;
                 return preview ? (
-                  <a key={i} className={cls.footerHotline} href="#" onClick={onBlockClick} aria-label={`Call ${h.label} ${h.phone}`}>
+                  <a
+                    key={i}
+                    className={cls.footerHotline}
+                    href="#"
+                    onClick={onBlockClick}
+                    aria-label={`Call ${h.label} ${h.phone}`}
+                  >
                     <span className={cls.footerPhoneIcon} aria-hidden="true">
                       <i className="bi bi-telephone-fill" />
                     </span>
@@ -351,7 +368,12 @@ export function Footer1({
       </div>
 
       {/* Toast */}
-      <div className={`${cls.footerToast} ${toast ? cls.isShow : ""}`} role="status" aria-live="polite" aria-atomic="true">
+      <div
+        className={`${cls.footerToast} ${toast ? cls.isShow : ""}`}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {toast}
       </div>
     </footer>

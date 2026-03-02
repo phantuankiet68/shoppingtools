@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/makeup/makeup1.module.css";
+import cls from "@/styles/templates/shopGreen/makeup/makeup1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -254,7 +254,8 @@ export function Makeup1({
                 onClick={(e) => {
                   if (preview) return block(e);
                   setActive(t.value);
-                }}>
+                }}
+              >
                 {t.label}
               </button>
             );
@@ -278,7 +279,13 @@ export function Makeup1({
         {preview ? (
           <a className={cls.banner} href="#" aria-label="Makeup banner" onClick={block}>
             <div className={cls.bannerImg}>
-              <Image src={bn.imageSrc} alt={bn.imageAlt || "Makeup banner"} fill sizes="(max-width: 820px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+              <Image
+                src={bn.imageSrc}
+                alt={bn.imageAlt || "Makeup banner"}
+                fill
+                sizes="(max-width: 820px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
+              />
             </div>
             <div className={cls.bannerText}>
               <div className={cls.bannerTag}>{bn.tag}</div>
@@ -289,7 +296,13 @@ export function Makeup1({
         ) : (
           <Link className={cls.banner} href={(bn.href || "/makeup") as Route} aria-label="Makeup banner">
             <div className={cls.bannerImg}>
-              <Image src={bn.imageSrc} alt={bn.imageAlt || "Makeup banner"} fill sizes="(max-width: 820px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+              <Image
+                src={bn.imageSrc}
+                alt={bn.imageAlt || "Makeup banner"}
+                fill
+                sizes="(max-width: 820px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
+              />
             </div>
             <div className={cls.bannerText}>
               <div className={cls.bannerTag}>{bn.tag}</div>
@@ -310,7 +323,13 @@ export function Makeup1({
 
               <div className={cls.pImg}>
                 <div className={cls.pImgInner}>
-                  <Image src={p.imageSrc} alt={p.imageAlt || p.name} fill sizes="(max-width: 520px) 100vw, (max-width: 820px) 50vw, 25vw" style={{ objectFit: "contain" }} />
+                  <Image
+                    src={p.imageSrc}
+                    alt={p.imageAlt || p.name}
+                    fill
+                    sizes="(max-width: 520px) 100vw, (max-width: 820px) 50vw, 25vw"
+                    style={{ objectFit: "contain" }}
+                  />
                 </div>
               </div>
 

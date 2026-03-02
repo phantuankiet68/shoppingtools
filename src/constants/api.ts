@@ -17,4 +17,10 @@ export const API_ROUTES = {
   ADMIN_BUILDER_MENUS: (id: string) => `/api/admin/builder/menus/${id}`,
   ADMIN_BUILDER_PAGE_SYNC: "/api/admin/builder/pages/sync-from-menu",
   ADMIN_BUILDER_MENUS_SAVE_TREE: "/api/admin/builder/menus/save-tree",
+  ADMIN_TEMPLATE_FILES: {
+    LIST: "/api/admin/template-files/list",
+    READ: "/api/admin/template-files/read",
+    WRITE: "/api/admin/template-files/write",
+    DELETE: "/api/admin/template-files/delete",
+  },
 } as const;

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/hero/hero1.module.css";
+import cls from "@/styles/templates/shopGreen/hero/hero1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -198,9 +198,7 @@ export function Hero1({
         const items = Array.isArray(data.items) ? data.items : [];
         const filtered = onlyRootCategories ? items.filter((x) => x.parentId === null) : items;
 
-        const sorted = filtered
-          .slice()
-          .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || a.name.localeCompare(b.name));
+        const sorted = filtered.slice().sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || a.name.localeCompare(b.name));
 
         setCats(sorted);
       } catch (err: any) {
@@ -225,9 +223,12 @@ export function Hero1({
     if (paused) return;
     if (total <= 1) return;
 
-    const t = window.setInterval(() => {
-      setIndex((cur) => (cur + 1) % total);
-    }, Math.max(1200, autoMs));
+    const t = window.setInterval(
+      () => {
+        setIndex((cur) => (cur + 1) % total);
+      },
+      Math.max(1200, autoMs),
+    );
 
     return () => window.clearInterval(t);
   }, [paused, autoMs, total]);
@@ -246,10 +247,7 @@ export function Hero1({
     e.stopPropagation();
   };
 
-  const sliderStyle = useMemo(
-    () => ({ transform: `translateX(-${index * 100}%)` } as React.CSSProperties),
-    [index],
-  );
+  const sliderStyle = useMemo(() => ({ transform: `translateX(-${index * 100}%)` }) as React.CSSProperties, [index]);
 
   const bp = normalizeBasePath(categoryBasePath);
 
@@ -297,7 +295,8 @@ export function Hero1({
           onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}
           onBlurCapture={() => setPaused(false)}
-          aria-label="Hero slider">
+          aria-label="Hero slider"
+        >
           {/* arrows */}
           <button className={`${cls.arrow} ${cls.prev}`} aria-label="Previous slide" type="button" onClick={prev}>
             <i className="bi bi-chevron-left" />
@@ -316,7 +315,8 @@ export function Hero1({
                   key={`${i}-${s.ctaHref}-${s.headline}`}
                   className={cls.slide}
                   style={slideBg ? ({ background: slideBg } as React.CSSProperties) : undefined}
-                  aria-hidden={i !== index}>
+                  aria-hidden={i !== index}
+                >
                   <div>
                     <div className={cls.headline}>
                       {lines.map((line, idx) => (
@@ -343,7 +343,13 @@ export function Hero1({
                   <div className={cls.art} aria-hidden="true">
                     {s.imageSrc ? (
                       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                        <Image src={s.imageSrc} alt="" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: "contain" }} />
+                        <Image
+                          src={s.imageSrc}
+                          alt=""
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          style={{ objectFit: "contain" }}
+                        />
                       </div>
                     ) : (
                       !!s.chips?.length && (
@@ -406,48 +412,38 @@ export function Hero1({
         </div>
       </div>
 
-    <aside className={cls.right} aria-label="Right banners">
-      {rbs.map((b, i) => {
-        const variantClass =
-          i === 0
-            ? cls.rbTop
-            : i === 1
-            ? cls.rbMid
-            : cls.rbShip;
+      <aside className={cls.right} aria-label="Right banners">
+        {rbs.map((b, i) => {
+          const variantClass = i === 0 ? cls.rbTop : i === 1 ? cls.rbMid : cls.rbShip;
 
-        return (
-          <div
-            key={`${b.badge}-${i}-${b.title}`}
-            className={`${cls.rb} ${variantClass}`}>
-            <span className={cls.rbBadge}>{b.badge}</span>
+          return (
+            <div key={`${b.badge}-${i}-${b.title}`} className={`${cls.rb} ${variantClass}`}>
+              <span className={cls.rbBadge}>{b.badge}</span>
 
-            <div className={cls.pad}>
-              <div className={cls.rbTitle}>{b.title}</div>
-              <div className={cls.rbSub}>{b.sub}</div>
-            </div>
+              <div className={cls.pad}>
+                <div className={cls.rbTitle}>{b.title}</div>
+                <div className={cls.rbSub}>{b.sub}</div>
+              </div>
 
-            <div className={cls.mockImg} aria-hidden="true">
-              {b.imageSrc ? (
-                <Image
-                  src={b.imageSrc}
-                  alt=""
-                  fill
-                  sizes="(max-width: 768px) 100vw, 25vw"
-                  style={{ objectFit: "cover" }}
-                />
-              ) : (
-                <div className={cls.rbIconWrap}>
-                  <i
-                    className={`bi ${b.icon} ${cls.rbIcon}`}
+              <div className={cls.mockImg} aria-hidden="true">
+                {b.imageSrc ? (
+                  <Image
+                    src={b.imageSrc}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 100vw, 25vw"
+                    style={{ objectFit: "cover" }}
                   />
-                </div>
-              )}
+                ) : (
+                  <div className={cls.rbIconWrap}>
+                    <i className={`bi ${b.icon} ${cls.rbIcon}`} />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </aside>
-
+          );
+        })}
+      </aside>
     </section>
   );
 }

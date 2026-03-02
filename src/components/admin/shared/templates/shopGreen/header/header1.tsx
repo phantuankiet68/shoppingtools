@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/header/header1.module.css";
+import cls from "@/styles/templates/shopGreen/header/header1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type MegaColumn = {

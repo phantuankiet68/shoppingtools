@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/template/shopGreen/skincare/skincare1.module.css";
+import cls from "@/styles/templates/shopGreen/skincare/skincare1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -276,7 +276,8 @@ export function Skincare1({
                   onClick={(e) => {
                     if (preview) return block(e);
                     setActive(t.value);
-                  }}>
+                  }}
+                >
                   {t.label}
                 </button>
               );
@@ -370,7 +371,13 @@ export function Skincare1({
 
         <div className={cls.spotMedia} aria-hidden="true">
           <div className={cls.spotMediaInner}>
-            <Image src={sp.mediaSrc} alt={sp.mediaAlt || ""} fill sizes="(max-width: 980px) 100vw, 40vw" style={{ objectFit: "cover" }} />
+            <Image
+              src={sp.mediaSrc}
+              alt={sp.mediaAlt || ""}
+              fill
+              sizes="(max-width: 980px) 100vw, 40vw"
+              style={{ objectFit: "cover" }}
+            />
           </div>
         </div>
       </div>
@@ -383,11 +390,19 @@ export function Skincare1({
 
             const Card = (
               <article className={cls.item} data-cat={it.cat} aria-label={it.name}>
-                {!!it.badge && <div className={`${cls.badge} ${it.badgeVariant === "hot" ? cls.badgeHot : ""}`}>{it.badge}</div>}
+                {!!it.badge && (
+                  <div className={`${cls.badge} ${it.badgeVariant === "hot" ? cls.badgeHot : ""}`}>{it.badge}</div>
+                )}
 
                 <div className={cls.thumb}>
                   <div className={cls.thumbInner}>
-                    <Image src={it.imageSrc} alt={it.imageAlt || it.name} fill sizes="160px" style={{ objectFit: "contain" }} />
+                    <Image
+                      src={it.imageSrc}
+                      alt={it.imageAlt || it.name}
+                      fill
+                      sizes="160px"
+                      style={{ objectFit: "contain" }}
+                    />
                   </div>
                 </div>
 
@@ -427,7 +442,8 @@ export function Skincare1({
                           onClick={(e) => {
                             if (preview) return block(e);
                             toggleLike(it.id);
-                          }}>
+                          }}
+                        >
                           <i className={`bi ${isLiked ? "bi-heart-fill" : "bi-heart"}`} />
                         </button>
                       </>
@@ -436,7 +452,13 @@ export function Skincare1({
                         <button className={`${cls.cta} ${cls.ctaAdd}`} type="button">
                           Add to cart
                         </button>
-                        <button suppressHydrationWarning className={`${cls.cta} ${cls.ctaWish} ${isLiked ? cls.liked : ""}`} type="button" aria-label="Wishlist" onClick={() => toggleLike(it.id)}>
+                        <button
+                          suppressHydrationWarning
+                          className={`${cls.cta} ${cls.ctaWish} ${isLiked ? cls.liked : ""}`}
+                          type="button"
+                          aria-label="Wishlist"
+                          onClick={() => toggleLike(it.id)}
+                        >
                           <i className={`bi ${isLiked ? "bi-heart-fill" : "bi-heart"}`} />
                         </button>
                       </>
@@ -463,10 +485,22 @@ export function Skincare1({
         </div>
 
         <div className={cls.nav}>
-          <button suppressHydrationWarning className={cls.navBtn} type="button" aria-label="Previous" onClick={(e) => (preview ? block(e) : scrollRail(-1))}>
+          <button
+            suppressHydrationWarning
+            className={cls.navBtn}
+            type="button"
+            aria-label="Previous"
+            onClick={(e) => (preview ? block(e) : scrollRail(-1))}
+          >
             <i className="bi bi-arrow-left" />
           </button>
-          <button suppressHydrationWarning className={cls.navBtn} type="button" aria-label="Next" onClick={(e) => (preview ? block(e) : scrollRail(1))}>
+          <button
+            suppressHydrationWarning
+            className={cls.navBtn}
+            type="button"
+            aria-label="Next"
+            onClick={(e) => (preview ? block(e) : scrollRail(1))}
+          >
             <i className="bi bi-arrow-right" />
           </button>
         </div>

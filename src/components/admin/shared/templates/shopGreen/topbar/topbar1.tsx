@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import cls from "@/styles/template/shopGreen/topbar/topbar1.module.css";
+import cls from "@/styles/templates/shopGreen/topbar/topbar1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -114,7 +114,8 @@ export function Topbar1({
               onBlockClick(e);
               if (preview) return;
               alert("Sau này bạn có thể mở popover chọn khu vực / chi nhánh ở đây (2026 style).");
-            }}>
+            }}
+          >
             <i className="bi bi-geo-alt" />
             <span>{regionLabel}</span>
             <i className="bi bi-chevron-down" />
@@ -127,7 +128,14 @@ export function Topbar1({
             <div className={cls.tbTickerTrack}>
               <span className={cls.tbTickerLabel}>{tickerLabel}</span>
 
-              <div className={[cls.tbTickerText, phase === "active" ? cls.isActive : "", phase === "leaving" ? cls.isLeaving : "", phase === "entering" ? cls.isEntering : ""].join(" ")}>
+              <div
+                className={[
+                  cls.tbTickerText,
+                  phase === "active" ? cls.isActive : "",
+                  phase === "leaving" ? cls.isLeaving : "",
+                  phase === "entering" ? cls.isEntering : "",
+                ].join(" ")}
+              >
                 <span className={cls.main}>{current.main}</span>
                 <span className={cls.tag}>{current.tag}</span>
               </div>
@@ -158,7 +166,8 @@ export function Topbar1({
               if (preview) return;
               setMenuOpen((v) => !v);
             }}
-            aria-label="More">
+            aria-label="More"
+          >
             <i className="bi bi-list" />
           </button>
         </div>
@@ -174,7 +183,9 @@ function parseTickerItems(raw?: string): TopbarTickerItem[] | undefined {
     const val = JSON.parse(raw);
     if (!Array.isArray(val)) return undefined;
 
-    const ok = val.map((x) => ({ main: String(x?.main ?? ""), tag: String(x?.tag ?? "") })).filter((x) => x.main && x.tag);
+    const ok = val
+      .map((x) => ({ main: String(x?.main ?? ""), tag: String(x?.tag ?? "") }))
+      .filter((x) => x.main && x.tag);
 
     return ok.length ? ok : undefined;
   } catch {
@@ -224,7 +235,15 @@ export const SHOP_TOPBAR_GREEN_ONE: RegItem = {
 
     return (
       <div aria-label="Shop Topbar (Green One)">
-        <Topbar1 brandTitle={p.brandTitle} regionLabel={p.regionLabel} hotline={p.hotline} statusText={p.statusText} tickerLabel={p.tickerLabel} tickerItems={items} preview={true} />
+        <Topbar1
+          brandTitle={p.brandTitle}
+          regionLabel={p.regionLabel}
+          hotline={p.hotline}
+          statusText={p.statusText}
+          tickerLabel={p.tickerLabel}
+          tickerItems={items}
+          preview={true}
+        />
       </div>
     );
   },
