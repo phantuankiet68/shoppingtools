@@ -29,7 +29,7 @@ export type BuilderMenuItem = {
   linkType: "external" | "internal" | "scheduled";
   externalUrl?: string;
   newTab?: boolean;
-  internalPageId?: string;
+  internalPageId?: string | null;
   rawPath?: string | null;
   schedules?: Array<{ when: string; url: string }>;
   children?: BuilderMenuItem[];
@@ -209,6 +209,10 @@ type Ctx = {
   INTERNAL_PAGES: InternalPage[];
   loadFromServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
   saveToServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
+
+  // ✅ added
+  findItem: (id: string, setKey?: MenuSetKey) => BuilderMenuItem | null;
+  removeItemById: (id: string, setKey?: MenuSetKey) => [removed: BuilderMenuItem | null, nextRoot: BuilderMenuItem[]];
 };
 
 const MenuCtx = createContext<Ctx | null>(null);
@@ -218,11 +222,14 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   const [templateKey, setTemplateKey] = useState<TemplateKey>("header");
   const [menus, setMenus] = useState<MenuState>({ home: [], v1: [] });
   const [currentSet, setCurrentSet] = useState<MenuSetKey>("home");
+
   const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind], [siteKind]);
   const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind], [siteKind]);
+
   const inflight = useRef<AbortController | null>(null);
   const inflightKey = useRef<string>("");
   const loadedKey = useRef<string>("");
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -250,6 +257,7 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const activeMenu = menus[currentSet] ?? [];
+
   const setActiveMenu = (next: any) =>
     setMenus((m) => ({
       ...m,
@@ -298,6 +306,50 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
 
     return "";
   }
+
+  // ✅ added: findItem
+  const findItem = useCallback(
+    (id: string, setKey?: MenuSetKey): BuilderMenuItem | null => {
+      const root = menus[setKey ?? currentSet] ?? [];
+
+      const walk = (nodes: BuilderMenuItem[]): BuilderMenuItem | null => {
+        for (const n of nodes) {
+          if (n.id === id) return n;
+          const hit = n.children?.length ? walk(n.children) : null;
+          if (hit) return hit;
+        }
+        return null;
+      };
+
+      return walk(root);
+    },
+    [menus, currentSet],
+  );
+
+  // ✅ added: removeItemById
+  const removeItemById = useCallback(
+    (id: string, setKey?: MenuSetKey): [BuilderMenuItem | null, BuilderMenuItem[]] => {
+      const root = menus[setKey ?? currentSet] ?? [];
+      let removed: BuilderMenuItem | null = null;
+
+      const removeWalk = (nodes: BuilderMenuItem[]): BuilderMenuItem[] => {
+        const out: BuilderMenuItem[] = [];
+        for (const n of nodes) {
+          if (n.id === id) {
+            removed = n;
+            continue;
+          }
+          const nextChildren = n.children?.length ? removeWalk(n.children) : (n.children ?? []);
+          out.push({ ...n, children: nextChildren });
+        }
+        return out;
+      };
+
+      const nextRoot = removeWalk(root);
+      return [removed, nextRoot];
+    },
+    [menus, currentSet],
+  );
 
   const loadFromServer = useCallback(
     async (setKey: MenuSetKey, siteId?: string) => {
@@ -369,6 +421,10 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
         saveToServer,
         TEMPLATE_ALLOWED,
         INTERNAL_PAGES,
+
+        // ✅ expose
+        findItem,
+        removeItemById,
       }}
     >
       {children}

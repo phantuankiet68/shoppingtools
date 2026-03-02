@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import styles from "@/styles/admin/menu/menu.module.css";
+import styles from "@/styles/admin/builder/menus/menu.module.css";
 
 import { useMenuStore, type MenuSetKey, type SiteKind } from "@/components/admin/builder/menus/state/useMenuStore";
 import AllowedBlocks from "@/components/admin/builder/menus/state/AllowedBlocks";

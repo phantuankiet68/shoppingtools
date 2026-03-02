@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo } from "react";
-import styles from "@/styles/admin/menu/offcanvasBackdrop.module.css";
+import styles from "@/styles/admin/builder/menus/offcanvasBackdrop.module.css";
 import {
   useMenuStore,
   type BuilderMenuItem,

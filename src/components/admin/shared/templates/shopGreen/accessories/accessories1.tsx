@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import cls from "@/styles/templates/shopGreen/accessories/accessories1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
-
+/* ================= Types 1 ================= */
 /* ================= Types ================= */
 type ApiCategory = {
   id: string;

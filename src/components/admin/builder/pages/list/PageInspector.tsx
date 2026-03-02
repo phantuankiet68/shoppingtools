@@ -41,7 +41,16 @@ function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
   };
 }
 
-export default function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDuplicate, onDelete, initialSeo = null }: Props) {
+export default function PageInspector({
+  page,
+  onEdit,
+  onPreview,
+  onPublish,
+  onUnpublish,
+  onDuplicate,
+  onDelete,
+  initialSeo = null,
+}: Props) {
   const hasPage = !!page;
 
   const [seo, setSeo] = useState<SEO>(() => buildDefaultSEO(page, initialSeo));
@@ -103,7 +112,10 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
 
     (async () => {
       try {
-        const r = await fetch(`/api/admin/pages/${pageId}/seo`, { cache: "no-store", signal: controller.signal });
+        const r = await fetch(`/api/admin/builder/pages/${pageId}/seo`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
 
         if (r.ok) {
           const data = await r.json();
@@ -111,7 +123,10 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
           return;
         }
         if (r.status === 404) {
-          const rp = await fetch(`/api/admin/pages/${pageId}`, { cache: "no-store", signal: controller.signal });
+          const rp = await fetch(`/api/admin/builder/pages/${pageId}`, {
+            cache: "no-store",
+            signal: controller.signal,
+          });
           if (rp.ok) {
             const d = await rp.json();
             if (d?.page?.seo) setSeo((prev) => ({ ...prev, ...d.page.seo }));
@@ -171,7 +186,7 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
     try {
       setSavingSEO(true);
 
-      const trySeo = await fetch(`/api/admin/pages/${page.id}/seo`, {
+      const trySeo = await fetch(`/api/admin/builder/pages/${page.id}/seo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ seo }),
@@ -193,13 +208,13 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
         };
       };
 
-      const detailRes = await fetch(`/api/admin/pages/${page.id}`, { cache: "no-store" });
+      const detailRes = await fetch(`/api/admin/builder/pages/${page.id}`, { cache: "no-store" });
       if (!detailRes.ok) throw new Error("Load page detail failed");
 
       const detailJson: PageDetail = await detailRes.json();
       const blocks = detailJson?.page?.blocks ?? [];
 
-      const res = await fetch(`/api/admin/pages/save`, {
+      const res = await fetch(`/api/admin/builder/pages/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -232,7 +247,11 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
             <div className={styles.kv}>
               <div className={styles.kvItem}>
                 <span className={styles.kvLabel}>Status</span>
-                <span className={`${styles.badge} ${page!.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}>{page!.status}</span>
+                <span
+                  className={`${styles.badge} ${page!.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}
+                >
+                  {page!.status}
+                </span>
               </div>
               <div className={styles.kvItem}>
                 <span className={styles.kvLabel}>Updated</span>
@@ -301,7 +320,12 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
               </div>
             </div>
 
-            <input className={styles.input} value={seo.metaTitle} onChange={(e) => setSeo((prev) => ({ ...prev, metaTitle: e.target.value }))} placeholder={page!.title || "Tiêu đề…"} />
+            <input
+              className={styles.input}
+              value={seo.metaTitle}
+              onChange={(e) => setSeo((prev) => ({ ...prev, metaTitle: e.target.value }))}
+              placeholder={page!.title || "Tiêu đề…"}
+            />
           </div>
           <div className={styles.field}>
             <div className={styles.fieldTop}>
@@ -323,22 +347,42 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>Keywords (optional)</label>
-              <input className={styles.input} value={seo.keywords} onChange={(e) => setSeo((prev) => ({ ...prev, keywords: e.target.value }))} placeholder="zento, builder, landing page…" />
+              <input
+                className={styles.input}
+                value={seo.keywords}
+                onChange={(e) => setSeo((prev) => ({ ...prev, keywords: e.target.value }))}
+                placeholder="zento, builder, landing page…"
+              />
             </div>
 
             <div className={styles.field}>
               <label className={styles.label}>Canonical URL</label>
-              <input className={styles.input} value={seo.canonicalUrl} onChange={(e) => setSeo((prev) => ({ ...prev, canonicalUrl: e.target.value }))} placeholder="https://example.com/your-page" />
+              <input
+                className={styles.input}
+                value={seo.canonicalUrl}
+                onChange={(e) => setSeo((prev) => ({ ...prev, canonicalUrl: e.target.value }))}
+                placeholder="https://example.com/your-page"
+              />
             </div>
           </div>
           <div className={styles.checkRow}>
             <label className={styles.check}>
-              <input className={styles.checkInput} type="checkbox" checked={!!seo.noindex} onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))} />
+              <input
+                className={styles.checkInput}
+                type="checkbox"
+                checked={!!seo.noindex}
+                onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))}
+              />
               <span className={styles.checkText}>noindex</span>
             </label>
 
             <label className={styles.check}>
-              <input className={styles.checkInput} type="checkbox" checked={!!seo.nofollow} onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))} />
+              <input
+                className={styles.checkInput}
+                type="checkbox"
+                checked={!!seo.nofollow}
+                onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))}
+              />
               <span className={styles.checkText}>nofollow</span>
             </label>
           </div>
@@ -347,12 +391,20 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>OG Title</label>
-              <input className={styles.input} value={seo.ogTitle} onChange={(e) => setSeo((prev) => ({ ...prev, ogTitle: e.target.value }))} />
+              <input
+                className={styles.input}
+                value={seo.ogTitle}
+                onChange={(e) => setSeo((prev) => ({ ...prev, ogTitle: e.target.value }))}
+              />
             </div>
 
             <div className={styles.field}>
               <label className={styles.label}>Twitter Card</label>
-              <select className={styles.select} value={seo.twitterCard} onChange={(e) => setSeo((prev) => ({ ...prev, twitterCard: e.target.value as SEO["twitterCard"] }))}>
+              <select
+                className={styles.select}
+                value={seo.twitterCard}
+                onChange={(e) => setSeo((prev) => ({ ...prev, twitterCard: e.target.value as SEO["twitterCard"] }))}
+              >
                 <option value="summary_large_image">summary_large_image</option>
                 <option value="summary">summary</option>
               </select>
@@ -361,7 +413,11 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
 
           <div className={styles.field}>
             <label className={styles.label}>OG Description</label>
-            <input className={styles.input} value={seo.ogDescription} onChange={(e) => setSeo((prev) => ({ ...prev, ogDescription: e.target.value }))} />
+            <input
+              className={styles.input}
+              value={seo.ogDescription}
+              onChange={(e) => setSeo((prev) => ({ ...prev, ogDescription: e.target.value }))}
+            />
           </div>
 
           <div className={styles.field}>
@@ -369,13 +425,24 @@ export default function PageInspector({ page, onEdit, onPreview, onPublish, onUn
               <label className={styles.label}>OG Image URL</label>
               <span className={styles.helper}>Khuyến nghị 1200×630px, &lt; 1MB</span>
             </div>
-            <input className={styles.input} value={seo.ogImage} onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))} placeholder="https://…" />
+            <input
+              className={styles.input}
+              value={seo.ogImage}
+              onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))}
+              placeholder="https://…"
+            />
           </div>
           <div className={styles.hr} />
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>Sitemap Changefreq</label>
-              <select className={styles.select} value={seo.sitemapChangefreq} onChange={(e) => setSeo((prev) => ({ ...prev, sitemapChangefreq: e.target.value as SEO["sitemapChangefreq"] }))}>
+              <select
+                className={styles.select}
+                value={seo.sitemapChangefreq}
+                onChange={(e) =>
+                  setSeo((prev) => ({ ...prev, sitemapChangefreq: e.target.value as SEO["sitemapChangefreq"] }))
+                }
+              >
                 <option value="always">always</option>
                 <option value="hourly">hourly</option>
                 <option value="daily">daily</option>

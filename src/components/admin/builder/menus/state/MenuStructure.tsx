@@ -1,19 +1,16 @@
+// src/components/menu/state/MenuStructure.tsx
 "use client";
 
-import React, { useCallback, useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import styles from "@/styles/admin/menu/MenuStructure.module.css";
-
+import styles from "@/styles/admin/builder/menus/MenuStructure.module.css";
 import EditOffcanvas from "./EditOffcanvas";
+import React from "react";
+import { useMenuStore } from "@/components/admin/builder/menus/state/useMenuStore";
 import ConfirmDialog from "@/components/admin/shared/popup/delete/ConfirmDialog";
-
-import { useMenuStore, type BuilderMenuItem } from "@/components/admin/builder/menus/state/useMenuStore";
-import { useMenuStructureStore } from "@/store/builder/menus/useMenuStructureStore";
-import { deleteMenuItem } from "@/services/builder/menus/menuStructure.service";
-
 import { MENU_MESSAGES as M } from "@/features/builder/menus/messages";
 
-type MenuItem = BuilderMenuItem;
+type MenuItem = ReturnType<typeof useMenuStore>["activeMenu"][number];
 
 type DragInfo = null | {
   kind: "move";
@@ -34,214 +31,213 @@ function slugifyLoose(input: string) {
     .replace(/^-|-$/g, "");
 }
 
-function findItemInTree(tree: MenuItem[] | undefined, id: string): MenuItem | null {
-  const arr = tree || [];
-  for (const it of arr) {
-    if (it.id === id) return it;
-    if (it.children?.length) {
-      const found = findItemInTree(it.children, id);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function removeItemByIdFromTree(
-  tree: MenuItem[] | undefined,
-  id: string,
-): { removed: MenuItem | null; next: MenuItem[] } {
-  const arr = tree || [];
-  let removed: MenuItem | null = null;
-
-  const walk = (nodes: MenuItem[]): MenuItem[] => {
-    const out: MenuItem[] = [];
-    for (const n of nodes) {
-      if (n.id === id) {
-        removed = n;
-        continue;
-      }
-      if (n.children?.length) {
-        const nextChildren = walk(n.children);
-        out.push(nextChildren !== n.children ? { ...n, children: nextChildren } : n);
-      } else {
-        out.push(n);
-      }
-    }
-    return out;
-  };
-
-  return { removed, next: walk(arr) };
-}
-
-function isDescendant(tree: MenuItem[] | undefined, sourceId: string, targetParentId?: string): boolean {
-  if (!targetParentId) return false;
-  const sourceNode = findItemInTree(tree, sourceId);
-  if (!sourceNode?.children?.length) return false;
-
-  const walk = (node: MenuItem): boolean => (node.children || []).some((c) => c.id === targetParentId || walk(c));
-  return walk(sourceNode);
-}
-
 type Props = {
   siteId?: string;
 };
 
-export default function MenuStructure(_props: Props) {
+export default function MenuStructure({ siteId }: Props) {
   const router = useRouter();
-  const { activeMenu, setActiveMenu, buildHref } = useMenuStore();
+  const { activeMenu, setActiveMenu, removeItemById, buildHref, findItem } = useMenuStore();
 
-  const dragInfoRef = useRef<DragInfo>(null);
-  const overElRef = useRef<HTMLElement | null>(null);
+  const [editing, setEditing] = useState<MenuItem | null>(null);
+  const dragInfo = useRef<DragInfo>(null);
+  const overRef = useRef<HTMLElement | null>(null);
 
-  const {
-    editing,
-    q,
-    confirmOpen,
-    pendingDeleteId,
-    busy,
-    setEditing,
-    setQ,
-    askDelete,
-    closeConfirm,
-    setBusy,
-    clearDeleteState,
-  } = useMenuStructureStore();
+  const [q, setQ] = useState("");
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
 
-  const now = useMemo(() => new Date(), []);
+  const askDelete = (id: string) => {
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  };
 
-  const setDropHighlight = useCallback((el: HTMLElement | null, on: boolean) => {
+  const doDelete = async () => {
+    if (!pendingDeleteId) return;
+    const el = document.querySelector(`[data-menu-id="${pendingDeleteId}"]`);
+    if (el) (el as HTMLElement).style.opacity = "0.4";
+
+    try {
+      setBusy(true);
+      const res = await fetch(`/api/menu-items/${pendingDeleteId}`, { method: "DELETE", cache: "no-store" });
+      if (!res.ok) throw new Error(await res.text());
+
+      router.refresh();
+      setTimeout(() => window.location.reload(), 100);
+    } catch (e: any) {
+      alert(e?.message || "Xóa thất bại");
+      if (el) (el as HTMLElement).style.opacity = "";
+    } finally {
+      setBusy(false);
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
+    }
+  };
+
+  const filteredTree = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    if (!query) return activeMenu;
+
+    const now = new Date();
+    const matchNode = (node: MenuItem): MenuItem | null => {
+      const href = buildHref(node, now);
+      const titleHit = (node.title || "").toLowerCase().includes(query);
+      const hrefHit = (href || "").toLowerCase().includes(query);
+
+      const keptChildren = (node.children || []).map(matchNode).filter(Boolean) as MenuItem[];
+
+      if (titleHit || hrefHit || keptChildren.length > 0) {
+        return { ...node, children: keptChildren };
+      }
+      return null;
+    };
+
+    return (activeMenu || []).map(matchNode).filter(Boolean) as MenuItem[];
+  }, [activeMenu, q, buildHref]);
+
+  function setOver(el: HTMLElement | null, on: boolean) {
     if (!el) return;
     if (on) el.classList.add(styles.dropActive);
     else el.classList.remove(styles.dropActive);
-  }, []);
+  }
 
-  const clearOverHighlight = useCallback(() => {
-    setDropHighlight(overElRef.current, false);
-    overElRef.current = null;
-  }, [setDropHighlight]);
+  // ✅ only allow children drop for root items (2 levels only)
+  function isRootItemId(id?: string) {
+    if (!id) return false;
+    return (activeMenu || []).some((it) => it.id === id);
+  }
 
-  const handleDropzoneOver = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.dataTransfer.dropEffect = dragInfoRef.current ? "move" : "copy";
+  function onDropNew(e: React.DragEvent, zone: "root" | "children", parentId?: string) {
+    e.preventDefault();
+    e.stopPropagation();
 
-      if (overElRef.current !== e.currentTarget) {
-        setDropHighlight(overElRef.current, false);
-        overElRef.current = e.currentTarget;
-        setDropHighlight(e.currentTarget, true);
-      }
-    },
-    [setDropHighlight],
-  );
+    // ✅ prevent creating level-3 items
+    if (zone === "children" && !isRootItemId(parentId)) return;
 
-  const handleDragStartRow = useCallback(
-    (e: React.DragEvent, item: MenuItem, source: "root" | "children", parentId?: string) => {
-      dragInfoRef.current = { kind: "move", id: item.id, source, parentId };
-      (e.currentTarget as HTMLElement).classList.add(styles.ghost);
-      e.dataTransfer.effectAllowed = "move";
-    },
-    [],
-  );
+    const raw = e.dataTransfer.getData("application/json") || e.dataTransfer.getData("text/plain");
+    if (!raw) return;
 
-  const handleDragEndRow = useCallback(
-    (e: React.DragEvent) => {
-      (e.currentTarget as HTMLElement).classList.remove(styles.ghost);
-      dragInfoRef.current = null;
-      clearOverHighlight();
-    },
-    [clearOverHighlight],
-  );
+    try {
+      const payload = JSON.parse(raw);
+      if (payload?.type !== "new") return;
 
-  const handleDropNew = useCallback(
-    (e: React.DragEvent, zone: "root" | "children", parentId?: string) => {
-      e.preventDefault();
-      e.stopPropagation();
+      const title = (payload.name as string) || "Untitled";
+      const linkType = (payload.linkType as string) ?? "internal";
+      const baseId = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
+      let rawPath: string | null = null;
+      let slug: string | undefined = undefined;
 
-      const raw = e.dataTransfer.getData("application/json") || e.dataTransfer.getData("text/plain");
-      if (!raw) return;
-
-      try {
-        const payload = JSON.parse(raw);
-        if (payload?.type !== "new") return;
-
-        const title = (payload.name as string) || M.menuStructure.untitled;
-        const linkType = (payload.linkType as string) ?? "internal";
-        const baseId = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
-
-        let rawPath: string | null = null;
-        if (linkType === "internal") {
-          rawPath = (payload.rawPath as string | undefined) || "";
-          if (!rawPath) {
-            const s = slugifyLoose(title) || M.menuStructure.defaultSlug;
-            rawPath = `/${s}`;
-          }
+      if (linkType === "internal") {
+        rawPath = (payload.rawPath as string | undefined) || "";
+        if (!rawPath) {
+          const s = slugifyLoose(title) || "untitled";
+          rawPath = `/${s}`;
         }
-
-        const item: MenuItem = {
-          id: String(baseId),
-          title,
-          icon: "",
-          visible: true,
-          linkType: (linkType as any) ?? "internal",
-          externalUrl: (payload.externalUrl as string) ?? "",
-          internalPageId: (payload.internalPageId as string) || undefined,
-          rawPath,
-          schedules: [],
-          children: [],
-        };
-
-        if (zone === "root") {
-          setActiveMenu([...(activeMenu || []), item]);
-        } else {
-          const next = (activeMenu || []).map((it) =>
-            it.id === parentId ? { ...it, children: [...(it.children || []), item] } : it,
-          );
-          setActiveMenu(next);
-        }
-      } finally {
-        clearOverHighlight();
+        const segs = rawPath.split("/").filter(Boolean);
+        slug = segs.length ? segs[segs.length - 1] : "/";
       }
-    },
-    [activeMenu, setActiveMenu, clearOverHighlight],
-  );
 
-  const handleDropMove = useCallback(
-    (e: React.DragEvent, zone: "root" | "children", parentId?: string) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const info = dragInfoRef.current;
-      if (!info || info.kind !== "move") return;
-
-      if (zone === "children" && parentId === info.id) return;
-      if (zone === "children" && isDescendant(activeMenu, info.id, parentId)) return;
-
-      const { removed, next } = removeItemByIdFromTree(activeMenu, info.id);
-      if (!removed) return;
+      const item: MenuItem = {
+        id: baseId as any,
+        title,
+        icon: "",
+        linkType: (linkType as any) ?? "internal",
+        externalUrl: (payload.externalUrl as string) ?? "",
+        newTab: false,
+        internalPageId: (payload.internalPageId as string) ?? null,
+        rawPath: rawPath as any,
+        ...(slug ? { slug: slug as any } : {}),
+        schedules: [],
+        children: [],
+      };
 
       if (zone === "root") {
-        setActiveMenu([...next, removed]);
+        setActiveMenu([...(activeMenu || []), item]);
       } else {
-        const nextRoot = next.map((it) =>
-          it.id === parentId ? { ...it, children: [...(it.children || []), removed] } : it,
+        const next = (activeMenu || []).map((it) =>
+          it.id === parentId ? { ...it, children: [...(it.children || []), item] } : it,
         );
-        setActiveMenu(nextRoot);
+        setActiveMenu(next);
       }
+    } finally {
+      setOver(overRef.current as any, false);
+      overRef.current = null;
+    }
+  }
 
-      dragInfoRef.current = null;
-      clearOverHighlight();
-    },
-    [activeMenu, setActiveMenu, clearOverHighlight],
-  );
+  const closeConfirm = () => {
+    if (busy) return;
+    setConfirmOpen(false);
+    setPendingDeleteId(null);
+  };
 
-  const highlight = useCallback((text: string, needle: string) => {
+  function onDragStartRow(e: React.DragEvent, it: MenuItem, source: "root" | "children", parentId?: string) {
+    dragInfo.current = { kind: "move", id: it.id, source, parentId };
+    (e.target as HTMLElement).classList.add(styles.ghost);
+    e.dataTransfer.effectAllowed = "move";
+  }
+  function onDragEndRow(e: React.DragEvent) {
+    (e.target as HTMLElement).classList.remove(styles.ghost);
+    dragInfo.current = null;
+  }
+
+  function onDropMove(e: React.DragEvent, zone: "root" | "children", parentId?: string) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const info = dragInfo.current;
+    if (!info || info.kind !== "move") return;
+
+    // ✅ prevent moving into level-3 (only root can receive children)
+    if (zone === "children" && !isRootItemId(parentId)) return;
+
+    if (zone === "children" && parentId === info.id) return;
+
+    const isDescendant = (nodeId: string, targetId?: string): boolean => {
+      if (!targetId) return false;
+      const node = findItem(nodeId);
+      if (!node?.children?.length) return false;
+      return node.children.some((c) => c.id === targetId || isDescendant(c.id, targetId));
+    };
+
+    if (zone === "children" && isDescendant(info.id, parentId)) return;
+
+    const [removed, nextRoot] = removeItemById(info.id);
+    if (!removed) return;
+
+    if (zone === "root") {
+      setActiveMenu([...nextRoot, removed]);
+    } else {
+      const next = nextRoot.map((it) =>
+        it.id === parentId ? { ...it, children: [...(it.children || []), removed] } : it,
+      );
+      setActiveMenu(next);
+    }
+
+    dragInfo.current = null;
+
+    setOver(overRef.current as any, false);
+    overRef.current = null;
+  }
+
+  const onDropzoneOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
+    if (overRef.current !== e.currentTarget) {
+      setOver(overRef.current as any, false);
+      overRef.current = e.currentTarget;
+      setOver(e.currentTarget, true);
+    }
+  };
+
+  function highlight(text: string, needle: string) {
     if (!needle) return text;
     const ql = needle.toLowerCase();
     const tl = (text || "").toLowerCase();
     const i = tl.indexOf(ql);
     if (i === -1) return text;
-
     return (
       <>
         {text.slice(0, i)}
@@ -249,50 +245,9 @@ export default function MenuStructure(_props: Props) {
         {text.slice(i + needle.length)}
       </>
     );
-  }, []);
+  }
 
-  const filteredTree = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query) return activeMenu || [];
-
-    const matchNode = (node: MenuItem): MenuItem | null => {
-      const href = buildHref(node, now);
-      const titleHit = (node.title || "").toLowerCase().includes(query);
-      const hrefHit = (href || "").toLowerCase().includes(query);
-
-      const keptChildren = (node.children || []).map(matchNode).filter(Boolean) as MenuItem[];
-      if (titleHit || hrefHit || keptChildren.length > 0) return { ...node, children: keptChildren };
-      return null;
-    };
-
-    return (activeMenu || []).map(matchNode).filter(Boolean) as MenuItem[];
-  }, [activeMenu, q, buildHref, now]);
-
-  const doDelete = useCallback(async () => {
-    if (!pendingDeleteId) return;
-
-    const el = document.querySelector(`[data-menu-id="${pendingDeleteId}"]`) as HTMLElement | null;
-    if (el) el.style.opacity = "0.4";
-
-    try {
-      setBusy(true);
-      await deleteMenuItem(pendingDeleteId);
-
-      const { next } = removeItemByIdFromTree(activeMenu, pendingDeleteId);
-      setActiveMenu(next);
-      router.refresh();
-    } catch (e: any) {
-      console.error("deleteMenuItem failed:", e);
-      if (el) el.style.opacity = "";
-      alert(e?.message || M.menuStructure.deleteFailed);
-    } finally {
-      setBusy(false);
-      clearDeleteState();
-    }
-  }, [pendingDeleteId, activeMenu, setActiveMenu, router, setBusy, clearDeleteState]);
-
-  // ✅ Important: use a normal function with explicit return type for recursion
-  const renderRow = (item: MenuItem, idx: number, depth: number, parentId?: string): React.ReactElement => {
+  function renderRow(item: MenuItem, idx: number, depth: number, parentId?: string) {
     const typeBadgeClass =
       item.linkType === "internal"
         ? styles.badgeSuccess
@@ -300,32 +255,29 @@ export default function MenuStructure(_props: Props) {
           ? styles.badgeWarning
           : styles.badgePrimary;
 
-    const hrefPreview = buildHref(item, now);
-    const depthLabel = depth === 1 ? M.menuStructure.depthMain : M.menuStructure.depthSub;
-    const title = item.title || M.menuStructure.noTitle;
+    const hrefPreview = buildHref(item, new Date());
 
     return (
       <div key={item.id} className={styles.itemContainer} data-menu-id={item.id}>
         <div
           className={styles.menuItem}
           draggable
-          onDragStart={(e) => handleDragStartRow(e, item, parentId ? "children" : "root", parentId)}
-          onDragEnd={handleDragEndRow}
+          onDragStart={(e) => onDragStartRow(e, item, parentId ? "children" : "root", parentId)}
+          onDragEnd={onDragEndRow}
           title={hrefPreview || ""}
         >
           <span className={`${styles.order} text-white`}>{idx + 1}</span>
           <i className={`bi bi-grip-vertical ${styles.handle}`} />
           <span className={`${styles.depthBadge} ${depth === 1 ? styles.depthMain : styles.depthSub}`}>
-            {depthLabel}
+            {depth === 1 ? "Main" : "Sub"}
           </span>
           <span className={`${styles.typeBadge} ${typeBadgeClass}`}>{item.linkType}</span>
 
-          <span className={styles.flex1}>{highlight(title, q.trim())}</span>
+          <span className={styles.flex1}>{highlight(item.title || "(No title)", q.trim())}</span>
 
           {hrefPreview ? <span className={styles.linkPill}>{hrefPreview}</span> : null}
 
           <button
-            type="button"
             className={`${styles.btn} ${styles.btnIcon} ${styles.btnOutlineLight}`}
             onClick={() => setEditing(item)}
           >
@@ -342,94 +294,126 @@ export default function MenuStructure(_props: Props) {
               askDelete(item.id);
             }}
             draggable={false}
-            title={M.menuStructure.deleteItemTitle}
+            title="Xoá mục này"
           >
             <i className="bi bi-x-lg" />
           </button>
+
+          <ConfirmDialog
+            open={confirmOpen}
+            title="Xoá menu"
+            message={busy ? "Đang xoá..." : "Bạn có chắc muốn xoá mục này? Thao tác này sẽ được lưu lại."}
+            onCancel={() => {
+              if (busy) return;
+              setConfirmOpen(false);
+              setPendingDeleteId(null);
+            }}
+            onConfirm={() => {
+              if (!busy) void doDelete();
+            }}
+          />
         </div>
 
-        <div className={styles.subwrap} data-parent={item.id}>
-          <div className={styles.smallHelp}>
-            <i className="bi bi-diagram-2" /> {M.menuStructure.submenuLabelPrefix} <b>{title}</b>
-          </div>
+        {/* ✅ only show submenu dropzone for level-1 items (depth === 1) */}
+        {depth < 2 ? (
+          <div className={styles.subwrap} data-parent={item.id}>
+            <div className={styles.smallHelp}>
+              <i className="bi bi-diagram-2" /> Submenu của <b>{item.title || "(No title)"}</b>
+            </div>
 
-          <div
-            className={`${styles.dropzone} ${styles.appSoft}`}
-            onDragOver={handleDropzoneOver}
-            onDragEnter={handleDropzoneOver}
-            onDragLeave={(e) => {
-              if (overElRef.current === e.currentTarget) {
-                setDropHighlight(e.currentTarget, false);
-                overElRef.current = null;
-              }
-            }}
-            onDrop={(e) => {
-              if (dragInfoRef.current) handleDropMove(e, "children", item.id);
-              else handleDropNew(e, "children", item.id);
-            }}
-          >
-            {(item.children || []).length === 0 ? (
-              <p className={`${styles.smallHelp} m-0 py-2`}>{M.menuStructure.emptyChildrenHelp}</p>
-            ) : (
-              (item.children || []).map((child, i) => renderRow(child, i, depth + 1, item.id))
-            )}
+            <div
+              className={`${styles.dropzone} ${styles.appSoft}`}
+              onDragOver={onDropzoneOver}
+              onDragEnter={onDropzoneOver}
+              onDragLeave={(e) => {
+                if (overRef.current === e.currentTarget) {
+                  setOver(e.currentTarget as any, false);
+                  overRef.current = null;
+                }
+              }}
+              onDrop={(e) => {
+                if (dragInfo.current) onDropMove(e, "children", item.id);
+                else onDropNew(e, "children", item.id);
+              }}
+            >
+              {(item.children || []).length === 0 ? (
+                <p className={`${styles.smallHelp} m-0 py-2`}>Kéo item vào đây để tạo Submenu (Cấp 2)</p>
+              ) : (
+                (item.children || []).map((child, i) => renderRow(child, i, depth + 1, item.id))
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     );
-  };
-
-  const emptyRootText = q ? M.menuStructure.emptyRootNoResults : M.menuStructure.emptyRootDropHere;
+  }
 
   return (
     <>
-      <div className={styles.cardHeader}>
-        <h2 className={styles.h6}>{M.menuStructure.headerTitle}</h2>
-
-        <div className={styles.headerRight}>
-          <div className={styles.search}>
-            <i className={`bi bi-search ${styles.iconSearch}`} aria-hidden />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={M.menuStructure.searchPlaceholder}
-              aria-label={M.menuStructure.searchAria}
-              className={styles.searchInput}
-            />
-          </div>
-
-          {q ? (
-            <button
-              className={`${styles.btn} ${styles.btnOutlineSecondary} ${styles.btnClear}`}
-              onClick={() => setQ("")}
-              title={M.menuStructure.clearTitle}
-              type="button"
-            >
-              <i className="bi bi-x-circle" />
-              <span>{M.menuStructure.clearBtn}</span>
-            </button>
-          ) : null}
-        </div>
-      </div>
-
       <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.h6} style={{ marginRight: "auto" }}>
+            Menu structure
+          </h2>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className={styles.search} style={{ position: "relative" }}>
+              <i
+                className={`bi bi-search ${styles.iconSearch}`}
+                aria-hidden
+                style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", opacity: 0.6 }}
+              />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Tìm tiêu đề hoặc đường dẫn…"
+                aria-label="Tìm trong menu"
+                className={styles.searchInput}
+              />
+            </div>
+            {q ? (
+              <button
+                className={`${styles.btn} ${styles.btnOutlineSecondary}`}
+                onClick={() => setQ("")}
+                title="Xoá từ khoá"
+              >
+                <i className="bi bi-x-circle" /> Clear
+              </button>
+            ) : null}
+          </div>
+        </div>
+
         <div
           className={`${styles.dropzone} ${styles.appSoft}`}
-          onDragOver={handleDropzoneOver}
-          onDragEnter={handleDropzoneOver}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
+            if (overRef.current !== e.currentTarget) {
+              setOver(overRef.current as any, false);
+              overRef.current = e.currentTarget as any;
+              setOver(e.currentTarget as any, true);
+            }
+          }}
+          onDragEnter={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onDragLeave={(e) => {
-            if (overElRef.current === e.currentTarget) {
-              setDropHighlight(e.currentTarget as any, false);
-              overElRef.current = null;
+            if (overRef.current === e.currentTarget) {
+              setOver(e.currentTarget as any, false);
+              overRef.current = null;
             }
           }}
           onDrop={(e) => {
-            if (dragInfoRef.current) handleDropMove(e, "root");
-            else handleDropNew(e, "root");
+            if (dragInfo.current) onDropMove(e, "root");
+            else onDropNew(e, "root");
           }}
         >
           {filteredTree.length === 0 ? (
-            <p className={`${styles.smallHelp} text-center m-0 py-3`}>{emptyRootText}</p>
+            <p className={`${styles.smallHelp} text-center m-0 py-3`}>
+              {q ? "Không tìm thấy kết quả" : "Thả block vào đây (Cấp 1)"}
+            </p>
           ) : (
             filteredTree.map((it, idx) => renderRow(it, idx, 1))
           )}
@@ -437,7 +421,6 @@ export default function MenuStructure(_props: Props) {
 
         {editing && <EditOffcanvas item={editing} onClose={() => setEditing(null)} />}
       </div>
-
       <ConfirmDialog
         open={confirmOpen}
         title={M.menuStructure.confirmDeleteTitle}

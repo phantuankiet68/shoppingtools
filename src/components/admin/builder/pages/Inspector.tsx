@@ -6,8 +6,6 @@ import type { Block } from "@/lib/page/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import cls from "@/styles/admin/pages/inspector.module.css";
 
-import { CUSTOM_EDITORS } from "@/components/admin/shared/templates/ShopTemplate/editors";
-
 type Props = {
   active: Block | null;
   move: (dir: -1 | 1) => void;
@@ -26,9 +24,8 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
 
   const reg = REGISTRY.find((r) => r.kind === active.kind);
   const props = active.props ?? {};
-  const CustomEditor = CUSTOM_EDITORS[active.kind];
 
-  if (!reg && !CustomEditor) {
+  if (!reg) {
     return (
       <div className={cls.panel}>
         <div className={cls.empty}>

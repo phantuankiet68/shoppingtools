@@ -41,7 +41,7 @@ export default function UiBuilderListPage() {
         dir: sortDir,
       });
       if (status !== "all") params.set("status", status);
-      const res = await fetch(`/api/admin/pages/list?${params.toString()}`);
+      const res = await fetch(`/api/admin/builder/pages/list?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to load pages");
       const json = await res.json();
       const items: PageRow[] = json.items || [];
@@ -106,7 +106,7 @@ export default function UiBuilderListPage() {
     }
   }
 
-  const openEdit = (id: string) => router.push(`/admin/builder/page/add?id=${encodeURIComponent(id)}`);
+  const openEdit = (id: string) => router.push(`/admin/builder/pages/add?id=${encodeURIComponent(id)}`);
   const openCreate = () => router.push(`/admin/menu`);
 
   function openPreview(page: PageRow) {

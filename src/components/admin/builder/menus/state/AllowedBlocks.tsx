@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import styles from "@/styles/admin/menu/menu.module.css";
+import styles from "@/styles/admin/builder/menus/menu.module.css";
 
 import { useMenuStore } from "@/components/admin/builder/menus/state/useMenuStore";
 import { useAllowedBlocksStore } from "@/store/builder/menus/useAllowedBlocksStore";

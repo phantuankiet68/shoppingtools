@@ -1,5 +1,5 @@
 import { slugify } from "@/lib/page/utils";
-import type { BuilderMenuItem, InternalPage } from "@/components/admin/menu/state/useMenuStore";
+import type { BuilderMenuItem, InternalPage } from "@/components/admin/builder/menus/state/useMenuStore";
 
 export type TSP = { title: string; slug: string; path: string };
 
@@ -19,10 +19,10 @@ function slugFromPath(path: string) {
   return segs[segs.length - 1] || "/";
 }
 
-function resolveInternalPath(it: BuilderMenuItem, internalPages: InternalPage[]) {
-  // Ưu tiên page theo internalPageId
+function resolveInternalPath(it: BuilderMenuItem, internalPages?: InternalPage[]) {
+  // Ưu tiên page theo internalPageId (nếu có internalPages)
   const pid = it.internalPageId || "";
-  const pagePath = pid ? internalPages.find((p) => p.id === pid)?.path : undefined;
+  const pagePath = pid && internalPages?.length ? internalPages.find((p) => p.id === pid)?.path : undefined;
 
   // Nếu không có pagePath thì dùng rawPath (user nhập tay)
   const raw = typeof it.rawPath === "string" ? it.rawPath : "";
@@ -35,8 +35,8 @@ function resolveInternalPath(it: BuilderMenuItem, internalPages: InternalPage[])
  * - linkType === "internal"
  * - path là internal path (không phải external url)
  */
-export function deriveTriple(it: BuilderMenuItem, internalPages: InternalPage[]): TSP | null {
-  if (it.visible === false) return null;
+export function deriveTriple(it: BuilderMenuItem, internalPages?: InternalPage[]): TSP | null {
+  if ((it as any).visible === false) return null; // giữ tương thích nếu BuilderMenuItem không có visible
   if (it.linkType !== "internal") return null;
 
   const title = String(it.title ?? "").trim() || "Untitled";
@@ -53,7 +53,12 @@ export function deriveTriple(it: BuilderMenuItem, internalPages: InternalPage[])
   return { title, slug: s, path: `/${s}` };
 }
 
-export function flattenTriples(items: BuilderMenuItem[], internalPages: InternalPage[]): TSP[] {
+/**
+ * internalPages: optional
+ * - Nếu truyền vào: resolve internalPageId -> path chuẩn
+ * - Nếu không truyền: chỉ lấy rawPath / tự slug theo title
+ */
+export function flattenTriples(items: BuilderMenuItem[], internalPages?: InternalPage[]): TSP[] {
   const out: TSP[] = [];
 
   const walk = (nodes?: BuilderMenuItem[]) => {

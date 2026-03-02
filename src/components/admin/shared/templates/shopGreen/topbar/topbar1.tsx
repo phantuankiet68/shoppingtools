@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import cls from "@/styles/templates/shopGreen/topbar/topbar1.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
+/* Học để phát triển nhé*/
 /* ================= Types ================= */
 export type TopbarTickerItem = { main: string; tag: string };
 

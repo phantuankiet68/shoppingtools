@@ -13,6 +13,7 @@ function assertExt(p: string) {
 
 function sanitizeTemplatePath(p: string) {
   let rel = p.replace(/\\/g, "/").trim();
+
   if (rel.startsWith("@/")) rel = rel.slice(2);
   if (rel.startsWith("src/")) rel = rel.slice("src/".length);
   if (rel.startsWith("components/")) rel = rel.slice("components/".length);
@@ -25,21 +26,21 @@ function sanitizeTemplatePath(p: string) {
 
 function sanitizeStylesPath(p: string) {
   let rel = normalizeRel(p);
-
+  rel = rel.replace(/\\/g, "/").trim();
+  if (rel.startsWith("@/")) rel = rel.slice(2);
   if (rel.startsWith("src/")) rel = rel.slice("src/".length);
   if (rel.startsWith("components/")) rel = rel.slice("components/".length);
   if (rel.startsWith("styles/")) rel = rel.slice("styles/".length);
-
-  if (!rel.startsWith("admin/shared/templates/")) {
-    throw new Error('Style path must start with "admin/shared/templates/"');
+  if (!(rel.startsWith("templates/") || rel.startsWith("admin/shared/templates/"))) {
+    throw new Error('Style path must start with "templates/" or "admin/shared/templates/"');
   }
 
   return rel;
 }
+
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
 
-  const scope = body.scope === "styles" ? "styles" : "templates";
   const rawPath = body.path;
   const rawContent = body.content;
 
@@ -55,6 +56,11 @@ export async function POST(req: Request) {
 
   try {
     assertExt(relPath);
+    const scope: "styles" | "templates" = relPath.endsWith(".css")
+      ? "styles"
+      : body.scope === "styles"
+        ? "styles"
+        : "templates";
 
     const { componentsRoot, stylesRoot } = getAllowedRoots();
     const root = scope === "styles" ? stylesRoot : componentsRoot;
@@ -63,10 +69,8 @@ export async function POST(req: Request) {
 
     const abs = safeJoin(root, cleanedRel);
 
-    // ✅ TẠO FOLDER NẾU CHƯA CÓ
     await fs.mkdir(path.dirname(abs), { recursive: true });
 
-    // ✅ Backup nếu file đã tồn tại
     try {
       const old = await fs.readFile(abs, "utf8");
       await fs.writeFile(abs + ".bak", old, "utf8");
