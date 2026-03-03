@@ -1,0 +1,235 @@
+/* ===== BÁN SÁCH MALL ===== */
+.mall {
+  background: #fff;
+  border: 1px solid #eef1f5;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.05);
+}
+
+/* Top bar */
+.mallHead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 8px 12px;
+  border-bottom: 1px solid #f0f3f7;
+}
+
+.mallTitle {
+  color: #d60000;
+  letter-spacing: 0.2px;
+}
+
+.mallBenefits {
+  display: flex;
+  gap: 18px;
+  color: #6b7280;
+  font-size: 14px;
+  flex: 1;
+}
+
+.mallBenefits span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mallView {
+  margin-left: auto;
+  color: #e11d48;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Body */
+.mallBody {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 14px;
+  padding-top: 12px;
+}
+
+/* Poster trái */
+.mallPoster {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  padding: 16px;
+  background: radial-gradient(160% 120% at 10% 10%, #ffd39a 0%, transparent 50%), radial-gradient(140% 120% at 90% 20%, #ffae66 0%, transparent 55%), linear-gradient(180deg, #ffaf4d, #ff7a00);
+  color: #fff;
+  min-height: 360px;
+  box-shadow: 0 10px 24px rgba(255, 122, 0, 0.25);
+}
+
+.mallBadge {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: #fff;
+  color: #ff6a00;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.mallPoster h3 {
+  margin: 26px 6px 6px;
+  font-size: 36px;
+  line-height: 1.05;
+  text-transform: uppercase;
+  font-weight: 900;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+}
+
+.mallPoster h3 b {
+  font-size: 44px;
+  display: block;
+}
+
+.mallOff {
+  margin: 10px 6px 14px;
+  font-size: 18px;
+  background: #fff;
+  color: #ff6a00;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.mallTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px;
+}
+
+.mallTags span {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  backdrop-filter: blur(2px);
+}
+
+/* Slider phải (2 hàng) */
+.mallSlider {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  min-height: 340px; /* đảm bảo có chiều cao */
+}
+
+/* Track 2 hàng, auto column */
+.track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 200px;
+  grid-template-rows: repeat(2, 160px);
+  gap: 18px 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 6px 44px; /* chừa chỗ cho nút */
+}
+
+/* Item */
+.mallItem {
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #eef1f5;
+  box-shadow: 0 4px 14px rgba(2, 6, 23, 0.05);
+  min-height: 155px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mallItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.1);
+}
+
+.mallItem img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  display: block;
+}
+
+.cap {
+  color: #e11d48;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Nút điều hướng */
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #ff6a00;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.25s ease;
+}
+
+.nav:hover {
+  background: #ff6a00;
+  color: #fff;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.prev {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .mallBody {
+    grid-template-columns: 1fr;
+  }
+
+  .mallPoster {
+    min-height: 260px;
+  }
+
+  .track {
+    grid-auto-columns: 48%;
+    grid-template-rows: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .mallBenefits {
+    display: none;
+  }
+
+  .track {
+    grid-auto-columns: 80%;
+  }
+}

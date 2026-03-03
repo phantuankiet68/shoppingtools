@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import cls from "@/styles/admin/pages/design-header.module.css";
+import cls from "@/styles/admin/builder/pages/design-header.module.css";
 
 type Device = "desktop" | "tablet";
 
@@ -22,7 +22,22 @@ type Props = {
   setDevice?: (d: Device) => void;
 };
 
-export default function DesignHeader({ title, setTitle, slug, setSlug, path, saving, saved, publishing, onSave, onPublish, onPreview, onRefresh, device = "desktop", setDevice }: Props) {
+export default function DesignHeader({
+  title,
+  setTitle,
+  slug,
+  setSlug,
+  path,
+  saving,
+  saved,
+  publishing,
+  onSave,
+  onPublish,
+  onPreview,
+  onRefresh,
+  device = "desktop",
+  setDevice,
+}: Props) {
   const canEditTitle = Boolean(setTitle);
   const canEditSlug = Boolean(setSlug);
 
@@ -37,7 +52,8 @@ export default function DesignHeader({ title, setTitle, slug, setSlug, path, sav
               window.location.href = "/admin/builder/page";
             }}
             title="Refresh"
-            aria-label="Refresh">
+            aria-label="Refresh"
+          >
             <i className="bi bi-arrow-repeat" />
           </button>
         </div>
@@ -46,7 +62,13 @@ export default function DesignHeader({ title, setTitle, slug, setSlug, path, sav
       <div className={cls.center}>
         <div className={cls.titleRow}>
           {canEditTitle ? (
-            <input className={cls.titleInput} value={title} onChange={(e) => setTitle?.(e.target.value)} placeholder="Nhập tiêu đề trang…" aria-label="Page title" />
+            <input
+              className={cls.titleInput}
+              value={title}
+              onChange={(e) => setTitle?.(e.target.value)}
+              placeholder="Nhập tiêu đề trang…"
+              aria-label="Page title"
+            />
           ) : (
             <span className={cls.title} title={title || "Untitled"}>
               {title || "Untitled"}
@@ -67,7 +89,8 @@ export default function DesignHeader({ title, setTitle, slug, setSlug, path, sav
                   try {
                     await navigator.clipboard.writeText(path);
                   } catch {}
-                }}>
+                }}
+              >
                 <i className="bi bi-clipboard-check" />
               </button>
             </div>
@@ -77,7 +100,14 @@ export default function DesignHeader({ title, setTitle, slug, setSlug, path, sav
 
       <div className={cls.right}>
         <div className={cls.btnGroup}>
-          <button type="button" className={cls.ghostBtn} onClick={onSave} title="Save" aria-label="Save" disabled={saving}>
+          <button
+            type="button"
+            className={cls.ghostBtn}
+            onClick={onSave}
+            title="Save"
+            aria-label="Save"
+            disabled={saving}
+          >
             {saving ? <span className="spinner-border spinner-border-sm me-2" /> : <i className="bi bi-save me-1" />}
             {saving ? "Saving…" : "Save"}
           </button>
@@ -90,13 +120,26 @@ export default function DesignHeader({ title, setTitle, slug, setSlug, path, sav
 
         <div className={cls.deviceGroup} role="group" aria-label="Device">
           {(["desktop"] as const).map((d) => (
-            <button key={d} type="button" className={`${cls.deviceBtn} ${device === d ? cls.deviceActive : ""}`} onClick={() => setDevice?.(d)} title={d} aria-pressed={device === d}>
+            <button
+              key={d}
+              type="button"
+              className={`${cls.deviceBtn} ${device === d ? cls.deviceActive : ""}`}
+              onClick={() => setDevice?.(d)}
+              title={d}
+              aria-pressed={device === d}
+            >
               <i className={`bi ${d === "desktop" ? "bi-display" : d === "tablet" ? "bi-tablet" : "bi-phone"}`} />
             </button>
           ))}
         </div>
 
-        <button className={cls.publishBtn} onClick={onPublish} disabled={publishing || saving} aria-busy={publishing || saving} title="Publish">
+        <button
+          className={cls.publishBtn}
+          onClick={onPublish}
+          disabled={publishing || saving}
+          aria-busy={publishing || saving}
+          title="Publish"
+        >
           {publishing ? (
             <>
               <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />

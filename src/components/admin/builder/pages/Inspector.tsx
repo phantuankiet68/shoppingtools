@@ -4,32 +4,36 @@
 import React from "react";
 import type { Block } from "@/lib/page/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import cls from "@/styles/admin/pages/inspector.module.css";
+import type { InspectorField } from "@/lib/ui-builder/types";
+import cls from "@/styles/admin/builder/pages/inspector.module.css";
+
+import { CUSTOM_EDITORS } from "@/components/admin/shared/templates/ShopTemplate/editors";
 
 type Props = {
   active: Block | null;
   move: (dir: -1 | 1) => void;
   remove: () => void;
-  updateActive: (patch: Record<string, any>) => void;
+  updateActive: (patch: Record<string, unknown>) => void;
 };
 
 export default function Inspector({ active, move, remove, updateActive }: Props) {
   if (!active) {
     return (
       <div className={cls.panel}>
-        <div className={cls.empty}>Select a block to edit.</div>
+        <div className={cls.empty}>Chọn một block để chỉnh sửa</div>
       </div>
     );
   }
 
   const reg = REGISTRY.find((r) => r.kind === active.kind);
   const props = active.props ?? {};
+  const CustomEditor = CUSTOM_EDITORS[active.kind];
 
-  if (!reg) {
+  if (!reg && !CustomEditor) {
     return (
       <div className={cls.panel}>
         <div className={cls.empty}>
-          There is no inspector for <b>{active.kind}</b>
+          Không có inspector cho <b>{active.kind}</b>
         </div>
       </div>
     );
@@ -57,8 +61,8 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
             <span className={cls.sectionTitle}>Properties</span>
           </div>
           <div className={cls.sectionBody}>
-            {reg.inspector.map((field: any) => {
-              const value = props[field.key] ?? "";
+            {reg.inspector.map((field: InspectorField) => {
+              const value = (props[field.key] as string | number) ?? "";
 
               if (field.kind === "text") {
                 return (
@@ -119,12 +123,15 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
                   </Row>
                 );
               }
+
+              // fallback
               return null;
             })}
           </div>
         </div>
       )}
 
+      {/* Footer nút move / delete */}
       <div className={cls.footerBtns}>
         <button className={cls.btnGhost} onClick={() => move(-1)} title="Move up">
           <i className="bi bi-arrow-up" />

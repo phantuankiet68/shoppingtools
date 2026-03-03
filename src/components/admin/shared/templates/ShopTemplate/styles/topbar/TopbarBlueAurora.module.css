@@ -1,0 +1,372 @@
+/* styles/topbar/TopbarBlueAurora.module.css */
+
+.topbar {
+  --blue-main: #0b5ed7;
+  --blue-dark: #084298;
+  --blue-soft: #dce7ff;
+  --blue-glow: rgba(11, 94, 215, 0.35);
+
+  --ink: #0c203f;
+  --muted: #4b5563;
+  --border: rgba(0, 0, 0, 0.12);
+
+  --glass: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.55);
+
+  --radius-full: 999px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7)), radial-gradient(circle at 0 0, var(--blue-soft), transparent),
+    radial-gradient(circle at 100% 0, #e8f0ff, transparent);
+  box-shadow: 0 10px 25px rgba(11, 94, 215, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.topbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+
+/* LEFT */
+
+.tbLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.logoCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle at 25% 25%, #d0e2ff, #79aaff, #0b5ed7);
+  box-shadow: 0 0 12px var(--blue-glow), 0 0 18px rgba(11, 94, 215, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: white;
+}
+
+.brandTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brandTitle {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--blue-dark);
+  white-space: nowrap;
+}
+
+.brandSub {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.regionBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.regionBtn i {
+  font-size: 12px;
+}
+
+.regionBtn:hover {
+  border-color: var(--blue-main);
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 0 0 10px var(--blue-glow);
+}
+
+/* CENTER – Ticker */
+
+.tbCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.ticker {
+  max-width: 450px;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.tickerBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.tickerLabel {
+  font-size: 10px;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--blue-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.tickerText {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  opacity: 1;
+  transform: translateY(0);
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.isLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.isEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.isActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.tag {
+  background: rgba(11, 94, 215, 0.14);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  color: var(--blue-dark);
+}
+
+/* RIGHT */
+
+.tbRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+}
+
+.tbLinks {
+  display: flex;
+  gap: 12px;
+}
+
+.tbLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.tbLink i {
+  font-size: 13px;
+}
+
+.tbLink:hover {
+  color: var(--blue-main);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.statusPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(11, 94, 215, 0.12);
+  border: 1px solid rgba(11, 94, 215, 0.35);
+  font-size: 10px;
+  color: var(--blue-dark);
+  font-weight: 600;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: var(--blue-main);
+  border-radius: 999px;
+  animation: ping 1.8s infinite;
+  box-shadow: 0 0 8px var(--blue-glow);
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Mobile button */
+
+.moreBtn {
+  display: none;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 999px;
+  transition: background 0.15s ease;
+}
+
+.moreBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+/* Laptop & tablet landscape (<= 1024px) */
+@media (max-width: 1024px) {
+  .topbarInner {
+    max-width: 100%;
+    padding: 8px 12px;
+    gap: 14px;
+  }
+
+  .ticker {
+    max-width: 380px;
+  }
+
+  .brandSub {
+    max-width: 220px;
+  }
+}
+
+/* Tablet portrait (<= 768px) */
+@media (max-width: 768px) {
+  .topbarInner {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+
+  .tbCenter {
+    display: none;
+  }
+
+  .regionBtn {
+    display: none;
+  }
+
+  .brandSub {
+    max-width: 180px;
+  }
+}
+
+/* Mobile (<= 640px) */
+@media (max-width: 640px) {
+  .topbarInner {
+    padding: 8px 10px;
+  }
+
+  .brandTitle {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+
+  .brandSub {
+    display: none;
+  }
+
+  .tbRight {
+    justify-content: flex-end;
+  }
+
+  .tbLinks {
+    display: none;
+    top: 32px;
+    right: 0;
+    position: absolute;
+    padding: 8px 10px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    flex-direction: column;
+    min-width: 180px;
+    z-index: 20;
+  }
+
+  .tbLink {
+    padding: 4px 0;
+  }
+
+  .tbRightOpen .tbLinks {
+    display: flex;
+  }
+
+  .statusPill {
+    display: none;
+  }
+
+  .moreBtn {
+    display: block;
+  }
+}
+
+/* Mobile rất nhỏ (<= 420px) */
+@media (max-width: 420px) {
+  .logoCircle {
+    width: 28px;
+    height: 28px;
+  }
+
+  .topbarInner {
+    gap: 8px;
+  }
+
+  .tbLeft {
+    gap: 8px;
+  }
+}

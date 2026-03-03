@@ -1,0 +1,319 @@
+/* src/components/templates/AuroraTopbarGreen.module.css */
+
+.topbar {
+  width: 100%;
+  /* Các biến màu scope trong block */
+  --green-main: #a7f3d0;
+  --green-dark: #047857;
+  --green-soft: #dcfce7;
+
+  --ink-main: #064e3b;
+  --ink-muted: #64746f;
+
+  --radius: 10px;
+
+  background: var(--aurora-topbar-background, var(--green-main));
+  padding: 8px 0;
+  color: var(--ink-main);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.topbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* LEFT */
+
+.tbLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logoCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--green-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.brandTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-dark);
+  white-space: nowrap;
+}
+
+.brandSub {
+  font-size: 12px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.regionBtn {
+  border: none;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-main);
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.regionBtn:hover {
+  background: #ffffff;
+}
+
+/* CENTER – Ticker */
+
+.tbCenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ticker {
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.tickerBox {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tickerLabel {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+  white-space: nowrap;
+}
+
+.tickerText {
+  display: inline-flex;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-main);
+  white-space: nowrap;
+  transition: 0.3s ease;
+}
+
+/* Animation phases cho ticker */
+.isLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+.isEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.isActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.tag {
+  background: var(--green-soft);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  color: #166534;
+}
+
+/* RIGHT */
+
+.tbRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.tbLinks {
+  display: flex;
+  gap: 16px;
+}
+
+.tbLink {
+  font-size: 12px;
+  color: var(--ink-main);
+  opacity: 0.9;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tbLink i {
+  font-size: 14px;
+}
+
+.tbLink:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.statusPill {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-main);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  background: #16a34a;
+  border-radius: 50%;
+  animation: ping 1.7s infinite;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* MOBILE BUTTON */
+
+.moreBtn {
+  display: none;
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  color: var(--ink-main);
+  cursor: pointer;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Tablet / laptop nhỏ: 840px */
+@media (max-width: 840px) {
+  .tbCenter {
+    display: none;
+  }
+
+  .brandSub {
+    max-width: 180px;
+  }
+}
+
+/* Mobile <= 640px */
+@media (max-width: 640px) {
+  .topbarInner {
+    padding: 0 10px;
+  }
+
+  .brandSub {
+    display: none;
+  }
+
+  .regionBtn {
+    display: none;
+  }
+
+  .moreBtn {
+    display: block;
+  }
+
+  .tbLinks {
+    display: none;
+    position: absolute;
+    top: 32px;
+    right: 0;
+    background: var(--green-dark);
+    padding: 10px;
+    border-radius: var(--radius);
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 20;
+  }
+
+  .tbRightOpen .tbLinks {
+    display: flex;
+  }
+
+  .statusPill {
+    display: none;
+  }
+
+  .tbLink {
+    color: #f9fafb;
+  }
+
+  .tbLink:hover {
+    text-decoration: none;
+    opacity: 1;
+  }
+}
+
+/* Mobile rất nhỏ <= 480px */
+@media (max-width: 480px) {
+  .topbarInner {
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .logoCircle {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+
+  .brandTitle {
+    font-size: 12px;
+  }
+
+  .tickerBox {
+    padding: 3px 8px;
+  }
+
+  .tbLinks {
+    top: 30px;
+    min-width: 170px;
+  }
+}

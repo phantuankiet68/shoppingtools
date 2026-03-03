@@ -652,3 +652,49 @@
   border-radius: 999px;
   padding: 6px;
 }
+
+.suggestionGroup {
+  margin-top: 1rem;
+}
+
+.suggestionTitle {
+  color: rgb(134, 134, 134);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  cursor: grab;
+  border-radius: 20px;
+  border: 1px dashed var(--bd, #cbd5e1);
+  background: var(--chip-bg, rgba(16, 185, 129, 0.08));
+  padding: 6px 10px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text);
+}
+
+.chip:active {
+  cursor: grabbing;
+}
+
+.chipIcon {
+  color: #10b981;
+}
+
+.noSuggestions {
+  color: #64748b;
+  font-size: 13px;
+  font-style: italic;
+}

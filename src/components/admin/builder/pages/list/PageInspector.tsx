@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/pages/PageInspector.module.css";
+import styles from "@/styles/admin/builder/pages/PageInspector.module.css";
 import type { PageRow, SEO } from "@/lib/page/types";
 import { buildAutoSEO } from "@/lib/page/seo-utils";
+import { API_ROUTES } from "@/constants/api";
 
 type Props = {
   page: PageRow | null;
@@ -41,7 +42,7 @@ function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
   };
 }
 
-export default function PageInspector({
+function PageInspector({
   page,
   onEdit,
   onPreview,
@@ -51,14 +52,14 @@ export default function PageInspector({
   onDelete,
   initialSeo = null,
 }: Props) {
-  const hasPage = !!page;
+  const hasPage = !!page?.id;
 
   const [seo, setSeo] = useState<SEO>(() => buildDefaultSEO(page, initialSeo));
   const [savingSEO, setSavingSEO] = useState(false);
   const [flash, setFlash] = useState("");
 
-  const loadedSeoForId = useRef<string | null>(null);
   const flashTimerRef = useRef<number | null>(null);
+  const lastLoadedPageIdRef = useRef<string | null>(null);
 
   const showFlash = useCallback((msg: string, ms = 1400) => {
     setFlash(msg);
@@ -86,60 +87,64 @@ export default function PageInspector({
 
   const updatedText = useMemo(() => {
     if (!page) return "";
-    const ts = page.updatedAt || page.createdAt || Date.now();
-    return dateTimeFormatter.format(new Date(ts));
-  }, [page?.id, page?.updatedAt, page?.createdAt, dateTimeFormatter]);
+    const ts = page.updatedAt || page.createdAt || 0;
+    return ts ? dateTimeFormatter.format(new Date(ts)) : "(no date)";
+  }, [page, dateTimeFormatter]);
 
+  // Reset SEO when switching page
   useEffect(() => {
     if (!page?.id) {
-      loadedSeoForId.current = null;
+      lastLoadedPageIdRef.current = null;
       setSeo(buildDefaultSEO(null, null));
       return;
     }
-    setSeo(buildDefaultSEO(page, initialSeo));
-    loadedSeoForId.current = initialSeo ? page.id : null;
-  }, [page?.id, initialSeo]);
 
+    setSeo(buildDefaultSEO(page, initialSeo));
+    lastLoadedPageIdRef.current = null;
+  }, [page, initialSeo]);
+
+  // Load SEO from API when initialSeo not provided
   useEffect(() => {
     if (!page?.id) return;
-    if (initialSeo) return;
-    if (loadedSeoForId.current === page.id) return;
 
-    loadedSeoForId.current = page.id;
+    if (initialSeo) {
+      lastLoadedPageIdRef.current = page.id;
+      return;
+    }
+
+    if (lastLoadedPageIdRef.current === page.id) return;
 
     const controller = new AbortController();
     const pageId = page.id;
 
     (async () => {
       try {
-        const r = await fetch(`/api/admin/builder/pages/${pageId}/seo`, {
+        const r = await fetch(API_ROUTES.ADMIN_BUILDER.PAGE_SEO(pageId), {
           cache: "no-store",
           signal: controller.signal,
         });
 
-        if (r.ok) {
-          const data = await r.json();
-          if (data?.seo) setSeo((prev) => ({ ...prev, ...data.seo }));
+        if (!r.ok) {
+          if (r.status === 404) showFlash("Trang không tồn tại", 1800);
+          else showFlash("Load SEO failed", 1800);
           return;
         }
-        if (r.status === 404) {
-          const rp = await fetch(`/api/admin/builder/pages/${pageId}`, {
-            cache: "no-store",
-            signal: controller.signal,
-          });
-          if (rp.ok) {
-            const d = await rp.json();
-            if (d?.page?.seo) setSeo((prev) => ({ ...prev, ...d.page.seo }));
-          }
-        }
-      } catch {}
+
+        const data = await r.json();
+        if (controller.signal.aborted) return;
+
+        if (data?.seo) setSeo((prev) => ({ ...prev, ...data.seo }));
+
+        lastLoadedPageIdRef.current = pageId;
+      } catch {
+        // silent
+      }
     })();
 
-    return () => {
-      controller.abort();
-    };
-  }, [page?.id, initialSeo]);
+    return () => controller.abort();
+  }, [page, initialSeo, showFlash]);
 
+  // Ensure title defaults are populated
   useEffect(() => {
     if (!page) return;
     setSeo((prev) => ({
@@ -147,7 +152,7 @@ export default function PageInspector({
       metaTitle: prev.metaTitle || page.title || "",
       ogTitle: prev.ogTitle || page.title || "",
     }));
-  }, [page?.id, page?.title]);
+  }, [page]);
 
   const metaLen = (seo.metaTitle || "").length;
   const descLen = (seo.metaDescription || "").length;
@@ -186,56 +191,25 @@ export default function PageInspector({
     try {
       setSavingSEO(true);
 
-      const trySeo = await fetch(`/api/admin/builder/pages/${page.id}/seo`, {
+      const res = await fetch(API_ROUTES.ADMIN_BUILDER.PAGE_SEO(page.id), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ seo }),
       });
 
-      if (trySeo.ok) {
-        showFlash("Đã lưu SEO", 1400);
-        return;
+      if (!res.ok) {
+        const j = await res.json().catch(() => null);
+        const msg = j?.error || "Save SEO failed";
+        throw new Error(msg);
       }
 
-      if (trySeo.status !== 404) throw new Error("Save SEO failed");
-      type PageDetail = {
-        page?: {
-          id: string;
-          title: string;
-          slug: string;
-          path: string;
-          blocks: Array<{ kind: string; props: Record<string, any> }>;
-        };
-      };
-
-      const detailRes = await fetch(`/api/admin/builder/pages/${page.id}`, { cache: "no-store" });
-      if (!detailRes.ok) throw new Error("Load page detail failed");
-
-      const detailJson: PageDetail = await detailRes.json();
-      const blocks = detailJson?.page?.blocks ?? [];
-
-      const res = await fetch(`/api/admin/builder/pages/save`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: page.id,
-          title: page.title,
-          slug: page.slug,
-          path: page.path,
-          blocks,
-          seo,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Save SEO failed");
-
       showFlash("Đã lưu SEO", 1400);
-    } catch (e: any) {
-      showFlash(e?.message || "Save SEO error", 1800);
+    } catch (e: unknown) {
+      showFlash((e as Error)?.message || "Save SEO error", 1800);
     } finally {
       setSavingSEO(false);
     }
-  }, [page?.id, page?.title, page?.slug, page?.path, seo, showFlash]);
+  }, [page?.id, seo, showFlash]);
 
   return (
     <section className={styles.rightPane}>
@@ -253,6 +227,7 @@ export default function PageInspector({
                   {page!.status}
                 </span>
               </div>
+
               <div className={styles.kvItem}>
                 <span className={styles.kvLabel}>Updated</span>
                 <span className={styles.kvValue}>{updatedText}</span>
@@ -311,6 +286,7 @@ export default function PageInspector({
       {hasPage && (
         <div className={styles.card}>
           <div className={styles.cardTitle}>SEO</div>
+
           <div className={styles.field}>
             <div className={styles.fieldTop}>
               <label className={styles.label}>Meta Title</label>
@@ -327,67 +303,6 @@ export default function PageInspector({
               placeholder={page!.title || "Tiêu đề…"}
             />
           </div>
-          <div className={styles.field}>
-            <div className={styles.fieldTop}>
-              <label className={styles.label}>Meta Description</label>
-              <div className={styles.counter}>
-                <span className={styles.counterNum}>{descLen}</span>
-                <span className={`${styles.counterHint} ${styles[`counter_${seoOkDesc}`]}`}>/ 150–160</span>
-              </div>
-            </div>
-
-            <textarea
-              className={styles.textarea}
-              rows={3}
-              value={seo.metaDescription}
-              onChange={(e) => setSeo((prev) => ({ ...prev, metaDescription: e.target.value }))}
-              placeholder="Mô tả ngắn gọn, hấp dẫn…"
-            />
-          </div>
-          <div className={styles.twoCol}>
-            <div className={styles.field}>
-              <label className={styles.label}>Keywords (optional)</label>
-              <input
-                className={styles.input}
-                value={seo.keywords}
-                onChange={(e) => setSeo((prev) => ({ ...prev, keywords: e.target.value }))}
-                placeholder="zento, builder, landing page…"
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>Canonical URL</label>
-              <input
-                className={styles.input}
-                value={seo.canonicalUrl}
-                onChange={(e) => setSeo((prev) => ({ ...prev, canonicalUrl: e.target.value }))}
-                placeholder="https://example.com/your-page"
-              />
-            </div>
-          </div>
-          <div className={styles.checkRow}>
-            <label className={styles.check}>
-              <input
-                className={styles.checkInput}
-                type="checkbox"
-                checked={!!seo.noindex}
-                onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))}
-              />
-              <span className={styles.checkText}>noindex</span>
-            </label>
-
-            <label className={styles.check}>
-              <input
-                className={styles.checkInput}
-                type="checkbox"
-                checked={!!seo.nofollow}
-                onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))}
-              />
-              <span className={styles.checkText}>nofollow</span>
-            </label>
-          </div>
-
-          <div className={styles.hr} />
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>OG Title</label>
@@ -412,27 +327,117 @@ export default function PageInspector({
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>OG Description</label>
-            <input
-              className={styles.input}
-              value={seo.ogDescription}
-              onChange={(e) => setSeo((prev) => ({ ...prev, ogDescription: e.target.value }))}
+            <div className={styles.fieldTop}>
+              <label className={styles.label}>Meta Description</label>
+              <div className={styles.counter}>
+                <span className={styles.counterNum}>{descLen}</span>
+                <span className={`${styles.counterHint} ${styles[`counter_${seoOkDesc}`]}`}>/ 150–160</span>
+              </div>
+            </div>
+
+            <textarea
+              className={styles.textarea}
+              rows={3}
+              value={seo.metaDescription}
+              onChange={(e) => setSeo((prev) => ({ ...prev, metaDescription: e.target.value }))}
+              placeholder="Mô tả ngắn gọn, hấp dẫn…"
             />
           </div>
 
-          <div className={styles.field}>
-            <div className={styles.fieldTop}>
-              <label className={styles.label}>OG Image URL</label>
-              <span className={styles.helper}>Khuyến nghị 1200×630px, &lt; 1MB</span>
+          <div className={styles.twoCol}>
+            <div className={styles.field}>
+              <label className={styles.label}>Keywords (optional)</label>
+              <input
+                className={styles.input}
+                value={seo.keywords}
+                onChange={(e) => setSeo((prev) => ({ ...prev, keywords: e.target.value }))}
+                placeholder="zento, builder, landing page…"
+              />
             </div>
-            <input
-              className={styles.input}
-              value={seo.ogImage}
-              onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))}
-              placeholder="https://…"
-            />
+
+            <div className={styles.field}>
+              <label className={styles.label}>Canonical URL</label>
+              <input
+                className={styles.input}
+                value={seo.canonicalUrl}
+                onChange={(e) => setSeo((prev) => ({ ...prev, canonicalUrl: e.target.value }))}
+                placeholder="https://example.com/your-page"
+              />
+            </div>
           </div>
+
+          <div className={styles.checkRow}>
+            <label className={styles.check}>
+              <input
+                className={styles.checkInput}
+                type="checkbox"
+                checked={!!seo.noindex}
+                onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))}
+              />
+              <span className={styles.checkText}>noindex</span>
+            </label>
+
+            <label className={styles.check}>
+              <input
+                className={styles.checkInput}
+                type="checkbox"
+                checked={!!seo.nofollow}
+                onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))}
+              />
+              <span className={styles.checkText}>nofollow</span>
+            </label>
+          </div>
+
           <div className={styles.hr} />
+
+          <div className={styles.twoCol}>
+            <div className={styles.field}>
+              <label className={styles.label}>OG Title</label>
+              <input
+                className={styles.input}
+                value={seo.ogTitle}
+                onChange={(e) => setSeo((prev) => ({ ...prev, ogTitle: e.target.value }))}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>Twitter Card</label>
+              <select
+                className={styles.select}
+                value={seo.twitterCard}
+                onChange={(e) => setSeo((prev) => ({ ...prev, twitterCard: e.target.value as SEO["twitterCard"] }))}
+              >
+                <option value="summary_large_image">summary_large_image</option>
+                <option value="summary">summary</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.twoCol}>
+            <div className={styles.field}>
+              <label className={styles.label}>OG Description</label>
+              <input
+                className={styles.input}
+                value={seo.ogDescription}
+                onChange={(e) => setSeo((prev) => ({ ...prev, ogDescription: e.target.value }))}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <div className={styles.fieldTop}>
+                <label className={styles.label}>OG Image URL</label>
+                <span className={styles.helper}>Khuyến nghị 1200×630px, &lt; 1MB</span>
+              </div>
+              <input
+                className={styles.input}
+                value={seo.ogImage}
+                onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))}
+                placeholder="https://…"
+              />
+            </div>
+          </div>
+
+          <div className={styles.hr} />
+
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>Sitemap Changefreq</label>
@@ -471,6 +476,7 @@ export default function PageInspector({
               />
             </div>
           </div>
+
           <div className={styles.field}>
             <label className={styles.label}>Structured Data (JSON-LD)</label>
             <textarea
@@ -487,6 +493,7 @@ export default function PageInspector({
               {jsonLdStatus === "invalid" && <span className={styles.jsonBad}>JSON không hợp lệ</span>}
             </div>
           </div>
+
           <div className={styles.footerActions}>
             <button className={styles.ghostBtn} type="button" onClick={handleAutoSEO}>
               <i className={`bi bi-magic ${styles.iconLeft}`} />
@@ -509,3 +516,5 @@ export default function PageInspector({
     </section>
   );
 }
+
+export default React.memo(PageInspector);

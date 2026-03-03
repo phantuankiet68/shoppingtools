@@ -1,0 +1,168 @@
+.fsWrap {
+  --brand: #f97316;
+  --radius: 12px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  --line: rgba(12, 23, 48, 0.12);
+
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.fsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.fsTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: #ff3b00;
+}
+.fsTimer {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.fsBox {
+  background: #111827;
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 6px;
+  min-width: 32px;
+  text-align: center;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.fsViewall {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(90deg, #ff8a1e, #ff5d00);
+  color: #fff;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 3px 8px rgba(255, 93, 0, 0.3);
+  transition: all 0.25s ease;
+}
+.fsViewall i {
+  font-size: 14px;
+  transition: transform 0.25s ease;
+}
+.fsViewall:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(255, 93, 0, 0.4);
+}
+.fsViewall:hover i {
+  transform: translateX(3px);
+}
+
+.fsList {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 8px;
+  justify-content: space-between;
+}
+
+.fsCard {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  min-width: 210px;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+.fsCard:hover {
+  transform: translateY(-4px);
+}
+
+.fsThumb {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 210px;
+}
+.fsThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fsBody {
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+.fsTitleLine {
+  font-size: 14px;
+  line-height: 1.4;
+  max-height: 2.8em;
+  overflow: hidden;
+}
+.fsPrice {
+  color: #dc2626;
+  font-weight: 400;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.fsActions {
+  display: flex;
+  gap: 8px;
+}
+.btn {
+  background: var(--brand);
+  color: #fff;
+  border: 1px solid var(--brand);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.outline {
+  background: #fff;
+  color: var(--brand);
+  border-color: var(--brand);
+}
+
+.fsRibbon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(90deg, #ff8a1e, #ff5d00);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .fsList {
+    gap: 12px;
+  }
+  .fsCard {
+    min-width: 180px;
+  }
+}

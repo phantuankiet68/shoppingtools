@@ -11,8 +11,6 @@ import {
 import { patchMenuItem } from "@/services/builder/menus/editOffcanvas.service";
 import { useEditOffcanvasStore } from "@/store/builder/menus/useEditOffcanvasStore";
 
-type ScheduleRow = { when: string; url: string };
-
 type Props = {
   item: BuilderMenuItem;
   onClose: () => void;
@@ -161,8 +159,8 @@ export default function EditOffcanvas({ item, onClose }: Props) {
         path: finalPath,
         visible: true, // giữ đúng logic cũ của bạn
       });
-    } catch (e: any) {
-      alert("Unable to update the database: " + (e?.message || "Unknown error"));
+    } catch (e: unknown) {
+      alert("Unable to update the database: " + ((e as Error)?.message || "Unknown error"));
     } finally {
       setSaving(false);
       onClose();
@@ -322,8 +320,8 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                   <label className={styles.formCheck}>
                     <input
                       type="checkbox"
-                      checked={!!(safeDraft as any).newTab}
-                      onChange={(e) => setDraft({ ...(safeDraft as any), newTab: e.target.checked })}
+                      checked={!!safeDraft.newTab}
+                      onChange={(e) => setDraft({ ...safeDraft, newTab: e.target.checked })}
                     />
                     <span>Open in new tab</span>
                   </label>

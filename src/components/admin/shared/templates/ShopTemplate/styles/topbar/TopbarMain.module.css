@@ -1,0 +1,404 @@
+.topbar {
+  --tb-bg: #fff8ed;
+  --tb-bg-dark: #ffedd5;
+  --tb-ink: #1f2933;
+  --tb-muted: #6b7280;
+  --tb-brand: #f97316;
+  --tb-line: rgba(15, 23, 42, 0.08);
+  --tb-radius: 999px;
+
+  width: 100%;
+  background: linear-gradient(to right, var(--tb-bg), #ffffff);
+  border-bottom: 1px solid var(--tb-line);
+  font-size: 12px;
+  color: var(--tb-muted);
+}
+
+.topbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4px 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+}
+
+/* ba cột khỏi vỡ */
+.tbLeft,
+.tbCenter,
+.tbRight {
+  min-width: 0;
+}
+
+/* ===== LEFT BLOCK ===== */
+
+.tbLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tbLeftIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--tb-bg-dark);
+  color: var(--tb-brand);
+  font-size: 11px;
+}
+
+.tbMessage {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--tb-ink);
+  font-weight: 500;
+}
+
+.tbRegionBtn {
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  border-radius: var(--tb-radius);
+  font-size: 11px;
+  color: var(--tb-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tbRegionBtnIcon {
+  font-size: 12px;
+}
+
+.tbRegionBtn:hover {
+  background: var(--tb-bg-dark);
+  color: var(--tb-ink);
+}
+
+/* ===== CENTER TICKER ===== */
+
+.tbCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.tbTicker {
+  position: relative;
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 11px;
+}
+
+.tickerText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  color: var(--tb-muted);
+}
+
+.tickerBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(248, 113, 113, 0.1);
+  color: #b91c1c;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* state animation */
+.tickerLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+.tickerEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.tickerActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ===== RIGHT BLOCK ===== */
+
+.tbRight {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+}
+
+.tbRightDetails {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.tbLinks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tbLink {
+  border: none;
+  background: transparent;
+  padding: 2px 0;
+  font-size: 12px;
+  color: var(--tb-muted);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tbLink:hover {
+  color: var(--tb-ink);
+  text-decoration: underline;
+}
+
+.tbDivider {
+  width: 1px;
+  height: 14px;
+  background: var(--tb-line);
+}
+
+.tbSocial {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tbSocialIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--tb-muted);
+  font-size: 11px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.tbSocialIcon:hover {
+  background: var(--tb-bg-dark);
+  color: var(--tb-brand);
+  transform: translateY(-1px);
+}
+
+/* More button (mobile) */
+
+.tbMoreBtn {
+  display: none;
+  border: none;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--tb-muted);
+}
+
+.tbMoreBtn:hover {
+  background: var(--tb-bg-dark);
+  color: var(--tb-ink);
+}
+
+/* state mở menu mobile: kết hợp tbRight + tbRightOpen trong TSX */
+.tbRightOpen .tbRightDetails {
+  display: flex;
+}
+
+/* sticky wrapper (TopbarMain dùng styles.sticky) */
+.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 1024px) {
+  .topbarInner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-inline: 12px;
+  }
+
+  .tbCenter {
+    display: none;
+  }
+
+  .tbMessage {
+    max-width: 260px;
+  }
+
+  .tbRightDetails {
+    gap: 8px;
+  }
+
+  .tbLinks {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbarInner {
+    column-gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .tbLeftIcon {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .tbMessage {
+    max-width: 140px;
+    font-size: 11px;
+  }
+
+  .regionText {
+    display: none;
+  }
+
+  .tbRightDetails {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 30px;
+    padding: 8px 10px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+    z-index: 20;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .tbLinks {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tbDivider {
+    display: none;
+  }
+
+  .tbMoreBtn {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbarInner {
+    padding-inline: 8px;
+  }
+
+  .tbMessage {
+    display: none;
+  }
+
+  .tbRegionBtn {
+    padding-inline: 4px;
+  }
+
+  .tbRightDetails {
+    right: -4px;
+    top: 28px;
+    padding: 8px;
+  }
+
+  .tbLink {
+    font-size: 11px;
+  }
+
+  .tbSocialIcon {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+}
+
+/* Tablet: giống @media (max-width: 1024px) */
+.deviceTablet .topbarInner {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding-inline: 12px;
+}
+
+.deviceTablet .tbCenter {
+  display: none;
+}
+
+.deviceTablet .tbMessage {
+  max-width: 260px;
+}
+
+.deviceTablet .tbRightDetails {
+  gap: 8px;
+}
+
+.deviceTablet .tbLinks {
+  gap: 6px;
+}
+
+/* Mobile: giống phần @media (max-width: 768px) + 480px */
+.deviceMobile .topbarInner {
+  column-gap: 8px;
+  padding-inline: 10px;
+}
+
+.deviceMobile .tbLeftIcon {
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+}
+
+.deviceMobile .tbMessage {
+  max-width: 140px;
+  font-size: 11px;
+}
+
+.deviceMobile .regionText {
+  display: none;
+}
+
+.deviceMobile .tbRightDetails {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 30px;
+  padding: 8px 10px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+  z-index: 20;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* ... tuỳ bạn copy thêm rule nhỏ bên dưới */

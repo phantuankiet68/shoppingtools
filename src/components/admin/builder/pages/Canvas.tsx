@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import type { Block } from "@/lib/page/types";
+import type { Block, DropMeta, InternalProps } from "@/lib/page/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import cls from "@/styles/admin/pages/canvas.module.css";
+import cls from "@/styles/admin/builder/pages/canvas.module.css";
 
 type Device = "desktop" | "tablet" | "mobile";
 
@@ -11,7 +11,7 @@ type RowChildrenMap = Map<string, Map<number, Block[]>>;
 type RowColCountsMap = Map<string, Record<number, number>>;
 
 function isRootBlock(b: Block) {
-  const p: any = b.props || {};
+  const p = b.props as InternalProps;
   const inRow = !!p._parentRowId;
   const inSection = !!p.__parent?.id;
   return !inRow && !inSection;
@@ -29,7 +29,7 @@ function buildIndexes(blocks: Block[]) {
   const rowColCounts: RowColCountsMap = new Map();
 
   for (const child of blocks) {
-    const p: any = child.props || {};
+    const p = child.props as InternalProps;
 
     const par = p.__parent;
     if (par?.id) {
@@ -41,7 +41,7 @@ function buildIndexes(blocks: Block[]) {
       }
     }
 
-    const rowId = p._parentRowId;
+    const rowId = p._parentRowId as string | undefined;
     const ciRaw = p._parentColIndex;
     const ci = Number(ciRaw);
     if (rowId && Number.isFinite(ci)) {
@@ -78,13 +78,29 @@ type RenderBlockProps = {
   rowColCounts: RowColCountsMap;
 };
 
-function RenderBlock({ b, selected, onSelect, setActiveId, move, activeId, device, registryMap, sectionChildren, rowChildren, rowColCounts }: RenderBlockProps) {
+function RenderBlock({
+  b,
+  selected,
+  onSelect,
+  setActiveId,
+  move,
+  activeId,
+  device,
+  registryMap,
+  sectionChildren,
+  rowChildren,
+  rowColCounts,
+}: RenderBlockProps) {
   const reg = registryMap.get(b.kind);
   let content: React.ReactNode;
 
   if (!reg) {
     content = <div className="text-muted small">Unknown: {b.kind}</div>;
   } else {
+    let result: React.ReactNode = null;
+    let renderError: Error | null = null;
+    let unexpectedError: Error | null = null;
+
     try {
       const slots = {
         slot: (_name?: string) => {
@@ -154,13 +170,29 @@ function RenderBlock({ b, selected, onSelect, setActiveId, move, activeId, devic
             ? { ...baseProps, _selfId: b.id, _device: device }
             : { ...baseProps, _device: device };
 
-      content = (reg as any).render(renderProps, slots) ?? <div className="text-muted small">No preview from {b.kind}</div>;
-    } catch (e: any) {
+      try {
+        result = reg.render(renderProps as Record<string, unknown>, slots);
+      } catch (e: unknown) {
+        renderError = e as Error;
+      }
+    } catch (e: unknown) {
+      unexpectedError = e as Error;
+    }
+
+    if (unexpectedError) {
       content = (
         <div className="alert alert-danger py-2 px-3 mb-0 small">
-          <i className="bi bi-bug" /> Render error: {e?.message}
+          <i className="bi bi-bug" /> Unexpected error: {unexpectedError.message}
         </div>
       );
+    } else if (renderError) {
+      content = (
+        <div className="alert alert-danger py-2 px-3 mb-0 small">
+          <i className="bi bi-bug" /> Render error: {renderError.message}
+        </div>
+      );
+    } else {
+      content = result ?? <div className="text-muted small">No preview from {b.kind}</div>;
     }
   }
 
@@ -188,7 +220,8 @@ function RenderBlock({ b, selected, onSelect, setActiveId, move, activeId, devic
           e.preventDefault();
           e.stopPropagation();
         }
-      }}>
+      }}
+    >
       <div className={cls.blockBody}>
         <div className={cls.badge}>
           <span className={cls.badgeDot} />
@@ -240,7 +273,7 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
 
     const colEl = target.closest("[data-col-slot]") as HTMLElement | null;
     if (colEl) {
-      const rowId = colEl.dataset.rowId || (colEl as any).dataset.rowid;
+      const rowId = colEl.dataset.rowId || colEl.dataset.rowid;
       const colIndex = Number(colEl.dataset.colSlot);
       if (rowId != null && Number.isFinite(colIndex)) {
         return { type: "row-col" as const, parentRowId: String(rowId), colIndex };
@@ -249,7 +282,7 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
 
     const secEl = target.closest("[data-section-slot]") as HTMLElement | null;
     if (secEl) {
-      const parentSectionId = secEl.dataset.hostId || (secEl as any).dataset.hostid || secEl.dataset.sectionId;
+      const parentSectionId = secEl.dataset.hostId || secEl.dataset.hostid || secEl.dataset.sectionId;
       const slot = secEl.dataset.sectionSlot || "children";
       if (parentSectionId) {
         return {
@@ -276,12 +309,13 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
           onDrop={(e) => {
             setDragOverThrottled(false);
             const meta = getDropMeta(e);
-            (e as any).zbMeta = meta;
+            (e as React.DragEvent & { zbMeta?: DropMeta | null }).zbMeta = meta;
             onDrop(e);
           }}
           onClick={(e) => {
             if (e.currentTarget === e.target) setActiveId(null);
-          }}>
+          }}
+        >
           {rootBlocks.length === 0 && (
             <div className={cls.empty}>
               <div className={cls.emptyIcon}>
@@ -292,7 +326,9 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
             </div>
           )}
           <div className={cls.viewportOuter}>
-            <div className={`${cls.viewport} ${device === "desktop" ? cls.viewportDesktop : device === "tablet" ? cls.viewportTablet : cls.viewportMobile}`}>
+            <div
+              className={`${cls.viewport} ${device === "desktop" ? cls.viewportDesktop : device === "tablet" ? cls.viewportTablet : cls.viewportMobile}`}
+            >
               <div className={cls.grid}>
                 {rootBlocks.map((b, idx) => {
                   const selected = activeId === b.id;
@@ -317,10 +353,20 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
                         <div className={cls.floatingTools}>
                           {typeof move === "function" && (
                             <>
-                              <button type="button" className={`${cls.ftBtn} ${cls.ftGhost}`} onClick={() => move(-1)} title="Move up">
+                              <button
+                                type="button"
+                                className={`${cls.ftBtn} ${cls.ftGhost}`}
+                                onClick={() => move(-1)}
+                                title="Move up"
+                              >
                                 <i className="bi bi-arrow-up" />
                               </button>
-                              <button type="button" className={`${cls.ftBtn} ${cls.ftGhost}`} onClick={() => move(1)} title="Move down">
+                              <button
+                                type="button"
+                                className={`${cls.ftBtn} ${cls.ftGhost}`}
+                                onClick={() => move(1)}
+                                title="Move down"
+                              >
                                 <i className="bi bi-arrow-down" />
                               </button>
                               <div className={cls.ftSep} />

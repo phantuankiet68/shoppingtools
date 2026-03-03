@@ -4,7 +4,7 @@ import type { RegItem, InspectorField } from "@/lib/ui-builder/types";
 export type Block = {
   id: string;
   kind: string;
-  props: Record<string, any>;
+  props: Record<string, unknown>;
 };
 
 export type PageRow = {
@@ -34,6 +34,16 @@ export type SEO = {
   sitemapChangefreq: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   sitemapPriority: number;
   structuredData: string;
+};
+
+export type DropMeta =
+  | { type: "row-col"; parentRowId: string; colIndex: number }
+  | { type: "section"; parentSectionId: string; slot: string };
+
+export type InternalProps = {
+  _parentRowId?: string;
+  _parentColIndex?: number;
+  __parent?: { id: string; slot: string };
 };
 
 export type Mode = "pages" | "settings" | "design" | "code" | "preview";

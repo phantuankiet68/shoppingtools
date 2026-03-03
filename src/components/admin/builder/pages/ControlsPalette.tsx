@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import styles from "@/styles/admin/pages/navigators.module.css";
+import styles from "@/styles/admin/builder/pages/navigators.module.css";
 
 type Props = {
   search: string;
@@ -19,7 +19,20 @@ const HEADER_KINDS: readonly string[] = [];
 const VISIBLE_HEADER_KINDS = new Set<string>(["HeaderShopFlex"]);
 
 const TEMPLATES = [
-  tpl("tpl-shop-green", "ShopGreen", ["Topbar1", "Header1", "Hero1", "BestSeller1", "Brand1", "Makeup1", "Skincare1", "BodyCare1", "KidsCare1", "MenCare1", "Accessories1", "Footer1"]),
+  tpl("tpl-shop-green", "ShopGreen", [
+    "Topbar1",
+    "Header1",
+    "Hero1",
+    "BestSeller1",
+    "Brand1",
+    "Makeup1",
+    "Skincare1",
+    "BodyCare1",
+    "KidsCare1",
+    "MenCare1",
+    "Accessories1",
+    "Footer1",
+  ]),
   tpl("tpl-topbar-basic", "Topbar", [
     "TopbarPro",
     "TopbarPink",
@@ -126,7 +139,10 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
     [],
   );
 
-  const expandAllTemplates = React.useCallback(() => setOpenTpl(new Set(templatesFiltered.map((t) => t.id))), [templatesFiltered]);
+  const expandAllTemplates = React.useCallback(
+    () => setOpenTpl(new Set(templatesFiltered.map((t) => t.id))),
+    [templatesFiltered],
+  );
   const collapseAllTemplates = React.useCallback(() => setOpenTpl(new Set()), []);
 
   const _registryVisible = registryVisible;
@@ -155,7 +171,12 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
 
       <div className={styles.searchBox}>
         <i className={`bi bi-search ${styles.searchIcon}`} />
-        <input className={styles.searchInput} placeholder="Search elements…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input
+          className={styles.searchInput}
+          placeholder="Search elements…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <div className={styles.templatesWrapper}>
@@ -169,13 +190,24 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
             {templatesFiltered.map((tpl) => (
               <li key={tpl.id} className={styles.tplItem}>
                 <div className={styles.tplHeader}>
-                  <button type="button" className={styles.tplCaret} onClick={() => toggleTpl(tpl.id)} aria-expanded={openTpl.has(tpl.id)}>
+                  <button
+                    type="button"
+                    className={styles.tplCaret}
+                    onClick={() => toggleTpl(tpl.id)}
+                    aria-expanded={openTpl.has(tpl.id)}
+                  >
                     <i className={`bi ${openTpl.has(tpl.id) ? "bi-caret-down-fill" : "bi-caret-right-fill"}`} />
                   </button>
 
                   <span className={styles.tplLabel}>{tpl.label}</span>
 
-                  <button type="button" className={styles.tplDragAll} draggable onDragStart={onDragTemplate(tpl.id)} title="Drag entire template">
+                  <button
+                    type="button"
+                    className={styles.tplDragAll}
+                    draggable
+                    onDragStart={onDragTemplate(tpl.id)}
+                    title="Drag entire template"
+                  >
                     <i className="bi bi-stack" /> Drag all
                   </button>
                 </div>
@@ -194,7 +226,8 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
                           draggable={!missing}
                           onDragStart={!missing ? onDragStart(k) : undefined}
                           title={missing ? `Missing in REGISTRY: ${k}` : `Drag to canvas: ${label}`}
-                          role="treeitem">
+                          role="treeitem"
+                        >
                           <div className={styles.itemLeft}>
                             <i className={`bi ${missing ? "bi-exclamation-triangle" : "bi-box"}`} />
                             <span className={styles.itemLabel}>

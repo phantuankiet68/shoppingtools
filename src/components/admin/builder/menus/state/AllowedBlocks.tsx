@@ -39,11 +39,11 @@ export default function AllowedBlocks() {
 
   const forcedTab: TabKey = forcedTabFromSet(currentSet);
 
-  const internalPages = INTERNAL_PAGES || [];
-  const menu = activeMenu || [];
+  const internalPages = useMemo(() => INTERNAL_PAGES || [], [INTERNAL_PAGES]);
+  const menu = useMemo(() => activeMenu || [], [activeMenu]);
 
   // Compute base names for left panel blocks
-  const baseNames = useMemo(() => pickBaseNames(tpl as any, forcedTab), [tpl, forcedTab]);
+  const baseNames = useMemo(() => pickBaseNames(tpl, forcedTab), [tpl, forcedTab]);
 
   // Precompute sets for suggestion filtering
   const existingPages = useMemo(() => buildExistingPagesSet(internalPages), [internalPages]);
@@ -137,7 +137,7 @@ export default function AllowedBlocks() {
                       type="button"
                       key={name}
                       onClick={() => addByName({ name, activeMenu: menu, setActiveMenu, internalPages })}
-                      onDragStart={(e) => onDragStart(e as any, { name, internalPages })}
+                      onDragStart={(e) => onDragStart(e, { name, internalPages })}
                       draggable
                       className={styles.btn}
                       style={{

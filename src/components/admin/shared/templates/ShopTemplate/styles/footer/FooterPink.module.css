@@ -1,0 +1,660 @@
+/* ================= FOOTER ================= */
+
+.FooterWrap {
+  --ap-pink-main: #fb6ca3;
+  --ap-pink-soft: #ffe4f1;
+  --ap-pink-soft-2: #fff6fb;
+  --ap-pink-hot: #f43f8f;
+  --ap-ink: #312e3f;
+  --ap-muted: #8a859a;
+  --ap-line: rgba(148, 163, 184, 0.35);
+  --ap-radius-lg: 26px;
+  --ap-radius-md: 18px;
+  --ap-shadow-soft: 0 24px 55px rgba(236, 72, 153, 0.32);
+  --ap-bg: #fff7fb;
+
+  --ap-fast: 170ms ease-out;
+  padding: 0 16px 26px;
+  background: radial-gradient(circle at 10% 0%, #ffe5f4, transparent 55%), radial-gradient(circle at 90% 10%, #ffeef8, transparent 55%), linear-gradient(145deg, #ffffff, #fff7fb);
+  box-shadow: var(--ap-shadow-soft);
+}
+
+.Footer {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 26px 26px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.Footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.FooterInner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== top row: brand + variants ===== */
+
+.TopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.Brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.Logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0%, #ffe4f1, #fb6ca3, #fecaca);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 30px rgba(236, 72, 153, 0.55);
+}
+
+.Logo i {
+  color: #be185d;
+  font-size: 21px;
+}
+
+.BrandText span {
+  display: block;
+}
+
+.BrandMain {
+  font-size: 1.04rem;
+  font-weight: 650;
+}
+
+.BrandSub {
+  font-size: 0.8rem;
+  color: var(--ap-muted);
+}
+
+.Variants {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--ap-muted);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.VariantsLabel {
+  white-space: nowrap;
+}
+
+.VariantButton {
+  border: none;
+  outline: none;
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #6b7280;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.08);
+  transition: background var(--ap-fast), transform var(--ap-fast), box-shadow var(--ap-fast), color var(--ap-fast);
+}
+
+.VariantButton i {
+  font-size: 0.9rem;
+}
+
+.VariantButton:hover {
+  background: #ffe4f1;
+  box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.3);
+  transform: translateY(-1px);
+  color: #be185d;
+}
+
+.VariantButtonActive {
+  background: linear-gradient(90deg, #fb6ca3, #f973b8);
+  color: #fff7fb;
+  box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.9);
+}
+
+/* ===== quick metrics ===== */
+
+.MetricsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.MetricChip {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ap-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.12);
+  white-space: nowrap;
+}
+
+.MetricChip i {
+  font-size: 0.85rem;
+  color: #fb6ca3;
+}
+
+/* ===== main grid ===== */
+
+.Grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1.1fr 1.1fr 1.1fr;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.Col {
+  min-width: 0;
+}
+
+.ColTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.ColText {
+  font-size: 0.8rem;
+  color: var(--ap-muted);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+/* newsletter */
+
+.NewsForm {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  align-items: stretch;
+}
+
+.InputWrap {
+  flex: 1 1 auto;
+  position: relative;
+}
+
+.InputWrap i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: #a3a3b3;
+}
+
+.Input {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 180, 254, 0.8);
+  padding: 8px 12px 8px 28px;
+  font-size: 0.82rem;
+  outline: none;
+  background: rgba(255, 255, 255, 0.9);
+  transition: border var(--ap-fast), box-shadow var(--ap-fast), background var(--ap-fast);
+}
+
+.Input::placeholder {
+  color: #a1a1aa;
+}
+
+.Input:focus {
+  border-color: rgba(236, 72, 153, 0.9);
+  box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.7), 0 0 0 7px rgba(251, 113, 133, 0.25);
+  background: #ffffff;
+}
+
+.PrimaryButton {
+  border-radius: 999px;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: radial-gradient(circle at 30% 0%, #ffe4f1, #fb6ca3);
+  color: #fff7fb;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 12px 26px rgba(236, 72, 153, 0.55);
+  white-space: nowrap;
+  transition: transform var(--ap-fast), box-shadow var(--ap-fast), filter var(--ap-fast);
+}
+
+.PrimaryButton i {
+  font-size: 0.9rem;
+}
+
+.PrimaryButton:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 18px 32px rgba(236, 72, 153, 0.7);
+}
+
+.PrimaryButton:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 20px rgba(236, 72, 153, 0.55);
+}
+
+/* chips – quick links / categories */
+
+.ChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.Chip {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.16);
+  color: var(--ap-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform var(--ap-fast), box-shadow var(--ap-fast), background var(--ap-fast), color var(--ap-fast);
+}
+
+.Chip i {
+  font-size: 0.85rem;
+}
+
+.Chip:hover {
+  background: #ffe4f1;
+  color: #be185d;
+  box-shadow: 0 10px 22px rgba(236, 72, 153, 0.5);
+  transform: translateY(-1px);
+}
+
+/* link lists */
+
+.List {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.List li a {
+  text-decoration: none;
+  font-size: 0.8rem;
+  color: var(--ap-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  transition: color var(--ap-fast), transform var(--ap-fast), text-shadow var(--ap-fast);
+}
+
+.List li a i {
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.List li a:hover {
+  color: var(--ap-pink-hot);
+  transform: translateX(1px);
+  text-shadow: 0 0 1px rgba(236, 72, 153, 0.5);
+}
+
+/* App + social */
+
+.Badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.BadgeStore {
+  border-radius: 14px;
+  padding: 6px 10px;
+  border: 1px dashed rgba(209, 213, 219, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border var(--ap-fast), background var(--ap-fast), box-shadow var(--ap-fast), transform var(--ap-fast);
+}
+
+.BadgeStore i {
+  font-size: 1rem;
+  color: #4b5563;
+}
+
+.BadgeStore span {
+  line-height: 1.1;
+}
+
+.BadgeStore small {
+  display: block;
+  font-size: 0.68rem;
+  color: #9ca3af;
+}
+
+.BadgeStore strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.BadgeStore:hover {
+  border-style: solid;
+  border-color: #fb6ca3;
+  background: #ffe4f1;
+  box-shadow: 0 12px 28px rgba(236, 72, 153, 0.4);
+  transform: translateY(-1px);
+}
+
+.SocialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.SocialButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(209, 213, 219, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: box-shadow var(--ap-fast), transform var(--ap-fast), background var(--ap-fast), color var(--ap-fast);
+}
+
+.SocialButton:hover {
+  background: #fb6ca3;
+  color: #fff7fb;
+  box-shadow: 0 12px 26px rgba(236, 72, 153, 0.6);
+  transform: translateY(-1px);
+}
+
+/* contact info */
+
+.ContactList {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: grid;
+  gap: 4px;
+}
+
+.ContactItem {
+  font-size: 0.8rem;
+  color: var(--ap-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.ContactItem i {
+  margin-top: 1px;
+  font-size: 0.85rem;
+  color: #fb6ca3;
+}
+
+/* bottom row */
+
+.BottomRow {
+  border-top: 1px dashed rgba(209, 213, 219, 0.9);
+  margin-top: 10px;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: #a1a1aa;
+  flex-wrap: wrap;
+}
+
+.BottomLeft span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.BottomLeft i {
+  font-size: 0.9rem;
+}
+
+.LangCurrency {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.Pill {
+  border-radius: 999px;
+  padding: 3px 9px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: border var(--ap-fast), background var(--ap-fast), color var(--ap-fast), box-shadow var(--ap-fast);
+}
+
+.Pill i {
+  font-size: 0.85rem;
+}
+
+.Pill:hover {
+  border-color: #fb6ca3;
+  background: #ffe4f1;
+  color: #be185d;
+  box-shadow: 0 10px 20px rgba(236, 72, 153, 0.4);
+}
+
+/* ===== VARIANTS ===== */
+
+/* Glass */
+.FooterGlass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 247, 251, 0.7)), transparent;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 45px rgba(148, 163, 184, 0.55);
+}
+
+/* Dusk */
+.FooterDusk {
+  background: radial-gradient(circle at 0% 0%, rgba(251, 113, 133, 0.35), transparent 55%), radial-gradient(circle at 100% 20%, rgba(94, 92, 255, 0.35), transparent 55%),
+    linear-gradient(145deg, #020617, #111827);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
+}
+
+.FooterDusk::before {
+  opacity: 0.25;
+}
+
+.FooterDusk .BrandMain,
+.FooterDusk .ColTitle,
+.FooterDusk .BottomRow,
+.FooterDusk .BrandSub {
+  color: #e5e7eb;
+}
+
+.FooterDusk .ColText,
+.FooterDusk .List li a,
+.FooterDusk .ContactItem {
+  color: #c7d2fe;
+}
+
+.FooterDusk .Input {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.8);
+  color: #e5e7eb;
+}
+
+.FooterDusk .Input::placeholder {
+  color: #6b7280;
+}
+
+.FooterDusk .Chip {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.5);
+}
+
+.FooterDusk .Chip:hover {
+  background: rgba(236, 72, 153, 0.25);
+  color: #ffe4f1;
+}
+
+.FooterDusk .BadgeStore {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(148, 163, 184, 0.85);
+}
+
+.FooterDusk .BadgeStore strong {
+  color: #f9fafb;
+}
+
+.FooterDusk .BadgeStore small {
+  color: #9ca3af;
+}
+
+.FooterDusk .BadgeStore:hover {
+  background: rgba(236, 72, 153, 0.3);
+  border-color: #fb6ca3;
+}
+
+.FooterDusk .SocialButton {
+  background: rgba(15, 23, 42, 0.98);
+  color: #e5e7eb;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.7);
+}
+
+.FooterDusk .SocialButton:hover {
+  background: #fb6ca3;
+  color: #020617;
+}
+
+.FooterDusk .Pill {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(148, 163, 184, 0.8);
+  color: #e5e7eb;
+}
+
+.FooterDusk .Pill:hover {
+  background: rgba(236, 72, 153, 0.35);
+  color: #fff7fb;
+}
+
+.FooterDusk .MetricChip {
+  background: rgba(15, 23, 42, 0.95);
+  color: #e5e7eb;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.6);
+}
+
+/* ===== responsive ===== */
+
+@media (max-width: 992px) {
+  .Footer {
+    padding: 24px 20px 16px;
+  }
+
+  .Grid {
+    grid-template-columns: 1.6fr 1.2fr 1.1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .Footer {
+    padding: 22px 18px 14px;
+    border-radius: var(--ap-radius-md);
+  }
+
+  .TopRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .Grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .NewsForm {
+    flex-direction: column;
+  }
+
+  .PrimaryButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .MetricsRow {
+    margin-bottom: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .Grid {
+    grid-template-columns: 1fr;
+  }
+
+  .BottomRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .FooterWrap {
+    padding: 0 12px 22px;
+  }
+}
+
+@media (max-width: 420px) {
+  .Footer {
+    padding: 18px 14px 12px;
+  }
+
+  .BrandMain {
+    font-size: 0.98rem;
+  }
+
+  .BrandSub {
+    font-size: 0.78rem;
+  }
+}

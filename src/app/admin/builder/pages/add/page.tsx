@@ -2,12 +2,12 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import styles from "@/styles/admin/pages/add.module.css";
+import styles from "@/styles/admin/builder/pages/add.module.css";
 
 import DesignHeader from "@/components/admin/builder/pages/DesignHeader";
 import { ControlsPalette, Canvas, Inspector } from "@/components/admin/builder/pages";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import type { Block, SEO } from "@/lib/page/types";
+import type { Block, SEO, DropMeta, InternalProps } from "@/lib/page/types";
 import { uid, slugify } from "@/lib/page/utils";
 
 type ViewMode = "design" | "preview";
@@ -93,11 +93,7 @@ export default function UiBuilderAddPage() {
     };
   }, []);
 
-  const {
-    isHome,
-    finalSlug: derivedSlug,
-    finalPath: derivedPath,
-  } = useMemo(() => {
+  const { finalSlug: derivedSlug, finalPath: derivedPath } = useMemo(() => {
     return normalizeSlugAndPath(slug, title);
   }, [slug, title]);
 
@@ -185,10 +181,7 @@ export default function UiBuilderAddPage() {
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
 
-    const meta = (e as any).zbMeta as
-      | { type: "row-col"; parentRowId: string; colIndex: number }
-      | { type: "section"; parentSectionId: string; slot: string }
-      | null;
+    const meta = (e as React.DragEvent & { zbMeta?: DropMeta }).zbMeta || null;
 
     const txt = e.dataTransfer.getData("text/plain") || "";
     const isTemplate = txt.startsWith("template:");
@@ -207,16 +200,18 @@ export default function UiBuilderAddPage() {
         if (meta?.type === "row-col") {
           const roots = getRoots(mapped);
           roots.forEach((rb) => {
-            (rb.props as any)._parentRowId = meta.parentRowId;
-            (rb.props as any)._parentColIndex = meta.colIndex;
-            if ((rb.props as any).__parent) delete (rb.props as any).__parent;
+            const p = rb.props as Record<string, unknown>;
+            p._parentRowId = meta.parentRowId;
+            p._parentColIndex = meta.colIndex;
+            if (p.__parent) delete p.__parent;
           });
         } else if (meta?.type === "section") {
           const roots = getRoots(mapped);
           roots.forEach((rb) => {
-            (rb.props as any).__parent = { id: meta.parentSectionId, slot: meta.slot || "children" };
-            if ((rb.props as any)._parentRowId) delete (rb.props as any)._parentRowId;
-            if ((rb.props as any)._parentColIndex !== undefined) delete (rb.props as any)._parentColIndex;
+            const p = rb.props as Record<string, unknown>;
+            p.__parent = { id: meta.parentSectionId, slot: meta.slot || "children" };
+            if (p._parentRowId) delete p._parentRowId;
+            if (p._parentColIndex !== undefined) delete p._parentColIndex;
           });
         }
 
@@ -232,7 +227,7 @@ export default function UiBuilderAddPage() {
     const kind = txt;
     const reg = REGISTRY.find((r) => r.kind === kind);
     const def = reg?.defaults || {};
-    const props: any = { ...def };
+    const props: Record<string, unknown> = { ...def };
 
     if (meta?.type === "row-col") {
       props._parentRowId = meta.parentRowId;
@@ -265,16 +260,17 @@ export default function UiBuilderAddPage() {
     setActiveId(null);
   };
 
-  const updateActive = (patch: Record<string, any>) => {
+  const updateActive = (patch: Record<string, unknown>) => {
     if (!activeId) return;
     setBlocks((prev) =>
       prev.map((b) => {
         if (b.id !== activeId) return b;
 
-        const nextKind = patch.kind ?? b.kind;
+        const nextKind = (patch.kind as string) ?? b.kind;
         const kindChanged = nextKind !== b.kind;
 
-        let nextProps = "props" in patch ? (patch.props ?? {}) : { ...(b.props ?? {}), ...patch };
+        let nextProps =
+          "props" in patch ? ((patch.props as Record<string, unknown>) ?? {}) : { ...(b.props ?? {}), ...patch };
         if (kindChanged && !("props" in patch)) {
           const def = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
           nextProps = { ...def, ...nextProps };
@@ -316,10 +312,9 @@ export default function UiBuilderAddPage() {
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json?.ok) throw new Error(json?.error || "Save failed");
 
-      setPageId(json?.id || pageId);
       setGuard("Đã lưu vào Page (DRAFT).", 1500);
-    } catch (e: any) {
-      setGuard(e?.message || "Save error", 2000);
+    } catch (e: unknown) {
+      setGuard((e as Error)?.message || "Save error", 2000);
     } finally {
       setSaving(false);
     }
@@ -350,8 +345,8 @@ export default function UiBuilderAddPage() {
       const siteOrigin = originFromDomain(currentSite?.domain);
       const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
       window.open(url, "_blank");
-    } catch (e: any) {
-      setGuard(e?.message || "Publish error", 2000);
+    } catch (e: unknown) {
+      setGuard((e as Error)?.message || "Publish error", 2000);
     } finally {
       setPublishing(false);
     }
@@ -364,14 +359,15 @@ export default function UiBuilderAddPage() {
     window.open(url, "_blank");
   };
 
-  function normalizeBlocks(raw: any[]): Block[] {
+  function normalizeBlocks(raw: unknown[]): Block[] {
     if (!Array.isArray(raw)) return [];
 
     return raw
       .map((b) => {
-        const id = typeof b?.id === "string" && b.id ? b.id : crypto.randomUUID();
-        const kind = String(b?.kind ?? "");
-        const props = b?.props && typeof b.props === "object" ? b.props : {};
+        const item = b as Record<string, unknown>;
+        const id = typeof item?.id === "string" && item.id ? item.id : crypto.randomUUID();
+        const kind = String(item?.kind ?? "");
+        const props = item?.props && typeof item.props === "object" ? (item.props as Record<string, unknown>) : {};
         return { id, kind, props } as Block;
       })
       .filter((b) => b.kind);
@@ -492,7 +488,7 @@ export default function UiBuilderAddPage() {
 
 function getRoots(list: Block[]) {
   return list.filter((b) => {
-    const p: any = b.props || {};
+    const p = b.props as InternalProps;
     const inRow = !!p._parentRowId;
     const inSection = !!p.__parent?.id;
     return !inRow && !inSection;
@@ -516,12 +512,12 @@ function remapIds(list: Block[]) {
   });
 
   clone.forEach((b) => {
-    const p: any = b.props || {};
+    const p = b.props as InternalProps;
     if (p._parentRowId && idMap.has(p._parentRowId)) {
-      p._parentRowId = idMap.get(p._parentRowId);
+      p._parentRowId = idMap.get(p._parentRowId)!;
     }
     if (p.__parent?.id && idMap.has(p.__parent.id)) {
-      p.__parent.id = idMap.get(p.__parent.id);
+      p.__parent.id = idMap.get(p.__parent.id)!;
     }
   });
 
@@ -529,7 +525,7 @@ function remapIds(list: Block[]) {
 }
 
 function composeTemplateBlocks(templateId: string): Block[] {
-  const make = (kind: string, props: any = {}): Block => ({ id: uid(), kind, props });
+  const make = (kind: string, props: Record<string, unknown> = {}): Block => ({ id: uid(), kind, props });
 
   if (templateId === "tpl-header-only") {
     return [
@@ -555,16 +551,16 @@ function composeTemplateBlocks(templateId: string): Block[] {
       ctaHref: "/get-started",
       palette: "sunrise",
     });
-    (left.props as any)._parentRowId = row.id;
-    (left.props as any)._parentColIndex = 0;
+    (left.props as Record<string, unknown>)._parentRowId = row.id;
+    (left.props as Record<string, unknown>)._parentColIndex = 0;
 
     const right = make("Text", {
       text: "Bạn có thể kéo thêm block vào từng cột.",
       fontSize: 16,
       mt: 8,
     });
-    (right.props as any)._parentRowId = row.id;
-    (right.props as any)._parentColIndex = 1;
+    (right.props as Record<string, unknown>)._parentRowId = row.id;
+    (right.props as Record<string, unknown>)._parentColIndex = 1;
 
     return [row, left, right];
   }
@@ -589,22 +585,22 @@ function composeTemplateBlocks(templateId: string): Block[] {
       ctaHref: "/docs",
       palette: "coral",
     });
-    (hero.props as any).__parent = { id: section.id, slot: "children" };
+    (hero.props as InternalProps).__parent = { id: section.id, slot: "children" };
 
     const row = make("Row", { cols: 3, gap: 16 });
-    (row.props as any).__parent = { id: section.id, slot: "children" };
+    (row.props as InternalProps).__parent = { id: section.id, slot: "children" };
 
     const t1 = make("Text", { text: "⚡ Kéo thả nhanh" });
-    (t1.props as any)._parentRowId = row.id;
-    (t1.props as any)._parentColIndex = 0;
+    (t1.props as InternalProps)._parentRowId = row.id;
+    (t1.props as InternalProps)._parentColIndex = 0;
 
     const t2 = make("Text", { text: "🧩 Template sẵn" });
-    (t2.props as any)._parentRowId = row.id;
-    (t2.props as any)._parentColIndex = 1;
+    (t2.props as InternalProps)._parentRowId = row.id;
+    (t2.props as InternalProps)._parentColIndex = 1;
 
     const t3 = make("Text", { text: "🔗 Sync từ Menu" });
-    (t3.props as any)._parentRowId = row.id;
-    (t3.props as any)._parentColIndex = 2;
+    (t3.props as InternalProps)._parentRowId = row.id;
+    (t3.props as InternalProps)._parentColIndex = 2;
 
     return [header, section, hero, row, t1, t2, t3];
   }

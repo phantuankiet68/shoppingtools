@@ -31,11 +31,7 @@ function slugifyLoose(input: string) {
     .replace(/^-|-$/g, "");
 }
 
-type Props = {
-  siteId?: string;
-};
-
-export default function MenuStructure({ siteId }: Props) {
+export default function MenuStructure() {
   const router = useRouter();
   const { activeMenu, setActiveMenu, removeItemById, buildHref, findItem } = useMenuStore();
 
@@ -65,8 +61,8 @@ export default function MenuStructure({ siteId }: Props) {
 
       router.refresh();
       setTimeout(() => window.location.reload(), 100);
-    } catch (e: any) {
-      alert(e?.message || "Xóa thất bại");
+    } catch (e: unknown) {
+      alert((e as Error)?.message || "Xóa thất bại");
       if (el) (el as HTMLElement).style.opacity = "";
     } finally {
       setBusy(false);
@@ -139,15 +135,15 @@ export default function MenuStructure({ siteId }: Props) {
       }
 
       const item: MenuItem = {
-        id: baseId as any,
+        id: baseId,
         title,
         icon: "",
-        linkType: (linkType as any) ?? "internal",
+        linkType: (linkType as MenuItem["linkType"]) ?? "internal",
         externalUrl: (payload.externalUrl as string) ?? "",
         newTab: false,
         internalPageId: (payload.internalPageId as string) ?? null,
-        rawPath: rawPath as any,
-        ...(slug ? { slug: slug as any } : {}),
+        rawPath: (rawPath as string) ?? "",
+        ...(slug ? { slug: slug } : {}),
         schedules: [],
         children: [],
       };
@@ -161,7 +157,7 @@ export default function MenuStructure({ siteId }: Props) {
         setActiveMenu(next);
       }
     } finally {
-      setOver(overRef.current as any, false);
+      setOver(overRef.current, false);
       overRef.current = null;
     }
   }
@@ -217,7 +213,7 @@ export default function MenuStructure({ siteId }: Props) {
 
     dragInfo.current = null;
 
-    setOver(overRef.current as any, false);
+    setOver(overRef.current, false);
     overRef.current = null;
   }
 
@@ -226,7 +222,7 @@ export default function MenuStructure({ siteId }: Props) {
     e.stopPropagation();
     e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
     if (overRef.current !== e.currentTarget) {
-      setOver(overRef.current as any, false);
+      setOver(overRef.current, false);
       overRef.current = e.currentTarget;
       setOver(e.currentTarget, true);
     }
@@ -327,7 +323,7 @@ export default function MenuStructure({ siteId }: Props) {
               onDragEnter={onDropzoneOver}
               onDragLeave={(e) => {
                 if (overRef.current === e.currentTarget) {
-                  setOver(e.currentTarget as any, false);
+                  setOver(e.currentTarget, false);
                   overRef.current = null;
                 }
               }}
@@ -390,9 +386,9 @@ export default function MenuStructure({ siteId }: Props) {
             e.stopPropagation();
             e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
             if (overRef.current !== e.currentTarget) {
-              setOver(overRef.current as any, false);
-              overRef.current = e.currentTarget as any;
-              setOver(e.currentTarget as any, true);
+              setOver(overRef.current, false);
+              overRef.current = e.currentTarget as HTMLElement;
+              setOver(e.currentTarget as HTMLElement, true);
             }
           }}
           onDragEnter={(e) => {
@@ -401,7 +397,7 @@ export default function MenuStructure({ siteId }: Props) {
           }}
           onDragLeave={(e) => {
             if (overRef.current === e.currentTarget) {
-              setOver(e.currentTarget as any, false);
+              setOver(e.currentTarget as HTMLElement, false);
               overRef.current = null;
             }
           }}

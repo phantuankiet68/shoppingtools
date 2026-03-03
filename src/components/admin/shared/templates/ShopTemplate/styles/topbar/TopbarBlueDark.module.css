@@ -1,0 +1,321 @@
+/* styles/topbar/TopbarBlueDark.module.css */
+
+.topbar {
+  --blue-main: #0b5ed7;
+  --blue-dark: #084298;
+  --blue-light: #e3eefc;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --border: rgba(0, 0, 0, 0.08);
+  --radius: 10px;
+
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+
+.topbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* LEFT */
+
+.tbLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logoCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--blue-main);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.brandTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brandTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  white-space: nowrap;
+}
+
+.brandSub {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.regionBtn {
+  border: 1px solid var(--border);
+  background: #ffffff;
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+
+.regionBtn:hover {
+  border-color: var(--blue-main);
+  color: var(--blue-dark);
+  background: var(--blue-light);
+}
+
+/* CENTER – ticker */
+
+.tbCenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ticker {
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+}
+
+.tickerBox {
+  background: var(--blue-light);
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tickerLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tickerText {
+  font-size: 12px;
+  color: var(--ink);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  opacity: 1;
+  transform: translateY(0);
+  transition: 0.3s ease;
+  white-space: nowrap;
+}
+
+.tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius);
+  background: rgba(11, 94, 215, 0.14);
+  color: var(--blue-dark);
+}
+
+/* Ticker animation states */
+
+.isLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.isEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.isActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* RIGHT */
+
+.tbRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.tbLinks {
+  display: flex;
+  gap: 16px;
+}
+
+.tbLink {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tbLink i {
+  font-size: 14px;
+}
+
+.tbLink:hover {
+  color: var(--blue-main);
+  text-decoration: underline;
+}
+
+.statusPill {
+  background: rgba(11, 94, 215, 0.12);
+  color: var(--blue-dark);
+  border: 1px solid rgba(11, 94, 215, 0.3);
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  background: var(--blue-main);
+  border-radius: 50%;
+  animation: ping 1.7s infinite;
+}
+
+.moreBtn {
+  display: none;
+  font-size: 20px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* Ping animation */
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Tablet */
+
+@media (max-width: 840px) {
+  .tbCenter {
+    display: none;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .topbarInner {
+    padding: 0 10px;
+    gap: 10px;
+  }
+
+  .brandSub {
+    display: none;
+  }
+
+  .regionBtn {
+    display: none;
+  }
+
+  .moreBtn {
+    display: block;
+  }
+
+  .tbLinks {
+    display: none;
+    position: absolute;
+    top: 32px;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    z-index: 20;
+  }
+
+  .tbRightOpen .tbLinks {
+    display: flex;
+  }
+
+  .statusPill {
+    display: none;
+  }
+}
+
+/* Mobile rất nhỏ */
+
+@media (max-width: 480px) {
+  .topbarInner {
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .logoCircle {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+
+  .brandTitle {
+    font-size: 12px;
+  }
+
+  .tickerBox {
+    padding: 3px 8px;
+  }
+
+  .tbLinks {
+    top: 30px;
+    min-width: 170px;
+  }
+}

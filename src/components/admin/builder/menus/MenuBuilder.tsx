@@ -178,7 +178,7 @@ export default function MenuBuilder() {
 
       await saveToServer(currentSet, selectedSiteId);
 
-      const triples = flattenTriples((activeMenu as any) ?? [], INTERNAL_PAGES);
+      const triples = flattenTriples(activeMenu, INTERNAL_PAGES);
 
       if (triples.length > 0) {
         await syncPagesFromMenu({
@@ -203,10 +203,10 @@ export default function MenuBuilder() {
         message: M.notice.menuSavedMsg,
         variant: "info",
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       openNotice({
         title: M.notice.saveFailedTitle,
-        message: e?.message ?? M.error.unknown,
+        message: (e as Error)?.message ?? M.error.unknown,
         variant: "error",
       });
     } finally {
@@ -248,10 +248,10 @@ export default function MenuBuilder() {
       });
 
       router.refresh();
-    } catch (e: any) {
+    } catch (e: unknown) {
       openNotice({
         title: M.notice.importErrorTitle,
-        message: e?.message ?? M.error.unknown,
+        message: (e as Error)?.message ?? M.error.unknown,
         variant: "error",
       });
     }
@@ -287,7 +287,7 @@ export default function MenuBuilder() {
                 {!sites.length ? <option value="">{M.misc.noSites}</option> : null}
                 {sites.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} — {s.domain} ({(s as any).localeDefault})
+                    {s.name} — {s.domain} ({s.localeDefault})
                   </option>
                 ))}
               </select>

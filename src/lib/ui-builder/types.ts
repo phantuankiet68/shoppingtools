@@ -9,10 +9,15 @@ export type InspectorField =
   | { key: string; label: string; kind: "select"; options: string[] }
   | { key: string; label: string; kind: "number"; min?: number; max?: number; step?: number };
 
+export type Slots = {
+  slot: (name?: string) => React.ReactNode;
+  slotAt: (idx: number, name?: string) => React.ReactNode;
+};
+
 export type RegItem = {
   kind: string;
   label: string;
-  defaults: Record<string, any>;
+  defaults: Record<string, unknown>;
   inspector: InspectorField[];
-  render: (props: any, slots?: any) => React.ReactNode;
+  render: (props: Record<string, unknown>, slots: Slots) => React.ReactNode;
 };

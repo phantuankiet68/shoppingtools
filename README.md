@@ -80,3 +80,33 @@ vậy bạn hãy tách store và service trông file code này giúp tôi nhé
 Vậy page này sẽ sửa lại như nào với lại bạn kiểm tra giúp tôi ở đây có validation.ts hay messages.ts gì không nhé
 
 Đây là file AllowedBlocks.tsx tôi muốn bạn lấy những message đang có trong page hãy thêm vào MENU_MESSAGES và Bạn hãy sửa và ghi lại AllowedBlocks.tsx theo phong cách chuyên nghiệp được không
+
+Tôi đã tạo features/builder/pages/messages.ts hãy tách messeage vào đây giúp tôi nhé
+
+Hiện tại tôi đã tạo constants/api.ts
+export const API_ENDPOINTS = {
+ADMIN_USER: {
+CHANGE_PASSWORD: "/api/admin/user/change-password",
+},
+ADMIN: {
+PROFILE: "/api/admin/profile",
+GET_CLIENT_IP: "/api/admin/me/get-client-ip",
+},
+} as const;
+
+export const API_ROUTES = {
+ADMIN_LOGIN: "/api/admin/auth/login",
+ADMIN_ME: "/api/admin/auth/me",
+ADMIN_LOGOUT: "/api/admin/auth/logout",
+ADMIN_BUILDER_SITES: "/api/admin/builder/sites",
+ADMIN_BUILDER_SITE: (id: string) => `/api/admin/builder/sites/${id}`,
+ADMIN_BUILDER_MENUS: (id: string) => `/api/admin/builder/menus/${id}`,
+ADMIN_BUILDER_PAGE_SYNC: "/api/admin/builder/pages/sync-from-menu",
+ADMIN_BUILDER_MENUS_SAVE_TREE: "/api/admin/builder/menus/save-tree",
+ADMIN_TEMPLATE_FILES: {
+LIST: "/api/admin/template-files/list",
+READ: "/api/admin/template-files/read",
+WRITE: "/api/admin/template-files/write",
+DELETE: "/api/admin/template-files/delete",
+},
+} as const;

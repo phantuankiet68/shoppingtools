@@ -1,134 +1,158 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { PageRow } from "@/lib/page/types";
 import PageList from "@/components/admin/builder/pages/list/PageList";
 import PageInspector from "@/components/admin/builder/pages/list/PageInspector";
-import styles from "@/styles/admin/page/page.module.css";
+import styles from "@/styles/admin/builder/pages/page/page.module.css";
+import type { PageRowWithSite } from "@/services/builder/pages/builderPages.service";
+import { useBuilderPagesStore } from "@/store/builder/pages/useBuilderPagesStore";
+import { PAGE_MESSAGES } from "@/features/builder/pages/messages";
+
+type StatusFilter = "all" | "DRAFT" | "PUBLISHED";
+type SortKey = "updatedAt" | "createdAt" | "title";
+type SortDir = "asc" | "desc";
+type SiteFilter = "all" | string;
 
 export default function UiBuilderListPage() {
   const router = useRouter();
   const sp = useSearchParams();
+
   const initQ = sp.get("q") ?? "";
-  const initStatus = (sp.get("status") as "all" | "DRAFT" | "PUBLISHED" | null) ?? "all";
-  const initSort = (sp.get("sort") as "updatedAt" | "createdAt" | "title" | null) ?? "updatedAt";
-  const initDir = (sp.get("dir") as "asc" | "desc" | null) ?? "desc";
+  const initStatus = (sp.get("status") as StatusFilter | null) ?? "all";
+  const initSort = (sp.get("sort") as SortKey | null) ?? "updatedAt";
+  const initDir = (sp.get("dir") as SortDir | null) ?? "desc";
   const initPage = Math.max(1, Number(sp.get("page") || "1"));
-  const [pages, setPages] = useState<PageRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [q, setQ] = useState(initQ);
-  const [status, setStatus] = useState<"all" | "DRAFT" | "PUBLISHED">(initStatus);
-  const [sortKey, setSortKey] = useState<"updatedAt" | "createdAt" | "title">(initSort);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">(initDir);
-  const PAGE_SIZE = 7;
-  const [page, setPage] = useState<number>(initPage);
-  const [total, setTotal] = useState<number>(0);
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const [hasMore, setHasMore] = useState<boolean>(false);
-  const [activeId, setActiveId] = useState<string | null>(sp.get("id"));
-  const active = useMemo(() => pages.find((p) => p.id === activeId) ?? null, [pages, activeId]);
+  const initSiteId = (sp.get("siteId") as SiteFilter | null) ?? "all";
+  const initActiveId = sp.get("id");
+
+  const store = useBuilderPagesStore({
+    q: initQ,
+    status: initStatus,
+    sortKey: initSort,
+    sortDir: initDir,
+    page: initPage,
+    siteId: initSiteId,
+    activeId: initActiveId,
+  });
+
+  const {
+    q,
+    status,
+    sortKey,
+    sortDir,
+    siteId,
+    page,
+    activeId,
+    loadSites,
+    loadPages,
+    setPage,
+    setActiveId,
+    remove,
+    dup,
+    pub,
+    pages,
+    loading,
+    sites,
+    total,
+    totalPages,
+    active,
+  } = store;
+
   const [msg, setMsg] = useState("");
 
-  async function loadPages() {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        q,
-        offset: String((page - 1) * PAGE_SIZE),
-        limit: String(PAGE_SIZE),
-        sort: sortKey,
-        dir: sortDir,
-      });
-      if (status !== "all") params.set("status", status);
-      const res = await fetch(`/api/admin/builder/pages/list?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to load pages");
-      const json = await res.json();
-      const items: PageRow[] = json.items || [];
-      setPages(items);
-      setTotal(json.total ?? items.length);
-      setHasMore(!!json.hasMore);
-      if (!activeId && items.length) setActiveId(items[0].id);
-      if (activeId && !items.find((p) => p.id === activeId)) setActiveId(items[0]?.id ?? null);
-      const nextTotalPages = Math.max(1, Math.ceil((json.total ?? 0) / PAGE_SIZE));
-      if (page > nextTotalPages) setPage(nextTotalPages);
-    } catch (e: any) {
-      setMsg(e?.message || "Load pages error");
-      setTimeout(() => setMsg(""), 1800);
-    } finally {
-      setLoading(false);
+  const notify = (text: string, timeoutMs = 1800) => {
+    setMsg(text);
+    window.setTimeout(() => setMsg(""), timeoutMs);
+  };
+
+  // Sync querystring
+  useEffect(() => {
+    const params = new URLSearchParams(sp.toString());
+
+    if (q) params.set("q", q);
+    else params.delete("q");
+
+    if (status !== "all") params.set("status", status);
+    else params.delete("status");
+
+    if (sortKey) params.set("sort", sortKey);
+    if (sortDir) params.set("dir", sortDir);
+
+    if (siteId !== "all") params.set("siteId", siteId);
+    else params.delete("siteId");
+
+    if (page !== 1) params.set("page", String(page));
+    else params.delete("page");
+
+    const nextSearch = params.toString();
+    if (nextSearch !== sp.toString()) {
+      router.replace(`?${nextSearch}`, { scroll: false });
     }
-  }
-
-  async function del(id: string) {
-    if (!confirm("Delete this page? This action is irreversible.")) return;
-    try {
-      const res = await fetch(`/api/admin/pages/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
-
-      const willBeCount = total - 1;
-      const willBeTotalPages = Math.max(1, Math.ceil(willBeCount / PAGE_SIZE));
-      if (page > willBeTotalPages) setPage(willBeTotalPages);
-
-      await loadPages();
-      if (activeId === id) setActiveId(null);
-    } catch (e: any) {
-      setMsg(e?.message || "Delete error");
-      setTimeout(() => setMsg(""), 1800);
-    }
-  }
-
-  async function dup(id: string) {
-    try {
-      const res = await fetch(`/api/admin/pages/${id}/duplicate`, { method: "POST" });
-      if (!res.ok) throw new Error("Duplicate failed");
-      await loadPages();
-      setMsg("Đã nhân bản page");
-      setTimeout(() => setMsg(""), 1200);
-    } catch (e: any) {
-      setMsg(e?.message || "Duplicate error");
-      setTimeout(() => setMsg(""), 1800);
-    }
-  }
-
-  async function pub(id: string, next: "publish" | "unpublish") {
-    try {
-      const res = await fetch(`/api/admin/pages/${next}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      if (!res.ok) throw new Error(`${next} failed`);
-      await loadPages();
-    } catch (e: any) {
-      setMsg(e?.message || "Publish/Unpublish error");
-      setTimeout(() => setMsg(""), 1800);
-    }
-  }
+  }, [q, status, sortKey, sortDir, siteId, page, activeId, router, sp]);
 
   const openEdit = (id: string) => router.push(`/admin/builder/pages/add?id=${encodeURIComponent(id)}`);
-  const openCreate = () => router.push(`/admin/menu`);
 
-  function openPreview(page: PageRow) {
-    if (!page.path) return;
-    if (/^https?:\/\//i.test(page.path)) {
-      window.open(page.path, "_blank");
+  function openPreview(p: PageRowWithSite) {
+    if (!p.path) return;
+
+    if (/^https?:\/\//i.test(p.path)) {
+      window.open(p.path, "_blank");
       return;
     }
-    const base = page.siteDomain ? `http://${page.siteDomain}` : "";
-    window.open(`${base}${page.path.startsWith("/") ? page.path : `/${page.path}`}`, "_blank");
+
+    const base = p.siteDomain ? `http://${p.siteDomain}` : "";
+    const path = p.path.startsWith("/") ? p.path : `/${p.path}`;
+    window.open(`${base}${path}`, "_blank");
   }
 
+  // Load sites once
   useEffect(() => {
-    loadPages();
-  }, []);
+    loadSites();
+  }, [loadSites]);
 
+  // Load pages with debounce
   useEffect(() => {
-    const t = setTimeout(() => {
-      loadPages();
+    const t = window.setTimeout(() => {
+      loadPages().catch((e: unknown) => {
+        notify((e as Error)?.message || PAGE_MESSAGES.loadPagesError);
+      });
     }, 260);
-    return () => clearTimeout(t);
-  }, [q, status, sortKey, sortDir, page]);
+
+    return () => window.clearTimeout(t);
+  }, [loadPages]);
+
+  // Reset page when site changes
+  useEffect(() => {
+    setPage(1);
+  }, [siteId, setPage]);
+
+  async function del(id: string) {
+    if (!confirm(PAGE_MESSAGES.confirmDelete)) return;
+
+    try {
+      await remove(id);
+    } catch (e: unknown) {
+      notify((e as Error)?.message || PAGE_MESSAGES.deleteError);
+    }
+  }
+
+  async function dupAction(id: string) {
+    try {
+      await dup(id);
+      notify(PAGE_MESSAGES.duplicateSuccess, 1200);
+    } catch (e: unknown) {
+      notify((e as Error)?.message || PAGE_MESSAGES.duplicateError);
+    }
+  }
+
+  async function pubAction(id: string, next: "publish" | "unpublish") {
+    try {
+      await pub(id, next);
+    } catch (e: unknown) {
+      notify((e as Error)?.message || PAGE_MESSAGES.publishError);
+    }
+  }
 
   return (
     <div className={styles.wrap}>
@@ -147,13 +171,16 @@ export default function UiBuilderListPage() {
           activeId={activeId}
           onSelect={setActiveId}
           q={q}
-          setQ={setQ}
+          setQ={store.setQ}
           status={status}
-          setStatus={setStatus}
+          setStatus={store.setStatus}
           sortKey={sortKey}
           sortDir={sortDir}
-          setSortKey={setSortKey}
-          setSortDir={setSortDir}
+          setSortKey={store.setSortKey}
+          setSortDir={store.setSortDir}
+          sites={sites}
+          siteId={siteId}
+          setSiteId={store.setSiteId}
           onRefresh={loadPages}
           page={page}
           setPage={setPage}
@@ -165,9 +192,9 @@ export default function UiBuilderListPage() {
           page={active}
           onEdit={() => active && openEdit(active.id)}
           onPreview={() => active && openPreview(active)}
-          onPublish={() => active && pub(active.id, "publish")}
-          onUnpublish={() => active && pub(active.id, "unpublish")}
-          onDuplicate={() => active && dup(active.id)}
+          onPublish={() => active && pubAction(active.id, "publish")}
+          onUnpublish={() => active && pubAction(active.id, "unpublish")}
+          onDuplicate={() => active && dupAction(active.id)}
           onDelete={() => active && del(active.id)}
         />
       </div>

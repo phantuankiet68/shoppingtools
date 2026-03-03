@@ -13,13 +13,20 @@ model Page {
   status       PageStatus @default(DRAFT)
   publishedAt  DateTime?  @map("published_at")
   blocks       Json?
+
+  // giữ seoTitle/seoDesc nếu đang dùng ở nơi khác (optional)
   seoTitle     String?    @map("seo_title")
   seoDesc      String?    @map("seo_desc")
+
+  seo          PageSEO?   // 1-1 relation
+
   sortOrder    Int        @default(0) @map("sort_order")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
   deletedAt    DateTime?  @map("deleted_at")
+
   site         Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
   @@unique([siteId, slug])
   @@unique([siteId, path])
   @@index([siteId])
@@ -27,4 +34,34 @@ model Page {
   @@index([siteId, publishedAt])
   @@index([siteId, sortOrder])
   @@map("pages")
+}
+
+model PageSEO {
+  id               String   @id @default(cuid())
+  pageId           String   @unique @map("page_id")
+
+  metaTitle        String?  @map("meta_title")
+  metaDescription  String?  @map("meta_description")
+  keywords         String?  @map("keywords")
+  canonicalUrl     String?  @map("canonical_url")
+  noindex          Boolean  @default(false) @map("noindex")
+  nofollow         Boolean  @default(false) @map("nofollow")
+
+  ogTitle          String?  @map("og_title")
+  ogDescription    String?  @map("og_description")
+  ogImage          String?  @map("og_image")
+  twitterCard      String?  @map("twitter_card") // hoặc enum nếu muốn strict
+
+  sitemapChangefreq String? @map("sitemap_changefreq")
+  sitemapPriority   Float?  @map("sitemap_priority")
+
+  structuredData   String?  @db.Text @map("structured_data")
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  page             Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([noindex])
+  @@map("page_seo")
 }

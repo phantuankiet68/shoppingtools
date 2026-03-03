@@ -1,0 +1,352 @@
+.topbarRoot {
+  width: 100%;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* màu hồng pastel trong phạm vi component */
+  --pink-main: #f9d6e2;
+  --pink-dark: #e76a8d;
+  --pink-soft: #fde7ef;
+
+  --ink-dark: #4a3b42;
+  --ink-muted: #6b5a62;
+
+  --radius: 10px;
+
+  background: var(--pink-main);
+  padding: 8px 0;
+  color: var(--ink-dark);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.topbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+/* LEFT */
+
+.tbLeft {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.logoCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--pink-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.brandTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+.brandSub {
+  font-size: 12px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.regionBtn {
+  border: none;
+  background: rgba(255, 255, 255, 0.4);
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-dark);
+  transition: 0.2s;
+}
+
+.regionBtn:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* CENTER – Ticker */
+
+.tbCenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ticker {
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.tickerBox {
+  background: rgba(255, 255, 255, 0.45);
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tickerLabel {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pink-dark);
+}
+
+.tickerText {
+  display: inline-flex;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-dark);
+  white-space: nowrap;
+  transition: 0.3s ease;
+}
+
+.tag {
+  background: var(--pink-soft);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  color: #a83f5b;
+}
+
+/* Animation states tương ứng JS */
+
+.isLeaving {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.isEntering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.isActive {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* RIGHT */
+
+.tbRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.tbLinks {
+  display: flex;
+  gap: 16px;
+}
+
+.tbLink {
+  font-size: 12px;
+  color: var(--ink-dark);
+  text-decoration: none;
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.tbLink:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.statusPill {
+  background: rgba(255, 255, 255, 0.45);
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-dark);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: ping 1.7s infinite;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* MOBILE – nút more */
+
+.moreBtn {
+  display: none;
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  color: var(--ink-dark);
+  cursor: pointer;
+}
+
+/* ===========================
+   🔁 RESPONSIVE BREAKPOINTS
+   =========================== */
+
+/* Laptop nhỏ / Tablet ngang */
+@media (max-width: 1024px) {
+  .topbarInner {
+    padding: 0 12px;
+    gap: 12px;
+  }
+
+  .brandSub {
+    max-width: 220px;
+  }
+}
+
+/* Ẩn ticker trên màn vừa và nhỏ */
+@media (max-width: 840px) {
+  .tbCenter {
+    display: none;
+  }
+
+  .topbarInner {
+    justify-content: space-between;
+  }
+}
+
+/* Mobile & tablet mini */
+@media (max-width: 640px) {
+  .topbarInner {
+    padding: 0 10px;
+    gap: 10px;
+  }
+
+  .brandSub {
+    display: none;
+  }
+
+  .regionBtn {
+    display: none;
+  }
+
+  .moreBtn {
+    display: block;
+  }
+
+  .tbLinks {
+    display: none;
+    position: absolute;
+    top: 32px;
+    right: 0;
+    background: var(--pink-dark);
+    padding: 10px;
+    border-radius: var(--radius);
+    flex-direction: column;
+    gap: 10px;
+    min-width: 140px;
+  }
+
+  .tbRightOpen .tbLinks {
+    display: flex;
+  }
+
+  .statusPill {
+    display: none;
+  }
+
+  .tbLink {
+    color: #ffffff;
+  }
+}
+
+/* Mobile nhỏ: <480px – cho topbar thoáng hơn */
+@media (max-width: 480px) {
+  .tbLeft {
+    flex: 1 1 100%;
+  }
+
+  .tbRight {
+    margin-left: auto;
+  }
+
+  .logoCircle {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+
+  .brandTitle {
+    font-size: 12px;
+  }
+}
+
+.moreBtn {
+  display: none;
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .brandSub {
+    display: none;
+  }
+  .regionBtn {
+    display: none;
+  }
+  .moreBtn {
+    display: block;
+  }
+  .tbLinks {
+    display: none;
+    position: absolute;
+    top: 32px;
+    right: 0;
+    background: var(--orange-dark);
+    padding: 10px;
+    border-radius: var(--radius);
+    flex-direction: column;
+    gap: 10px;
+    min-width: 150px;
+  }
+  .tbRightOpen .tbLinks {
+    display: flex;
+  }
+  .statusPill {
+    display: none;
+  }
+}

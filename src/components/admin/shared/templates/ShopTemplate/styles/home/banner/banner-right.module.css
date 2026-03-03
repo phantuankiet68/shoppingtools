@@ -1,0 +1,25 @@
+.rightBanners {
+  display: grid;
+  gap: 12px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 992px) {
+  .rightBanners {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .rightBanners {
+    grid-template-columns: 1fr;
+  }
+}

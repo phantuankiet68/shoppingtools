@@ -145,7 +145,7 @@ function flattenBuilderToDb(
         parentId,
         title: n.title,
         path: resolvePathFromBuilder(n, internalPages),
-        icon: (n.icon ?? null) as any,
+        icon: n.icon ?? null,
         sortOrder: idx + 1,
         visible: true,
         setKey,
@@ -258,7 +258,7 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
 
   const activeMenu = menus[currentSet] ?? [];
 
-  const setActiveMenu = (next: any) =>
+  const setActiveMenu = (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) =>
     setMenus((m) => ({
       ...m,
       [currentSet]: typeof next === "function" ? next(m[currentSet]) : next,
@@ -377,8 +377,8 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
 
         setMenus((m) => ({ ...m, [setKey]: builderTree }));
         loadedKey.current = reqKey;
-      } catch (err: any) {
-        if (err?.name === "AbortError") return;
+      } catch (err: unknown) {
+        if ((err as Error)?.name === "AbortError") return;
         throw err;
       } finally {
         if (inflight.current === ac) {
