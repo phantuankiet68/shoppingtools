@@ -13,9 +13,10 @@ type AdminUser = { name: string; role: string; image: string; email: string };
 type ApiFolder = { id: string; name: string; parentId: string | null; updatedAt: string };
 type ApiFile = {
   id: string;
-  name: string;
+  title: string;
+  fileName: string;
   mimeType: string;
-  sizeBytes: number;
+  size: number;
   updatedAt: string;
   folderId: string | null;
 };
@@ -40,7 +41,8 @@ function fmtDate(iso: string) {
   return d.toLocaleString();
 }
 
-function extOf(name: string) {
+function extOf(name?: string) {
+  if (!name) return "";
   const i = name.lastIndexOf(".");
   return i >= 0 ? name.slice(i + 1).toLowerCase() : "";
 }
@@ -63,7 +65,7 @@ export default function AdminFilesClient() {
     setLoadingList(true);
     try {
       const qs = nextFolderId ? `?parentId=${encodeURIComponent(nextFolderId)}` : "";
-      const r = await fetch(`/api/admin/files/list${qs}`, { credentials: "include" });
+      const r = await fetch(`/api/admin/media/files/list${qs}`, { credentials: "include" });
       const data = await r.json().catch(() => ({}));
       if (r.ok) {
         setFolderId(data.parentId ?? null);
@@ -82,7 +84,7 @@ export default function AdminFilesClient() {
 
     setCreatingFolder(true);
     try {
-      const r = await fetch("/api/admin/files/folders", {
+      const r = await fetch("/api/admin/media/files/folders", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -95,8 +97,8 @@ export default function AdminFilesClient() {
         return;
       }
 
-      setFolderName(""); // ✅ clear input
-      await loadList(folderId); // ✅ refresh list
+      setFolderName("");
+      await loadList(folderId);
     } finally {
       setCreatingFolder(false);
     }
@@ -105,7 +107,7 @@ export default function AdminFilesClient() {
   useEffect(() => {
     let alive = true;
 
-    fetch("/api/admin/me", { credentials: "include" })
+    fetch("/api/admin/auth/me", { credentials: "include" })
       .then(async (r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!alive) return;
@@ -138,8 +140,9 @@ export default function AdminFilesClient() {
       out.push({
         id: fi.id,
         kind: "file",
-        name: fi.name,
-        size: fmtSize(fi.sizeBytes),
+        // ưu tiên fileName (có đuôi), fallback title
+        name: fi.fileName || fi.title,
+        size: fmtSize(fi.size),
         updatedBy: user?.email ?? "",
         updated: fmtDate(fi.updatedAt),
         mimeType: fi.mimeType,
@@ -170,26 +173,6 @@ export default function AdminFilesClient() {
     });
   }
 
-  async function createFolder() {
-    const name = window.prompt("Folder name?");
-    if (!name?.trim()) return;
-
-    const r = await fetch("/api/admin/files/folders", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), parentId: folderId }),
-    });
-
-    if (!r.ok) {
-      const data = await r.json().catch(() => ({}));
-      window.alert(data?.error ?? "Create folder failed");
-      return;
-    }
-
-    loadList(folderId);
-  }
-
   function openFilePicker() {
     fileInputRef.current?.click();
   }
@@ -199,7 +182,7 @@ export default function AdminFilesClient() {
     if (folderId) fd.append("folderId", folderId);
     fd.append("file", file);
 
-    const r = await fetch("/api/admin/files/upload", {
+    const r = await fetch("/api/admin/media/files/upload", {
       method: "POST",
       credentials: "include",
       body: fd,
@@ -230,7 +213,7 @@ export default function AdminFilesClient() {
       return;
     }
     const fileId = filesSel[0].id;
-    window.open(`/api/admin/files/download/${encodeURIComponent(fileId)}`, "_blank", "noopener,noreferrer");
+    window.open(`/api/admin/media/files/download/${encodeURIComponent(fileId)}`, "_blank", "noopener,noreferrer");
   }
 
   async function bulkDelete() {
@@ -246,17 +229,15 @@ export default function AdminFilesClient() {
 
     if (!window.confirm(msg)) return;
 
-    // 1) delete files
     for (const f of filesSel) {
-      await fetch(`/api/admin/files/file/${encodeURIComponent(f.id)}`, {
+      await fetch(`/api/admin/media/files/file/${encodeURIComponent(f.id)}`, {
         method: "DELETE",
         credentials: "include",
       }).catch(() => {});
     }
 
-    // 2) delete folders (cascade)
     for (const folder of foldersSel) {
-      await fetch(`/api/admin/files/folders/${encodeURIComponent(folder.id)}/delete`, {
+      await fetch(`/api/admin/media/files/folders/${encodeURIComponent(folder.id)}/delete`, {
         method: "DELETE",
         credentials: "include",
       }).catch(() => {});
@@ -273,12 +254,14 @@ export default function AdminFilesClient() {
       return;
     }
 
-    const item = (foldersSel[0] ?? filesSel[0]) as any;
-    const nextName = window.prompt("New name:", item?.name ?? "");
+    const item = foldersSel[0] ?? filesSel[0];
+    if (!item) return;
+
+    const nextName = window.prompt("New name:", item.name);
     if (!nextName?.trim()) return;
 
     if (item.kind === "folder") {
-      const r = await fetch(`/api/admin/files/folders/${encodeURIComponent(item.id)}`, {
+      const r = await fetch(`/api/admin/media/files/folders/${encodeURIComponent(item.id)}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -293,7 +276,6 @@ export default function AdminFilesClient() {
       return;
     }
 
-    // File rename chưa viết API (nếu bạn muốn mình sẽ thêm)
     window.alert("File rename API is not implemented yet. Tell me if you want it.");
   }
 
@@ -309,10 +291,11 @@ export default function AdminFilesClient() {
     );
     const parentId = destination?.trim() ? destination.trim() : null;
 
-    const item = (foldersSel[0] ?? filesSel[0]) as any;
+    const item = foldersSel[0] ?? filesSel[0];
+    if (!item) return;
 
     if (item.kind === "folder") {
-      const r = await fetch(`/api/admin/files/folders/${encodeURIComponent(item.id)}/move`, {
+      const r = await fetch(`/api/admin/media/files/folders/${encodeURIComponent(item.id)}/move`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -327,13 +310,11 @@ export default function AdminFilesClient() {
       return;
     }
 
-    // File move chưa viết API (nếu bạn muốn mình sẽ thêm)
     window.alert("File move API is not implemented yet. Tell me if you want it.");
   }
 
   function handleOpenRow(r: FileRow) {
     if (r.kind === "up") {
-      // đơn giản: về root (nếu muốn back đúng parentId mình sẽ thêm API breadcrumb)
       loadList(null);
       return;
     }

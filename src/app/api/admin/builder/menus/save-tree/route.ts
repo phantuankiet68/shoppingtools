@@ -1,4 +1,4 @@
-// app/api/menu-items/save-tree/route.ts
+// app/api/admin/builder/menus/save-tree/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { MenuSetKey } from "@prisma/client";
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, ...result, siteId, setKey });
   } catch (e: any) {
-    console.error("POST /api/menu-items/save-tree error:", e);
+    console.error("POST /api/admin/builder/menus/save-tree error:", e);
     return new NextResponse(e?.message || "Internal Server Error", { status: 500 });
   }
 }

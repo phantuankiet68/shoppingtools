@@ -8,19 +8,27 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const parentId = searchParams.get("parentId"); // null => root
 
-    const folders = await prisma.fileFolder.findMany({
-      where: { ownerId: user.id, parentId: parentId || null },
+    const folders = await prisma.folder.findMany({
+      where: { userId: user.id, parentId: parentId ?? null },
       orderBy: { name: "asc" },
       select: { id: true, name: true, parentId: true, updatedAt: true },
     });
 
-    const files = await prisma.storedFile.findMany({
-      where: { ownerId: user.id, folderId: parentId || null },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, mimeType: true, sizeBytes: true, updatedAt: true, folderId: true },
+    const files = await prisma.file.findMany({
+      where: { userId: user.id, folderId: parentId ?? null },
+      orderBy: { title: "asc" },
+      select: {
+        id: true,
+        title: true,
+        fileName: true,
+        mimeType: true,
+        size: true,
+        updatedAt: true,
+        folderId: true,
+      },
     });
 
-    return NextResponse.json({ parentId: parentId || null, folders, files });
+    return NextResponse.json({ parentId: parentId ?? null, folders, files });
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -1,4 +1,4 @@
-// app/api/menu-items/bulk/route.ts
+// app/api/admin/builder/menus/bulk/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const r = await prisma.menuItem.deleteMany({ where: { id: { in: list } } });
     return NextResponse.json({ deleted: r.count });
   } catch (e) {
-    console.error("POST /api/menu-items/bulk error:", e);
+    console.error("POST /api/admin/builder/menus/bulk error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

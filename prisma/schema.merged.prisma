@@ -525,6 +525,100 @@ model Address {
   @@map("addresses")
 }
 
+// ==== part: File.prisma ====
+model File {
+  id        String    @id @default(cuid())
+  userId    String?
+  folderId  String?
+  title     String
+  fileName  String
+  mimeType  String
+  size      Int
+  provider  String
+  key       String
+  url       String
+  category  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id])
+}
+
+// ==== part: Folder.prisma ====
+model Folder {
+  id        String    @id @default(cuid())
+  userId    String? // <- nullable
+  name      String
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Folder?  @relation("FolderToChildren", fields: [parentId], references: [id])
+  children Folder[] @relation("FolderToChildren")
+  files    File[]
+
+  @@unique([userId, parentId, name])
+  @@index([userId])
+  @@index([userId, parentId])
+}
+
+// ==== part: ImageFolder.prisma ====
+enum ImageTag {
+  NEW
+  HDR
+  AI
+  FAVORITE
+  COVER
+  BANNER
+  AVATAR
+  PRODUCT
+}
+
+model ImageFolder {
+  id        String    @id @default(cuid())
+  userId    String?
+  name      String
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user     User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   ImageFolder?  @relation("ImageFolderToChildren", fields: [parentId], references: [id])
+  children ImageFolder[] @relation("ImageFolderToChildren")
+  assets   ImageAsset[]
+
+  @@unique([userId, parentId, name])
+  @@index([userId])
+  @@index([userId, parentId])
+}
+
+model ImageAsset {
+  id           String    @id @default(cuid())
+  userId       String?
+  folderId     String?
+  originalName String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  tag          ImageTag?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder ImageFolder? @relation(fields: [folderId], references: [id])
+
+  @@index([userId])
+  @@index([userId, folderId])
+}
+
 // ==== part: Menu.prisma ====
 enum MenuSetKey {
   home
@@ -1056,8 +1150,14 @@ model Profile {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // ✅ Relation User <-> Profile
+  user User @relation("UserProfile", fields: [userId], references: [id], onDelete: Cascade)
 
+  // ✅ site membership của profile
+  siteId String? @map("site_id")
+  site   Site?   @relation("SiteProfile", fields: [siteId], references: [id], onDelete: SetNull)
+
+  @@index([siteId], map: "idx_profiles_site_id")
   @@index([firstName])
   @@index([lastName])
   @@index([role])
@@ -1073,20 +1173,23 @@ enum SiteStatus {
 }
 
 model Site {
-  id                      String                  @id @default(cuid())
-  name                    String
-  domain                  String                  @unique
-  ownerUserId             String                  @map("owner_user_id")
-  status                  SiteStatus              @default(DRAFT)
-  isPublic                Boolean                 @default(false) @map("is_public")
-  publishedAt             DateTime?               @map("published_at")
-  themeConfig             Json?                   @map("theme_config")
-  seoTitleDefault         String?                 @map("seo_title_default")
-  seoDescDefault          String?                 @map("seo_desc_default")
-  createdAt               DateTime                @default(now()) @map("created_at")
-  updatedAt               DateTime                @updatedAt @map("updated_at")
-  deletedAt               DateTime?               @map("deleted_at")
-  owner                   User                    @relation(fields: [ownerUserId], references: [id], onDelete: Restrict)
+  id              String     @id @default(cuid())
+  name            String
+  domain          String     @unique
+  ownerUserId     String     @map("owner_user_id")
+  status          SiteStatus @default(DRAFT)
+  isPublic        Boolean    @default(false) @map("is_public")
+  publishedAt     DateTime?  @map("published_at")
+  themeConfig     Json?      @map("theme_config")
+  seoTitleDefault String?    @map("seo_title_default")
+  seoDescDefault  String?    @map("seo_desc_default")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  deletedAt       DateTime?  @map("deleted_at")
+
+  owner User @relation("SiteOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+
+  members                 Profile[]               @relation("SiteProfile")
   automationRules         AutomationRule[]
   channelConnections      ChannelConnection[]
   automationEventOutboxes AutomationEventOutbox[]
@@ -1110,6 +1213,100 @@ model Site {
   @@index([isPublic])
   @@index([publishedAt])
   @@map("sites")
+}
+
+// ==== part: Transaction.prisma ====
+enum TransactionType {
+  EXPENSE
+  INCOME
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PAID
+  PENDING
+  CANCELED
+}
+
+enum CategoryType {
+  All
+  FOOD
+  SHOPPING
+  TRANSPORT
+  BILL
+  HEALTH
+  ENTERTAINMENT
+  EDUCATION
+  TRAVEL
+  OTHER
+}
+
+model Merchant {
+  id     String  @id @default(cuid())
+  userId String?
+  name   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Category {
+  id     String       @id @default(cuid())
+  userId String?
+  name   String
+  type   CategoryType
+  icon   String?
+  color  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([type])
+}
+
+model Transaction {
+  id     String  @id @default(cuid())
+  userId String?
+
+  title       String
+  description String?
+  occurredAt  DateTime
+
+  type   TransactionType
+  status TransactionStatus
+  method PaymentMethod?
+
+  currency   String @default("VND")
+  totalCents Int
+
+  merchantId String?
+  categoryId String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant Merchant? @relation(fields: [merchantId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([userId])
+  @@index([userId, occurredAt])
+  @@index([type])
+  @@index([status])
+  @@index([merchantId])
+  @@index([categoryId])
 }
 
 // ==== part: user.prisma ====
@@ -1146,7 +1343,10 @@ model User {
   devices         UserDevice[]
 
   image   String?
-  profile Profile?
+  profile Profile? @relation("UserProfile")
+
+  // ✅ Reverse relation cho Site.owner
+  ownedSites Site[] @relation("SiteOwner")
 
   // ===== Chat relations =====
   conversationMembers ConversationMember[]
@@ -1164,7 +1364,13 @@ model User {
   calendarEventsForUser CalendarEvent[]  @relation("CalendarEventUser")
   automationRules       AutomationRule[]
   customers             Customer[]
-  sites                 Site[]
+  files                 File[]
+  folders               Folder[]
+  imageFolders          ImageFolder[]
+  imageAssets           ImageAsset[]
+  merchants             Merchant[]
+  categories            Category[]
+  transactions          Transaction[]
 
   @@index([role])
   @@index([status])

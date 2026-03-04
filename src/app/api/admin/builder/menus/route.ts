@@ -112,7 +112,7 @@ export async function GET(req: Request) {
       siteId,
     });
   } catch (e) {
-    console.error("GET /api/menu-items error:", e);
+    console.error("GET /api/admin/builder/menus error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
     const created = await prisma.menuItem.create({ data });
     return NextResponse.json(created, { status: 201 });
   } catch (e: any) {
-    console.error("POST /api/menu-items error:", e);
+    console.error("POST /api/admin/builder/menus error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/profile/messages.module.css";
+import styles from "@/styles/admin/system/profile/messages.module.css";
 import { API_ROUTES, API_ENDPOINTS } from "@/constants/api";
 import Ably from "ably";
 import type { RealtimeChannel, InboundMessage } from "ably";
@@ -138,7 +138,7 @@ export default function AdminMessagesClient() {
   const [ablyConnected, setAblyConnected] = useState(false);
 
   const ablyChatChannelRef = useRef<RealtimeChannel | null>(null);
-  const [textColor, setTextColor] = useState<string>("#111827"); // default
+  const [textColor, setTextColor] = useState<string>("#111827");
   const [showColorPicker, setShowColorPicker] = useState(false);
 
   const [showEmoji, setShowEmoji] = useState(false);
@@ -157,6 +157,8 @@ export default function AdminMessagesClient() {
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
+
+  const isAblyConnected = (client: Ably.Realtime | null) => client?.connection?.state === "connected";
 
   const refreshChats = useCallback(async (setActiveIfMissing = false) => {
     setLoadingChats(true);
@@ -413,21 +415,19 @@ export default function AdminMessagesClient() {
     };
   }, [activeChatId, meId]);
 
-  // Setup Ably client once (STATE-BASED)
+  // ✅ Setup Ably client once (robust state tracking)
   useEffect(() => {
     const client = new Ably.Realtime({
       authUrl: API_ROUTES.ADMIN_CHAT.ABLY_TOKEN,
     });
 
-    client.connection.on("connected", () => {
-      setAblyConnected(true);
-    });
-    client.connection.on("failed", () => {
-      setAblyConnected(false);
-    });
-    client.connection.on("disconnected", () => {
-      setAblyConnected(false);
-    });
+    const onState = () => {
+      setAblyConnected(client.connection.state === "connected");
+    };
+
+    // Track ALL state changes (includes closed)
+    client.connection.on(onState);
+    onState();
 
     setAblyClient(client);
 
@@ -444,11 +444,13 @@ export default function AdminMessagesClient() {
     };
   }, []);
 
-  // ✅ Subscribe inbox so sidebar/unread updates without reload
+  // ✅ Subscribe inbox so sidebar/unread updates without reload (safe against "Connection closed")
   useEffect(() => {
-    if (!ablyClient || !ablyConnected || !meId) return;
+    if (!ablyClient || !meId) return;
+    if (!isAblyConnected(ablyClient)) return;
 
-    const channel = ablyClient.channels.get(`inbox:${meId}`);
+    const channelName = `inbox:${meId}`;
+    const channel = ablyClient.channels.get(channelName);
 
     const handler = (msg: InboundMessage) => {
       const data = (msg.data || {}) as AblyMessageData;
@@ -481,29 +483,38 @@ export default function AdminMessagesClient() {
           return [...pinned, ...normal];
         }
 
-        // nếu chưa có trong list -> reload list
         refreshChats(false);
         return prev;
       });
     };
 
-    channel.subscribe("inbox:new", handler);
+    try {
+      channel.subscribe("inbox:new", handler);
+    } catch (e) {
+      console.warn("Ably subscribe inbox failed:", e);
+      return;
+    }
 
     return () => {
-      channel.unsubscribe("inbox:new", handler);
+      try {
+        channel.unsubscribe("inbox:new", handler);
+        ablyClient.channels.release(channelName);
+      } catch {}
     };
   }, [ablyClient, ablyConnected, meId, refreshChats]);
 
-  // ✅ Subscribe chat channel so message appears immediately in the thread
+  // ✅ Subscribe chat channel so message appears immediately in the thread (safe)
   useEffect(() => {
-    if (!ablyClient || !ablyConnected || !activeChatId || !meId) return;
+    if (!ablyClient || !activeChatId || !meId) return;
+    if (!isAblyConnected(ablyClient)) return;
 
     // cleanup old
     try {
       ablyChatChannelRef.current?.unsubscribe();
     } catch {}
 
-    const channel = ablyClient.channels.get(`chat:${activeChatId}`);
+    const channelName = `chat:${activeChatId}`;
+    const channel = ablyClient.channels.get(channelName);
     ablyChatChannelRef.current = channel;
 
     const handler = (msg: InboundMessage) => {
@@ -534,11 +545,17 @@ export default function AdminMessagesClient() {
       });
     };
 
-    channel.subscribe("message:new", handler);
+    try {
+      channel.subscribe("message:new", handler);
+    } catch (e) {
+      console.warn("Ably subscribe chat failed:", e);
+      return;
+    }
 
     return () => {
       try {
         channel.unsubscribe("message:new", handler);
+        ablyClient.channels.release(channelName);
       } catch {}
     };
   }, [ablyClient, ablyConnected, activeChatId, meId]);
@@ -611,7 +628,6 @@ export default function AdminMessagesClient() {
         setMessagesByChat((prev) => {
           const curr = prev[activeChatId] ?? [];
 
-          // Nếu realtime đã append message thật rồi => bỏ temp để khỏi trùng key
           const hasRealAlready = curr.some((m) => m.id === real.id);
           if (hasRealAlready) {
             return {
@@ -620,7 +636,6 @@ export default function AdminMessagesClient() {
             };
           }
 
-          // Chưa có realtime => replace temp -> real
           return {
             ...prev,
             [activeChatId]: curr.map((m) =>
@@ -649,9 +664,10 @@ export default function AdminMessagesClient() {
     }
   }, [input, activeChatId, sending]);
 
+  // Thread search hits
   useEffect(() => {
-    const q = searchText.trim().toLowerCase();
-    if (!q) {
+    const qq = searchText.trim().toLowerCase();
+    if (!qq) {
       setSearchHits([]);
       setHitIndex(0);
       return;
@@ -659,7 +675,7 @@ export default function AdminMessagesClient() {
 
     const hits: number[] = [];
     msgs.forEach((m, idx) => {
-      if ((m.text || "").toLowerCase().includes(q)) hits.push(idx);
+      if ((m.text || "").toLowerCase().includes(qq)) hits.push(idx);
     });
 
     setSearchHits(hits);
@@ -682,6 +698,19 @@ export default function AdminMessagesClient() {
     },
     [searchHits, msgs],
   );
+
+  // ESC to close search
+  useEffect(() => {
+    if (!showSearch) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowSearch(false);
+        setSearchText("");
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showSearch]);
 
   return (
     <div className={styles.wrap}>
@@ -919,7 +948,7 @@ export default function AdminMessagesClient() {
           </div>
         ) : null}
 
-        {/* Search */}
+        {/* Sidebar Search */}
         <div className={styles.sidebarTools}>
           <div className={styles.searchBox}>
             <i className={`bi bi-search ${styles.searchIcon}`} />
@@ -984,8 +1013,6 @@ export default function AdminMessagesClient() {
 
                   <div className={styles.chatMeta}>
                     <div className={styles.chatTopLine}>
-                      <div className={styles.chatName}>{c.title}</div>
-
                       <div className={styles.chatRight}>
                         {c.pinned && (
                           <span className={styles.pin} title="Pinned">
@@ -1015,6 +1042,56 @@ export default function AdminMessagesClient() {
       {/* ===== Main ===== */}
       <main className={styles.main}>
         <header className={styles.header}>
+          {/* Search overlay INSIDE header */}
+          {showSearch && (
+            <div className={styles.searchOverlay}>
+              <div className={styles.searchHeaderInner}>
+                <i className="bi bi-search" />
+                <input
+                  ref={searchInputRef}
+                  className={styles.searchThreadInput}
+                  placeholder="Search in this thread..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+                <div className={styles.searchNav}>
+                  <span className={styles.searchCount}>
+                    {searchHits.length > 0 ? `${hitIndex + 1} of ${searchHits.length}` : "No results"}
+                  </span>
+                  <button
+                    className={styles.searchNavBtn}
+                    disabled={searchHits.length === 0}
+                    onClick={() => jumpToHit(hitIndex - 1)}
+                    title="Previous"
+                    type="button"
+                  >
+                    <i className="bi bi-chevron-up" />
+                  </button>
+                  <button
+                    className={styles.searchNavBtn}
+                    disabled={searchHits.length === 0}
+                    onClick={() => jumpToHit(hitIndex + 1)}
+                    title="Next"
+                    type="button"
+                  >
+                    <i className="bi bi-chevron-down" />
+                  </button>
+                  <button
+                    className={styles.searchNavBtn}
+                    onClick={() => {
+                      setShowSearch(false);
+                      setSearchText("");
+                    }}
+                    title="Close search"
+                    type="button"
+                  >
+                    <i className="bi bi-x-lg" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className={styles.headerLeft}>
             <div className={styles.headerAvatar}>
               <i className="bi bi-people-fill" />
@@ -1066,52 +1143,6 @@ export default function AdminMessagesClient() {
           </div>
         </header>
 
-        {showSearch && (
-          <div className={styles.searchHeader}>
-            <div className={styles.searchHeaderInner}>
-              <i className="bi bi-search" />
-              <input
-                ref={searchInputRef}
-                className={styles.searchInput}
-                placeholder="Search in this thread..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
-              <div className={styles.searchNav}>
-                <span className={styles.searchCount}>
-                  {searchHits.length > 0 ? `${hitIndex + 1} of ${searchHits.length}` : "No results"}
-                </span>
-                <button
-                  className={styles.searchNavBtn}
-                  disabled={searchHits.length === 0}
-                  onClick={() => jumpToHit(hitIndex - 1)}
-                  title="Previous"
-                >
-                  <i className="bi bi-chevron-up" />
-                </button>
-                <button
-                  className={styles.searchNavBtn}
-                  disabled={searchHits.length === 0}
-                  onClick={() => jumpToHit(hitIndex + 1)}
-                  title="Next"
-                >
-                  <i className="bi bi-chevron-down" />
-                </button>
-                <button
-                  className={styles.searchNavBtn}
-                  onClick={() => {
-                    setShowSearch(false);
-                    setSearchText("");
-                  }}
-                  title="Close search"
-                >
-                  <i className="bi bi-x-lg" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {error ? (
           <div style={{ padding: "8px 14px", fontSize: 13, opacity: 0.95 }}>
             <i className="bi bi-exclamation-triangle" style={{ marginRight: 8 }} />
@@ -1130,7 +1161,13 @@ export default function AdminMessagesClient() {
             <div style={{ padding: 12, opacity: 0.8 }}>No messages yet</div>
           ) : (
             msgs.map((m) => (
-              <div key={m.id} className={`${styles.msgRow} ${m.who === "me" ? styles.msgRowMe : styles.msgRowOther}`}>
+              <div
+                key={m.id}
+                ref={(el) => {
+                  msgRefs.current[m.id] = el;
+                }}
+                className={`${styles.msgRow} ${m.who === "me" ? styles.msgRowMe : styles.msgRowOther}`}
+              >
                 <div className={styles.msgBubble}>
                   <div className={styles.msgTop}>
                     {m.name && <span className={styles.msgName}>{m.name}</span>}
@@ -1225,6 +1262,7 @@ export default function AdminMessagesClient() {
                       <i className="bi bi-paperclip" />
                     </button>
                   </div>
+
                   {showColorPicker && (
                     <div className={styles.colorPicker}>
                       {["#111827", "#ef4444", "#22c55e", "#3b82f6", "#a855f7"].map((c) => (
@@ -1241,6 +1279,7 @@ export default function AdminMessagesClient() {
                       ))}
                     </div>
                   )}
+
                   {showEmoji && (
                     <div className={styles.emojiPicker}>
                       {EMOJIS.map((e) => (
@@ -1258,6 +1297,7 @@ export default function AdminMessagesClient() {
                       ))}
                     </div>
                   )}
+
                   {showLinkInput && (
                     <div className={styles.linkAttach}>
                       <input

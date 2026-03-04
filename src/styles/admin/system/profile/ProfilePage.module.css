@@ -393,7 +393,6 @@
 .rightInner {
   position: relative;
   height: 100%;
-  padding: 10px;
   display: grid;
   grid-template-rows: 1fr auto;
   gap: 14px;

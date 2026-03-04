@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import styles from "@/styles/admin/system/profile/images.module.css";
 
 type UiTag = "NEW" | "HDR" | "AI" | "FAVORITE" | "COVER" | "BANNER" | "AVATAR" | "PRODUCT";
@@ -15,7 +16,7 @@ type ApiImageItem = {
   createdAt: string;
   fileName: string;
   userId: string;
-  url: string; // mapped in API GET
+  url: string;
   folderId?: string | null;
 };
 
@@ -104,9 +105,8 @@ export default function AdminImagesClient() {
   async function fetchFolders() {
     setFoldersLoading(true);
     try {
-      const res = await fetch("/api/admin/images/image-folders", { cache: "no-store" });
+      const res = await fetch("/api/admin/media/images/image-folders", { cache: "no-store" });
       if (!res.ok) {
-        // không block page nếu folders fail
         setFolders([]);
         return;
       }
@@ -131,7 +131,7 @@ export default function AdminImagesClient() {
       // null = root => folderId=root
       qs.set("folderId", activeFolderId ? activeFolderId : "root");
 
-      const res = await fetch(`/api/admin/images?${qs.toString()}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/media/images?${qs.toString()}`, { cache: "no-store" });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error || `Failed (${res.status})`);
@@ -155,8 +155,8 @@ export default function AdminImagesClient() {
       });
 
       setItems(mapped);
-    } catch (e: any) {
-      setErr(e?.message || "Failed to load images");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Failed to load images");
     } finally {
       setLoading(false);
     }
@@ -195,7 +195,7 @@ export default function AdminImagesClient() {
       // ✅ upload vào folder đang chọn (nếu có)
       if (activeFolderId) fd.append("folderId", activeFolderId);
 
-      const res = await fetch("/api/admin/images", { method: "POST", body: fd });
+      const res = await fetch("/api/admin/media/images", { method: "POST", body: fd });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error || `Upload failed (${res.status})`);
 
@@ -205,8 +205,8 @@ export default function AdminImagesClient() {
       if (fileRef.current) fileRef.current.value = "";
 
       await fetchImages();
-    } catch (e: any) {
-      setErr(e?.message || "Upload failed");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Upload failed");
     } finally {
       setBusy(false);
     }
@@ -218,13 +218,13 @@ export default function AdminImagesClient() {
     setBusy(true);
     setErr(null);
     try {
-      const res = await fetch(`/api/admin/images/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/media/images/${id}`, { method: "DELETE" });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error || `Delete failed (${res.status})`);
 
       setItems((prev) => prev.filter((x) => x.id !== id));
-    } catch (e: any) {
-      setErr(e?.message || "Delete failed");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setBusy(false);
     }
@@ -251,7 +251,7 @@ export default function AdminImagesClient() {
     setCreatingFolder(true);
     setErr(null);
     try {
-      const res = await fetch("/api/admin/images/image-folders", {
+      const res = await fetch("/api/admin/media/images/image-folders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, parentId: null }),
@@ -268,8 +268,8 @@ export default function AdminImagesClient() {
 
       // auto select new folder
       if (created?.id) setActiveFolderId(created.id);
-    } catch (e: any) {
-      setErr(e?.message || "Create folder failed");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Create folder failed");
     } finally {
       setCreatingFolder(false);
     }
@@ -336,7 +336,6 @@ export default function AdminImagesClient() {
     <div className={styles.page}>
       <div className={styles.head}>
         <div className={styles.headLeft}>
-          <div className={styles.title}>Images</div>
           <div className={styles.muted2}>{headerCountLabel}</div>
         </div>
 
@@ -379,7 +378,6 @@ export default function AdminImagesClient() {
         </div>
       </div>
 
-      {/* error banner */}
       {err && (
         <div
           style={{
@@ -395,7 +393,6 @@ export default function AdminImagesClient() {
         </div>
       )}
 
-      {/* toolbar */}
       <div className={styles.toolbar}>
         <div className={styles.search}>
           <i className={`bi bi-search ${styles.searchIcon}`} />
@@ -510,9 +507,11 @@ export default function AdminImagesClient() {
           {shown.map((it) => (
             <div key={it.id} className={styles.card}>
               <div className={`${styles.thumb} ${it.color ? styles[`c_${it.color}`] : ""}`}>
-                <img
+                <Image
                   src={it.url}
                   alt={it.name}
+                  width={500}
+                  height={500}
                   style={{
                     width: "100%",
                     height: "100%",
@@ -570,7 +569,13 @@ export default function AdminImagesClient() {
           ))}
 
           {!loading && shown.length === 0 && (
-            <div style={{ padding: 24, color: "rgba(0,0,0,.6)" }}>No images found.</div>
+            <div className={styles.emptyState} role="status" aria-live="polite">
+              <div className={styles.emptyIcon} aria-hidden="true">
+                🖼️
+              </div>
+              <div className={styles.emptyTitle}>No images found</div>
+              <div className={styles.emptyHint}>Try changing filters or upload a new image.</div>
+            </div>
           )}
         </div>
       ) : (
@@ -697,7 +702,14 @@ export default function AdminImagesClient() {
 
                 {previewUrl ? (
                   <div className={styles.previewWrap}>
-                    <img className={styles.previewImg} src={previewUrl} alt="Preview" />
+                    <Image
+                      className={styles.previewImg}
+                      src={previewUrl}
+                      alt="Preview"
+                      width={200}
+                      height={200}
+                      unoptimized
+                    />
                     <div className={styles.previewMeta}>
                       <div className={styles.previewName} title={selectedFile?.name}>
                         {selectedFile?.name}
@@ -755,7 +767,7 @@ export default function AdminImagesClient() {
                     className={styles.select}
                     value={uploadTag}
                     disabled={busy}
-                    onChange={(e) => setUploadTag((e.target.value as any) || "")}
+                    onChange={(e) => setUploadTag((e.target.value as UiTag | "") || "")}
                   >
                     <option value="">— None —</option>
                     <option value="NEW">NEW</option>

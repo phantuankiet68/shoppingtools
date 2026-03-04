@@ -1,0 +1,52 @@
+enum ImageTag {
+  NEW
+  HDR
+  AI
+  FAVORITE
+  COVER
+  BANNER
+  AVATAR
+  PRODUCT
+}
+
+
+model ImageFolder {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  user     User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   ImageFolder? @relation("ImageFolderToChildren", fields: [parentId], references: [id])
+  children ImageFolder[] @relation("ImageFolderToChildren")
+  assets   ImageAsset[]
+
+  @@index([userId])
+  @@index([userId, parentId])
+  @@unique([userId, parentId, name])
+}
+
+model ImageAsset {
+  id           String    @id @default(cuid())
+  userId       String?
+  folderId     String?
+  originalName String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  tag          ImageTag?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder ImageFolder? @relation(fields: [folderId], references: [id])
+
+  @@index([userId])
+  @@index([userId, folderId])
+}

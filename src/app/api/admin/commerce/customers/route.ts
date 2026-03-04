@@ -1,51 +1,120 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
+import { Prisma } from "@prisma/client";
+
+export const dynamic = "force-dynamic";
+
+type AdminLike = {
+  id: string;
+  siteId?: string | null;
+  site?: { id: string | null } | null;
+  [key: string]: unknown;
+};
+
+function jsonNoStore(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: {
+      "Cache-Control": "no-store",
+      ...(init?.headers || {}),
+    },
+  });
+}
 
 /**
- * GET /api/admin/customers
- * Query:
- * - q: search name/phone/email
- * - isActive: "true" | "false"
- * - cursor: last id
- * - take: number (default 20, max 100)
+ * Resolve siteId for multi-tenant admin APIs.
+ * Priority:
+ * 1) admin.siteId / admin.site?.id (best)
+ * 2) header x-site-id
+ * 3) cookie siteId
+ * 4) query ?siteId=
  */
+function resolveSiteId(req: NextRequest, admin: AdminLike | null) {
+  const url = new URL(req.url);
+
+  const fromAdmin = admin?.siteId || admin?.site?.id || "";
+  const fromHeader = req.headers.get("x-site-id") || "";
+  const fromCookie = req.cookies.get("siteId")?.value || "";
+  const fromQuery = url.searchParams.get("siteId") || "";
+
+  const siteId = fromAdmin || fromHeader || fromCookie || fromQuery;
+
+  return {
+    siteId: siteId ? String(siteId) : "",
+    source: fromAdmin ? "admin" : fromHeader ? "header" : fromCookie ? "cookie" : fromQuery ? "query" : "none",
+  };
+}
+
+/** Parse boolean query safely */
+function parseBool(v: string | null): boolean | undefined {
+  if (v === "true") return true;
+  if (v === "false") return false;
+  return undefined;
+}
+
+/** tags Json? -> Prisma expects InputJsonValue / DbNull, not null */
+function normalizeTags(input: unknown): Prisma.InputJsonValue | typeof Prisma.DbNull | undefined {
+  // if client doesn't send tags => don't touch
+  if (input === undefined) return undefined;
+
+  // allow explicit null => set DbNull
+  if (input === null) return Prisma.DbNull;
+
+  // primitives/array/object are ok as InputJsonValue
+  return input as Prisma.InputJsonValue;
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
+    const admin = (await requireAdminAuthUser()) as AdminLike;
+
+    const { siteId, source } = resolveSiteId(req, admin);
+    if (!siteId) {
+      // ✅ Debug cực hữu ích: cho biết vì sao missing
+      return jsonNoStore(
+        {
+          error: "MISSING_SITE",
+          debug: {
+            source,
+            hint: "Provide siteId via admin session, x-site-id header, cookie siteId, or ?siteId=",
+          },
+        },
+        { status: 400 },
+      );
+    }
 
     const url = new URL(req.url);
     const q = (url.searchParams.get("q") || "").trim();
-    const isActiveRaw = url.searchParams.get("isActive");
+    const isActive = parseBool(url.searchParams.get("isActive"));
     const cursor = url.searchParams.get("cursor");
 
     const takeRaw = Number(url.searchParams.get("take") || 20);
     const take = Math.max(1, Math.min(100, Math.trunc(takeRaw)));
 
-    const where: any = {
-      userId,
-      ...(isActiveRaw === "true" ? { isActive: true } : {}),
-      ...(isActiveRaw === "false" ? { isActive: false } : {}),
+    const where: Prisma.CustomerWhereInput = {
+      siteId,
+      ...(typeof isActive === "boolean" ? { isActive } : {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { phone: { contains: q, mode: "insensitive" } },
+              { email: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     };
-
-    if (q) {
-      // MySQL: contains + mode insensitive is fine in Prisma (maps to collation)
-      where.OR = [{ name: { contains: q, mode: "insensitive" } }, { phone: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }];
-    }
 
     const rows = await prisma.customer.findMany({
       where,
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: take + 1,
-      ...(cursor
-        ? {
-            cursor: { id: cursor },
-            skip: 1,
-          }
-        : {}),
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       select: {
         id: true,
+        siteId: true,
+        userId: true,
         name: true,
         phone: true,
         email: true,
@@ -54,7 +123,6 @@ export async function GET(req: NextRequest) {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        // count orders (cheap + useful)
         _count: { select: { orders: true } },
       },
     });
@@ -63,66 +131,66 @@ export async function GET(req: NextRequest) {
     const data = hasMore ? rows.slice(0, take) : rows;
     const nextCursor = hasMore ? data[data.length - 1]?.id : null;
 
-    // Optional: small aggregate stats for header cards
-    // (These are separate queries; remove if you want faster)
-    const [total, active] = await Promise.all([prisma.customer.count({ where: { userId } }), prisma.customer.count({ where: { userId, isActive: true } })]);
+    const [total, active] = await Promise.all([
+      prisma.customer.count({ where: { siteId } }),
+      prisma.customer.count({ where: { siteId, isActive: true } }),
+    ]);
 
-    return NextResponse.json({ data, nextCursor, stats: { total, active } });
-  } catch (e: any) {
-    if (e?.message === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    }
-    return NextResponse.json({ error: e?.message || "SERVER_ERROR" }, { status: 500 });
+    return jsonNoStore({
+      data,
+      nextCursor,
+      stats: { total, active },
+      // ✅ bạn có thể bỏ field này nếu không muốn lộ
+      debug: { siteIdSource: source },
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg === "UNAUTHORIZED") return jsonNoStore({ error: "UNAUTHORIZED" }, { status: 401 });
+    return jsonNoStore({ error: msg || "SERVER_ERROR" }, { status: 500 });
   }
 }
 
-/**
- * POST /api/admin/customers
- * Body:
- * {
- *   name: string
- *   phone?: string
- *   email?: string
- *   notes?: string
- *   tags?: string
- *   isActive?: boolean
- *   // optional address fields if your model has them
- *   address1?: string ...
- * }
- */
 export async function POST(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
+    const admin = (await requireAdminAuthUser()) as AdminLike;
 
-    const body = await req.json();
+    const { siteId, source } = resolveSiteId(req, admin);
+    if (!siteId) {
+      return jsonNoStore(
+        {
+          error: "MISSING_SITE",
+          debug: { source },
+        },
+        { status: 400 },
+      );
+    }
 
-    const name = String(body.name || "").trim();
-    if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    const body: unknown = await req.json();
+    const obj = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
 
-    const phone = body.phone ? String(body.phone).trim() : null;
-    const email = body.email ? String(body.email).trim().toLowerCase() : null;
+    const name = String(obj.name || "").trim();
+    if (!name) return jsonNoStore({ error: "NAME_REQUIRED" }, { status: 400 });
+
+    const phone = obj.phone ? String(obj.phone).trim() : null;
+    const email = obj.email ? String(obj.email).trim().toLowerCase() : null;
+
+    const tags = normalizeTags(obj.tags);
 
     const created = await prisma.customer.create({
       data: {
-        userId,
+        siteId,
+        userId: admin.id,
         name,
         phone,
         email,
-        notes: body.notes ? String(body.notes) : null,
-        tags: body.tags ? String(body.tags) : null,
-        isActive: typeof body.isActive === "boolean" ? body.isActive : true,
-
-        // If you added address fields to Customer, uncomment:
-        // address1: body.address1 ? String(body.address1) : null,
-        // address2: body.address2 ? String(body.address2) : null,
-        // city: body.city ? String(body.city) : null,
-        // state: body.state ? String(body.state) : null,
-        // postal: body.postal ? String(body.postal) : null,
-        // country: body.country ? String(body.country) : null,
+        notes: obj.notes ? String(obj.notes) : null,
+        ...(tags !== undefined ? { tags } : {}), // ✅ chỉ set khi client gửi
+        isActive: typeof obj.isActive === "boolean" ? (obj.isActive as boolean) : true,
       },
       select: {
         id: true,
+        siteId: true,
+        userId: true,
         name: true,
         phone: true,
         email: true,
@@ -134,18 +202,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ data: created }, { status: 201 });
-  } catch (e: any) {
-    if (e?.message === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    return jsonNoStore({ data: created, debug: { siteIdSource: source } }, { status: 201 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg === "UNAUTHORIZED") return jsonNoStore({ error: "UNAUTHORIZED" }, { status: 401 });
+
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return jsonNoStore({ error: "DUPLICATE_CUSTOMER" }, { status: 409 });
     }
 
-    // MySQL unique violations often show up as Prisma error codes:
-    // P2002: Unique constraint failed
-    if (e?.code === "P2002") {
-      return NextResponse.json({ error: "DUPLICATE_CUSTOMER" }, { status: 409 });
-    }
-
-    return NextResponse.json({ error: e?.message || "SERVER_ERROR" }, { status: 500 });
+    return jsonNoStore({ error: msg || "SERVER_ERROR" }, { status: 500 });
   }
 }

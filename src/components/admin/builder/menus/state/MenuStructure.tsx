@@ -56,7 +56,7 @@ export default function MenuStructure() {
 
     try {
       setBusy(true);
-      const res = await fetch(`/api/menu-items/${pendingDeleteId}`, { method: "DELETE", cache: "no-store" });
+      const res = await fetch(`/api/admin/builder/menus/${pendingDeleteId}`, { method: "DELETE", cache: "no-store" });
       if (!res.ok) throw new Error(await res.text());
 
       router.refresh();

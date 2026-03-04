@@ -6,6 +6,10 @@ export const API_ENDPOINTS = {
     PROFILE: "/api/admin/system/profile",
     GET_CLIENT_IP: "/api/admin/auth/me/get-client-ip",
   },
+  COMMERCE: {
+    CUSTOMERS: "/api/admin/commerce/customers",
+    CUSTOMER_DETAIL: (id: string) => `/api/admin/commerce/customers/${id}`,
+  },
 } as const;
 
 export const API_ROUTES = {

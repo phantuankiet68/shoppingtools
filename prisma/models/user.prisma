@@ -10,15 +10,15 @@ enum UserStatus {
 }
 
 model User {
-  id              String   @id @default(cuid())
-  email           String   @unique
-  passwordHash    String   @map("password_hash")
-  role            UserRole @default(USER)
+  id              String     @id @default(cuid())
+  email           String     @unique
+  passwordHash    String     @map("password_hash")
+  role            UserRole   @default(USER)
   status          UserStatus @default(ACTIVE)
-  emailVerifiedAt DateTime? @map("email_verified_at")
-  lastLoginAt     DateTime? @map("last_login_at")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  emailVerifiedAt DateTime?  @map("email_verified_at")
+  lastLoginAt     DateTime?  @map("last_login_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
 
   sessions        UserSession[]
   passwordResets  PasswordResetToken[]
@@ -30,8 +30,11 @@ model User {
   backupCodes     UserBackupCode[]
   devices         UserDevice[]
 
-  image   String?
-  profile Profile?
+  image           String?
+  profile         Profile?   @relation("UserProfile")
+
+  // ✅ Reverse relation cho Site.owner
+  ownedSites      Site[]     @relation("SiteOwner")
 
   // ===== Chat relations =====
   conversationMembers ConversationMember[]
@@ -52,6 +55,8 @@ model User {
   @@index([status])
   @@map("users")
 }
+
+
 model UserSession {
   id                    String   @id @default(cuid())
   userId                String   @map("user_id")

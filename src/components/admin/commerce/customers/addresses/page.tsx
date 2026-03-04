@@ -1,16 +1,20 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import styles from "@/styles/admin/customers/addresses/addresses.module.css";
+import { useSearchParams } from "next/navigation";
+import styles from "@/styles/admin/commerce/customers/addresses/addresses.module.css";
 
 type AddressStatus = "ACTIVE" | "INACTIVE";
 type AddressType = "SHIPPING" | "BILLING";
+type SortOption = "UPDATED_AT" | "CREATED_AT" | "CUSTOMER";
+type TypeFilter = "ANY" | AddressType;
+type StatusFilter = "ANY" | AddressStatus;
 
 type Address = {
   id: string;
   customerId: string;
   customerName: string;
-  label: string; // e.g. "Home", "Office"
+  label: string;
   type: AddressType;
   status: AddressStatus;
   isDefault: boolean;
@@ -28,113 +32,131 @@ type Address = {
   postalCode?: string;
 
   note?: string;
-  createdAt: string; // ISO
-  updatedAt: string; // ISO
+  createdAt: string;
+  updatedAt: string;
 };
 
-type ApiListResponse = { items: any[]; total?: number; page?: number; limit?: number } | { data: any[] } | any;
+type AddressApiItem = {
+  id?: string | number;
+  customerId?: string | number;
+  customerName?: string;
+  customer?: { id?: string | number; name?: string };
 
-const seed: Address[] = [
-  {
-    id: "addr_2001",
-    customerId: "cus_1001",
-    customerName: "Nguyễn Minh Anh",
-    label: "Home",
-    type: "SHIPPING",
-    status: "ACTIVE",
-    isDefault: true,
-    receiverName: "Nguyễn Minh Anh",
-    phone: "0901 234 567",
-    line1: "12 Nguyễn Huệ",
-    line2: "Tầng 6, Căn 602",
-    ward: "Bến Nghé",
-    district: "Quận 1",
-    city: "TP. Hồ Chí Minh",
-    country: "VN",
-    postalCode: "700000",
-    note: "Gọi trước 15 phút.",
-    createdAt: "2025-11-15T03:10:00Z",
-    updatedAt: "2026-01-10T08:30:00Z",
-  },
-  {
-    id: "addr_2002",
-    customerId: "cus_1002",
-    customerName: "Trần Quốc Huy",
-    label: "Office",
-    type: "BILLING",
-    status: "ACTIVE",
-    isDefault: true,
-    receiverName: "Trần Quốc Huy",
-    phone: "0988 111 222",
-    line1: "88 Lý Thường Kiệt",
-    district: "Hoàn Kiếm",
-    city: "Hà Nội",
-    country: "VN",
-    createdAt: "2025-10-02T02:00:00Z",
-    updatedAt: "2025-12-28T10:00:00Z",
-  },
-  {
-    id: "addr_2003",
-    customerId: "cus_1004",
-    customerName: "Phạm Nhật Long",
-    label: "Home",
-    type: "SHIPPING",
-    status: "ACTIVE",
-    isDefault: false,
-    receiverName: "Phạm Nhật Long",
-    phone: "0912 999 333",
-    line1: "23 Trần Hưng Đạo",
-    district: "Hải Châu",
-    city: "Đà Nẵng",
-    country: "VN",
-    createdAt: "2025-11-20T07:40:00Z",
-    updatedAt: "2026-01-12T13:40:00Z",
-  },
-  {
-    id: "addr_2004",
-    customerId: "cus_1005",
-    customerName: "Vũ Gia Hân",
-    label: "Parents",
-    type: "SHIPPING",
-    status: "INACTIVE",
-    isDefault: false,
-    receiverName: "Vũ Gia Hân",
-    phone: "",
-    line1: "5 Nguyễn Trãi",
-    district: "Ninh Kiều",
-    city: "Cần Thơ",
-    country: "VN",
-    note: "Không giao cuối tuần.",
-    createdAt: "2025-09-09T07:00:00Z",
-    updatedAt: "2025-10-01T02:10:00Z",
-  },
-];
+  label?: string;
+  type?: AddressType | string;
+  status?: AddressStatus | string;
+  isDefault?: boolean;
+
+  receiverName?: string;
+  phone?: string | null;
+
+  line1?: string;
+  line2?: string | null;
+  ward?: string | null;
+  district?: string | null;
+  city?: string;
+  region?: string | null;
+  country?: string;
+  postalCode?: string | null;
+
+  note?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type CustomerApiItem = {
+  id: string | number;
+  name?: string | null;
+};
+
+type Customer = {
+  id: string;
+  name: string;
+};
+
+type ApiListResponse<TItem> =
+  | { items: TItem[]; total?: number; page?: number; limit?: number }
+  | { data: TItem[] }
+  | TItem[];
+
+type CustomersGetResponse = {
+  data: CustomerApiItem[];
+  nextCursor?: string | null;
+  stats?: { total?: number; active?: number; userId?: string };
+};
+
+const VI_DATE_FMT = new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" });
 
 function fmtDate(iso?: string) {
   if (!iso) return "—";
   const d = new Date(iso);
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(d);
+  if (Number.isNaN(d.getTime())) return "—";
+  return VI_DATE_FMT.format(d);
 }
 
-function typeMeta(t: AddressType) {
-  return t === "SHIPPING" ? { label: "Shipping", icon: "bi-truck" } : { label: "Billing", icon: "bi-receipt" };
+const TYPE_META: Record<AddressType, { label: string; icon: string }> = {
+  SHIPPING: { label: "Shipping", icon: "bi-truck" },
+  BILLING: { label: "Billing", icon: "bi-receipt" },
+};
+
+function isAddressType(x: unknown): x is AddressType {
+  return x === "SHIPPING" || x === "BILLING";
+}
+function isAddressStatus(x: unknown): x is AddressStatus {
+  return x === "ACTIVE" || x === "INACTIVE";
+}
+function isTypeFilter(v: string): v is TypeFilter {
+  return v === "ANY" || v === "SHIPPING" || v === "BILLING";
+}
+function isStatusFilter(v: string): v is StatusFilter {
+  return v === "ANY" || v === "ACTIVE" || v === "INACTIVE";
+}
+function isSortOption(v: string): v is SortOption {
+  return v === "UPDATED_AT" || v === "CREATED_AT" || v === "CUSTOMER";
 }
 
-/** Normalize response item -> Address UI type */
-function normalizeFromApi(x: any): Address {
-  // Support several shapes:
-  // 1) API already returns customerName
-  // 2) API returns { customer: { name } }
-  const customerName = x.customerName ?? x.customer?.name ?? "—";
+function extractItems<T>(data: ApiListResponse<T> | unknown): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    const obj = data as { items?: unknown; data?: unknown };
+    if (Array.isArray(obj.items)) return obj.items as T[];
+    if (Array.isArray(obj.data)) return obj.data as T[];
+  }
+  return [];
+}
+
+function normalizeCustomer(x: CustomerApiItem): Customer {
+  return { id: String(x.id), name: String(x.name ?? "—") };
+}
+
+function readSiteIdFromLocalStorage(): string {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem("siteId") || "";
+}
+
+function writeSiteIdToLocalStorage(siteId: string) {
+  if (typeof window === "undefined") return;
+  if (!siteId) return;
+  window.localStorage.setItem("siteId", siteId);
+}
+
+function normalizeAddressFromApi(x: AddressApiItem, customerNameById: Record<string, string>): Address {
+  const nowIso = new Date().toISOString();
+
+  const type: AddressType = isAddressType(x.type) ? x.type : "SHIPPING";
+  const status: AddressStatus = isAddressStatus(x.status) ? x.status : "ACTIVE";
+
+  const customerId = String(x.customerId ?? x.customer?.id ?? "");
+  const customerName = customerNameById[customerId] ?? x.customerName ?? x.customer?.name ?? "—";
 
   return {
-    id: String(x.id),
-    customerId: String(x.customerId ?? x.customer?.id ?? ""),
+    id: String(x.id ?? ""),
+    customerId,
     customerName: String(customerName),
 
     label: String(x.label ?? ""),
-    type: (x.type ?? "SHIPPING") as AddressType,
-    status: (x.status ?? "ACTIVE") as AddressStatus,
+    type,
+    status,
     isDefault: Boolean(x.isDefault),
 
     receiverName: String(x.receiverName ?? ""),
@@ -150,104 +172,150 @@ function normalizeFromApi(x: any): Address {
     postalCode: x.postalCode ?? "",
 
     note: x.note ?? "",
-    createdAt: String(x.createdAt ?? new Date().toISOString()),
-    updatedAt: String(x.updatedAt ?? new Date().toISOString()),
+    createdAt: String(x.createdAt ?? nowIso),
+    updatedAt: String(x.updatedAt ?? nowIso),
   };
 }
 
-async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
+async function apiFetch<T>(url: string, siteId: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(siteId ? { "x-site-id": siteId } : {}),
       ...(init?.headers || {}),
     },
+    signal: init?.signal,
   });
 
-  // Try parse JSON even on error
   const text = await res.text();
-  let data: any = null;
+  let data: unknown = null;
+
   try {
-    data = text ? JSON.parse(text) : null;
+    data = text ? (JSON.parse(text) as unknown) : null;
   } catch {
     data = text;
   }
 
   if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `Request failed (${res.status})`;
+    const msg =
+      (data && typeof data === "object" && data !== null && ("error" in data || "message" in data)
+        ? String((data as { error?: unknown; message?: unknown }).error ?? (data as { message?: unknown }).message)
+        : null) || `Request failed (${res.status})`;
     throw new Error(msg);
   }
 
   return data as T;
 }
 
-export default function AddressesPage() {
-  const [addresses, setAddresses] = useState<Address[]>(seed);
+function writeSiteIdCookie(siteId: string) {
+  if (typeof document === "undefined") return;
+  if (!siteId) return;
+  // 30 days
+  document.cookie = `siteId=${encodeURIComponent(siteId)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+}
 
-  // api state
+export default function AddressesPage() {
+  const searchParams = useSearchParams();
+  const siteIdFromQuery = (searchParams.get("siteId") || "").trim();
+
+  const [siteId, setSiteId] = useState<string>(() => siteIdFromQuery || readSiteIdFromLocalStorage());
+
+  // Sync siteId theo query (nếu có). Không cần disable eslint.
+
+  React.useEffect(() => {
+    if (!siteIdFromQuery) return;
+    setSiteId(siteIdFromQuery);
+    writeSiteIdToLocalStorage(siteIdFromQuery);
+    writeSiteIdCookie(siteIdFromQuery);
+  }, [siteIdFromQuery]);
+
+  React.useEffect(() => {
+    if (!siteId) return;
+    writeSiteIdToLocalStorage(siteId);
+    writeSiteIdCookie(siteId);
+  }, [siteId]);
+
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
+  const customerNameById = useMemo(() => {
+    return customers.reduce<Record<string, string>>((acc, c) => {
+      acc[c.id] = c.name;
+      return acc;
+    }, {});
+  }, [customers]);
+
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string>("");
 
-  // toolbar
   const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"ANY" | AddressType>("ANY");
-  const [statusFilter, setStatusFilter] = useState<"ANY" | AddressStatus>("ANY");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("ANY");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ANY");
   const [onlyDefault, setOnlyDefault] = useState(false);
-  const [sort, setSort] = useState<"UPDATED_AT" | "CREATED_AT" | "CUSTOMER">("UPDATED_AT");
+  const [sort, setSort] = useState<SortOption>("UPDATED_AT");
 
-  // selection
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
 
-  // drawer
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [active, setActive] = useState<Address | null>(null);
 
-  // modal create
   const [createOpen, setCreateOpen] = useState(false);
 
-  // pagination
   const [page, setPage] = useState(1);
   const pageSize = 8;
 
-  // ========= API LOAD =========
+  // ===== Load customers + addresses =====
   React.useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
 
     (async () => {
-      setLoading(true);
       setApiError("");
+
+      if (!siteId) {
+        setApiError("MISSING_SITE");
+        return;
+      }
+
+      setLoading(true);
       try {
-        const data = await apiFetch<ApiListResponse>("/api/admin/addresses");
+        const [customersRes, addressesRes] = await Promise.all([
+          apiFetch<CustomersGetResponse>("/api/admin/commerce/customers?take=100", siteId, {
+            signal: controller.signal,
+          }),
+          apiFetch<ApiListResponse<AddressApiItem>>("/api/admin/commerce/customers/addresses", siteId, {
+            signal: controller.signal,
+          }),
+        ]);
 
-        // Accept: {items: []} OR {data: []} OR [] directly
-        const rawItems: any[] = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : Array.isArray(data?.data) ? data.data : [];
+        const customersItems = extractItems<CustomerApiItem>(customersRes).map(normalizeCustomer);
 
-        const normalized = rawItems.map(normalizeFromApi);
+        const nameMap = customersItems.reduce<Record<string, string>>((acc, c) => {
+          acc[c.id] = c.name;
+          return acc;
+        }, {});
 
-        if (mounted) {
-          setAddresses(normalized);
-        }
-      } catch (e: any) {
-        if (mounted) {
-          setApiError(e?.message || "Failed to load addresses");
-          // keep seed as fallback
-        }
+        const rawAddresses = extractItems<AddressApiItem>(addressesRes);
+        const addressesNorm = rawAddresses.map((a) => normalizeAddressFromApi(a, nameMap));
+
+        setCustomers(customersItems);
+        setAddresses(addressesNorm);
+      } catch (e: unknown) {
+        if (controller.signal.aborted) return;
+        setApiError(e instanceof Error ? e.message : "Failed to load");
       } finally {
-        if (mounted) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     })();
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    return () => controller.abort();
+  }, [siteId]);
 
-  // ========= Derived UI =========
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    let list = addresses.filter((a) => {
+    const list = addresses.filter((a) => {
       const matchesQuery =
         !q ||
         a.label.toLowerCase().includes(q) ||
@@ -278,9 +346,10 @@ export default function AddressesPage() {
   }, [addresses, query, typeFilter, statusFilter, onlyDefault, sort]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged = useMemo(() => filtered.slice((page - 1) * pageSize, page * pageSize), [filtered, page]);
+  const paged = useMemo(() => filtered.slice((page - 1) * pageSize, page * pageSize), [filtered, page, pageSize]);
 
   React.useEffect(() => {
+    // clamp page when filters change
     setPage((p) => Math.min(Math.max(1, p), pageCount));
   }, [pageCount]);
 
@@ -294,94 +363,99 @@ export default function AddressesPage() {
   }
 
   function toggleSelectAllOnPage(v: boolean) {
-    const next = { ...selected };
-    paged.forEach((a) => (next[a.id] = v));
-    setSelected(next);
+    setSelected((prev) => {
+      const next = { ...prev };
+      paged.forEach((a) => (next[a.id] = v));
+      return next;
+    });
   }
 
   function clearSelection() {
     setSelected({});
   }
 
-  // ========= API actions =========
-
   async function bulkSetStatus(nextStatus: AddressStatus) {
+    if (!siteId) return;
+
     const ids = Object.entries(selected)
       .filter(([, v]) => v)
       .map(([id]) => id);
 
     if (ids.length === 0) return;
 
-    // optimistic UI
-    setAddresses((prev) => prev.map((a) => (ids.includes(a.id) ? { ...a, status: nextStatus, updatedAt: new Date().toISOString() } : a)));
+    const nowIso = new Date().toISOString();
+    setAddresses((prev) => prev.map((a) => (ids.includes(a.id) ? { ...a, status: nextStatus, updatedAt: nowIso } : a)));
 
     try {
       await Promise.all(
         ids.map((id) =>
-          apiFetch(`/api/admin/addresses/${id}`, {
+          apiFetch<unknown>(`/api/admin/commerce/customers/addresses/${id}`, siteId, {
             method: "PATCH",
             body: JSON.stringify({ status: nextStatus }),
           }),
         ),
       );
       clearSelection();
-    } catch (e: any) {
-      setApiError(e?.message || "Bulk update failed");
-      // (optional) reload from server
+    } catch (e: unknown) {
+      setApiError(e instanceof Error ? e.message : "Bulk update failed");
     }
   }
 
   async function bulkDelete() {
+    if (!siteId) return;
+
     const ids = Object.entries(selected)
       .filter(([, v]) => v)
       .map(([id]) => id);
 
     if (ids.length === 0) return;
 
-    // optimistic UI
     setAddresses((prev) => prev.filter((a) => !ids.includes(a.id)));
 
     try {
-      await Promise.all(ids.map((id) => apiFetch(`/api/admin/addresses/${id}`, { method: "DELETE" })));
+      await Promise.all(
+        ids.map((id) =>
+          apiFetch<unknown>(`/api/admin/commerce/customers/addresses/${id}`, siteId, { method: "DELETE" }),
+        ),
+      );
       clearSelection();
-    } catch (e: any) {
-      setApiError(e?.message || "Bulk delete failed");
-      // (optional) reload from server
+    } catch (e: unknown) {
+      setApiError(e instanceof Error ? e.message : "Bulk delete failed");
     }
   }
 
   async function setDefault(addressId: string) {
+    if (!siteId) return;
+
     const target = addresses.find((a) => a.id === addressId);
     if (!target) return;
 
-    // optimistic UI: default unique per customer+type
+    const nowIso = new Date().toISOString();
     setAddresses((prev) =>
       prev.map((a) => {
         const sameBucket = a.customerId === target.customerId && a.type === target.type;
         if (!sameBucket) return a;
-        return {
-          ...a,
-          isDefault: a.id === addressId,
-          updatedAt: new Date().toISOString(),
-        };
+        return { ...a, isDefault: a.id === addressId, updatedAt: nowIso };
       }),
     );
 
     try {
-      await apiFetch(`/api/admin/addresses/${addressId}`, {
+      await apiFetch<unknown>(`/api/admin/commerce/customers/addresses/${addressId}`, siteId, {
         method: "PATCH",
         body: JSON.stringify({ isDefault: true }),
       });
-    } catch (e: any) {
-      setApiError(e?.message || "Set default failed");
-      // (optional) reload from server
+    } catch (e: unknown) {
+      setApiError(e instanceof Error ? e.message : "Set default failed");
     }
   }
 
   async function createAddress(payload: Omit<Address, "id" | "createdAt" | "updatedAt">) {
+    if (!siteId) return;
+
     setApiError("");
+
     try {
-      const created = await apiFetch<any>("/api/admin/addresses", {
+      const created = await apiFetch<AddressApiItem>("/api/admin/commerce/customers/addresses", siteId, {
         method: "POST",
         body: JSON.stringify({
           customerId: payload.customerId,
@@ -406,7 +480,7 @@ export default function AddressesPage() {
         }),
       });
 
-      const next = normalizeFromApi(created);
+      const next = normalizeAddressFromApi(created, customerNameById);
 
       setAddresses((prev) => {
         if (next.isDefault) {
@@ -418,8 +492,8 @@ export default function AddressesPage() {
         }
         return [next, ...prev];
       });
-    } catch (e: any) {
-      setApiError(e?.message || "Create address failed");
+    } catch (e: unknown) {
+      setApiError(e instanceof Error ? e.message : "Create address failed");
       throw e;
     }
   }
@@ -432,9 +506,40 @@ export default function AddressesPage() {
     return { total, activeCount, defaultCount, shipping };
   }, [addresses]);
 
+  const onChangeTypeFilter: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const v = e.target.value;
+    if (isTypeFilter(v)) setTypeFilter(v);
+  };
+  const onChangeStatusFilter: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const v = e.target.value;
+    if (isStatusFilter(v)) setStatusFilter(v);
+  };
+  const onChangeSort: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const v = e.target.value;
+    if (isSortOption(v)) setSort(v);
+  };
+
   return (
     <div className={styles.page}>
       {/* Header */}
+      {!siteId ? (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 12,
+            border: "1px solid #fda29b",
+            borderRadius: 10,
+            background: "#fffbfa",
+          }}
+        >
+          <div style={{ fontWeight: 700, marginBottom: 6, color: "#b42318" }}>Missing siteId</div>
+          <div style={{ fontSize: 13, marginBottom: 10, color: "#7a271a" }}>
+            API yêu cầu siteId. Hãy nhập siteId (hoặc mở trang với ?siteId=YOUR_SITE_ID).
+          </div>
+
+          <SiteIdGate initialValue={readSiteIdFromLocalStorage()} onSave={(next) => setSiteId(next)} />
+        </div>
+      ) : null}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.titleRow}>
@@ -487,11 +592,15 @@ export default function AddressesPage() {
         </div>
 
         <div className={styles.headerRight}>
-          <button className={styles.secondaryBtn} type="button" onClick={() => alert("Export (mock) — connect API later")}>
+          <button
+            className={styles.secondaryBtn}
+            type="button"
+            onClick={() => alert("Export (mock) — connect API later")}
+          >
             <i className="bi bi-download" />
             Export
           </button>
-          <button className={styles.primaryBtn} type="button" onClick={() => setCreateOpen(true)}>
+          <button className={styles.primaryBtn} type="button" onClick={() => setCreateOpen(true)} disabled={!siteId}>
             <i className="bi bi-plus-lg" />
             New address
           </button>
@@ -502,7 +611,12 @@ export default function AddressesPage() {
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <i className={`bi bi-search ${styles.searchIcon}`} />
-          <input className={styles.searchInput} placeholder="Search by customer, label, receiver, city, phone, ID…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input
+            className={styles.searchInput}
+            placeholder="Search by customer, label, receiver, city, phone, ID…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
           {query ? (
             <button className={styles.clearBtn} type="button" onClick={() => setQuery("")} aria-label="Clear">
               <i className="bi bi-x-lg" />
@@ -513,7 +627,7 @@ export default function AddressesPage() {
         <div className={styles.filters}>
           <div className={styles.selectWrap}>
             <i className={`bi bi-funnel ${styles.selectIcon}`} />
-            <select className={styles.select} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)}>
+            <select className={styles.select} value={typeFilter} onChange={onChangeTypeFilter}>
               <option value="ANY">Type: Any</option>
               <option value="SHIPPING">Type: Shipping</option>
               <option value="BILLING">Type: Billing</option>
@@ -522,7 +636,7 @@ export default function AddressesPage() {
 
           <div className={styles.selectWrap}>
             <i className={`bi bi-activity ${styles.selectIcon}`} />
-            <select className={styles.select} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
+            <select className={styles.select} value={statusFilter} onChange={onChangeStatusFilter}>
               <option value="ANY">Status: Any</option>
               <option value="ACTIVE">Status: Active</option>
               <option value="INACTIVE">Status: Inactive</option>
@@ -538,7 +652,7 @@ export default function AddressesPage() {
 
           <div className={styles.selectWrap}>
             <i className={`bi bi-sort-down ${styles.selectIcon}`} />
-            <select className={styles.select} value={sort} onChange={(e) => setSort(e.target.value as any)}>
+            <select className={styles.select} value={sort} onChange={onChangeSort}>
               <option value="UPDATED_AT">Sort: Updated</option>
               <option value="CREATED_AT">Sort: Created</option>
               <option value="CUSTOMER">Sort: Customer</option>
@@ -562,15 +676,30 @@ export default function AddressesPage() {
 
           <div className={styles.bulkRight}>
             <div className={styles.bulkGroup}>
-              <button className={styles.bulkBtn} type="button" onClick={() => bulkSetStatus("ACTIVE")}>
+              <button
+                className={styles.bulkBtn}
+                type="button"
+                onClick={() => bulkSetStatus("ACTIVE")}
+                disabled={!siteId}
+              >
                 <i className="bi bi-check-circle" /> Set Active
               </button>
-              <button className={styles.bulkBtn} type="button" onClick={() => bulkSetStatus("INACTIVE")}>
+              <button
+                className={styles.bulkBtn}
+                type="button"
+                onClick={() => bulkSetStatus("INACTIVE")}
+                disabled={!siteId}
+              >
                 <i className="bi bi-dash-circle" /> Set Inactive
               </button>
             </div>
 
-            <button className={`${styles.bulkBtn} ${styles.danger}`} type="button" onClick={bulkDelete}>
+            <button
+              className={`${styles.bulkBtn} ${styles.danger}`}
+              type="button"
+              onClick={bulkDelete}
+              disabled={!siteId}
+            >
               <i className="bi bi-trash3" /> Delete
             </button>
           </div>
@@ -588,7 +717,11 @@ export default function AddressesPage() {
           </div>
 
           <div className={styles.tableHeadRight}>
-            <button className={styles.iconBtn} type="button" onClick={() => alert("Columns (mock) — add builder later")}>
+            <button
+              className={styles.iconBtn}
+              type="button"
+              onClick={() => alert("Columns (mock) — add builder later")}
+            >
               <i className="bi bi-layout-three-columns" />
             </button>
             <button className={styles.iconBtn} type="button" onClick={() => alert("Saved views (mock) — add later")}>
@@ -602,7 +735,12 @@ export default function AddressesPage() {
             <thead>
               <tr>
                 <th className={styles.thCheck}>
-                  <input type="checkbox" checked={paged.length > 0 && paged.every((a) => !!selected[a.id])} onChange={(e) => toggleSelectAllOnPage(e.target.checked)} aria-label="Select all on page" />
+                  <input
+                    type="checkbox"
+                    checked={paged.length > 0 && paged.every((a) => !!selected[a.id])}
+                    onChange={(e) => toggleSelectAllOnPage(e.target.checked)}
+                    aria-label="Select all on page"
+                  />
                 </th>
                 <th>Address</th>
                 <th>Customer</th>
@@ -623,7 +761,12 @@ export default function AddressesPage() {
                       <i className="bi bi-geo" />
                       <div className={styles.emptyTitle}>No addresses found</div>
                       <div className={styles.emptyHint}>Try adjusting your search or filters.</div>
-                      <button className={styles.primaryBtn} type="button" onClick={() => setCreateOpen(true)}>
+                      <button
+                        className={styles.primaryBtn}
+                        type="button"
+                        onClick={() => setCreateOpen(true)}
+                        disabled={!siteId}
+                      >
                         <i className="bi bi-plus-lg" /> Create address
                       </button>
                     </div>
@@ -631,11 +774,15 @@ export default function AddressesPage() {
                 </tr>
               ) : (
                 paged.map((a) => {
-                  const tm = typeMeta(a.type);
+                  const tm = TYPE_META[a.type];
                   return (
                     <tr key={a.id} className={styles.tr} onDoubleClick={() => openDrawer(a)}>
                       <td className={styles.tdCheck} onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" checked={!!selected[a.id]} onChange={(e) => toggleSelect(a.id, e.target.checked)} />
+                        <input
+                          type="checkbox"
+                          checked={!!selected[a.id]}
+                          onChange={(e) => toggleSelect(a.id, e.target.checked)}
+                        />
                       </td>
 
                       <td className={styles.tdAddress} onClick={() => openDrawer(a)}>
@@ -690,14 +837,21 @@ export default function AddressesPage() {
                             <i className="bi bi-bookmark-star" /> Default
                           </span>
                         ) : (
-                          <button className={styles.linkBtn} type="button" onClick={() => setDefault(a.id)}>
+                          <button
+                            className={styles.linkBtn}
+                            type="button"
+                            onClick={() => setDefault(a.id)}
+                            disabled={!siteId}
+                          >
                             Set default
                           </button>
                         )}
                       </td>
 
                       <td>
-                        <span className={`${styles.badge} ${a.status === "ACTIVE" ? styles.badgeActive : styles.badgeInactive}`}>
+                        <span
+                          className={`${styles.badge} ${a.status === "ACTIVE" ? styles.badgeActive : styles.badgeInactive}`}
+                        >
                           <i className={`bi ${a.status === "ACTIVE" ? "bi-check-circle" : "bi-dash-circle"}`} />
                           {a.status === "ACTIVE" ? "Active" : "Inactive"}
                         </span>
@@ -732,7 +886,12 @@ export default function AddressesPage() {
               <i className="bi bi-chevron-left" />
               Prev
             </button>
-            <button className={styles.pageBtn} type="button" disabled={page >= pageCount} onClick={() => setPage((p) => p + 1)}>
+            <button
+              className={styles.pageBtn}
+              type="button"
+              disabled={page >= pageCount}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next
               <i className="bi bi-chevron-right" />
             </button>
@@ -783,7 +942,7 @@ export default function AddressesPage() {
                   <div className={styles.fieldLabel}>Type</div>
                   <div className={styles.fieldValue}>
                     <span className={styles.pill}>
-                      <i className={`bi ${typeMeta(active.type).icon}`} /> {typeMeta(active.type).label}
+                      <i className={`bi ${TYPE_META[active.type].icon}`} /> {TYPE_META[active.type].label}
                     </span>
                   </div>
                 </div>
@@ -791,7 +950,9 @@ export default function AddressesPage() {
                 <div className={styles.field}>
                   <div className={styles.fieldLabel}>Status</div>
                   <div className={styles.fieldValue}>
-                    <span className={`${styles.badge} ${active.status === "ACTIVE" ? styles.badgeActive : styles.badgeInactive}`}>
+                    <span
+                      className={`${styles.badge} ${active.status === "ACTIVE" ? styles.badgeActive : styles.badgeInactive}`}
+                    >
                       <i className={`bi ${active.status === "ACTIVE" ? "bi-check-circle" : "bi-dash-circle"}`} />
                       {active.status === "ACTIVE" ? "Active" : "Inactive"}
                     </span>
@@ -841,11 +1002,20 @@ export default function AddressesPage() {
 
               <div className={styles.drawerActions}>
                 {!active.isDefault ? (
-                  <button className={styles.secondaryBtn} type="button" onClick={() => setDefault(active.id)}>
+                  <button
+                    className={styles.secondaryBtn}
+                    type="button"
+                    onClick={() => setDefault(active.id)}
+                    disabled={!siteId}
+                  >
                     <i className="bi bi-bookmark-star" /> Set default
                   </button>
                 ) : null}
-                <button className={styles.secondaryBtn} type="button" onClick={() => alert("Open customer (mock) — route later")}>
+                <button
+                  className={styles.secondaryBtn}
+                  type="button"
+                  onClick={() => alert("Open customer (mock) — route later")}
+                >
                   <i className="bi bi-box-arrow-up-right" />
                   Open customer
                 </button>
@@ -859,11 +1029,14 @@ export default function AddressesPage() {
         )}
       </aside>
 
-      {drawerOpen ? <button className={styles.backdrop} onClick={() => setDrawerOpen(false)} aria-label="Close drawer" /> : null}
+      {drawerOpen ? (
+        <button className={styles.backdrop} onClick={() => setDrawerOpen(false)} aria-label="Close drawer" />
+      ) : null}
 
-      {/* Create Modal */}
       {createOpen ? (
         <CreateAddressModal
+          customers={customers}
+          loadingCustomers={loading && customers.length === 0}
           onClose={() => setCreateOpen(false)}
           onCreate={async (payload) => {
             await createAddress(payload);
@@ -875,24 +1048,29 @@ export default function AddressesPage() {
   );
 }
 
-function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCreate: (payload: Omit<Address, "id" | "createdAt" | "updatedAt">) => Promise<void> | void }) {
-  // Minimal “customer select” mock (in real app load from DB)
-  const customers = [
-    { id: "cus_1001", name: "Nguyễn Minh Anh" },
-    { id: "cus_1002", name: "Trần Quốc Huy" },
-    { id: "cus_1004", name: "Phạm Nhật Long" },
-    { id: "cus_1005", name: "Vũ Gia Hân" },
-  ];
-
-  const [customerId, setCustomerId] = useState(customers[0]?.id || "");
-  const customerName = customers.find((c) => c.id === customerId)?.name || "";
+function CreateAddressModal({
+  customers,
+  loadingCustomers,
+  onClose,
+  onCreate,
+}: {
+  customers: Customer[];
+  loadingCustomers: boolean;
+  onClose: () => void;
+  onCreate: (payload: Omit<Address, "id" | "createdAt" | "updatedAt">) => Promise<void> | void;
+}) {
+  const [customerId, setCustomerId] = useState<string>(() => customers[0]?.id ?? "");
+  const customerName = customers.find((c) => c.id === customerId)?.name ?? "";
 
   const [label, setLabel] = useState("Home");
   const [type, setType] = useState<AddressType>("SHIPPING");
   const [status, setStatus] = useState<AddressStatus>("ACTIVE");
   const [isDefault, setIsDefault] = useState(true);
 
+  // receiverName: chỉ auto-fill khi user chưa “chạm” vào field
   const [receiverName, setReceiverName] = useState(customerName);
+  const [receiverTouched, setReceiverTouched] = useState(false);
+
   const [phone, setPhone] = useState("");
 
   const [line1, setLine1] = useState("");
@@ -906,11 +1084,36 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
 
   const [saving, setSaving] = useState(false);
 
+  // Nếu customers load xong mà customerId đang rỗng -> set default customer đầu
   React.useEffect(() => {
-    setReceiverName(customerName);
-  }, [customerName]);
+    if (customerId) return;
+    if (customers.length === 0) return;
+    setCustomerId(customers[0].id);
+  }, [customerId, customers]);
 
-  const canSave = customerId && receiverName.trim().length >= 2 && line1.trim().length >= 3 && city.trim().length >= 2 && country.trim().length >= 2 && !saving;
+  // Sync receiverName khi customer đổi, nhưng không đè nếu user đã sửa
+  React.useEffect(() => {
+    if (receiverTouched) return;
+    setReceiverName(customerName);
+  }, [customerName, receiverTouched]);
+
+  const onChangeType: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const v = e.target.value;
+    if (isAddressType(v)) setType(v);
+  };
+
+  const onChangeStatus: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const v = e.target.value;
+    if (isAddressStatus(v)) setStatus(v);
+  };
+
+  const canSave =
+    customerId &&
+    receiverName.trim().length >= 2 &&
+    line1.trim().length >= 3 &&
+    city.trim().length >= 2 &&
+    country.trim().length >= 2 &&
+    !saving;
 
   return (
     <div className={styles.modalRoot} role="dialog" aria-modal="true">
@@ -931,7 +1134,18 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
               <span className={styles.labelText}>Customer</span>
               <div className={styles.selectWrap}>
                 <i className={`bi bi-person ${styles.selectIcon}`} />
-                <select className={styles.select} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
+                <select
+                  className={styles.select}
+                  value={customerId}
+                  disabled={loadingCustomers || customers.length === 0}
+                  onChange={(e) => {
+                    setCustomerId(e.target.value);
+                    // đổi customer thì cho phép auto-fill lại receiver nếu user chưa gõ
+                    setReceiverTouched(false);
+                  }}
+                >
+                  {loadingCustomers ? <option value="">Loading customers…</option> : null}
+                  {!loadingCustomers && customers.length === 0 ? <option value="">No customers</option> : null}
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.id})
@@ -943,14 +1157,14 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
 
             <label className={styles.label}>
               <span className={styles.labelText}>Label</span>
-              <input className={styles.input} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Home / Office / Warehouse..." />
+              <input className={styles.input} value={label} onChange={(e) => setLabel(e.target.value)} />
             </label>
 
             <label className={styles.label}>
               <span className={styles.labelText}>Type</span>
               <div className={styles.selectWrap}>
                 <i className={`bi bi-diagram-2 ${styles.selectIcon}`} />
-                <select className={styles.select} value={type} onChange={(e) => setType(e.target.value as AddressType)}>
+                <select className={styles.select} value={type} onChange={onChangeType}>
                   <option value="SHIPPING">Shipping</option>
                   <option value="BILLING">Billing</option>
                 </select>
@@ -961,7 +1175,7 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
               <span className={styles.labelText}>Status</span>
               <div className={styles.selectWrap}>
                 <i className={`bi bi-activity ${styles.selectIcon}`} />
-                <select className={styles.select} value={status} onChange={(e) => setStatus(e.target.value as AddressStatus)}>
+                <select className={styles.select} value={status} onChange={onChangeStatus}>
                   <option value="ACTIVE">Active</option>
                   <option value="INACTIVE">Inactive</option>
                 </select>
@@ -984,11 +1198,19 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
               <div className={styles.formGrid}>
                 <label className={styles.label}>
                   <span className={styles.labelText}>Receiver name</span>
-                  <input className={styles.input} value={receiverName} onChange={(e) => setReceiverName(e.target.value)} />
+                  <input
+                    className={styles.input}
+                    value={receiverName}
+                    onChange={(e) => {
+                      setReceiverName(e.target.value);
+                      setReceiverTouched(true);
+                    }}
+                  />
                 </label>
+
                 <label className={styles.label}>
                   <span className={styles.labelText}>Phone</span>
-                  <input className={styles.input} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Optional" />
+                  <input className={styles.input} value={phone} onChange={(e) => setPhone(e.target.value)} />
                 </label>
               </div>
             </div>
@@ -1002,31 +1224,37 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
               <div className={styles.formGrid}>
                 <label className={styles.label}>
                   <span className={styles.labelText}>Line 1</span>
-                  <input className={styles.input} value={line1} onChange={(e) => setLine1(e.target.value)} placeholder="Street, building..." />
+                  <input className={styles.input} value={line1} onChange={(e) => setLine1(e.target.value)} />
                 </label>
+
                 <label className={styles.label}>
                   <span className={styles.labelText}>Line 2</span>
-                  <input className={styles.input} value={line2} onChange={(e) => setLine2(e.target.value)} placeholder="Apt, floor (optional)" />
+                  <input className={styles.input} value={line2} onChange={(e) => setLine2(e.target.value)} />
                 </label>
+
                 <label className={styles.label}>
                   <span className={styles.labelText}>Ward</span>
-                  <input className={styles.input} value={ward} onChange={(e) => setWard(e.target.value)} placeholder="Optional" />
+                  <input className={styles.input} value={ward} onChange={(e) => setWard(e.target.value)} />
                 </label>
+
                 <label className={styles.label}>
                   <span className={styles.labelText}>District</span>
-                  <input className={styles.input} value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="Optional" />
+                  <input className={styles.input} value={district} onChange={(e) => setDistrict(e.target.value)} />
                 </label>
+
                 <label className={styles.label}>
                   <span className={styles.labelText}>City</span>
                   <input className={styles.input} value={city} onChange={(e) => setCity(e.target.value)} />
                 </label>
+
                 <label className={styles.label}>
                   <span className={styles.labelText}>Country</span>
-                  <input className={styles.input} value={country} onChange={(e) => setCountry(e.target.value)} placeholder="VN" />
+                  <input className={styles.input} value={country} onChange={(e) => setCountry(e.target.value)} />
                 </label>
+
                 <label className={styles.label}>
                   <span className={styles.labelText}>Postal code</span>
-                  <input className={styles.input} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="Optional" />
+                  <input className={styles.input} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
                 </label>
               </div>
             </div>
@@ -1034,7 +1262,7 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
 
           <label className={styles.label}>
             <span className={styles.labelText}>Notes</span>
-            <textarea className={styles.textarea} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Internal notes (optional)..." />
+            <textarea className={styles.textarea} value={note} onChange={(e) => setNote(e.target.value)} />
           </label>
         </div>
 
@@ -1071,12 +1299,53 @@ function CreateAddressModal({ onClose, onCreate }: { onClose: () => void; onCrea
               } finally {
                 setSaving(false);
               }
-            }}>
+            }}
+          >
             <i className="bi bi-check2" />
             Create
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SiteIdGate({ initialValue, onSave }: { initialValue: string; onSave: (siteId: string) => void }) {
+  const [val, setVal] = useState(initialValue);
+  return (
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <input
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Enter siteId (e.g. site_xxx)"
+        style={{
+          flex: 1,
+          padding: "10px 12px",
+          borderRadius: 10,
+          border: "1px solid #d0d5dd",
+          fontSize: 14,
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => {
+          const next = val.trim();
+          if (!next) return;
+          writeSiteIdToLocalStorage(next);
+          writeSiteIdCookie(next);
+          onSave(next);
+        }}
+        style={{
+          padding: "10px 12px",
+          borderRadius: 10,
+          border: "1px solid #d0d5dd",
+          background: "white",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        Save
+      </button>
     </div>
   );
 }

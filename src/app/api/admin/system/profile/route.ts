@@ -12,12 +12,10 @@ function toProfileRole(v: unknown): ProfileRole | null {
 
   const s = String(v).trim().toUpperCase();
 
-  // Accept exact enum
   if (s === "ADMIN") return ProfileRole.ADMIN;
   if (s === "STAFF") return ProfileRole.STAFF;
   if (s === "USER") return ProfileRole.USER;
 
-  // Accept common UI labels (customize as you like)
   if (s === "VIEWER") return ProfileRole.USER;
   if (s === "MEMBER") return ProfileRole.USER;
 
@@ -29,12 +27,10 @@ function toProfileStatus(v: unknown): ProfileStatus | null {
 
   const s = String(v).trim().toUpperCase();
 
-  // Accept exact enum
   if (s === "ACTIVE") return ProfileStatus.ACTIVE;
   if (s === "INACTIVE") return ProfileStatus.INACTIVE;
   if (s === "SUSPENDED") return ProfileStatus.SUSPENDED;
 
-  // Accept common UI labels
   if (s === "DISABLED") return ProfileStatus.INACTIVE;
   if (s === "BLOCKED") return ProfileStatus.SUSPENDED;
 
@@ -47,6 +43,50 @@ function parseDateOrNull(v: unknown): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+function toSiteIdOrNull(v: unknown): string | null {
+  if (v === undefined || v === null || v === "") return null;
+  const s = String(v).trim();
+  return s ? s : null;
+}
+
+const PROFILE_SELECT = {
+  id: true,
+  userId: true,
+  siteId: true,
+  firstName: true,
+  lastName: true,
+  username: true,
+  role: true,
+  status: true,
+  email: true,
+  backupEmail: true,
+  phone: true,
+  address: true,
+  city: true,
+  country: true,
+  company: true,
+  department: true,
+  jobTitle: true,
+  manager: true,
+  hireDate: true,
+  gender: true,
+  locale: true,
+  timezone: true,
+  dobMonth: true,
+  dobDay: true,
+  dobYear: true,
+  twitter: true,
+  linkedin: true,
+  facebook: true,
+  github: true,
+  website: true,
+  slogan: true,
+  bio: true,
+  twoFA: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 export async function GET() {
   try {
     const user = await requireAdminAuthUser();
@@ -57,33 +97,35 @@ export async function GET() {
         id: true,
         email: true,
         role: true,
-        profile: true,
+        status: true,
+        profile: { select: PROFILE_SELECT },
       },
     });
 
+    if (!data) {
+      return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 404 });
+    }
+
     return NextResponse.json({ user: data });
   } catch (e) {
-    // Unauthorized (auth fail) OR other errors
     console.error("GET /api/admin/system/profile error:", e);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 }
 
 export async function PATCH(req: Request) {
-  // Auth fail -> 401
   let userId: string;
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
   } catch (e) {
     console.error("PATCH /api/admin/system/profile auth error:", e);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 
   try {
     const body = await req.json().catch(() => ({}));
 
-    // Validate basic inputs (your existing validator)
     const errors = validateProfileInput({
       firstName: body.firstName,
       lastName: body.lastName,
@@ -100,39 +142,45 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "VALIDATION_ERROR", errors }, { status: 400 });
     }
 
-    // Map enums safely
     const mappedRole = toProfileRole(body.role);
     const mappedStatus = toProfileStatus(body.status);
 
-    // If role/status provided but invalid -> 400
     if (body.role !== undefined && mappedRole === null) {
       return NextResponse.json(
-        {
-          error: "INVALID_ROLE",
-          allowed: ["ADMIN", "STAFF", "USER"],
-          received: body.role,
-        },
+        { error: "INVALID_ROLE", allowed: ["ADMIN", "STAFF", "USER"], received: body.role },
         { status: 400 },
       );
     }
 
     if (body.status !== undefined && mappedStatus === null) {
       return NextResponse.json(
-        {
-          error: "INVALID_STATUS",
-          allowed: ["ACTIVE", "INACTIVE", "SUSPENDED"],
-          received: body.status,
-        },
+        { error: "INVALID_STATUS", allowed: ["ACTIVE", "INACTIVE", "SUSPENDED"], received: body.status },
         { status: 400 },
       );
     }
 
-    const hireDate = parseDateOrNull(body.hireDate);
+    const hireDate = body.hireDate !== undefined ? parseDateOrNull(body.hireDate) : undefined;
+
+    // ✅ siteId nằm ở Profile
+    const siteId = body.siteId !== undefined ? toSiteIdOrNull(body.siteId) : undefined;
+
+    // ✅ Nếu có gửi siteId (khác undefined) và khác null => check site tồn tại
+    if (siteId !== undefined && siteId !== null) {
+      const exists = await prisma.site.findUnique({
+        where: { id: siteId },
+        select: { id: true },
+      });
+      if (!exists) {
+        return NextResponse.json({ error: "SITE_NOT_FOUND" }, { status: 400 });
+      }
+    }
 
     const profile = await prisma.profile.upsert({
-      where: { userId: userId },
+      where: { userId },
       create: {
-        userId: userId,
+        userId,
+
+        ...(siteId !== undefined ? { siteId } : {}),
 
         firstName: body.firstName ?? null,
         lastName: body.lastName ?? null,
@@ -153,7 +201,7 @@ export async function PATCH(req: Request) {
         department: body.department ?? null,
         jobTitle: body.jobTitle ?? null,
         manager: body.manager ?? null,
-        hireDate,
+        hireDate: hireDate ?? null,
 
         gender: body.gender ?? null,
         locale: body.locale ?? null,
@@ -175,6 +223,8 @@ export async function PATCH(req: Request) {
         twoFA: typeof body.twoFA === "boolean" ? body.twoFA : false,
       },
       update: {
+        ...(siteId !== undefined ? { siteId } : {}),
+
         ...(body.firstName !== undefined ? { firstName: body.firstName } : {}),
         ...(body.lastName !== undefined ? { lastName: body.lastName } : {}),
         ...(body.username !== undefined ? { username: body.username } : {}),
@@ -194,7 +244,7 @@ export async function PATCH(req: Request) {
         ...(body.department !== undefined ? { department: body.department } : {}),
         ...(body.jobTitle !== undefined ? { jobTitle: body.jobTitle } : {}),
         ...(body.manager !== undefined ? { manager: body.manager } : {}),
-        ...(body.hireDate !== undefined ? { hireDate } : {}),
+        ...(body.hireDate !== undefined ? { hireDate: hireDate ?? null } : {}),
 
         ...(body.gender !== undefined ? { gender: body.gender } : {}),
         ...(body.locale !== undefined ? { locale: body.locale } : {}),
@@ -215,9 +265,16 @@ export async function PATCH(req: Request) {
 
         ...(body.twoFA !== undefined ? { twoFA: !!body.twoFA } : {}),
       },
+      select: PROFILE_SELECT,
     });
 
-    return NextResponse.json({ profile });
+    // ✅ Trả kèm user tối giản để FE sync dễ
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, role: true, status: true },
+    });
+
+    return NextResponse.json({ user, profile });
   } catch (e) {
     console.error("PATCH /api/admin/system/profile error:", e);
     return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
@@ -231,7 +288,7 @@ export async function DELETE() {
     userId = user.id;
   } catch (e) {
     console.error("DELETE /api/admin/system/profile auth error:", e);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 
   try {

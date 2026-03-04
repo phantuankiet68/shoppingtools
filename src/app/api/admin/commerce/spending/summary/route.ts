@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
+import { Prisma } from "@prisma/client";
 
 // helpers
 function parseBool(v: string | null) {
   return v === "1" || v === "true";
-}
-function parseIntSafe(v: string | null, def = 0) {
-  const n = Number(v);
-  return Number.isFinite(n) ? Math.trunc(n) : def;
 }
 
 export async function GET(req: Request) {
@@ -24,7 +21,7 @@ export async function GET(req: Request) {
     const from = url.searchParams.get("from"); // ISO
     const to = url.searchParams.get("to"); // ISO
 
-    const whereTx: any = {
+    const whereTx: Prisma.TransactionWhereInput = {
       userId: user.id,
       // only expense transactions for "spending"
       type: "EXPENSE",
@@ -105,7 +102,7 @@ export async function GET(req: Request) {
     });
 
     const catIds = byCatRaw.map((x) => x.categoryId).filter(Boolean) as string[];
-    const cats = await prisma.spendCategory.findMany({
+    const cats = await prisma.category.findMany({
       where: { id: { in: catIds } },
       select: { id: true, name: true, type: true, icon: true, color: true },
     });
@@ -235,7 +232,7 @@ export async function GET(req: Request) {
         maxCents: revenue12mMaxCents,
       },
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Unauthorized" }, { status: 401 });
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Unauthorized" }, { status: 401 });
   }
 }

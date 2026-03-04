@@ -1,7 +1,4 @@
 .page {
-  padding: 18px 18px 28px;
-  color: #0f172a;
-  background: radial-gradient(1200px 700px at 25% -10%, rgba(56, 189, 248, 0.18), transparent 55%), radial-gradient(900px 600px at 90% 0%, rgba(99, 102, 241, 0.12), transparent 60%), #f6f8fc;
   min-height: 100%;
 }
 
@@ -21,7 +18,6 @@
 .titleRow {
   display: flex;
   flex-direction: column;
-  gap: 6px;
   margin-bottom: 12px;
 }
 
@@ -29,7 +25,8 @@
   margin: 0;
   font-size: 22px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  color: var(--text-title);
+  font-size: 25px;
 }
 
 .subtitle {
@@ -55,7 +52,6 @@
   backdrop-filter: blur(10px);
   border-radius: 14px;
   padding: 12px 12px;
-  box-shadow: 0 14px 35px rgba(2, 6, 23, 0.06);
 }
 
 .kpiTop {
@@ -80,6 +76,41 @@
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+.segmentBar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(2, 6, 23, 0.08);
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.segment {
+  border: 1px solid rgba(2, 6, 23, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  color: rgba(15, 23, 42, 0.86);
+  border-radius: 999px;
+  padding: 8px 36px;
+  font-size: 13px;
+  font-weight: 400;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segment:hover {
+  transform: translateY(-1px);
+}
+
+.segmentActive {
+  border-color: rgba(56, 189, 248, 0.55);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.14));
 }
 
 .toolbar {
@@ -114,7 +145,6 @@
   padding: 10px 38px 10px 36px;
   outline: none;
   font-size: 13px;
-  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.06);
 }
 
 .searchInput:focus {
@@ -156,29 +186,15 @@
   border-radius: 14px;
   border: 1px solid rgba(2, 6, 23, 0.12);
   background: rgba(255, 255, 255, 0.8);
-  padding: 10px 12px 10px 34px;
+  padding: 10px 22px 10px 34px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   outline: none;
-  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.06);
+  color: var(--muted);
 }
 
-.checkPill {
-  border-radius: 999px;
-  border: 1px solid rgba(2, 6, 23, 0.12);
-  background: rgba(255, 255, 255, 0.8);
-  padding: 9px 12px;
-  font-size: 13px;
-  font-weight: 800;
-  display: inline-flex;
-  gap: 10px;
-  align-items: center;
-  cursor: pointer;
-  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.06);
-}
-
-.checkPill input {
-  transform: translateY(1px);
+.select:focus {
+  border-color: rgba(56, 189, 248, 0.7);
 }
 
 .primaryBtn,
@@ -186,13 +202,12 @@
   border-radius: 14px;
   padding: 10px 12px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 400;
   border: 1px solid rgba(2, 6, 23, 0.12);
   cursor: pointer;
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  box-shadow: 0 14px 35px rgba(2, 6, 23, 0.08);
 }
 
 .primaryBtn {
@@ -211,11 +226,12 @@
 
 .iconBtn,
 .rowBtn {
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid rgba(2, 6, 23, 0.12);
   background: rgba(255, 255, 255, 0.86);
-  padding: 8px 10px;
+  padding: 5px 10px;
   cursor: pointer;
+  margin-left: 10px;
 }
 
 .iconBtn:hover,
@@ -223,6 +239,10 @@
 .primaryBtn:hover,
 .secondaryBtn:hover {
   transform: translateY(-1px);
+}
+
+.rowBtn i {
+  font-size: 16px;
 }
 
 .bulkBar {
@@ -295,8 +315,7 @@
 .tableCard {
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(2, 6, 23, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 18px 45px rgba(2, 6, 23, 0.08);
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -315,7 +334,9 @@
 }
 
 .tableTitle {
-  font-weight: 900;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--muted);
 }
 
 .tableMeta {
@@ -331,18 +352,17 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 1100px;
+  min-width: 980px;
 }
 
 .table thead th {
   text-align: left;
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: 13px;
   color: rgba(15, 23, 42, 0.6);
   padding: 10px 12px;
   border-bottom: 1px solid rgba(2, 6, 23, 0.08);
   background: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
 }
 
 .tr:hover td {
@@ -360,69 +380,43 @@
   width: 42px;
 }
 
+.thNum,
+.tdNum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .thActions,
 .tdActions {
   width: 52px;
   text-align: right;
 }
 
-.tdAddress {
+.tdCustomer {
   cursor: pointer;
 }
 
-.addressCell {
+.customerCell {
   display: flex;
   gap: 10px;
-  align-items: flex-start;
+  align-items: center;
 }
 
-.pin {
+.avatar {
   width: 34px;
   height: 34px;
   border-radius: 12px;
   display: grid;
   place-items: center;
+  font-weight: 900;
   background: linear-gradient(180deg, rgba(56, 189, 248, 0.35), rgba(99, 102, 241, 0.16));
   border: 1px solid rgba(2, 6, 23, 0.08);
 }
 
-.addressInfo {
+.customerInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 380px;
-}
-
-.addressTop {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.addressLabel {
-  font-weight: 1000;
-  font-size: 13px;
-}
-
-.addressSub {
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.6);
-}
-
-.addressMeta {
-  font-size: 12px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-  color: rgba(15, 23, 42, 0.62);
-}
-
-.customerCell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .customerName {
@@ -433,11 +427,19 @@
 .customerSub {
   font-size: 12px;
   color: rgba(15, 23, 42, 0.6);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dot {
+  opacity: 0.6;
 }
 
 .muted {
-  color: rgba(15, 23, 42, 0.6);
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .mono {
@@ -446,59 +448,57 @@
   color: rgba(15, 23, 42, 0.7);
 }
 
-.dot {
-  opacity: 0.6;
-}
-
-.pill {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-weight: 900;
-  font-size: 12px;
-  border: 1px solid rgba(2, 6, 23, 0.08);
-  background: rgba(255, 255, 255, 0.7);
-}
-
 .badge {
   display: inline-flex;
   gap: 8px;
   align-items: center;
   border-radius: 999px;
   padding: 6px 10px;
-  font-weight: 1000;
-  font-size: 12px;
+  font-weight: 500;
+  font-size: 13px;
   border: 1px solid rgba(2, 6, 23, 0.08);
   background: rgba(255, 255, 255, 0.7);
 }
 
-.badgeDefault {
-  border-color: rgba(56, 189, 248, 0.45);
-  background: rgba(56, 189, 248, 0.18);
+.table tbody td {
+  font-size: 13px;
 }
 
-.badgeActive {
+.badge_ACTIVE {
   border-color: rgba(34, 197, 94, 0.25);
   background: rgba(34, 197, 94, 0.12);
 }
 
-.badgeInactive {
+.badge_INACTIVE {
   border-color: rgba(148, 163, 184, 0.35);
   background: rgba(148, 163, 184, 0.16);
 }
 
-.linkBtn {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-weight: 900;
-  color: rgba(2, 132, 199, 0.9);
+.badge_VIP {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.18);
 }
 
-.linkBtn:hover {
-  text-decoration: underline;
+.tagRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tag {
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid rgba(2, 6, 23, 0.1);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.moreTag {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.7;
 }
 
 .emptyCell {
@@ -514,13 +514,14 @@
 }
 
 .empty i {
-  font-size: 30px;
+  font-size: 50px;
   opacity: 0.65;
 }
 
 .emptyTitle {
   font-weight: 900;
-  font-size: 14px;
+  font-size: 16px;
+  color: var(--muted);
 }
 
 .emptyHint {
@@ -542,8 +543,10 @@
   background: rgba(255, 255, 255, 0.86);
   padding: 9px 12px;
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 500;
+  font-size: 14px;
   display: inline-flex;
+  margin-left: 10px;
   gap: 8px;
   align-items: center;
 }
@@ -609,7 +612,7 @@
   margin-bottom: 12px;
 }
 
-.drawerPin {
+.drawerAvatar {
   width: 44px;
   height: 44px;
   border-radius: 16px;
@@ -631,18 +634,6 @@
   font-size: 14px;
 }
 
-.inlineDefault {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  margin-left: 8px;
-  font-size: 12px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  background: rgba(56, 189, 248, 0.16);
-}
-
 .drawerMeta {
   font-size: 12px;
   display: flex;
@@ -660,19 +651,16 @@
 }
 
 .fieldLabel {
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.6);
-  font-weight: 900;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .fieldValue {
   margin-top: 4px;
-  font-weight: 900;
-  line-height: 1.35;
-}
-
-.fieldWide {
-  grid-column: span 2;
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--text);
 }
 
 .section {
@@ -738,7 +726,7 @@
 }
 
 .modal {
-  width: 720px;
+  width: 640px;
   max-width: 96vw;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(2, 6, 23, 0.12);
@@ -748,7 +736,7 @@
 }
 
 .modalHeader {
-  padding: 12px 12px;
+  padding: 12px;
   border-bottom: 1px solid rgba(2, 6, 23, 0.08);
   display: flex;
   justify-content: space-between;
@@ -756,10 +744,11 @@
 }
 
 .modalTitle {
-  font-weight: 1000;
+  font-weight: 800;
   display: inline-flex;
   gap: 8px;
   align-items: center;
+  color: var(--muted);
 }
 
 .modalBody {
@@ -782,9 +771,9 @@
 }
 
 .labelText {
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.65);
-  font-weight: 900;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .input,
@@ -806,6 +795,30 @@
 .input:focus,
 .textarea:focus {
   border-color: rgba(56, 189, 248, 0.7);
+}
+
+.tagPickRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tagPick {
+  border-radius: 999px;
+  border: 1px solid rgba(2, 6, 23, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 7px 10px;
+  font-weight: 900;
+  font-size: 12px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tagPickActive {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(56, 189, 248, 0.18);
 }
 
 .modalFooter {
@@ -834,8 +847,5 @@
   }
   .drawerGrid {
     grid-template-columns: 1fr;
-  }
-  .fieldWide {
-    grid-column: span 1;
   }
 }

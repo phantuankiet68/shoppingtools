@@ -2,7 +2,6 @@
   /* tokens */
   --bg: #ffffff;
   --card: #ffffff;
-  --text: #0f172a;
   --muted: #64748b;
   --muted2: #94a3b8;
 
@@ -16,7 +15,8 @@
 
   padding: 14px;
   min-height: calc(100vh - 95px);
-  background: radial-gradient(900px 320px at 16% -120px, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 65%),
+  background:
+    radial-gradient(900px 320px at 16% -120px, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 65%),
     radial-gradient(900px 320px at 92% -140px, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 62%), var(--bg);
 }
 
@@ -59,7 +59,7 @@
   background: rgba(255, 255, 255, 0.82);
   min-width: 0;
   max-width: 100%;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .bcSep {
@@ -70,7 +70,7 @@
 .bcLink {
   border: 0;
   background: transparent;
-  color: #0369a1;
+  color: var(--text);
   cursor: pointer;
   padding: 0;
   max-width: 240px;
@@ -102,7 +102,10 @@
   place-items: center;
   cursor: pointer;
   box-shadow: var(--shadowSoft);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
 }
 .copyBtn:hover {
   transform: translateY(-1px);
@@ -119,7 +122,6 @@
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-weight: 600;
   font-size: 13px;
 }
 .subHint i {
@@ -144,10 +146,14 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: 13px;
   color: #334155;
   box-shadow: var(--shadowSoft);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
 }
 .actionBtn:hover {
   transform: translateY(-1px);
@@ -205,8 +211,8 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: #334155;
-  font-weight: 600;
+  color: #33ca5d;
+  font-weight: 500;
   font-size: 14px;
 }
 .selectAll input {
@@ -224,13 +230,13 @@
 }
 
 .checkedPill {
-  height: 30px;
+  height: 38px;
   padding: 0 10px;
   border-radius: 999px;
   border: 1px solid rgba(37, 99, 235, 0.18);
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.06));
-  color: #3085f3;
-  font-weight: 600;
+  color: var(--muted);
+  font-weight: 500;
   font-size: 13px;
   display: inline-flex;
   align-items: center;
@@ -246,19 +252,23 @@
 
 .bulkBtn,
 .bulkBtnDanger {
-  height: 32px;
+  height: 38px;
   padding: 5px 10px;
   border-radius: 6px;
   border: 1px solid var(--line);
   background: #fff;
   cursor: pointer;
-  font-size: 14px;
-  color: #475569;
+  font-size: 13px;
+  color: var(--muted);
   display: inline-flex;
   align-items: center;
   gap: 8px;
   box-shadow: var(--shadowSoft);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
 }
 .bulkBtn:hover,
 .bulkBtnDanger:hover {
@@ -279,9 +289,9 @@
 }
 
 .table thead th {
-  font-size: 12px;
-  font-weight: 950;
-  color: #0369a1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
   background: #ffffff;
   border-bottom: 1px solid var(--line);
   padding: 12px 12px;
@@ -323,7 +333,9 @@
   color: var(--text);
   vertical-align: middle;
   background: rgba(255, 255, 255, 0.62);
-  transition: background 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .row:hover td {

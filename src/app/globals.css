@@ -15,10 +15,13 @@
   --ui-line: #eef0f3;
   --ui-soft: #f3f4f6;
   --ui-soft-2: #f8fafc;
-
+  --text: #3d4047bf;
+  --text-title: #4d89c5;
+  --btn-red: #fb8f8f;
   /* Brand (default) */
   --brand: #3b82f6;
   --brand-2: #6366f1;
+  --muted: #64748b;
 
   /* Status */
   --ok: #16a34a;
@@ -35,6 +38,7 @@
 
   /* Page background (admin) */
   --bg-page: #f7f9ff;
+  --bg-primary: linear-gradient(135deg, #2bb5ff, #26bbff);
 }
 
 html {

@@ -24,10 +24,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "file is required" }, { status: 400 });
     }
 
-    // check folder belongs to user
     if (folderId) {
-      const folder = await prisma.fileFolder.findFirst({
-        where: { id: folderId, ownerId: user.id },
+      const folder = await prisma.folder.findFirst({
+        where: { id: folderId, userId: user.id },
         select: { id: true },
       });
       if (!folder) return NextResponse.json({ error: "Folder not found" }, { status: 404 });
@@ -39,24 +38,33 @@ export async function POST(req: Request) {
     const rand = crypto.randomBytes(10).toString("hex");
     const storageKey = `u_${user.id}/${Date.now()}_${rand}_${originalName}`;
 
-    // ✅ public path per your request:
     const absPath = path.join(process.cwd(), "public", "upload", "files", storageKey);
     await fs.mkdir(path.dirname(absPath), { recursive: true });
     await fs.writeFile(absPath, bytes);
 
-    const created = await prisma.storedFile.create({
+    const created = await prisma.file.create({
       data: {
-        ownerId: user.id,
+        userId: user.id,
         folderId,
-        name: originalName,
+        title: originalName,
+        fileName: originalName,
         mimeType: file.type || "application/octet-stream",
-        sizeBytes: bytes.length,
-        storageKey,
+        size: bytes.length,
+        provider: "local",
+        key: storageKey,
+        url: `/upload/files/${storageKey}`,
       },
-      select: { id: true, name: true, mimeType: true, sizeBytes: true, updatedAt: true, folderId: true },
+      select: {
+        id: true,
+        title: true,
+        fileName: true,
+        mimeType: true,
+        size: true,
+        updatedAt: true,
+        folderId: true,
+      },
     });
 
-    // public url (note: this is public!)
     const publicUrl = `/upload/files/${storageKey}`;
 
     return NextResponse.json({ file: created, publicUrl }, { status: 201 });

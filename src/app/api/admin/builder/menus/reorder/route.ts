@@ -1,4 +1,4 @@
-// app/api/menu-items/reorder/route.ts
+// app/api/admin/builder/menus/reorder/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -15,12 +15,12 @@ export async function POST(req: Request) {
         prisma.menuItem.update({
           where: { id: it.id },
           data: { sortOrder: Number(it.sortOrder) || 0 },
-        })
-      )
+        }),
+      ),
     );
     return NextResponse.json({ updated: list.length });
   } catch (e) {
-    console.error("POST /api/menu-items/reorder error:", e);
+    console.error("POST /api/admin/builder/menus/reorder error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

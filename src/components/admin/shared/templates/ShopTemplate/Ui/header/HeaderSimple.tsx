@@ -194,7 +194,7 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 
-        const res = await fetch(`/api/menu-items?${params.toString()}`, {
+        const res = await fetch(`/api/admin/builder/menus?${params.toString()}`, {
           cache: "no-store",
         });
 
@@ -215,7 +215,6 @@ export const HeaderSimple: React.FC<HeaderSimpleProps> = (props) => {
     };
 
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoadMenu, locale, siteId, setKey, navItemsProp]);
 
   /** ===== Handlers ===== */

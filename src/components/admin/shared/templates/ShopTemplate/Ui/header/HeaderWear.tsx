@@ -186,7 +186,7 @@ export const HeaderWear: React.FC<HeaderWearProps> = (props) => {
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 
-        const res = await fetch(`/api/menu-items?${params.toString()}`, {
+        const res = await fetch(`/api/admin/builder/menus?${params.toString()}`, {
           cache: "no-store",
         });
 

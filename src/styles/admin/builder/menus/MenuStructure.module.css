@@ -8,7 +8,7 @@
 .card {
   scrollbar-gutter: stable both-edges;
   overflow: auto;
-  height: 74vh;
+  height: 81vh;
 }
 .itemContainer {
   padding: 20px 15px;

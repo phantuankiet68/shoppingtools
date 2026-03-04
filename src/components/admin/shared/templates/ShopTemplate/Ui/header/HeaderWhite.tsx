@@ -180,7 +180,7 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 
-        const res = await fetch(`/api/menu-items?${params.toString()}`, {
+        const res = await fetch(`/api/admin/builder/menus?${params.toString()}`, {
           cache: "no-store",
         });
 
@@ -203,7 +203,6 @@ export const HeaderWhite: React.FC<HeaderWhiteProps> = (props) => {
     };
 
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoadMenu, locale, siteId, setKey]);
 
   /** ===== State khác ===== */

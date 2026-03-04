@@ -6,7 +6,7 @@ import { requireAdminAuthUser } from "@/lib/auth/auth";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * GET /api/admin/customers/[id]
+ * GET /api/admin/commerce/customers/[id]
  * Returns:
  * - customer
  * - stats: totalOrders, totalSpentCents, lastOrderAt
@@ -91,7 +91,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 /**
- * PATCH /api/admin/customers/[id]
+ * PATCH /api/admin/commerce/customers/[id]
  * Body can include:
  * { name?, phone?, email?, notes?, tags?, isActive?, address... }
  */
@@ -155,7 +155,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 /**
- * DELETE /api/admin/customers/[id]
+ * DELETE /api/admin/commerce/customers/[id]
  * Soft delete -> isActive=false (safer than hard delete)
  */
 export async function DELETE(_req: NextRequest, { params }: Params) {
