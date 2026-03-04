@@ -9,8 +9,8 @@ function hashToken(rawToken: string) {
 export type AdminAuthUser = {
   id: string;
   email: string;
-  role: "USER" | "ADMIN";
-  isActive: boolean;
+  role: "USER" | "SUB_USER" | "ADMIN";
+  status: "ACTIVE" | "SUSPENDED";
 };
 
 export async function getAdminAuthUser(): Promise<AdminAuthUser | null> {
@@ -20,24 +20,26 @@ export async function getAdminAuthUser(): Promise<AdminAuthUser | null> {
 
   const tokenHash = hashToken(rawToken);
 
-  const session = await prisma.session.findFirst({
+  const session = await prisma.userSession.findFirst({
     where: {
-      tokenHash,
-      type: "ADMIN",
+      refreshTokenHash: tokenHash,
       revokedAt: null,
       expiresAt: { gt: new Date() },
+      user: {
+        role: "ADMIN",
+        status: "ACTIVE",
+      },
     },
     select: {
       id: true,
-      user: { select: { id: true, email: true, role: true, isActive: true } },
+      user: { select: { id: true, email: true, role: true, status: true } },
     },
   });
 
   const user = session?.user;
-  if (!user || !user.isActive) return null;
+  if (!user) return null;
 
-  // optional: touch lastSeenAt (giống API bạn đang làm)
-  await prisma.session.update({
+  await prisma.userSession.update({
     where: { id: session.id },
     data: { lastSeenAt: new Date() },
   });

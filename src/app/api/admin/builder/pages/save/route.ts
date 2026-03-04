@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma, PageStatus, TwitterCard, Changefreq } from "@prisma/client";
+import { Prisma, PageStatus } from "@prisma/client";
 
-type BlockDTO = { kind: string; props: Record<string, any> };
+type BlockDTO = { kind: string; props: Record<string, unknown> };
 
 type SEOIn = {
   metaTitle?: string;
@@ -25,7 +25,7 @@ type Body = {
   siteId?: string;
   domain?: string;
   title?: string;
-  slug?: string; // "/" hoặc "about"
+  slug?: string;
   blocks?: BlockDTO[];
   seo?: SEOIn;
 };
@@ -70,34 +70,8 @@ function normalizeSlug(raw: string) {
   if (!s || s === "/") return "/";
   return s.replace(/^\/+/, "").replace(/\/+$/, "");
 }
-
 function toPathFromSlug(slug: string) {
   return slug === "/" ? "/" : `/${slug}`;
-}
-
-function mapTwitterCard(v?: "summary" | "summary_large_image"): TwitterCard {
-  return v === "summary" ? TwitterCard.SUMMARY : TwitterCard.SUMMARY_LARGE_IMAGE;
-}
-
-function mapChangefreq(v?: SEOIn["sitemapChangefreq"]): Changefreq {
-  switch (v) {
-    case "always":
-      return Changefreq.ALWAYS;
-    case "hourly":
-      return Changefreq.HOURLY;
-    case "daily":
-      return Changefreq.DAILY;
-    case "weekly":
-      return Changefreq.WEEKLY;
-    case "monthly":
-      return Changefreq.MONTHLY;
-    case "yearly":
-      return Changefreq.YEARLY;
-    case "never":
-      return Changefreq.NEVER;
-    default:
-      return Changefreq.WEEKLY;
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -106,13 +80,19 @@ export async function POST(req: NextRequest) {
   try {
     body = (await req.json()) as Body;
   } catch {
-    return NextResponse.json({ ok: false, error: "Invalid JSON body", debug: { contentType: req.headers.get("content-type") } }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Invalid JSON body", debug: { contentType: req.headers.get("content-type") } },
+      { status: 400 },
+    );
   }
 
   try {
     const title = (body.title || "").trim();
     if (!title) {
-      return NextResponse.json({ ok: false, error: "title required", debug: { title, bodyKeys: Object.keys(body || {}) } }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "title required", debug: { title, bodyKeys: Object.keys(body || {}) } },
+        { status: 400 },
+      );
     }
 
     const siteId = await resolveSiteId(req, body);
@@ -131,7 +111,7 @@ export async function POST(req: NextRequest) {
           },
           hint: "Hãy đảm bảo DB có ít nhất 1 Site, hoặc gửi siteId từ client.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -139,24 +119,25 @@ export async function POST(req: NextRequest) {
     const finalPath = toPathFromSlug(finalSlug);
 
     const s = body.seo || {};
-    const seoCommon = {
-      seoTitle: s.metaTitle ?? null,
-      seoDesc: s.metaDescription ?? null,
-      coverImage: s.ogImage ?? null,
-      seoKeywords: s.keywords ?? null,
+    const seoData = {
+      metaTitle: s.metaTitle ?? null,
+      metaDescription: s.metaDescription ?? null,
+      keywords: s.keywords ?? null,
       canonicalUrl: s.canonicalUrl ?? null,
       noindex: !!s.noindex,
       nofollow: !!s.nofollow,
       ogTitle: s.ogTitle ?? null,
       ogDescription: s.ogDescription ?? null,
-      twitterCard: mapTwitterCard(s.twitterCard),
-      sitemapChangefreq: mapChangefreq(s.sitemapChangefreq),
+      ogImage: s.ogImage ?? null,
+      twitterCard: s.twitterCard ?? null, // ✅ String
+      sitemapChangefreq: s.sitemapChangefreq ?? null, // ✅ String
       sitemapPriority: typeof s.sitemapPriority === "number" ? s.sitemapPriority : 0.7,
-      // structuredData: sẽ set ở create bên dưới (DbNull) hoặc update nếu bạn muốn cho phép sửa
+      structuredData: s.structuredData ?? null,
     };
 
     const blocksJson = (body.blocks || []) as unknown as Prisma.InputJsonValue;
 
+    // UPDATE
     if (body.id) {
       const updated = await prisma.page.updateMany({
         where: { id: body.id, siteId },
@@ -166,8 +147,10 @@ export async function POST(req: NextRequest) {
           path: finalPath,
           blocks: blocksJson,
           status: PageStatus.DRAFT,
-          ...seoCommon,
-          // structuredData: s.structuredData ? (s.structuredData as any) : Prisma.DbNull, // nếu bạn muốn update
+
+          // optional: keep old columns if you still use them
+          seoTitle: seoData.metaTitle,
+          seoDesc: seoData.metaDescription,
         },
       });
 
@@ -175,9 +158,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: false, error: "Page not found in current site" }, { status: 404 });
       }
 
+      await prisma.pageSEO.upsert({
+        where: { pageId: body.id },
+        create: { pageId: body.id, ...seoData },
+        update: seoData,
+      });
+
       return NextResponse.json({ ok: true, id: body.id, siteId, path: finalPath });
     }
 
+    // CREATE
     const created = await prisma.page.create({
       data: {
         siteId,
@@ -186,18 +176,27 @@ export async function POST(req: NextRequest) {
         path: finalPath,
         blocks: blocksJson,
         status: PageStatus.DRAFT,
-        ...seoCommon,
-        structuredData: Prisma.DbNull,
+
+        seoTitle: seoData.metaTitle,
+        seoDesc: seoData.metaDescription,
+
+        seo: {
+          create: seoData,
+        },
       },
       select: { id: true },
     });
 
     return NextResponse.json({ ok: true, id: created.id, siteId, path: finalPath });
-  } catch (e: any) {
-    if (e?.code === "P2002") {
+  } catch (e: unknown) {
+    const error = e as { code?: string; message?: string };
+    if (error?.code === "P2002") {
       return NextResponse.json({ ok: false, error: "Duplicated slug or path within current site" }, { status: 409 });
     }
-    console.error("[api/admin/pages/save] error:", e);
-    return NextResponse.json({ ok: false, error: "Internal Server Error", debug: { message: e?.message, code: e?.code } }, { status: 500 });
+    console.error("[api/admin/builder/pages/save] error:", e);
+    return NextResponse.json(
+      { ok: false, error: "Internal Server Error", debug: { message: error?.message, code: error?.code } },
+      { status: 500 },
+    );
   }
 }

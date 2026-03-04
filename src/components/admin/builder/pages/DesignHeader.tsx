@@ -3,13 +3,11 @@
 import React from "react";
 import cls from "@/styles/admin/builder/pages/design-header.module.css";
 
-type Device = "desktop" | "tablet";
+type Device = "desktop" | "tablet" | "mobile";
 
 type Props = {
   title: string;
   setTitle?: (v: string) => void;
-  slug?: string;
-  setSlug?: (v: string) => void;
   path?: string;
   saving?: boolean;
   saved?: boolean;
@@ -22,11 +20,9 @@ type Props = {
   setDevice?: (d: Device) => void;
 };
 
-export default function DesignHeader({
+export default React.memo(function DesignHeader({
   title,
   setTitle,
-  slug,
-  setSlug,
   path,
   saving,
   saved,
@@ -39,7 +35,6 @@ export default function DesignHeader({
   setDevice,
 }: Props) {
   const canEditTitle = Boolean(setTitle);
-  const canEditSlug = Boolean(setSlug);
 
   return (
     <div className={`${cls.bar} mb-2`} role="toolbar" aria-label="Builder header">
@@ -119,7 +114,7 @@ export default function DesignHeader({
         </div>
 
         <div className={cls.deviceGroup} role="group" aria-label="Device">
-          {(["desktop"] as const).map((d) => (
+          {(["desktop", "tablet", "mobile"] as const).map((d) => (
             <button
               key={d}
               type="button"
@@ -155,4 +150,4 @@ export default function DesignHeader({
       </div>
     </div>
   );
-}
+});

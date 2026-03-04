@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import styles from "@/styles/admin/profile/privacy.module.css";
+import styles from "@/styles/admin/system/profile/privacy.module.css";
 
 type TwoFAState = {
   enabled: boolean;
@@ -63,7 +63,12 @@ export default function AdminPrivacyClient() {
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [showOtpAuth, setShowOtpAuth] = useState(false);
 
-  const activity: ActivityItem[] = useMemo(() => [{ id: "a3", title: "Failed verification", meta: "Wrong code entered", when: "Jan 5, 2026 10:12", level: "warn" }], []);
+  const activity: ActivityItem[] = useMemo(
+    () => [
+      { id: "a3", title: "Failed verification", meta: "Wrong code entered", when: "Jan 5, 2026 10:12", level: "warn" },
+    ],
+    [],
+  );
 
   const devices: DeviceItem[] = useMemo(
     () => [
@@ -71,7 +76,7 @@ export default function AdminPrivacyClient() {
       { id: "d2", name: "Safari (iPhone)", meta: "HCMC, VN • IP 14.16.xx.xx", lastSeen: "Jan 3, 2026" },
       { id: "d3", name: "Edge (Windows)", meta: "Tokyo, JP • IP 52.19.xx.xx", lastSeen: "Dec 27, 2025" },
     ],
-    []
+    [],
   );
 
   async function refresh() {
@@ -205,7 +210,9 @@ export default function AdminPrivacyClient() {
 
                   <div className={styles.setupText}>
                     <div className={styles.setupTitle}>Scan QR to set up</div>
-                    <div className={styles.setupHint}>Open Google Authenticator / Microsoft Authenticator → Scan QR → then verify below.</div>
+                    <div className={styles.setupHint}>
+                      Open Google Authenticator / Microsoft Authenticator → Scan QR → then verify below.
+                    </div>
 
                     <div className={styles.warn}>
                       <i className="bi bi-exclamation-triangle" />
@@ -214,12 +221,24 @@ export default function AdminPrivacyClient() {
 
                     {state.otpauthUrl ? (
                       <div className={styles.revealWrap}>
-                        <button type="button" className={styles.btn} onClick={() => setShowOtpAuth((v) => !v)} disabled={busy}>
-                          <i className={`bi ${showOtpAuth ? "bi-eye-slash" : "bi-eye"}`} /> {showOtpAuth ? "Hide setup link" : "Show setup link"}
+                        <button
+                          type="button"
+                          className={styles.btn}
+                          onClick={() => setShowOtpAuth((v) => !v)}
+                          disabled={busy}
+                        >
+                          <i className={`bi ${showOtpAuth ? "bi-eye-slash" : "bi-eye"}`} />{" "}
+                          {showOtpAuth ? "Hide setup link" : "Show setup link"}
                         </button>
 
                         {showOtpAuth ? (
-                          <button type="button" className={styles.revealLine} onClick={() => copyText(state.otpauthUrl!)} disabled={busy} title="Copy otpauth url">
+                          <button
+                            type="button"
+                            className={styles.revealLine}
+                            onClick={() => copyText(state.otpauthUrl!)}
+                            disabled={busy}
+                            title="Copy otpauth url"
+                          >
                             <i className="bi bi-clipboard" /> Copy setup link: {maskOtpAuth(state.otpauthUrl)}
                           </button>
                         ) : null}
@@ -231,20 +250,41 @@ export default function AdminPrivacyClient() {
 
               <div className={styles.actions}>
                 {!state?.hasSecret ? (
-                  <button className={styles.primaryBtn} type="button" onClick={() => call("generate")} disabled={busy || locked}>
+                  <button
+                    className={styles.primaryBtn}
+                    type="button"
+                    onClick={() => call("generate")}
+                    disabled={busy || locked}
+                  >
                     <i className="bi bi-key-fill" /> Create 2FA key
                   </button>
                 ) : (
                   <>
-                    <button className={styles.primaryBtn} type="button" onClick={() => call(state.enabled ? "disable" : "enable")} disabled={busy || locked}>
-                      <i className={`bi ${state.enabled ? "bi-toggle-on" : "bi-toggle-off"}`} /> {state.enabled ? "Disable" : "Enable"}
+                    <button
+                      className={styles.primaryBtn}
+                      type="button"
+                      onClick={() => call(state.enabled ? "disable" : "enable")}
+                      disabled={busy || locked}
+                    >
+                      <i className={`bi ${state.enabled ? "bi-toggle-on" : "bi-toggle-off"}`} />{" "}
+                      {state.enabled ? "Disable" : "Enable"}
                     </button>
 
-                    <button className={styles.btn} type="button" onClick={() => call("rotate")} disabled={busy || locked}>
+                    <button
+                      className={styles.btn}
+                      type="button"
+                      onClick={() => call("rotate")}
+                      disabled={busy || locked}
+                    >
                       <i className="bi bi-arrow-repeat" /> Rotate key
                     </button>
 
-                    <button className={styles.dangerBtn} type="button" onClick={() => call("delete")} disabled={busy || locked}>
+                    <button
+                      className={styles.dangerBtn}
+                      type="button"
+                      onClick={() => call("delete")}
+                      disabled={busy || locked}
+                    >
                       <i className="bi bi-trash3" /> Delete key
                     </button>
                   </>
@@ -266,7 +306,12 @@ export default function AdminPrivacyClient() {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     disabled={busy || locked || !state?.hasSecret}
                   />
-                  <button className={styles.btn} type="button" onClick={() => call("verify")} disabled={busy || locked || !state?.hasSecret || !canVerify}>
+                  <button
+                    className={styles.btn}
+                    type="button"
+                    onClick={() => call("verify")}
+                    disabled={busy || locked || !state?.hasSecret || !canVerify}
+                  >
                     <i className="bi bi-check2-circle" /> Verify
                   </button>
                 </div>
@@ -334,12 +379,23 @@ export default function AdminPrivacyClient() {
 
               <div className={styles.pillsRow}>
                 {(["30m", "2h", "8h"] as const).map((v) => (
-                  <button key={v} type="button" className={`${styles.miniPillBtn} ${autoSignOut === v ? styles.miniPillActive : ""}`} onClick={() => setAutoSignOut(v)} disabled={busy}>
+                  <button
+                    key={v}
+                    type="button"
+                    className={`${styles.miniPillBtn} ${autoSignOut === v ? styles.miniPillActive : ""}`}
+                    onClick={() => setAutoSignOut(v)}
+                    disabled={busy}
+                  >
                     <i className="bi bi-clock" /> {v}
                   </button>
                 ))}
 
-                <button type="button" className={styles.miniPillBtn} onClick={() => setRequireReverify((x) => !x)} disabled={busy}>
+                <button
+                  type="button"
+                  className={styles.miniPillBtn}
+                  onClick={() => setRequireReverify((x) => !x)}
+                  disabled={busy}
+                >
                   <i className={`bi ${requireReverify ? "bi-toggle-on" : "bi-toggle-off"}`} /> Re-verify
                 </button>
               </div>
@@ -350,7 +406,9 @@ export default function AdminPrivacyClient() {
                 <div key={a.id} className={styles.itemCard}>
                   <div className={styles.itemTop}>
                     <div className={styles.itemTitle}>
-                      <i className={`bi ${a.level === "ok" ? "bi-check2-circle" : "bi-exclamation-triangle"} ${a.level === "ok" ? styles.iconOk : styles.iconWarn}`} />
+                      <i
+                        className={`bi ${a.level === "ok" ? "bi-check2-circle" : "bi-exclamation-triangle"} ${a.level === "ok" ? styles.iconOk : styles.iconWarn}`}
+                      />
                       <span>{a.title}</span>
                     </div>
                     <div className={styles.itemWhen}>{a.when}</div>
@@ -387,11 +445,21 @@ export default function AdminPrivacyClient() {
             </div>
 
             <div className={styles.pillsRow} style={{ justifyContent: "flex-start" }}>
-              <button className={styles.btn} type="button" disabled={busy} onClick={() => setMsg({ type: "ok", text: "Logged out all sessions (demo)." })}>
+              <button
+                className={styles.btn}
+                type="button"
+                disabled={busy}
+                onClick={() => setMsg({ type: "ok", text: "Logged out all sessions (demo)." })}
+              >
                 <i className="bi bi-box-arrow-right" /> Logout all sessions
               </button>
 
-              <button className={styles.dangerBtn} type="button" disabled={busy} onClick={() => setMsg({ type: "err", text: "Account locked (demo). Implement via DB lockedUntil." })}>
+              <button
+                className={styles.dangerBtn}
+                type="button"
+                disabled={busy}
+                onClick={() => setMsg({ type: "err", text: "Account locked (demo). Implement via DB lockedUntil." })}
+              >
                 <i className="bi bi-lock-fill" /> Lock account now
               </button>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import styles from "@/styles/admin/profile/ChangePassword.module.css";
+import styles from "@/styles/admin/system/profile/ChangePassword.module.css";
 import { changePassword } from "@/services/adminUser.service";
 import { getAdminProfile } from "@/services/profile/getProfile.service";
 
@@ -89,10 +89,18 @@ export default function ChangePasswordPro() {
 
   const matchesConfirm = form.newPassword.length > 0 && form.newPassword === form.confirmPassword;
 
-  const emailConfirmed = form.confirmEmail.trim().length > 0 && form.confirmEmail.trim().toLowerCase() === form.email.toLowerCase();
+  const emailConfirmed =
+    form.confirmEmail.trim().length > 0 && form.confirmEmail.trim().toLowerCase() === form.email.toLowerCase();
 
   // ✅ thêm điều kiện account đã load
-  const canSubmit = !!account && form.currentPassword.length > 0 && rules.all && matchesConfirm && form.agree && emailConfirmed && status.type !== "loading";
+  const canSubmit =
+    !!account &&
+    form.currentPassword.length > 0 &&
+    rules.all &&
+    matchesConfirm &&
+    form.agree &&
+    emailConfirmed &&
+    status.type !== "loading";
 
   const update =
     <K extends keyof FormState>(key: K) =>
@@ -226,7 +234,9 @@ export default function ChangePasswordPro() {
                 <i className="bi bi-lock" /> 2FA
               </div>
               <div className={styles.v}>
-                <span className={cx(styles.pill, account.twoFA ? styles.pillOk : styles.pillWarn)}>{account.twoFA ? "Enabled" : "Disabled"}</span>
+                <span className={cx(styles.pill, account.twoFA ? styles.pillOk : styles.pillWarn)}>
+                  {account.twoFA ? "Enabled" : "Disabled"}
+                </span>
               </div>
             </div>
 
@@ -277,7 +287,9 @@ export default function ChangePasswordPro() {
               <div className={styles.bar}>
                 <div className={styles.barFill} style={{ width: `${strength}%` }} />
               </div>
-              <div className={styles.smallNote}>Tip: Use a long passphrase + special chars. Avoid reusing old passwords.</div>
+              <div className={styles.smallNote}>
+                Tip: Use a long passphrase + special chars. Avoid reusing old passwords.
+              </div>
             </div>
           </div>
         </aside>
@@ -286,7 +298,9 @@ export default function ChangePasswordPro() {
         <section className={styles.right}>
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.formTitle}>Confirm change</div>
-            <div className={styles.formSub}>For safety, please confirm your email and provide your current password.</div>
+            <div className={styles.formSub}>
+              For safety, please confirm your email and provide your current password.
+            </div>
 
             <Field label="Account Email (read-only)">
               <div className={styles.inputWrap}>
@@ -299,8 +313,16 @@ export default function ChangePasswordPro() {
             <Field label="Type your email to confirm">
               <div className={styles.inputWrap}>
                 <i className={`bi bi-pencil ${styles.leftIcon}`} />
-                <input className={styles.input} value={form.confirmEmail} onChange={update("confirmEmail")} placeholder="Enter your email again" autoComplete="email" />
-                <i className={`bi ${emailConfirmed ? "bi-check-lg" : "bi-x-lg"} ${emailConfirmed ? styles.okIcon : styles.badIcon}`} />
+                <input
+                  className={styles.input}
+                  value={form.confirmEmail}
+                  onChange={update("confirmEmail")}
+                  placeholder="Enter your email again"
+                  autoComplete="email"
+                />
+                <i
+                  className={`bi ${emailConfirmed ? "bi-check-lg" : "bi-x-lg"} ${emailConfirmed ? styles.okIcon : styles.badIcon}`}
+                />
               </div>
             </Field>
 
@@ -317,7 +339,13 @@ export default function ChangePasswordPro() {
             </Field>
 
             <Field label="New Password">
-              <PasswordInput value={form.newPassword} onChange={update("newPassword")} show={show.next} onToggle={() => setShow((p) => ({ ...p, next: !p.next }))} ok={rules.all} />
+              <PasswordInput
+                value={form.newPassword}
+                onChange={update("newPassword")}
+                show={show.next}
+                onToggle={() => setShow((p) => ({ ...p, next: !p.next }))}
+                ok={rules.all}
+              />
             </Field>
 
             <Field label="Confirm New Password">
@@ -341,8 +369,17 @@ export default function ChangePasswordPro() {
             </label>
 
             {status.type !== "idle" && (
-              <div className={cx(styles.alert, status.type === "success" && styles.alertOk, status.type === "error" && styles.alertErr, status.type === "loading" && styles.alertInfo)}>
-                <i className={`bi ${status.type === "loading" ? "bi-arrow-repeat" : status.type === "success" ? "bi-check-circle" : "bi-exclamation-triangle"}`} />
+              <div
+                className={cx(
+                  styles.alert,
+                  status.type === "success" && styles.alertOk,
+                  status.type === "error" && styles.alertErr,
+                  status.type === "loading" && styles.alertInfo,
+                )}
+              >
+                <i
+                  className={`bi ${status.type === "loading" ? "bi-arrow-repeat" : status.type === "success" ? "bi-check-circle" : "bi-exclamation-triangle"}`}
+                />
                 <span>{status.message}</span>
               </div>
             )}
@@ -365,11 +402,14 @@ export default function ChangePasswordPro() {
                   signOutAll: true,
                 }));
                 setStatus({ type: "idle" });
-              }}>
+              }}
+            >
               Cancel
             </button>
 
-            <div className={styles.footerNote}>Having trouble? Contact your administrator or reset via email verification.</div>
+            <div className={styles.footerNote}>
+              Having trouble? Contact your administrator or reset via email verification.
+            </div>
           </form>
         </section>
       </div>
@@ -399,12 +439,31 @@ function Divider() {
   return <div className={styles.divider} />;
 }
 
-function PasswordInput({ value, onChange, show, onToggle, ok }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; show: boolean; onToggle: () => void; ok: boolean }) {
+function PasswordInput({
+  value,
+  onChange,
+  show,
+  onToggle,
+  ok,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  show: boolean;
+  onToggle: () => void;
+  ok: boolean;
+}) {
   return (
     <div className={styles.inputWrap}>
       <i className={`bi bi-lock ${styles.leftIcon}`} />
 
-      <input className={styles.input} value={value} onChange={onChange} type={show ? "text" : "password"} placeholder="••••••••" autoComplete="off" />
+      <input
+        className={styles.input}
+        value={value}
+        onChange={onChange}
+        type={show ? "text" : "password"}
+        placeholder="••••••••"
+        autoComplete="off"
+      />
 
       <button className={styles.eyeBtn} type="button" onClick={onToggle} aria-label="Toggle password">
         <i className={`bi ${show ? "bi-eye-slash" : "bi-eye"}`} />

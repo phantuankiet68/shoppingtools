@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--bg);
+  background: var(--background);
   border: 1px solid var(--line);
   border-radius: 5px;
   overflow: hidden;
@@ -268,8 +268,20 @@
 
   /* Edge fade: làm mờ 2 đầu để cảm giác có nội dung phía ngoài khung */
   --fade-size: 16px;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-size), #000 calc(100% - var(--fade-size)), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-size), #000 calc(100% - var(--fade-size)), transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade-size),
+    #000 calc(100% - var(--fade-size)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade-size),
+    #000 calc(100% - var(--fade-size)),
+    transparent 100%
+  );
 
   /* Tokens cho scrollbar */
   --sb-size: 8px; /* ĐỘ DÀY nhỏ gọn */

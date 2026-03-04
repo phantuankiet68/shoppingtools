@@ -110,3 +110,9 @@ WRITE: "/api/admin/template-files/write",
 DELETE: "/api/admin/template-files/delete",
 },
 } as const;
+
+tôi muốn tách api constants/api.ts và hãy sử dụng vaf ghi lại file giúp tôi nhé
+
+@beautifulMention Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé
+
+Select-String -Path "node_modules/@prisma/client/index.d.ts" -Pattern "conversation" -List | Select-Object -First 10

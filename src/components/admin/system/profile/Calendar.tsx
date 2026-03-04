@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import styles from "@/styles/admin/profile/calendar.module.css";
+import styles from "@/styles/admin/system/profile/calendar.module.css";
 
 type EventColor = "blue" | "purple" | "green" | "amber" | "red" | "teal";
 type Mode = "create" | "edit";
@@ -224,7 +224,7 @@ export default function AdminCalendarClient() {
     for (let i = 0; i < total; i++) {
       const d = i - startDow + 1;
       const day = d >= 1 && d <= daysInMonth ? d : null;
-      arr.push({ day, events: day ? byDay.get(day) ?? [] : [] });
+      arr.push({ day, events: day ? (byDay.get(day) ?? []) : [] });
     }
 
     return arr;
@@ -322,7 +322,9 @@ export default function AdminCalendarClient() {
           endAt: ev.endAt,
         };
 
-        setEvents((prev) => [...prev, mapped].sort((a, b) => a.day - b.day || (a.time ?? "").localeCompare(b.time ?? "")));
+        setEvents((prev) =>
+          [...prev, mapped].sort((a, b) => a.day - b.day || (a.time ?? "").localeCompare(b.time ?? "")),
+        );
         closePopup();
         return;
       }
@@ -358,7 +360,11 @@ export default function AdminCalendarClient() {
         endAt: ev.endAt,
       };
 
-      setEvents((prev) => prev.map((x) => (x.id === editingId ? mapped : x)).sort((a, b) => a.day - b.day || (a.time ?? "").localeCompare(b.time ?? "")));
+      setEvents((prev) =>
+        prev
+          .map((x) => (x.id === editingId ? mapped : x))
+          .sort((a, b) => a.day - b.day || (a.time ?? "").localeCompare(b.time ?? "")),
+      );
 
       closePopup();
     } catch (err: any) {
@@ -392,7 +398,10 @@ export default function AdminCalendarClient() {
     setCursor((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
   }
 
-  const popupTitle = popupMode === "create" ? `Create event — ${monthLabel} ${selectedDay ?? ""}` : `Edit event — ${monthLabel} ${selectedDay ?? ""}`;
+  const popupTitle =
+    popupMode === "create"
+      ? `Create event — ${monthLabel} ${selectedDay ?? ""}`
+      : `Edit event — ${monthLabel} ${selectedDay ?? ""}`;
 
   return (
     <div className={styles.page}>
@@ -424,10 +433,22 @@ export default function AdminCalendarClient() {
 
         <div className={styles.topRight}>
           {/* Month nav */}
-          <button className={styles.iconBtn} type="button" title="Previous month" onClick={prevMonth} disabled={loadingMonth}>
+          <button
+            className={styles.iconBtn}
+            type="button"
+            title="Previous month"
+            onClick={prevMonth}
+            disabled={loadingMonth}
+          >
             <i className="bi bi-chevron-left" />
           </button>
-          <button className={styles.iconBtn} type="button" title="Next month" onClick={nextMonth} disabled={loadingMonth}>
+          <button
+            className={styles.iconBtn}
+            type="button"
+            title="Next month"
+            onClick={nextMonth}
+            disabled={loadingMonth}
+          >
             <i className="bi bi-chevron-right" />
           </button>
 
@@ -456,7 +477,13 @@ export default function AdminCalendarClient() {
               <div key={idx} className={styles.cell}>
                 <div className={styles.cellTop}>
                   {day ? (
-                    <button type="button" className={styles.dayNum} title={`Create event on ${monthLabel} ${day}`} onClick={() => openCreate(day)} disabled={loadingMonth}>
+                    <button
+                      type="button"
+                      className={styles.dayNum}
+                      title={`Create event on ${monthLabel} ${day}`}
+                      onClick={() => openCreate(day)}
+                      disabled={loadingMonth}
+                    >
                       {day}
                     </button>
                   ) : (
@@ -467,14 +494,27 @@ export default function AdminCalendarClient() {
                 <div className={styles.events}>
                   {!isEmpty &&
                     c.events.slice(0, 3).map((e) => (
-                      <button key={e.id} type="button" className={`${styles.event} ${styles[`c_${e.color}`]}`} title="Edit event" onClick={() => openEdit(e)} disabled={loadingMonth}>
+                      <button
+                        key={e.id}
+                        type="button"
+                        className={`${styles.event} ${styles[`c_${e.color}`]}`}
+                        title="Edit event"
+                        onClick={() => openEdit(e)}
+                        disabled={loadingMonth}
+                      >
                         <span className={styles.eventTitle}>{e.title}</span>
                         {e.time && <span className={styles.eventTime}>{e.time}</span>}
                       </button>
                     ))}
 
                   {!isEmpty && c.events.length > 3 && (
-                    <button type="button" className={styles.more} onClick={() => openCreate(day!)} title="Create another event" disabled={loadingMonth}>
+                    <button
+                      type="button"
+                      className={styles.more}
+                      onClick={() => openCreate(day!)}
+                      title="Create another event"
+                      disabled={loadingMonth}
+                    >
                       +{c.events.length - 3} more
                     </button>
                   )}
@@ -494,11 +534,18 @@ export default function AdminCalendarClient() {
           aria-label={popupTitle}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) closePopup();
-          }}>
+          }}
+        >
           <div className={styles.popupCard}>
             <div className={styles.popupHeader}>
               <div className={styles.popupTitle}>{popupTitle}</div>
-              <button type="button" className={styles.popupClose} aria-label="Close" onClick={closePopup} disabled={saving}>
+              <button
+                type="button"
+                className={styles.popupClose}
+                aria-label="Close"
+                onClick={closePopup}
+                disabled={saving}
+              >
                 <i className="bi bi-x-lg" />
               </button>
             </div>
@@ -507,7 +554,12 @@ export default function AdminCalendarClient() {
               {/* Day selector */}
               <div className={styles.formRow}>
                 <label className={styles.label}>Day</label>
-                <select className={styles.select} value={selectedDay ?? 1} onChange={(e) => setSelectedDay(Number(e.target.value))} disabled={saving}>
+                <select
+                  className={styles.select}
+                  value={selectedDay ?? 1}
+                  onChange={(e) => setSelectedDay(Number(e.target.value))}
+                  disabled={saving}
+                >
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const d = i + 1;
                     return (
@@ -521,18 +573,36 @@ export default function AdminCalendarClient() {
 
               <div className={styles.formRow}>
                 <label className={styles.label}>Title</label>
-                <input className={styles.input} value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} placeholder="e.g. Team sync" autoFocus disabled={saving} />
+                <input
+                  className={styles.input}
+                  value={draftTitle}
+                  onChange={(e) => setDraftTitle(e.target.value)}
+                  placeholder="e.g. Team sync"
+                  autoFocus
+                  disabled={saving}
+                />
               </div>
 
               <div className={styles.formRowTwo}>
                 <div className={styles.formRow}>
                   <label className={styles.label}>Time</label>
-                  <input className={styles.input} value={draftTime} onChange={(e) => setDraftTime(e.target.value)} placeholder="HH:mm" disabled={saving} />
+                  <input
+                    className={styles.input}
+                    value={draftTime}
+                    onChange={(e) => setDraftTime(e.target.value)}
+                    placeholder="HH:mm"
+                    disabled={saving}
+                  />
                 </div>
 
                 <div className={styles.formRow}>
                   <label className={styles.label}>Color</label>
-                  <select className={styles.select} value={draftColor} onChange={(e) => setDraftColor(e.target.value as EventColor)} disabled={saving}>
+                  <select
+                    className={styles.select}
+                    value={draftColor}
+                    onChange={(e) => setDraftColor(e.target.value as EventColor)}
+                    disabled={saving}
+                  >
                     {(["blue", "purple", "green", "amber", "red", "teal"] as EventColor[]).map((c) => (
                       <option key={c} value={c}>
                         {colorLabel(c)}
@@ -544,12 +614,25 @@ export default function AdminCalendarClient() {
 
               <div className={styles.formRow}>
                 <label className={styles.label}>Location</label>
-                <input className={styles.input} value={draftLocation} onChange={(e) => setDraftLocation(e.target.value)} placeholder="Optional" disabled={saving} />
+                <input
+                  className={styles.input}
+                  value={draftLocation}
+                  onChange={(e) => setDraftLocation(e.target.value)}
+                  placeholder="Optional"
+                  disabled={saving}
+                />
               </div>
 
               <div className={styles.formRow}>
                 <label className={styles.label}>Description</label>
-                <textarea className={styles.textarea} rows={4} value={draftDesc} onChange={(e) => setDraftDesc(e.target.value)} placeholder="Optional notes…" disabled={saving} />
+                <textarea
+                  className={styles.textarea}
+                  rows={4}
+                  value={draftDesc}
+                  onChange={(e) => setDraftDesc(e.target.value)}
+                  placeholder="Optional notes…"
+                  disabled={saving}
+                />
               </div>
 
               {formError && <div className={styles.formError}>{formError}</div>}

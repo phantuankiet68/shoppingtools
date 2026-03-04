@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/profile/AvatarUploadModal.module.css";
+import styles from "@/styles/admin/system/profile/AvatarUploadModal.module.css";
 
 type Props = {
   open: boolean;
@@ -126,7 +126,14 @@ export default function AvatarUploadModal({ open, onClose, currentImage, onUploa
         <div className={styles.modalBody}>
           <div className={styles.uploadGrid}>
             {/* Left: Dropzone */}
-            <div className={styles.dropzone} onClick={pickFile} onDrop={onDrop} onDragOver={onDragOver} role="button" tabIndex={0}>
+            <div
+              className={styles.dropzone}
+              onClick={pickFile}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              role="button"
+              tabIndex={0}
+            >
               <div className={styles.dropIcon}>
                 <i className="bi bi-cloud-arrow-up" />
               </div>
@@ -136,7 +143,13 @@ export default function AvatarUploadModal({ open, onClose, currentImage, onUploa
               <div className={styles.dropBrowse}>Bấm để chọn ảnh</div>
               <div className={styles.dropHint}>{hint}</div>
 
-              <input ref={inputRef} type="file" accept={ACCEPT} className={styles.hiddenFile} onChange={onInputChange} />
+              <input
+                ref={inputRef}
+                type="file"
+                accept={ACCEPT}
+                className={styles.hiddenFile}
+                onChange={onInputChange}
+              />
             </div>
 
             {/* Right: Preview */}
@@ -159,7 +172,12 @@ export default function AvatarUploadModal({ open, onClose, currentImage, onUploa
               </div>
 
               <div className={styles.previewActions}>
-                <button type="button" className={styles.secondaryBtn} onClick={() => setFile(null)} disabled={busy || !file}>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => setFile(null)}
+                  disabled={busy || !file}
+                >
                   Remove
                 </button>
 

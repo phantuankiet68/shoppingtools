@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/profile/images.module.css";
+import styles from "@/styles/admin/system/profile/images.module.css";
 
 type UiTag = "NEW" | "HDR" | "AI" | "FAVORITE" | "COVER" | "BANNER" | "AVATAR" | "PRODUCT";
 
@@ -277,7 +277,7 @@ export default function AdminImagesClient() {
 
   const headerCountLabel = loading ? "Loading..." : `${items.length} ${plural(items.length, "item", "items")}`;
 
-  const folderLabel = activeFolderId ? folders.find((f) => f.id === activeFolderId)?.name ?? "Folder" : "Root";
+  const folderLabel = activeFolderId ? (folders.find((f) => f.id === activeFolderId)?.name ?? "Folder") : "Root";
 
   useEffect(() => {
     // cleanup preview blob url
@@ -358,11 +358,22 @@ export default function AdminImagesClient() {
             />
           </div>
 
-          <button className={styles.actionBtn} type="button" disabled={busy || creatingFolder || !folderName.trim()} onClick={createFolder} title="Create folder">
+          <button
+            className={styles.actionBtn}
+            type="button"
+            disabled={busy || creatingFolder || !folderName.trim()}
+            onClick={createFolder}
+            title="Create folder"
+          >
             <i className="bi bi-folder-plus" /> <span>{creatingFolder ? "Creating..." : "New folder"}</span>
           </button>
 
-          <button className={`${styles.actionBtn} ${styles.primary}`} type="button" disabled={busy} onClick={() => setUploadOpen(true)}>
+          <button
+            className={`${styles.actionBtn} ${styles.primary}`}
+            type="button"
+            disabled={busy}
+            onClick={() => setUploadOpen(true)}
+          >
             <i className="bi bi-cloud-arrow-up" /> <span>Upload</span>
           </button>
         </div>
@@ -377,7 +388,8 @@ export default function AdminImagesClient() {
             borderRadius: 12,
             border: "1px solid rgba(220,38,38,.25)",
             background: "rgba(220,38,38,.06)",
-          }}>
+          }}
+        >
           <strong style={{ marginRight: 8 }}>Error:</strong>
           {err}
         </div>
@@ -387,7 +399,12 @@ export default function AdminImagesClient() {
       <div className={styles.toolbar}>
         <div className={styles.search}>
           <i className={`bi bi-search ${styles.searchIcon}`} />
-          <input className={styles.searchInput} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search images..." />
+          <input
+            className={styles.searchInput}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search images..."
+          />
           {q && (
             <button className={styles.clearBtn} type="button" onClick={() => setQ("")} title="Clear">
               <i className="bi bi-x" />
@@ -396,25 +413,53 @@ export default function AdminImagesClient() {
         </div>
 
         <div className={styles.pills}>
-          <button className={`${styles.pill} ${filter === "all" ? styles.pillActive : ""}`} onClick={() => setFilter("all")} type="button">
+          <button
+            className={`${styles.pill} ${filter === "all" ? styles.pillActive : ""}`}
+            onClick={() => setFilter("all")}
+            type="button"
+          >
             All
           </button>
-          <button className={`${styles.pill} ${filter === "recent" ? styles.pillActive : ""}`} onClick={() => setFilter("recent")} type="button">
+          <button
+            className={`${styles.pill} ${filter === "recent" ? styles.pillActive : ""}`}
+            onClick={() => setFilter("recent")}
+            type="button"
+          >
             Recent
           </button>
-          <button className={`${styles.pill} ${filter === "tagged" ? styles.pillActive : ""}`} onClick={() => setFilter("tagged")} type="button">
+          <button
+            className={`${styles.pill} ${filter === "tagged" ? styles.pillActive : ""}`}
+            onClick={() => setFilter("tagged")}
+            type="button"
+          >
             Tagged
           </button>
         </div>
 
         <div className={styles.viewGroup}>
-          <button className={`${styles.iconBtn} ${view === "grid" ? styles.iconBtnActive : ""}`} onClick={() => setView("grid")} type="button" title="Grid">
+          <button
+            className={`${styles.iconBtn} ${view === "grid" ? styles.iconBtnActive : ""}`}
+            onClick={() => setView("grid")}
+            type="button"
+            title="Grid"
+          >
             <i className="bi bi-grid-3x3-gap" />
           </button>
-          <button className={`${styles.iconBtn} ${view === "list" ? styles.iconBtnActive : ""}`} onClick={() => setView("list")} type="button" title="List">
+          <button
+            className={`${styles.iconBtn} ${view === "list" ? styles.iconBtnActive : ""}`}
+            onClick={() => setView("list")}
+            type="button"
+            title="List"
+          >
             <i className="bi bi-list" />
           </button>
-          <button className={styles.iconBtn} type="button" title="Refresh" onClick={fetchImages} disabled={busy || creatingFolder}>
+          <button
+            className={styles.iconBtn}
+            type="button"
+            title="Refresh"
+            onClick={fetchImages}
+            disabled={busy || creatingFolder}
+          >
             <i className="bi bi-arrow-clockwise" />
           </button>
         </div>
@@ -427,7 +472,8 @@ export default function AdminImagesClient() {
           className={`${styles.folderChip} ${activeFolderId === null ? styles.folderChipActive : ""}`}
           onClick={() => setActiveFolderId(null)}
           disabled={foldersLoading || busy}
-          title="Root">
+          title="Root"
+        >
           <i className="bi bi-house-door" />
           <span>Root</span>
         </button>
@@ -439,7 +485,8 @@ export default function AdminImagesClient() {
             className={`${styles.folderChip} ${activeFolderId === f.id ? styles.folderChipActive : ""}`}
             onClick={() => setActiveFolderId(f.id)}
             disabled={foldersLoading || busy}
-            title={f.name}>
+            title={f.name}
+          >
             <i className="bi bi-folder2" />
             <span>{f.name}</span>
           </button>
@@ -451,7 +498,8 @@ export default function AdminImagesClient() {
           <div className={styles.folderEmpty}>No folders yet.</div>
         ) : (
           <div className={styles.folderHint}>
-            <span className={styles.folderHintText}>Viewing:</span> <span className={styles.folderHintStrong}>{folderLabel}</span>
+            <span className={styles.folderHintText}>Viewing:</span>{" "}
+            <span className={styles.folderHintStrong}>{folderLabel}</span>
           </div>
         )}
       </div>
@@ -496,20 +544,34 @@ export default function AdminImagesClient() {
               </div>
 
               <div className={styles.cardActions} aria-hidden="true">
-                <button className={styles.smallIcon} type="button" title="Copy link" onClick={() => copyLink(it.url)} disabled={busy}>
+                <button
+                  className={styles.smallIcon}
+                  type="button"
+                  title="Copy link"
+                  onClick={() => copyLink(it.url)}
+                  disabled={busy}
+                >
                   <i className="bi bi-link-45deg" />
                 </button>
                 <a className={styles.smallIcon} href={it.url} download title="Download">
                   <i className="bi bi-download" />
                 </a>
-                <button className={styles.smallIcon} type="button" title="Delete" onClick={() => onDelete(it.id)} disabled={busy}>
+                <button
+                  className={styles.smallIcon}
+                  type="button"
+                  title="Delete"
+                  onClick={() => onDelete(it.id)}
+                  disabled={busy}
+                >
                   <i className="bi bi-trash3" />
                 </button>
               </div>
             </div>
           ))}
 
-          {!loading && shown.length === 0 && <div style={{ padding: 24, color: "rgba(0,0,0,.6)" }}>No images found.</div>}
+          {!loading && shown.length === 0 && (
+            <div style={{ padding: 24, color: "rgba(0,0,0,.6)" }}>No images found.</div>
+          )}
         </div>
       ) : (
         <div className={styles.listCard} aria-busy={loading || busy}>
@@ -538,20 +600,34 @@ export default function AdminImagesClient() {
               <div className={styles.listCell}>{it.updated}</div>
 
               <div className={styles.listOps}>
-                <button className={styles.opBtn} type="button" title="Copy link" onClick={() => copyLink(it.url)} disabled={busy}>
+                <button
+                  className={styles.opBtn}
+                  type="button"
+                  title="Copy link"
+                  onClick={() => copyLink(it.url)}
+                  disabled={busy}
+                >
                   <i className="bi bi-link-45deg" />
                 </button>
                 <a className={styles.opBtn} href={it.url} download title="Download">
                   <i className="bi bi-download" />
                 </a>
-                <button className={`${styles.opBtn} ${styles.opDanger}`} type="button" title="Delete" onClick={() => onDelete(it.id)} disabled={busy}>
+                <button
+                  className={`${styles.opBtn} ${styles.opDanger}`}
+                  type="button"
+                  title="Delete"
+                  onClick={() => onDelete(it.id)}
+                  disabled={busy}
+                >
                   <i className="bi bi-trash3" />
                 </button>
               </div>
             </div>
           ))}
 
-          {!loading && shown.length === 0 && <div style={{ padding: 24, color: "rgba(0,0,0,.6)" }}>No images found.</div>}
+          {!loading && shown.length === 0 && (
+            <div style={{ padding: 24, color: "rgba(0,0,0,.6)" }}>No images found.</div>
+          )}
         </div>
       )}
 
@@ -562,7 +638,8 @@ export default function AdminImagesClient() {
           className={styles.modalOverlay}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setUploadOpen(false);
-          }}>
+          }}
+        >
           <div className={styles.modalCard}>
             <div className={styles.modalHead}>
               <div className={styles.modalTitle}>
@@ -570,7 +647,13 @@ export default function AdminImagesClient() {
                 <span>Upload images</span>
               </div>
 
-              <button className={styles.modalClose} type="button" onClick={() => setUploadOpen(false)} aria-label="Close" disabled={busy}>
+              <button
+                className={styles.modalClose}
+                type="button"
+                onClick={() => setUploadOpen(false)}
+                aria-label="Close"
+                disabled={busy}
+              >
                 <i className="bi bi-x-lg" />
               </button>
             </div>
@@ -601,8 +684,16 @@ export default function AdminImagesClient() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") fileRef.current?.click();
                 }}
-                aria-label="Drop image here or click to browse">
-                <input ref={fileRef} className={styles.hiddenFile} type="file" accept="image/*" disabled={busy} onChange={onPickFile} />
+                aria-label="Drop image here or click to browse"
+              >
+                <input
+                  ref={fileRef}
+                  className={styles.hiddenFile}
+                  type="file"
+                  accept="image/*"
+                  disabled={busy}
+                  onChange={onPickFile}
+                />
 
                 {previewUrl ? (
                   <div className={styles.previewWrap}>
@@ -625,7 +716,8 @@ export default function AdminImagesClient() {
                             e.stopPropagation();
                             fileRef.current?.click();
                           }}
-                          disabled={busy}>
+                          disabled={busy}
+                        >
                           <i className="bi bi-arrow-repeat" /> <span>Change</span>
                         </button>
                         <button
@@ -635,7 +727,8 @@ export default function AdminImagesClient() {
                             e.stopPropagation();
                             setFileWithPreview(null);
                           }}
-                          disabled={busy}>
+                          disabled={busy}
+                        >
                           <i className="bi bi-trash3" /> <span>Remove</span>
                         </button>
                       </div>
@@ -658,7 +751,12 @@ export default function AdminImagesClient() {
               <div className={styles.formRow}>
                 <div className={styles.formField}>
                   <div className={styles.formLabel}>Tag (optional)</div>
-                  <select className={styles.select} value={uploadTag} disabled={busy} onChange={(e) => setUploadTag((e.target.value as any) || "")}>
+                  <select
+                    className={styles.select}
+                    value={uploadTag}
+                    disabled={busy}
+                    onChange={(e) => setUploadTag((e.target.value as any) || "")}
+                  >
                     <option value="">— None —</option>
                     <option value="NEW">NEW</option>
                     <option value="HDR">HDR</option>
@@ -690,7 +788,12 @@ export default function AdminImagesClient() {
               <button className={styles.actionBtn} type="button" onClick={() => setUploadOpen(false)} disabled={busy}>
                 Cancel
               </button>
-              <button className={`${styles.actionBtn} ${styles.primary}`} type="button" onClick={onUpload} disabled={busy || !selectedFile}>
+              <button
+                className={`${styles.actionBtn} ${styles.primary}`}
+                type="button"
+                onClick={onUpload}
+                disabled={busy || !selectedFile}
+              >
                 <i className="bi bi-cloud-arrow-up" /> <span>{busy ? "Uploading..." : "Upload"}</span>
               </button>
             </div>

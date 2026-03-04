@@ -1,9 +1,15 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/profile/tasks.module.css";
+import styles from "@/styles/admin/system/profile/tasks.module.css";
 
-type Member = { id: string; key: "A" | "B" | "C" | "D"; name: string; sub: string; color: "blue" | "purple" | "pink" | "amber" };
+type Member = {
+  id: string;
+  key: "A" | "B" | "C" | "D";
+  name: string;
+  sub: string;
+  color: "blue" | "purple" | "pink" | "amber";
+};
 type TimelineItem = { id: string; label: string; pct: number; startCol: number; span: number; color: Member["color"] };
 type Task = { id: string; title: string; dot?: Member["color"]; meta?: string; starred?: boolean };
 
@@ -28,7 +34,7 @@ export default function AdminTasksClient() {
       { id: "m3", key: "C", name: "Adipiscing Elit", sub: "C Team", color: "pink" },
       { id: "m4", key: "D", name: "Excepteur Sint", sub: "D Team", color: "amber" },
     ],
-    []
+    [],
   );
 
   const timeline: TimelineItem[] = useMemo(
@@ -38,7 +44,7 @@ export default function AdminTasksClient() {
       { id: "t3", label: "Dolor", pct: 65, startCol: 2, span: 4, color: "pink" },
       { id: "t4", label: "Magna", pct: 75, startCol: 4, span: 6, color: "amber" },
     ],
-    []
+    [],
   );
 
   // ====== Kanban state (thay vì useMemo cố định) ======
@@ -144,7 +150,8 @@ export default function AdminTasksClient() {
           color: "#fff",
           fontSize: 12,
           pointerEvents: "none",
-        }}>
+        }}
+      >
         Moving…
       </div>
 
@@ -223,7 +230,8 @@ export default function AdminTasksClient() {
                     className={`${styles.bar} ${styles[`c_${t.color}`]}`}
                     style={{
                       gridColumn: `${t.startCol} / span ${t.span}`,
-                    }}>
+                    }}
+                  >
                     <div className={styles.barLeft}>
                       <span className={styles.toggle}>
                         <span className={styles.toggleDot} />
@@ -362,7 +370,8 @@ function KanbanCol(props: {
               borderRadius: 16,
             }
           : undefined
-      }>
+      }
+    >
       <div className={styles.colHead}>
         <div className={styles.colTitle}>{title}</div>
         <span className={styles.colCount}>{items.length}</span>
@@ -398,7 +407,8 @@ function KanbanCol(props: {
                         transform: "scale(0.99)",
                       }
                     : undefined
-                }>
+                }
+              >
                 <div className={styles.taskTop}>
                   <span className={`${styles.taskDot} ${t.dot ? styles[`c_${t.dot}`] : ""}`} />
                   <div className={styles.taskTitle}>{t.title}</div>

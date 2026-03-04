@@ -29,7 +29,8 @@ export async function GET() {
           id: true,
           email: true,
           role: true,
-          status: true, // ✅ thay isActive
+          status: true,
+          image: true, // ✅ lấy image thật từ DB
         },
       },
     },
@@ -55,7 +56,7 @@ export async function GET() {
       name: displayName,
       role: toRoleLabel(session.user.role),
       email: session.user.email,
-      image: null, // ✅ schema User chưa có image
+      image: session.user.image ?? null, // ✅ trả về image
     },
   });
 }

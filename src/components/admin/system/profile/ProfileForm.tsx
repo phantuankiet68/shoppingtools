@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import styles from "@/styles/admin/profile/ProfileForm.module.css";
+import { useState, useEffect } from "react";
+import styles from "@/styles/admin/system/profile/ProfileForm.module.css";
 import { validateProfileInput } from "@/lib/validators/profile";
 import { getClientIP } from "@/services/me/getMe.service";
 import { getAdminProfile, patchAdminProfile } from "@/services/profile/getProfile.service";
@@ -62,7 +62,20 @@ type Profile = {
   lastIP: string;
 };
 
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function cx(...arr: Array<string | false | undefined | null>) {
   return arr.filter(Boolean).join(" ");
@@ -212,12 +225,6 @@ export default function ProfileForm() {
     })();
   }, []);
 
-  const initials = useMemo(() => {
-    const a = profile.firstName?.[0] ?? "";
-    const b = profile.lastName?.[0] ?? "";
-    return (a + b).toUpperCase();
-  }, [profile.firstName, profile.lastName]);
-
   const onChange =
     <K extends keyof Profile>(key: K) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -308,6 +315,7 @@ export default function ProfileForm() {
         alert(data?.error || "Save failed");
         return;
       }
+      console.log(data);
 
       setProfile((prev) => ({
         ...prev,
@@ -491,7 +499,11 @@ export default function ProfileForm() {
               <div className={styles.securityGrid}>
                 <div className={styles.securityItem}>
                   <span className={styles.muted}>2FA</span>
-                  <button type="button" className={cx(styles.pill, profile.twoFA ? styles.pillOn : styles.pillOff)} onClick={toggle2FA}>
+                  <button
+                    type="button"
+                    className={cx(styles.pill, profile.twoFA ? styles.pillOn : styles.pillOff)}
+                    onClick={toggle2FA}
+                  >
                     <span className={styles.pillDot} />
                     {profile.twoFA ? "Enabled" : "Disabled"}
                   </button>
@@ -608,7 +620,9 @@ export default function ProfileForm() {
                   <div key={p.id} className={cx(styles.payCard, p.isDefault && styles.payCardDefault)}>
                     <div className={styles.payTop}>
                       <div className={styles.brand}>
-                        <span className={cx(styles.brandPill, p.brand === "mastercard" && styles.brandMC)}>{p.brand === "visa" ? "VISA" : "MASTERCARD"}</span>
+                        <span className={cx(styles.brandPill, p.brand === "mastercard" && styles.brandMC)}>
+                          {p.brand === "visa" ? "VISA" : "MASTERCARD"}
+                        </span>
                         {p.isDefault && <span className={styles.defaultBadge}>Default</span>}
                       </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useEffect } from "react";
-import styles from "@/styles/admin/profile/files.module.css";
+import styles from "@/styles/admin/system/profile/files.module.css";
 
 type FileRow =
   | { id: string; kind: "up"; name: ".." }
@@ -11,7 +11,14 @@ type FileRow =
 type AdminUser = { name: string; role: string; image: string; email: string };
 
 type ApiFolder = { id: string; name: string; parentId: string | null; updatedAt: string };
-type ApiFile = { id: string; name: string; mimeType: string; sizeBytes: number; updatedAt: string; folderId: string | null };
+type ApiFile = {
+  id: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  updatedAt: string;
+  folderId: string | null;
+};
 
 function formatCheckedLabel(n: number) {
   return n <= 0 ? "checked item(s)" : `checked item(s) ${n}`;
@@ -234,8 +241,8 @@ export default function AdminFilesClient() {
       foldersSel.length > 0 && filesSel.length > 0
         ? `Delete ${foldersSel.length} folder(s) and ${filesSel.length} file(s)?\nFolders will delete all contents inside (cascade).`
         : foldersSel.length > 0
-        ? `Delete ${foldersSel.length} folder(s)?\nThis will delete all files & subfolders inside (cascade).`
-        : `Delete ${filesSel.length} file(s)?`;
+          ? `Delete ${foldersSel.length} folder(s)?\nThis will delete all files & subfolders inside (cascade).`
+          : `Delete ${filesSel.length} file(s)?`;
 
     if (!window.confirm(msg)) return;
 
@@ -297,7 +304,9 @@ export default function AdminFilesClient() {
       return;
     }
 
-    const destination = window.prompt("Move to folderId? (empty = root)\nTip: copy folder id from DB or implement a picker UI later.");
+    const destination = window.prompt(
+      "Move to folderId? (empty = root)\nTip: copy folder id from DB or implement a picker UI later.",
+    );
     const parentId = destination?.trim() ? destination.trim() : null;
 
     const item = (foldersSel[0] ?? filesSel[0]) as any;
@@ -360,7 +369,8 @@ export default function AdminFilesClient() {
           </div>
 
           <div className={styles.subHint}>
-            <i className="bi bi-info-circle" /> Manage folders & files in this workspace {loadingList ? " • Loading..." : ""}
+            <i className="bi bi-info-circle" /> Manage folders & files in this workspace{" "}
+            {loadingList ? " • Loading..." : ""}
           </div>
         </div>
 
@@ -387,7 +397,8 @@ export default function AdminFilesClient() {
             type="button"
             onClick={createFolderQuick}
             disabled={creatingFolder || !folderName.trim()}
-            title={!folderName.trim() ? "Enter folder name first" : "Create folder"}>
+            title={!folderName.trim() ? "Enter folder name first" : "Create folder"}
+          >
             <i className="bi bi-folder-plus" />
             <span>{creatingFolder ? "Creating..." : "Add Folder"}</span>
           </button>
@@ -497,11 +508,18 @@ export default function AdminFilesClient() {
                   const isChecked = !!checked[r.id];
 
                   const fileExt = r.kind === "file" ? extOf(r.name) : "";
-                  const isXlsx = fileExt === "xlsx" || (r.kind === "file" && (r.mimeType || "").includes("spreadsheet"));
+                  const isXlsx =
+                    fileExt === "xlsx" || (r.kind === "file" && (r.mimeType || "").includes("spreadsheet"));
 
                   return (
                     <tr key={r.id} className={`${styles.row} ${isChecked ? styles.rowChecked : ""}`}>
-                      <td className={styles.tdCheck}>{canCheck ? <input type="checkbox" checked={isChecked} onChange={() => toggleOne(r.id)} /> : <span className={styles.checkSpacer} />}</td>
+                      <td className={styles.tdCheck}>
+                        {canCheck ? (
+                          <input type="checkbox" checked={isChecked} onChange={() => toggleOne(r.id)} />
+                        ) : (
+                          <span className={styles.checkSpacer} />
+                        )}
+                      </td>
 
                       <td className={styles.tdName}>
                         <div className={styles.nameCell}>
@@ -511,7 +529,12 @@ export default function AdminFilesClient() {
                             {r.kind === "file" && <i className="bi bi-file-earmark" />}
                           </span>
 
-                          <button className={styles.nameBtn} type="button" title={r.name} onClick={() => handleOpenRow(r)}>
+                          <button
+                            className={styles.nameBtn}
+                            type="button"
+                            title={r.name}
+                            onClick={() => handleOpenRow(r)}
+                          >
                             {r.name}
                           </button>
 
@@ -524,8 +547,12 @@ export default function AdminFilesClient() {
                       </td>
 
                       <td className={styles.tdSize}>{r.kind === "file" ? r.size : ""}</td>
-                      <td className={styles.tdUser}>{r.kind === "file" || r.kind === "folder" ? r.updatedBy ?? "" : ""}</td>
-                      <td className={styles.tdDate}>{r.kind === "file" || r.kind === "folder" ? r.updated ?? "" : ""}</td>
+                      <td className={styles.tdUser}>
+                        {r.kind === "file" || r.kind === "folder" ? (r.updatedBy ?? "") : ""}
+                      </td>
+                      <td className={styles.tdDate}>
+                        {r.kind === "file" || r.kind === "folder" ? (r.updated ?? "") : ""}
+                      </td>
                     </tr>
                   );
                 })

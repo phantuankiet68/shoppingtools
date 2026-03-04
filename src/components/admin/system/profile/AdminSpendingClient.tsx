@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import styles from "@/styles/admin/profile/spending.module.css";
+import styles from "@/styles/admin/system/profile/spending.module.css";
 
 /** =========================
  * Types returned from APIs
@@ -151,7 +151,7 @@ export default function AdminSpendingClient() {
       onlyPaid,
       sort,
     });
-    return `/api/admin/spending/summary?${qs}`;
+    return `/api/admin/commerce/spending/summary?${qs}`;
   }, [cat, q, onlyPaid, sort]);
 
   useEffect(() => {
@@ -278,7 +278,11 @@ export default function AdminSpendingClient() {
         </div>
 
         <div className={styles.headRight}>
-          <button className={styles.ghostBtn} type="button" onClick={() => window.open("/api/admin/spending/export", "_blank")}>
+          <button
+            className={styles.ghostBtn}
+            type="button"
+            onClick={() => window.open("/api/admin/spending/export", "_blank")}
+          >
             <i className="bi bi-download" /> <span>Export</span>
           </button>
           <button className={styles.primaryBtn} type="button" onClick={() => alert("TODO: open create expense modal")}>
@@ -303,14 +307,24 @@ export default function AdminSpendingClient() {
       {/* Filters */}
       <div className={styles.filters}>
         <div className={styles.filterRow}>
-          <button type="button" className={`${styles.toggleBtn} ${onlyPaid ? styles.toggleOn : ""}`} onClick={() => setOnlyPaid((v) => !v)} title="Only paid">
+          <button
+            type="button"
+            className={`${styles.toggleBtn} ${onlyPaid ? styles.toggleOn : ""}`}
+            onClick={() => setOnlyPaid((v) => !v)}
+            title="Only paid"
+          >
             <i className={`bi ${onlyPaid ? "bi-check2-circle" : "bi-circle"}`} />
             <span>Paid only</span>
           </button>
 
           <div className={styles.sortWrap}>
             <i className={`bi bi-arrow-down-up ${styles.sortIcon}`} />
-            <select className={styles.sortSelect} value={sort} onChange={(e) => setSort(e.target.value as any)} aria-label="Sort">
+            <select
+              className={styles.sortSelect}
+              value={sort}
+              onChange={(e) => setSort(e.target.value as any)}
+              aria-label="Sort"
+            >
               <option value="date_desc">Newest</option>
               <option value="amount_desc">Amount (high)</option>
               <option value="amount_asc">Amount (low)</option>
@@ -334,7 +348,12 @@ export default function AdminSpendingClient() {
 
         <div className={styles.search}>
           <i className={`bi bi-search ${styles.searchIcon}`} />
-          <input className={styles.searchInput} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search transactions..." />
+          <input
+            className={styles.searchInput}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search transactions..."
+          />
           {q && (
             <button className={styles.clearBtn} type="button" onClick={() => setQ("")} title="Clear">
               <i className="bi bi-x" />
@@ -464,7 +483,12 @@ export default function AdminSpendingClient() {
               <div className={styles.panelTitle}>Profit & loss</div>
               <div className={styles.panelSub}>Revenue vs cost of goods (simple)</div>
             </div>
-            <button className={styles.iconBtn} type="button" title="Details" onClick={() => alert("TODO: open report details")}>
+            <button
+              className={styles.iconBtn}
+              type="button"
+              title="Details"
+              onClick={() => alert("TODO: open report details")}
+            >
               <i className="bi bi-info-circle" />
             </button>
           </div>
@@ -519,7 +543,9 @@ export default function AdminSpendingClient() {
                   <div className={styles.summarySub}>Revenue - COGS - refunds</div>
                 </div>
               </div>
-              <div className={`${styles.summaryValue} ${inv.grossProfit >= 0 ? styles.valPos : styles.valNeg}`}>{moneyCents(inv.grossProfit)}</div>
+              <div className={`${styles.summaryValue} ${inv.grossProfit >= 0 ? styles.valPos : styles.valNeg}`}>
+                {moneyCents(inv.grossProfit)}
+              </div>
             </div>
           </div>
 

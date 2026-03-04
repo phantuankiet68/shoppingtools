@@ -16,7 +16,16 @@ type Props = {
   updateActive: (patch: Record<string, unknown>) => void;
 };
 
-export default function Inspector({ active, move, remove, updateActive }: Props) {
+export default React.memo(function Inspector({ active, move, remove, updateActive }: Props) {
+  const { reg, CustomEditor } = React.useMemo(() => {
+    const kind = active?.kind;
+    if (!kind) return { reg: undefined, CustomEditor: undefined };
+    return {
+      reg: REGISTRY.find((r) => r.kind === kind),
+      CustomEditor: CUSTOM_EDITORS[kind],
+    };
+  }, [active?.kind]);
+
   if (!active) {
     return (
       <div className={cls.panel}>
@@ -25,9 +34,7 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
     );
   }
 
-  const reg = REGISTRY.find((r) => r.kind === active.kind);
   const props = active.props ?? {};
-  const CustomEditor = CUSTOM_EDITORS[active.kind];
 
   if (!reg && !CustomEditor) {
     return (
@@ -145,9 +152,17 @@ export default function Inspector({ active, move, remove, updateActive }: Props)
       </div>
     </div>
   );
-}
+});
 
-function Row({ label, children, stack }: { label: string; children: React.ReactNode; stack?: boolean }) {
+const Row = React.memo(function Row({
+  label,
+  children,
+  stack,
+}: {
+  label: string;
+  children: React.ReactNode;
+  stack?: boolean;
+}) {
   return stack ? (
     <div className={cls.rowStack}>
       <div className={cls.rowLabel}>{label}</div>
@@ -159,4 +174,4 @@ function Row({ label, children, stack }: { label: string; children: React.ReactN
       <div className={cls.rowField}>{children}</div>
     </div>
   );
-}
+});

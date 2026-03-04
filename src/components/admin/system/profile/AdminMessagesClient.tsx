@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/profile/messages.module.css";
+import styles from "@/styles/admin/system/profile/messages.module.css";
 import Ably from "ably";
 import type { RealtimeChannel } from "ably";
 
@@ -73,7 +73,10 @@ function detectAtAll(text: string) {
   return t.includes("@all") || t.includes("@everyone");
 }
 
-function displayName(u: { email: string; profile?: { firstName?: string | null; lastName?: string | null; username?: string | null } | null }) {
+function displayName(u: {
+  email: string;
+  profile?: { firstName?: string | null; lastName?: string | null; username?: string | null } | null;
+}) {
   const p = u.profile;
   const name = p?.firstName || p?.lastName ? `${p?.firstName ?? ""} ${p?.lastName ?? ""}`.trim() : "";
   return name || p?.username || u.email;
@@ -98,6 +101,11 @@ export default function AdminMessagesClient() {
 
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>("");
+
+  const activeChatIdRef = useRef<string>(activeChatId);
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
 
   const [messagesByChat, setMessagesByChat] = useState<Record<string, Msg[]>>({});
   const [input, setInput] = useState("");
@@ -164,8 +172,8 @@ export default function AdminMessagesClient() {
       if (setActiveIfMissing) {
         setActiveChatId((prev) => prev || mapped[0]?.id || "");
       }
-    } catch (e: any) {
-      setError(e?.message || "Failed to load chats");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load chats");
     } finally {
       setLoadingChats(false);
     }
@@ -180,8 +188,8 @@ export default function AdminMessagesClient() {
       if (!res.ok) throw new Error(json?.error || "Failed to load friends");
       const list: FriendUser[] = Array.isArray(json?.friends) ? json.friends : [];
       setFriends(list);
-    } catch (e: any) {
-      setFriendsError(e?.message || "Failed to load friends");
+    } catch (e: unknown) {
+      setFriendsError(e instanceof Error ? e.message : "Failed to load friends");
     } finally {
       setFriendsLoading(false);
     }
@@ -197,24 +205,35 @@ export default function AdminMessagesClient() {
 
       const rows = Array.isArray(json?.requests) ? json.requests : [];
       const mapped: IncomingRequest[] = rows
-        .map((r: any) => {
-          if (!r?.id || !r?.from?.id) return null;
-          return {
-            id: String(r.id),
-            createdAt: r?.createdAt ? String(r.createdAt) : undefined,
-            from: {
-              id: String(r.from.id),
-              email: String(r.from.email),
-              image: r.from.image ?? null,
-              profile: r.from.profile ?? null,
-            },
-          } as IncomingRequest;
-        })
+        .map(
+          (r: {
+            id?: string | number;
+            createdAt?: string;
+            from?: {
+              id?: string | number;
+              email?: string;
+              image?: string | null;
+              profile?: { firstName?: string | null; lastName?: string | null; username?: string | null } | null;
+            };
+          }) => {
+            if (!r?.id || !r?.from?.id) return null;
+            return {
+              id: String(r.id),
+              createdAt: r?.createdAt ? String(r.createdAt) : undefined,
+              from: {
+                id: String(r.from.id),
+                email: String(r.from.email),
+                image: r.from.image ?? null,
+                profile: r.from.profile ?? null,
+              },
+            } as IncomingRequest;
+          },
+        )
         .filter(Boolean) as IncomingRequest[];
 
       setIncoming(mapped);
-    } catch (e: any) {
-      setIncomingError(e?.message || "Failed to load requests");
+    } catch (e: unknown) {
+      setIncomingError(e instanceof Error ? e.message : "Failed to load requests");
     } finally {
       setIncomingLoading(false);
     }
@@ -234,8 +253,8 @@ export default function AdminMessagesClient() {
       await Promise.all([loadIncoming(), loadFriends()]);
       setAddMsg("Đã chấp nhận lời mời kết bạn.");
       setNewChatTab("friends");
-    } catch (e: any) {
-      setError(e?.message || "Accept failed");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Accept failed");
     }
   }
 
@@ -268,9 +287,9 @@ export default function AdminMessagesClient() {
       setAddEmail("");
       setAddMsg("Đã gửi lời mời kết bạn. Chờ đối phương ACCEPT.");
       await loadIncoming();
-    } catch (e: any) {
+    } catch (e: unknown) {
       setAddMsg("");
-      setError(e?.message || "Send request failed");
+      setError(e instanceof Error ? e.message : "Send request failed");
     } finally {
       setAddBusy(false);
     }
@@ -298,8 +317,8 @@ export default function AdminMessagesClient() {
 
       await refreshChats(false);
       setActiveChatId(conversationId);
-    } catch (e: any) {
-      setError(e?.message || "Cannot start chat");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Cannot start chat");
     }
   }
 
@@ -309,14 +328,14 @@ export default function AdminMessagesClient() {
 
     (async () => {
       try {
-        const res = await fetch("/api/admin/profile", { cache: "no-store" });
+        const res = await fetch("/api/admin/system/profile", { cache: "no-store" });
         const json = await res.json();
         if (!res.ok || !json?.user?.id) throw new Error(json?.error || "Cannot load current user");
         if (!alive) return;
         setMeId(String(json.user.id));
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!alive) return;
-        setError(e?.message || "Failed to load current user");
+        setError(e instanceof Error ? e.message : "Failed to load current user");
       }
     })();
 
@@ -328,7 +347,6 @@ export default function AdminMessagesClient() {
   // Initial load chats
   useEffect(() => {
     refreshChats(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activeChat = chats.find((c) => c.id === activeChatId);
@@ -375,9 +393,9 @@ export default function AdminMessagesClient() {
         requestAnimationFrame(() => {
           threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
         });
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!alive) return;
-        setError(e?.message || "Failed to load messages");
+        setError(e instanceof Error ? e.message : "Failed to load messages");
       } finally {
         if (!alive) return;
         setLoadingMsgs(false);
@@ -398,10 +416,10 @@ export default function AdminMessagesClient() {
     client.connection.on("connected", () => {
       setAblyConnected(true);
     });
-    client.connection.on("failed", (e) => {
+    client.connection.on("failed", () => {
       setAblyConnected(false);
     });
-    client.connection.on("disconnected", (e) => {
+    client.connection.on("disconnected", () => {
       setAblyConnected(false);
     });
 
@@ -420,13 +438,19 @@ export default function AdminMessagesClient() {
     };
   }, []);
 
-  // ✅ Subscribe inbox so sidebar/unread updates without reload
   useEffect(() => {
     if (!ablyClient || !ablyConnected || !meId) return;
 
     const channel = ablyClient.channels.get(`inbox:${meId}`);
 
-    const handler = (msg: any) => {
+    const handler = (msg: {
+      data?: {
+        conversationId?: string | number;
+        lastText?: string;
+        sender?: { name?: string };
+        lastMessageAt?: string | null;
+      };
+    }) => {
       const data = msg?.data || {};
       const conversationId = String(data?.conversationId || "");
       if (!conversationId) return;
@@ -437,7 +461,7 @@ export default function AdminMessagesClient() {
 
       setChats((prev) => {
         const idx = prev.findIndex((c) => c.id === conversationId);
-        const incUnread = conversationId !== activeChatId ? 1 : 0;
+        const incUnread = conversationId !== activeChatIdRef.current ? 1 : 0;
 
         if (idx >= 0) {
           const updated = [...prev];
@@ -468,7 +492,7 @@ export default function AdminMessagesClient() {
     return () => {
       channel.unsubscribe("inbox:new", handler);
     };
-  }, [ablyClient, ablyConnected, meId, activeChatId]);
+  }, [ablyClient, ablyConnected, meId]);
 
   // ✅ Subscribe chat channel so message appears immediately in the thread
   useEffect(() => {
@@ -482,7 +506,14 @@ export default function AdminMessagesClient() {
     const channel = ablyClient.channels.get(`chat:${activeChatId}`);
     ablyChatChannelRef.current = channel;
 
-    const handler = (msg: any) => {
+    const handler = (msg: {
+      data?: {
+        id?: string | number;
+        createdAt?: string;
+        sender?: { id?: string | number; name?: string };
+        text?: string;
+      };
+    }) => {
       const data = msg?.data || {};
       const createdAt = data?.createdAt ? String(data.createdAt) : new Date().toISOString();
       const senderId = data?.sender?.id ? String(data.sender.id) : "";
@@ -519,7 +550,7 @@ export default function AdminMessagesClient() {
     };
   }, [ablyClient, ablyConnected, activeChatId, meId]);
 
-  const msgs = messagesByChat[activeChatId] ?? [];
+  const msgs = useMemo(() => messagesByChat[activeChatId] ?? [], [messagesByChat, activeChatId]);
 
   const filteredChats = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -608,18 +639,18 @@ export default function AdminMessagesClient() {
                     time: formatTime(real.createdAt),
                     name: displayName({ email: real.sender?.email, profile: real.sender?.profile ?? null }),
                   }
-                : m
+                : m,
             ),
           };
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setMessagesByChat((prev) => {
         const curr = prev[activeChatId] ?? [];
         return { ...prev, [activeChatId]: curr.filter((m) => m.id !== tempId) };
       });
       setInput(text);
-      setError(e?.message || "Send failed");
+      setError(e instanceof Error ? e.message : "Send failed");
     } finally {
       setSending(false);
     }
@@ -683,12 +714,19 @@ export default function AdminMessagesClient() {
                 setNewChatTab("friends");
                 await Promise.all([loadFriends(), loadIncoming()]);
               }
-            }}>
+            }}
+          >
             <i className="bi bi-person-plus" />
           </button>
 
           {/* Refresh chats */}
-          <button className={styles.newChatBtn} type="button" title="Refresh chats" onClick={() => refreshChats(false)} style={{ marginLeft: 8 }}>
+          <button
+            className={styles.newChatBtn}
+            type="button"
+            title="Refresh chats"
+            onClick={() => refreshChats(false)}
+            style={{ marginLeft: 8 }}
+          >
             <i className="bi bi-arrow-clockwise" />
           </button>
         </div>
@@ -704,7 +742,11 @@ export default function AdminMessagesClient() {
             </div>
 
             <div className={styles.tabs} style={{ marginBottom: 10 }}>
-              <button className={`${styles.tab} ${newChatTab === "friends" ? styles.tabActive : ""}`} type="button" onClick={() => setNewChatTab("friends")}>
+              <button
+                className={`${styles.tab} ${newChatTab === "friends" ? styles.tabActive : ""}`}
+                type="button"
+                onClick={() => setNewChatTab("friends")}
+              >
                 Friends
               </button>
               <button
@@ -713,10 +755,15 @@ export default function AdminMessagesClient() {
                 onClick={async () => {
                   setNewChatTab("requests");
                   if (incoming.length === 0) await loadIncoming();
-                }}>
+                }}
+              >
                 Requests
               </button>
-              <button className={`${styles.tab} ${newChatTab === "add" ? styles.tabActive : ""}`} type="button" onClick={() => setNewChatTab("add")}>
+              <button
+                className={`${styles.tab} ${newChatTab === "add" ? styles.tabActive : ""}`}
+                type="button"
+                onClick={() => setNewChatTab("add")}
+              >
                 Add
               </button>
             </div>
@@ -735,13 +782,22 @@ export default function AdminMessagesClient() {
                 {friendsLoading ? (
                   <div style={{ fontSize: 13, opacity: 0.8 }}>Loading friends…</div>
                 ) : friends.length === 0 ? (
-                  <div style={{ fontSize: 13, opacity: 0.8 }}>Bạn chưa có bạn bè. Hãy vào tab Add để gửi lời mời, hoặc tab Requests để Accept.</div>
+                  <div style={{ fontSize: 13, opacity: 0.8 }}>
+                    Bạn chưa có bạn bè. Hãy vào tab Add để gửi lời mời, hoặc tab Requests để Accept.
+                  </div>
                 ) : (
                   <div style={{ display: "grid", gap: 8 }}>
                     {friends.map((u) => {
                       const name = displayName(u);
                       return (
-                        <button key={u.id} type="button" onClick={() => startDirect(u.id)} className={styles.chatRow} style={{ textAlign: "left" }} title={`Chat with ${name}`}>
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => startDirect(u.id)}
+                          className={styles.chatRow}
+                          style={{ textAlign: "left" }}
+                          title={`Chat with ${name}`}
+                        >
                           <div className={styles.chatAvatar}>
                             <i className="bi bi-person" />
                             <span className={styles.chatOnlineDot} />
@@ -792,7 +848,11 @@ export default function AdminMessagesClient() {
                     {incoming.map((r) => {
                       const name = displayName(r.from);
                       return (
-                        <div key={r.id} className={styles.chatRow} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div
+                          key={r.id}
+                          className={styles.chatRow}
+                          style={{ display: "flex", alignItems: "center", gap: 10 }}
+                        >
                           <div className={styles.chatAvatar} style={{ flex: "0 0 auto" }}>
                             <i className="bi bi-person" />
                             <span className={styles.chatOnlineDot} />
@@ -807,7 +867,13 @@ export default function AdminMessagesClient() {
                             </div>
                           </div>
 
-                          <button type="button" className={styles.sendBtn} style={{ padding: "8px 10px", minWidth: 90 }} onClick={() => acceptIncoming(r.id)} title="Accept">
+                          <button
+                            type="button"
+                            className={styles.sendBtn}
+                            style={{ padding: "8px 10px", minWidth: 90 }}
+                            onClick={() => acceptIncoming(r.id)}
+                            title="Accept"
+                          >
                             <i className="bi bi-check2" />
                             <span className={styles.sendText} style={{ marginLeft: 6 }}>
                               Accept
@@ -835,7 +901,13 @@ export default function AdminMessagesClient() {
                     disabled={addBusy}
                   />
 
-                  <button type="button" className={styles.sendBtn} onClick={sendFriendRequestByEmail} disabled={addBusy || !isLikelyEmail(addEmail)} title="Send friend request">
+                  <button
+                    type="button"
+                    className={styles.sendBtn}
+                    onClick={sendFriendRequestByEmail}
+                    disabled={addBusy || !isLikelyEmail(addEmail)}
+                    title="Send friend request"
+                  >
                     <i className="bi bi-send" />
                     <span className={styles.sendText} style={{ marginLeft: 6 }}>
                       {addBusy ? "Sending…" : "Send request"}
@@ -855,7 +927,12 @@ export default function AdminMessagesClient() {
         <div className={styles.sidebarTools}>
           <div className={styles.searchBox}>
             <i className={`bi bi-search ${styles.searchIcon}`} />
-            <input className={styles.searchInput} placeholder="Search chats…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input
+              className={styles.searchInput}
+              placeholder="Search chats…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
             <button className={styles.searchAction} type="button" title="Clear" onClick={() => setQ("")}>
               <i className="bi bi-x-lg" />
             </button>
@@ -863,13 +940,25 @@ export default function AdminMessagesClient() {
 
           {/* Tabs */}
           <div className={styles.tabs}>
-            <button className={`${styles.tab} ${tab === "all" ? styles.tabActive : ""}`} type="button" onClick={() => setTab("all")}>
+            <button
+              className={`${styles.tab} ${tab === "all" ? styles.tabActive : ""}`}
+              type="button"
+              onClick={() => setTab("all")}
+            >
               All
             </button>
-            <button className={`${styles.tab} ${tab === "unread" ? styles.tabActive : ""}`} type="button" onClick={() => setTab("unread")}>
+            <button
+              className={`${styles.tab} ${tab === "unread" ? styles.tabActive : ""}`}
+              type="button"
+              onClick={() => setTab("unread")}
+            >
               Unread
             </button>
-            <button className={`${styles.tab} ${tab === "pinned" ? styles.tabActive : ""}`} type="button" onClick={() => setTab("pinned")}>
+            <button
+              className={`${styles.tab} ${tab === "pinned" ? styles.tabActive : ""}`}
+              type="button"
+              onClick={() => setTab("pinned")}
+            >
               Pinned
             </button>
           </div>
@@ -886,7 +975,12 @@ export default function AdminMessagesClient() {
               const unread = c.unread ?? 0;
 
               return (
-                <button key={c.id} className={`${styles.chatRow} ${active ? styles.chatRowActive : ""}`} onClick={() => setActiveChatId(c.id)} type="button">
+                <button
+                  key={c.id}
+                  className={`${styles.chatRow} ${active ? styles.chatRowActive : ""}`}
+                  onClick={() => setActiveChatId(c.id)}
+                  type="button"
+                >
                   <div className={styles.chatAvatar}>
                     <i className="bi bi-people" />
                     <span className={styles.chatOnlineDot} />
@@ -954,9 +1048,13 @@ export default function AdminMessagesClient() {
               type="button"
               title="Search messages"
               onClick={() => {
-                setShowSearch(true);
-                setTimeout(() => searchInputRef.current?.focus(), 0);
-              }}>
+                setShowSearch((prev) => {
+                  const nxt = !prev;
+                  if (nxt) setTimeout(() => searchInputRef.current?.focus(), 0);
+                  return nxt;
+                });
+              }}
+            >
               <i className="bi bi-search" />
             </button>
 
@@ -974,6 +1072,83 @@ export default function AdminMessagesClient() {
             </button>
           </div>
         </header>
+
+        {showSearch && (
+          <div
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#f9fafb",
+              borderBottom: "1px solid rgba(0,0,0,0.05)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <div style={{ position: "relative", flex: 1 }}>
+              <i
+                className="bi bi-search"
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#9ca3af",
+                  fontSize: 14,
+                }}
+              />
+              <input
+                ref={searchInputRef}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="Search in conversation..."
+                style={{
+                  width: "100%",
+                  padding: "6px 12px 6px 32px",
+                  fontSize: 14,
+                  borderRadius: 20,
+                  border: "1px solid #d1d5db",
+                  outline: "none",
+                }}
+              />
+            </div>
+            {searchHits.length > 0 ? (
+              <span style={{ fontSize: 13, color: "#6b7280", whiteSpace: "nowrap" }}>
+                {hitIndex + 1} of {searchHits.length}
+              </span>
+            ) : searchText ? (
+              <span style={{ fontSize: 13, color: "#6b7280", whiteSpace: "nowrap" }}>0 results</span>
+            ) : null}
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={() => jumpToHit(hitIndex - 1)}
+              title="Previous"
+              disabled={!searchHits.length}
+            >
+              <i className="bi bi-chevron-up" />
+            </button>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={() => jumpToHit(hitIndex + 1)}
+              title="Next"
+              disabled={!searchHits.length}
+            >
+              <i className="bi bi-chevron-down" />
+            </button>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={() => {
+                setShowSearch(false);
+                setSearchText("");
+              }}
+              title="Close"
+            >
+              <i className="bi bi-x-lg" />
+            </button>
+          </div>
+        )}
 
         {error ? (
           <div style={{ padding: "8px 14px", fontSize: 13, opacity: 0.95 }}>
@@ -993,7 +1168,13 @@ export default function AdminMessagesClient() {
             <div style={{ padding: 12, opacity: 0.8 }}>No messages yet</div>
           ) : (
             msgs.map((m) => (
-              <div key={m.id} className={`${styles.msgRow} ${m.who === "me" ? styles.msgRowMe : styles.msgRowOther}`}>
+              <div
+                key={m.id}
+                ref={(el) => {
+                  msgRefs.current[m.id] = el;
+                }}
+                className={`${styles.msgRow} ${m.who === "me" ? styles.msgRowMe : styles.msgRowOther}`}
+              >
                 <div className={styles.msgBubble}>
                   <div className={styles.msgTop}>
                     {m.name && <span className={styles.msgName}>{m.name}</span>}
@@ -1057,19 +1238,34 @@ export default function AdminMessagesClient() {
                 </div>
                 <div className={styles.tools}>
                   <div className={styles.toolGroup}>
-                    <button className={styles.toolBtn} type="button" title="Text color" onClick={() => setShowColorPicker((v) => !v)}>
+                    <button
+                      className={styles.toolBtn}
+                      type="button"
+                      title="Text color"
+                      onClick={() => setShowColorPicker((v) => !v)}
+                    >
                       <span className={styles.toolText} style={{ color: textColor }}>
                         Aa
                       </span>
                     </button>
-                    <button className={styles.toolBtn} type="button" title="Emoji" onClick={() => setShowEmoji((v) => !v)}>
+                    <button
+                      className={styles.toolBtn}
+                      type="button"
+                      title="Emoji"
+                      onClick={() => setShowEmoji((v) => !v)}
+                    >
                       <i className="bi bi-emoji-smile" />
                     </button>
 
                     <button className={styles.toolBtn} type="button" title="Mention">
                       <i className="bi bi-at" />
                     </button>
-                    <button className={styles.toolBtn} type="button" title="Attach link" onClick={() => setShowLinkInput((v) => !v)}>
+                    <button
+                      className={styles.toolBtn}
+                      type="button"
+                      title="Attach link"
+                      onClick={() => setShowLinkInput((v) => !v)}
+                    >
                       <i className="bi bi-paperclip" />
                     </button>
                   </div>
@@ -1099,7 +1295,8 @@ export default function AdminMessagesClient() {
                           onClick={() => {
                             setInput((prev) => prev + e);
                             setShowEmoji(false);
-                          }}>
+                          }}
+                        >
                           {e}
                         </button>
                       ))}
@@ -1123,7 +1320,13 @@ export default function AdminMessagesClient() {
                     </div>
                   )}
 
-                  <button className={styles.sendBtn} type="button" onClick={send} title="Send" disabled={!input.trim() || !activeChatId || sending}>
+                  <button
+                    className={styles.sendBtn}
+                    type="button"
+                    onClick={send}
+                    title="Send"
+                    disabled={!input.trim() || !activeChatId || sending}
+                  >
                     <i className="bi bi-send-fill" />
                     <span className={styles.sendText}>{sending ? "Sending…" : "Send"}</span>
                   </button>

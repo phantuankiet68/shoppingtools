@@ -103,7 +103,10 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .newChatBtn:hover {
@@ -163,7 +166,10 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.12s ease;
 }
 
 .searchAction:hover {
@@ -192,7 +198,10 @@
   cursor: pointer;
   font-size: 12.5px;
   color: #475569;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .tab:hover {
@@ -242,7 +251,10 @@
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
 }
 
 .chatRow:hover {
@@ -371,7 +383,9 @@
   display: grid;
   place-items: center;
   color: #cbd5e1;
-  transition: color 0.12s ease, transform 0.12s ease;
+  transition:
+    color 0.12s ease,
+    transform 0.12s ease;
 }
 
 .chatRow:hover .chatChevron {
@@ -508,7 +522,10 @@
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .iconBtn:hover {
@@ -566,7 +583,9 @@
   border-radius: 18px;
   padding: 12px 14px 10px;
   position: relative;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .msgBubble:hover {
@@ -631,7 +650,9 @@
   gap: 6px;
   opacity: 0;
   transform: translateY(-2px);
-  transition: opacity 0.12s ease, transform 0.12s ease;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
 }
 
 .msgBubble:hover .msgActions {
@@ -648,7 +669,10 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.12s ease;
 }
 
 .msgIconBtn:hover {
@@ -686,8 +710,10 @@
 
 .input {
   width: 100%;
-  border: 0;
+  border: 1px solid var(--line);
   outline: none;
+  padding: 0 10px;
+  border-radius: 8px;
   background: transparent;
   font-size: 13.5px;
   color: var(--text);
@@ -758,7 +784,10 @@
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.12s ease;
   display: grid;
   place-items: center;
 }
@@ -792,7 +821,10 @@
   align-items: center;
   gap: 8px;
 
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
 }
 
 .sendBtn:hover {

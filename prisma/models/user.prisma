@@ -19,6 +19,7 @@ model User {
   lastLoginAt     DateTime? @map("last_login_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
+
   sessions        UserSession[]
   passwordResets  PasswordResetToken[]
   emailVerifs     EmailVerificationToken[]
@@ -28,11 +29,29 @@ model User {
   twoFactor       UserTwoFactor?
   backupCodes     UserBackupCode[]
   devices         UserDevice[]
+
+  image   String?
+  profile Profile?
+
+  // ===== Chat relations =====
+  conversationMembers ConversationMember[]
+  sentMessages        Message[]
+
+  friendRequestsSent     FriendRequest[] @relation("FriendRequestFrom")
+  friendRequestsReceived FriendRequest[] @relation("FriendRequestTo")
+
+  // ===== Block relations (FIX) =====
+  blocksSent     Block[] @relation("UserBlocksSent")
+  blocksReceived Block[] @relation("UserBlocksReceived")
+
+  calendarsOwned        Calendar[]      @relation("CalendarOwner")
+  calendarEventsCreated CalendarEvent[] @relation("CalendarEventCreator")
+  calendarEventsForUser CalendarEvent[] @relation("CalendarEventUser")
+
   @@index([role])
   @@index([status])
   @@map("users")
 }
-
 model UserSession {
   id                    String   @id @default(cuid())
   userId                String   @map("user_id")
@@ -156,4 +175,18 @@ model UserDevice {
   @@index([userId, trusted])
   @@index([lastSeenAt])
   @@map("user_devices")
+}
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker   User @relation("UserBlocksSent", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User @relation("UserBlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("blocks")
 }

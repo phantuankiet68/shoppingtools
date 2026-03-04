@@ -281,6 +281,176 @@ model AudienceMember {
   @@map("audience_members")
 }
 
+// ==== part: Calendar.prisma ====
+enum CalendarEventColor {
+  BLUE
+  PURPLE
+  GREEN
+  AMBER
+  RED
+  TEAL
+}
+
+model Calendar {
+  id      String @id @default(cuid())
+  ownerId String @map("owner_id")
+  name    String @default("My Calendar")
+
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner  User            @relation("CalendarOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  events CalendarEvent[]
+
+  @@index([ownerId])
+  @@map("calendars")
+}
+
+model CalendarEvent {
+  id         String @id @default(cuid())
+  calendarId String @map("calendar_id")
+
+  // creator = người tạo event (admin)
+  creatorId String? @map("creator_id")
+
+  // userId = nếu event gắn với 1 user nào đó (vì schema bạn đang có field user)
+  userId String? @map("user_id")
+
+  title       String
+  description String?
+  location    String?
+  color       CalendarEventColor @default(BLUE)
+
+  allDay  Boolean  @default(false)
+  startAt DateTime @map("start_at")
+  endAt   DateTime @map("end_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  calendar Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  creator User? @relation("CalendarEventCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+
+  // field này đã tồn tại trong schema bạn -> đặt relation name riêng để không đụng creator
+  user User? @relation("CalendarEventUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([calendarId])
+  @@index([creatorId])
+  @@index([userId])
+  @@index([startAt])
+  @@index([endAt])
+  @@map("calendar_events")
+}
+
+// ==== part: Conversation.prisma ====
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
+}
+
+//////////////////////////////////////////////////////
+// MODELS
+//////////////////////////////////////////////////////
+
+model Conversation {
+  id   String           @id @default(cuid())
+  type ConversationType @default(DIRECT)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastMessageAt DateTime?
+
+  deletedAt DateTime? @map("deleted_at")
+
+  members  ConversationMember[]
+  messages Message[]
+
+  @@index([lastMessageAt])
+  @@index([deletedAt])
+}
+
+model ConversationMember {
+  id String @id @default(cuid())
+
+  conversationId String
+  userId         String
+
+  role String @default("MEMBER")
+
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
+
+  deletedAt DateTime? @map("deleted_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@index([deletedAt])
+}
+
+model FriendRequest {
+  id String @id @default(cuid())
+
+  fromId String
+  toId   String
+
+  status FriendRequestStatus @default(PENDING)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  respondedAt DateTime?
+
+  deletedAt DateTime? @map("deleted_at")
+
+  from User? @relation("FriendRequestFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   User? @relation("FriendRequestTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId])
+  @@index([fromId])
+  @@index([toId])
+  @@index([deletedAt])
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  conversationId String
+  senderId       String
+
+  text String @db.Text
+
+  createdAt DateTime @default(now())
+
+  deletedAt DateTime? @map("deleted_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  // ✅ ADD: relation to User so you can include: { sender: ... }
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
 // ==== part: Customer.prisma ====
 model Customer {
   id     String  @id @default(cuid())
@@ -825,6 +995,76 @@ model ProductCategoryMap {
   @@map("product_category_map")
 }
 
+// ==== part: Profile.prisma ====
+enum ProfileRole {
+  ADMIN
+  STAFF
+  USER
+}
+
+enum ProfileStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+
+  firstName String? @map("first_name")
+  lastName  String? @map("last_name")
+  username  String? @unique
+
+  role   ProfileRole   @default(USER)
+  status ProfileStatus @default(ACTIVE)
+
+  email       String? @map("email")
+  backupEmail String? @map("backup_email")
+
+  phone   String? @map("phone")
+  address String? @map("address")
+
+  city    String? @map("city")
+  country String? @map("country")
+
+  company    String?   @map("company")
+  department String?   @map("department")
+  jobTitle   String?   @map("job_title")
+  manager    String?   @map("manager")
+  hireDate   DateTime? @map("hire_date")
+
+  gender   String? @map("gender")
+  locale   String? @map("locale")
+  timezone String? @map("timezone")
+
+  dobMonth String? @map("dob_month")
+  dobDay   Int?    @map("dob_day")
+  dobYear  Int?    @map("dob_year")
+
+  twitter  String? @map("twitter")
+  linkedin String? @map("linkedin")
+  facebook String? @map("facebook")
+  github   String? @map("github")
+  website  String? @map("website")
+
+  slogan String? @map("slogan")
+  bio    String? @map("bio")
+
+  twoFA Boolean @default(false) @map("two_fa")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([firstName])
+  @@index([lastName])
+  @@index([role])
+  @@index([status])
+  @@map("profiles")
+}
+
 // ==== part: Site.prisma ====
 enum SiteStatus {
   DRAFT
@@ -885,15 +1125,16 @@ enum UserStatus {
 }
 
 model User {
-  id              String                   @id @default(cuid())
-  email           String                   @unique
-  passwordHash    String                   @map("password_hash")
-  role            UserRole                 @default(USER)
-  status          UserStatus               @default(ACTIVE)
-  emailVerifiedAt DateTime?                @map("email_verified_at")
-  lastLoginAt     DateTime?                @map("last_login_at")
-  createdAt       DateTime                 @default(now()) @map("created_at")
-  updatedAt       DateTime                 @updatedAt @map("updated_at")
+  id              String     @id @default(cuid())
+  email           String     @unique
+  passwordHash    String     @map("password_hash")
+  role            UserRole   @default(USER)
+  status          UserStatus @default(ACTIVE)
+  emailVerifiedAt DateTime?  @map("email_verified_at")
+  lastLoginAt     DateTime?  @map("last_login_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
   sessions        UserSession[]
   passwordResets  PasswordResetToken[]
   emailVerifs     EmailVerificationToken[]
@@ -903,9 +1144,27 @@ model User {
   twoFactor       UserTwoFactor?
   backupCodes     UserBackupCode[]
   devices         UserDevice[]
-  automationRules AutomationRule[]
-  customers       Customer[]
-  sites           Site[]
+
+  image   String?
+  profile Profile?
+
+  // ===== Chat relations =====
+  conversationMembers ConversationMember[]
+  sentMessages        Message[]
+
+  friendRequestsSent     FriendRequest[] @relation("FriendRequestFrom")
+  friendRequestsReceived FriendRequest[] @relation("FriendRequestTo")
+
+  // ===== Block relations (FIX) =====
+  blocksSent     Block[] @relation("UserBlocksSent")
+  blocksReceived Block[] @relation("UserBlocksReceived")
+
+  calendarsOwned        Calendar[]       @relation("CalendarOwner")
+  calendarEventsCreated CalendarEvent[]  @relation("CalendarEventCreator")
+  calendarEventsForUser CalendarEvent[]  @relation("CalendarEventUser")
+  automationRules       AutomationRule[]
+  customers             Customer[]
+  sites                 Site[]
 
   @@index([role])
   @@index([status])
@@ -1043,4 +1302,19 @@ model UserDevice {
   @@index([userId, trusted])
   @@index([lastSeenAt])
   @@map("user_devices")
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker User @relation("UserBlocksSent", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("UserBlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("blocks")
 }

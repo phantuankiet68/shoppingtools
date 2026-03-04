@@ -6,131 +6,102 @@ import styles from "@/styles/admin/builder/pages/add.module.css";
 
 import DesignHeader from "@/components/admin/builder/pages/DesignHeader";
 import { ControlsPalette, Canvas, Inspector } from "@/components/admin/builder/pages";
+
+import type { Block, DropMeta } from "@/lib/page/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import type { Block, SEO, DropMeta, InternalProps } from "@/lib/page/types";
-import { uid, slugify } from "@/lib/page/utils";
 
-type ViewMode = "design" | "preview";
-type SiteRow = {
-  id: string;
-  domain: string;
-  name: string;
-  localeDefault: string;
-};
-type Device = "desktop" | "tablet" | "mobile";
+import { useUiBuilderAddStore } from "@/store/builder/pages/add/uiBuilderAdd.store";
+import { fetchSites, type SiteRow } from "@/services/builder/pages/add/adminSites.service";
+import { fetchAdminPage, publishAdminPage, saveAdminPage } from "@/services/builder/pages/add/adminPages.service";
 
-function ensureLeadingSlash(p?: string | null) {
-  if (!p) return "/";
-  return p.startsWith("/") ? p : `/${p}`;
-}
-
-function originFromDomain(domain?: string) {
-  if (!domain) return "";
-  const isProd = process.env.NODE_ENV === "production";
-  return `${isProd ? "https" : "http"}://${domain}`;
-}
-
-function normalizeSlugAndPath(inputSlug: string, inputTitle: string) {
-  const safeTitle = (inputTitle || "").trim() || "Untitled";
-  const raw = (inputSlug || "").trim();
-  const isHome = raw === "/";
-  const slugCore = isHome ? "" : slugify(raw.replace(/^\//, "") || safeTitle);
-
-  const finalSlug = isHome ? "/" : slugCore;
-  const finalPath = isHome ? "/" : `/${slugCore}`;
-
-  return { safeTitle, isHome, finalSlug, finalPath };
-}
+import {
+  ensureLeadingSlash,
+  originFromDomain,
+  normalizeSlugAndPath,
+} from "@/features/builder/pages/add/pagePath.helper";
+import {
+  buildDroppedSingleBlock,
+  buildDroppedTemplateBlocks,
+  normalizeBlocks,
+} from "@/features/builder/pages/add/blocks.helper";
+import { BUILDER_ADD_MESSAGES } from "@/features/builder/pages/add/messages";
 
 export default function UiBuilderAddPage() {
   const { locale: routeLocale } = useParams<{ locale: "en" }>();
   const sp = useSearchParams();
   const initialId = sp.get("id");
 
+  const [state, dispatch] = useUiBuilderAddStore(initialId);
+
   const [sites, setSites] = useState<SiteRow[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
 
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [mode, setMode] = useState<ViewMode>("design");
   const [guardMsg, setGuardMsg] = useState("");
-
-  const [device, setDevice] = useState<Device>("desktop");
-
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [pageId, setPageId] = useState<string | null>(initialId);
-  const [saving, setSaving] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-
-  const [search, setSearch] = useState("");
-
-  const [seo, setSeo] = useState<SEO>({
-    metaTitle: "",
-    metaDescription: "",
-    keywords: "",
-    canonicalUrl: "",
-    noindex: false,
-    nofollow: false,
-    ogTitle: "",
-    ogDescription: "",
-    ogImage: "",
-    twitterCard: "summary_large_image",
-    sitemapChangefreq: "weekly",
-    sitemapPriority: 0.7,
-    structuredData: "",
-  });
-
   const guardTimeoutRef = useRef<number | null>(null);
   const setGuard = (msg: string, ms = 1800) => {
     setGuardMsg(msg);
     if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
     guardTimeoutRef.current = window.setTimeout(() => setGuardMsg(""), ms);
   };
+
   useEffect(() => {
     return () => {
       if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
     };
   }, []);
 
-  const { finalSlug: derivedSlug, finalPath: derivedPath } = useMemo(() => {
-    return normalizeSlugAndPath(slug, title);
-  }, [slug, title]);
+  const { finalPath: derivedPath } = useMemo(
+    () => normalizeSlugAndPath(state.slug, state.title),
+    [state.slug, state.title],
+  );
 
-  const active = useMemo(() => blocks.find((b) => b.id === activeId) || null, [blocks, activeId]);
+  const active = useMemo(
+    () => state.blocks.find((b) => b.id === state.activeId) || null,
+    [state.blocks, state.activeId],
+  );
 
+  // init
   useEffect(() => {
     const ac = new AbortController();
 
     (async () => {
       try {
-        const r = await fetch("/api/admin/sites", { cache: "no-store", signal: ac.signal });
-        if (!r.ok) return;
+        const siteList = await fetchSites(ac.signal);
+        setSites(siteList);
 
-        const data = await r.json();
-        const list: SiteRow[] = data.items ?? [];
-        setSites(list);
+        let activeSiteId = "";
+
         if (initialId) {
-          const d = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store", signal: ac.signal });
-          if (d.ok) {
-            const dj = await d.json();
-            const pid = dj?.page?.siteId as string | undefined;
-            if (pid && list.some((s) => s.id === pid)) {
-              setSelectedSiteId(pid);
-              return;
-            }
+          const p = await fetchAdminPage(initialId, ac.signal);
+          if (p) {
+            dispatch({ type: "setPageId", pageId: p.id });
+            dispatch({ type: "setTitle", title: p.title ?? "Untitled" });
+            dispatch({ type: "setSlug", slug: p.slug ?? "" });
+            dispatch({ type: "setBlocks", blocks: normalizeBlocks((p.blocks ?? []) as unknown[]) });
+
+            dispatch({
+              type: "patchSeo",
+              patch: { metaTitle: p.title ?? "", ogTitle: p.title ?? "" },
+            });
+
+            if (p.siteId && siteList.some((s) => s.id === p.siteId)) activeSiteId = p.siteId;
           }
         }
 
-        const saved = localStorage.getItem("pages_selected_site");
-        const fallback = list[0]?.id ?? "";
-        const pick = saved && list.some((s) => s.id === saved) ? saved : fallback;
-        setSelectedSiteId(pick);
-      } catch {}
+        if (!activeSiteId) {
+          const saved = localStorage.getItem("pages_selected_site");
+          const fallback = siteList[0]?.id ?? "";
+          activeSiteId = saved && siteList.some((s) => s.id === saved) ? saved : fallback;
+        }
+
+        if (activeSiteId) setSelectedSiteId(activeSiteId);
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") console.error("Initialization error:", err);
+      }
     })();
 
     return () => ac.abort();
-  }, [initialId, routeLocale]);
+  }, [initialId, routeLocale, dispatch]);
 
   useEffect(() => {
     if (selectedSiteId) localStorage.setItem("pages_selected_site", selectedSiteId);
@@ -142,36 +113,16 @@ export default function UiBuilderAddPage() {
   }, [sites, selectedSiteId]);
 
   useEffect(() => {
-    if (!initialId) return;
-    const ac = new AbortController();
-
-    (async () => {
-      try {
-        const r = await fetch(`/api/admin/pages/${initialId}`, { cache: "no-store", signal: ac.signal });
-        if (!r.ok) return;
-        const { page: p } = await r.json();
-        setPageId(p.id);
-        setTitle(p.title ?? "Untitled");
-        setSlug(p.slug ?? "");
-        setBlocks(normalizeBlocks(p.blocks ?? []));
-        setSeo((prev) => ({
-          ...prev,
-          metaTitle: p.title ?? prev.metaTitle,
-          ogTitle: p.title ?? prev.ogTitle,
-        }));
-      } catch {}
-    })();
-
-    return () => ac.abort();
-  }, [initialId, routeLocale]);
-
-  useEffect(() => {
-    setSeo((prev) => ({
-      ...prev,
-      metaTitle: prev.metaTitle || title,
-      ogTitle: prev.ogTitle || title,
-    }));
-  }, [title]);
+    // auto fill metaTitle / ogTitle if empty
+    dispatch({
+      type: "patchSeo",
+      patch: {
+        metaTitle: state.seo.metaTitle || state.title,
+        ogTitle: state.seo.ogTitle || state.title,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.title]);
 
   const onDragStart = (kind: string) => (e: React.DragEvent) => {
     e.dataTransfer.setData("text/plain", kind);
@@ -180,175 +131,140 @@ export default function UiBuilderAddPage() {
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
-
     const meta = (e as React.DragEvent & { zbMeta?: DropMeta }).zbMeta || null;
 
     const txt = e.dataTransfer.getData("text/plain") || "";
-    const isTemplate = txt.startsWith("template:");
 
-    if (isTemplate) {
+    // template drop
+    const droppedTpl = (() => {
+      if (!txt.startsWith("template:")) return null;
       try {
         const raw = e.dataTransfer.getData("application/json");
         const payload = raw ? JSON.parse(raw) : null;
         const templateId: string = (payload?.templateId || txt.replace("template:", "")).trim();
-
-        const made = composeTemplateBlocks(templateId);
-        if (made.length === 0) return;
-
-        const mapped = made.map((b) => ({ ...b, props: JSON.parse(JSON.stringify(b.props || {})) }));
-
-        if (meta?.type === "row-col") {
-          const roots = getRoots(mapped);
-          roots.forEach((rb) => {
-            const p = rb.props as Record<string, unknown>;
-            p._parentRowId = meta.parentRowId;
-            p._parentColIndex = meta.colIndex;
-            if (p.__parent) delete p.__parent;
-          });
-        } else if (meta?.type === "section") {
-          const roots = getRoots(mapped);
-          roots.forEach((rb) => {
-            const p = rb.props as Record<string, unknown>;
-            p.__parent = { id: meta.parentSectionId, slot: meta.slot || "children" };
-            if (p._parentRowId) delete p._parentRowId;
-            if (p._parentColIndex !== undefined) delete p._parentColIndex;
-          });
-        }
-
-        const withIds = remapIds(mapped);
-        setBlocks((prev) => [...prev, ...withIds]);
-        setActiveId(withIds[0]?.id ?? null);
-        return;
+        return buildDroppedTemplateBlocks(`template:${templateId}`, meta);
       } catch {
-        return;
+        return null;
       }
+    })();
+
+    if (droppedTpl) {
+      dispatch({ type: "appendBlocks", blocks: droppedTpl });
+      dispatch({ type: "setActiveId", id: droppedTpl[0]?.id ?? null });
+      return;
     }
 
+    // single block drop
     const kind = txt;
-    const reg = REGISTRY.find((r) => r.kind === kind);
-    const def = reg?.defaults || {};
-    const props: Record<string, unknown> = { ...def };
+    if (!REGISTRY.some((r) => r.kind === kind)) return;
 
-    if (meta?.type === "row-col") {
-      props._parentRowId = meta.parentRowId;
-      props._parentColIndex = meta.colIndex;
-    } else if (meta?.type === "section") {
-      props.__parent = { id: meta.parentSectionId, slot: meta.slot || "children" };
-    }
-
-    const b: Block = { id: uid(), kind, props };
-    setBlocks((prev) => [...prev, b]);
-    setActiveId(b.id);
+    const b: Block = buildDroppedSingleBlock(kind, meta);
+    dispatch({ type: "appendBlocks", blocks: [b] });
+    dispatch({ type: "setActiveId", id: b.id });
   };
 
-  const move = (dir: -1 | 1) => {
-    if (!activeId) return;
-    setBlocks((prev) => {
-      const idx = prev.findIndex((b) => b.id === activeId);
-      if (idx < 0) return prev;
-      const next = [...prev];
-      const ni = Math.min(Math.max(idx + dir, 0), prev.length - 1);
-      const [it] = next.splice(idx, 1);
-      next.splice(ni, 0, it);
-      return next;
-    });
-  };
+  const move = React.useCallback(
+    (dir: -1 | 1) => {
+      if (!state.activeId) return;
+      dispatch({
+        type: "setBlocks",
+        blocks: (() => {
+          const idx = state.blocks.findIndex((b) => b.id === state.activeId);
+          if (idx < 0) return state.blocks;
+          const next = [...state.blocks];
+          const ni = Math.min(Math.max(idx + dir, 0), state.blocks.length - 1);
+          const [it] = next.splice(idx, 1);
+          next.splice(ni, 0, it);
+          return next;
+        })(),
+      });
+    },
+    [state.activeId, state.blocks, dispatch],
+  );
 
-  const remove = () => {
-    if (!activeId) return;
-    setBlocks((prev) => prev.filter((b) => b.id !== activeId));
-    setActiveId(null);
-  };
+  const remove = React.useCallback(() => {
+    if (!state.activeId) return;
+    dispatch({ type: "setBlocks", blocks: state.blocks.filter((b) => b.id !== state.activeId) });
+    dispatch({ type: "setActiveId", id: null });
+  }, [state.activeId, state.blocks, dispatch]);
 
-  const updateActive = (patch: Record<string, unknown>) => {
-    if (!activeId) return;
-    setBlocks((prev) =>
-      prev.map((b) => {
-        if (b.id !== activeId) return b;
+  const updateActive = React.useCallback(
+    (patch: Record<string, unknown>) => {
+      if (!state.activeId) return;
 
-        const nextKind = (patch.kind as string) ?? b.kind;
-        const kindChanged = nextKind !== b.kind;
+      dispatch({
+        type: "setBlocks",
+        blocks: state.blocks.map((b) => {
+          if (b.id !== state.activeId) return b;
 
-        let nextProps =
-          "props" in patch ? ((patch.props as Record<string, unknown>) ?? {}) : { ...(b.props ?? {}), ...patch };
-        if (kindChanged && !("props" in patch)) {
-          const def = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
-          nextProps = { ...def, ...nextProps };
-        }
+          const nextKind = (patch.kind as string) ?? b.kind;
+          const kindChanged = nextKind !== b.kind;
 
-        return { ...b, kind: nextKind, props: nextProps };
-      }),
-    );
-  };
+          let nextProps =
+            "props" in patch ? ((patch.props as Record<string, unknown>) ?? {}) : { ...(b.props ?? {}), ...patch };
+
+          if (kindChanged && !("props" in patch)) {
+            const def = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
+            nextProps = { ...def, ...nextProps };
+          }
+
+          return { ...b, kind: nextKind, props: nextProps };
+        }),
+      });
+    },
+    [state.activeId, state.blocks, dispatch],
+  );
 
   async function savePage() {
     try {
-      setSaving(true);
+      dispatch({ type: "setSaving", saving: true });
 
-      const { safeTitle, finalSlug, finalPath } = normalizeSlugAndPath(slug, title);
+      const { safeTitle, finalSlug, finalPath } = normalizeSlugAndPath(state.slug, state.title);
 
       const body = {
-        id: pageId ?? undefined,
+        id: state.pageId ?? undefined,
         title: safeTitle,
         slug: finalSlug,
         path: finalPath,
-        blocks: blocks.map(({ id, kind, props }) => ({ id, kind, props })),
+        blocks: state.blocks.map(({ id, kind, props }) => ({ id, kind, props })),
         seo: {
-          ...seo,
-          metaTitle: seo.metaTitle || safeTitle,
-          ogTitle: seo.ogTitle || safeTitle,
+          ...state.seo,
+          metaTitle: state.seo.metaTitle || safeTitle,
+          ogTitle: state.seo.ogTitle || safeTitle,
         },
       };
 
-      const res = await fetch(`/api/admin/pages/save`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-site-domain": currentSite?.domain || "",
-        },
-        body: JSON.stringify(body),
-      });
+      const rs = await saveAdminPage({ body, siteDomain: currentSite?.domain || "" });
+      if (!rs.ok) throw new Error(rs.error);
 
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json?.ok) throw new Error(json?.error || "Save failed");
-
-      setGuard("Đã lưu vào Page (DRAFT).", 1500);
+      setGuard(BUILDER_ADD_MESSAGES.SAVE_DRAFT_OK, 1500);
     } catch (e: unknown) {
-      setGuard((e as Error)?.message || "Save error", 2000);
+      setGuard((e as Error)?.message || BUILDER_ADD_MESSAGES.SAVE_ERROR_FALLBACK, 2000);
     } finally {
-      setSaving(false);
+      dispatch({ type: "setSaving", saving: false });
     }
   }
 
   async function publishPage() {
-    if (!pageId) {
-      setGuard("Hãy Save để tạo ID trước", 1800);
+    if (!state.pageId) {
+      setGuard(BUILDER_ADD_MESSAGES.NEED_SAVE_BEFORE_PUBLISH, 1800);
       return;
     }
 
     try {
-      setPublishing(true);
+      dispatch({ type: "setPublishing", publishing: true });
 
-      const res = await fetch(`/api/admin/pages/publish`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-site-domain": currentSite?.domain || "",
-        },
-        body: JSON.stringify({ id: pageId }),
-      });
-
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || json?.ok === false) throw new Error(json?.error || "Publish failed");
+      const rs = await publishAdminPage({ id: state.pageId, siteDomain: currentSite?.domain || "" });
+      if (!rs.ok) throw new Error(rs.error);
 
       const safePath = ensureLeadingSlash(derivedPath);
       const siteOrigin = originFromDomain(currentSite?.domain);
       const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
       window.open(url, "_blank");
     } catch (e: unknown) {
-      setGuard((e as Error)?.message || "Publish error", 2000);
+      setGuard((e as Error)?.message || BUILDER_ADD_MESSAGES.PUBLISH_ERROR_FALLBACK, 2000);
     } finally {
-      setPublishing(false);
+      dispatch({ type: "setPublishing", publishing: false });
     }
   }
 
@@ -359,22 +275,6 @@ export default function UiBuilderAddPage() {
     window.open(url, "_blank");
   };
 
-  function normalizeBlocks(raw: unknown[]): Block[] {
-    if (!Array.isArray(raw)) return [];
-
-    return raw
-      .map((b) => {
-        const item = b as Record<string, unknown>;
-        const id = typeof item?.id === "string" && item.id ? item.id : crypto.randomUUID();
-        const kind = String(item?.kind ?? "");
-        const props = item?.props && typeof item.props === "object" ? (item.props as Record<string, unknown>) : {};
-        return { id, kind, props } as Block;
-      })
-      .filter((b) => b.kind);
-  }
-
-  const normalized = React.useMemo(() => normalizeBlocks(blocks), [blocks]);
-
   return (
     <div className={styles.wrapper}>
       {guardMsg && (
@@ -382,14 +282,7 @@ export default function UiBuilderAddPage() {
           <div className={styles.toast}>
             <i className="bi bi-exclamation-triangle" />
             <span className={styles.toastText}>{guardMsg}</span>
-
-            <button
-              type="button"
-              className={styles.toastClose}
-              onClick={() => setGuardMsg("")}
-              aria-label="Close"
-              title="Close"
-            >
+            <button type="button" className={styles.toastClose} onClick={() => setGuardMsg("")} aria-label="Close">
               <i className="bi bi-x" />
             </button>
           </div>
@@ -415,35 +308,39 @@ export default function UiBuilderAddPage() {
       </div>
 
       <div>
-        {mode === "design" ? (
+        {state.mode === "design" ? (
           <div className={styles.builderGrid}>
             <aside className={styles.left}>
-              <ControlsPalette search={search} setSearch={setSearch} onDragStart={onDragStart} />
+              <ControlsPalette
+                search={state.search}
+                setSearch={(v) => dispatch({ type: "setSearch", search: v })}
+                onDragStart={onDragStart}
+              />
             </aside>
 
             <main className={styles.center}>
               <Canvas
-                blocks={normalized}
-                activeId={activeId}
-                setActiveId={setActiveId}
+                blocks={state.blocks}
+                activeId={state.activeId}
+                setActiveId={(id) => dispatch({ type: "setActiveId", id })}
                 onDrop={onDrop}
                 move={move}
-                device={device}
+                device={state.device}
               />
             </main>
 
             <aside className={styles.right}>
               <DesignHeader
-                title={title}
-                setTitle={setTitle}
-                saving={saving}
-                saved={!saving}
-                publishing={publishing}
+                title={state.title}
+                setTitle={(v) => dispatch({ type: "setTitle", title: v })}
+                saving={state.saving}
+                saved={!state.saving}
+                publishing={state.publishing}
                 onSave={savePage}
                 onPublish={publishPage}
                 onPreview={openPreview}
                 onRefresh={() => {}}
-                setDevice={setDevice}
+                setDevice={(d) => dispatch({ type: "setDevice", device: d })}
               />
               <Inspector active={active} move={move} remove={remove} updateActive={updateActive} />
             </aside>
@@ -452,7 +349,7 @@ export default function UiBuilderAddPage() {
           <div className={styles.previewCard}>
             <div className={styles.previewBody}>
               <div className={styles.previewList}>
-                {blocks.map((b) => (
+                {state.blocks.map((b) => (
                   <div key={b.id} className={styles.blockCard}>
                     <div className={styles.blockBody}>
                       <code className={styles.blockCode}>{b.kind}</code>
@@ -462,13 +359,16 @@ export default function UiBuilderAddPage() {
               </div>
 
               <div className={styles.previewActions}>
-                <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => setMode("design")}>
+                <button
+                  className={`${styles.btn} ${styles.btnOutline}`}
+                  onClick={() => dispatch({ type: "setMode", mode: "design" })}
+                >
                   <i className="bi bi-arrow-left-short" />
                   Back to Design
                 </button>
 
-                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={savePage} disabled={saving}>
-                  {saving ? (
+                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={savePage} disabled={state.saving}>
+                  {state.saving ? (
                     <>
                       <span className={styles.spinner} />
                       Saving…
@@ -484,126 +384,4 @@ export default function UiBuilderAddPage() {
       </div>
     </div>
   );
-}
-
-function getRoots(list: Block[]) {
-  return list.filter((b) => {
-    const p = b.props as InternalProps;
-    const inRow = !!p._parentRowId;
-    const inSection = !!p.__parent?.id;
-    return !inRow && !inSection;
-  });
-}
-
-function remapIds(list: Block[]) {
-  const idMap = new Map<string, string>();
-  const mapId = (oldId: string) => {
-    if (!idMap.has(oldId)) idMap.set(oldId, uid());
-    return idMap.get(oldId)!;
-  };
-
-  const clone = list.map((b) => {
-    const nb: Block = {
-      id: mapId(b.id),
-      kind: b.kind,
-      props: JSON.parse(JSON.stringify(b.props || {})),
-    };
-    return nb;
-  });
-
-  clone.forEach((b) => {
-    const p = b.props as InternalProps;
-    if (p._parentRowId && idMap.has(p._parentRowId)) {
-      p._parentRowId = idMap.get(p._parentRowId)!;
-    }
-    if (p.__parent?.id && idMap.has(p.__parent.id)) {
-      p.__parent.id = idMap.get(p.__parent.id)!;
-    }
-  });
-
-  return clone;
-}
-
-function composeTemplateBlocks(templateId: string): Block[] {
-  const make = (kind: string, props: Record<string, unknown> = {}): Block => ({ id: uid(), kind, props });
-
-  if (templateId === "tpl-header-only") {
-    return [
-      make("HeaderPro", {
-        title: "Zento",
-        itemsJson: JSON.stringify([
-          { label: "Home", href: "/" },
-          { label: "Pages", href: "admin/pages" },
-        ]),
-      }),
-    ];
-  }
-
-  if (templateId === "tpl-hero-2col") {
-    const row = make("Row", { cols: 2, gap: 24 });
-
-    const left = make("BannerPro", {
-      eyebrow: "LowCode Builder",
-      title: "Design faster with",
-      highlight: "Blocks",
-      subtitle: "Kéo thả để lắp nhanh các khối UI.",
-      ctaLabel: "Get Started",
-      ctaHref: "/get-started",
-      palette: "sunrise",
-    });
-    (left.props as Record<string, unknown>)._parentRowId = row.id;
-    (left.props as Record<string, unknown>)._parentColIndex = 0;
-
-    const right = make("Text", {
-      text: "Bạn có thể kéo thêm block vào từng cột.",
-      fontSize: 16,
-      mt: 8,
-    });
-    (right.props as Record<string, unknown>)._parentRowId = row.id;
-    (right.props as Record<string, unknown>)._parentColIndex = 1;
-
-    return [row, left, right];
-  }
-
-  if (templateId === "tpl-landing-basic") {
-    const header = make("HeaderPro", {
-      title: "Zento",
-      itemsJson: JSON.stringify([
-        { label: "Home", href: "/" },
-        { label: "About", href: "/about" },
-      ]),
-    });
-
-    const section = make("Section", { title: "Welcome" });
-
-    const hero = make("BannerPro", {
-      eyebrow: "Next.js 15 + CSS Modules",
-      title: "Build pages with",
-      highlight: "Blocks & Templates",
-      subtitle: "Auto path & locale đến từ Menu – đúng kiểu low-code.",
-      ctaLabel: "Docs",
-      ctaHref: "/docs",
-      palette: "coral",
-    });
-    (hero.props as InternalProps).__parent = { id: section.id, slot: "children" };
-
-    const row = make("Row", { cols: 3, gap: 16 });
-    (row.props as InternalProps).__parent = { id: section.id, slot: "children" };
-
-    const t1 = make("Text", { text: "⚡ Kéo thả nhanh" });
-    (t1.props as InternalProps)._parentRowId = row.id;
-    (t1.props as InternalProps)._parentColIndex = 0;
-
-    const t2 = make("Text", { text: "🧩 Template sẵn" });
-    (t2.props as InternalProps)._parentRowId = row.id;
-    (t2.props as InternalProps)._parentColIndex = 1;
-
-    const t3 = make("Text", { text: "🔗 Sync từ Menu" });
-    (t3.props as InternalProps)._parentRowId = row.id;
-    (t3.props as InternalProps)._parentColIndex = 2;
-
-    return [header, section, hero, row, t1, t2, t3];
-  }
-
-  return [];
 }

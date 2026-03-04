@@ -7,8 +7,8 @@
   /* Base */
   --background: #ffffff;
   --foreground: #0f172a;
-
-  /* UI */
+  --line: #cdcdcd;
+  --red: red; /* UI */
   --ui-bg: #ffffff;
   --ui-fg: #0f172a;
   --ui-muted: #6b7280;
@@ -45,7 +45,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Poppins", sans-serif;
-  overflow: auto;
+  overflow: hidden;
   height: 100vh;
 }
 

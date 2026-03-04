@@ -1,8 +1,9 @@
 "use client";
 
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-import styles from "@/styles/admin/profile/ProfilePage.module.css";
-import { useEffect, useMemo, useState, useRef } from "react";
+import styles from "@/styles/admin/system/profile/ProfilePage.module.css";
+import { useCallback, useEffect, useState } from "react";
+
 import ProfileForm from "@/components/admin/system/profile/ProfileForm";
 import ChangePassword from "@/components/admin/system/profile/ChangePassword";
 import AdminMessagesClient from "@/components/admin/system/profile/AdminMessagesClient";
@@ -13,54 +14,63 @@ import AdminSpendingClient from "@/components/admin/system/profile/AdminSpending
 import AdminPrivacyClient from "@/components/admin/system/profile/AdminPrivacyClient";
 import AvatarUploadModal from "@/components/admin/system/profile/AvatarUploadModal";
 
-const responsibilities = ["Security", "Encryption", "Keys and Secrets"];
-
-type AdminUser = { name: string; role: string; image: string; email: string };
+type AdminUser = {
+  name: string;
+  role: string;
+  email: string;
+  image?: string | null;
+};
 
 const LS_KEY = "admin_profile_active_section";
 
 export default function AdminProfilePage() {
   const [user, setUser] = useState<AdminUser | null>(null);
-  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [openAvatar, setOpenAvatar] = useState(false);
 
-  function setSection(section: string) {
+  // ✅ init từ localStorage ngay lần render đầu (không cần useEffect)
+  const [activeSection, setActiveSection] = useState<string>(() => {
+    try {
+      return localStorage.getItem(LS_KEY) ?? "profile";
+    } catch {
+      return "profile";
+    }
+  });
+
+  // ✅ stable handler
+  const setSection = useCallback((section: string) => {
     setActiveSection(section);
     try {
       localStorage.setItem(LS_KEY, section);
     } catch {}
-  }
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      setActiveSection(saved ?? "profile");
-    } catch {
-      setActiveSection("profile");
-    }
   }, []);
 
+  // ✅ fetch me với AbortController (đúng chuẩn, tránh request treo)
   useEffect(() => {
-    let alive = true;
+    const controller = new AbortController();
 
-    fetch("/api/admin/me", { credentials: "include" })
-      .then(async (r) => {
-        if (!r.ok) return null;
-        return r.json();
-      })
-      .then((data) => {
-        if (!alive) return;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/auth/me", {
+          credentials: "include",
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!r.ok) return;
+
+        const data = await r.json();
         setUser(data?.user ?? null);
-      })
-      .catch(() => {});
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") return;
+      }
+    })();
 
-    return () => {
-      alive = false;
-    };
+    return () => controller.abort();
   }, []);
+
   return (
     <div className={styles.page}>
       <AdminPageTitle title="Profile" subtitle="Manage Profile" />
+
       <aside className={styles.sidebar}>
         <div className={styles.profileBlock}>
           <div className={styles.avatarWrap}>
@@ -86,12 +96,14 @@ export default function AdminProfilePage() {
 
           <h3 className={styles.personName}>{user?.name ?? "—"}</h3>
         </div>
+
         <AvatarUploadModal
           open={openAvatar}
           onClose={() => setOpenAvatar(false)}
           currentImage={user?.image}
           onUploaded={(newUrl) => setUser((u) => (u ? { ...u, image: newUrl } : u))}
         />
+
         {/* Menu */}
         <nav className={styles.nav}>
           <div className={styles.navSection}>
@@ -232,7 +244,6 @@ export default function AdminProfilePage() {
 
       <aside className={styles.right}>
         <div className={styles.mapBg} aria-hidden="true" />
-
         <div className={styles.rightInner}></div>
       </aside>
     </div>

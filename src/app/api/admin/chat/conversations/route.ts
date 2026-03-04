@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuthUser } from "@/lib/auth/auth"; // bạn đổi sang requireAuthUser nếu chat user thường
+import { requireAdminAuthUser } from "@/lib/auth/auth";
+
+type UserProfile = {
+  firstName?: string | null;
+  lastName?: string | null;
+  username?: string | null;
+};
 
 type ConversationMemberRow = {
   userId: string | null;
@@ -8,7 +14,7 @@ type ConversationMemberRow = {
     id: string;
     email: string | null;
     image: string | null;
-    profile: any | null; // profile shape tuỳ schema, để any cho an toàn
+    profile: UserProfile | null;
   } | null;
 };
 
@@ -19,7 +25,7 @@ type ConversationMessageRow = {
   sender: {
     id: string;
     email: string | null;
-    profile: any | null;
+    profile: UserProfile | null;
   } | null;
 };
 
@@ -27,7 +33,6 @@ type ConversationRow = {
   id: string;
   type: "DIRECT" | "GROUP" | string;
   lastMessageAt: Date | null;
-
   updatedAt: Date;
   members: ConversationMemberRow[];
   messages: ConversationMessageRow[];
@@ -52,18 +57,24 @@ export async function GET() {
       },
     },
     take: 50,
-  })) as ConversationRow[];
+  })) as unknown as ConversationRow[];
 
   // Format giống UI của bạn
-  const chats = rows.map((c: ConversationRow) => {
+  const chats = rows.map((c) => {
     const last = c.messages[0];
-    const other = c.type === "DIRECT" ? c.members.find((m: ConversationMemberRow) => m.userId !== me.id)?.user : null;
+    const otherMember = c.type === "DIRECT" ? c.members.find((m) => m.userId !== me.id) : null;
+    const other = otherMember?.user;
+
+    const title = c.type === "DIRECT" ? (other?.profile?.firstName ?? other?.email ?? "Direct") : "Group";
+
+    const lastSenderProfile = last?.sender?.profile;
+    const lastSender = lastSenderProfile?.firstName ?? last?.sender?.email ?? "";
 
     return {
       id: c.id,
       type: c.type,
-      title: c.type === "DIRECT" ? (other?.profile?.firstName ?? other?.email ?? "Direct") : "Group",
-      lastSender: last?.sender?.profile?.firstName ?? last?.sender?.email ?? "",
+      title,
+      lastSender,
       lastText: last?.text ?? "",
       lastMessageAt: c.lastMessageAt,
       membersCount: c.members.length,
