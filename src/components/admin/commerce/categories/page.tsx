@@ -7,6 +7,7 @@ import { useModal } from "@/components/admin/shared/common/modal";
 import type { CategoryRow } from "@/services/commerce/categories/categories.service";
 import { slugify } from "@/services/commerce/categories/categories.service";
 import { useCategoriesStore } from "@/store/commerce/categories/categories.store";
+import { useSiteStore } from "@/store/site/site.store";
 
 /** ===== Tree Types ===== */
 type CategoryTreeNode = CategoryRow & { children: CategoryTreeNode[] };
@@ -69,7 +70,26 @@ export default function CategoriesPage() {
   const [createParentId, setCreateParentId] = useState<string | null>(null);
   const [createName, setCreateName] = useState("");
   const createInputRef = useRef<HTMLInputElement | null>(null);
+  const sites = useSiteStore((s) => s.sites);
+  const sitesLoading = useSiteStore((s) => s.loading);
+  const sitesErr = useSiteStore((s) => s.err);
+  const selectedSiteId = useSiteStore((s) => s.siteId);
+  const setSelectedSiteId = useSiteStore((s) => s.setSiteId);
+  const hydrateFromStorage = useSiteStore((s) => s.hydrateFromStorage);
+  const loadSites = useSiteStore((s) => s.loadSites);
 
+  useEffect(() => {
+    hydrateFromStorage();
+    loadSites();
+  }, [hydrateFromStorage, loadSites]);
+
+  // nếu bạn muốn đồng bộ siteId vào categories store:
+  useEffect(() => {
+    // ưu tiên site chọn từ dropdown
+    if (selectedSiteId) {
+      useCategoriesStore.setState({ siteId: selectedSiteId });
+    }
+  }, [selectedSiteId]);
   const patchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     return () => {
@@ -411,10 +431,34 @@ export default function CategoriesPage() {
             <div className={styles.brandTitleRow}>
               <div className={styles.brandTitle}>Categories</div>
 
-              <span className={styles.badge}>
+              <div className={styles.badge} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <i className="bi bi-globe2" />
-                {siteLoading ? "Loading site..." : siteId ? `Site: ${siteId.slice(0, 8)}…` : "No site"}
-              </span>
+
+                <select
+                  value={selectedSiteId || ""}
+                  onChange={(e) => setSelectedSiteId(e.target.value)}
+                  disabled={sitesLoading}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    color: "inherit",
+                    fontWeight: 700,
+                    cursor: sitesLoading ? "not-allowed" : "pointer",
+                    maxWidth: 220,
+                  }}
+                >
+                  <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
+
+                  {sites.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name ?? s.id} ({s.id})
+                    </option>
+                  ))}
+                </select>
+
+                {sitesErr ? <span style={{ marginLeft: 8, opacity: 0.8 }}>({sitesErr})</span> : null}
+              </div>
 
               {(loading || busy) && (
                 <span className={styles.badgeMuted}>

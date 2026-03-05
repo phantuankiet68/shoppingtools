@@ -77,6 +77,20 @@ function readCookie(name: string) {
   return m ? decodeURIComponent(m[1]) : "";
 }
 
+function getSiteIdClient(): string {
+  // 1) cookie (nếu đọc được)
+  const fromCookie = readCookie("siteId");
+  if (fromCookie) return fromCookie;
+
+  // 2) localStorage (khuyến nghị)
+  try {
+    const v = localStorage.getItem("siteId");
+    if (v && v.trim()) return v.trim();
+  } catch {}
+
+  return "";
+}
+
 export default function AdminProductsClient() {
   const [tab, setTab] = useState<"list" | "form">("list");
 
@@ -124,6 +138,11 @@ export default function AdminProductsClient() {
 
     try {
       const params = new URLSearchParams();
+      const siteId = readCookie("siteId"); // đọc cookie JS (nếu cookie không httpOnly)
+
+      if (!siteId) throw new Error("Missing siteId cookie. Please re-select site.");
+      params.set("siteId", siteId);
+
       if (f.q.trim()) params.set("q", f.q.trim());
       params.set("active", f.active);
 
@@ -139,14 +158,18 @@ export default function AdminProductsClient() {
       );
 
       if (f.categoryIds.length > 0) params.set("categoryIds", f.categoryIds.join(","));
-
       if (f.priceMin.trim()) params.set("priceMinCents", String(centsFromInput(f.priceMin)));
       if (f.priceMax.trim()) params.set("priceMaxCents", String(centsFromInput(f.priceMax)));
 
       params.set("page", "1");
       params.set("pageSize", "50");
 
-      const res = await fetch(`/api/admin/commerce/products?${params.toString()}`, { cache: "no-store", signal });
+      const res = await fetch(`/api/admin/commerce/products?${params.toString()}`, {
+        cache: "no-store",
+        signal,
+        credentials: "include",
+      });
+
       const json = await safeJson<ApiListResponse<ApiProduct>>(res);
       if (!res.ok) throw new Error(json?.error || "Failed to load products");
 

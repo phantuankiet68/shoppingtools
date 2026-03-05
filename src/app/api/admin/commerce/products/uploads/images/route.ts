@@ -50,7 +50,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ urls });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Upload failed" }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Upload failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

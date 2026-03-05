@@ -37,10 +37,12 @@ export default function ProductsList(props: {
   setBusy: (v: boolean) => void;
   afterMutate: () => void;
 }) {
-  const { items, filters, setFilters, loading, busy, error, onRefresh, onApply, onEdit } = props;
+  const { items, categories, filters, setFilters, loading, busy, error, onApply, onEdit } = props;
 
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [searchOpen, setSearchOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
   const blurTimer = useRef<number | null>(null);
 
   const filtered = useMemo(() => {
@@ -75,12 +77,11 @@ export default function ProductsList(props: {
   const suggestions = useMemo(() => {
     const q = (filters.q ?? "").trim().toLowerCase();
     if (!q) return [];
-    // lấy tối đa 6 gợi ý giống ảnh
     return items
       .filter((p) => {
         const name = (p.name ?? "").toLowerCase();
         const sku = (p.sku ?? "").toLowerCase();
-        const barcode = String((p as any).barcode ?? "").toLowerCase();
+        const barcode = String(p.barcode ?? "").toLowerCase();
         return name.includes(q) || sku.includes(q) || barcode.includes(q);
       })
       .slice(0, 6);
@@ -90,7 +91,11 @@ export default function ProductsList(props: {
     if (!confirm(`Deactivate “${p.name}”?`)) return;
     props.setBusy(true);
     try {
-      const res = await fetch(`/api/admin/commerce/products/${p.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/commerce/products/${p.id}`, {
+        method: "DELETE",
+        credentials: "include",
+        cache: "no-store",
+      });
       const json = await safeJson<ApiError>(res);
       if (!res.ok) throw new Error(json?.error || "Delete failed");
       props.afterMutate();
@@ -131,9 +136,15 @@ export default function ProductsList(props: {
     URL.revokeObjectURL(url);
   }
 
+  const activeCounts = useMemo(() => {
+    const active = filtered.filter((p) => p.isActive).length;
+    const inactive = filtered.length - active;
+    return { active, inactive, total: filtered.length };
+  }, [filtered]);
+
   return (
     <div className={styles.page}>
-      {/* Toolbar giống ảnh */}
+      {/* Toolbar */}
       <div className={styles.toolbar}>
         <div className={styles.toolbarLeft}>
           <div className={styles.searchWrap}>
@@ -151,12 +162,11 @@ export default function ProductsList(props: {
                 setSearchOpen(true);
               }}
               onBlur={() => {
-                // delay để click vào item dropdown không bị đóng ngay
                 blurTimer.current = window.setTimeout(() => setSearchOpen(false), 130);
               }}
             />
 
-            {/* Dropdown suggest giống ảnh */}
+            {/* Dropdown suggest */}
             {searchOpen && (filters.q ?? "").trim() && suggestions.length > 0 ? (
               <div className={styles.suggest} role="listbox" aria-label="Search suggestions">
                 <div className={styles.suggestHead}>
@@ -209,13 +219,14 @@ export default function ProductsList(props: {
             ) : null}
           </div>
 
-          {/* nút đỏ vuông như ảnh */}
+          {/* nút đỏ vuông: mở filter panel */}
           <button
             className={styles.redSquare}
             type="button"
             aria-label="Quick filters"
-            onClick={onRefresh}
+            onClick={() => setFiltersOpen((v) => !v)}
             disabled={loading || busy}
+            aria-expanded={filtersOpen}
           >
             <span aria-hidden>≡</span>
           </button>
@@ -234,15 +245,6 @@ export default function ProductsList(props: {
             <option value="PriceDesc">Price High → Low</option>
           </select>
 
-          {/* 2 select demo giống ảnh – nếu bạn chưa có field này trong Filters thì để nguyên UI thôi */}
-          <select className={styles.select} disabled>
-            <option>Collection Type</option>
-          </select>
-
-          <select className={styles.select} disabled>
-            <option>Price Range</option>
-          </select>
-
           <button className={styles.applyBtn} type="button" onClick={onApply} disabled={busy}>
             Apply
           </button>
@@ -258,6 +260,106 @@ export default function ProductsList(props: {
         </div>
       </div>
 
+      {/* Quick filters panel */}
+      {filtersOpen ? (
+        <div className={styles.card} style={{ marginTop: 12 }}>
+          <div className={styles.cardHead}>
+            <div className={styles.cardTitle}>
+              Quick filters{" "}
+              <span className={styles.pill}>
+                {activeCounts.total} total • {activeCounts.active} active • {activeCounts.inactive} inactive
+              </span>
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={() => {
+                  setFilters((s) => ({
+                    ...s,
+                    q: "",
+                    categoryIds: [],
+                    priceMin: "",
+                    priceMax: "",
+                    active: "all",
+                    sort: "Newest",
+                  }));
+                }}
+                disabled={busy}
+              >
+                Reset
+              </button>
+              <button type="button" className={styles.applyBtn} onClick={onApply} disabled={busy}>
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <div style={{ padding: 16, display: "grid", gap: 12, gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Status</div>
+              <select
+                className={styles.select}
+                value={filters.active}
+                onChange={(e) => setFilters((s) => ({ ...s, active: e.target.value as Filters["active"] }))}
+                disabled={busy}
+              >
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Category</div>
+              <select
+                className={styles.select}
+                value={filters.categoryIds?.[0] ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFilters((s) => ({ ...s, categoryIds: v ? [v] : [] }));
+                }}
+                disabled={busy}
+              >
+                <option value="">All categories</option>
+                {categories
+                  .filter((c) => c.isActive)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Min price</div>
+              <input
+                className={styles.searchInput}
+                value={filters.priceMin}
+                placeholder="0"
+                onChange={(e) => setFilters((s) => ({ ...s, priceMin: e.target.value }))}
+                inputMode="decimal"
+                disabled={busy}
+              />
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Max price</div>
+              <input
+                className={styles.searchInput}
+                value={filters.priceMax}
+                placeholder="9999"
+                onChange={(e) => setFilters((s) => ({ ...s, priceMax: e.target.value }))}
+                inputMode="decimal"
+                disabled={busy}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {error ? (
         <div className={styles.alertError} role="alert">
           <span className={styles.alertIcon} aria-hidden>
@@ -267,7 +369,7 @@ export default function ProductsList(props: {
         </div>
       ) : null}
 
-      {/* Table card giống ảnh */}
+      {/* Table card */}
       <section className={styles.card} aria-label="Products table">
         <div className={styles.cardHead}>
           <div className={styles.cardTitle}>
@@ -334,10 +436,10 @@ export default function ProductsList(props: {
                           <span className={styles.prodName}>{p.name}</span>
                           <span className={styles.prodSub}>
                             {p.sku ? <span className={styles.mono}>{p.sku}</span> : null}
-                            {(p as any).barcode ? (
+                            {p.barcode ? (
                               <>
                                 <span className={styles.dot}>•</span>
-                                <span className={styles.muted}>#{String((p as any).barcode)}</span>
+                                <span className={styles.muted}>#{String(p.barcode)}</span>
                               </>
                             ) : null}
                           </span>

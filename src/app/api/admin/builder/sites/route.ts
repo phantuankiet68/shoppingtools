@@ -96,8 +96,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(created, { status: 201 });
-  } catch (e: any) {
-    const msg = String(e?.message ?? "");
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? String(e.message) : "";
     if (msg.toLowerCase().includes("unique") || msg.toLowerCase().includes("constraint")) {
       return NextResponse.json({ error: "Domain already exists." }, { status: 409 });
     }
