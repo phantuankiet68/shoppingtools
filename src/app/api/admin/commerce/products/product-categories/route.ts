@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 import type { Prisma } from "@prisma/client";
 
-/* ----------------------------- utils ----------------------------- */
+/* ----------------------------- helpers ----------------------------- */
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
 
 function toInt(v: string | null, fallback: number) {
   const n = v ? Number(v) : NaN;
@@ -37,8 +41,13 @@ async function getSiteId(req: Request): Promise<string> {
   return String(cookieStore.get("siteId")?.value ?? "").trim();
 }
 
-function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+function orderByFromSort(sort: string) {
+  const s = sort.toLowerCase();
+  if (s === "nameasc" || s === "name_asc") return { name: "asc" } as const;
+  if (s === "namedesc" || s === "name_desc") return { name: "desc" } as const;
+  if (s === "newest") return { createdAt: "desc" } as const;
+  if (s === "oldest") return { createdAt: "asc" } as const;
+  return { sortOrder: "asc" } as const; // default: sort asc
 }
 
 async function ensureParentInSite(siteId: string, parentId: string) {
@@ -57,25 +66,16 @@ async function nextSortOrderForParent(siteId: string, parentId: string | null) {
   return (max._max.sortOrder ?? 0) + 10;
 }
 
-function orderByFromSort(sort: string) {
-  const s = sort.toLowerCase();
-  if (s === "nameasc" || s === "name_asc") return { name: "asc" } as const;
-  if (s === "newest") return { createdAt: "desc" } as const;
-  // default
-  return { sortOrder: "asc" } as const;
-}
-
 /* ----------------------------- GET ----------------------------- */
 /**
- * GET /api/admin/commerce/categories
+ * GET /api/admin/product-categories
  * Query:
- * - siteId=... (optional if cookie has siteId)
+ * - siteId=... (optional if cookie has)
  * - q=...
- * - sort=sortasc|nameasc|newest|countdesc
- * - tree=1
- * - lite=1
  * - parentId=... | null
- * - active=all|active|inactive  (nếu model có isActive)
+ * - sort=sortasc|nameasc|namedesc|newest|oldest|countdesc
+ * - tree=1 (return many items, ignore pagination)
+ * - lite=1 (return {id,name,count} only)
  * - page=1
  * - pageSize=200
  */
@@ -97,12 +97,11 @@ export async function GET(req: Request) {
     const lite = url.searchParams.get("lite") === "1";
 
     const parentIdRaw = url.searchParams.get("parentId");
-    const parentId = parentIdRaw == null || parentIdRaw === "" || parentIdRaw === "null" ? undefined : parentIdRaw;
-
-    const active = String(url.searchParams.get("active") ?? "all").toLowerCase();
+    const parentId =
+      parentIdRaw == null || parentIdRaw === "" || parentIdRaw === "null" ? undefined : String(parentIdRaw);
 
     const page = clamp(toInt(url.searchParams.get("page"), 1), 1, 1_000_000);
-    const pageSize = clamp(toInt(url.searchParams.get("pageSize"), 50), 1, 500);
+    const pageSize = clamp(toInt(url.searchParams.get("pageSize"), 200), 1, 500);
 
     const where: Prisma.ProductCategoryWhereInput = { siteId };
 
@@ -112,14 +111,6 @@ export async function GET(req: Request) {
 
     if (parentId !== undefined) {
       where.parentId = parentId;
-    }
-
-    // Nếu schema có isActive thì bật block này
-    // Nếu không có isActive -> xoá hẳn để khỏi lỗi type
-    if (active === "active") {
-      (where as Prisma.ProductCategoryWhereInput & { isActive?: boolean }).isActive = true;
-    } else if (active === "inactive") {
-      (where as Prisma.ProductCategoryWhereInput & { isActive?: boolean }).isActive = false;
     }
 
     const orderBy = orderByFromSort(sort);
@@ -143,7 +134,6 @@ export async function GET(req: Request) {
           createdAt: true,
           updatedAt: true,
           _count: { select: { products: true } },
-          // isActive: true, // nếu schema có
         },
       }),
       prisma.productCategory.count({ where }),
@@ -159,7 +149,6 @@ export async function GET(req: Request) {
       createdAt: x.createdAt,
       updatedAt: x.updatedAt,
       count: x._count.products,
-      // isActive: x.isActive, // nếu schema có
     }));
 
     if (sort === "countdesc") {
@@ -173,6 +162,7 @@ export async function GET(req: Request) {
         pageSize,
         total,
         totalPages: Math.ceil(total / pageSize),
+        siteId,
       });
     }
 
@@ -182,6 +172,7 @@ export async function GET(req: Request) {
       pageSize,
       total,
       totalPages: Math.ceil(total / pageSize),
+      siteId,
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "";
@@ -192,9 +183,8 @@ export async function GET(req: Request) {
 
 /* ----------------------------- POST ----------------------------- */
 /**
- * POST /api/admin/commerce/categories
+ * POST /api/admin/product-categories
  * body: { siteId?, name, slug?, parentId?, sortOrder? }
- * - siteId optional (fallback cookie)
  */
 export async function POST(req: Request) {
   try {
@@ -209,13 +199,12 @@ export async function POST(req: Request) {
     const b = body as Record<string, unknown>;
 
     const siteId = String(b.siteId ?? "").trim() || (await getSiteId(req));
-    if (!siteId) return jsonError("Site ID is required", 400);
+    if (!siteId) return jsonError("siteId is required", 400);
 
     const name = String(b.name ?? "").trim();
     if (!name) return jsonError("Category name is required", 400);
 
-    const rawSlug = String(b.slug ?? "").trim();
-    const slug = slugify(rawSlug || name);
+    const slug = slugify(String(b.slug ?? "").trim() || name);
     if (!slug) return jsonError("Slug is required", 400);
 
     const parentIdRaw = b.parentId;

@@ -113,6 +113,20 @@ DELETE: "/api/admin/template-files/delete",
 
 tôi muốn tách api constants/api.ts và hãy sử dụng vaf ghi lại file giúp tôi nhé
 
-@beautifulMention Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé
+@beautifulMention Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé. Cũng như là những bug dư thừa và nhưng khai báo không sử dụng có thể xóa đi giúp tôi nhé
 
-Select-String -Path "node_modules/@prisma/client/index.d.ts" -Pattern "conversation" -List | Select-Object -First 10
+Vậy bạn hãy sửa và thêm và ghi lại toàn bộ file nhé hiện tại tôi đã có
+import { useModal } from "@/components/admin/shared/common/modal";
+modal.success("Success", `Deleted “${current.name}” successfully.`);
+modal.error("Missing site", "Please select a site first.");
+onClick={() =>
+modal.confirmDelete(
+"Delete category?",
+`Delete “${active.name}”? This action cannot be undone.`,
+() => removeCategory(active.id),
+)
+}
+
+Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé và hãy chỉnh sửa các model cho phù hợp với phong cách chuyên nghiệp nhé
+
+hiện tại đang lỗi any bạn hãy sửa giúp tôi nhé Unexpected any. Specify a different type.eslint@typescript-eslint/no-explicit-any

@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const ProductBuilder = dynamic(() => import("@/components/admin/commerce/products/product/page"), { ssr: false });
+const ProductBuilder = dynamic(() => import("@/components/admin/commerce/products/page"), { ssr: false });
 
 export default function Page() {
   return (

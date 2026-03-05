@@ -158,7 +158,7 @@ function ensureBiIcon(icon?: string | null) {
 /* ================= Component ================= */
 export function Hero1({
   siteId = "sitea01",
-  categoryApiPath = "/api/admin/product-categories/sidebar-category",
+  categoryApiPath = "/api/admin/commerce/categories/sidebar-category",
   categoryBasePath = "/category",
   activeOnly = true,
   onlyRootCategories = true,
@@ -457,7 +457,7 @@ export const SHOP_HERO_GREEN_ONE: RegItem = {
 
     // API config (categories lấy từ API)
     siteId: "sitea01",
-    categoryApiPath: "/api/admin/product-categories/sidebar-category",
+    categoryApiPath: "/api/admin/commerce/categories/sidebar-category",
     categoryBasePath: "/category",
     activeOnly: true,
     onlyRootCategories: true,
@@ -488,7 +488,7 @@ export const SHOP_HERO_GREEN_ONE: RegItem = {
     const rightBanners = safeJson<RightBanner[]>(p.rightBanners);
 
     const siteId = String(p.siteId || "").trim() || "sitea01";
-    const categoryApiPath = String(p.categoryApiPath || "").trim() || "/api/admin/product-categories/sidebar-category";
+    const categoryApiPath = String(p.categoryApiPath || "").trim() || "/api/admin/commerce/categories/sidebar-category";
     const categoryBasePath = String(p.categoryBasePath || "").trim() || "/category";
 
     const activeOnly = String(p.activeOnly ?? "true").toLowerCase() !== "false" && String(p.activeOnly ?? "1") !== "0";

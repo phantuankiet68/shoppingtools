@@ -36,7 +36,7 @@ function buildTree(
     isActive: boolean;
     count: number;
   }>,
-  basePath: string
+  basePath: string,
 ): CatNode[] {
   const map = new Map<string, CatNode>();
 
@@ -72,7 +72,7 @@ function buildTree(
 }
 
 /**
- * GET /api/admin/product-categories/sidebar-category?siteId=sitea01&active=1&basePath=/category
+ * GET /api/admin/commerce/categories/sidebar-category?siteId=sitea01&active=1&basePath=/category
  *
  * - Nếu truyền siteId: KHÔNG lookup bảng Site (vì siteId không FK)
  * - Nếu không truyền siteId: cố gắng resolve theo domain (optional)
@@ -103,10 +103,7 @@ export async function GET(req: Request) {
 
     // Không có siteId thì báo rõ để client biết cần truyền
     if (!resolvedSiteId) {
-      return NextResponse.json(
-        { error: "Missing siteId. Please pass ?siteId=..." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing siteId. Please pass ?siteId=..." }, { status: 400 });
     }
 
     // 2) Query categories theo siteId

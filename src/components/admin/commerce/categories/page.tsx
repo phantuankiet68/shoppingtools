@@ -1,59 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/product/categories/categories.module.css";
+import styles from "@/styles/admin/commerce/categories/categories.module.css";
+import { useModal } from "@/components/admin/shared/common/modal";
 
-type ApiCategory = {
-  id: string;
-  parentId: string | null;
-  name: string;
-  slug: string;
-  isActive: boolean;
-  sort: number;
+import type { CategoryRow } from "@/services/commerce/categories/categories.service";
+import { slugify } from "@/services/commerce/categories/categories.service";
+import { useCategoriesStore } from "@/store/commerce/categories/categories.store";
 
-  icon: string | null;
-  coverImage: string | null;
-  seoTitle: string | null;
-  seoDesc: string | null;
-
-  count?: number;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-type CategoryRow = {
-  id: string;
-  parentId: string | null;
-  name: string;
-  slug: string;
-  enabled: boolean;
-  sort: number;
-
-  icon?: string;
-  coverImage?: string;
-  seoTitle?: string;
-  seoDesc?: string;
-
-  count?: number;
-};
-
+/** ===== Tree Types ===== */
 type CategoryTreeNode = CategoryRow & { children: CategoryTreeNode[] };
 
-function slugify(input: string) {
-  return String(input ?? "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function bySort(a: CategoryRow, b: CategoryRow) {
-  if (a.sort !== b.sort) return a.sort - b.sort;
+/** ===== Utils (UI-only) ===== */
+function bySortOrder(a: CategoryRow, b: CategoryRow) {
+  if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
   return a.name.localeCompare(b.name);
 }
 
@@ -68,80 +28,68 @@ function buildTree(rows: CategoryRow[]) {
   }
 
   const sortRec = (n: CategoryTreeNode) => {
-    n.children.sort(bySort);
+    n.children.sort(bySortOrder);
     n.children.forEach(sortRec);
   };
-  roots.sort(bySort);
-  roots.forEach(sortRec);
 
+  roots.sort(bySortOrder);
+  roots.forEach(sortRec);
   return roots;
 }
 
-async function jfetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-    cache: "no-store",
-  });
-
-  let json: any = {};
-  const text = await res.text().catch(() => "");
-  if (text) {
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = {};
-    }
-  }
-
-  if (!res.ok) {
-    const msg = (typeof json?.error === "string" && json.error) || "Request failed";
-    throw new Error(msg);
-  }
-  return json as T;
-}
-
 export default function CategoriesPage() {
-  const [rows, setRows] = useState<CategoryRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string>("");
-  const [q, setQ] = useState("");
-  const [activeId, setActiveId] = useState<string>("");
+  const modal = useModal();
 
-  const patchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const nextRowsRef = useRef<CategoryRow[]>([]);
+  /** ===== Store ===== */
+  const siteId = useCategoriesStore((s) => s.siteId);
+  const siteLoading = useCategoriesStore((s) => s.siteLoading);
+  const siteErr = useCategoriesStore((s) => s.siteErr);
 
+  const rows = useCategoriesStore((s) => s.rows);
+  const loading = useCategoriesStore((s) => s.loading);
+  const busy = useCategoriesStore((s) => s.busy);
+  const err = useCategoriesStore((s) => s.err);
+
+  const activeId = useCategoriesStore((s) => s.activeId);
+  const q = useCategoriesStore((s) => s.q);
+
+  const initSite = useCategoriesStore((s) => s.initSite);
+  const loadTree = useCategoriesStore((s) => s.loadTree);
+  const setActiveId = useCategoriesStore((s) => s.setActiveId);
+  const setQ = useCategoriesStore((s) => s.setQ);
+
+  const createOne = useCategoriesStore((s) => s.createOne);
+  const patchOne = useCategoriesStore((s) => s.patchOne);
+  const removeOne = useCategoriesStore((s) => s.removeOne);
+
+  /** ===== Local UI state ===== */
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
-
-  function isExpanded(id: string) {
-    return expanded.has(id);
-  }
-
-  function toggleExpand(id: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-  const activeIdRef = useRef<string>("");
-  useEffect(() => {
-    activeIdRef.current = activeId;
-  }, [activeId]);
-
-  const active = useMemo(() => rows.find((x) => x.id === activeId) || null, [rows, activeId]);
-  const tree = useMemo(() => buildTree(rows), [rows]);
-  const byId = useMemo(() => new Map(rows.map((r) => [r.id, r] as const)), [rows]);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createParentId, setCreateParentId] = useState<string | null>(null);
   const [createName, setCreateName] = useState("");
   const createInputRef = useRef<HTMLInputElement | null>(null);
+
+  const patchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (patchTimer.current) clearTimeout(patchTimer.current);
+    };
+  }, []);
+
+  /** ===== Init ===== */
+  useEffect(() => {
+    initSite();
+  }, [initSite]);
+
+  useEffect(() => {
+    if (!siteLoading && siteId) loadTree(siteId);
+  }, [siteLoading, siteId, loadTree]);
+
+  /** ===== Derived ===== */
+  const active = useMemo(() => rows.find((x) => x.id === activeId) || null, [rows, activeId]);
+  const byId = useMemo(() => new Map(rows.map((r) => [r.id, r] as const)), [rows]);
+  const tree = useMemo(() => buildTree(rows), [rows]);
 
   const filteredIds = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -152,6 +100,7 @@ export default function CategoriesPage() {
       if ((r.name + " " + r.slug).toLowerCase().includes(qq)) match.add(r.id);
     }
 
+    // include ancestors
     for (const id of Array.from(match)) {
       let cur = byId.get(id);
       while (cur?.parentId) {
@@ -165,21 +114,29 @@ export default function CategoriesPage() {
     return match;
   }, [rows, q, byId]);
 
+  useEffect(() => {
+    const qq = q.trim().toLowerCase();
+    if (!qq) return;
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      for (const id of filteredIds) next.add(id);
+      return next;
+    });
+  }, [q, filteredIds]);
+
   const flatSiblings = useMemo(() => {
     if (!active) return [];
     return rows
       .filter((x) => x.parentId === active.parentId)
       .slice()
-      .sort(bySort);
+      .sort(bySortOrder);
   }, [rows, active]);
 
   const PAGE_SIZE = 8;
   const [page, setPage] = useState(1);
 
-  const pageCount = useMemo(() => {
-    const total = flatSiblings.length;
-    return Math.max(1, Math.ceil(total / PAGE_SIZE));
-  }, [flatSiblings.length]);
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(flatSiblings.length / PAGE_SIZE)), [flatSiblings.length]);
+
   useEffect(() => {
     setPage(1);
   }, [active?.parentId]);
@@ -193,65 +150,26 @@ export default function CategoriesPage() {
     return flatSiblings.slice(start, start + PAGE_SIZE);
   }, [flatSiblings, page]);
 
-  async function loadTree() {
-    setLoading(true);
-    setErr("");
-    try {
-      const data = await jfetch<{ items: ApiCategory[] }>(
-        "/api/admin/product-categories?tree=1&sort=sortasc&pageSize=5000",
-      );
-
-      const mapped: CategoryRow[] = (data.items || []).map((c) => ({
-        id: c.id,
-        parentId: c.parentId,
-        name: c.name,
-        slug: c.slug,
-        enabled: !!c.isActive,
-        sort: c.sort ?? 0,
-        icon: c.icon ?? undefined,
-        coverImage: c.coverImage ?? undefined,
-        seoTitle: c.seoTitle ?? undefined,
-        seoDesc: c.seoDesc ?? undefined,
-        count: Number((c as any).count ?? (c as any)._count?.products ?? 0),
-      }));
-
-      mapped.sort(bySort);
-      setRows(mapped);
-
-      setActiveId((prev) => {
-        if (prev && mapped.some((x) => x.id === prev)) return prev;
-        return mapped[0]?.id || "";
-      });
-    } catch (e: any) {
-      setErr(e?.message || "Failed to load categories");
-      setRows([]);
-      setActiveId("");
-    } finally {
-      setLoading(false);
-    }
+  /** ===== Tree expand ===== */
+  function isExpanded(id: string) {
+    return expanded.has(id);
+  }
+  function toggleExpand(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
-  useEffect(() => {
-    loadTree();
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (patchTimer.current) clearTimeout(patchTimer.current);
-    };
-  }, []);
-
-  function select(id: string) {
-    setActiveId(id);
-  }
-
+  /** ===== Create ===== */
   function openCreate(parentId: string | null) {
     setCreateParentId(parentId);
     setCreateName("");
     setCreateOpen(true);
     setTimeout(() => createInputRef.current?.focus(), 0);
   }
-
   function closeCreate() {
     setCreateOpen(false);
     setCreateName("");
@@ -262,153 +180,128 @@ export default function CategoriesPage() {
     const name = createName.trim();
     if (!name) return;
 
-    setBusy(true);
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
+
     try {
-      const payload = {
-        siteId: localStorage.getItem("builder_site_id"),
-        name,
-        slug: slugify(name),
-        parentId: createParentId,
-        isActive: true,
-      };
+      // create via store (backend requires siteId handled in store)
+      const created = await createOne(createParentId, name);
 
-      const res = await jfetch<{ item: ApiCategory }>("/api/admin/product-categories", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      // ensure slug is normalized (store createOne may not slugify)
+      const s = slugify(name);
+      if (created.slug !== s) {
+        await patchOne(created.id, { slug: s });
+      }
 
-      const created = res.item;
-
-      const row: CategoryRow = {
-        id: created.id,
-        parentId: created.parentId,
-        name: created.name,
-        slug: created.slug,
-        enabled: created.isActive,
-        sort: created.sort ?? 0,
-        icon: created.icon ?? undefined,
-        coverImage: created.coverImage ?? undefined,
-        seoTitle: created.seoTitle ?? undefined,
-        seoDesc: created.seoDesc ?? undefined,
-        count: (created as any).count ?? 0,
-      };
-
-      setRows((prev) => [...prev, row]);
-      setActiveId(row.id);
+      modal.success("Success", `Created “${name}”.`);
       closeCreate();
-    } catch (e: any) {
-      alert(e?.message || "Create failed");
-    } finally {
-      setBusy(false);
+    } catch (e: unknown) {
+      const err = e as Error;
+      modal.error("Create failed", err?.message || "Create failed");
     }
   }
 
-  async function removeCategory(id: string) {
-    const current = rows.find((x) => x.id === id);
-    if (!current) return;
-
-    const hasChildren = rows.some((x) => x.parentId === id);
-    const ok = confirm(
-      hasChildren ? `Delete "${current.name}"? (children will become root)` : `Delete "${current.name}"?`,
-    );
-    if (!ok) return;
-
-    setBusy(true);
-    try {
-      await jfetch(`/api/admin/product-categories/${id}`, { method: "DELETE" });
-      setRows((prev) => {
-        const next = prev.filter((x) => x.id !== id).map((x) => (x.parentId === id ? { ...x, parentId: null } : x));
-        nextRowsRef.current = next;
-        return next;
-      });
-
-      setActiveId((prevActive) => {
-        if (prevActive !== id) return prevActive;
-        const next = nextRowsRef.current;
-        return next[0]?.id || "";
-      });
-    } catch (e: any) {
-      alert(e?.message || "Delete failed");
-    } finally {
-      setBusy(false);
+  /** ===== Patch (debounced) ===== */
+  function patchDebounced(id: string, patch: Partial<Pick<CategoryRow, "name" | "slug" | "parentId" | "sortOrder">>) {
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
     }
-  }
-
-  async function toggleEnabled(id: string) {
-    const cur = rows.find((x) => x.id === id);
-    if (!cur) return;
-
-    const nextEnabled = !cur.enabled;
-
-    setRows((prev) => prev.map((x) => (x.id === id ? { ...x, enabled: nextEnabled } : x)));
-
-    try {
-      await jfetch(`/api/admin/product-categories/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ isActive: nextEnabled }),
-      });
-    } catch (e: any) {
-      setRows((prev) => prev.map((x) => (x.id === id ? { ...x, enabled: cur.enabled } : x)));
-      alert(e?.message || "Update failed");
-    }
-  }
-
-  function patchActiveLocal(patch: Partial<CategoryRow>) {
-    if (!active) return;
-    setRows((prev) => prev.map((x) => (x.id === active.id ? { ...x, ...patch } : x)));
-  }
-  function patchActiveApiDebounced(patch: Record<string, any>) {
-    const id = activeIdRef.current;
-    if (!id) return;
 
     if (patchTimer.current) clearTimeout(patchTimer.current);
     patchTimer.current = setTimeout(async () => {
       try {
-        await jfetch(`/api/admin/product-categories/${id}`, {
-          method: "PATCH",
-          body: JSON.stringify(patch),
-        });
-      } catch (e: any) {
-        alert(e?.message || "Save failed");
-        loadTree();
+        await patchOne(id, patch);
+      } catch (e: unknown) {
+        const err = e as Error;
+        modal.error("Save failed", err?.message || "Save failed");
+        loadTree(siteId);
       }
     }, 350);
   }
 
-  function changeName(name: string) {
+  function changeName(v: string) {
     if (!active) return;
-    patchActiveLocal({ name });
-    patchActiveApiDebounced({ name: name.trim() });
+    const name = v;
+    // optimistic in store via patchOne; but we debounce to reduce requests:
+    // We'll do a tiny local optimistic by calling patchOne only in debounce.
+    // UI displays from store rows, so we should update store immediately:
+    useCategoriesStore.setState((s) => ({
+      rows: s.rows.map((x) => (x.id === active.id ? { ...x, name } : x)),
+    }));
+    patchDebounced(active.id, { name: name.trim() });
   }
 
-  function changeSlug(slug: string) {
+  function changeSlug(v: string) {
     if (!active) return;
-    const s = slugify(slug);
-    patchActiveLocal({ slug: s });
-    patchActiveApiDebounced({ slug: s });
+    const s = slugify(v);
+    useCategoriesStore.setState((st) => ({
+      rows: st.rows.map((x) => (x.id === active.id ? { ...x, slug: s } : x)),
+    }));
+    patchDebounced(active.id, { slug: s });
   }
 
   function moveParent(newParentId: string | null) {
     if (!active) return;
     if (newParentId === active.id) return;
 
-    patchActiveLocal({ parentId: newParentId });
-    patchActiveApiDebounced({ parentId: newParentId });
+    useCategoriesStore.setState((st) => ({
+      rows: st.rows.map((x) => (x.id === active.id ? { ...x, parentId: newParentId } : x)),
+    }));
+    patchDebounced(active.id, { parentId: newParentId });
   }
 
   function autoSlugFromName() {
     if (!active) return;
     const s = slugify(active.name);
-    patchActiveLocal({ slug: s });
-    patchActiveApiDebounced({ slug: s });
+    useCategoriesStore.setState((st) => ({
+      rows: st.rows.map((x) => (x.id === active.id ? { ...x, slug: s } : x)),
+    }));
+    patchDebounced(active.id, { slug: s });
   }
 
+  function changeSortOrder(v: number) {
+    if (!active) return;
+    const n = Math.trunc(Number(v));
+    const sortOrder = Number.isFinite(n) ? n : 0;
+
+    useCategoriesStore.setState((st) => ({
+      rows: st.rows.map((x) => (x.id === active.id ? { ...x, sortOrder } : x)),
+    }));
+    patchDebounced(active.id, { sortOrder });
+  }
+
+  /** ===== Delete ===== */
+  function askDelete(id: string, name: string) {
+    modal.confirmDelete("Delete category?", `Delete “${name}”? This action cannot be undone.`, async () => {
+      if (!siteId) {
+        modal.error("Missing site", "Please select a site first.");
+        return;
+      }
+      try {
+        await removeOne(id);
+        modal.success("Success", `Deleted “${name}” successfully.`);
+      } catch (e: unknown) {
+        const err = e as Error;
+        modal.error("Delete failed", err?.message || "Delete failed");
+      }
+    });
+  }
+
+  /** ===== Drag reorder within same parent ===== */
   const [dragId, setDragId] = useState<string | null>(null);
+
   function onDragStart(id: string) {
     setDragId(id);
   }
 
   async function onDrop(targetId: string) {
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
     if (!active) return;
     if (!dragId || dragId === targetId) return;
 
@@ -417,7 +310,7 @@ export default function CategoriesPage() {
     const sibs = rows
       .filter((x) => x.parentId === parentId)
       .slice()
-      .sort(bySort);
+      .sort(bySortOrder);
 
     const from = sibs.findIndex((x) => x.id === dragId);
     const to = sibs.findIndex((x) => x.id === targetId);
@@ -427,48 +320,33 @@ export default function CategoriesPage() {
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
 
-    const sortMap = new Map(next.map((x, i) => [x.id, (i + 1) * 10]));
-    const changedEntries = Array.from(sortMap.entries()).filter(([id, sort]) => {
-      const before = rows.find((r) => r.id === id)?.sort ?? 0;
-      return before !== sort;
+    const sortMap = new Map(next.map((x, i) => [x.id, (i + 1) * 10] as const));
+    const changed = Array.from(sortMap.entries()).filter(([id, so]) => {
+      const before = rows.find((r) => r.id === id)?.sortOrder ?? 0;
+      return before !== so;
     });
 
-    setRows((prev) => prev.map((x) => (sortMap.has(x.id) ? { ...x, sort: sortMap.get(x.id)! } : x)));
-    setDragId(null);
+    // optimistic reorder in store (no extra local state)
+    useCategoriesStore.setState((st) => ({
+      rows: st.rows.map((x) => (sortMap.has(x.id) ? { ...x, sortOrder: sortMap.get(x.id)! } : x)),
+    }));
 
-    if (changedEntries.length === 0) return;
+    setDragId(null);
+    if (changed.length === 0) return;
 
     try {
-      setBusy(true);
-      await Promise.all(
-        changedEntries.map(([id, sort]) =>
-          jfetch(`/api/admin/product-categories/${id}`, {
-            method: "PATCH",
-            body: JSON.stringify({ sort }),
-          }),
-        ),
-      );
-    } catch (e: any) {
-      alert(e?.message || "Reorder failed");
-      loadTree();
-    } finally {
-      setBusy(false);
+      await Promise.all(changed.map(([id, sortOrder]) => patchOne(id, { sortOrder })));
+      modal.success("Success", "Reordered successfully.");
+    } catch (e: unknown) {
+      const err = e as Error;
+      modal.error("Reorder failed", err?.message || "Reorder failed");
+      loadTree(siteId);
     }
   }
 
-  useEffect(() => {
-    const qq = q.trim().toLowerCase();
-    if (!qq) return;
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      for (const id of filteredIds) next.add(id);
-      return next;
-    });
-  }, [q, filteredIds]);
-
+  /** ===== Tree Node ===== */
   function TreeNode({ node, depth }: { node: CategoryTreeNode; depth: number }) {
-    const show = filteredIds.has(node.id);
-    if (!show) return null;
+    if (!filteredIds.has(node.id)) return null;
 
     const isActiveNode = node.id === activeId;
     const hasChildren = (node.children?.length || 0) > 0;
@@ -496,16 +374,15 @@ export default function CategoriesPage() {
           <button
             type="button"
             className={`${styles.treeBtn} ${isActiveNode ? styles.treeActive : ""}`}
-            onClick={() => select(node.id)}
+            onClick={() => setActiveId(node.id)}
             style={{ paddingLeft: 10 + depth * 14 }}
           >
             <div className={styles.treeGroup}>
-              <i className={`bi ${node.icon || "bi-folder2"}`} />
+              <i className="bi bi-folder2" />
               <span className={styles.treeName}>{node.name}</span>
             </div>
-            <span className={styles.treeCount}>{Number(node.count ?? 0)}</span>
 
-            {!node.enabled && <span className={styles.badgeOff}>OFF</span>}
+            <span className={styles.treeCount}>{Number(node.count ?? 0)}</span>
           </button>
         </div>
 
@@ -520,58 +397,103 @@ export default function CategoriesPage() {
     );
   }
 
+  /** ===== Render ===== */
   return (
     <div className={styles.shell}>
+      {/* HEADER */}
       <header className={styles.topbar}>
         <div className={styles.brand}>
-          <span className={styles.brandDot} />
+          <div className={styles.brandMark} aria-hidden="true">
+            <i className="bi bi-diagram-3" />
+          </div>
+
           <div className={styles.brandText}>
-            <div className={styles.brandTitle}>Categories</div>
-            <div className={styles.brandSub}>Tree · Sort · SEO · Enable/Disable</div>
+            <div className={styles.brandTitleRow}>
+              <div className={styles.brandTitle}>Categories</div>
+
+              <span className={styles.badge}>
+                <i className="bi bi-globe2" />
+                {siteLoading ? "Loading site..." : siteId ? `Site: ${siteId.slice(0, 8)}…` : "No site"}
+              </span>
+
+              {(loading || busy) && (
+                <span className={styles.badgeMuted}>
+                  <i className="bi bi-arrow-repeat" /> Syncing
+                </span>
+              )}
+            </div>
+
+            <div className={styles.brandSub}>
+              Tree · Sort order · Parent linking
+              <span className={styles.dot} />
+              <span className={styles.hint}>Tip: drag to reorder within parent</span>
+            </div>
           </div>
         </div>
 
-        <div className={styles.topActions}>
-          <button className={styles.ghostBtn} type="button" onClick={() => loadTree()} disabled={busy || loading}>
-            <i className="bi bi-arrow-repeat" /> Refresh
-          </button>
-          <button
-            className={styles.primaryBtn}
-            type="button"
-            onClick={() => openCreate(active?.parentId ?? null)}
-            disabled={busy}
-          >
-            <i className="bi bi-plus-lg" /> Add sibling
-          </button>
+        <div className={styles.actions}>
+          <div className={styles.searchWrapTop}>
+            <i className="bi bi-search" />
+            <input
+              className={styles.searchTop}
+              placeholder={siteLoading ? "Loading..." : "Search categories..."}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              disabled={siteLoading || !siteId}
+            />
+            {q.trim() && (
+              <button className={styles.clearBtn} type="button" onClick={() => setQ("")} aria-label="Clear search">
+                <i className="bi bi-x-lg" />
+              </button>
+            )}
+          </div>
+
+          <div className={styles.actionBtns}>
+            <button
+              className={styles.ghostBtn}
+              type="button"
+              onClick={() => (siteId ? loadTree(siteId) : initSite())}
+              disabled={busy || loading || siteLoading}
+            >
+              <i className={`bi bi-arrow-repeat ${loading ? styles.spin : ""}`} /> Refresh
+            </button>
+
+            <button
+              className={styles.primaryBtn}
+              type="button"
+              onClick={() => openCreate(active?.parentId ?? null)}
+              disabled={busy || siteLoading || !siteId}
+            >
+              <i className="bi bi-plus-lg" />
+              <span>Add sibling</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      {err && (
+      {(siteErr || err) && (
         <div className={styles.pageError}>
           <i className="bi bi-exclamation-triangle" />
-          <span>{err}</span>
+          <span>{siteErr || err}</span>
         </div>
       )}
 
+      {/* BODY */}
       <div className={styles.body}>
+        {/* SIDEBAR TREE */}
         <aside className={styles.sidebar}>
-          <div className={styles.sidebarHeader}>
-            <div className={styles.sidebarTitle}>Category tree</div>
-          </div>
-
-          <div className={styles.searchWrap}>
-            <i className="bi bi-search" />
-            <input
-              className={styles.search}
-              placeholder={loading ? "Loading..." : "Search name / slug..."}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
           <div className={styles.tree}>
-            {loading ? (
+            {siteLoading ? (
+              <div className={styles.loadingBox}>
+                <i className="bi bi-arrow-repeat" />
+                <span>Loading site...</span>
+              </div>
+            ) : !siteId ? (
+              <div className={styles.loadingBox}>
+                <i className="bi bi-exclamation-triangle" />
+                <span>No site selected.</span>
+              </div>
+            ) : loading ? (
               <div className={styles.loadingBox}>
                 <i className="bi bi-arrow-repeat" />
                 <span>Loading categories...</span>
@@ -589,13 +511,15 @@ export default function CategoriesPage() {
           <div className={styles.sidebarFooter}>
             <div className={styles.tip}>
               <i className="bi bi-lightbulb" />
-              <span>Tip: Drag sort is applied in "Order within parent".</span>
+              <span>Tip: Drag sort is applied in Order within parent.</span>
             </div>
           </div>
         </aside>
 
+        {/* MAIN */}
         <main className={styles.main}>
           <div className={styles.content}>
+            {/* LIST PANEL */}
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
@@ -608,12 +532,13 @@ export default function CategoriesPage() {
                     className={styles.ghostBtn}
                     type="button"
                     onClick={() => openCreate(active?.id ?? null)}
-                    disabled={!active || busy}
+                    disabled={!active || busy || siteLoading || !siteId}
                   >
                     <i className="bi bi-node-plus" /> Add child
                   </button>
                 </div>
               </div>
+
               <div className={styles.pagerBar}>
                 <div className={styles.pagerLeft}>
                   <span className={styles.pagerLabel}>Showing</span>
@@ -675,7 +600,7 @@ export default function CategoriesPage() {
                         onDragStart={() => onDragStart(c.id)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={() => onDrop(c.id)}
-                        onClick={() => select(c.id)}
+                        onClick={() => setActiveId(c.id)}
                         role="button"
                         tabIndex={0}
                       >
@@ -685,25 +610,18 @@ export default function CategoriesPage() {
                           </span>
 
                           <span className={styles.itemIcon}>
-                            <i className={`bi ${c.icon || "bi-tag"}`} />
+                            <i className="bi bi-tag" />
                           </span>
 
                           <div className={styles.itemText}>
-                            <div className={styles.itemTitle}>
-                              {c.name}
-                              {!c.enabled && <span className={styles.badgeOff}>OFF</span>}
-                            </div>
+                            <div className={styles.itemTitle}>{c.name}</div>
 
                             <div className={styles.itemMeta}>
-                              <span className={styles.mono}>sort {c.sort}</span>
+                              <span className={styles.mono}>sortOrder {c.sortOrder}</span>
                               <span className={styles.dot}>•</span>
                               <span className={styles.mono}>/{c.slug}</span>
-                              {typeof c.count === "number" ? (
-                                <>
-                                  <span className={styles.dot}>•</span>
-                                  <span className={styles.mono}>{c.count} products</span>
-                                </>
-                              ) : null}
+                              <span className={styles.dot}>•</span>
+                              <span className={styles.mono}>{c.count} products</span>
                             </div>
                           </div>
                         </div>
@@ -712,17 +630,8 @@ export default function CategoriesPage() {
                           <button
                             className={styles.iconBtn}
                             type="button"
-                            title="Toggle"
-                            onClick={() => toggleEnabled(c.id)}
-                            disabled={busy}
-                          >
-                            <i className={`bi ${c.enabled ? "bi-eye" : "bi-eye-slash"}`} />
-                          </button>
-                          <button
-                            className={styles.iconBtn}
-                            type="button"
                             title="Delete"
-                            onClick={() => removeCategory(c.id)}
+                            onClick={() => askDelete(c.id, c.name)}
                             disabled={busy}
                           >
                             <i className="bi bi-trash" />
@@ -735,6 +644,7 @@ export default function CategoriesPage() {
               </div>
             </section>
 
+            {/* INSPECTOR */}
             <aside className={styles.inspector}>
               <div className={styles.panel}>
                 {!active ? (
@@ -757,20 +667,10 @@ export default function CategoriesPage() {
                             <i className="bi bi-link-45deg" /> /{active.slug}
                           </span>
                           <span className={styles.badge}>
-                            <i className="bi bi-toggle2-on" /> {active.enabled ? "enabled" : "disabled"}
+                            <i className="bi bi-sort-numeric-down" /> sortOrder {active.sortOrder}
                           </span>
                         </div>
                       </div>
-
-                      <button
-                        className={styles.iconBtn}
-                        type="button"
-                        title="Toggle enabled"
-                        onClick={() => toggleEnabled(active.id)}
-                        disabled={busy}
-                      >
-                        <i className={`bi ${active.enabled ? "bi-toggle2-on" : "bi-toggle2-off"}`} />
-                      </button>
                     </div>
 
                     <div className={styles.form}>
@@ -817,7 +717,7 @@ export default function CategoriesPage() {
                           {rows
                             .filter((x) => x.id !== active.id)
                             .slice()
-                            .sort(bySort)
+                            .sort(bySortOrder)
                             .map((x) => (
                               <option key={x.id} value={x.id}>
                                 {x.name} (/ {x.slug})
@@ -826,88 +726,44 @@ export default function CategoriesPage() {
                         </select>
                       </div>
 
-                      <label className={styles.label}>Icon (Bootstrap)</label>
+                      <label className={styles.label}>Sort order</label>
                       <div className={styles.inputWrap}>
-                        <i className="bi bi-bootstrap" />
+                        <i className="bi bi-sort-numeric-down" />
                         <input
                           className={styles.input}
-                          value={active.icon ?? ""}
-                          onChange={(e) => {
-                            const v = e.target.value.trim();
-                            patchActiveLocal({ icon: v });
-                            patchActiveApiDebounced({ icon: v || null });
-                          }}
-                          placeholder="e.g. bi-tag"
+                          type="number"
+                          value={Number.isFinite(active.sortOrder) ? active.sortOrder : 0}
+                          onChange={(e) => changeSortOrder(Number(e.target.value))}
                           disabled={busy}
                         />
                       </div>
-
-                      <label className={styles.label}>Cover image URL (optional)</label>
-                      <div className={styles.inputWrap}>
-                        <i className="bi bi-image" />
-                        <input
-                          className={styles.input}
-                          value={active.coverImage ?? ""}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            patchActiveLocal({ coverImage: v });
-                            patchActiveApiDebounced({ coverImage: v || null });
-                          }}
-                          placeholder="https://..."
-                          disabled={busy}
-                        />
-                      </div>
-
-                      <div className={styles.sectionTitle}>
-                        <i className="bi bi-megaphone" /> SEO
-                      </div>
-
-                      <label className={styles.label}>SEO title</label>
-                      <input
-                        className={styles.inputPlain}
-                        value={active.seoTitle ?? ""}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          patchActiveLocal({ seoTitle: v });
-                          patchActiveApiDebounced({ seoTitle: v || null });
-                        }}
-                        placeholder="Optional"
-                        disabled={busy}
-                      />
-
-                      <label className={styles.label}>SEO description</label>
-                      <textarea
-                        className={styles.textarea}
-                        value={active.seoDesc ?? ""}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          patchActiveLocal({ seoDesc: v });
-                          patchActiveApiDebounced({ seoDesc: v || null });
-                        }}
-                        placeholder="Optional"
-                        disabled={busy}
-                      />
 
                       <div className={styles.actions}>
-                        <button className={styles.primaryBtn} type="button" onClick={() => loadTree()} disabled={busy}>
+                        <button
+                          className={styles.primaryBtn}
+                          type="button"
+                          onClick={() => loadTree(siteId)}
+                          disabled={busy || !siteId}
+                        >
                           <i className="bi bi-save2" /> Reload
                         </button>
 
                         <button
-                          className={`${styles.ghostBtn} ${styles.dangerBtn}`}
+                          className={styles.iconBtn}
                           type="button"
-                          onClick={() => removeCategory(active.id)}
+                          title="Delete"
+                          onClick={() => askDelete(active.id, active.name)}
                           disabled={busy}
                         >
-                          <i className="bi bi-trash" /> Delete
+                          <i className="bi bi-trash" />
                         </button>
                       </div>
 
                       <div className={styles.tipInline}>
                         <i className="bi bi-lightbulb" />
                         <span>
-                          When connecting to the DB: index <span className={styles.mono}>parentId, sort</span> To load
-                          the tree quickly.
+                          DB index gợi ý: <span className={styles.mono}>parentId</span>,{" "}
+                          <span className={styles.mono}>sortOrder</span> để load tree nhanh.
                         </span>
                       </div>
                     </div>
@@ -919,6 +775,7 @@ export default function CategoriesPage() {
         </main>
       </div>
 
+      {/* CREATE MODAL */}
       {createOpen && (
         <div
           className={styles.modalOverlay}

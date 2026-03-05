@@ -32,12 +32,14 @@
   gap: 2px;
 }
 .brandTitle {
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-size: 23px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-title);
 }
 .brandSub {
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.6);
+  color: var(--text);
 }
 
 .topActions {
@@ -78,7 +80,7 @@
 .searchWrap i {
   position: absolute;
   left: 26px;
-  top: 43%;
+  top: 50%;
   transform: translateY(-50%);
   color: rgba(15, 23, 42, 0.6);
 }
@@ -88,8 +90,9 @@
   border-radius: 6px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   outline: none;
-  font-size: 14px;
+  font-size: 13px;
   background: #fff;
+  margin-top: 10px;
 }
 .search:focus {
   border-color: rgba(47, 123, 255, 0.55);
@@ -101,10 +104,11 @@
   gap: 6px;
   padding: 0 10px 14px;
   display: flex;
-  height: 65vh;
+  height: 72vh;
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  margin-top: 10px;
 }
 
 .tree::-webkit-scrollbar {
@@ -240,8 +244,8 @@
   padding: 10px;
 }
 .panelTitle {
-  font-weight: 900;
-  color: #f0874f;
+  font-weight: 600;
+  color: var(--text-title);
   font-size: 17px;
 }
 .panelSub {
@@ -275,7 +279,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 12px 10px;
-  border-radius: 16px;
+  border-radius: 8px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   background: #fff;
   cursor: pointer;
@@ -401,6 +405,7 @@
 .headTitle {
   font-weight: 600;
   font-size: 14px;
+  color: var(--text-title);
 }
 .headMeta {
   margin-top: 6px;
@@ -412,7 +417,7 @@
 
 .form {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   margin-top: 6px;
 }
 
@@ -436,9 +441,9 @@
 .input,
 .select {
   width: 100%;
-  padding: 6px 12px 6px 38px;
+  padding: 10px 12px 10px 38px;
   border-radius: 6px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--line);
   outline: none;
   font-size: 14px;
   background: #fff;
@@ -509,7 +514,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 12px;
+  padding: 10px 12px;
   border-radius: 6px;
   color: #18ad5c;
   cursor: pointer;
@@ -529,7 +534,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 10px 12px;
   border-radius: 6px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #fff;
@@ -660,10 +665,9 @@
   margin: 10px 12px 0;
 
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 14px;
+  border-radius: 8px;
 
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.86));
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
   backdrop-filter: blur(8px);
 }
 
@@ -776,10 +780,7 @@
 }
 
 .treeCaret {
-  width: 30px;
-  min-width: 30px;
   height: 30px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
   background: rgba(255, 255, 255, 0.7);
   border-radius: 6px;
   display: inline-flex;
@@ -789,6 +790,11 @@
   transition:
     transform 0.12s ease,
     background 0.12s ease;
+}
+
+.treeCaret i {
+  font-size: 14px;
+  color: rgba(66, 118, 239, 0.7);
 }
 
 .treeCaret:hover {
@@ -802,4 +808,183 @@
 .treeCaretPlaceholder {
   width: 30px;
   min-width: 30px;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 12px 16px;
+
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.brandMark {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(59, 130, 246, 0.12));
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.brandMark i {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brandTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.brandSub {
+  font-size: 13px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.35);
+  display: inline-block;
+}
+
+.hint {
+  opacity: 0.85;
+}
+
+.badge,
+.badgeMuted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.03);
+  color: var(--muted);
+}
+
+.badgeMuted {
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.searchWrapTop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  min-width: 260px;
+  max-width: 420px;
+  width: 40%;
+}
+
+.searchWrapTop i {
+  opacity: 0.65;
+}
+
+.searchTop {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 13px;
+}
+
+.clearBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.clearBtn:hover {
+  opacity: 0.9;
+}
+
+.actionBtns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* icon spin when loading */
+.spin {
+  display: inline-block;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive: nhỏ thì ẩn search hoặc full width */
+@media (max-width: 900px) {
+  .actions {
+    gap: 10px;
+  }
+  .searchWrapTop {
+    width: 100%;
+    min-width: 200px;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actions {
+    justify-content: space-between;
+  }
+  .searchWrapTop {
+    width: 100%;
+    max-width: none;
+  }
 }

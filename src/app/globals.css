@@ -39,6 +39,7 @@
   /* Page background (admin) */
   --bg-page: #f7f9ff;
   --bg-primary: linear-gradient(135deg, #2bb5ff, #26bbff);
+  --bg-soft: linear-gradient(135deg, #f3f3f3, #f3f3f3);
 }
 
 html {

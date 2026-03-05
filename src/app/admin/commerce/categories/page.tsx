@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const CategoriesBuilder = dynamic(() => import("@/components/admin/commerce/products/categories/page"), { ssr: false });
+const CategoriesBuilder = dynamic(() => import("@/components/admin/commerce/categories/page"), { ssr: false });
 
 export default function Page() {
   return (

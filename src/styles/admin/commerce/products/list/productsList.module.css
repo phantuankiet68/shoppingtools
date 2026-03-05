@@ -1,0 +1,503 @@
+.page {
+  background: #f6f7fb;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ===== Toolbar giống ảnh ===== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 320px;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.searchWrap {
+  position: relative;
+  width: 360px;
+  max-width: 520px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 46%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 25px;
+}
+
+.searchInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px 0 34px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  outline: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.searchInput:focus {
+  border-color: #dbe3ff;
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.1),
+    0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+/* nút đỏ vuông cạnh search */
+.redSquare {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 0;
+  background: #ff4d5a;
+  color: #fff;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.redSquare:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* selects bên phải */
+.select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #334155;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.iconBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #edf0f6;
+  background: #fff;
+  cursor: pointer;
+  color: #64748b;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.applyBtn,
+.exportBtn {
+  height: 37px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  padding: 6px 20px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.applyBtn {
+  color: #fff;
+  background: linear-gradient(#3bbbf6, #25adeb);
+  border-color: #ffffff40;
+}
+
+.exportBtn {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+/* ===== Dropdown suggest giống ảnh ===== */
+.suggest {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: 360px;
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+  z-index: 30;
+}
+
+.suggestHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px 8px;
+  color: #475569;
+}
+
+.suggestDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #111827;
+  opacity: 0.25;
+}
+
+.suggestTitle {
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.suggestList {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.suggestItem {
+  border: 0;
+  background: #fff;
+  padding: 8px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.suggestItem:hover {
+  background: #f6f8ff;
+}
+
+.suggestThumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid #eef2f7;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.suggestImg {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+}
+
+.suggestEmpty {
+  width: 18px;
+  height: 18px;
+  border-radius: 8px;
+  background: #e2e8f0;
+}
+
+.suggestMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.suggestName {
+  font-weight: 900;
+  font-size: 13px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestSub {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.suggestFoot {
+  padding: 10px 12px 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.suggestMore {
+  font-size: 12px;
+  font-weight: 900;
+  color: #64748b;
+}
+
+/* ===== Alerts ===== */
+.alertError {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+  padding: 10px 12px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+
+.alertIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffe4e6;
+  border: 1px solid #fecdd3;
+  font-weight: 900;
+}
+
+.alertText {
+  font-weight: 800;
+}
+
+/* ===== Card + Table giống ảnh ===== */
+.card {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cardHead {
+  padding: 14px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cardTitle {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--text-title);
+}
+
+.pill {
+  color: #334155;
+  background: #f1f5f9;
+  border: 1px solid #eef2f7;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.checkAll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.emptyState {
+  padding: 18px 14px;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tableWrap {
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+  padding: 12px 14px;
+  background: #fbfcff;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table tbody td {
+  padding: 16px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: #fafbff;
+}
+
+.thCheckbox {
+  width: 44px;
+}
+.thActions {
+  width: 160px;
+}
+.thRight {
+  text-align: right;
+}
+.tdRight {
+  text-align: right;
+}
+.tdCheckbox {
+  width: 44px;
+}
+
+/* Product cell */
+.prodCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 320px;
+}
+
+.thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid #eef2f7;
+  background: #f1f5f9;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbImg {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+}
+
+.thumbEmpty {
+  width: 22px;
+  height: 22px;
+  border-radius: 10px;
+  background: #e2e8f0;
+}
+
+.prodInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.prodName {
+  font-weight: 950;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prodSub {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-weight: 750;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.dot {
+  color: #cbd5e1;
+}
+.muted {
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+/* Category chip */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  border: 1px solid #eef2f7;
+  font-size: 12px;
+  font-weight: 950;
+  color: #475569;
+}
+
+/* Status badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 950;
+  border: 1px solid transparent;
+}
+
+.badgeOk {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #065f46;
+}
+
+.badgeOff {
+  background: #f1f5f9;
+  border-color: #eef2f7;
+  color: #64748b;
+}
+
+/* Actions giống ảnh: edit pill + more */
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.actionBtn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid #eef2f7;
+  background: #f8fafc;
+  font-weight: 950;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.moreBtn {
+  width: 38px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid #eef2f7;
+  background: #fff;
+  font-weight: 950;
+  cursor: pointer;
+  color: #64748b;
+}
