@@ -130,3 +130,5 @@ modal.confirmDelete(
 Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé và hãy chỉnh sửa các model cho phù hợp với phong cách chuyên nghiệp nhé
 
 hiện tại đang lỗi any bạn hãy sửa giúp tôi nhé Unexpected any. Specify a different type.eslint@typescript-eslint/no-explicit-any
+
+Hiện tại Ui đang rất xấu và chưa có category bạn có thể giúp tôi độ lại design màu sáng với phong cách mới mẽ và có sort cho theader cho table nếu có thể hãy thêm những chức năng search khác nhé để tiện lợi chuyên sâu hơn cho người sử dụng nếu có thể hãy trích xuất những dữ liệu cần thiết vào theader bảng nhé

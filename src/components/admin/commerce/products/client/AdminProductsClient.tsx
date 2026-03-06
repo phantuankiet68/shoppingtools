@@ -1,13 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/commerce/products/products.module.css";
 import ProductsList from "@/components/admin/commerce/products/list/ProductsList";
 import ProductForm from "@/components/admin/commerce/products/add/ProductForm";
+import { useSiteStore } from "@/store/site/site.store";
 
-/** ========== Types (rút gọn từ bạn) ========== */
-type ApiImage = { id?: string; url: string; isCover?: boolean; sort?: number };
-type ApiCategory = { id: string; name: string; isActive: boolean; count?: number };
+type ApiImage = {
+  id?: string;
+  url: string;
+  isCover?: boolean;
+  sort?: number;
+};
+
+type ApiCategory = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  count?: number;
+};
+
 export type ApiProduct = {
   id: string;
   name: string;
@@ -24,9 +36,22 @@ export type ApiProduct = {
   createdAt: string;
   updatedAt: string;
   images?: ApiImage[];
+  status?: string;
 };
 
-type SortKey = "Newest" | "PriceAsc" | "PriceDesc" | "NameAsc";
+export type SortKey =
+  | "Newest"
+  | "Oldest"
+  | "NameAsc"
+  | "NameDesc"
+  | "CategoryAsc"
+  | "CategoryDesc"
+  | "PriceAsc"
+  | "PriceDesc"
+  | "StockAsc"
+  | "StockDesc"
+  | "StatusAsc"
+  | "StatusDesc";
 
 export type Filters = {
   q: string;
@@ -52,6 +77,7 @@ const DEFAULT_FILTERS: Filters = {
 async function safeJson<T>(res: Response): Promise<T> {
   const text = await res.text().catch(() => "");
   if (!text) return {} as T;
+
   try {
     return JSON.parse(text) as T;
   } catch {
@@ -68,127 +94,195 @@ function centsFromInput(v: string) {
   const parts = cleaned.split(".");
   const normalized = parts.length <= 2 ? cleaned : `${parts[0]}.${parts.slice(1).join("")}`;
   const n = Number(normalized);
+
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.round(n * 100));
 }
 
 function readCookie(name: string) {
-  const m = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}=([^;]*)`));
+  if (typeof document === "undefined") return "";
+  const escaped = name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+  const m = document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`));
   return m ? decodeURIComponent(m[1]) : "";
 }
 
-function getSiteIdClient(): string {
-  // 1) cookie (nếu đọc được)
-  const fromCookie = readCookie("siteId");
-  if (fromCookie) return fromCookie;
+function setCookie(name: string, value: string, days = 365) {
+  if (typeof document === "undefined") return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; samesite=lax`;
+}
 
-  // 2) localStorage (khuyến nghị)
-  try {
-    const v = localStorage.getItem("siteId");
-    if (v && v.trim()) return v.trim();
-  } catch {}
+function clearCookie(name: string) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${encodeURIComponent(name)}=; path=/; max-age=0; samesite=lax`;
+}
 
-  return "";
+function toApiSort(sort: SortKey) {
+  switch (sort) {
+    case "PriceAsc":
+      return "priceAsc";
+    case "PriceDesc":
+      return "priceDesc";
+    case "NameAsc":
+      return "nameAsc";
+    case "NameDesc":
+      return "nameDesc";
+    case "Oldest":
+      return "oldest";
+    case "Newest":
+    case "CategoryAsc":
+    case "CategoryDesc":
+    case "StockAsc":
+    case "StockDesc":
+    case "StatusAsc":
+    case "StatusDesc":
+    default:
+      return "newest";
+  }
 }
 
 export default function AdminProductsClient() {
   const [tab, setTab] = useState<"list" | "form">("list");
-
   const [items, setItems] = useState<ApiProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-
-  // form state: create vs edit
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const loadCategories = useCallback(async (signal?: AbortSignal) => {
-    try {
-      const siteId = readCookie("siteId");
-      if (!siteId) return setCategories([]);
+  const sites = useSiteStore((s) => s.sites);
+  const sitesLoading = useSiteStore((s) => s.loading);
+  const sitesErr = useSiteStore((s) => s.err);
+  const selectedSiteId = useSiteStore((s) => s.siteId);
+  const setSelectedSiteId = useSiteStore((s) => s.setSiteId);
+  const loadSites = useSiteStore((s) => s.loadSites);
 
-      const params = new URLSearchParams({
-        page: "1",
-        pageSize: "200",
-        active: "all",
-        sort: "nameAsc",
-        siteId,
-      });
+  useEffect(() => {
+    loadSites();
+  }, [loadSites]);
 
-      const res = await fetch(`/api/admin/commerce/products/product-categories?${params.toString()}`, {
-        cache: "no-store",
-        signal,
-        credentials: "include",
-      });
+  useEffect(() => {
+    if (selectedSiteId) return;
+    const fromCookie = readCookie("siteId").trim();
+    if (fromCookie) setSelectedSiteId(fromCookie);
+  }, [selectedSiteId, setSelectedSiteId]);
 
-      const json = await safeJson<ApiListResponse<ApiCategory>>(res);
-      if (!res.ok) throw new Error(json?.error || "Failed to load categories");
-      setCategories(Array.isArray(json.items) ? json.items : []);
-    } catch {
-      setCategories([]);
-    }
-  }, []);
+  const siteId = useMemo(() => {
+    const storeValue = (selectedSiteId ?? "").trim();
+    if (storeValue) return storeValue;
 
-  const loadWithFilters = useCallback(async (f: Filters, signal?: AbortSignal) => {
-    setLoading(true);
-    setError("");
+    const cookieValue = readCookie("siteId").trim();
+    if (cookieValue) return cookieValue;
 
-    try {
-      const params = new URLSearchParams();
-      const siteId = readCookie("siteId"); // đọc cookie JS (nếu cookie không httpOnly)
+    return "";
+  }, [selectedSiteId]);
 
-      if (!siteId) throw new Error("Missing siteId cookie. Please re-select site.");
-      params.set("siteId", siteId);
+  useEffect(() => {
+    if (!siteId) return;
+    const current = readCookie("siteId").trim();
+    if (current !== siteId) setCookie("siteId", siteId);
+  }, [siteId]);
 
-      if (f.q.trim()) params.set("q", f.q.trim());
-      params.set("active", f.active);
+  const loadCategories = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        if (!siteId) {
+          setCategories([]);
+          return;
+        }
 
-      params.set(
-        "sort",
-        f.sort === "PriceAsc"
-          ? "priceAsc"
-          : f.sort === "PriceDesc"
-            ? "priceDesc"
-            : f.sort === "NameAsc"
-              ? "nameAsc"
-              : "newest",
-      );
+        const params = new URLSearchParams({
+          page: "1",
+          pageSize: "200",
+          active: "all",
+          sort: "nameAsc",
+          siteId,
+        });
 
-      if (f.categoryIds.length > 0) params.set("categoryIds", f.categoryIds.join(","));
-      if (f.priceMin.trim()) params.set("priceMinCents", String(centsFromInput(f.priceMin)));
-      if (f.priceMax.trim()) params.set("priceMaxCents", String(centsFromInput(f.priceMax)));
+        const res = await fetch(`/api/admin/commerce/products/product-categories?${params.toString()}`, {
+          cache: "no-store",
+          signal,
+          credentials: "include",
+        });
 
-      params.set("page", "1");
-      params.set("pageSize", "50");
+        const json = await safeJson<ApiListResponse<ApiCategory>>(res);
+        if (!res.ok) throw new Error(json?.error || "Failed to load categories");
+        setCategories(Array.isArray(json.items) ? json.items : []);
+      } catch {
+        setCategories([]);
+      }
+    },
+    [siteId],
+  );
 
-      const res = await fetch(`/api/admin/commerce/products?${params.toString()}`, {
-        cache: "no-store",
-        signal,
-        credentials: "include",
-      });
+  const loadWithFilters = useCallback(
+    async (f: Filters, signal?: AbortSignal) => {
+      setLoading(true);
+      setError("");
 
-      const json = await safeJson<ApiListResponse<ApiProduct>>(res);
-      if (!res.ok) throw new Error(json?.error || "Failed to load products");
+      try {
+        if (!siteId) throw new Error("Missing siteId. Please re-select site.");
 
-      setItems(Array.isArray(json.items) ? json.items : []);
-    } catch (e: unknown) {
-      const err = e instanceof Error ? e : new Error("Failed to load products");
-      setItems([]);
-      setError(err.message || "Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        const params = new URLSearchParams();
+        params.set("siteId", siteId);
+
+        if (f.q.trim()) params.set("q", f.q.trim());
+        params.set("active", f.active);
+        params.set("sort", toApiSort(f.sort));
+
+        if (f.categoryIds.length > 0) {
+          params.set("categoryIds", f.categoryIds.join(","));
+        }
+
+        if (f.priceMin.trim()) {
+          params.set("priceMinCents", String(centsFromInput(f.priceMin)));
+        }
+
+        if (f.priceMax.trim()) {
+          params.set("priceMaxCents", String(centsFromInput(f.priceMax)));
+        }
+
+        params.set("page", "1");
+        params.set("pageSize", "50");
+
+        const res = await fetch(`/api/admin/commerce/products?${params.toString()}`, {
+          cache: "no-store",
+          signal,
+          credentials: "include",
+        });
+
+        const json = await safeJson<ApiListResponse<ApiProduct>>(res);
+        if (!res.ok) throw new Error(json?.error || "Failed to load products");
+
+        setItems(Array.isArray(json.items) ? json.items : []);
+      } catch (e: unknown) {
+        const err = e instanceof Error ? e : new Error("Failed to load products");
+        setItems([]);
+        setError(err.message || "Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [siteId],
+  );
 
   useEffect(() => {
     const ac = new AbortController();
+
+    if (!siteId) {
+      setItems([]);
+      setCategories([]);
+      setError("Missing siteId. Please re-select site.");
+      setLoading(false);
+      return () => ac.abort();
+    }
+
     void loadWithFilters(DEFAULT_FILTERS, ac.signal);
     void loadCategories(ac.signal);
+
     return () => ac.abort();
-  }, [loadWithFilters, loadCategories]);
+  }, [siteId, loadWithFilters, loadCategories]);
 
   const onCreateNew = () => {
     setEditingId(null);
@@ -212,41 +306,11 @@ export default function AdminProductsClient() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <div className={styles.title}>Product Builder</div>
-          <div className={styles.subtitle}>Create, manage products, pricing, stock & images.</div>
-        </div>
-
-        <div className={styles.headerRight}>
-          <div className={styles.tabs}>
-            <button
-              className={`${styles.tabBtn} ${tab === "list" ? styles.tabActive : ""}`}
-              onClick={() => setTab("list")}
-              type="button"
-            >
-              Product list
-            </button>
-            <button
-              className={`${styles.tabBtn} ${tab === "form" ? styles.tabActive : ""}`}
-              onClick={() => setTab("form")}
-              type="button"
-            >
-              {editingId ? "Edit product" : "Create product"}
-            </button>
-          </div>
-
-          {tab === "list" ? (
-            <button className={styles.primaryBtn} type="button" onClick={onCreateNew} disabled={busy}>
-              + New product
-            </button>
-          ) : null}
-        </div>
-      </header>
-
       <main className={styles.content}>
         {tab === "list" ? (
           <ProductsList
+            title="Product Builder"
+            subtitle="Create, manage products, pricing, stock, categories and images."
             items={items}
             categories={categories}
             filters={filters}
@@ -259,6 +323,24 @@ export default function AdminProductsClient() {
             onEdit={onEdit}
             setBusy={setBusy}
             afterMutate={() => void loadWithFilters(filters)}
+            sites={sites}
+            sitesLoading={sitesLoading}
+            sitesErr={sitesErr}
+            selectedSiteId={selectedSiteId || ""}
+            onChangeSite={(next) => {
+              setSelectedSiteId(next);
+
+              if (next) setCookie("siteId", next);
+              else clearCookie("siteId");
+
+              setFilters(DEFAULT_FILTERS);
+              setEditingId(null);
+              setTab("list");
+            }}
+            tab={tab}
+            editingId={editingId}
+            onOpenList={() => setTab("list")}
+            onOpenForm={onCreateNew}
           />
         ) : (
           <ProductForm

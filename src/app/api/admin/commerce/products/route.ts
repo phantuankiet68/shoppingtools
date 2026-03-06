@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
-import type { Prisma, ProductStatus } from "@prisma/client";
+import type { Prisma, ProductStatus, ProductType } from "@prisma/client";
 
 /* ----------------------------- utils ----------------------------- */
 
@@ -15,6 +15,36 @@ function toInt(v: string | null, fallback: number) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
+function toIntOrDefault(v: string | number | null | undefined, def = 0) {
+  const n = Number(v ?? def);
+  return Number.isFinite(n) ? Math.trunc(n) : def;
+}
+
+function toDecimalOrNull(v: string | number | null | undefined) {
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim();
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseISODateOrNull(v: string | null | undefined) {
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 async function getSiteId(req: Request): Promise<string> {
   const url = new URL(req.url);
   const fromQuery = String(url.searchParams.get("siteId") ?? "").trim();
@@ -24,17 +54,24 @@ async function getSiteId(req: Request): Promise<string> {
   return String(cookieStore.get("siteId")?.value ?? "").trim();
 }
 
-/**
- * Map UI filter `active` -> Product.status
- * ⚠️ Bạn cần chỉnh mapping theo enum ProductStatus thực tế.
- */
-function whereFromActive(active: string): Prisma.ProductWhereInput | null {
-  const a = active.toLowerCase();
-  if (a === "all") return null;
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
 
-  // Ví dụ enum có ACTIVE / INACTIVE:
-  if (a === "active") return { status: "ACTIVE" as ProductStatus };
-  if (a === "inactive") return { status: "INACTIVE" as ProductStatus };
+/**
+ * Query status:
+ * - all
+ * - draft
+ * - active
+ * - archived
+ */
+function whereFromStatus(status: string): Prisma.ProductWhereInput | null {
+  const s = status.toLowerCase();
+
+  if (s === "all") return null;
+  if (s === "draft") return { status: "DRAFT" as ProductStatus };
+  if (s === "active") return { status: "ACTIVE" as ProductStatus };
+  if (s === "archived") return { status: "ARCHIVED" as ProductStatus };
 
   return null;
 }
@@ -45,21 +82,132 @@ function orderByFromSort(sort: string): Prisma.ProductOrderByWithRelationInput {
   if (s === "oldest") return { createdAt: "asc" };
   if (s === "name_asc" || s === "nameasc") return { name: "asc" };
   if (s === "name_desc" || s === "namedesc") return { name: "desc" };
+  if (s === "updated_desc" || s === "updateddesc") return { updatedAt: "desc" };
+  if (s === "updated_asc" || s === "updatedasc") return { updatedAt: "asc" };
 
-  return { createdAt: "desc" }; // newest
+  return { createdAt: "desc" };
 }
 
-function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+/* ----------------------------- types ----------------------------- */
+
+type MediaItem = {
+  id?: string;
+  type: "image" | "video";
+  url: string;
+  thumbUrl?: string;
+};
+
+type VariantOption = {
+  name: string;
+  values: string[];
+};
+
+type VariantRow = {
+  id?: string;
+  title: string;
+  sku: string;
+  barcode?: string;
+  price: string;
+  compareAtPrice?: string;
+  cost?: string;
+  stockQty: string;
+  isActive: boolean;
+  isDefault: boolean;
+};
+
+type ProductSubmitPayload = {
+  siteId?: string;
+
+  name: string;
+  slug?: string;
+
+  categoryId?: string;
+  category?: string; // backward compatibility: id or slug
+
+  brandId?: string;
+  brand?: string; // backward compatibility: id, slug, or name
+
+  productType?: ProductType;
+  vendor?: string;
+  tags?: string[];
+
+  status?: ProductStatus;
+  isVisible?: boolean;
+  publishedAt?: string;
+
+  shortDescription?: string;
+  description?: string;
+
+  cost?: string;
+  price?: string;
+  compareAtPrice?: string;
+
+  sku?: string;
+  barcode?: string;
+  stockQty?: string;
+
+  weight?: string;
+  length?: string;
+  width?: string;
+  height?: string;
+
+  metaTitle?: string;
+  metaDescription?: string;
+
+  media?: MediaItem[];
+
+  hasVariants?: boolean;
+  variantOptions?: VariantOption[];
+  variants?: VariantRow[];
+};
+
+/* ----------------------------- helpers ----------------------------- */
+
+/**
+ * Từ variant.title ("White / S") + thứ tự variantOptions => map { optionName -> optionValue }
+ */
+function extractVariantSelections(title: string, optionNamesInOrder: string[]) {
+  const parts = String(title ?? "")
+    .split("/")
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  const out: Record<string, string> = {};
+  for (let i = 0; i < optionNamesInOrder.length; i++) {
+    const name = optionNamesInOrder[i];
+    const value = parts[i];
+    if (name && value) out[name] = value;
+  }
+  return out;
 }
 
-/* ----------------------------- handlers ----------------------------- */
+async function ensureUniqueSlug(siteId: string, rawSlug: string, excludeId?: string) {
+  const base = slugify(rawSlug) || "product";
+  let candidate = base;
+  let i = 1;
+
+  while (true) {
+    const found = await prisma.product.findFirst({
+      where: {
+        siteId,
+        slug: candidate,
+        ...(excludeId ? { NOT: { id: excludeId } } : {}),
+      },
+      select: { id: true },
+    });
+
+    if (!found) return candidate;
+    candidate = `${base}-${i++}`;
+  }
+}
+
+/* ----------------------------- GET ----------------------------- */
 
 /**
  * GET /api/admin/products
  * Query:
- * - active=all|active|inactive
- * - sort=newest|oldest|name_asc|name_desc
+ * - status=all|draft|active|archived
+ * - sort=newest|oldest|name_asc|name_desc|updated_desc|updated_asc
  * - page=1
  * - pageSize=50
  * - siteId=... (optional, can be read from cookie)
@@ -72,7 +220,7 @@ export async function GET(req: Request) {
     if (!siteId) return jsonError("siteId is required", 400);
 
     const url = new URL(req.url);
-    const active = (url.searchParams.get("active") ?? "all").toLowerCase();
+    const status = (url.searchParams.get("status") ?? "all").toLowerCase();
     const sort = (url.searchParams.get("sort") ?? "newest").toLowerCase();
 
     const page = clamp(toInt(url.searchParams.get("page"), 1), 1, 1_000_000);
@@ -80,8 +228,8 @@ export async function GET(req: Request) {
     const skip = (page - 1) * pageSize;
 
     const where: Prisma.ProductWhereInput = { siteId };
-    const activeWhere = whereFromActive(active);
-    if (activeWhere) Object.assign(where, activeWhere);
+    const statusWhere = whereFromStatus(status);
+    if (statusWhere) Object.assign(where, statusWhere);
 
     const orderBy = orderByFromSort(sort);
 
@@ -95,22 +243,42 @@ export async function GET(req: Request) {
         select: {
           id: true,
           siteId: true,
+          categoryId: true,
+          brandId: true,
           name: true,
           slug: true,
+          shortDescription: true,
           description: true,
+          productType: true,
+          vendor: true,
+          tags: true,
           status: true,
+          isVisible: true,
+          publishedAt: true,
           createdAt: true,
           updatedAt: true,
+          category: {
+            select: { id: true, name: true, slug: true },
+          },
+          brand: {
+            select: { id: true, name: true, slug: true, logoUrl: true },
+          },
           images: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
             take: 1,
             select: { id: true, imageUrl: true, sortOrder: true },
           },
-          // Nếu muốn category theo mapping:
-          // categoryMap: {
-          //   take: 1,
-          //   select: { category: { select: { id: true, name: true } } },
-          // },
+          variants: {
+            orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+            take: 1,
+            select: {
+              id: true,
+              sku: true,
+              price: true,
+              stockQty: true,
+              isDefault: true,
+            },
+          },
         },
       }),
     ]);
@@ -122,8 +290,7 @@ export async function GET(req: Request) {
         url: img.imageUrl,
         sort: img.sortOrder,
       })),
-      // category: p.categoryMap?.[0]?.category ?? null,
-      // categoryId: p.categoryMap?.[0]?.category?.id ?? null,
+      defaultVariant: p.variants[0] ?? null,
     }));
 
     return NextResponse.json({ items, total, page, pageSize });
@@ -134,172 +301,49 @@ export async function GET(req: Request) {
   }
 }
 
+/* ----------------------------- POST ----------------------------- */
+
 /**
  * POST /api/admin/products
- * Body:
- * - name: string (required)
- * - slug?: string
- * - description?: string
- * - status?: ProductStatus (default DRAFT)
- * - images?: [{ url, sort }]
+ *
+ * Notes:
+ * - categoryId is required (or category for backward compatibility: id/slug)
+ * - brandId optional (or brand for backward compatibility: id/slug/name)
+ * - if hasVariants=false => auto create 1 default variant
+ * - if hasVariants=true => create variants + option links
  */
-
-type ProductType = "PHYSICAL" | "DIGITAL" | "SERVICE";
-
-type MediaItem = {
-  id: string;
-  type: "image" | "video";
-  url: string;
-  thumbUrl?: string;
-};
-
-type VariantOption = { name: string; values: string[] };
-
-type VariantRow = {
-  id: string;
-  title: string;
-  sku: string;
-  barcode?: string;
-  price: string;
-  compareAtPrice?: string;
-  cost?: string;
-  stockQty: string;
-  isActive: boolean;
-  isDefault: boolean;
-};
-
-type AttributeValue = {
-  attributeId: string;
-  value: string;
-};
-
-type ProductSubmitPayload = {
-  // identity
-  name: string;
-  slug: string;
-
-  /**
-   * ✅ FIX: Frontend đang dùng categoryId
-   * - categoryId: id category (khuyến nghị)
-   * - category: giữ tương thích cũ (slug hoặc id)
-   */
-  categoryId?: string;
-  category?: string;
-
-  productType: ProductType;
-  brand: string;
-  vendor: string;
-  tags: string[];
-
-  // lifecycle
-  status: ProductStatus;
-  isVisible: boolean;
-  publishedAt: string;
-
-  // descriptions
-  shortDescription: string;
-  description: string;
-
-  // pricing default
-  cost: string;
-  price: string;
-  compareAtPrice: string;
-
-  // inventory default
-  sku: string;
-  barcode: string;
-  trackInventory: boolean;
-  stockQty: string;
-  lowStockThreshold: string;
-  allowBackorder: boolean;
-
-  // shipping defaults
-  requiresShipping: boolean;
-  weight: string;
-  length: string;
-  width: string;
-  height: string;
-
-  // SEO
-  metaTitle: string;
-  metaDescription: string;
-
-  // extras
-  media: MediaItem[];
-  hasVariants: boolean;
-  variantOptions: VariantOption[];
-  variants: VariantRow[];
-  specs: AttributeValue[];
-
-  // REQUIRED for DB
-  siteId: string;
-};
-
-// -----------------------
-// Helpers
-// -----------------------
-function toDecimalOrNull(v: string) {
-  const s = (v ?? "").trim();
-  if (!s) return null;
-  const n = Number(s);
-  if (Number.isNaN(n)) return null;
-  return n;
-}
-
-function toIntOrDefault(v: string, def = 0) {
-  const n = Number((v ?? "").trim());
-  return Number.isFinite(n) ? Math.trunc(n) : def;
-}
-
-function parseISODateOrNull(v: string) {
-  const s = (v ?? "").trim();
-  if (!s) return null;
-  const d = new Date(s);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
-}
-
-/**
- * Từ variant.title ("White / S") + thứ tự variantOptions => map { optionName -> optionValue }
- */
-function extractVariantSelections(title: string, optionNamesInOrder: string[]) {
-  const parts = title.split("/").map((x) => x.trim());
-  const out: Record<string, string> = {};
-  for (let i = 0; i < optionNamesInOrder.length; i++) {
-    const name = optionNamesInOrder[i];
-    const value = parts[i];
-    if (name && value) out[name] = value;
-  }
-  return out;
-}
-
 export async function POST(req: NextRequest) {
   try {
     await requireAdminAuthUser();
 
     const body = (await req.json()) as Partial<ProductSubmitPayload>;
 
-    // Basic validation
-    if (!body?.siteId) return NextResponse.json({ message: "siteId is required" }, { status: 400 });
-    if (!body?.name?.trim()) return NextResponse.json({ message: "name is required" }, { status: 400 });
-    if (!body?.slug?.trim()) return NextResponse.json({ message: "slug is required" }, { status: 400 });
+    const cookieSiteId = await getSiteId(req);
+    const siteId = String(body.siteId ?? cookieSiteId ?? "").trim();
 
-    // ✅ FIX: accept categoryId OR category
+    if (!siteId) {
+      return NextResponse.json({ message: "siteId is required" }, { status: 400 });
+    }
+
+    const name = String(body.name ?? "").trim();
+    if (!name) {
+      return NextResponse.json({ message: "name is required" }, { status: 400 });
+    }
+
+    const rawSlug = String(body.slug ?? "").trim() || name;
+    const finalSlug = await ensureUniqueSlug(siteId, rawSlug);
+
     const categoryInput = String(body.categoryId ?? body.category ?? "").trim();
     if (!categoryInput) {
       return NextResponse.json({ message: "categoryId is required" }, { status: 400 });
     }
 
-    const siteId = body.siteId;
-
-    // Resolve category:
-    // - categoryInput có thể là id hoặc slug
     const category = await prisma.productCategory.findFirst({
       where: {
         siteId,
         OR: [{ id: categoryInput }, { slug: categoryInput }],
       },
-      select: { id: true },
+      select: { id: true, name: true, slug: true },
     });
 
     if (!category) {
@@ -309,48 +353,68 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Prepare images
-    const imageMedia = (body.media ?? []).filter((m) => m.type === "image");
+    let brandId: string | null = null;
+    const brandInput = String(body.brandId ?? body.brand ?? "").trim();
 
-    // Transaction create all
+    if (brandInput) {
+      const brand = await prisma.productBrand.findFirst({
+        where: {
+          siteId,
+          OR: [{ id: brandInput }, { slug: brandInput }, { name: brandInput }],
+        },
+        select: { id: true },
+      });
+
+      if (!brand) {
+        return NextResponse.json(
+          { message: "Brand not found (provide valid brand id, slug, or name for this site)" },
+          { status: 400 },
+        );
+      }
+
+      brandId = brand.id;
+    }
+
+    const imageMedia = (body.media ?? []).filter((m) => m.type === "image" && String(m.url ?? "").trim());
+
     const created = await prisma.$transaction(async (tx) => {
       // 1) Product
       const product = await tx.product.create({
         data: {
           siteId,
-          name: body.name!.trim(),
-          slug: body.slug!.trim(),
+          categoryId: category.id,
+          brandId,
 
-          shortDescription: body.shortDescription?.trim() || null,
-          description: body.description?.trim() || null,
+          name,
+          slug: finalSlug,
+
+          shortDescription: String(body.shortDescription ?? "").trim() || null,
+          description: String(body.description ?? "").trim() || null,
 
           productType: (body.productType ?? "PHYSICAL") as ProductType,
-          brand: body.brand?.trim() || null,
-          vendor: body.vendor?.trim() || null,
+          vendor: String(body.vendor ?? "").trim() || null,
           tags: body.tags ?? [],
 
           status: (body.status ?? "DRAFT") as ProductStatus,
           isVisible: body.isVisible ?? true,
-          publishedAt: parseISODateOrNull(body.publishedAt ?? ""),
+          publishedAt: parseISODateOrNull(body.publishedAt),
 
-          metaTitle: body.metaTitle?.trim() || null,
-          metaDescription: body.metaDescription?.trim() || null,
+          metaTitle: String(body.metaTitle ?? "").trim() || null,
+          metaDescription: String(body.metaDescription ?? "").trim() || null,
 
-          // shipping defaults
-          weight: toDecimalOrNull(body.weight ?? ""),
-          length: toDecimalOrNull(body.length ?? ""),
-          width: toDecimalOrNull(body.width ?? ""),
-          height: toDecimalOrNull(body.height ?? ""),
+          weight: toDecimalOrNull(body.weight),
+          length: toDecimalOrNull(body.length),
+          width: toDecimalOrNull(body.width),
+          height: toDecimalOrNull(body.height),
         },
-        select: { id: true, siteId: true, slug: true },
+        select: {
+          id: true,
+          siteId: true,
+          slug: true,
+        },
       });
 
-      // 2) Category map
-      await tx.productCategoryMap.create({
-        data: { productId: product.id, categoryId: category.id },
-      });
-
-      // 3) Images
+      // 2) Images
       if (imageMedia.length) {
         await tx.productImage.createMany({
           data: imageMedia.map((m, idx) => ({
@@ -362,23 +426,21 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 4) Variants + options
+      // 3) Variants + options
       const hasVariants = Boolean(body.hasVariants);
-      const optionNamesInOrder = (body.variantOptions ?? [])
-        .map((o) => o.name?.trim())
-        .filter((x): x is string => Boolean(x));
+      const variants = body.variants ?? [];
+      const optionNamesInOrder = (body.variantOptions ?? []).map((o) => String(o.name ?? "").trim()).filter(Boolean);
 
-      // ProductOptionValue cache: key = `${name}__${value}` -> id
       const optionValueIdByKey = new Map<string, string>();
 
       if (hasVariants) {
-        const variants = body.variants ?? [];
         if (!variants.length) {
           throw new Error("hasVariants=true but variants is empty");
         }
 
-        // 4.1) Create all ProductOptionValue (unique)
+        // 3.1 create unique ProductOptionValue
         const allPairs: { optionName: string; optionValue: string }[] = [];
+
         for (const v of variants) {
           const sel = extractVariantSelections(v.title, optionNamesInOrder);
           for (const [optionName, optionValue] of Object.entries(sel)) {
@@ -386,51 +448,66 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // unique pairs
         const uniqPairs = Array.from(new Map(allPairs.map((p) => [`${p.optionName}__${p.optionValue}`, p])).values());
 
-        if (uniqPairs.length) {
-          for (const p of uniqPairs) {
-            const createdOv = await tx.productOptionValue.upsert({
-              where: {
-                productId_optionName_optionValue: {
-                  productId: product.id,
-                  optionName: p.optionName,
-                  optionValue: p.optionValue,
-                },
-              },
-              update: {},
-              create: {
+        for (const p of uniqPairs) {
+          const createdOv = await tx.productOptionValue.upsert({
+            where: {
+              productId_optionName_optionValue: {
                 productId: product.id,
                 optionName: p.optionName,
                 optionValue: p.optionValue,
               },
-              select: { id: true, optionName: true, optionValue: true },
-            });
-            optionValueIdByKey.set(`${createdOv.optionName}__${createdOv.optionValue}`, createdOv.id);
-          }
+            },
+            update: {},
+            create: {
+              productId: product.id,
+              optionName: p.optionName,
+              optionValue: p.optionValue,
+            },
+            select: {
+              id: true,
+              optionName: true,
+              optionValue: true,
+            },
+          });
+
+          optionValueIdByKey.set(`${createdOv.optionName}__${createdOv.optionValue}`, createdOv.id);
         }
 
-        // 4.2) Create variants, then link to option values
+        // 3.2 create variants
+        let hasDefault = false;
+
         for (const v of variants) {
+          const sku = String(v.sku ?? "").trim();
+          if (!sku) {
+            throw new Error(`SKU is required for variant "${v.title || "(untitled)"}"`);
+          }
+
+          const isDefault = Boolean(v.isDefault);
+          if (isDefault) hasDefault = true;
+
           const variant = await tx.productVariant.create({
             data: {
               productId: product.id,
               siteId,
 
-              sku: v.sku.trim(),
-              title: v.title?.trim() || null,
-              isActive: v.isActive ?? true,
+              sku,
+              title: String(v.title ?? "").trim() || null,
+              barcode: String(v.barcode ?? "").trim() || null,
 
               price: toDecimalOrNull(v.price) ?? 0,
-              compareAtPrice: toDecimalOrNull(v.compareAtPrice ?? ""),
-              cost: toDecimalOrNull(v.cost ?? ""),
+              compareAtPrice: toDecimalOrNull(v.compareAtPrice),
+              cost: toDecimalOrNull(v.cost),
 
               stockQty: toIntOrDefault(v.stockQty, 0),
-              barcode: v.barcode?.trim() || null,
-              isDefault: v.isDefault ?? false,
+              isActive: v.isActive ?? true,
+              isDefault,
             },
-            select: { id: true, title: true },
+            select: {
+              id: true,
+              title: true,
+            },
           });
 
           const sel = extractVariantSelections(v.title, optionNamesInOrder);
@@ -438,128 +515,83 @@ export async function POST(req: NextRequest) {
 
           for (const [optionName, optionValue] of Object.entries(sel)) {
             const ovId = optionValueIdByKey.get(`${optionName}__${optionValue}`);
-            if (ovId) linkData.push({ variantId: variant.id, optionValueId: ovId });
+            if (ovId) {
+              linkData.push({
+                variantId: variant.id,
+                optionValueId: ovId,
+              });
+            }
           }
 
           if (linkData.length) {
-            await tx.productVariantOptionValue.createMany({ data: linkData, skipDuplicates: true });
+            await tx.productVariantOptionValue.createMany({
+              data: linkData,
+              skipDuplicates: true,
+            });
+          }
+        }
+
+        // nếu frontend không đánh dấu default variant
+        if (!hasDefault && variants.length > 0) {
+          const firstVariant = await tx.productVariant.findFirst({
+            where: { productId: product.id },
+            orderBy: { createdAt: "asc" },
+            select: { id: true },
+          });
+
+          if (firstVariant) {
+            await tx.productVariant.update({
+              where: { id: firstVariant.id },
+              data: { isDefault: true },
+            });
           }
         }
       } else {
-        // Non-variant: tạo 1 default variant để quản lý giá/tồn kho thống nhất
-        const sku = (body.sku ?? "").trim();
-        if (!sku) throw new Error("SKU is required when hasVariants=false");
+        const sku = String(body.sku ?? "").trim();
+        if (!sku) {
+          throw new Error("SKU is required when hasVariants=false");
+        }
 
         await tx.productVariant.create({
           data: {
             productId: product.id,
             siteId,
+
             sku,
-            title: body.name?.trim() || null,
+            title: name,
+            barcode: String(body.barcode ?? "").trim() || null,
+
+            price: toDecimalOrNull(body.price) ?? 0,
+            compareAtPrice: toDecimalOrNull(body.compareAtPrice),
+            cost: toDecimalOrNull(body.cost),
+
+            stockQty: toIntOrDefault(body.stockQty, 0),
             isActive: true,
-            price: toDecimalOrNull(body.price ?? "") ?? 0,
-            compareAtPrice: toDecimalOrNull(body.compareAtPrice ?? ""),
-            cost: toDecimalOrNull(body.cost ?? ""),
-            stockQty: toIntOrDefault(body.stockQty ?? "0", 0),
-            barcode: body.barcode?.trim() || null,
             isDefault: true,
           },
         });
       }
 
-      // 5) Specs (ProductAttributeValue)
-      const specs = body.specs ?? [];
-      if (specs.length) {
-        const attributeIds = Array.from(new Set(specs.map((s) => s.attributeId)));
-        const attrs = await tx.productAttribute.findMany({
-          where: { id: { in: attributeIds }, siteId },
-          include: { options: true },
-        });
-        const attrById = new Map(attrs.map((a) => [a.id, a]));
-
-        for (const s of specs) {
-          const attr = attrById.get(s.attributeId);
-          if (!attr) continue;
-
-          const raw = (s.value ?? "").trim();
-          if (!raw) continue;
-
-          const values =
-            attr.type === "MULTISELECT"
-              ? raw
-                  .split(",")
-                  .map((x) => x.trim())
-                  .filter(Boolean)
-              : [raw];
-
-          for (const val of values) {
-            if (attr.type === "TEXT") {
-              await tx.productAttributeValue.create({
-                data: {
-                  productId: product.id,
-                  variantId: null,
-                  attributeId: attr.id,
-                  valueText: val,
-                },
-              });
-            } else if (attr.type === "NUMBER") {
-              const num = toDecimalOrNull(val);
-              if (num === null) continue;
-              await tx.productAttributeValue.create({
-                data: {
-                  productId: product.id,
-                  variantId: null,
-                  attributeId: attr.id,
-                  valueNumber: num,
-                },
-              });
-            } else if (attr.type === "BOOLEAN") {
-              const b = val === "true" ? true : val === "false" ? false : null;
-              if (b === null) continue;
-              await tx.productAttributeValue.create({
-                data: {
-                  productId: product.id,
-                  variantId: null,
-                  attributeId: attr.id,
-                  valueBool: b,
-                },
-              });
-            } else if (attr.type === "DATE") {
-              const d = parseISODateOrNull(val);
-              if (!d) continue;
-              await tx.productAttributeValue.create({
-                data: {
-                  productId: product.id,
-                  variantId: null,
-                  attributeId: attr.id,
-                  valueDate: d,
-                },
-              });
-            } else if (attr.type === "SELECT" || attr.type === "MULTISELECT") {
-              const opt = attr.options.find((o) => o.value === val);
-              if (!opt) continue;
-
-              await tx.productAttributeValue.create({
-                data: {
-                  productId: product.id,
-                  variantId: null,
-                  attributeId: attr.id,
-                  optionId: opt.id,
-                },
-              });
-            }
-          }
-        }
-      }
-
       return tx.product.findUnique({
         where: { id: product.id },
         include: {
-          variants: { include: { optionLinks: true } },
+          category: true,
+          brand: true,
+          variants: {
+            include: {
+              optionLinks: {
+                include: {
+                  optionValue: true,
+                },
+              },
+              images: true,
+            },
+            orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+          },
           optionValues: true,
-          images: true,
-          categoryMap: true,
-          attributeValues: true,
+          images: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          },
         },
       });
     });
@@ -567,6 +599,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ data: created }, { status: 201 });
   } catch (err: unknown) {
     console.error(err);
+
+    if (typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "P2002") {
+      return NextResponse.json(
+        { message: "Duplicate unique value (slug, sku, or other unique field)." },
+        { status: 409 },
+      );
+    }
+
     const message = err instanceof Error ? err.message : "Internal Server Error";
     return NextResponse.json({ message }, { status: 500 });
   }

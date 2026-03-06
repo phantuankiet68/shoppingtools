@@ -12,12 +12,13 @@ type ProductType = "PHYSICAL" | "DIGITAL" | "SERVICE";
 type MediaItem = {
   id: string;
   type: "image" | "video";
-  url: string; // preview URL (blob)
+  url: string;
   thumbUrl?: string;
   file?: File;
 };
 
 type VariantOption = { name: string; values: string[] };
+
 type VariantRow = {
   id: string;
   title: string;
@@ -31,66 +32,38 @@ type VariantRow = {
   isDefault: boolean;
 };
 
-type AttributeType = "TEXT" | "NUMBER" | "BOOLEAN" | "SELECT" | "MULTISELECT" | "DATE";
-
-type AttributeSchema = {
-  id: string;
-  code: string;
-  name: string;
-  type: AttributeType;
-  unit?: string;
-  required?: boolean;
-  options?: string[];
-};
-
-type AttributeValue = {
-  attributeId: string;
-  value: string;
-};
-
 type ProductFormState = {
-  // identity
   name: string;
   slug: string;
 
   categoryId: string;
+  brandId: string;
 
   productType: ProductType;
-  brand: string;
   vendor: string;
   tags: string[];
   tagsInput: string;
 
-  // lifecycle
   status: ProductStatus;
   isVisible: boolean;
   publishedAt: string;
 
-  // descriptions
   shortDescription: string;
   description: string;
 
-  // pricing default (for non-variant)
   cost: string;
   price: string;
   compareAtPrice: string;
 
-  // inventory default (for non-variant)
   sku: string;
   barcode: string;
-  trackInventory: boolean;
   stockQty: string;
-  lowStockThreshold: string;
-  allowBackorder: boolean;
 
-  // shipping defaults
-  requiresShipping: boolean;
   weight: string;
   length: string;
   width: string;
   height: string;
 
-  // SEO
   metaTitle: string;
   metaDescription: string;
 };
@@ -101,7 +74,6 @@ type ProductSubmitPayload = ProductFormState & {
   hasVariants: boolean;
   variantOptions: VariantOption[];
   variants: VariantRow[];
-  specs: AttributeValue[];
 };
 
 type CategoryItem = {
@@ -112,6 +84,13 @@ type CategoryItem = {
   count?: number;
 };
 
+type BrandItem = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string | null;
+};
+
 type Props = {
   editingId?: string | null;
   categories?: { id: string; name: string; isActive: boolean; count?: number }[];
@@ -120,16 +99,17 @@ type Props = {
   onCancel?: () => void;
   onSaved?: () => void;
   onSubmit?: (payload: ProductSubmitPayload) => void;
-  siteId?: string; // nếu parent truyền
+  siteId?: string;
 };
 
-type ApiResponse = {
-  categories?: CategoryItem[];
-  items?: CategoryItem[];
-  data?: CategoryItem[];
+type ApiResponse<T> = {
+  items?: T[];
+  data?: T[];
+  categories?: T[];
+  brands?: T[];
 };
 
-type RightTab = "BASIC" | "PRICING" | "INVENTORY" | "SPECS_SHIPPING";
+type RightTab = "BASIC" | "PRICING" | "INVENTORY" | "SHIPPING";
 
 function cuidLike(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(2, 6)}`;
@@ -144,12 +124,13 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
-function safePickCategoryList(j: unknown): CategoryItem[] {
-  const obj = j as ApiResponse;
-  if (Array.isArray(j)) return j as CategoryItem[];
+function safePickList<T>(j: unknown): T[] {
+  const obj = j as ApiResponse<T>;
+  if (Array.isArray(j)) return j as T[];
   if (Array.isArray(obj?.items)) return obj.items;
   if (Array.isArray(obj?.data)) return obj.data;
   if (Array.isArray(obj?.categories)) return obj.categories;
+  if (Array.isArray(obj?.brands)) return obj.brands;
   return [];
 }
 
@@ -157,10 +138,12 @@ async function uploadMediaFiles(files: File[], signal?: AbortSignal): Promise<st
   const fd = new FormData();
   for (const f of files) fd.append("files", f);
 
-  const res = await fetch("/api/commerce/product/uploads/images", {
+  const res = await fetch("/api/admin/commerce/products/uploads/images", {
     method: "POST",
     body: fd,
     signal,
+    credentials: "include",
+    cache: "no-store",
   });
 
   if (!res.ok) {
@@ -184,7 +167,6 @@ export default function ProductForm({
 }: Props) {
   const modal = useModal();
 
-  /** ========= Site ========= */
   const sites = useSiteStore((s) => s.sites);
   const sitesLoading = useSiteStore((s) => s.loading);
   const sitesErr = useSiteStore((s) => s.err);
@@ -201,35 +183,15 @@ export default function ProductForm({
     loadSites();
   }, [siteIdProp, hydrateFromStorage, loadSites]);
 
-  /** ========= Tabs ========= */
   const [activeTab, setActiveTab] = useState<RightTab>("BASIC");
 
-  /** ========= Demo schema by category slug ========= */
-  const schemaByCategorySlug: Record<string, AttributeSchema[]> = useMemo(
-    () => ({
-      lighting: [
-        { id: "a1", code: "power", name: "Power", type: "NUMBER", unit: "W", required: true },
-        { id: "a2", code: "light_color", name: "Light color", type: "SELECT", options: ["Warm", "Neutral", "White"] },
-        { id: "a3", code: "material", name: "Material", type: "TEXT" },
-        { id: "a4", code: "usb_output", name: "USB output", type: "TEXT" },
-      ],
-      electronics: [
-        { id: "a5", code: "input", name: "Input", type: "TEXT" },
-        { id: "a6", code: "output", name: "Output", type: "TEXT" },
-        { id: "a7", code: "warranty", name: "Warranty", type: "SELECT", options: ["No", "6 months", "12 months"] },
-      ],
-      home: [
-        { id: "a8", code: "size", name: "Size", type: "TEXT" },
-        { id: "a9", code: "care", name: "Care instructions", type: "TEXT" },
-      ],
-    }),
-    [],
-  );
-
-  /** ========= Categories ========= */
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [catLoading, setCatLoading] = useState(false);
   const [catError, setCatError] = useState("");
+
+  const [brands, setBrands] = useState<BrandItem[]>([]);
+  const [brandLoading, setBrandLoading] = useState(false);
+  const [brandError, setBrandError] = useState("");
 
   const loadCategories = useCallback(async () => {
     if (!effectiveSiteId) {
@@ -263,7 +225,7 @@ export default function ProductForm({
       }
 
       const j = await res.json();
-      const list = safePickCategoryList(j);
+      const list = safePickList<CategoryItem>(j);
 
       const normalized = list
         .filter((x) => x && x.id && x.name)
@@ -288,6 +250,62 @@ export default function ProductForm({
     return () => controller.abort();
   }, [effectiveSiteId]);
 
+  const loadBrands = useCallback(async () => {
+    if (!effectiveSiteId) {
+      setBrands([]);
+      setBrandError("");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    try {
+      setBrandLoading(true);
+      setBrandError("");
+
+      const qs = new URLSearchParams();
+      qs.set("siteId", effectiveSiteId);
+      qs.set("lite", "1");
+
+      const url = `/api/admin/commerce/products/product-brands?${qs.toString()}`;
+
+      const res = await fetch(url, {
+        method: "GET",
+        cache: "no-store",
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        const errorObj = j as Record<string, unknown>;
+        throw new Error(String(errorObj?.error ?? errorObj?.message ?? "Load brands failed"));
+      }
+
+      const j = await res.json();
+      const list = safePickList<BrandItem>(j);
+
+      const normalized = list
+        .filter((x) => x && x.id && x.name)
+        .map((x) => ({
+          id: String(x.id),
+          name: String(x.name),
+          slug: String(x.slug ?? ""),
+          logoUrl: x.logoUrl ?? null,
+        }));
+
+      setBrands(normalized);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") return;
+      const message = e instanceof Error ? e.message : "Load brands failed";
+      setBrandError(message);
+      setBrands([]);
+    } finally {
+      setBrandLoading(false);
+    }
+
+    return () => controller.abort();
+  }, [effectiveSiteId]);
+
   useEffect(() => {
     let cleanup: void | (() => void);
 
@@ -300,7 +318,18 @@ export default function ProductForm({
     };
   }, [loadCategories]);
 
-  /** ========= Media ========= */
+  useEffect(() => {
+    let cleanup: void | (() => void);
+
+    (async () => {
+      cleanup = await loadBrands();
+    })();
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [loadBrands]);
+
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [activeMediaId, setActiveMediaId] = useState<string | null>(null);
   const activeMedia = (activeMediaId ? media.find((m) => m.id === activeMediaId) : null) ?? media[0] ?? null;
@@ -311,16 +340,14 @@ export default function ProductForm({
         if (m.url?.startsWith("blob:")) URL.revokeObjectURL(m.url);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [media]);
 
-  /** ========= Form ========= */
   const [form, setForm] = useState<ProductFormState>({
     name: "",
     slug: "",
     categoryId: "",
+    brandId: "",
     productType: "PHYSICAL",
-    brand: "",
     vendor: "",
     tags: [],
     tagsInput: "",
@@ -334,11 +361,7 @@ export default function ProductForm({
     compareAtPrice: "",
     sku: "",
     barcode: "",
-    trackInventory: true,
     stockQty: "0",
-    lowStockThreshold: "5",
-    allowBackorder: false,
-    requiresShipping: true,
     weight: "",
     length: "",
     width: "",
@@ -373,8 +396,6 @@ export default function ProductForm({
       isDefault: false,
     },
   ]);
-
-  const [attributeValues, setAttributeValues] = useState<AttributeValue[]>([]);
 
   const setField = useCallback(<K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
     setForm((p) => ({ ...p, [key]: value }));
@@ -458,38 +479,12 @@ export default function ProductForm({
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch } : v)));
   }, []);
 
-  const upsertAttrValue = useCallback((attributeId: string, value: string) => {
-    setAttributeValues((prev) => {
-      const i = prev.findIndex((x) => x.attributeId === attributeId);
-      if (i === -1) return [...prev, { attributeId, value }];
-      const clone = prev.slice();
-      clone[i] = { attributeId, value };
-      return clone;
-    });
-  }, []);
-
-  const getAttrValue = useCallback(
-    (attributeId: string) => attributeValues.find((x) => x.attributeId === attributeId)?.value ?? "",
-    [attributeValues],
-  );
-
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id === form.categoryId) ?? null,
     [categories, form.categoryId],
   );
 
-  const currentSchema = useMemo(() => {
-    if (!selectedCategory?.slug) return [];
-    return schemaByCategorySlug[selectedCategory.slug] ?? [];
-  }, [schemaByCategorySlug, selectedCategory?.slug]);
-
-  useEffect(() => {
-    setAttributeValues([]);
-  }, [form.categoryId]);
-
-  /** ========= ✅ Automation: Auto-fill ========= */
   const autoFill = useCallback(() => {
-    // 1) Fill form fields (only when empty)
     setForm((p) => {
       const name = p.name?.trim() ? p.name : "New product";
       const slug = p.slug?.trim() ? p.slug : slugify(name);
@@ -503,30 +498,30 @@ export default function ProductForm({
 
       const description = p.description?.trim()
         ? p.description
-        : `✅ Key features\n- High quality materials\n- Easy to use\n- Great value\n\n📦 In the box\n- 1 x ${name}\n\n🛡 Warranty\n- Please check warranty policy by category.\n`;
+        : `✅ Key features
+- High quality materials
+- Easy to use
+- Great value
 
-      const brand = p.brand?.trim() ? p.brand : "No brand";
-      const vendor = p.vendor?.trim() ? p.vendor : "Default vendor";
+📦 In the box
+- 1 x ${name}
+
+🛡 Warranty
+- Please check warranty policy by category.
+`;
 
       const cost = p.cost?.trim() ? p.cost : "0.00";
       const price = p.price?.trim() ? p.price : "0.00";
 
-      const requiresShipping = p.productType === "DIGITAL" || p.productType === "SERVICE" ? false : p.requiresShipping;
+      const weight = p.productType === "PHYSICAL" ? (p.weight?.trim() ? p.weight : "0.5") : p.weight;
+      const length = p.productType === "PHYSICAL" ? (p.length?.trim() ? p.length : "10") : p.length;
+      const width = p.productType === "PHYSICAL" ? (p.width?.trim() ? p.width : "10") : p.width;
+      const height = p.productType === "PHYSICAL" ? (p.height?.trim() ? p.height : "10") : p.height;
 
-      const weight = requiresShipping ? (p.weight?.trim() ? p.weight : "0.5") : p.weight;
-      const length = requiresShipping ? (p.length?.trim() ? p.length : "10") : p.length;
-      const width = requiresShipping ? (p.width?.trim() ? p.width : "10") : p.width;
-      const height = requiresShipping ? (p.height?.trim() ? p.height : "10") : p.height;
-
-      // SKU only for non-variant mode
       const sku = !hasVariants && !p.sku?.trim() ? `${slug.toUpperCase().replace(/-/g, "")}-001`.slice(0, 32) : p.sku;
 
-      // Some safe inventory defaults
-      const trackInventory = p.trackInventory ?? true;
       const stockQty = p.stockQty?.trim() ? p.stockQty : "0";
-      const lowStockThreshold = p.lowStockThreshold?.trim() ? p.lowStockThreshold : "5";
 
-      // If category picked, add a default tag (optional)
       const tagFromCategory = selectedCategory?.name ? selectedCategory.name : "";
       const tags = p.tags.length > 0 ? p.tags : tagFromCategory ? [tagFromCategory] : [];
 
@@ -538,42 +533,21 @@ export default function ProductForm({
         metaDescription,
         shortDescription,
         description,
-        brand,
-        vendor,
         cost,
         price,
-        requiresShipping,
         weight,
         length,
         width,
         height,
         sku,
-        trackInventory,
         stockQty,
-        lowStockThreshold,
         tags,
       };
     });
 
-    // 2) Fill specs based on schema (only when empty)
-    setAttributeValues((prev) => {
-      if (prev.length > 0) return prev;
-      if (!currentSchema.length) return prev;
-
-      return currentSchema.map((a) => {
-        let value = "";
-        if (a.type === "NUMBER") value = "0";
-        if (a.type === "BOOLEAN") value = "false";
-        if (a.type === "SELECT") value = a.options?.[0] ?? "";
-        return { attributeId: a.id, value };
-      });
-    });
-
-    // 3) UX: move user to the first tab if missing basics
     if (!form.name || !form.slug || !form.categoryId) setActiveTab("BASIC");
-  }, [currentSchema, form.categoryId, form.name, form.slug, hasVariants, selectedCategory?.name]);
+  }, [form.categoryId, form.name, form.slug, hasVariants, selectedCategory?.name]);
 
-  /** ========= Media handlers ========= */
   const onFilesSelected = useCallback(
     (files: FileList | null) => {
       if (!files || files.length === 0) return;
@@ -617,7 +591,6 @@ export default function ProductForm({
     [activeMediaId],
   );
 
-  /** ========= Category create ========= */
   const [createCatName, setCreateCatName] = useState("");
   const createCatInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -653,10 +626,10 @@ export default function ProductForm({
           throw new Error(String(errorObj?.error ?? errorObj?.message ?? "Create category failed"));
         }
 
+        const j = await res.json().catch(() => null);
         modal.success("Success", `Created “${trimmed}”.`);
         await loadCategories();
 
-        const j = await res.json().catch(() => null);
         const createdObj = j as { item?: { id?: string } } | null;
         const createdId = createdObj?.item?.id ? String(createdObj.item.id) : "";
         if (createdId) setField("categoryId", createdId);
@@ -667,7 +640,6 @@ export default function ProductForm({
     })();
   }, [effectiveSiteId, loadCategories, modal, setField]);
 
-  /** ========= Validation / Submit ========= */
   const validateBasic = useCallback(() => {
     const errors: string[] = [];
 
@@ -694,7 +666,6 @@ export default function ProductForm({
       const controller = new AbortController();
 
       try {
-        // 1) Upload images/videos (chỉ upload cái nào có file + đang là blob)
         const toUpload = media.filter((m) => m.file && m.url.startsWith("blob:"));
         let uploadedUrls: string[] = [];
 
@@ -707,13 +678,11 @@ export default function ProductForm({
           }
         }
 
-        // 2) Merge media urls: blob -> uploaded url
         const mergedMedia: MediaItem[] = media.map((m) => {
           const idx = toUpload.findIndex((x) => x.id === m.id);
           if (idx === -1) return m;
 
           const newUrl = uploadedUrls[idx];
-          // cleanup blob
           if (m.url.startsWith("blob:")) URL.revokeObjectURL(m.url);
 
           return {
@@ -724,10 +693,8 @@ export default function ProductForm({
           };
         });
 
-        // 3) Update state media để UI dùng url thật
         setMedia(mergedMedia);
 
-        // 4) Build payload create product
         const payload: ProductSubmitPayload = {
           ...form,
           siteId: effectiveSiteId!,
@@ -735,12 +702,10 @@ export default function ProductForm({
           hasVariants,
           variantOptions,
           variants: hasVariants ? variants : [],
-          specs: attributeValues,
         };
 
         onSubmit?.(payload);
 
-        // ⚠️ gửi lên backend chỉ cần url/thumbUrl/type/id
         const apiPayload = {
           ...payload,
           media: payload.media.map((m) => ({
@@ -764,6 +729,7 @@ export default function ProductForm({
 
         await res.json().catch(() => null);
         modal.success("Success", "Create product success!");
+        onSaved?.();
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Create product failed";
         modal.error("Create failed", message);
@@ -771,43 +737,19 @@ export default function ProductForm({
 
       return () => controller.abort();
     },
-    [
-      attributeValues,
-      effectiveSiteId,
-      form,
-      hasVariants,
-      media,
-      modal,
-      onSubmit,
-      setMedia,
-      validateBasic,
-      variantOptions,
-      variants,
-    ],
+    [effectiveSiteId, form, hasVariants, media, modal, onSaved, onSubmit, validateBasic, variantOptions, variants],
   );
 
-  /** ========= Render ========= */
   return (
     <div className={styles.page}>
       <form className={styles.shell} onSubmit={handleSubmit}>
-        {/* LEFT: media preview */}
         <aside className={styles.left}>
           <div className={styles.mediaCard}>
             <div className={styles.mediaPreview}>
               {activeMedia ? (
                 activeMedia.type === "video" ? (
                   <div className={styles.videoOverlay}>
-                    <Image
-                      className={styles.previewImg}
-                      src={activeMedia.url}
-                      alt="preview"
-                      width={600}
-                      height={600}
-                      unoptimized
-                    />
-                    <div className={styles.playButton} aria-label="Play">
-                      ▶
-                    </div>
+                    <video className={styles.previewImg} src={activeMedia.url} controls playsInline />
                   </div>
                 ) : (
                   <Image
@@ -832,7 +774,11 @@ export default function ProductForm({
                     className={`${styles.thumb} ${m.id === activeMediaId ? styles.thumbActive : ""}`}
                     onClick={() => setActiveMediaId(m.id)}
                   >
-                    <Image src={m.thumbUrl ?? m.url} alt="thumb" width={100} height={100} unoptimized />
+                    {m.type === "video" ? (
+                      <video className={styles.thumbMedia} src={m.url} muted playsInline preload="metadata" />
+                    ) : (
+                      <Image src={m.thumbUrl ?? m.url} alt="thumb" width={100} height={100} unoptimized />
+                    )}
                     {m.type === "video" && <span className={styles.thumbBadge}>▶</span>}
                   </button>
 
@@ -863,7 +809,6 @@ export default function ProductForm({
             </div>
           </div>
 
-          {/* SEO */}
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <div>
@@ -904,9 +849,7 @@ export default function ProductForm({
           </div>
         </aside>
 
-        {/* RIGHT */}
         <section className={styles.right}>
-          {/* Header */}
           <div className={styles.header}>
             <div className={styles.headerLeft}>
               <div className={styles.headerTitle}>Create product</div>
@@ -927,12 +870,9 @@ export default function ProductForm({
               <button type="button" className={styles.btnGhost} onClick={onCancel}>
                 Cancel
               </button>
-
-              {/* ✅ Automation button */}
               <button type="button" className={styles.btnGhost} onClick={autoFill} title="Auto fill common fields">
                 Auto fill
               </button>
-
               <button type="button" className={styles.btnGhost} onClick={publishNow}>
                 Publish now
               </button>
@@ -942,7 +882,6 @@ export default function ProductForm({
             </div>
           </div>
 
-          {/* Tabs */}
           <div className={styles.tabs}>
             <button
               type="button"
@@ -967,15 +906,14 @@ export default function ProductForm({
             </button>
             <button
               type="button"
-              className={`${styles.tabBtn} ${activeTab === "SPECS_SHIPPING" ? styles.tabBtnActive : ""}`}
-              onClick={() => setActiveTab("SPECS_SHIPPING")}
+              className={`${styles.tabBtn} ${activeTab === "SHIPPING" ? styles.tabBtnActive : ""}`}
+              onClick={() => setActiveTab("SHIPPING")}
             >
-              Specs & Shipping
+              Shipping
             </button>
           </div>
 
           <div className={styles.body}>
-            {/* TAB 1: BASIC */}
             {activeTab === "BASIC" && (
               <div className={styles.section}>
                 <div className={styles.grid2}>
@@ -1088,11 +1026,30 @@ export default function ProductForm({
 
                   <div className={styles.field}>
                     <label className={styles.label}>Brand</label>
-                    <input
-                      className={styles.input}
-                      value={form.brand}
-                      onChange={(e) => setField("brand", e.target.value)}
-                    />
+                    <select
+                      className={styles.select}
+                      value={form.brandId}
+                      onChange={(e) => setField("brandId", e.target.value)}
+                      disabled={brandLoading || !effectiveSiteId}
+                    >
+                      <option value="">
+                        {!effectiveSiteId
+                          ? "Select site first..."
+                          : brandLoading
+                            ? "Loading brands..."
+                            : "— No brand —"}
+                      </option>
+                      {brands.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </select>
+                    {brandError ? (
+                      <div className={styles.note} style={{ marginTop: 8 }}>
+                        {brandError}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className={styles.field}>
@@ -1105,7 +1062,6 @@ export default function ProductForm({
                   </div>
                 </div>
 
-                {/* Tags */}
                 <div className={styles.field} style={{ marginTop: 12 }}>
                   <label className={styles.label}>Tags</label>
                   <div className={styles.tagsRow}>
@@ -1138,7 +1094,6 @@ export default function ProductForm({
                   </div>
                 </div>
 
-                {/* Content */}
                 <div className={styles.grid2} style={{ marginTop: 12 }}>
                   <div className={styles.field}>
                     <label className={styles.label}>Short description</label>
@@ -1183,7 +1138,6 @@ export default function ProductForm({
                   </div>
                 </div>
 
-                {/* Visibility / publish */}
                 <div className={styles.grid2} style={{ marginTop: 12 }}>
                   <div className={styles.field}>
                     <label className={styles.label}>Visibility</label>
@@ -1213,7 +1167,6 @@ export default function ProductForm({
               </div>
             )}
 
-            {/* TAB 2: PRICING */}
             {activeTab === "PRICING" && (
               <div className={styles.section}>
                 <div className={styles.sectionHeader}>
@@ -1264,46 +1217,13 @@ export default function ProductForm({
               </div>
             )}
 
-            {/* TAB 3: INVENTORY + VARIANTS */}
             {activeTab === "INVENTORY" && (
               <>
                 <div className={styles.section}>
                   <div className={styles.sectionHeader}>
                     <div>
                       <h2 className={styles.sectionTitle}>Inventory</h2>
-                      <p className={styles.sectionSub}>SKU/Barcode + stock controls</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.grid2}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Track inventory</label>
-                      <div className={styles.toggleRow}>
-                        <button
-                          type="button"
-                          className={`${styles.toggle} ${form.trackInventory ? styles.toggleOn : ""}`}
-                          onClick={() => setField("trackInventory", !form.trackInventory)}
-                          aria-pressed={form.trackInventory}
-                        >
-                          <span className={styles.knob} />
-                        </button>
-                        <span className={styles.toggleText}>{form.trackInventory ? "On" : "Off"}</span>
-                      </div>
-                    </div>
-
-                    <div className={styles.field}>
-                      <label className={styles.label}>Allow backorder</label>
-                      <div className={styles.toggleRow}>
-                        <button
-                          type="button"
-                          className={`${styles.toggle} ${form.allowBackorder ? styles.toggleOn : ""}`}
-                          onClick={() => setField("allowBackorder", !form.allowBackorder)}
-                          aria-pressed={form.allowBackorder}
-                        >
-                          <span className={styles.knob} />
-                        </button>
-                        <span className={styles.toggleText}>{form.allowBackorder ? "Yes" : "No"}</span>
-                      </div>
+                      <p className={styles.sectionSub}>SKU / Barcode / stock</p>
                     </div>
                   </div>
 
@@ -1337,15 +1257,6 @@ export default function ProductForm({
                           onChange={(e) => setField("stockQty", e.target.value)}
                         />
                       </div>
-
-                      <div className={styles.field}>
-                        <label className={styles.label}>Low stock threshold</label>
-                        <input
-                          className={styles.input}
-                          value={form.lowStockThreshold}
-                          onChange={(e) => setField("lowStockThreshold", e.target.value)}
-                        />
-                      </div>
                     </div>
                   )}
 
@@ -1357,7 +1268,7 @@ export default function ProductForm({
                     <div>
                       <h2 className={styles.sectionTitle}>Variants</h2>
                       <p className={styles.sectionSub}>
-                        Options → generate variants → manage SKU/price/stock per variant
+                        Options → generate variants → manage SKU / price / stock per variant
                       </p>
                     </div>
                   </div>
@@ -1380,9 +1291,7 @@ export default function ProductForm({
 
                     <div className={styles.field}>
                       <label className={styles.label}>Default behavior</label>
-                      <div className={styles.note}>
-                        If variants enabled, pricing/stock should be saved per variant (ProductVariant).
-                      </div>
+                      <div className={styles.note}>If variants enabled, pricing and stock are saved per variant.</div>
                     </div>
                   </div>
 
@@ -1513,153 +1422,65 @@ export default function ProductForm({
               </>
             )}
 
-            {/* TAB 4: SPECS + SHIPPING */}
-            {activeTab === "SPECS_SHIPPING" && (
-              <>
-                <div className={styles.section}>
-                  <div className={styles.sectionHeader}>
-                    <div>
-                      <h2 className={styles.sectionTitle}>Specifications</h2>
-                      <p className={styles.sectionSub}>Dynamic attributes generated by category schema</p>
-                    </div>
-                  </div>
-
-                  {!form.categoryId ? (
-                    <div className={styles.note}>Select a Category above to show specification fields.</div>
-                  ) : currentSchema.length === 0 ? (
-                    <div className={styles.note}>
-                      No attribute schema for this category (demo). Hook DB schema later.
-                    </div>
-                  ) : (
-                    <div className={styles.card}>
-                      <div className={styles.cardTitle}>Attributes for “{selectedCategory?.name ?? "Category"}”</div>
-
-                      <div className={styles.grid2}>
-                        {currentSchema.map((a) => (
-                          <div key={a.id} className={styles.field}>
-                            <label className={styles.label}>
-                              {a.name} {a.required ? <span className={styles.req}>*</span> : null}{" "}
-                              {a.unit ? <span className={styles.unit}>({a.unit})</span> : null}
-                            </label>
-
-                            {a.type === "SELECT" ? (
-                              <select
-                                className={styles.select}
-                                value={getAttrValue(a.id)}
-                                onChange={(e) => upsertAttrValue(a.id, e.target.value)}
-                              >
-                                <option value="">— Select —</option>
-                                {(a.options ?? []).map((opt) => (
-                                  <option key={opt} value={opt}>
-                                    {opt}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : a.type === "BOOLEAN" ? (
-                              <select
-                                className={styles.select}
-                                value={getAttrValue(a.id)}
-                                onChange={(e) => upsertAttrValue(a.id, e.target.value)}
-                              >
-                                <option value="">— Select —</option>
-                                <option value="true">True</option>
-                                <option value="false">False</option>
-                              </select>
-                            ) : (
-                              <input
-                                className={styles.input}
-                                placeholder={a.type === "NUMBER" ? "0" : ""}
-                                value={getAttrValue(a.id)}
-                                onChange={(e) => upsertAttrValue(a.id, e.target.value)}
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.section}>
-                  <div className={styles.sectionHeader}>
-                    <div>
-                      <h2 className={styles.sectionTitle}>Shipping</h2>
-                      <p className={styles.sectionSub}>Weight & dimensions, requires shipping</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.grid2}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Requires shipping</label>
-                      <div className={styles.toggleRow}>
-                        <button
-                          type="button"
-                          className={`${styles.toggle} ${form.requiresShipping ? styles.toggleOn : ""}`}
-                          onClick={() => setField("requiresShipping", !form.requiresShipping)}
-                          aria-pressed={form.requiresShipping}
-                        >
-                          <span className={styles.knob} />
-                        </button>
-                        <span className={styles.toggleText}>
-                          {form.requiresShipping ? "Yes" : "No (digital/service)"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.grid4} style={{ marginTop: 12 }}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Weight</label>
-                      <input
-                        className={styles.input}
-                        placeholder="kg"
-                        value={form.weight}
-                        onChange={(e) => setField("weight", e.target.value)}
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Length</label>
-                      <input
-                        className={styles.input}
-                        placeholder="cm"
-                        value={form.length}
-                        onChange={(e) => setField("length", e.target.value)}
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Width</label>
-                      <input
-                        className={styles.input}
-                        placeholder="cm"
-                        value={form.width}
-                        onChange={(e) => setField("width", e.target.value)}
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Height</label>
-                      <input
-                        className={styles.input}
-                        placeholder="cm"
-                        value={form.height}
-                        onChange={(e) => setField("height", e.target.value)}
-                      />
-                    </div>
+            {activeTab === "SHIPPING" && (
+              <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>Shipping</h2>
+                    <p className={styles.sectionSub}>Weight & dimensions</p>
                   </div>
                 </div>
-              </>
+
+                <div className={styles.note}>For DIGITAL or SERVICE products, you can leave these fields empty.</div>
+
+                <div className={styles.grid4} style={{ marginTop: 12 }}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Weight</label>
+                    <input
+                      className={styles.input}
+                      placeholder="kg"
+                      value={form.weight}
+                      onChange={(e) => setField("weight", e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Length</label>
+                    <input
+                      className={styles.input}
+                      placeholder="cm"
+                      value={form.length}
+                      onChange={(e) => setField("length", e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Width</label>
+                    <input
+                      className={styles.input}
+                      placeholder="cm"
+                      value={form.width}
+                      onChange={(e) => setField("width", e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Height</label>
+                    <input
+                      className={styles.input}
+                      placeholder="cm"
+                      value={form.height}
+                      onChange={(e) => setField("height", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
             )}
 
-            {/* FOOTER (always visible) */}
             <div className={styles.footerBar}>
               <button type="button" className={styles.btnGhost} onClick={onCancel}>
                 Cancel
               </button>
-
-              {/* ✅ Automation button in footer too */}
               <button type="button" className={styles.btnGhost} onClick={autoFill}>
                 Auto fill
               </button>
-
               <button type="button" className={styles.btnGhost} onClick={publishNow}>
                 Publish now
               </button>
@@ -1671,7 +1492,6 @@ export default function ProductForm({
         </section>
       </form>
 
-      {/* refs only */}
       <input
         ref={createCatInputRef}
         value={createCatName}

@@ -4,13 +4,17 @@ import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
 
-export const runtime = "nodejs"; // cần node runtime để ghi file
+export const runtime = "nodejs";
 
 function safeExtFromType(type: string) {
   if (type === "image/jpeg") return ".jpg";
   if (type === "image/png") return ".png";
   if (type === "image/webp") return ".webp";
   if (type === "image/gif") return ".gif";
+  if (type === "video/mp4") return ".mp4";
+  if (type === "video/webm") return ".webm";
+  if (type === "video/ogg") return ".ogv";
+  if (type === "video/quicktime") return ".mov";
   return "";
 }
 
@@ -25,7 +29,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
     }
 
-    // lưu vào /public/uploads/yyyy-mm
     const now = new Date();
     const folder = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const dir = path.join(process.cwd(), "public", "uploads", folder);
@@ -40,12 +43,10 @@ export async function POST(req: Request) {
       }
 
       const buf = Buffer.from(await f.arrayBuffer());
-      const name = crypto.randomBytes(16).toString("hex") + ext;
+      const name = `${crypto.randomBytes(16).toString("hex")}${ext}`;
       const full = path.join(dir, name);
 
       await fs.writeFile(full, buf);
-
-      // URL public để dùng trong <img src="">
       urls.push(`/uploads/${folder}/${name}`);
     }
 

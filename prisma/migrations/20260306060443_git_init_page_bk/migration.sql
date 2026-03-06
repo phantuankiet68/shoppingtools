@@ -32,7 +32,19 @@ CREATE TYPE "MessageChannel" AS ENUM ('EMAIL', 'FACEBOOK', 'TIKTOK');
 CREATE TYPE "AudienceMemberStatus" AS ENUM ('SUBSCRIBED', 'UNSUBSCRIBED', 'BOUNCED');
 
 -- CreateEnum
+CREATE TYPE "CalendarEventColor" AS ENUM ('BLUE', 'PURPLE', 'GREEN', 'AMBER', 'RED', 'TEAL');
+
+-- CreateEnum
+CREATE TYPE "ConversationType" AS ENUM ('DIRECT', 'GROUP');
+
+-- CreateEnum
+CREATE TYPE "FriendRequestStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED');
+
+-- CreateEnum
 CREATE TYPE "AddressType" AS ENUM ('SHIPPING', 'BILLING', 'BOTH');
+
+-- CreateEnum
+CREATE TYPE "ImageTag" AS ENUM ('NEW', 'HDR', 'AI', 'FAVORITE', 'COVER', 'BANNER', 'AVATAR', 'PRODUCT');
 
 -- CreateEnum
 CREATE TYPE "MenuSetKey" AS ENUM ('home', 'v1');
@@ -68,7 +80,25 @@ CREATE TYPE "PageStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
 CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'ACTIVE', 'ARCHIVED');
 
 -- CreateEnum
+CREATE TYPE "ProductType" AS ENUM ('PHYSICAL', 'DIGITAL', 'SERVICE');
+
+-- CreateEnum
+CREATE TYPE "ProfileRole" AS ENUM ('ADMIN', 'STAFF', 'USER');
+
+-- CreateEnum
+CREATE TYPE "ProfileStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED');
+
+-- CreateEnum
 CREATE TYPE "SiteStatus" AS ENUM ('DRAFT', 'ACTIVE', 'SUSPENDED');
+
+-- CreateEnum
+CREATE TYPE "TransactionType" AS ENUM ('EXPENSE', 'INCOME', 'TRANSFER');
+
+-- CreateEnum
+CREATE TYPE "TransactionStatus" AS ENUM ('PAID', 'PENDING', 'CANCELED');
+
+-- CreateEnum
+CREATE TYPE "CategoryType" AS ENUM ('All', 'FOOD', 'SHOPPING', 'TRANSPORT', 'BILL', 'HEALTH', 'ENTERTAINMENT', 'EDUCATION', 'TRAVEL', 'OTHER');
 
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('USER', 'SUB_USER', 'ADMIN');
@@ -217,6 +247,88 @@ CREATE TABLE "audience_members" (
 );
 
 -- CreateTable
+CREATE TABLE "calendars" (
+    "id" TEXT NOT NULL,
+    "owner_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL DEFAULT 'My Calendar',
+    "is_default" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "calendars_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "calendar_events" (
+    "id" TEXT NOT NULL,
+    "calendar_id" TEXT NOT NULL,
+    "creator_id" TEXT,
+    "user_id" TEXT,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "location" TEXT,
+    "color" "CalendarEventColor" NOT NULL DEFAULT 'BLUE',
+    "allDay" BOOLEAN NOT NULL DEFAULT false,
+    "start_at" TIMESTAMP(3) NOT NULL,
+    "end_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "calendar_events_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Conversation" (
+    "id" TEXT NOT NULL,
+    "type" "ConversationType" NOT NULL DEFAULT 'DIRECT',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "lastMessageAt" TIMESTAMP(3),
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "Conversation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ConversationMember" (
+    "id" TEXT NOT NULL,
+    "conversationId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'MEMBER',
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastReadAt" TIMESTAMP(3),
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "ConversationMember_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FriendRequest" (
+    "id" TEXT NOT NULL,
+    "fromId" TEXT NOT NULL,
+    "toId" TEXT NOT NULL,
+    "status" "FriendRequestStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "respondedAt" TIMESTAMP(3),
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "FriendRequest_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Message" (
+    "id" TEXT NOT NULL,
+    "conversationId" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "customers" (
     "id" TEXT NOT NULL,
     "site_id" TEXT NOT NULL,
@@ -263,6 +375,71 @@ CREATE TABLE "addresses" (
     "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "addresses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "File" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "folderId" TEXT,
+    "title" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "provider" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "category" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "File_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Folder" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "name" TEXT NOT NULL,
+    "parentId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "Folder_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ImageFolder" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "name" TEXT NOT NULL,
+    "parentId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "ImageFolder_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ImageAsset" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "folderId" TEXT,
+    "originalName" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "sizeBytes" INTEGER NOT NULL,
+    "width" INTEGER,
+    "height" INTEGER,
+    "tag" "ImageTag",
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "ImageAsset_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -424,13 +601,50 @@ CREATE TABLE "pages" (
 );
 
 -- CreateTable
+CREATE TABLE "page_seo" (
+    "id" TEXT NOT NULL,
+    "page_id" TEXT NOT NULL,
+    "meta_title" TEXT,
+    "meta_description" TEXT,
+    "keywords" TEXT,
+    "canonical_url" TEXT,
+    "noindex" BOOLEAN NOT NULL DEFAULT false,
+    "nofollow" BOOLEAN NOT NULL DEFAULT false,
+    "og_title" TEXT,
+    "og_description" TEXT,
+    "og_image" TEXT,
+    "twitter_card" TEXT,
+    "sitemap_changefreq" TEXT,
+    "sitemap_priority" DOUBLE PRECISION,
+    "structured_data" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "page_seo_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "products" (
     "id" TEXT NOT NULL,
     "site_id" TEXT NOT NULL,
+    "category_id" TEXT NOT NULL,
+    "brand_id" TEXT,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "short_description" TEXT,
     "description" TEXT,
+    "product_type" "ProductType" NOT NULL DEFAULT 'PHYSICAL',
+    "vendor" TEXT,
+    "tags" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "status" "ProductStatus" NOT NULL DEFAULT 'DRAFT',
+    "is_visible" BOOLEAN NOT NULL DEFAULT true,
+    "published_at" TIMESTAMP(3),
+    "meta_title" TEXT,
+    "meta_description" TEXT,
+    "weight" DECIMAL(12,3),
+    "length" DECIMAL(12,3),
+    "width" DECIMAL(12,3),
+    "height" DECIMAL(12,3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
@@ -439,16 +653,36 @@ CREATE TABLE "products" (
 );
 
 -- CreateTable
+CREATE TABLE "product_brands" (
+    "id" TEXT NOT NULL,
+    "site_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "description" TEXT,
+    "logo_url" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "product_brands_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "product_variants" (
     "id" TEXT NOT NULL,
     "product_id" TEXT NOT NULL,
     "site_id" TEXT NOT NULL,
     "sku" TEXT NOT NULL,
+    "title" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
     "price" DECIMAL(12,2) NOT NULL,
     "compare_at_price" DECIMAL(12,2),
+    "cost" DECIMAL(12,2),
     "stock_qty" INTEGER NOT NULL DEFAULT 0,
     "barcode" TEXT,
     "weight" DECIMAL(12,3),
+    "length" DECIMAL(12,3),
+    "width" DECIMAL(12,3),
+    "height" DECIMAL(12,3),
     "is_default" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -466,6 +700,14 @@ CREATE TABLE "product_option_values" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "product_option_values_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "product_variant_option_values" (
+    "variant_id" TEXT NOT NULL,
+    "option_value_id" TEXT NOT NULL,
+
+    CONSTRAINT "product_variant_option_values_pkey" PRIMARY KEY ("variant_id","option_value_id")
 );
 
 -- CreateTable
@@ -495,11 +737,44 @@ CREATE TABLE "product_categories" (
 );
 
 -- CreateTable
-CREATE TABLE "product_category_map" (
-    "product_id" TEXT NOT NULL,
-    "category_id" TEXT NOT NULL,
+CREATE TABLE "profiles" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "first_name" TEXT,
+    "last_name" TEXT,
+    "username" TEXT,
+    "role" "ProfileRole" NOT NULL DEFAULT 'USER',
+    "status" "ProfileStatus" NOT NULL DEFAULT 'ACTIVE',
+    "email" TEXT,
+    "backup_email" TEXT,
+    "phone" TEXT,
+    "address" TEXT,
+    "city" TEXT,
+    "country" TEXT,
+    "company" TEXT,
+    "department" TEXT,
+    "job_title" TEXT,
+    "manager" TEXT,
+    "hire_date" TIMESTAMP(3),
+    "gender" TEXT,
+    "locale" TEXT,
+    "timezone" TEXT,
+    "dob_month" TEXT,
+    "dob_day" INTEGER,
+    "dob_year" INTEGER,
+    "twitter" TEXT,
+    "linkedin" TEXT,
+    "facebook" TEXT,
+    "github" TEXT,
+    "website" TEXT,
+    "slogan" TEXT,
+    "bio" TEXT,
+    "two_fa" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "site_id" TEXT,
 
-    CONSTRAINT "product_category_map_pkey" PRIMARY KEY ("product_id","category_id")
+    CONSTRAINT "profiles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -522,6 +797,52 @@ CREATE TABLE "sites" (
 );
 
 -- CreateTable
+CREATE TABLE "Merchant" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Merchant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Category" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "name" TEXT NOT NULL,
+    "type" "CategoryType" NOT NULL,
+    "icon" TEXT,
+    "color" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Transaction" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "occurredAt" TIMESTAMP(3) NOT NULL,
+    "type" "TransactionType" NOT NULL,
+    "status" "TransactionStatus" NOT NULL,
+    "method" "PaymentMethod",
+    "currency" TEXT NOT NULL DEFAULT 'VND',
+    "totalCents" INTEGER NOT NULL,
+    "merchantId" TEXT,
+    "categoryId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "Transaction_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -532,6 +853,7 @@ CREATE TABLE "users" (
     "last_login_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "image" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -648,6 +970,16 @@ CREATE TABLE "user_devices" (
     CONSTRAINT "user_devices_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "blocks" (
+    "id" TEXT NOT NULL,
+    "blocker_id" TEXT NOT NULL,
+    "blocked_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "blocks_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "automation_rules_siteId_triggerEvent_idx" ON "automation_rules"("siteId", "triggerEvent");
 
@@ -700,6 +1032,66 @@ CREATE INDEX "audience_members_audienceId_status_idx" ON "audience_members"("aud
 CREATE INDEX "audience_members_email_idx" ON "audience_members"("email");
 
 -- CreateIndex
+CREATE INDEX "calendars_owner_id_idx" ON "calendars"("owner_id");
+
+-- CreateIndex
+CREATE INDEX "calendar_events_calendar_id_idx" ON "calendar_events"("calendar_id");
+
+-- CreateIndex
+CREATE INDEX "calendar_events_creator_id_idx" ON "calendar_events"("creator_id");
+
+-- CreateIndex
+CREATE INDEX "calendar_events_user_id_idx" ON "calendar_events"("user_id");
+
+-- CreateIndex
+CREATE INDEX "calendar_events_start_at_idx" ON "calendar_events"("start_at");
+
+-- CreateIndex
+CREATE INDEX "calendar_events_end_at_idx" ON "calendar_events"("end_at");
+
+-- CreateIndex
+CREATE INDEX "Conversation_lastMessageAt_idx" ON "Conversation"("lastMessageAt");
+
+-- CreateIndex
+CREATE INDEX "Conversation_deleted_at_idx" ON "Conversation"("deleted_at");
+
+-- CreateIndex
+CREATE INDEX "ConversationMember_conversationId_idx" ON "ConversationMember"("conversationId");
+
+-- CreateIndex
+CREATE INDEX "ConversationMember_userId_idx" ON "ConversationMember"("userId");
+
+-- CreateIndex
+CREATE INDEX "ConversationMember_deleted_at_idx" ON "ConversationMember"("deleted_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ConversationMember_conversationId_userId_key" ON "ConversationMember"("conversationId", "userId");
+
+-- CreateIndex
+CREATE INDEX "FriendRequest_fromId_idx" ON "FriendRequest"("fromId");
+
+-- CreateIndex
+CREATE INDEX "FriendRequest_toId_idx" ON "FriendRequest"("toId");
+
+-- CreateIndex
+CREATE INDEX "FriendRequest_deleted_at_idx" ON "FriendRequest"("deleted_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FriendRequest_fromId_toId_key" ON "FriendRequest"("fromId", "toId");
+
+-- CreateIndex
+CREATE INDEX "Message_conversationId_idx" ON "Message"("conversationId");
+
+-- CreateIndex
+CREATE INDEX "Message_senderId_idx" ON "Message"("senderId");
+
+-- CreateIndex
+CREATE INDEX "Message_createdAt_idx" ON "Message"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "Message_deleted_at_idx" ON "Message"("deleted_at");
+
+-- CreateIndex
 CREATE INDEX "idx_customers_site_phone" ON "customers"("site_id", "phone");
 
 -- CreateIndex
@@ -713,6 +1105,30 @@ CREATE UNIQUE INDEX "uq_customers_site_email" ON "customers"("site_id", "email")
 
 -- CreateIndex
 CREATE INDEX "idx_addresses_site_customer" ON "addresses"("site_id", "customer_id");
+
+-- CreateIndex
+CREATE INDEX "Folder_userId_idx" ON "Folder"("userId");
+
+-- CreateIndex
+CREATE INDEX "Folder_userId_parentId_idx" ON "Folder"("userId", "parentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Folder_userId_parentId_name_key" ON "Folder"("userId", "parentId", "name");
+
+-- CreateIndex
+CREATE INDEX "ImageFolder_userId_idx" ON "ImageFolder"("userId");
+
+-- CreateIndex
+CREATE INDEX "ImageFolder_userId_parentId_idx" ON "ImageFolder"("userId", "parentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ImageFolder_userId_parentId_name_key" ON "ImageFolder"("userId", "parentId", "name");
+
+-- CreateIndex
+CREATE INDEX "ImageAsset_userId_idx" ON "ImageAsset"("userId");
+
+-- CreateIndex
+CREATE INDEX "ImageAsset_userId_folderId_idx" ON "ImageAsset"("userId", "folderId");
 
 -- CreateIndex
 CREATE INDEX "MenuItem_parentId_idx" ON "MenuItem"("parentId");
@@ -796,13 +1212,40 @@ CREATE UNIQUE INDEX "pages_site_id_slug_key" ON "pages"("site_id", "slug");
 CREATE UNIQUE INDEX "pages_site_id_path_key" ON "pages"("site_id", "path");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "page_seo_page_id_key" ON "page_seo"("page_id");
+
+-- CreateIndex
+CREATE INDEX "page_seo_noindex_idx" ON "page_seo"("noindex");
+
+-- CreateIndex
 CREATE INDEX "products_site_id_idx" ON "products"("site_id");
+
+-- CreateIndex
+CREATE INDEX "products_category_id_idx" ON "products"("category_id");
+
+-- CreateIndex
+CREATE INDEX "products_brand_id_idx" ON "products"("brand_id");
 
 -- CreateIndex
 CREATE INDEX "products_site_id_status_idx" ON "products"("site_id", "status");
 
 -- CreateIndex
+CREATE INDEX "products_site_id_is_visible_idx" ON "products"("site_id", "is_visible");
+
+-- CreateIndex
+CREATE INDEX "products_site_id_published_at_idx" ON "products"("site_id", "published_at");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "products_site_id_slug_key" ON "products"("site_id", "slug");
+
+-- CreateIndex
+CREATE INDEX "product_brands_site_id_idx" ON "product_brands"("site_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "product_brands_site_id_slug_key" ON "product_brands"("site_id", "slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "product_brands_site_id_name_key" ON "product_brands"("site_id", "name");
 
 -- CreateIndex
 CREATE INDEX "product_variants_product_id_idx" ON "product_variants"("product_id");
@@ -818,6 +1261,9 @@ CREATE INDEX "product_option_values_product_id_idx" ON "product_option_values"("
 
 -- CreateIndex
 CREATE UNIQUE INDEX "product_option_values_product_id_option_name_option_value_key" ON "product_option_values"("product_id", "option_name", "option_value");
+
+-- CreateIndex
+CREATE INDEX "product_variant_option_values_option_value_id_idx" ON "product_variant_option_values"("option_value_id");
 
 -- CreateIndex
 CREATE INDEX "product_images_product_id_idx" ON "product_images"("product_id");
@@ -841,7 +1287,25 @@ CREATE INDEX "product_categories_site_id_sort_order_idx" ON "product_categories"
 CREATE UNIQUE INDEX "product_categories_site_id_slug_key" ON "product_categories"("site_id", "slug");
 
 -- CreateIndex
-CREATE INDEX "product_category_map_category_id_idx" ON "product_category_map"("category_id");
+CREATE UNIQUE INDEX "profiles_user_id_key" ON "profiles"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "profiles_username_key" ON "profiles"("username");
+
+-- CreateIndex
+CREATE INDEX "idx_profiles_site_id" ON "profiles"("site_id");
+
+-- CreateIndex
+CREATE INDEX "profiles_first_name_idx" ON "profiles"("first_name");
+
+-- CreateIndex
+CREATE INDEX "profiles_last_name_idx" ON "profiles"("last_name");
+
+-- CreateIndex
+CREATE INDEX "profiles_role_idx" ON "profiles"("role");
+
+-- CreateIndex
+CREATE INDEX "profiles_status_idx" ON "profiles"("status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "sites_domain_key" ON "sites"("domain");
@@ -857,6 +1321,39 @@ CREATE INDEX "sites_is_public_idx" ON "sites"("is_public");
 
 -- CreateIndex
 CREATE INDEX "sites_published_at_idx" ON "sites"("published_at");
+
+-- CreateIndex
+CREATE INDEX "Merchant_userId_idx" ON "Merchant"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Merchant_userId_name_key" ON "Merchant"("userId", "name");
+
+-- CreateIndex
+CREATE INDEX "Category_userId_idx" ON "Category"("userId");
+
+-- CreateIndex
+CREATE INDEX "Category_type_idx" ON "Category"("type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Category_userId_name_key" ON "Category"("userId", "name");
+
+-- CreateIndex
+CREATE INDEX "Transaction_userId_idx" ON "Transaction"("userId");
+
+-- CreateIndex
+CREATE INDEX "Transaction_userId_occurredAt_idx" ON "Transaction"("userId", "occurredAt");
+
+-- CreateIndex
+CREATE INDEX "Transaction_type_idx" ON "Transaction"("type");
+
+-- CreateIndex
+CREATE INDEX "Transaction_status_idx" ON "Transaction"("status");
+
+-- CreateIndex
+CREATE INDEX "Transaction_merchantId_idx" ON "Transaction"("merchantId");
+
+-- CreateIndex
+CREATE INDEX "Transaction_categoryId_idx" ON "Transaction"("categoryId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
@@ -930,6 +1427,15 @@ CREATE INDEX "user_devices_user_id_trusted_idx" ON "user_devices"("user_id", "tr
 -- CreateIndex
 CREATE INDEX "user_devices_last_seen_at_idx" ON "user_devices"("last_seen_at");
 
+-- CreateIndex
+CREATE INDEX "blocks_blocker_id_idx" ON "blocks"("blocker_id");
+
+-- CreateIndex
+CREATE INDEX "blocks_blocked_id_idx" ON "blocks"("blocked_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "blocks_blocker_id_blocked_id_key" ON "blocks"("blocker_id", "blocked_id");
+
 -- AddForeignKey
 ALTER TABLE "automation_rules" ADD CONSTRAINT "automation_rules_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "sites"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -973,6 +1479,36 @@ ALTER TABLE "audience_members" ADD CONSTRAINT "audience_members_audienceId_fkey"
 ALTER TABLE "audience_members" ADD CONSTRAINT "audience_members_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "calendars" ADD CONSTRAINT "calendars_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "calendar_events" ADD CONSTRAINT "calendar_events_calendar_id_fkey" FOREIGN KEY ("calendar_id") REFERENCES "calendars"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "calendar_events" ADD CONSTRAINT "calendar_events_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "calendar_events" ADD CONSTRAINT "calendar_events_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ConversationMember" ADD CONSTRAINT "ConversationMember_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "Conversation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ConversationMember" ADD CONSTRAINT "ConversationMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FriendRequest" ADD CONSTRAINT "FriendRequest_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FriendRequest" ADD CONSTRAINT "FriendRequest_toId_fkey" FOREIGN KEY ("toId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "Conversation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "customers" ADD CONSTRAINT "customers_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "sites"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -983,6 +1519,30 @@ ALTER TABLE "addresses" ADD CONSTRAINT "addresses_site_id_fkey" FOREIGN KEY ("si
 
 -- AddForeignKey
 ALTER TABLE "addresses" ADD CONSTRAINT "addresses_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "File" ADD CONSTRAINT "File_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "File" ADD CONSTRAINT "File_folderId_fkey" FOREIGN KEY ("folderId") REFERENCES "Folder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Folder" ADD CONSTRAINT "Folder_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Folder" ADD CONSTRAINT "Folder_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Folder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ImageFolder" ADD CONSTRAINT "ImageFolder_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ImageFolder" ADD CONSTRAINT "ImageFolder_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "ImageFolder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ImageAsset" ADD CONSTRAINT "ImageAsset_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ImageAsset" ADD CONSTRAINT "ImageAsset_folderId_fkey" FOREIGN KEY ("folderId") REFERENCES "ImageFolder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "MenuItem" ADD CONSTRAINT "MenuItem_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "sites"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1024,7 +1584,19 @@ ALTER TABLE "fulfillment_items" ADD CONSTRAINT "fulfillment_items_order_item_id_
 ALTER TABLE "pages" ADD CONSTRAINT "pages_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "sites"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "page_seo" ADD CONSTRAINT "page_seo_page_id_fkey" FOREIGN KEY ("page_id") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "products" ADD CONSTRAINT "products_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "sites"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "products" ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "product_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "products" ADD CONSTRAINT "products_brand_id_fkey" FOREIGN KEY ("brand_id") REFERENCES "product_brands"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "product_brands" ADD CONSTRAINT "product_brands_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "sites"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1034,6 +1606,12 @@ ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_site_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "product_option_values" ADD CONSTRAINT "product_option_values_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "product_variant_option_values" ADD CONSTRAINT "product_variant_option_values_variant_id_fkey" FOREIGN KEY ("variant_id") REFERENCES "product_variants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "product_variant_option_values" ADD CONSTRAINT "product_variant_option_values_option_value_id_fkey" FOREIGN KEY ("option_value_id") REFERENCES "product_option_values"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "product_images" ADD CONSTRAINT "product_images_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1048,13 +1626,28 @@ ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_site_id_fkey
 ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "product_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_category_map" ADD CONSTRAINT "product_category_map_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "profiles" ADD CONSTRAINT "profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_category_map" ADD CONSTRAINT "product_category_map_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "product_categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "profiles" ADD CONSTRAINT "profiles_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "sites"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "sites" ADD CONSTRAINT "sites_owner_user_id_fkey" FOREIGN KEY ("owner_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Merchant" ADD CONSTRAINT "Merchant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Category" ADD CONSTRAINT "Category_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1085,3 +1678,9 @@ ALTER TABLE "user_backup_codes" ADD CONSTRAINT "user_backup_codes_user_id_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "user_devices" ADD CONSTRAINT "user_devices_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "blocks" ADD CONSTRAINT "blocks_blocker_id_fkey" FOREIGN KEY ("blocker_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "blocks" ADD CONSTRAINT "blocks_blocked_id_fkey" FOREIGN KEY ("blocked_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

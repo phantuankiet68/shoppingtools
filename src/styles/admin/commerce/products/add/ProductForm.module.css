@@ -253,6 +253,8 @@
 /* Body */
 .body {
   padding: 16px;
+  height: 61vh;
+  overflow: auto;
 }
 
 /* Sections */
