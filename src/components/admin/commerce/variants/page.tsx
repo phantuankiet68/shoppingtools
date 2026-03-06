@@ -1,50 +1,50 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import styles from "@/styles/admin/product/variants/variants.module.css";
+import { useSiteStore } from "@/store/site/site.store";
+import styles from "@/styles/admin/commerce/variants/variants.module.css";
 
 type Currency = "USD" | "VND";
-type VariantStatus = "ACTIVE" | "DRAFT"; // ✅ DB only supports isActive
+type VariantStatus = "ACTIVE" | "DRAFT"; // UI status mapped to DB isActive
 
 type ProductRow = {
   id: string;
   name: string;
-  skuPrefix: string; // bạn đang dùng Product.sku làm prefix
+  skuPrefix: string;
   image?: string | null;
 };
 
-type VariantImageRow = { id: string; url: string; isCover: boolean; sort: number };
+type VariantImageRow = {
+  id: string;
+  url: string;
+  isCover: boolean;
+  sort: number;
+};
 
 type VariantRow = {
   id: string;
   productId: string;
-
   name: string;
   sku: string;
   barcode?: string;
-
   priceCents: number;
   currency: Currency;
-
   stock: number;
-
-  status: VariantStatus; // map sang DB isActive
-
+  status: VariantStatus;
   option1?: string;
   value1?: string;
   option2?: string;
   value2?: string;
-
   images: VariantImageRow[];
-
   createdAt: string;
   updatedAt: string;
 };
 
-type OptionDef = {
+type DbVariantImage = {
   id: string;
-  name: string; // "Color"
-  values: string[]; // ["Xanh", "Đỏ"]
+  url: string;
+  isCover: boolean;
+  sort: number;
 };
 
 type DbVariant = {
@@ -63,12 +63,52 @@ type DbVariant = {
   value2: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
-  images: { id: string; url: string; isCover: boolean; sort: number }[];
+  images: DbVariantImage[];
 };
 
-function uid() {
-  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
+type ProductLiteResponse = {
+  items: ProductRow[];
+};
+
+type VariantListResponse = {
+  items: DbVariant[];
+};
+
+type VariantItemResponse = {
+  item: DbVariant;
+};
+
+type VariantImagesResponse = {
+  items: VariantImageRow[];
+};
+
+type VariantCreatePayload = {
+  productId: string;
+  sku: string;
+  name: string | null;
+  barcode: string | null;
+  priceCents: number;
+  costCents: number;
+  stock: number;
+  isActive: boolean;
+  option1: string | null;
+  value1: string | null;
+  option2: string | null;
+  value2: string | null;
+};
+
+type VariantPatchPayload = Partial<{
+  name: string | null;
+  sku: string;
+  barcode: string | null;
+  priceCents: number;
+  stock: number;
+  isActive: boolean;
+  option1: string | null;
+  value1: string | null;
+  option2: string | null;
+  value2: string | null;
+}>;
 
 function nowIso() {
   return new Date().toISOString();
@@ -98,11 +138,21 @@ function fmtMoney(cents: number, ccy: Currency) {
 function uniqueSkuForProduct(prefix: string, existingSkus: Set<string>, base = "NEW") {
   const baseSku = slugSku(`${prefix}-${base}`);
   if (!existingSkus.has(baseSku)) return baseSku;
-  for (let i = 2; i < 10000; i++) {
+
+  for (let i = 2; i < 10000; i += 1) {
     const sku = slugSku(`${prefix}-${base}-${i}`);
     if (!existingSkus.has(sku)) return sku;
   }
+
   return slugSku(`${prefix}-${base}-${Date.now()}`);
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 /** ===== DB <-> UI ===== */
@@ -152,7 +202,7 @@ function uiToDbCreatePayload(v: {
   value1?: string;
   option2?: string;
   value2?: string;
-}) {
+}): VariantCreatePayload {
   return {
     productId: v.productId,
     sku: v.sku,
@@ -169,18 +219,15 @@ function uiToDbCreatePayload(v: {
   };
 }
 
-function uiToDbPatchPayload(patch: Partial<VariantRow>) {
-  const data: any = {};
+function uiToDbPatchPayload(patch: Partial<VariantRow>): VariantPatchPayload {
+  const data: VariantPatchPayload = {};
 
-  if (patch.name !== undefined) data.name = patch.name?.trim() ? patch.name.trim() : null;
+  if (patch.name !== undefined) data.name = patch.name.trim() ? patch.name.trim() : null;
   if (patch.sku !== undefined) data.sku = patch.sku;
   if (patch.barcode !== undefined) data.barcode = patch.barcode?.trim() ? patch.barcode.trim() : null;
-
   if (patch.priceCents !== undefined) data.priceCents = Math.max(0, Math.trunc(Number(patch.priceCents)));
   if (patch.stock !== undefined) data.stock = Math.max(0, Math.trunc(Number(patch.stock)));
-
   if (patch.status !== undefined) data.isActive = patch.status === "ACTIVE";
-
   if (patch.option1 !== undefined) data.option1 = patch.option1?.trim() ? patch.option1.trim() : null;
   if (patch.value1 !== undefined) data.value1 = patch.value1?.trim() ? patch.value1.trim() : null;
   if (patch.option2 !== undefined) data.option2 = patch.option2?.trim() ? patch.option2.trim() : null;
@@ -191,21 +238,29 @@ function uiToDbPatchPayload(patch: Partial<VariantRow>) {
 
 /** ===== fetch helper ===== */
 async function apiJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+
+  if (init?.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const res = await fetch(input, {
     ...init,
-    headers: {
-      ...(init?.headers || {}),
-      "Content-Type": "application/json",
-    },
+    headers,
   });
 
-  if (res.status === 204) return null as unknown as T;
+  if (res.status === 204) return null as T;
 
-  const data = await res.json().catch(() => ({}));
+  const data: unknown = await res.json().catch(() => null);
+
   if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
+    if (data && typeof data === "object") {
+      const errObj = data as { error?: string; message?: string };
+      throw new Error(errObj.error || errObj.message || `HTTP ${res.status}`);
+    }
+    throw new Error(`HTTP ${res.status}`);
   }
+
   return data as T;
 }
 
@@ -222,25 +277,32 @@ function buildLabelFromValues(v1?: string, v2?: string) {
 }
 
 export default function VariantsPage() {
+  /** ===== site store ===== */
+  const sites = useSiteStore((s) => s.sites);
+  const sitesLoading = useSiteStore((s) => s.loading);
+  const sitesErr = useSiteStore((s) => s.err);
+  const selectedSiteId = useSiteStore((s) => s.siteId);
+  const setSelectedSiteId = useSiteStore((s) => s.setSiteId);
+  const hydrateFromStorage = useSiteStore((s) => s.hydrateFromStorage);
+  const loadSites = useSiteStore((s) => s.loadSites);
+
   /** ===== UI state ===== */
   const [productQuery, setProductQuery] = useState("");
   const [products, setProducts] = useState<ProductRow[]>([]);
-  const [activeProductId, setActiveProductId] = useState<string>("");
+  const [activeProductId, setActiveProductId] = useState("");
 
-  const activeProduct = useMemo(() => products.find((p) => p.id === activeProductId) || null, [products, activeProductId]);
-
-  /** ===== Option defs: local per product (chỉ dùng Generate) ===== */
-  const [optionDefs, setOptionDefs] = useState<Record<string, OptionDef[]>>({});
-  const defs = optionDefs[activeProductId] ?? [];
-
-  /** ===== Variants ===== */
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [variantQuery, setVariantQuery] = useState("");
-  const [activeVariantId, setActiveVariantId] = useState<string>("");
+  const [activeVariantId, setActiveVariantId] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const activeProduct = useMemo(
+    () => products.find((p) => p.id === activeProductId) || null,
+    [products, activeProductId],
+  );
 
   const visibleProducts = useMemo(() => {
     const q = productQuery.trim().toLowerCase();
@@ -252,45 +314,86 @@ export default function VariantsPage() {
     const q = variantQuery.trim().toLowerCase();
     return variants
       .filter((v) => v.productId === activeProductId)
-      .filter((v) => (q ? (v.name + " " + v.sku).toLowerCase().includes(q) : true))
+      .filter((v) => (q ? `${v.name} ${v.sku}`.toLowerCase().includes(q) : true))
       .slice()
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [variants, activeProductId, variantQuery]);
 
-  const activeVariant = useMemo(() => variants.find((v) => v.id === activeVariantId) || null, [variants, activeVariantId]);
+  const activeVariant = useMemo(
+    () => variants.find((v) => v.id === activeVariantId) || null,
+    [variants, activeVariantId],
+  );
 
-  /** ===== load products ===== */
+  /** ===== init site store ===== */
+  useEffect(() => {
+    hydrateFromStorage();
+    void loadSites();
+  }, [hydrateFromStorage, loadSites]);
+
+  /** ===== load products by selected site ===== */
   useEffect(() => {
     const ac = new AbortController();
 
     async function loadProducts() {
+      if (!selectedSiteId) {
+        setProducts([]);
+        setActiveProductId("");
+        setVariants([]);
+        setActiveVariantId("");
+        return;
+      }
+
       try {
-        const data = await apiJson<{ items: ProductRow[] }>("/api/admin/products/lite", { signal: ac.signal });
+        setError(null);
+
+        const data = await apiJson<ProductLiteResponse>(
+          `/api/admin/commerce/products/lite?siteId=${encodeURIComponent(selectedSiteId)}`,
+          { signal: ac.signal },
+        );
+
         const items = data.items ?? [];
         setProducts(items);
-        setActiveProductId((prev) => prev || items[0]?.id || "");
-      } catch (e: any) {
-        if (e?.name === "AbortError") return;
-        setError(e?.message || "Failed to load products");
+
+        setActiveProductId((prev) => {
+          if (prev && items.some((item) => item.id === prev)) return prev;
+          return items[0]?.id || "";
+        });
+
+        setVariants([]);
+        setActiveVariantId("");
+      } catch (e: unknown) {
+        if (isAbortError(e)) return;
+        setProducts([]);
+        setActiveProductId("");
+        setVariants([]);
+        setActiveVariantId("");
+        setError(getErrorMessage(e, "Failed to load products"));
       }
     }
 
-    loadProducts();
+    void loadProducts();
     return () => ac.abort();
-  }, []);
+  }, [selectedSiteId]);
 
   /** ===== load variants when change product ===== */
   useEffect(() => {
-    if (!activeProductId) return;
+    if (!activeProductId) {
+      setActiveVariantId("");
+      return;
+    }
 
     const ac = new AbortController();
 
-    async function load() {
+    async function loadVariants() {
       setLoading(true);
       setError(null);
 
       try {
-        const data = await apiJson<{ items: DbVariant[] }>(`/api/admin/product-variant?productId=${encodeURIComponent(activeProductId)}`, { signal: ac.signal });
+        const data = await apiJson<VariantListResponse>(
+          `/api/admin/commerce/variants?productId=${encodeURIComponent(activeProductId)}`,
+          { signal: ac.signal },
+        );
+
         const rows = (data.items ?? []).map(dbToUiVariant);
 
         setVariants((prev) => {
@@ -298,16 +401,16 @@ export default function VariantsPage() {
           return [...other, ...rows];
         });
 
-        setActiveVariantId(rows[0]?.id || "");
-      } catch (e: any) {
-        if (e?.name === "AbortError") return;
-        setError(e?.message || "Failed to load variants");
+        setActiveVariantId((prev) => (prev && rows.some((row) => row.id === prev) ? prev : rows[0]?.id || ""));
+      } catch (e: unknown) {
+        if (isAbortError(e)) return;
+        setError(getErrorMessage(e, "Failed to load variants"));
       } finally {
         setLoading(false);
       }
     }
 
-    load();
+    void loadVariants();
     return () => ac.abort();
   }, [activeProductId]);
 
@@ -317,7 +420,6 @@ export default function VariantsPage() {
     setActiveVariantId("");
   }
 
-  /** ===== local patch ===== */
   function patchVariantLocal(id: string, patch: Partial<VariantRow>) {
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch, updatedAt: nowIso() } : v)));
   }
@@ -327,30 +429,30 @@ export default function VariantsPage() {
     setError(null);
 
     try {
-      const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant/${id}`, {
+      const res = await apiJson<VariantItemResponse>(`/api/admin/commerce/variants/${id}`, {
         method: "PATCH",
         body: JSON.stringify(uiToDbPatchPayload(patch)),
       });
 
-      const next = dbToUiVariant(res.item as any);
+      const next = dbToUiVariant(res.item);
       setVariants((prev) => prev.map((v) => (v.id === id ? next : v)));
-    } catch (e: any) {
-      setError(e?.message || "Failed to save");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to save"));
     } finally {
       setSavingId(null);
     }
   }
 
-  /** ===== CRUD variant ===== */
   async function createVariantRemote() {
     if (!activeProduct) return;
+
     setError(null);
 
     const existing = new Set(variants.filter((v) => v.productId === activeProduct.id).map((v) => v.sku));
     const sku = uniqueSkuForProduct(activeProduct.skuPrefix, existing, "NEW");
 
     try {
-      const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant`, {
+      const res = await apiJson<VariantItemResponse>(`/api/admin/commerce/variants`, {
         method: "POST",
         body: JSON.stringify(
           uiToDbCreatePayload({
@@ -364,17 +466,18 @@ export default function VariantsPage() {
         ),
       });
 
-      const created = dbToUiVariant(res.item as any);
+      const created = dbToUiVariant(res.item);
       setVariants((prev) => [...prev, created]);
       setActiveVariantId(created.id);
-    } catch (e: any) {
-      setError(e?.message || "Failed to create");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to create"));
     }
   }
 
   async function duplicateVariantRemote(id: string) {
     const v = variants.find((x) => x.id === id);
     if (!v) return;
+
     setError(null);
 
     const p = products.find((pp) => pp.id === v.productId);
@@ -384,7 +487,7 @@ export default function VariantsPage() {
     const sku = uniqueSkuForProduct(prefix, existing, "COPY");
 
     try {
-      const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant`, {
+      const res = await apiJson<VariantItemResponse>(`/api/admin/commerce/variants`, {
         method: "POST",
         body: JSON.stringify(
           uiToDbCreatePayload({
@@ -403,11 +506,11 @@ export default function VariantsPage() {
         ),
       });
 
-      const created = dbToUiVariant(res.item as any);
+      const created = dbToUiVariant(res.item);
       setVariants((prev) => [...prev, created]);
       setActiveVariantId(created.id);
-    } catch (e: any) {
-      setError(e?.message || "Failed to duplicate");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to duplicate"));
     }
   }
 
@@ -419,143 +522,28 @@ export default function VariantsPage() {
     if (!ok) return;
 
     setError(null);
+
     try {
-      await apiJson(`/api/admin/product-variant/${id}`, { method: "DELETE" });
-      setVariants((prev) => prev.filter((x) => x.id !== id));
+      await apiJson<null>(`/api/admin/commerce/variants/${id}`, { method: "DELETE" });
 
-      if (activeVariantId === id) {
-        const remain = variants.filter((x) => x.id !== id && x.productId === activeProductId);
-        setActiveVariantId(remain[0]?.id || "");
-      }
-    } catch (e: any) {
-      setError(e?.message || "Failed to delete");
+      setVariants((prev) => {
+        const next = prev.filter((x) => x.id !== id);
+
+        if (activeVariantId === id) {
+          const remain = next.filter((x) => x.productId === activeProductId);
+          setActiveVariantId(remain[0]?.id || "");
+        }
+
+        return next;
+      });
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to delete"));
     }
-  }
-
-  /** ===== OPTION DEFINITIONS (local) ===== */
-  function addOptionDef() {
-    const name = prompt("Option name? (e.g. Color, Size)");
-    if (!name?.trim()) return;
-
-    setOptionDefs((prev) => ({
-      ...prev,
-      [activeProductId]: [...(prev[activeProductId] ?? []), { id: uid(), name: name.trim(), values: ["Value"] }],
-    }));
-  }
-
-  function patchOptionDef(optId: string, patch: Partial<OptionDef>) {
-    setOptionDefs((prev) => ({
-      ...prev,
-      [activeProductId]: (prev[activeProductId] ?? []).map((o) => (o.id === optId ? { ...o, ...patch } : o)),
-    }));
-  }
-
-  function removeOptionDef(optId: string) {
-    const ok = confirm("Remove this option definition?");
-    if (!ok) return;
-
-    setOptionDefs((prev) => ({
-      ...prev,
-      [activeProductId]: (prev[activeProductId] ?? []).filter((o) => o.id !== optId),
-    }));
-  }
-
-  /** ===== Generate variants from defs (POST many) ===== */
-  function cartesian(defsIn: OptionDef[]) {
-    const valid = defsIn.filter((o) => o.name.trim() && o.values.length > 0);
-    if (valid.length === 0) return [{} as Record<string, string>];
-
-    let acc: Record<string, string>[] = [{}];
-    for (const opt of valid) {
-      const next: Record<string, string>[] = [];
-      for (const a of acc) {
-        for (const v of opt.values) next.push({ ...a, [opt.name]: v });
-      }
-      acc = next;
-    }
-    return acc;
-  }
-
-  async function generateVariantsRemote() {
-    if (!activeProduct) return;
-    setError(null);
-
-    const cleaned = defs
-      .map((d) => ({
-        ...d,
-        name: d.name.trim(),
-        values: d.values.map((x) => x.trim()).filter(Boolean),
-      }))
-      .filter((d) => d.name && d.values.length);
-
-    if (cleaned.length === 0) return;
-
-    if (cleaned.length > 2) {
-      alert("Schema hiện tại chỉ hỗ trợ tối đa 2 options (option1/option2). Hãy giảm còn 2 option.");
-      return;
-    }
-
-    const combos = cartesian(cleaned);
-    if (!combos.length) return;
-
-    const existingSkus = new Set(variants.filter((v) => v.productId === activeProduct.id).map((v) => v.sku));
-
-    const created: VariantRow[] = [];
-
-    for (const opts of combos) {
-      const optNames = Object.keys(opts);
-      const o1 = optNames[0];
-      const o2 = optNames[1];
-      const v1 = o1 ? opts[o1] : undefined;
-      const v2 = o2 ? opts[o2] : undefined;
-
-      const label = buildLabelFromValues(v1, v2);
-      const skuParts = [activeProduct.skuPrefix, v1, v2].filter(Boolean).map((x) => slugSku(String(x)));
-      let sku = slugSku(skuParts.join("-") || `${activeProduct.skuPrefix}-DEFAULT`);
-
-      if (existingSkus.has(sku)) continue;
-
-      sku = uniqueSkuForProduct(activeProduct.skuPrefix, existingSkus, sku.replace(activeProduct.skuPrefix + "-", ""));
-      existingSkus.add(sku);
-
-      try {
-        const res = await apiJson<{ item: DbVariant }>(`/api/admin/product-variant`, {
-          method: "POST",
-          body: JSON.stringify(
-            uiToDbCreatePayload({
-              productId: activeProduct.id,
-              sku,
-              name: label,
-              priceCents: 0,
-              stock: 0,
-              status: "DRAFT",
-              option1: o1,
-              value1: v1,
-              option2: o2,
-              value2: v2,
-            }),
-          ),
-        });
-
-        created.push(dbToUiVariant(res.item as any));
-      } catch (e: any) {
-        setError(e?.message || "Failed to generate some variants");
-        break;
-      }
-    }
-
-    if (!created.length) {
-      alert("No new variants to generate (all combinations already exist).");
-      return;
-    }
-
-    setVariants((prev) => [...prev, ...created]);
-    setActiveVariantId(created[0].id);
   }
 
   /** ===== Images APIs ===== */
   async function reloadImages(variantId: string) {
-    const res = await apiJson<{ items: VariantImageRow[] }>(`/api/admin/product-variant/${variantId}/image`);
+    const res = await apiJson<VariantImagesResponse>(`/api/admin/commerce/variants/${variantId}/image`);
 
     setVariants((prev) =>
       prev.map((v) =>
@@ -582,8 +570,9 @@ export default function VariantsPage() {
     if (!url?.trim()) return;
 
     setError(null);
+
     try {
-      await apiJson<{ item: any }>(`/api/admin/product-variant/${activeVariant.id}/image`, {
+      await apiJson<{ item: unknown }>(`/api/admin/commerce/variants/${activeVariant.id}/image`, {
         method: "POST",
         body: JSON.stringify({
           url: url.trim(),
@@ -591,57 +580,66 @@ export default function VariantsPage() {
           sort: activeVariant.images.length,
         }),
       });
+
       await reloadImages(activeVariant.id);
-    } catch (e: any) {
-      setError(e?.message || "Failed to add image");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to add image"));
     }
   }
 
   async function setCoverRemote(imageId: string) {
     if (!activeVariant) return;
+
     setError(null);
 
     try {
-      await apiJson<{ item: any }>(`/api/admin/product-variant/${activeVariant.id}/image`, {
+      await apiJson<{ item: unknown }>(`/api/admin/commerce/variants/${activeVariant.id}/image`, {
         method: "PATCH",
         body: JSON.stringify({ imageId, isCover: true }),
       });
+
       await reloadImages(activeVariant.id);
-    } catch (e: any) {
-      setError(e?.message || "Failed to set cover");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to set cover"));
     }
   }
 
   async function removeImageRemote(imageId: string) {
     if (!activeVariant) return;
+
     setError(null);
 
     try {
-      await apiJson(`/api/admin/product-variant/${activeVariant.id}/image?imageId=${encodeURIComponent(imageId)}`, { method: "DELETE" });
+      await apiJson<null>(
+        `/api/admin/commerce/variants/${activeVariant.id}/image?imageId=${encodeURIComponent(imageId)}`,
+        { method: "DELETE" },
+      );
+
       await reloadImages(activeVariant.id);
-    } catch (e: any) {
-      setError(e?.message || "Failed to remove image");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to remove image"));
     }
   }
 
   return (
     <div className={styles.shell} style={{ fontSize: 14 }}>
-      {/* Topbar */}
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <span className={styles.brandDot} />
           <div className={styles.brandText}>
             <div className={styles.brandTitle}>Variants</div>
-            <div className={styles.brandSub}>Products · Variants · Options · Generate · Images</div>
+            <div className={styles.brandSub}>Products · Variants · Images</div>
           </div>
         </div>
 
         <div className={styles.topActions}>
-          <button className={styles.ghostBtn} type="button" onClick={generateVariantsRemote} disabled={!activeProduct || loading} title="Generate variants from option definitions">
-            <i className="bi bi-shuffle" /> Generate
-          </button>
-
-          <button className={styles.primaryBtn} type="button" onClick={createVariantRemote} disabled={!activeProduct || loading} title="Create a single new variant">
+          <button
+            className={styles.primaryBtn}
+            type="button"
+            onClick={createVariantRemote}
+            disabled={!activeProduct || loading}
+            title="Create a single new variant"
+          >
             <i className="bi bi-plus-lg" /> New variant
           </button>
         </div>
@@ -654,39 +652,106 @@ export default function VariantsPage() {
       )}
 
       <div className={styles.body}>
-        {/* Products sidebar */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
             <div className={styles.sidebarTitle}>Products</div>
-            <div className={styles.sidebarHint}>Select a product to manage variants</div>
+            <div
+              style={{
+                marginTop: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontWeight: 700 }}>Site:</span>
+
+              <select
+                value={selectedSiteId || ""}
+                onChange={(e) => setSelectedSiteId(e.target.value)}
+                disabled={sitesLoading}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  color: "inherit",
+                  fontWeight: 700,
+                  cursor: sitesLoading ? "not-allowed" : "pointer",
+                  maxWidth: 220,
+                }}
+              >
+                <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
+                {sites.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name ?? s.id} ({s.id})
+                  </option>
+                ))}
+              </select>
+
+              {sitesErr ? <span style={{ marginLeft: 8, opacity: 0.8 }}>({sitesErr})</span> : null}
+            </div>
           </div>
 
           <div className={styles.searchWrap}>
             <i className="bi bi-search" />
-            <input className={styles.search} placeholder="Search product..." value={productQuery} onChange={(e) => setProductQuery(e.target.value)} />
+            <input
+              className={styles.search}
+              placeholder="Search product..."
+              value={productQuery}
+              onChange={(e) => setProductQuery(e.target.value)}
+              disabled={!selectedSiteId}
+            />
           </div>
 
           <div className={styles.productList}>
-            {visibleProducts.map((p) => {
-              const active = p.id === activeProductId;
-              return (
-                <button key={p.id} type="button" className={`${styles.productBtn} ${active ? styles.productActive : ""}`} onClick={() => selectProduct(p.id)}>
-                  <div className={styles.productLeft}>
-                    <div className={styles.thumb}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img className={styles.thumbImg} src={p.image || "https://picsum.photos/seed/na/200/200"} alt={p.name} />
-                    </div>
-                    <div className={styles.productText}>
-                      <div className={styles.productName}>{p.name}</div>
-                      <div className={styles.productMeta}>
-                        <span className={styles.mono}>{p.skuPrefix}</span>
+            {!selectedSiteId ? (
+              <div className={styles.emptyRow} style={{ margin: 12 }}>
+                <i className="bi bi-diagram-3" />
+                <div>
+                  <div className={styles.emptyTitle}>No site selected</div>
+                  <div className={styles.emptyText}>Choose a site first.</div>
+                </div>
+              </div>
+            ) : visibleProducts.length === 0 ? (
+              <div className={styles.emptyRow} style={{ margin: 12 }}>
+                <i className="bi bi-inbox" />
+                <div>
+                  <div className={styles.emptyTitle}>No products</div>
+                  <div className={styles.emptyText}>This site has no products yet.</div>
+                </div>
+              </div>
+            ) : (
+              visibleProducts.map((p) => {
+                const active = p.id === activeProductId;
+
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`${styles.productBtn} ${active ? styles.productActive : ""}`}
+                    onClick={() => selectProduct(p.id)}
+                  >
+                    <div className={styles.productLeft}>
+                      <div className={styles.thumb}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          className={styles.thumbImg}
+                          src={p.image || "https://picsum.photos/seed/na/200/200"}
+                          alt={p.name}
+                        />
+                      </div>
+                      <div className={styles.productText}>
+                        <div className={styles.productName}>{p.name}</div>
+                        <div className={styles.productMeta}>
+                          <span className={styles.mono}>{p.skuPrefix}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <i className="bi bi-chevron-right" />
-                </button>
-              );
-            })}
+                    <i className="bi bi-chevron-right" />
+                  </button>
+                );
+              })
+            )}
           </div>
 
           <div className={styles.sidebarFooter}>
@@ -699,10 +764,8 @@ export default function VariantsPage() {
           </div>
         </aside>
 
-        {/* Main */}
         <main className={styles.main}>
           <div className={styles.content}>
-            {/* Variants table */}
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
@@ -714,7 +777,13 @@ export default function VariantsPage() {
               <div className={styles.toolbar}>
                 <div className={styles.searchWrapInline}>
                   <i className="bi bi-search" />
-                  <input className={styles.searchInline} placeholder="Search variant..." value={variantQuery} onChange={(e) => setVariantQuery(e.target.value)} />
+                  <input
+                    className={styles.searchInline}
+                    placeholder="Search variant..."
+                    value={variantQuery}
+                    onChange={(e) => setVariantQuery(e.target.value)}
+                    disabled={!activeProductId}
+                  />
                 </div>
               </div>
 
@@ -739,7 +808,9 @@ export default function VariantsPage() {
                             <i className="bi bi-inbox" />
                             <div>
                               <div className={styles.emptyTitle}>No variants</div>
-                              <div className={styles.emptyText}>Create a variant or generate from options.</div>
+                              <div className={styles.emptyText}>
+                                {activeProductId ? "Create a variant." : "Select a product first."}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -750,7 +821,12 @@ export default function VariantsPage() {
                         const sub = optionSummary(v);
 
                         return (
-                          <tr key={v.id} className={`${styles.tr} ${active ? styles.trActive : ""}`} onClick={() => setActiveVariantId(v.id)} role="button">
+                          <tr
+                            key={v.id}
+                            className={`${styles.tr} ${active ? styles.trActive : ""}`}
+                            onClick={() => setActiveVariantId(v.id)}
+                            role="button"
+                          >
                             <td>
                               <div className={styles.cellTitle}>
                                 <span className={styles.dot} />
@@ -758,7 +834,13 @@ export default function VariantsPage() {
                                   <div className={styles.nameRow}>
                                     <span className={styles.name}>{v.name}</span>
                                   </div>
-                                  <div className={styles.sub}>{sub ? <span className={styles.mono}>{sub}</span> : <span className={styles.muted}>No options</span>}</div>
+                                  <div className={styles.sub}>
+                                    {sub ? (
+                                      <span className={styles.mono}>{sub}</span>
+                                    ) : (
+                                      <span className={styles.muted}>No options</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </td>
@@ -787,15 +869,26 @@ export default function VariantsPage() {
                                   patchVariantRemote(v.id, {
                                     status: v.status === "ACTIVE" ? "DRAFT" : "ACTIVE",
                                   })
-                                }>
+                                }
+                              >
                                 <i className="bi bi-toggle2-on" />
                               </button>
 
-                              <button className={styles.iconBtn} type="button" title="Duplicate" onClick={() => duplicateVariantRemote(v.id)}>
+                              <button
+                                className={styles.iconBtn}
+                                type="button"
+                                title="Duplicate"
+                                onClick={() => duplicateVariantRemote(v.id)}
+                              >
                                 <i className="bi bi-files" />
                               </button>
 
-                              <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Delete" onClick={() => deleteVariantRemote(v.id)}>
+                              <button
+                                className={`${styles.iconBtn} ${styles.dangerBtn}`}
+                                type="button"
+                                title="Delete"
+                                onClick={() => deleteVariantRemote(v.id)}
+                              >
                                 <i className="bi bi-trash" />
                               </button>
                             </td>
@@ -808,7 +901,6 @@ export default function VariantsPage() {
               </div>
             </section>
 
-            {/* Inspector */}
             <aside className={styles.inspector}>
               <div className={styles.panel}>
                 <div className={styles.panelHeader}>
@@ -830,7 +922,6 @@ export default function VariantsPage() {
                   </div>
                 ) : (
                   <div className={styles.panelBody}>
-                    {/* BASIC */}
                     <label className={styles.label}>Name</label>
                     <div className={styles.inputWrap}>
                       <i className="bi bi-tag" />
@@ -877,7 +968,9 @@ export default function VariantsPage() {
                               const v = clamp(Number(e.target.value || 0), 0, 1_000_000);
                               patchVariantLocal(activeVariant.id, { priceCents: v * 100 });
                             }}
-                            onBlur={() => patchVariantRemote(activeVariant.id, { priceCents: activeVariant.priceCents })}
+                            onBlur={() =>
+                              patchVariantRemote(activeVariant.id, { priceCents: activeVariant.priceCents })
+                            }
                           />
                         </div>
                       </div>
@@ -892,7 +985,11 @@ export default function VariantsPage() {
                             className={styles.input}
                             type="number"
                             value={activeVariant.stock}
-                            onChange={(e) => patchVariantLocal(activeVariant.id, { stock: clamp(Number(e.target.value || 0), 0, 1_000_000) })}
+                            onChange={(e) =>
+                              patchVariantLocal(activeVariant.id, {
+                                stock: clamp(Number(e.target.value || 0), 0, 1_000_000),
+                              })
+                            }
                             onBlur={() => patchVariantRemote(activeVariant.id, { stock: activeVariant.stock })}
                           />
                         </div>
@@ -902,7 +999,13 @@ export default function VariantsPage() {
                         <label className={styles.label}>Status</label>
                         <div className={styles.selectWrap}>
                           <i className="bi bi-flag" />
-                          <select className={styles.select} value={activeVariant.status} onChange={(e) => patchVariantRemote(activeVariant.id, { status: e.target.value as VariantStatus })}>
+                          <select
+                            className={styles.select}
+                            value={activeVariant.status}
+                            onChange={(e) =>
+                              patchVariantRemote(activeVariant.id, { status: e.target.value as VariantStatus })
+                            }
+                          >
                             <option value="ACTIVE">ACTIVE</option>
                             <option value="DRAFT">DRAFT</option>
                           </select>
@@ -912,7 +1015,6 @@ export default function VariantsPage() {
 
                     <div className={styles.hr} />
 
-                    {/* ✅ VARIANT OPTIONS (SAVE TO DB) */}
                     <div className={styles.sectionTitle}>
                       <i className="bi bi-sliders" /> Options (Variant) — saved to DB
                     </div>
@@ -1001,7 +1103,6 @@ export default function VariantsPage() {
 
                     <div className={styles.hr} />
 
-                    {/* Images */}
                     <div className={styles.sectionTitle}>
                       <i className="bi bi-images" /> Images (DB)
                     </div>
@@ -1021,13 +1122,25 @@ export default function VariantsPage() {
                               </div>
                               <div className={styles.imageMeta}>
                                 <div className={styles.mono}>{im.url}</div>
-                                <div className={styles.imageBadges}>{im.isCover && <span className={styles.badge}>Cover</span>}</div>
+                                <div className={styles.imageBadges}>
+                                  {im.isCover && <span className={styles.badge}>Cover</span>}
+                                </div>
                               </div>
                               <div className={styles.imageActions}>
-                                <button className={styles.iconBtn} type="button" title="Set cover" onClick={() => setCoverRemote(im.id)}>
+                                <button
+                                  className={styles.iconBtn}
+                                  type="button"
+                                  title="Set cover"
+                                  onClick={() => setCoverRemote(im.id)}
+                                >
                                   <i className="bi bi-star" />
                                 </button>
-                                <button className={`${styles.iconBtn} ${styles.dangerBtn}`} type="button" title="Remove" onClick={() => removeImageRemote(im.id)}>
+                                <button
+                                  className={`${styles.iconBtn} ${styles.dangerBtn}`}
+                                  type="button"
+                                  title="Remove"
+                                  onClick={() => removeImageRemote(im.id)}
+                                >
                                   <i className="bi bi-trash" />
                                 </button>
                               </div>

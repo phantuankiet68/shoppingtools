@@ -2,282 +2,299 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
+import { Prisma } from "@prisma/client";
 
-function toInt(v: unknown, fallback: number) {
+function toInt(v: unknown, fallback: number): number {
   const n = Number(v);
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
-function cleanText(v: unknown, max = 2000) {
-  const s = String(v ?? "").trim();
-  if (!s) return null;
-  return s.length > max ? s.slice(0, max) : s;
-}
 
-async function ensureVariantBelongsToUser(userId: string, variantId: string) {
-  const v = await prisma.productVariant.findFirst({
-    where: { id: variantId, product: { userId } },
-    select: { id: true },
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+async function ensureVariantBelongsToUser(
+  userId: string,
+  variantId: string,
+): Promise<{ id: string; productId: string } | null> {
+  /**
+   * TODO:
+   * Thay phần ownership theo schema thật của bạn.
+   * Ví dụ nếu Site có userId:
+   * where: { id: variantId, deletedAt: null, site: { userId } }
+   */
+  const variant = await prisma.productVariant.findFirst({
+    where: {
+      id: variantId,
+      deletedAt: null,
+      // site: { userId },
+    },
+    select: {
+      id: true,
+      productId: true,
+    },
   });
-  return !!v;
+
+  void userId;
+  return variant;
 }
 
-async function ensureImageBelongsToUser(userId: string, variantId: string, imageId: string) {
-  const img = await prisma.productVariantImage.findFirst({
-    where: { id: imageId, variantId, variant: { product: { userId } } },
-    select: { id: true, isCover: true },
+async function ensureImageBelongsToUser(
+  userId: string,
+  variantId: string,
+  imageId: string,
+): Promise<{ id: string; variantId: string | null } | null> {
+  /**
+   * Ảnh variant đang nằm trong ProductImage, nhận diện bằng variantId
+   */
+  const image = await prisma.productImage.findFirst({
+    where: {
+      id: imageId,
+      variantId,
+      // variant: { site: { userId } }, // sửa theo ownership thật nếu cần
+    },
+    select: {
+      id: true,
+      variantId: true,
+    },
   });
-  return img; // null if not found
-}
 
-async function setCover(variantId: string, imageId: string) {
-  await prisma.$transaction([
-    prisma.productVariantImage.updateMany({
-      where: { variantId, NOT: { id: imageId } },
-      data: { isCover: false },
-    }),
-    prisma.productVariantImage.update({
-      where: { id: imageId },
-      data: { isCover: true },
-    }),
-  ]);
+  void userId;
+  return image;
 }
 
 /**
  * GET /api/admin/product-variant/:id/image
  * - list images of a variant
  */
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: Request, { params }: RouteContext) {
   let userId: string | null = null;
 
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const variantId = params.id;
+    const { id: variantId } = await params;
 
-    const ok = await ensureVariantBelongsToUser(userId, variantId);
-    if (!ok) return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    const variant = await ensureVariantBelongsToUser(userId, variantId);
+    if (!variant) {
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    }
 
-    const items = await prisma.productVariantImage.findMany({
+    const items = await prisma.productImage.findMany({
       where: { variantId },
-      orderBy: [{ isCover: "desc" }, { sort: "asc" }, { createdAt: "desc" }],
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       select: {
         id: true,
+        productId: true,
         variantId: true,
-        url: true,
-        fileName: true,
-        sort: true,
-        isCover: true,
+        imageUrl: true,
+        sortOrder: true,
         createdAt: true,
       },
     });
 
     return NextResponse.json({ items });
-  } catch (e: any) {
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  } catch (error: unknown) {
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const message = error instanceof Error ? error.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 /**
  * POST /api/admin/product-variant/:id/image
- * body: { url*, fileName?, sort?, isCover? }
+ * body: { imageUrl*, sortOrder? }
  */
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, { params }: RouteContext) {
   let userId: string | null = null;
 
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const variantId = params.id;
+    const { id: variantId } = await params;
 
-    const ok = await ensureVariantBelongsToUser(userId, variantId);
-    if (!ok) return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    const variant = await ensureVariantBelongsToUser(userId, variantId);
+    if (!variant) {
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    }
 
     const ct = req.headers.get("content-type") || "";
     if (!ct.includes("application/json")) {
       return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
     }
 
-    const body = await req.json().catch(() => null);
-    if (!body) return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    const body: unknown = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    const url = String(body.url ?? "").trim();
-    if (!url) return NextResponse.json({ error: "url is required" }, { status: 400 });
+    const data = body as Record<string, unknown>;
 
-    const created = await prisma.productVariantImage.create({
+    const imageUrl = String(data.imageUrl ?? "").trim();
+    if (!imageUrl) {
+      return NextResponse.json({ error: "imageUrl is required" }, { status: 400 });
+    }
+
+    const created = await prisma.productImage.create({
       data: {
+        productId: variant.productId,
         variantId,
-        url,
-        fileName: cleanText(body.fileName, 255),
-        sort: Math.max(0, toInt(body.sort, 0)),
-        isCover: typeof body.isCover === "boolean" ? body.isCover : false,
+        imageUrl,
+        sortOrder: Math.max(0, toInt(data.sortOrder, 0)),
       },
       select: {
         id: true,
+        productId: true,
         variantId: true,
-        url: true,
-        fileName: true,
-        sort: true,
-        isCover: true,
+        imageUrl: true,
+        sortOrder: true,
         createdAt: true,
       },
     });
 
-    // if set cover -> unset all other covers
-    if (created.isCover) {
-      await setCover(variantId, created.id);
-      const item = await prisma.productVariantImage.findUnique({
-        where: { id: created.id },
-        select: {
-          id: true,
-          variantId: true,
-          url: true,
-          fileName: true,
-          sort: true,
-          isCover: true,
-          createdAt: true,
-        },
-      });
-      return NextResponse.json({ item }, { status: 201 });
+    return NextResponse.json({ item: created }, { status: 201 });
+  } catch (error: unknown) {
+    console.error("[POST /api/admin/product-variant/[id]/image] ERROR:", error);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    return NextResponse.json({ item: created }, { status: 201 });
-  } catch (e: any) {
-    console.error("[POST /api/admin/product-variant/[id]/image] ERROR:", e);
-
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 /**
  * PATCH /api/admin/product-variant/:id/image
- * body: { imageId*, url?, fileName?, sort?, isCover? }
+ * body: { imageId*, imageUrl?, sortOrder? }
  */
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: Request, { params }: RouteContext) {
   let userId: string | null = null;
 
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const variantId = params.id;
+    const { id: variantId } = await params;
 
-    const ok = await ensureVariantBelongsToUser(userId, variantId);
-    if (!ok) return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    const variant = await ensureVariantBelongsToUser(userId, variantId);
+    if (!variant) {
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    }
 
     const ct = req.headers.get("content-type") || "";
     if (!ct.includes("application/json")) {
       return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
     }
 
-    const body = await req.json().catch(() => null);
-    if (!body) return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    const body: unknown = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    const imageId = String(body.imageId ?? "").trim();
-    if (!imageId) return NextResponse.json({ error: "imageId is required" }, { status: 400 });
+    const dataIn = body as Record<string, unknown>;
+
+    const imageId = String(dataIn.imageId ?? "").trim();
+    if (!imageId) {
+      return NextResponse.json({ error: "imageId is required" }, { status: 400 });
+    }
 
     const owned = await ensureImageBelongsToUser(userId, variantId, imageId);
-    if (!owned) return NextResponse.json({ error: "Image not found" }, { status: 404 });
-
-    const data: any = {};
-
-    if (body.url !== undefined) {
-      const u = String(body.url ?? "").trim();
-      if (!u) return NextResponse.json({ error: "url cannot be empty" }, { status: 400 });
-      data.url = u;
-    }
-    if (body.fileName !== undefined) data.fileName = cleanText(body.fileName, 255);
-
-    if (body.sort !== undefined) {
-      const n = Number(body.sort);
-      if (!Number.isFinite(n)) return NextResponse.json({ error: "sort must be a number" }, { status: 400 });
-      data.sort = Math.max(0, Math.trunc(n));
+    if (!owned) {
+      return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
-    if (body.isCover !== undefined) data.isCover = !!body.isCover;
+    const data: Prisma.ProductImageUpdateInput = {};
 
-    const updated = await prisma.productVariantImage.update({
+    if (dataIn.imageUrl !== undefined) {
+      const imageUrl = String(dataIn.imageUrl ?? "").trim();
+      if (!imageUrl) {
+        return NextResponse.json({ error: "imageUrl cannot be empty" }, { status: 400 });
+      }
+      data.imageUrl = imageUrl;
+    }
+
+    if (dataIn.sortOrder !== undefined) {
+      const n = Number(dataIn.sortOrder);
+      if (!Number.isFinite(n)) {
+        return NextResponse.json({ error: "sortOrder must be a number" }, { status: 400 });
+      }
+      data.sortOrder = Math.max(0, Math.trunc(n));
+    }
+
+    const updated = await prisma.productImage.update({
       where: { id: imageId },
       data,
       select: {
         id: true,
+        productId: true,
         variantId: true,
-        url: true,
-        fileName: true,
-        sort: true,
-        isCover: true,
+        imageUrl: true,
+        sortOrder: true,
         createdAt: true,
       },
     });
 
-    if (body.isCover === true) {
-      await setCover(variantId, imageId);
-      const item = await prisma.productVariantImage.findUnique({
-        where: { id: imageId },
-        select: {
-          id: true,
-          variantId: true,
-          url: true,
-          fileName: true,
-          sort: true,
-          isCover: true,
-          createdAt: true,
-        },
-      });
-      return NextResponse.json({ item });
+    return NextResponse.json({ item: updated });
+  } catch (error: unknown) {
+    console.error("[PATCH /api/admin/product-variant/[id]/image] ERROR:", error);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    return NextResponse.json({ item: updated });
-  } catch (e: any) {
-    console.error("[PATCH /api/admin/product-variant/[id]/image] ERROR:", e);
-
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 /**
  * DELETE /api/admin/product-variant/:id/image?imageId=...
  */
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: RouteContext) {
   let userId: string | null = null;
 
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const variantId = params.id;
+    const { id: variantId } = await params;
 
-    const ok = await ensureVariantBelongsToUser(userId, variantId);
-    if (!ok) return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    const variant = await ensureVariantBelongsToUser(userId, variantId);
+    if (!variant) {
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    }
 
     const url = new URL(req.url);
     const imageId = (url.searchParams.get("imageId") ?? "").trim();
-    if (!imageId) return NextResponse.json({ error: "imageId is required" }, { status: 400 });
-
-    const owned = await ensureImageBelongsToUser(userId, variantId, imageId);
-    if (!owned) return NextResponse.json({ error: "Image not found" }, { status: 404 });
-
-    await prisma.productVariantImage.delete({ where: { id: imageId } });
-
-    // Nếu xoá cover -> set cover cho ảnh còn lại đầu tiên (tuỳ chọn)
-    if (owned.isCover) {
-      const first = await prisma.productVariantImage.findFirst({
-        where: { variantId },
-        orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
-        select: { id: true },
-      });
-      if (first) await setCover(variantId, first.id);
+    if (!imageId) {
+      return NextResponse.json({ error: "imageId is required" }, { status: 400 });
     }
 
-    return new NextResponse(null, { status: 204 });
-  } catch (e: any) {
-    console.error("[DELETE /api/admin/product-variant/[id]/image] ERROR:", e);
+    const owned = await ensureImageBelongsToUser(userId, variantId, imageId);
+    if (!owned) {
+      return NextResponse.json({ error: "Image not found" }, { status: 404 });
+    }
 
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    await prisma.productImage.delete({
+      where: { id: imageId },
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error: unknown) {
+    console.error("[DELETE /api/admin/product-variant/[id]/image] ERROR:", error);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const message = error instanceof Error ? error.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

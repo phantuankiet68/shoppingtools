@@ -17,7 +17,9 @@
 
   --fs: 14px;
 
-  background: radial-gradient(1200px 400px at 20% 0%, rgba(37, 99, 235, 0.08), transparent 55%), radial-gradient(900px 400px at 90% 10%, rgba(99, 102, 241, 0.08), transparent 55%), var(--bg);
+  background:
+    radial-gradient(1200px 400px at 20% 0%, rgba(37, 99, 235, 0.08), transparent 55%),
+    radial-gradient(900px 400px at 90% 10%, rgba(99, 102, 241, 0.08), transparent 55%), var(--bg);
 
   color: var(--text);
   font-size: var(--fs);
@@ -105,7 +107,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
   transition:
     transform 0.06s ease,
@@ -116,9 +119,8 @@
 
 .primaryBtn {
   border-color: rgba(37, 99, 235, 0.25);
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.98), rgba(29, 78, 216, 0.98));
+  background: var(--bg-primary);
   color: #fff;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
 }
 
 .primaryBtn:hover {
@@ -271,7 +273,8 @@
 
 .sidebarTitle {
   font-weight: 800;
-  font-size: 14px;
+  font-size: 15px;
+  color: var(--text-title);
 }
 
 .sidebarHint {

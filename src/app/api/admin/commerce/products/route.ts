@@ -15,19 +15,6 @@ function toInt(v: string | null, fallback: number) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
-function toIntOrDefault(v: string | number | null | undefined, def = 0) {
-  const n = Number(v ?? def);
-  return Number.isFinite(n) ? Math.trunc(n) : def;
-}
-
-function toDecimalOrNull(v: string | number | null | undefined) {
-  if (v === null || v === undefined) return null;
-  const s = String(v).trim();
-  if (!s) return null;
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
-}
-
 function parseISODateOrNull(v: string | null | undefined) {
   const s = String(v ?? "").trim();
   if (!s) return null;
@@ -58,13 +45,6 @@ function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 
-/**
- * Query status:
- * - all
- * - draft
- * - active
- * - archived
- */
 function whereFromStatus(status: string): Prisma.ProductWhereInput | null {
   const s = status.toLowerCase();
 
@@ -97,24 +77,6 @@ type MediaItem = {
   thumbUrl?: string;
 };
 
-type VariantOption = {
-  name: string;
-  values: string[];
-};
-
-type VariantRow = {
-  id?: string;
-  title: string;
-  sku: string;
-  barcode?: string;
-  price: string;
-  compareAtPrice?: string;
-  cost?: string;
-  stockQty: string;
-  isActive: boolean;
-  isDefault: boolean;
-};
-
 type ProductSubmitPayload = {
   siteId?: string;
 
@@ -122,10 +84,10 @@ type ProductSubmitPayload = {
   slug?: string;
 
   categoryId?: string;
-  category?: string; // backward compatibility: id or slug
+  category?: string;
 
   brandId?: string;
-  brand?: string; // backward compatibility: id, slug, or name
+  brand?: string;
 
   productType?: ProductType;
   vendor?: string;
@@ -138,48 +100,13 @@ type ProductSubmitPayload = {
   shortDescription?: string;
   description?: string;
 
-  cost?: string;
-  price?: string;
-  compareAtPrice?: string;
-
-  sku?: string;
-  barcode?: string;
-  stockQty?: string;
-
-  weight?: string;
-  length?: string;
-  width?: string;
-  height?: string;
-
   metaTitle?: string;
   metaDescription?: string;
 
   media?: MediaItem[];
-
-  hasVariants?: boolean;
-  variantOptions?: VariantOption[];
-  variants?: VariantRow[];
 };
 
 /* ----------------------------- helpers ----------------------------- */
-
-/**
- * Từ variant.title ("White / S") + thứ tự variantOptions => map { optionName -> optionValue }
- */
-function extractVariantSelections(title: string, optionNamesInOrder: string[]) {
-  const parts = String(title ?? "")
-    .split("/")
-    .map((x) => x.trim())
-    .filter(Boolean);
-
-  const out: Record<string, string> = {};
-  for (let i = 0; i < optionNamesInOrder.length; i++) {
-    const name = optionNamesInOrder[i];
-    const value = parts[i];
-    if (name && value) out[name] = value;
-  }
-  return out;
-}
 
 async function ensureUniqueSlug(siteId: string, rawSlug: string, excludeId?: string) {
   const base = slugify(rawSlug) || "product";
@@ -203,15 +130,6 @@ async function ensureUniqueSlug(siteId: string, rawSlug: string, excludeId?: str
 
 /* ----------------------------- GET ----------------------------- */
 
-/**
- * GET /api/admin/products
- * Query:
- * - status=all|draft|active|archived
- * - sort=newest|oldest|name_asc|name_desc|updated_desc|updated_asc
- * - page=1
- * - pageSize=50
- * - siteId=... (optional, can be read from cookie)
- */
 export async function GET(req: Request) {
   try {
     await requireAdminAuthUser();
@@ -255,6 +173,8 @@ export async function GET(req: Request) {
           status: true,
           isVisible: true,
           publishedAt: true,
+          metaTitle: true,
+          metaDescription: true,
           createdAt: true,
           updatedAt: true,
           category: {
@@ -265,19 +185,7 @@ export async function GET(req: Request) {
           },
           images: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-            take: 1,
             select: { id: true, imageUrl: true, sortOrder: true },
-          },
-          variants: {
-            orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
-            take: 1,
-            select: {
-              id: true,
-              sku: true,
-              price: true,
-              stockQty: true,
-              isDefault: true,
-            },
           },
         },
       }),
@@ -290,7 +198,6 @@ export async function GET(req: Request) {
         url: img.imageUrl,
         sort: img.sortOrder,
       })),
-      defaultVariant: p.variants[0] ?? null,
     }));
 
     return NextResponse.json({ items, total, page, pageSize });
@@ -303,15 +210,6 @@ export async function GET(req: Request) {
 
 /* ----------------------------- POST ----------------------------- */
 
-/**
- * POST /api/admin/products
- *
- * Notes:
- * - categoryId is required (or category for backward compatibility: id/slug)
- * - brandId optional (or brand for backward compatibility: id/slug/name)
- * - if hasVariants=false => auto create 1 default variant
- * - if hasVariants=true => create variants + option links
- */
 export async function POST(req: NextRequest) {
   try {
     await requireAdminAuthUser();
@@ -378,7 +276,6 @@ export async function POST(req: NextRequest) {
     const imageMedia = (body.media ?? []).filter((m) => m.type === "image" && String(m.url ?? "").trim());
 
     const created = await prisma.$transaction(async (tx) => {
-      // 1) Product
       const product = await tx.product.create({
         data: {
           siteId,
@@ -401,20 +298,12 @@ export async function POST(req: NextRequest) {
 
           metaTitle: String(body.metaTitle ?? "").trim() || null,
           metaDescription: String(body.metaDescription ?? "").trim() || null,
-
-          weight: toDecimalOrNull(body.weight),
-          length: toDecimalOrNull(body.length),
-          width: toDecimalOrNull(body.width),
-          height: toDecimalOrNull(body.height),
         },
         select: {
           id: true,
-          siteId: true,
-          slug: true,
         },
       });
 
-      // 2) Images
       if (imageMedia.length) {
         await tx.productImage.createMany({
           data: imageMedia.map((m, idx) => ({
@@ -426,169 +315,11 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 3) Variants + options
-      const hasVariants = Boolean(body.hasVariants);
-      const variants = body.variants ?? [];
-      const optionNamesInOrder = (body.variantOptions ?? []).map((o) => String(o.name ?? "").trim()).filter(Boolean);
-
-      const optionValueIdByKey = new Map<string, string>();
-
-      if (hasVariants) {
-        if (!variants.length) {
-          throw new Error("hasVariants=true but variants is empty");
-        }
-
-        // 3.1 create unique ProductOptionValue
-        const allPairs: { optionName: string; optionValue: string }[] = [];
-
-        for (const v of variants) {
-          const sel = extractVariantSelections(v.title, optionNamesInOrder);
-          for (const [optionName, optionValue] of Object.entries(sel)) {
-            allPairs.push({ optionName, optionValue });
-          }
-        }
-
-        const uniqPairs = Array.from(new Map(allPairs.map((p) => [`${p.optionName}__${p.optionValue}`, p])).values());
-
-        for (const p of uniqPairs) {
-          const createdOv = await tx.productOptionValue.upsert({
-            where: {
-              productId_optionName_optionValue: {
-                productId: product.id,
-                optionName: p.optionName,
-                optionValue: p.optionValue,
-              },
-            },
-            update: {},
-            create: {
-              productId: product.id,
-              optionName: p.optionName,
-              optionValue: p.optionValue,
-            },
-            select: {
-              id: true,
-              optionName: true,
-              optionValue: true,
-            },
-          });
-
-          optionValueIdByKey.set(`${createdOv.optionName}__${createdOv.optionValue}`, createdOv.id);
-        }
-
-        // 3.2 create variants
-        let hasDefault = false;
-
-        for (const v of variants) {
-          const sku = String(v.sku ?? "").trim();
-          if (!sku) {
-            throw new Error(`SKU is required for variant "${v.title || "(untitled)"}"`);
-          }
-
-          const isDefault = Boolean(v.isDefault);
-          if (isDefault) hasDefault = true;
-
-          const variant = await tx.productVariant.create({
-            data: {
-              productId: product.id,
-              siteId,
-
-              sku,
-              title: String(v.title ?? "").trim() || null,
-              barcode: String(v.barcode ?? "").trim() || null,
-
-              price: toDecimalOrNull(v.price) ?? 0,
-              compareAtPrice: toDecimalOrNull(v.compareAtPrice),
-              cost: toDecimalOrNull(v.cost),
-
-              stockQty: toIntOrDefault(v.stockQty, 0),
-              isActive: v.isActive ?? true,
-              isDefault,
-            },
-            select: {
-              id: true,
-              title: true,
-            },
-          });
-
-          const sel = extractVariantSelections(v.title, optionNamesInOrder);
-          const linkData: { variantId: string; optionValueId: string }[] = [];
-
-          for (const [optionName, optionValue] of Object.entries(sel)) {
-            const ovId = optionValueIdByKey.get(`${optionName}__${optionValue}`);
-            if (ovId) {
-              linkData.push({
-                variantId: variant.id,
-                optionValueId: ovId,
-              });
-            }
-          }
-
-          if (linkData.length) {
-            await tx.productVariantOptionValue.createMany({
-              data: linkData,
-              skipDuplicates: true,
-            });
-          }
-        }
-
-        // nếu frontend không đánh dấu default variant
-        if (!hasDefault && variants.length > 0) {
-          const firstVariant = await tx.productVariant.findFirst({
-            where: { productId: product.id },
-            orderBy: { createdAt: "asc" },
-            select: { id: true },
-          });
-
-          if (firstVariant) {
-            await tx.productVariant.update({
-              where: { id: firstVariant.id },
-              data: { isDefault: true },
-            });
-          }
-        }
-      } else {
-        const sku = String(body.sku ?? "").trim();
-        if (!sku) {
-          throw new Error("SKU is required when hasVariants=false");
-        }
-
-        await tx.productVariant.create({
-          data: {
-            productId: product.id,
-            siteId,
-
-            sku,
-            title: name,
-            barcode: String(body.barcode ?? "").trim() || null,
-
-            price: toDecimalOrNull(body.price) ?? 0,
-            compareAtPrice: toDecimalOrNull(body.compareAtPrice),
-            cost: toDecimalOrNull(body.cost),
-
-            stockQty: toIntOrDefault(body.stockQty, 0),
-            isActive: true,
-            isDefault: true,
-          },
-        });
-      }
-
       return tx.product.findUnique({
         where: { id: product.id },
         include: {
           category: true,
           brand: true,
-          variants: {
-            include: {
-              optionLinks: {
-                include: {
-                  optionValue: true,
-                },
-              },
-              images: true,
-            },
-            orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
-          },
-          optionValues: true,
           images: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
           },
@@ -601,10 +332,7 @@ export async function POST(req: NextRequest) {
     console.error(err);
 
     if (typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "P2002") {
-      return NextResponse.json(
-        { message: "Duplicate unique value (slug, sku, or other unique field)." },
-        { status: 409 },
-      );
+      return NextResponse.json({ message: "Duplicate unique value (slug or other unique field)." }, { status: 409 });
     }
 
     const message = err instanceof Error ? err.message : "Internal Server Error";

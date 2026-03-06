@@ -41,6 +41,8 @@
   --bg-primary: linear-gradient(135deg, #2bb5ff, #26bbff);
   --bg-soft: linear-gradient(135deg, #f3f3f3, #f3f3f3);
   --bg-header: linear-gradient(#fff 0%, #f9fbff 100%);
+  --bg-blue: #4cb3ff;
+  --bg-table: linear-gradient(#e9f4fff0 0%, #ecf5fff0 100%);
 }
 
 html {

@@ -2,29 +2,36 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import cls from "@/styles/admin/product/brand/brand.module.css";
+import cls from "@/styles/admin/commerce/brand/brand.module.css";
+import { useSiteStore } from "@/store/site/site.store";
+
+type SiteOption = {
+  id: string;
+  name?: string;
+  domain?: string;
+};
 
 type BrandRow = {
   id: string;
   name: string;
   slug: string;
   siteId: string;
-  site?: { id: string; name?: string; domain?: string } | null;
-  image?: string | null;
-  isActive?: boolean;
+  description?: string | null;
+  logoUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  site?: SiteOption | null;
 };
 
-type SiteRow = {
-  id: string;
-  name: string;
-  domain: string;
-  localeDefault?: string;
+type ApiListResponse = {
+  items?: BrandRow[];
 };
 
-const BRAND_API = "/api/admin/brands";
-const SITES_API = "/api/admin/sites";
+type ApiError = {
+  error?: string;
+};
+
+const BRAND_API = "/api/admin/commerce/products/brands";
 
 function slugify(input: string) {
   return String(input ?? "")
@@ -38,51 +45,57 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
+function formatDate(value?: string) {
+  if (!value) return "-";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "-";
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 export default function AdminBrandCrudPage() {
-  // form
+  const sites = useSiteStore((s) => s.sites);
+  const sitesLoading = useSiteStore((s) => s.loading);
+  const sitesErr = useSiteStore((s) => s.err);
+  const selectedSiteId = useSiteStore((s) => s.siteId);
+  const setSelectedSiteId = useSiteStore((s) => s.setSiteId);
+  const hydrateFromStorage = useSiteStore((s) => s.hydrateFromStorage);
+  const loadSites = useSiteStore((s) => s.loadSites);
+
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [siteId, setSiteId] = useState("");
-  const [image, setImage] = useState("");
-  const [isActive, setIsActive] = useState(true);
+  const [description, setDescription] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
 
-  // data
-  const [sites, setSites] = useState<SiteRow[]>([]);
   const [items, setItems] = useState<BrandRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // ui
   const [q, setQ] = useState("");
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
-  // auto-derive slug from name if user hasn't typed custom slug
-  const derivedSlug = useMemo(() => (slug.trim() ? slugify(slug) : slugify(name)), [slug, name]);
+  const derivedSlug = useMemo(() => {
+    return slug.trim() ? slugify(slug) : slugify(name);
+  }, [slug, name]);
 
   useEffect(() => {
-    let mounted = true;
+    hydrateFromStorage();
+    loadSites();
+  }, [hydrateFromStorage, loadSites]);
 
-    (async () => {
-      try {
-        // load sites
-        const rs = await fetch(SITES_API, { cache: "no-store", credentials: "include" });
-        const sj = await rs.json().catch(() => ({}));
-        const list: SiteRow[] = sj.items ?? [];
-        if (mounted) {
-          setSites(list);
-          // default site
-          if (!siteId && list[0]?.id) setSiteId(list[0].id);
-        }
-      } catch {
-        // ignore
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => {
+    if (!selectedSiteId && sites.length > 0) {
+      setSelectedSiteId(sites[0].id);
+    }
+  }, [selectedSiteId, sites, setSelectedSiteId]);
 
   async function loadBrands() {
     setLoading(true);
@@ -90,23 +103,36 @@ export default function AdminBrandCrudPage() {
 
     try {
       const params = new URLSearchParams();
+
       if (q.trim()) params.set("q", q.trim());
+      if (selectedSiteId?.trim()) params.set("siteId", selectedSiteId.trim());
+
       const url = params.toString() ? `${BRAND_API}?${params.toString()}` : BRAND_API;
 
-      const r = await fetch(url, { cache: "no-store", credentials: "include" });
+      const r = await fetch(url, {
+        cache: "no-store",
+        credentials: "include",
+      });
+
       const text = await r.text();
 
       if (!r.ok) {
+        let errMsg = `Load failed (${r.status})`;
+        try {
+          const json = JSON.parse(text) as ApiError;
+          if (json.error) errMsg = `${errMsg}: ${json.error}`;
+        } catch {
+          if (text) errMsg = `${errMsg}: ${text.slice(0, 200)}`;
+        }
         setItems([]);
-        setMsg({ type: "err", text: `Load failed (${r.status}): ${text.slice(0, 200)}` });
+        setMsg({ type: "err", text: errMsg });
         return;
       }
 
-      const json = JSON.parse(text);
-      const list: BrandRow[] = json.items ?? [];
-      setItems(list);
-    } catch (e: any) {
-      setMsg({ type: "err", text: e?.message || "Load failed" });
+      const json = JSON.parse(text) as ApiListResponse;
+      setItems(json.items ?? []);
+    } catch (error: unknown) {
+      setMsg({ type: "err", text: getErrorMessage(error, "Load failed") });
     } finally {
       setLoading(false);
     }
@@ -115,20 +141,23 @@ export default function AdminBrandCrudPage() {
   useEffect(() => {
     loadBrands();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedSiteId]);
 
   async function createBrand() {
     const safeName = name.trim();
     const safeSlug = derivedSlug;
+    const siteId = selectedSiteId?.trim();
 
     if (!safeName) {
       setMsg({ type: "err", text: "Name is required" });
       return;
     }
+
     if (!safeSlug) {
       setMsg({ type: "err", text: "Slug is required" });
       return;
     }
+
     if (!siteId) {
       setMsg({ type: "err", text: "Site is required" });
       return;
@@ -142,8 +171,8 @@ export default function AdminBrandCrudPage() {
         name: safeName,
         slug: safeSlug,
         siteId,
-        image: image.trim() || null,
-        isActive,
+        description: description.trim() || null,
+        logoUrl: logoUrl.trim() || null,
       };
 
       const r = await fetch(BRAND_API, {
@@ -155,23 +184,29 @@ export default function AdminBrandCrudPage() {
       });
 
       const text = await r.text();
+
       if (!r.ok) {
-        setMsg({ type: "err", text: `Create failed (${r.status}): ${text.slice(0, 220)}` });
+        let errMsg = `Create failed (${r.status})`;
+        try {
+          const json = JSON.parse(text) as ApiError;
+          if (json.error) errMsg = `${errMsg}: ${json.error}`;
+        } catch {
+          if (text) errMsg = `${errMsg}: ${text.slice(0, 220)}`;
+        }
+        setMsg({ type: "err", text: errMsg });
         return;
       }
 
-      setMsg({ type: "ok", text: "Brand created" });
+      setMsg({ type: "ok", text: "Brand created successfully" });
 
-      // reset form (keep site)
       setName("");
       setSlug("");
-      setImage("");
-      setIsActive(true);
+      setDescription("");
+      setLogoUrl("");
 
-      // reload list
       await loadBrands();
-    } catch (e: any) {
-      setMsg({ type: "err", text: e?.message || "Create failed" });
+    } catch (error: unknown) {
+      setMsg({ type: "err", text: getErrorMessage(error, "Create failed") });
     } finally {
       setSaving(false);
     }
@@ -180,214 +215,289 @@ export default function AdminBrandCrudPage() {
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
     if (!kw) return items;
+
     return items.filter((b) => {
       return (
         b.name.toLowerCase().includes(kw) ||
         b.slug.toLowerCase().includes(kw) ||
-        (b.site?.domain || "").toLowerCase().includes(kw)
+        (b.description || "").toLowerCase().includes(kw) ||
+        (b.site?.domain || "").toLowerCase().includes(kw) ||
+        (b.site?.name || "").toLowerCase().includes(kw) ||
+        b.siteId.toLowerCase().includes(kw)
       );
     });
   }, [items, q]);
 
+  const selectedSite = sites.find((s) => s.id === selectedSiteId);
+  const withLogoCount = filtered.filter((b) => !!b.logoUrl).length;
+
   return (
-    <div className={cls.brandCrudPage}>
-      <div className={cls.brandCrudTopbar}>
-        <div className={cls.brandCrudTopbarTitle}>
-          <i className="bi bi-bookmark-heart" />
-          <span>Brands</span>
-        </div>
+    <div className={cls.page}>
+      <div className={cls.bgOrbA} />
+      <div className={cls.bgOrbB} />
 
-        <button className={cls.brandCrudTopbarBtn} type="button" onClick={loadBrands} disabled={loading}>
-          <i className={`bi bi-arrow-clockwise ${loading ? cls.brandCrudSpin : ""}`} />
-          Refresh
-        </button>
-      </div>
-
-      {msg && (
-        <div className={`${cls.brandCrudAlert} ${msg.type === "ok" ? cls.brandCrudAlertOk : cls.brandCrudAlertErr}`}>
-          <i className={`bi ${msg.type === "ok" ? "bi-check2-circle" : "bi-exclamation-triangle"}`} />
-          <span>{msg.text}</span>
-        </div>
-      )}
-
-      <div className={cls.brandCrudGrid}>
-        {/* LEFT: Create Form */}
-        <aside className={cls.brandCrudLeft}>
-          <div className={cls.brandCrudCard}>
-            <div className={cls.brandCrudCardHead}>
-              <div className={cls.brandCrudCardTitle}>
-                <i className="bi bi-plus-circle" />
-                <span>Create new brand</span>
-              </div>
-              <div className={cls.brandCrudCardHint}>Keep it simple • soft blue theme</div>
-            </div>
-
-            <div className={cls.brandCrudForm}>
-              <label className={cls.brandCrudField}>
-                <span className={cls.brandCrudLabel}>Name</span>
-                <input
-                  className={cls.brandCrudInput}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Sakura"
-                />
-              </label>
-
-              <label className={cls.brandCrudField}>
-                <span className={cls.brandCrudLabel}>
-                  Slug <span className={cls.brandCrudLabelMuted}>(auto from name)</span>
-                </span>
-                <input
-                  className={cls.brandCrudInput}
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder={derivedSlug || "auto-generated"}
-                />
-                <div className={cls.brandCrudHelper}>
-                  Final: <code className={cls.brandCrudCode}>{derivedSlug || "-"}</code>
-                </div>
-              </label>
-
-              <label className={cls.brandCrudField}>
-                <span className={cls.brandCrudLabel}>Site</span>
-                <select className={cls.brandCrudSelect} value={siteId} onChange={(e) => setSiteId(e.target.value)}>
-                  {sites.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} — {s.domain}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className={cls.brandCrudField}>
-                <span className={cls.brandCrudLabel}>Image URL</span>
-                <input
-                  className={cls.brandCrudInput}
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="/uploads/...png or https://..."
-                />
-              </label>
-
-              {image.trim() && (
-                <div className={cls.brandCrudPreview}>
-                  <div className={cls.brandCrudPreviewImg}>
-                    <Image src={image.trim()} alt="brand preview" fill sizes="140px" style={{ objectFit: "contain" }} />
-                  </div>
-                  <div className={cls.brandCrudPreviewInfo}>
-                    <div className={cls.brandCrudPreviewTitle}>Preview</div>
-                    <div className={cls.brandCrudPreviewSub}>Check image ratio & background</div>
-                  </div>
-                </div>
-              )}
-
-              <label className={cls.brandCrudToggle}>
-                <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-                <span className={cls.brandCrudToggleText}>
-                  Active <span className={cls.brandCrudLabelMuted}>(visible on store)</span>
-                </span>
-              </label>
-
-              <button className={cls.brandCrudPrimaryBtn} type="button" onClick={createBrand} disabled={saving}>
-                {saving ? (
-                  <>
-                    <span className={cls.brandCrudSpinner} />
-                    Creating…
-                  </>
-                ) : (
-                  <>
-                    Create <i className="bi bi-arrow-right" />
-                  </>
-                )}
-              </button>
+      <div className={cls.shell}>
+        <header className={cls.hero}>
+          <div className={cls.heroLeft}>
+            <div className={cls.eyebrow}>
+              <span className={cls.eyebrowDot} />
+              Commerce admin
             </div>
           </div>
-        </aside>
 
-        {/* RIGHT: List */}
-        <section className={cls.brandCrudRight}>
-          <div className={cls.brandCrudCard}>
-            <div className={cls.brandCrudListHead}>
-              <div className={cls.brandCrudListTitle}>
-                <i className="bi bi-list-check" />
-                <span>Brand list</span>
-                <span className={cls.brandCrudCount}>{filtered.length}</span>
+          <div className={cls.heroRight}>
+            <button className={cls.secondaryBtn} type="button" onClick={loadBrands} disabled={loading}>
+              <i className={`bi bi-arrow-clockwise ${loading ? cls.spin : ""}`} />
+              <span>Sync data</span>
+            </button>
+          </div>
+        </header>
+
+        {msg && (
+          <div className={`${cls.alert} ${msg.type === "ok" ? cls.alertOk : cls.alertErr}`}>
+            <i className={`bi ${msg.type === "ok" ? "bi-check2-circle" : "bi-exclamation-octagon"}`} />
+            <span>{msg.text}</span>
+          </div>
+        )}
+
+        <div className={cls.layout}>
+          <aside className={cls.sidebar}>
+            <div className={cls.composeCard}>
+              <div className={cls.composeGlow} />
+
+              <div className={cls.composeHead}>
+                <div>
+                  <div className={cls.composeTitle}>Create new brand</div>
+                </div>
+
+                <div className={cls.composeIcon}>
+                  <i className="bi bi-plus-lg" />
+                </div>
               </div>
 
-              <div className={cls.brandCrudSearch}>
-                <i className={`bi bi-search ${cls.brandCrudSearchIcon}`} />
-                <input
-                  className={cls.brandCrudSearchInput}
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search name, slug, domain…"
-                />
-                <button className={cls.brandCrudSearchBtn} type="button" onClick={loadBrands} disabled={loading}>
-                  Search
+              <div className={cls.form}>
+                <label className={cls.field}>
+                  <span className={cls.label}>Site</span>
+                  <div className={cls.inputShell}>
+                    <i className={`bi bi-globe2 ${cls.inputIcon}`} />
+                    <select
+                      className={cls.select}
+                      value={selectedSiteId || ""}
+                      onChange={(e) => setSelectedSiteId(e.target.value)}
+                      disabled={sitesLoading}
+                    >
+                      <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
+                      {sites.map((s: SiteOption) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name ?? s.id} ({s.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={cls.helper}>
+                    {sitesErr
+                      ? `Site error: ${sitesErr}`
+                      : selectedSite
+                        ? `${selectedSite.name ?? "Site"}${selectedSite.domain ? ` • ${selectedSite.domain}` : ""}`
+                        : "Chọn site để tạo brand"}
+                  </div>
+                </label>
+
+                <label className={cls.field}>
+                  <span className={cls.label}>Brand name</span>
+                  <div className={cls.inputShell}>
+                    <i className={`bi bi-bookmark-star ${cls.inputIcon}`} />
+                    <input
+                      className={cls.input}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Ví dụ: Sakura"
+                    />
+                  </div>
+                </label>
+
+                <label className={cls.field}>
+                  <span className={cls.label}>Slug</span>
+                  <div className={cls.inputShell}>
+                    <i className={`bi bi-link-45deg ${cls.inputIcon}`} />
+                    <input
+                      className={cls.input}
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      placeholder={derivedSlug || "auto-generated"}
+                    />
+                  </div>
+                  <div className={cls.helper}>
+                    Final slug: <code className={cls.code}>{derivedSlug || "-"}</code>
+                  </div>
+                </label>
+
+                <label className={cls.field}>
+                  <span className={cls.label}>Description</span>
+                  <div className={cls.textareaShell}>
+                    <textarea
+                      className={cls.textarea}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Mô tả ngắn về brand..."
+                      rows={4}
+                    />
+                  </div>
+                </label>
+
+                <label className={cls.field}>
+                  <span className={cls.label}>Logo URL</span>
+                  <div className={cls.inputShell}>
+                    <i className={`bi bi-image ${cls.inputIcon}`} />
+                    <input
+                      className={cls.input}
+                      value={logoUrl}
+                      onChange={(e) => setLogoUrl(e.target.value)}
+                      placeholder="/uploads/brand.png hoặc https://..."
+                    />
+                  </div>
+                </label>
+
+                {logoUrl.trim() && (
+                  <div className={cls.preview}>
+                    <div className={cls.previewMedia}>
+                      <Image
+                        src={logoUrl.trim()}
+                        alt="brand preview"
+                        fill
+                        sizes="96px"
+                        style={{ objectFit: "contain" }}
+                      />
+                    </div>
+                    <div className={cls.previewBody}>
+                      <div className={cls.previewTitle}>Live preview</div>
+                      <div className={cls.previewText}>
+                        Kiểm tra nhanh độ nét, khoảng trắng và khả năng hiển thị của logo.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button className={cls.primaryBtn} type="button" onClick={createBrand} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <span className={cls.buttonSpinner} />
+                      <span>Creating brand...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-stars" />
+                      <span>Create brand</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
+          </aside>
 
-            <div className={cls.brandCrudTable}>
-              <div className={`${cls.brandCrudRow} ${cls.brandCrudRowHead}`}>
-                <div>ID</div>
-                <div>Brand</div>
-                <div>Slug</div>
-                <div>Site</div>
-                <div>Status</div>
+          <section className={cls.workspace}>
+            <div className={cls.workspaceCard}>
+              <div className={cls.workspaceHead}>
+                <div>
+                  <div className={cls.workspaceTitle}>Brand list</div>
+                  <div className={cls.workspaceDesc}>
+                    Tổng cộng <strong>{filtered.length}</strong> brand
+                    {selectedSite ? ` trong ${selectedSite.name ?? selectedSite.id}` : ""}.
+                  </div>
+                </div>
+
+                <div className={cls.searchWrap}>
+                  <i className={`bi bi-search ${cls.searchIcon}`} />
+                  <input
+                    className={cls.searchInput}
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Tìm theo tên, slug, mô tả, domain..."
+                  />
+                  <button className={cls.searchBtn} type="button" onClick={loadBrands} disabled={loading}>
+                    Search
+                  </button>
+                </div>
               </div>
 
-              {loading ? (
-                <div className={cls.brandCrudEmpty}>Loading…</div>
-              ) : filtered.length === 0 ? (
-                <div className={cls.brandCrudEmpty}>No brands found.</div>
-              ) : (
-                filtered.map((b) => (
-                  <div key={b.id} className={cls.brandCrudRow}>
-                    <div className={cls.brandCrudMono} title={b.id}>
-                      {b.id.slice(0, 10)}…
-                    </div>
-
-                    <div className={cls.brandCrudBrandCell}>
-                      <div className={cls.brandCrudBrandLogo}>
-                        {b.image ? (
-                          <Image src={b.image} alt={b.name} fill sizes="40px" style={{ objectFit: "contain" }} />
-                        ) : (
-                          <div className={cls.brandCrudBrandFallback}>
-                            <i className="bi bi-image" />
-                          </div>
-                        )}
-                      </div>
-                      <div className={cls.brandCrudBrandInfo}>
-                        <div className={cls.brandCrudBrandName}>{b.name}</div>
-                        <div className={cls.brandCrudBrandMeta}>
-                          <span className={cls.brandCrudMetaChip}>
-                            <i className="bi bi-hash" /> {b.siteId}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={cls.brandCrudMono}>/{b.slug}</div>
-
-                    <div className={cls.brandCrudSiteCell}>
-                      <i className="bi bi-globe2" />
-                      <span>{b.site?.domain || b.siteId}</span>
-                    </div>
-
-                    <div>
-                      <span
-                        className={`${cls.brandCrudStatus} ${b.isActive ? cls.brandCrudStatusOn : cls.brandCrudStatusOff}`}
-                      >
-                        {b.isActive ? "Active" : "Inactive"}
-                      </span>
+              {filtered.length === 0 && !loading ? (
+                <div className={cls.emptyState}>
+                  <div className={cls.emptyArt}>
+                    <div className={cls.emptyCircleA} />
+                    <div className={cls.emptyCircleB} />
+                    <div className={cls.emptyIcon}>
+                      <i className="bi bi-bookmark-heart" />
                     </div>
                   </div>
-                ))
+                  <div className={cls.emptyTitle}>Chưa có brand nào phù hợp</div>
+                  <div className={cls.emptyText}>
+                    Hãy tạo brand đầu tiên ở khung bên trái hoặc thử thay đổi từ khóa tìm kiếm.
+                  </div>
+                </div>
+              ) : (
+                <div className={cls.tableWrap}>
+                  <div className={`${cls.row} ${cls.rowHead}`}>
+                    <div>Brand</div>
+                    <div>Slug</div>
+                    <div>Site</div>
+                    <div>Created</div>
+                  </div>
+
+                  {loading ? (
+                    <div className={cls.loadingBox}>
+                      <div className={cls.loadingBar} />
+                      <div className={cls.loadingBar} />
+                      <div className={cls.loadingBar} />
+                    </div>
+                  ) : (
+                    filtered.map((b) => (
+                      <div key={b.id} className={cls.row}>
+                        <div className={cls.brandCell}>
+                          <div className={cls.brandAvatar}>
+                            {b.logoUrl ? (
+                              <Image src={b.logoUrl} alt={b.name} fill sizes="52px" style={{ objectFit: "contain" }} />
+                            ) : (
+                              <div className={cls.brandFallback}>
+                                <i className="bi bi-image" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className={cls.brandBody}>
+                            <div className={cls.brandTop}>
+                              <div className={cls.brandName}>{b.name}</div>
+                              <span className={cls.badge}>#{b.id.slice(0, 8)}</span>
+                            </div>
+                            <div className={cls.brandMeta}>
+                              {b.description?.trim() ? b.description : "Chưa có mô tả cho thương hiệu này."}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className={cls.slugCell}>
+                          <code className={cls.code}>/{b.slug}</code>
+                        </div>
+
+                        <div className={cls.siteCell}>
+                          <div className={cls.siteName}>
+                            <i className="bi bi-globe-americas" />
+                            <span>{b.site?.name || b.siteId}</span>
+                          </div>
+                          <div className={cls.siteDomain}>{b.site?.domain || b.siteId}</div>
+                        </div>
+
+                        <div className={cls.dateCell}>
+                          <div className={cls.dateCreated}>{formatDate(b.createdAt)}</div>
+                          <div className={cls.dateSub}>Updated: {formatDate(b.updatedAt)}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );
