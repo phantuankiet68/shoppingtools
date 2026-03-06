@@ -40,7 +40,6 @@ model Product {
   category         ProductCategory       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   brand            ProductBrand?         @relation(fields: [brandId], references: [id], onDelete: SetNull)
   variants         ProductVariant[]
-  optionValues     ProductOptionValue[]
   images           ProductImage[]
   @@unique([siteId, slug])
   @@index([siteId])
@@ -92,35 +91,11 @@ model ProductVariant {
   product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   site            Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
   images          ProductImage[]
-  optionLinks     ProductVariantOptionValue[]
 
   @@index([productId])
   @@index([siteId])
   @@unique([siteId, sku])
   @@map("product_variants")
-}
-
-model ProductOptionValue {
-  id           String   @id @default(cuid())
-  productId    String   @map("product_id")
-  optionName   String   @map("option_name")
-  optionValue  String   @map("option_value")
-  createdAt    DateTime @default(now()) @map("created_at")
-  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variantLinks ProductVariantOptionValue[]
-  @@index([productId])
-  @@unique([productId, optionName, optionValue])
-  @@map("product_option_values")
-}
-
-model ProductVariantOptionValue {
-  variantId     String @map("variant_id")
-  optionValueId String @map("option_value_id")
-  variant       ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  optionValue   ProductOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
-  @@id([variantId, optionValueId])
-  @@index([optionValueId])
-  @@map("product_variant_option_values")
 }
 
 model ProductImage {

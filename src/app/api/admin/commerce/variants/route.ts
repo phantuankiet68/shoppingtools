@@ -46,44 +46,18 @@ type OwnedProduct = {
 };
 
 async function getOwnedProduct(productId: string): Promise<OwnedProduct | null> {
-  /**
-   * Vì schema bạn đưa không có Product.userId,
-   * nên cần kiểm tra ownership qua relation thực tế của Product.
-   *
-   * Ví dụ phổ biến:
-   * - Product thuộc Site
-   * - Site có userId / ownerId
-   *
-   * Hãy sửa phần `where` bên dưới theo schema Product + Site thật của bạn.
-   */
-
   const product = await prisma.product.findFirst({
     where: {
       id: productId,
-      // Ví dụ 1:
+      deletedAt: null,
+      // TODO: thêm ownership check thật nếu cần
       // site: { userId: adminUserId },
-
-      // Ví dụ 2:
-      // site: { ownerId: adminUserId },
-
-      // Tạm thời comment để tránh TS lỗi nếu schema chưa đúng:
     },
     select: {
       id: true,
       siteId: true,
     },
   });
-
-  // TẠM THỜI:
-  // Nếu bạn chưa muốn check ownership ở đây thì dùng findUnique/findFirst theo id.
-  // Nhưng production nên thay bằng điều kiện ownership thực sự.
-  if (!product) {
-    const fallback = await prisma.product.findUnique({
-      where: { id: productId },
-      select: { id: true, siteId: true },
-    });
-    return fallback;
-  }
 
   return product;
 }
@@ -105,7 +79,11 @@ function buildVariantWhere(params: { productId: string; q: string; active: strin
   }
 
   if (q) {
-    where.OR = [{ sku: { contains: q } }, { title: { contains: q } }, { barcode: { contains: q } }];
+    where.OR = [
+      { sku: { contains: q, mode: "insensitive" } },
+      { title: { contains: q, mode: "insensitive" } },
+      { barcode: { contains: q, mode: "insensitive" } },
+    ];
   }
 
   return where;
@@ -115,16 +93,51 @@ function buildVariantOrderBy(sort: string): Prisma.ProductVariantOrderByWithRela
   if (sort === "skuasc") return { sku: "asc" };
   if (sort === "stockdesc") return { stockQty: "desc" };
   if (sort === "priceasc") return { price: "asc" };
+  if (sort === "pricedesc") return { price: "desc" };
+  if (sort === "oldest") return { createdAt: "asc" };
   return { createdAt: "desc" };
 }
 
+const variantSelect = {
+  id: true,
+  productId: true,
+  siteId: true,
+  sku: true,
+  title: true,
+  isActive: true,
+  price: true,
+  compareAtPrice: true,
+  cost: true,
+  stockQty: true,
+  barcode: true,
+  weight: true,
+  length: true,
+  width: true,
+  height: true,
+  isDefault: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+  images: {
+    orderBy: [{ sortOrder: "asc" as const }],
+    select: {
+      id: true,
+      productId: true,
+      variantId: true,
+      imageUrl: true,
+      sortOrder: true,
+      createdAt: true,
+    },
+  },
+} satisfies Prisma.ProductVariantSelect;
+
 /**
- * GET /api/admin/product-variant
+ * GET /api/admin/commerce/variants
  * query:
  *  productId*       required
  *  q?               search sku/title/barcode
  *  active?          all|true|false
- *  sort?            newest|skuasc|stockdesc|priceasc
+ *  sort?            newest|oldest|skuasc|stockdesc|priceasc|pricedesc
  *  page?            default 1
  *  pageSize?        default 50
  */
@@ -164,51 +177,7 @@ export async function GET(req: Request) {
         orderBy,
         skip,
         take: pageSize,
-        select: {
-          id: true,
-          productId: true,
-          siteId: true,
-          sku: true,
-          title: true,
-          isActive: true,
-          price: true,
-          compareAtPrice: true,
-          cost: true,
-          stockQty: true,
-          barcode: true,
-          weight: true,
-          length: true,
-          width: true,
-          height: true,
-          isDefault: true,
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
-          images: {
-            orderBy: [{ sortOrder: "asc" }],
-            select: {
-              id: true,
-              productId: true,
-              variantId: true,
-              imageUrl: true,
-              sortOrder: true,
-              createdAt: true,
-            },
-          },
-          optionLinks: {
-            select: {
-              variantId: true,
-              optionValueId: true,
-              optionValue: {
-                select: {
-                  id: true,
-                  optionName: true,
-                  optionValue: true,
-                },
-              },
-            },
-          },
-        },
+        select: variantSelect,
       }),
       prisma.productVariant.count({ where }),
     ]);
@@ -221,6 +190,8 @@ export async function GET(req: Request) {
       totalPages: Math.ceil(total / pageSize),
     });
   } catch (error: unknown) {
+    console.error("[GET /api/admin/commerce/variants] ERROR:", error);
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -231,24 +202,23 @@ export async function GET(req: Request) {
 }
 
 /**
- * POST /api/admin/product-variant
+ * POST /api/admin/commerce/variants
  * body:
  * {
  *   productId*,
  *   sku*,
- *   title?,
+ *   title? | name?,
  *   barcode?,
- *   price?,
+ *   price? | priceCents?,
  *   compareAtPrice?,
- *   cost?,
- *   stockQty?,
+ *   cost? | costCents?,
+ *   stockQty? | stock?,
  *   weight?,
  *   length?,
  *   width?,
  *   height?,
  *   isActive?,
- *   isDefault?,
- *   optionValueIds?: string[]
+ *   isDefault?
  * }
  */
 export async function POST(req: Request) {
@@ -285,17 +255,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "sku is required" }, { status: 400 });
     }
 
-    // Chuẩn hóa SKU để tránh trùng kiểu abc / ABC / " ABC "
     const sku = rawSku.toUpperCase();
-
-    const title = cleanText(data.title, 200);
+    const title = cleanText(data.title ?? data.name, 200);
     const barcode = cleanText(data.barcode, 64);
 
-    const price = toDecimal(data.price, "0");
-    const compareAtPrice = toNullableDecimal(data.compareAtPrice);
-    const cost = toNullableDecimal(data.cost);
+    let price: Prisma.Decimal;
+    if (data.priceCents !== undefined) {
+      const cents = Number(data.priceCents);
+      if (!Number.isFinite(cents)) {
+        return NextResponse.json({ error: "priceCents must be a number" }, { status: 400 });
+      }
+      price = new Prisma.Decimal((Math.max(0, Math.trunc(cents)) / 100).toString());
+    } else {
+      price = toDecimal(data.price, "0");
+    }
 
-    const stockQty = Number.isFinite(Number(data.stockQty)) ? Math.max(0, Math.trunc(Number(data.stockQty))) : 0;
+    const compareAtPrice = toNullableDecimal(data.compareAtPrice);
+
+    let cost: Prisma.Decimal | null;
+    if (data.costCents !== undefined) {
+      const cents = Number(data.costCents);
+      cost = Number.isFinite(cents)
+        ? new Prisma.Decimal((Math.max(0, Math.trunc(cents)) / 100).toString())
+        : new Prisma.Decimal("0");
+    } else {
+      cost = toNullableDecimal(data.cost);
+    }
+
+    const stockQty =
+      data.stock !== undefined || data.stockQty !== undefined
+        ? Math.max(0, Math.trunc(Number(data.stock ?? data.stockQty ?? 0)))
+        : 0;
+
+    if (!Number.isFinite(stockQty)) {
+      return NextResponse.json({ error: "stock must be a number" }, { status: 400 });
+    }
 
     const weight = toNullableDecimal(data.weight);
     const length = toNullableDecimal(data.length);
@@ -305,15 +299,10 @@ export async function POST(req: Request) {
     const isActive = typeof data.isActive === "boolean" ? data.isActive : true;
     const isDefault = typeof data.isDefault === "boolean" ? data.isDefault : false;
 
-    const optionValueIds = Array.isArray(data.optionValueIds)
-      ? data.optionValueIds.map((v) => String(v).trim()).filter(Boolean)
-      : [];
-
     if (compareAtPrice && compareAtPrice.lt(price)) {
       return NextResponse.json({ error: "compareAtPrice must be greater than or equal to price" }, { status: 400 });
     }
 
-    // Check duplicate trước khi create
     const existed = await prisma.productVariant.findFirst({
       where: {
         siteId: product.siteId,
@@ -369,54 +358,14 @@ export async function POST(req: Request) {
           width,
           height,
           isDefault,
-          optionLinks:
-            optionValueIds.length > 0
-              ? {
-                  create: optionValueIds.map((optionValueId) => ({
-                    optionValueId,
-                  })),
-                }
-              : undefined,
         },
-        select: {
-          id: true,
-          productId: true,
-          siteId: true,
-          sku: true,
-          title: true,
-          isActive: true,
-          price: true,
-          compareAtPrice: true,
-          cost: true,
-          stockQty: true,
-          barcode: true,
-          weight: true,
-          length: true,
-          width: true,
-          height: true,
-          isDefault: true,
-          createdAt: true,
-          updatedAt: true,
-          optionLinks: {
-            select: {
-              variantId: true,
-              optionValueId: true,
-              optionValue: {
-                select: {
-                  id: true,
-                  optionName: true,
-                  optionValue: true,
-                },
-              },
-            },
-          },
-        },
+        select: variantSelect,
       });
     });
 
     return NextResponse.json({ item: created }, { status: 201 });
   } catch (error: unknown) {
-    console.error("[POST /api/admin/product-variant] ERROR:", error);
+    console.error("[POST /api/admin/commerce/variants] ERROR:", error);
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

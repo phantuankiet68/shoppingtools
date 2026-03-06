@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const PaymentBuilder = dynamic(() => import("@/components/admin/commerce/orders/payments/page"), { ssr: false });
+const PaymentBuilder = dynamic(() => import("@/components/admin/orders/payments/page"), { ssr: false });
 
 export default function Page() {
   return (

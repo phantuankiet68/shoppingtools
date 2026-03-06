@@ -39,6 +39,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 213px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .previewImg {
@@ -64,7 +68,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 420px;
+  min-height: 320px;
   width: 100%;
   padding: 24px;
   text-align: center;
@@ -621,13 +625,11 @@
 }
 
 .note {
-  border: 1px solid #e7e9ee;
   background: #fbfcff;
   border-radius: 12px;
   padding: 10px 12px;
   font-size: 13px;
   color: #0f172a;
-  margin-top: 10px;
 }
 
 .previewUrl {

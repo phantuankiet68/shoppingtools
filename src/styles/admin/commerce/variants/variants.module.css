@@ -37,7 +37,7 @@
 .hr {
   height: 1px;
   background: var(--line);
-  margin: 14px 0;
+  margin: 10px 0;
 }
 
 /* ===== Topbar ===== */
@@ -205,7 +205,7 @@
 }
 
 .panelHeader {
-  padding: 14px 14px 10px 14px;
+  padding: 8px 14px 10px 14px;
   border-bottom: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
@@ -247,7 +247,8 @@
   border: 0;
   background: transparent;
   outline: none;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .searchInline {
@@ -262,7 +263,7 @@
 .search::placeholder,
 .searchInline::placeholder {
   color: #94a3b8;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* ===== Sidebar Products ===== */
@@ -486,15 +487,15 @@
   border: 1px solid var(--line);
   background: #fff;
   border-radius: 999px;
-  padding: 7px 10px;
-  font-weight: 800;
+  padding: 5px 10px;
+  font-weight: 500;
   font-size: 12px;
 }
 
 .ok {
   border-color: rgba(22, 163, 74, 0.2);
   background: rgba(22, 163, 74, 0.06);
-  color: #166534;
+  color: #269c53;
 }
 
 .off {
@@ -551,12 +552,11 @@
 
 .label {
   display: block;
-  margin: 10px 0 6px;
-  font-size: 11px;
-  text-transform: uppercase;
+  margin: 8px 0 4px;
+  font-size: 12px;
   letter-spacing: 0.08em;
-  color: #64748b;
-  font-weight: 900;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .inputWrap,
@@ -564,7 +564,7 @@
   border: 1px solid var(--line);
   background: #ffffff;
   border-radius: 6px;
-  height: 45px;
+  height: 35px;
   padding: 0 12px;
   display: flex;
   align-items: center;
@@ -579,7 +579,7 @@
   border: 0;
   background: transparent;
   outline: none;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text);
 }
 
@@ -599,8 +599,8 @@
   gap: 10px;
   font-weight: 900;
   font-size: 13px;
-  margin: 6px 0 8px;
-  color: #0f172a;
+  margin: 6px 0 0px;
+  color: var(--muted);
 }
 
 .emptyInspector {
@@ -612,9 +612,10 @@
 }
 
 .emptySmall {
-  font-size: 12px;
   color: var(--muted);
-  padding: 10px 12px;
+  padding: 5px 12px;
+  font-size: 12px;
+  margin-top: 8px;
   border: 1px dashed rgba(100, 116, 139, 0.35);
   border-radius: 14px;
   background: rgba(100, 116, 139, 0.04);
@@ -797,4 +798,27 @@
     position: static;
     height: auto;
   }
+}
+
+.WrapSite {
+  border: 1px solid #e7e9ee;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  outline: none;
+  display: flex;
+  justify-content: space-between;
+}
+
+.selectSite {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  min-width: 220px;
 }

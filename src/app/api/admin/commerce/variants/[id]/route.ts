@@ -1,4 +1,3 @@
-// app/api/admin/product-variant/[id]/route.ts
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -22,152 +21,145 @@ function toDecimal(v: unknown, fallback = "0"): Prisma.Decimal {
   }
 }
 
-function toNullableDecimal(v: unknown): Prisma.Decimal | null {
-  if (v === null || v === undefined || v === "") return null;
+type SortKey = "newest" | "oldest" | "price_asc" | "price_desc" | "stock_asc" | "stock_desc" | "sku_asc" | "sku_desc";
 
-  try {
-    return new Prisma.Decimal(v as Prisma.Decimal.Value);
-  } catch {
-    return null;
+function buildVariantOrderBy(sort: SortKey): Prisma.ProductVariantOrderByWithRelationInput[] {
+  switch (sort) {
+    case "oldest":
+      return [{ createdAt: "asc" }];
+    case "price_asc":
+      return [{ price: "asc" }, { createdAt: "desc" }];
+    case "price_desc":
+      return [{ price: "desc" }, { createdAt: "desc" }];
+    case "stock_asc":
+      return [{ stockQty: "asc" }, { createdAt: "desc" }];
+    case "stock_desc":
+      return [{ stockQty: "desc" }, { createdAt: "desc" }];
+    case "sku_asc":
+      return [{ sku: "asc" }];
+    case "sku_desc":
+      return [{ sku: "desc" }];
+    case "newest":
+    default:
+      return [{ createdAt: "desc" }];
   }
 }
 
-type RouteContext = {
-  params: Promise<{ id: string }>;
-};
-
-type OwnedVariant = {
-  id: string;
-  productId: string;
-  siteId: string;
-};
-
-async function getVariantOwned(id: string, adminUserId: string): Promise<OwnedVariant | null> {
-  /**
-   * TODO:
-   * Schema bạn gửi chưa có đầy đủ Product/Site ownership.
-   * Hãy thay phần where bằng relation ownership thật của bạn.
-   *
-   * Ví dụ nếu Site có userId:
-   * where: {
-   *   id,
-   *   deletedAt: null,
-   *   site: { userId: adminUserId },
-   * }
-   *
-   * Ví dụ nếu Site có ownerId:
-   * where: {
-   *   id,
-   *   deletedAt: null,
-   *   site: { ownerId: adminUserId },
-   * }
-   */
-
-  const item = await prisma.productVariant.findFirst({
-    where: {
-      id,
-      deletedAt: null,
-      // site: { userId: adminUserId },
-    },
+const variantSelect = {
+  id: true,
+  productId: true,
+  siteId: true,
+  sku: true,
+  title: true,
+  isActive: true,
+  price: true,
+  compareAtPrice: true,
+  cost: true,
+  stockQty: true,
+  barcode: true,
+  weight: true,
+  length: true,
+  width: true,
+  height: true,
+  isDefault: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+  images: {
+    orderBy: [{ sortOrder: "asc" as const }],
     select: {
       id: true,
       productId: true,
-      siteId: true,
+      variantId: true,
+      imageUrl: true,
+      sortOrder: true,
+      createdAt: true,
     },
-  });
+  },
+} satisfies Prisma.ProductVariantSelect;
 
-  void adminUserId; // tránh warning nếu chưa dùng ownership thật
-  return item;
-}
-
-async function unsetOtherDefaults(productId: string, excludeId: string) {
-  await prisma.productVariant.updateMany({
-    where: {
-      productId,
-      deletedAt: null,
-      NOT: { id: excludeId },
-    },
-    data: {
-      isDefault: false,
-    },
-  });
-}
-
-/** GET /api/admin/product-variant/:id */
-export async function GET(_req: Request, ctx: RouteContext) {
+/** GET /api/admin/commerce/variants?productId=... */
+export async function GET(req: Request) {
   let userId: string | null = null;
 
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { id } = await ctx.params;
+    const { searchParams } = new URL(req.url);
 
-    const owned = await getVariantOwned(id, userId);
-    if (!owned) {
-      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    const productId = searchParams.get("productId")?.trim() || "";
+    const q = searchParams.get("q")?.trim() || "";
+    const sort = (searchParams.get("sort")?.trim() || "newest") as SortKey;
+
+    const pageRaw = Number(searchParams.get("page") || "1");
+    const limitRaw = Number(searchParams.get("limit") || "50");
+
+    const page = Number.isFinite(pageRaw) && pageRaw > 0 ? Math.trunc(pageRaw) : 1;
+    const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, Math.trunc(limitRaw))) : 50;
+    const skip = (page - 1) * limit;
+
+    if (!productId) {
+      return NextResponse.json({ error: "productId is required" }, { status: 400 });
     }
 
-    const item = await prisma.productVariant.findFirst({
+    const product = await prisma.product.findFirst({
       where: {
-        id,
+        id: productId,
         deletedAt: null,
+        // TODO: thay bằng ownership check thật của bạn
+        // site: { userId },
       },
       select: {
         id: true,
-        productId: true,
-        siteId: true,
-        sku: true,
-        title: true,
-        isActive: true,
-        price: true,
-        compareAtPrice: true,
-        cost: true,
-        stockQty: true,
-        barcode: true,
-        weight: true,
-        length: true,
-        width: true,
-        height: true,
-        isDefault: true,
-        createdAt: true,
-        updatedAt: true,
-        deletedAt: true,
-        images: {
-          orderBy: [{ sortOrder: "asc" }],
-          select: {
-            id: true,
-            productId: true,
-            variantId: true,
-            imageUrl: true,
-            sortOrder: true,
-            createdAt: true,
-          },
-        },
-        optionLinks: {
-          select: {
-            variantId: true,
-            optionValueId: true,
-            optionValue: {
-              select: {
-                id: true,
-                productId: true,
-                optionName: true,
-                optionValue: true,
-                createdAt: true,
-              },
-            },
-          },
-        },
       },
     });
 
-    if (!item) {
-      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ item });
+    const where: Prisma.ProductVariantWhereInput = {
+      productId,
+      deletedAt: null,
+      ...(q
+        ? {
+            OR: [
+              { sku: { contains: q, mode: "insensitive" } },
+              { title: { contains: q, mode: "insensitive" } },
+              { barcode: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+
+    const orderBy = buildVariantOrderBy(sort);
+
+    const [items, total] = await Promise.all([
+      prisma.productVariant.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        select: variantSelect,
+      }),
+      prisma.productVariant.count({
+        where,
+      }),
+    ]);
+
+    return NextResponse.json({
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+    });
   } catch (error: unknown) {
+    console.error("[GET /api/admin/commerce/variants] ERROR:", error);
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -177,8 +169,8 @@ export async function GET(_req: Request, ctx: RouteContext) {
   }
 }
 
-/** PATCH /api/admin/product-variant/:id */
-export async function PATCH(req: Request, ctx: RouteContext) {
+/** POST /api/admin/commerce/variants */
+export async function POST(req: Request) {
   let userId: string | null = null;
 
   try {
@@ -196,156 +188,62 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     }
 
     const dataIn = body as Record<string, unknown>;
-    const { id } = await ctx.params;
 
-    const owned = await getVariantOwned(id, userId);
-    if (!owned) {
-      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    const productId = String(dataIn.productId ?? "").trim();
+    if (!productId) {
+      return NextResponse.json({ error: "productId is required" }, { status: 400 });
     }
 
-    const data: Prisma.ProductVariantUpdateInput = {};
-
-    if (dataIn.title !== undefined) {
-      data.title = cleanText(dataIn.title, 200);
-    }
-
-    if (dataIn.sku !== undefined) {
-      const sku = String(dataIn.sku ?? "").trim();
-      if (!sku) {
-        return NextResponse.json({ error: "sku cannot be empty" }, { status: 400 });
-      }
-      data.sku = sku;
-    }
-
-    if (dataIn.barcode !== undefined) {
-      data.barcode = cleanText(dataIn.barcode, 64);
-    }
-
-    if (dataIn.price !== undefined) {
-      data.price = toDecimal(dataIn.price, "0");
-    }
-
-    if (dataIn.compareAtPrice !== undefined) {
-      data.compareAtPrice = toNullableDecimal(dataIn.compareAtPrice);
-    }
-
-    if (dataIn.cost !== undefined) {
-      data.cost = toNullableDecimal(dataIn.cost);
-    }
-
-    if (dataIn.stockQty !== undefined) {
-      const n = Number(dataIn.stockQty);
-      if (!Number.isFinite(n)) {
-        return NextResponse.json({ error: "stockQty must be a number" }, { status: 400 });
-      }
-      data.stockQty = Math.max(0, Math.trunc(n));
-    }
-
-    if (dataIn.weight !== undefined) {
-      data.weight = toNullableDecimal(dataIn.weight);
-    }
-
-    if (dataIn.length !== undefined) {
-      data.length = toNullableDecimal(dataIn.length);
-    }
-
-    if (dataIn.width !== undefined) {
-      data.width = toNullableDecimal(dataIn.width);
-    }
-
-    if (dataIn.height !== undefined) {
-      data.height = toNullableDecimal(dataIn.height);
-    }
-
-    if (dataIn.isActive !== undefined) {
-      data.isActive = Boolean(dataIn.isActive);
-    }
-
-    if (dataIn.isDefault !== undefined) {
-      data.isDefault = Boolean(dataIn.isDefault);
-    }
-
-    if (
-      dataIn.compareAtPrice !== undefined &&
-      data.compareAtPrice instanceof Prisma.Decimal &&
-      data.price instanceof Prisma.Decimal &&
-      data.compareAtPrice.lt(data.price)
-    ) {
-      return NextResponse.json({ error: "compareAtPrice must be greater than or equal to price" }, { status: 400 });
-    }
-
-    const optionValueIds = Array.isArray(dataIn.optionValueIds)
-      ? dataIn.optionValueIds.map((v) => String(v).trim()).filter(Boolean)
-      : undefined;
-
-    const updated = await prisma.$transaction(async (tx) => {
-      if (data.isDefault === true) {
-        await unsetOtherDefaults(owned.productId, id);
-      }
-
-      if (optionValueIds !== undefined) {
-        await tx.productVariantOptionValue.deleteMany({
-          where: { variantId: id },
-        });
-      }
-
-      const item = await tx.productVariant.update({
-        where: { id },
-        data: {
-          ...data,
-          optionLinks:
-            optionValueIds !== undefined
-              ? optionValueIds.length > 0
-                ? {
-                    create: optionValueIds.map((optionValueId) => ({
-                      optionValueId,
-                    })),
-                  }
-                : undefined
-              : undefined,
-        },
-        select: {
-          id: true,
-          productId: true,
-          siteId: true,
-          sku: true,
-          title: true,
-          isActive: true,
-          price: true,
-          compareAtPrice: true,
-          cost: true,
-          stockQty: true,
-          barcode: true,
-          weight: true,
-          length: true,
-          width: true,
-          height: true,
-          isDefault: true,
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
-          optionLinks: {
-            select: {
-              variantId: true,
-              optionValueId: true,
-              optionValue: {
-                select: {
-                  id: true,
-                  optionName: true,
-                  optionValue: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      return item;
+    const product = await prisma.product.findFirst({
+      where: {
+        id: productId,
+        deletedAt: null,
+        // TODO: thay bằng ownership check thật của bạn
+        // site: { userId },
+      },
+      select: {
+        id: true,
+        siteId: true,
+      },
     });
 
-    return NextResponse.json({ item: updated });
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    const sku = String(dataIn.sku ?? "").trim();
+    if (!sku) {
+      return NextResponse.json({ error: "sku is required" }, { status: 400 });
+    }
+
+    const priceCents = Number(dataIn.priceCents ?? 0);
+    if (!Number.isFinite(priceCents)) {
+      return NextResponse.json({ error: "priceCents must be a number" }, { status: 400 });
+    }
+
+    const stock = Number(dataIn.stock ?? 0);
+    if (!Number.isFinite(stock)) {
+      return NextResponse.json({ error: "stock must be a number" }, { status: 400 });
+    }
+
+    const item = await prisma.productVariant.create({
+      data: {
+        productId: product.id,
+        siteId: product.siteId,
+        sku,
+        title: cleanText(dataIn.name ?? dataIn.title, 200),
+        barcode: cleanText(dataIn.barcode, 64),
+        isActive: Boolean(dataIn.isActive ?? true),
+        price: new Prisma.Decimal((Math.max(0, Math.trunc(priceCents)) / 100).toString()),
+        cost: toDecimal(dataIn.costCents !== undefined ? Number(dataIn.costCents) / 100 : 0, "0"),
+        stockQty: Math.max(0, Math.trunc(stock)),
+      },
+      select: variantSelect,
+    });
+
+    return NextResponse.json({ item }, { status: 201 });
   } catch (error: unknown) {
-    console.error("[PATCH /api/admin/product-variant/[id]] ERROR:", error);
+    console.error("[POST /api/admin/commerce/variants] ERROR:", error);
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -353,50 +251,6 @@ export async function PATCH(req: Request, ctx: RouteContext) {
 
     if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
       return NextResponse.json({ error: "SKU already exists in this site" }, { status: 409 });
-    }
-
-    const message = error instanceof Error ? error.message : "Server error";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-/** DELETE /api/admin/product-variant/:id */
-export async function DELETE(_req: Request, ctx: RouteContext) {
-  let userId: string | null = null;
-
-  try {
-    const user = await requireAdminAuthUser();
-    userId = user.id;
-
-    const { id } = await ctx.params;
-
-    const owned = await getVariantOwned(id, userId);
-    if (!owned) {
-      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
-    }
-
-    await prisma.$transaction(async (tx) => {
-      await tx.productVariantOptionValue.deleteMany({
-        where: { variantId: id },
-      });
-
-      await tx.productImage.updateMany({
-        where: { variantId: id },
-        data: { variantId: null },
-      });
-
-      await tx.productVariant.update({
-        where: { id },
-        data: { deletedAt: new Date() },
-      });
-    });
-
-    return new NextResponse(null, { status: 204 });
-  } catch (error: unknown) {
-    console.error("[DELETE /api/admin/product-variant/[id]] ERROR:", error);
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const message = error instanceof Error ? error.message : "Server error";

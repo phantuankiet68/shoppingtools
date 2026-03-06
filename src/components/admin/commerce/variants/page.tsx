@@ -4,9 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useSiteStore } from "@/store/site/site.store";
 import styles from "@/styles/admin/commerce/variants/variants.module.css";
 
-type Currency = "USD" | "VND";
-type VariantStatus = "ACTIVE" | "DRAFT"; // UI status mapped to DB isActive
-
 type ProductRow = {
   id: string;
   name: string;
@@ -24,46 +21,52 @@ type VariantImageRow = {
 type VariantRow = {
   id: string;
   productId: string;
-  name: string;
+  siteId: string;
   sku: string;
-  barcode?: string;
-  priceCents: number;
-  currency: Currency;
-  stock: number;
-  status: VariantStatus;
-  option1?: string;
-  value1?: string;
-  option2?: string;
-  value2?: string;
+  title?: string | null;
+  isActive: boolean;
+  price: number;
+  compareAtPrice?: number | null;
+  cost?: number | null;
+  stockQty: number;
+  barcode?: string | null;
+  weight?: number | null;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
+  isDefault: boolean;
   images: VariantImageRow[];
   createdAt: string;
   updatedAt: string;
 };
 
-type DbVariantImage = {
-  id: string;
-  url: string;
-  isCover: boolean;
-  sort: number;
-};
-
-type DbVariant = {
+type LooseDbVariant = {
   id: string;
   productId: string;
-  name: string | null;
-  sku: string;
-  barcode: string | null;
-  priceCents: number;
-  costCents: number;
-  stock: number;
-  isActive: boolean;
-  option1: string | null;
-  value1: string | null;
-  option2: string | null;
-  value2: string | null;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-  images: DbVariantImage[];
+  siteId?: string | null;
+  sku?: string | null;
+  title?: string | null;
+  isActive?: boolean | null;
+  price?: number | string | null;
+  compareAtPrice?: number | string | null;
+  cost?: number | string | null;
+  stockQty?: number | null;
+  barcode?: string | null;
+  weight?: number | string | null;
+  length?: number | string | null;
+  width?: number | string | null;
+  height?: number | string | null;
+  isDefault?: boolean | null;
+  createdAt?: string | Date | null;
+  updatedAt?: string | Date | null;
+  images?: Array<{
+    id: string;
+    url?: string | null;
+    imageUrl?: string | null;
+    isCover?: boolean | null;
+    sort?: number | null;
+    sortOrder?: number | null;
+  }>;
 };
 
 type ProductLiteResponse = {
@@ -71,44 +74,59 @@ type ProductLiteResponse = {
 };
 
 type VariantListResponse = {
-  items: DbVariant[];
+  items: LooseDbVariant[];
 };
 
 type VariantItemResponse = {
-  item: DbVariant;
+  item: LooseDbVariant;
 };
 
 type VariantImagesResponse = {
-  items: VariantImageRow[];
+  items: Array<{
+    id: string;
+    url?: string;
+    imageUrl?: string;
+    isCover?: boolean;
+    sort?: number;
+    sortOrder?: number;
+  }>;
 };
 
 type VariantCreatePayload = {
   productId: string;
+  siteId: string;
   sku: string;
-  name: string | null;
-  barcode: string | null;
-  priceCents: number;
-  costCents: number;
-  stock: number;
+  title: string | null;
   isActive: boolean;
-  option1: string | null;
-  value1: string | null;
-  option2: string | null;
-  value2: string | null;
+  price: number;
+  compareAtPrice: number | null;
+  cost: number | null;
+  stockQty: number;
+  barcode: string | null;
+  weight: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
+  isDefault: boolean;
 };
 
 type VariantPatchPayload = Partial<{
-  name: string | null;
   sku: string;
-  barcode: string | null;
-  priceCents: number;
-  stock: number;
+  title: string | null;
   isActive: boolean;
-  option1: string | null;
-  value1: string | null;
-  option2: string | null;
-  value2: string | null;
+  price: number;
+  compareAtPrice: number | null;
+  cost: number | null;
+  stockQty: number;
+  barcode: string | null;
+  weight: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
+  isDefault: boolean;
 }>;
+
+const SAVE_METHOD: "PATCH" | "PUT" = "PATCH";
 
 function nowIso() {
   return new Date().toISOString();
@@ -127,12 +145,10 @@ function slugSku(s: string) {
     .replace(/^-|-$/g, "");
 }
 
-function fmtMoney(cents: number, ccy: Currency) {
-  if (ccy === "VND") {
-    const v = Math.round(cents / 100);
-    return v.toLocaleString("vi-VN");
-  }
-  return (cents / 100).toFixed(2);
+function formatMoney(value: number | null | undefined) {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n)) return "0.00";
+  return n.toFixed(2);
 }
 
 function uniqueSkuForProduct(prefix: string, existingSkus: Set<string>, base = "NEW") {
@@ -155,88 +171,112 @@ function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
-/** ===== DB <-> UI ===== */
-function dbToUiVariant(v: DbVariant): VariantRow {
-  const status: VariantStatus = v.isActive ? "ACTIVE" : "DRAFT";
-  const opt1 = (v.option1 ?? "").trim() || undefined;
-  const val1 = (v.value1 ?? "").trim() || undefined;
-  const opt2 = (v.option2 ?? "").trim() || undefined;
-  const val2 = (v.value2 ?? "").trim() || undefined;
+function safeIso(v: unknown) {
+  const d = v ? new Date(v as string | Date) : new Date();
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+}
 
-  const displayName = (v.name ?? "").trim() || [val1, val2].filter(Boolean).join(" / ") || "Default";
+function toNumber(value: unknown, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
 
+function normalizeNullableNumber(value: unknown) {
+  if (value === "" || value === undefined || value === null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function normalizeImage(im: {
+  id: string;
+  url?: string | null;
+  imageUrl?: string | null;
+  isCover?: boolean | null;
+  sort?: number | null;
+  sortOrder?: number | null;
+}): VariantImageRow {
   return {
-    id: v.id,
-    productId: v.productId,
-    name: displayName,
-    sku: v.sku,
-    barcode: v.barcode ?? undefined,
-    priceCents: v.priceCents ?? 0,
-    currency: "USD",
-    stock: v.stock ?? 0,
-    status,
-    option1: opt1,
-    value1: val1,
-    option2: opt2,
-    value2: val2,
-    images: (v.images ?? []).map((im) => ({
-      id: im.id,
-      url: im.url,
-      isCover: !!im.isCover,
-      sort: im.sort ?? 0,
-    })),
-    createdAt: new Date(v.createdAt).toISOString(),
-    updatedAt: new Date(v.updatedAt).toISOString(),
+    id: String(im.id),
+    url: im.url || im.imageUrl || "",
+    isCover: !!im.isCover,
+    sort: typeof im.sort === "number" ? im.sort : (im.sortOrder ?? 0),
   };
 }
 
-function uiToDbCreatePayload(v: {
-  productId: string;
-  sku: string;
-  name?: string;
-  barcode?: string;
-  priceCents?: number;
-  stock?: number;
-  status?: VariantStatus;
-  option1?: string;
-  value1?: string;
-  option2?: string;
-  value2?: string;
-}): VariantCreatePayload {
+function dbToUiVariant(v: LooseDbVariant): VariantRow {
+  const images = Array.isArray(v.images) ? v.images.map(normalizeImage) : [];
+
+  return {
+    id: String(v.id),
+    productId: String(v.productId),
+    siteId: String(v.siteId ?? ""),
+    sku: String(v.sku ?? ""),
+    title: v.title?.trim() || "",
+    isActive: !!v.isActive,
+    price: toNumber(v.price, 0),
+    compareAtPrice: v.compareAtPrice == null ? null : toNumber(v.compareAtPrice, 0),
+    cost: v.cost == null ? null : toNumber(v.cost, 0),
+    stockQty: Number.isFinite(Number(v.stockQty)) ? Number(v.stockQty) : 0,
+    barcode: v.barcode ?? null,
+    weight: v.weight == null ? null : toNumber(v.weight, 0),
+    length: v.length == null ? null : toNumber(v.length, 0),
+    width: v.width == null ? null : toNumber(v.width, 0),
+    height: v.height == null ? null : toNumber(v.height, 0),
+    isDefault: !!v.isDefault,
+    images,
+    createdAt: safeIso(v.createdAt),
+    updatedAt: safeIso(v.updatedAt),
+  };
+}
+
+function uiToDbCreatePayload(
+  v: Partial<VariantRow> & { productId: string; siteId: string; sku: string },
+): VariantCreatePayload {
   return {
     productId: v.productId,
+    siteId: v.siteId,
     sku: v.sku,
-    name: v.name?.trim() ? v.name.trim() : null,
+    title: v.title?.trim() ? v.title.trim() : null,
+    isActive: !!v.isActive,
+    price: toNumber(v.price, 0),
+    compareAtPrice: v.compareAtPrice == null ? null : toNumber(v.compareAtPrice, 0),
+    cost: v.cost == null ? null : toNumber(v.cost, 0),
+    stockQty: Math.max(0, Math.trunc(toNumber(v.stockQty, 0))),
     barcode: v.barcode?.trim() ? v.barcode.trim() : null,
-    priceCents: Number.isFinite(Number(v.priceCents)) ? Math.max(0, Math.trunc(Number(v.priceCents))) : 0,
-    costCents: 0,
-    stock: Number.isFinite(Number(v.stock)) ? Math.max(0, Math.trunc(Number(v.stock))) : 0,
-    isActive: (v.status ?? "ACTIVE") === "ACTIVE",
-    option1: v.option1?.trim() ? v.option1.trim() : null,
-    value1: v.value1?.trim() ? v.value1.trim() : null,
-    option2: v.option2?.trim() ? v.option2.trim() : null,
-    value2: v.value2?.trim() ? v.value2.trim() : null,
+    weight: v.weight == null ? null : toNumber(v.weight, 0),
+    length: v.length == null ? null : toNumber(v.length, 0),
+    width: v.width == null ? null : toNumber(v.width, 0),
+    height: v.height == null ? null : toNumber(v.height, 0),
+    isDefault: !!v.isDefault,
   };
 }
 
 function uiToDbPatchPayload(patch: Partial<VariantRow>): VariantPatchPayload {
   const data: VariantPatchPayload = {};
 
-  if (patch.name !== undefined) data.name = patch.name.trim() ? patch.name.trim() : null;
   if (patch.sku !== undefined) data.sku = patch.sku;
+  if (patch.title !== undefined) data.title = patch.title?.trim() ? patch.title.trim() : null;
+  if (patch.isActive !== undefined) data.isActive = !!patch.isActive;
+  if (patch.price !== undefined) data.price = toNumber(patch.price, 0);
+  if (patch.compareAtPrice !== undefined) {
+    data.compareAtPrice = patch.compareAtPrice == null ? null : toNumber(patch.compareAtPrice, 0);
+  }
+  if (patch.cost !== undefined) {
+    data.cost = patch.cost == null ? null : toNumber(patch.cost, 0);
+  }
+  if (patch.stockQty !== undefined) {
+    data.stockQty = Math.max(0, Math.trunc(toNumber(patch.stockQty, 0)));
+  }
   if (patch.barcode !== undefined) data.barcode = patch.barcode?.trim() ? patch.barcode.trim() : null;
-  if (patch.priceCents !== undefined) data.priceCents = Math.max(0, Math.trunc(Number(patch.priceCents)));
-  if (patch.stock !== undefined) data.stock = Math.max(0, Math.trunc(Number(patch.stock)));
-  if (patch.status !== undefined) data.isActive = patch.status === "ACTIVE";
-  if (patch.option1 !== undefined) data.option1 = patch.option1?.trim() ? patch.option1.trim() : null;
-  if (patch.value1 !== undefined) data.value1 = patch.value1?.trim() ? patch.value1.trim() : null;
-  if (patch.option2 !== undefined) data.option2 = patch.option2?.trim() ? patch.option2.trim() : null;
-  if (patch.value2 !== undefined) data.value2 = patch.value2?.trim() ? patch.value2.trim() : null;
+  if (patch.weight !== undefined) data.weight = patch.weight == null ? null : toNumber(patch.weight, 0);
+  if (patch.length !== undefined) data.length = patch.length == null ? null : toNumber(patch.length, 0);
+  if (patch.width !== undefined) data.width = patch.width == null ? null : toNumber(patch.width, 0);
+  if (patch.height !== undefined) data.height = patch.height == null ? null : toNumber(patch.height, 0);
+  if (patch.isDefault !== undefined) data.isDefault = !!patch.isDefault;
 
   return data;
 }
 
-/** ===== fetch helper ===== */
 async function apiJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
 
@@ -264,20 +304,7 @@ async function apiJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise
   return data as T;
 }
 
-function optionSummary(v: VariantRow) {
-  const a: string[] = [];
-  if (v.option1 && v.value1) a.push(`${v.option1}:${v.value1}`);
-  if (v.option2 && v.value2) a.push(`${v.option2}:${v.value2}`);
-  return a.join("  ·  ");
-}
-
-function buildLabelFromValues(v1?: string, v2?: string) {
-  const s = [v1, v2].filter(Boolean).join(" / ");
-  return s || "Default";
-}
-
 export default function VariantsPage() {
-  /** ===== site store ===== */
   const sites = useSiteStore((s) => s.sites);
   const sitesLoading = useSiteStore((s) => s.loading);
   const sitesErr = useSiteStore((s) => s.err);
@@ -286,7 +313,6 @@ export default function VariantsPage() {
   const hydrateFromStorage = useSiteStore((s) => s.hydrateFromStorage);
   const loadSites = useSiteStore((s) => s.loadSites);
 
-  /** ===== UI state ===== */
   const [productQuery, setProductQuery] = useState("");
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [activeProductId, setActiveProductId] = useState("");
@@ -314,9 +340,12 @@ export default function VariantsPage() {
     const q = variantQuery.trim().toLowerCase();
     return variants
       .filter((v) => v.productId === activeProductId)
-      .filter((v) => (q ? `${v.name} ${v.sku}`.toLowerCase().includes(q) : true))
+      .filter((v) => {
+        if (!q) return true;
+        return `${v.title ?? ""} ${v.sku} ${v.barcode ?? ""}`.toLowerCase().includes(q);
+      })
       .slice()
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => (a.title || "").localeCompare(b.title || ""));
   }, [variants, activeProductId, variantQuery]);
 
   const activeVariant = useMemo(
@@ -324,13 +353,11 @@ export default function VariantsPage() {
     [variants, activeVariantId],
   );
 
-  /** ===== init site store ===== */
   useEffect(() => {
     hydrateFromStorage();
     void loadSites();
   }, [hydrateFromStorage, loadSites]);
 
-  /** ===== load products by selected site ===== */
   useEffect(() => {
     const ac = new AbortController();
 
@@ -375,7 +402,43 @@ export default function VariantsPage() {
     return () => ac.abort();
   }, [selectedSiteId]);
 
-  /** ===== load variants when change product ===== */
+  async function fetchVariantsByProduct(productId: string, signal?: AbortSignal) {
+    const data = await apiJson<VariantListResponse>(
+      `/api/admin/commerce/variants?productId=${encodeURIComponent(productId)}`,
+      { signal },
+    );
+
+    const rows = (data.items ?? []).map(dbToUiVariant);
+
+    setVariants((prev) => {
+      const other = prev.filter((v) => v.productId !== productId);
+      return [...other, ...rows];
+    });
+
+    return rows;
+  }
+
+  async function reloadActiveProductVariants(preferredVariantId?: string) {
+    if (!activeProductId) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const rows = await fetchVariantsByProduct(activeProductId);
+
+      setActiveVariantId((prev) => {
+        if (preferredVariantId && rows.some((row) => row.id === preferredVariantId)) return preferredVariantId;
+        if (prev && rows.some((row) => row.id === prev)) return prev;
+        return rows[0]?.id || "";
+      });
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to load variants"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (!activeProductId) {
       setActiveVariantId("");
@@ -389,18 +452,7 @@ export default function VariantsPage() {
       setError(null);
 
       try {
-        const data = await apiJson<VariantListResponse>(
-          `/api/admin/commerce/variants?productId=${encodeURIComponent(activeProductId)}`,
-          { signal: ac.signal },
-        );
-
-        const rows = (data.items ?? []).map(dbToUiVariant);
-
-        setVariants((prev) => {
-          const other = prev.filter((v) => v.productId !== activeProductId);
-          return [...other, ...rows];
-        });
-
+        const rows = await fetchVariantsByProduct(activeProductId, ac.signal);
         setActiveVariantId((prev) => (prev && rows.some((row) => row.id === prev) ? prev : rows[0]?.id || ""));
       } catch (e: unknown) {
         if (isAbortError(e)) return;
@@ -424,18 +476,17 @@ export default function VariantsPage() {
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch, updatedAt: nowIso() } : v)));
   }
 
-  async function patchVariantRemote(id: string, patch: Partial<VariantRow>) {
+  async function saveVariantRemote(id: string, patch: Partial<VariantRow>) {
     setSavingId(id);
     setError(null);
 
     try {
-      const res = await apiJson<VariantItemResponse>(`/api/admin/commerce/variants/${id}`, {
-        method: "PATCH",
+      await apiJson<unknown>(`/api/admin/commerce/variants/${id}`, {
+        method: SAVE_METHOD,
         body: JSON.stringify(uiToDbPatchPayload(patch)),
       });
 
-      const next = dbToUiVariant(res.item);
-      setVariants((prev) => prev.map((v) => (v.id === id ? next : v)));
+      await reloadActiveProductVariants(id);
     } catch (e: unknown) {
       setError(getErrorMessage(e, "Failed to save"));
     } finally {
@@ -444,7 +495,7 @@ export default function VariantsPage() {
   }
 
   async function createVariantRemote() {
-    if (!activeProduct) return;
+    if (!activeProduct || !selectedSiteId) return;
 
     setError(null);
 
@@ -457,18 +508,26 @@ export default function VariantsPage() {
         body: JSON.stringify(
           uiToDbCreatePayload({
             productId: activeProduct.id,
+            siteId: selectedSiteId,
             sku,
-            name: "New variant",
-            priceCents: 0,
-            stock: 0,
-            status: "DRAFT",
+            title: "New variant",
+            isActive: false,
+            price: 0,
+            compareAtPrice: null,
+            cost: null,
+            stockQty: 0,
+            barcode: null,
+            weight: null,
+            length: null,
+            width: null,
+            height: null,
+            isDefault: false,
           }),
         ),
       });
 
-      const created = dbToUiVariant(res.item);
-      setVariants((prev) => [...prev, created]);
-      setActiveVariantId(created.id);
+      const createdId = res?.item?.id ? String(res.item.id) : undefined;
+      await reloadActiveProductVariants(createdId);
     } catch (e: unknown) {
       setError(getErrorMessage(e, "Failed to create"));
     }
@@ -492,23 +551,26 @@ export default function VariantsPage() {
         body: JSON.stringify(
           uiToDbCreatePayload({
             productId: v.productId,
+            siteId: v.siteId || selectedSiteId || "",
             sku,
-            name: `${v.name} Copy`,
+            title: `${v.title || "Variant"} Copy`,
+            isActive: false,
+            price: v.price,
+            compareAtPrice: v.compareAtPrice,
+            cost: v.cost,
+            stockQty: v.stockQty,
             barcode: v.barcode,
-            priceCents: v.priceCents,
-            stock: v.stock,
-            status: "DRAFT",
-            option1: v.option1,
-            value1: v.value1,
-            option2: v.option2,
-            value2: v.value2,
+            weight: v.weight,
+            length: v.length,
+            width: v.width,
+            height: v.height,
+            isDefault: false,
           }),
         ),
       });
 
-      const created = dbToUiVariant(res.item);
-      setVariants((prev) => [...prev, created]);
-      setActiveVariantId(created.id);
+      const createdId = res?.item?.id ? String(res.item.id) : undefined;
+      await reloadActiveProductVariants(createdId);
     } catch (e: unknown) {
       setError(getErrorMessage(e, "Failed to duplicate"));
     }
@@ -518,30 +580,19 @@ export default function VariantsPage() {
     const v = variants.find((x) => x.id === id);
     if (!v) return;
 
-    const ok = confirm(`Delete variant "${v.name}"?`);
+    const ok = confirm(`Delete variant "${v.title || v.sku}"?`);
     if (!ok) return;
 
     setError(null);
 
     try {
       await apiJson<null>(`/api/admin/commerce/variants/${id}`, { method: "DELETE" });
-
-      setVariants((prev) => {
-        const next = prev.filter((x) => x.id !== id);
-
-        if (activeVariantId === id) {
-          const remain = next.filter((x) => x.productId === activeProductId);
-          setActiveVariantId(remain[0]?.id || "");
-        }
-
-        return next;
-      });
+      await reloadActiveProductVariants();
     } catch (e: unknown) {
       setError(getErrorMessage(e, "Failed to delete"));
     }
   }
 
-  /** ===== Images APIs ===== */
   async function reloadImages(variantId: string) {
     const res = await apiJson<VariantImagesResponse>(`/api/admin/commerce/variants/${variantId}/image`);
 
@@ -550,12 +601,7 @@ export default function VariantsPage() {
         v.id === variantId
           ? {
               ...v,
-              images: (res.items ?? []).map((im) => ({
-                id: im.id,
-                url: im.url,
-                isCover: !!im.isCover,
-                sort: im.sort ?? 0,
-              })),
+              images: (res.items ?? []).map(normalizeImage),
               updatedAt: nowIso(),
             }
           : v,
@@ -621,6 +667,26 @@ export default function VariantsPage() {
     }
   }
 
+  async function saveActiveVariant() {
+    if (!activeVariant) return;
+
+    await saveVariantRemote(activeVariant.id, {
+      sku: activeVariant.sku,
+      title: activeVariant.title,
+      isActive: activeVariant.isActive,
+      price: activeVariant.price,
+      compareAtPrice: activeVariant.compareAtPrice,
+      cost: activeVariant.cost,
+      stockQty: activeVariant.stockQty,
+      barcode: activeVariant.barcode,
+      weight: activeVariant.weight,
+      length: activeVariant.length,
+      width: activeVariant.width,
+      height: activeVariant.height,
+      isDefault: activeVariant.isDefault,
+    });
+  }
+
   return (
     <div className={styles.shell} style={{ fontSize: 14 }}>
       <header className={styles.topbar}>
@@ -642,6 +708,16 @@ export default function VariantsPage() {
           >
             <i className="bi bi-plus-lg" /> New variant
           </button>
+
+          <button
+            className={styles.ghostBtn}
+            type="button"
+            onClick={() => void reloadActiveProductVariants(activeVariantId || undefined)}
+            disabled={!activeProductId || loading}
+            title="Reload variants"
+          >
+            <i className="bi bi-arrow-clockwise" /> Reload
+          </button>
         </div>
       </header>
 
@@ -655,30 +731,14 @@ export default function VariantsPage() {
         <aside className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
             <div className={styles.sidebarTitle}>Products</div>
-            <div
-              style={{
-                marginTop: 10,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
-            >
+            <div className={styles.WrapSite}>
               <span style={{ fontWeight: 700 }}>Site:</span>
 
               <select
                 value={selectedSiteId || ""}
                 onChange={(e) => setSelectedSiteId(e.target.value)}
                 disabled={sitesLoading}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  outline: "none",
-                  color: "inherit",
-                  fontWeight: 700,
-                  cursor: sitesLoading ? "not-allowed" : "pointer",
-                  maxWidth: 220,
-                }}
+                className={styles.selectSite}
               >
                 <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
                 {sites.map((s) => (
@@ -758,7 +818,7 @@ export default function VariantsPage() {
             <div className={styles.tip}>
               <i className="bi bi-lightbulb" />
               <span>
-                Variants unique theo <span className={styles.mono}>[productId, sku]</span>.
+                Variants unique theo <span className={styles.mono}>[siteId, sku]</span>.
               </span>
             </div>
           </div>
@@ -818,7 +878,6 @@ export default function VariantsPage() {
                     ) : (
                       productVariants.map((v) => {
                         const active = v.id === activeVariantId;
-                        const sub = optionSummary(v);
 
                         return (
                           <tr
@@ -832,31 +891,26 @@ export default function VariantsPage() {
                                 <span className={styles.dot} />
                                 <div>
                                   <div className={styles.nameRow}>
-                                    <span className={styles.name}>{v.name}</span>
+                                    <span className={styles.name}>{v.title || "Untitled variant"}</span>
                                   </div>
                                   <div className={styles.sub}>
-                                    {sub ? (
-                                      <span className={styles.mono}>{sub}</span>
-                                    ) : (
-                                      <span className={styles.muted}>No options</span>
-                                    )}
+                                    <span className={styles.mono}>
+                                      {v.isDefault ? "Default" : "Custom"}
+                                      {v.barcode ? `  ·  ${v.barcode}` : ""}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
                             </td>
 
                             <td className={styles.mono}>{v.sku}</td>
-
-                            <td className={styles.mono}>
-                              {v.currency} {fmtMoney(v.priceCents, v.currency)}
-                            </td>
-
-                            <td className={styles.mono}>{v.stock}</td>
+                            <td className={styles.mono}>{formatMoney(v.price)}</td>
+                            <td className={styles.mono}>{v.stockQty}</td>
 
                             <td>
-                              <span className={`${styles.status} ${v.status === "ACTIVE" ? styles.ok : styles.off}`}>
-                                <i className={`bi ${v.status === "ACTIVE" ? "bi-check2-circle" : "bi-pencil"}`} />
-                                {v.status}
+                              <span className={`${styles.status} ${v.isActive ? styles.ok : styles.off}`}>
+                                <i className={`bi ${v.isActive ? "bi-check2-circle" : "bi-pencil"}`} />
+                                {v.isActive ? "ACTIVE" : "DRAFT"}
                               </span>
                             </td>
 
@@ -866,8 +920,8 @@ export default function VariantsPage() {
                                 type="button"
                                 title="Toggle status"
                                 onClick={() =>
-                                  patchVariantRemote(v.id, {
-                                    status: v.status === "ACTIVE" ? "DRAFT" : "ACTIVE",
+                                  void saveVariantRemote(v.id, {
+                                    isActive: !v.isActive,
                                   })
                                 }
                               >
@@ -908,6 +962,17 @@ export default function VariantsPage() {
                     <div className={styles.panelTitle}>Inspector</div>
                     <div className={styles.panelSub}>{savingId ? "Saving..." : "Edit fields and images"}</div>
                   </div>
+
+                  {activeVariant ? (
+                    <button
+                      className={styles.primaryBtn}
+                      type="button"
+                      onClick={saveActiveVariant}
+                      disabled={savingId === activeVariant.id}
+                    >
+                      <i className="bi bi-floppy" /> Save
+                    </button>
+                  ) : null}
                 </div>
 
                 {!activeVariant ? (
@@ -922,14 +987,13 @@ export default function VariantsPage() {
                   </div>
                 ) : (
                   <div className={styles.panelBody}>
-                    <label className={styles.label}>Name</label>
+                    <label className={styles.label}>Title</label>
                     <div className={styles.inputWrap}>
                       <i className="bi bi-tag" />
                       <input
                         className={styles.input}
-                        value={activeVariant.name}
-                        onChange={(e) => patchVariantLocal(activeVariant.id, { name: e.target.value })}
-                        onBlur={() => patchVariantRemote(activeVariant.id, { name: activeVariant.name })}
+                        value={activeVariant.title ?? ""}
+                        onChange={(e) => patchVariantLocal(activeVariant.id, { title: e.target.value })}
                       />
                     </div>
 
@@ -940,22 +1004,10 @@ export default function VariantsPage() {
                         className={styles.input}
                         value={activeVariant.sku}
                         onChange={(e) => patchVariantLocal(activeVariant.id, { sku: slugSku(e.target.value) })}
-                        onBlur={() => patchVariantRemote(activeVariant.id, { sku: activeVariant.sku })}
                       />
                     </div>
 
                     <div className={styles.twoCols}>
-                      <div>
-                        <label className={styles.label}>Currency</label>
-                        <div className={styles.selectWrap}>
-                          <i className="bi bi-currency-dollar" />
-                          <select className={styles.select} value={activeVariant.currency} disabled>
-                            <option value="USD">USD</option>
-                            <option value="VND">VND</option>
-                          </select>
-                        </div>
-                      </div>
-
                       <div>
                         <label className={styles.label}>Price</label>
                         <div className={styles.inputWrap}>
@@ -963,13 +1015,30 @@ export default function VariantsPage() {
                           <input
                             className={styles.input}
                             type="number"
-                            value={Math.round(activeVariant.priceCents / 100)}
-                            onChange={(e) => {
-                              const v = clamp(Number(e.target.value || 0), 0, 1_000_000);
-                              patchVariantLocal(activeVariant.id, { priceCents: v * 100 });
-                            }}
-                            onBlur={() =>
-                              patchVariantRemote(activeVariant.id, { priceCents: activeVariant.priceCents })
+                            step="0.01"
+                            value={activeVariant.price}
+                            onChange={(e) =>
+                              patchVariantLocal(activeVariant.id, {
+                                price: toNumber(e.target.value, 0),
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={styles.label}>Compare at price</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-currency-dollar" />
+                          <input
+                            className={styles.input}
+                            type="number"
+                            step="0.01"
+                            value={activeVariant.compareAtPrice ?? ""}
+                            onChange={(e) =>
+                              patchVariantLocal(activeVariant.id, {
+                                compareAtPrice: normalizeNullableNumber(e.target.value),
+                              })
                             }
                           />
                         </div>
@@ -978,19 +1047,50 @@ export default function VariantsPage() {
 
                     <div className={styles.twoCols}>
                       <div>
-                        <label className={styles.label}>Stock</label>
+                        <label className={styles.label}>Cost</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-wallet2" />
+                          <input
+                            className={styles.input}
+                            type="number"
+                            step="0.01"
+                            value={activeVariant.cost ?? ""}
+                            onChange={(e) =>
+                              patchVariantLocal(activeVariant.id, {
+                                cost: normalizeNullableNumber(e.target.value),
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={styles.label}>Stock Qty</label>
                         <div className={styles.inputWrap}>
                           <i className="bi bi-box-seam" />
                           <input
                             className={styles.input}
                             type="number"
-                            value={activeVariant.stock}
+                            value={activeVariant.stockQty}
                             onChange={(e) =>
                               patchVariantLocal(activeVariant.id, {
-                                stock: clamp(Number(e.target.value || 0), 0, 1_000_000),
+                                stockQty: clamp(Number(e.target.value || 0), 0, 1_000_000),
                               })
                             }
-                            onBlur={() => patchVariantRemote(activeVariant.id, { stock: activeVariant.stock })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.twoCols}>
+                      <div>
+                        <label className={styles.label}>Barcode</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-upc-scan" />
+                          <input
+                            className={styles.input}
+                            value={activeVariant.barcode ?? ""}
+                            onChange={(e) => patchVariantLocal(activeVariant.id, { barcode: e.target.value })}
                           />
                         </div>
                       </div>
@@ -1001,13 +1101,54 @@ export default function VariantsPage() {
                           <i className="bi bi-flag" />
                           <select
                             className={styles.select}
-                            value={activeVariant.status}
+                            value={String(activeVariant.isActive)}
                             onChange={(e) =>
-                              patchVariantRemote(activeVariant.id, { status: e.target.value as VariantStatus })
+                              patchVariantLocal(activeVariant.id, {
+                                isActive: e.target.value === "true",
+                              })
                             }
                           >
-                            <option value="ACTIVE">ACTIVE</option>
-                            <option value="DRAFT">DRAFT</option>
+                            <option value="true">ACTIVE</option>
+                            <option value="false">DRAFT</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.twoCols}>
+                      <div>
+                        <label className={styles.label}>Weight</label>
+                        <div className={styles.inputWrap}>
+                          <i className="bi bi-box" />
+                          <input
+                            className={styles.input}
+                            type="number"
+                            step="0.001"
+                            value={activeVariant.weight ?? ""}
+                            onChange={(e) =>
+                              patchVariantLocal(activeVariant.id, {
+                                weight: normalizeNullableNumber(e.target.value),
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={styles.label}>Is default</label>
+                        <div className={styles.selectWrap}>
+                          <i className="bi bi-star" />
+                          <select
+                            className={styles.select}
+                            value={String(activeVariant.isDefault)}
+                            onChange={(e) =>
+                              patchVariantLocal(activeVariant.id, {
+                                isDefault: e.target.value === "true",
+                              })
+                            }
+                          >
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
                           </select>
                         </div>
                       </div>
@@ -1016,43 +1157,40 @@ export default function VariantsPage() {
                     <div className={styles.hr} />
 
                     <div className={styles.sectionTitle}>
-                      <i className="bi bi-sliders" /> Options (Variant) — saved to DB
+                      <i className="bi bi-bounding-box" /> Dimensions
                     </div>
 
                     <div className={styles.twoCols}>
                       <div>
-                        <label className={styles.label}>Option 1 (name)</label>
+                        <label className={styles.label}>Length</label>
                         <div className={styles.inputWrap}>
-                          <i className="bi bi-grid-1x2" />
+                          <i className="bi bi-arrows-expand" />
                           <input
                             className={styles.input}
-                            placeholder="e.g. Color"
-                            value={activeVariant.option1 ?? ""}
-                            onChange={(e) => patchVariantLocal(activeVariant.id, { option1: e.target.value })}
-                            onBlur={() => patchVariantRemote(activeVariant.id, { option1: activeVariant.option1 })}
+                            type="number"
+                            step="0.001"
+                            value={activeVariant.length ?? ""}
+                            onChange={(e) =>
+                              patchVariantLocal(activeVariant.id, {
+                                length: normalizeNullableNumber(e.target.value),
+                              })
+                            }
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className={styles.label}>Value 1</label>
+                        <label className={styles.label}>Width</label>
                         <div className={styles.inputWrap}>
-                          <i className="bi bi-tag" />
+                          <i className="bi bi-arrows-angle-expand" />
                           <input
                             className={styles.input}
-                            placeholder="e.g. Xanh"
-                            value={activeVariant.value1 ?? ""}
-                            onChange={(e) => {
-                              const v1 = e.target.value;
+                            type="number"
+                            step="0.001"
+                            value={activeVariant.width ?? ""}
+                            onChange={(e) =>
                               patchVariantLocal(activeVariant.id, {
-                                value1: v1,
-                                name: buildLabelFromValues(v1, activeVariant.value2),
-                              });
-                            }}
-                            onBlur={() =>
-                              patchVariantRemote(activeVariant.id, {
-                                value1: activeVariant.value1,
-                                name: activeVariant.name,
+                                width: normalizeNullableNumber(e.target.value),
                               })
                             }
                           />
@@ -1060,44 +1198,21 @@ export default function VariantsPage() {
                       </div>
                     </div>
 
-                    <div className={styles.twoCols}>
-                      <div>
-                        <label className={styles.label}>Option 2 (name)</label>
-                        <div className={styles.inputWrap}>
-                          <i className="bi bi-grid-1x2" />
-                          <input
-                            className={styles.input}
-                            placeholder="e.g. Size"
-                            value={activeVariant.option2 ?? ""}
-                            onChange={(e) => patchVariantLocal(activeVariant.id, { option2: e.target.value })}
-                            onBlur={() => patchVariantRemote(activeVariant.id, { option2: activeVariant.option2 })}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className={styles.label}>Value 2</label>
-                        <div className={styles.inputWrap}>
-                          <i className="bi bi-tag" />
-                          <input
-                            className={styles.input}
-                            placeholder="e.g. M"
-                            value={activeVariant.value2 ?? ""}
-                            onChange={(e) => {
-                              const v2 = e.target.value;
-                              patchVariantLocal(activeVariant.id, {
-                                value2: v2,
-                                name: buildLabelFromValues(activeVariant.value1, v2),
-                              });
-                            }}
-                            onBlur={() =>
-                              patchVariantRemote(activeVariant.id, {
-                                value2: activeVariant.value2,
-                                name: activeVariant.name,
-                              })
-                            }
-                          />
-                        </div>
+                    <div>
+                      <label className={styles.label}>Height</label>
+                      <div className={styles.inputWrap}>
+                        <i className="bi bi-arrows-vertical" />
+                        <input
+                          className={styles.input}
+                          type="number"
+                          step="0.001"
+                          value={activeVariant.height ?? ""}
+                          onChange={(e) =>
+                            patchVariantLocal(activeVariant.id, {
+                              height: normalizeNullableNumber(e.target.value),
+                            })
+                          }
+                        />
                       </div>
                     </div>
 

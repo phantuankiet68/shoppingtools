@@ -3,7 +3,7 @@
 
 import dynamic from "next/dynamic";
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const RefundBuilder = dynamic(() => import("@/components/admin/commerce/orders/refunds/page"), { ssr: false });
+const RefundBuilder = dynamic(() => import("@/components/admin/orders/refunds/page"), { ssr: false });
 
 export default function Page() {
   return (
