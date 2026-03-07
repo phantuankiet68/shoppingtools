@@ -2,18 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-function normSku(s: unknown) {
-  return String(s ?? "")
-    .trim()
-    .replace(/\s+/g, "")
-    .toUpperCase();
-}
-
-function normBarcode(s: unknown) {
-  const v = String(s ?? "").trim();
-  return v.length ? v : null;
-}
-
 function normName(s: unknown) {
   return String(s ?? "").trim();
 }
@@ -37,248 +25,195 @@ function normSlug(s: unknown, fallbackName?: string) {
   return slug.length ? slug : "";
 }
 
-/** Input already in cents (Int) */
-function centsFrom(v: unknown) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return 0;
-  return Math.max(0, Math.trunc(n));
+function decimalOrNull(v: unknown) {
+  const raw = String(v ?? "").trim();
+  if (!raw) return null;
+
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return null;
+  return n;
 }
 
-function stockFrom(v: unknown) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return 0;
-  return Math.max(0, Math.trunc(n));
-}
-
-/**
- * Parse images array for replace gallery
- * Accepts:
- *  images: [{ url: string, isCover?: boolean, sort?: number }]
- */
 function parseImages(input: unknown) {
   const arr = Array.isArray(input) ? input : [];
 
-  const cleaned = arr
+  return arr
     .map((x: any, idx) => {
-      const url = String(x?.url ?? "").trim();
+      const url = String(x?.url ?? x?.imageUrl ?? "").trim();
       if (!url) return null;
 
-      const sort = Number.isFinite(Number(x?.sort)) ? Math.max(0, Math.trunc(Number(x.sort))) : idx;
+      const sortOrder = Number.isFinite(Number(x?.sort ?? x?.sortOrder))
+        ? Math.max(0, Math.trunc(Number(x?.sort ?? x?.sortOrder)))
+        : idx;
 
       return {
-        url,
-        isCover: !!x?.isCover,
-        sort,
+        imageUrl: url,
+        sortOrder,
       };
     })
-    .filter(Boolean) as { url: string; isCover: boolean; sort: number }[];
-
-  // Ensure only 1 cover
-  const coverIdx = cleaned.findIndex((x) => x.isCover);
-  if (coverIdx >= 0) {
-    cleaned.forEach((x, i) => (x.isCover = i === coverIdx));
-  } else if (cleaned.length > 0) {
-    cleaned[0].isCover = true;
-  }
-
-  return cleaned;
+    .filter(Boolean) as Array<{
+    imageUrl: string;
+    sortOrder: number;
+  }>;
 }
 
-/** ✅ return FULL data for edit (include images full) */
-async function findOwnedProductFull(userId: string, id: string) {
+function safeDate(v: unknown) {
+  if (!v) return null;
+  try {
+    return new Date(v as string | number | Date).toISOString();
+  } catch {
+    return null;
+  }
+}
+
+function safeScalar(v: any) {
+  if (v == null) return null;
+  if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") return v;
+  if (typeof v?.toString === "function") return v.toString();
+  return String(v);
+}
+
+function serializeProductForEdit(product: any) {
+  return {
+    id: String(product.id),
+    siteId: String(product.siteId),
+
+    name: String(product.name ?? ""),
+    slug: String(product.slug ?? ""),
+    shortDescription: product.shortDescription == null ? null : String(product.shortDescription),
+    description: product.description == null ? null : String(product.description),
+
+    categoryId: String(product.categoryId ?? ""),
+    category: product.category
+      ? {
+          id: String(product.category.id),
+          name: String(product.category.name),
+        }
+      : null,
+
+    brandId: product.brandId == null ? null : String(product.brandId),
+    brand: product.brand
+      ? {
+          id: String(product.brand.id),
+          name: String(product.brand.name),
+        }
+      : null,
+
+    productType: String(product.productType ?? "PHYSICAL"),
+    vendor: product.vendor == null ? null : String(product.vendor),
+    tags: Array.isArray(product.tags) ? product.tags.map((x: unknown) => String(x)) : [],
+
+    status: String(product.status ?? "DRAFT"),
+    isVisible: Boolean(product.isVisible),
+    publishedAt: safeDate(product.publishedAt),
+
+    metaTitle: product.metaTitle == null ? null : String(product.metaTitle),
+    metaDescription: product.metaDescription == null ? null : String(product.metaDescription),
+
+    weight: safeScalar(product.weight),
+    length: safeScalar(product.length),
+    width: safeScalar(product.width),
+    height: safeScalar(product.height),
+
+    createdAt: safeDate(product.createdAt),
+    updatedAt: safeDate(product.updatedAt),
+
+    images: Array.isArray(product.images)
+      ? product.images.map((img: any) => ({
+          id: String(img.id),
+          url: String(img.imageUrl ?? ""),
+          sort: Number(img.sortOrder ?? 0),
+        }))
+      : [],
+  };
+}
+
+async function findProductFull(id: string) {
   return prisma.product.findFirst({
-    where: { id, userId },
+    where: {
+      id,
+      deletedAt: null,
+    },
     select: {
       id: true,
-      userId: true,
-
+      siteId: true,
       name: true,
       slug: true,
+      shortDescription: true,
       description: true,
 
-      sku: true,
-      barcode: true,
-
-      // ✅ schema mới
-      costCents: true,
-      priceCents: true,
-      stock: true,
-
-      isActive: true,
-
       categoryId: true,
-      category: { select: { id: true, name: true } },
+      category: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
 
+      brandId: true,
+      brand: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+
+      productType: true,
+      vendor: true,
+      tags: true,
+      status: true,
+      isVisible: true,
+      publishedAt: true,
+      metaTitle: true,
+      metaDescription: true,
+      weight: true,
+      length: true,
+      width: true,
+      height: true,
       createdAt: true,
       updatedAt: true,
 
-      // ✅ full images for edit
       images: {
-        orderBy: [{ isCover: "desc" }, { sort: "asc" }, { createdAt: "asc" }],
-        select: { id: true, url: true, isCover: true, sort: true },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        select: {
+          id: true,
+          imageUrl: true,
+          sortOrder: true,
+        },
       },
     },
   });
 }
 
-/** ✅ return LIGHT data for guards (optional) */
-async function findOwnedProductLite(userId: string, id: string) {
+async function findProductLite(id: string) {
   return prisma.product.findFirst({
-    where: { id, userId },
-    select: { id: true, userId: true, isActive: true },
+    where: {
+      id,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      siteId: true,
+      slug: true,
+    },
   });
 }
 
-/**
- * Next.js 15: params là Promise => await
- */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAdminAuthUser();
+    await requireAdminAuthUser();
+
     const { id } = await ctx.params;
+    const item = await findProductFull(String(id));
 
-    const item = await findOwnedProductFull(user.id, String(id));
-    if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!item) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
-    return NextResponse.json({ item });
+    const payload = serializeProductForEdit(item);
+    return NextResponse.json({ item: payload });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unauthorized" }, { status: 401 });
-  }
-}
-
-/**
- * PATCH /api/admin/products/:id
- * Body: partial
- * {
- *   name?, slug?, sku?, barcode?, description?,
- *   costCents?, priceCents?, stock?, categoryId?, isActive?,
- *   images?: Array<{ url: string, isCover?: boolean, sort?: number }> // optional: replace gallery
- * }
- */
-export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  try {
-    const user = await requireAdminAuthUser();
-    const { id } = await ctx.params;
-    const pid = String(id);
-
-    const current = await findOwnedProductLite(user.id, pid);
-    if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    const body = await req.json().catch(() => ({}));
-    const data: any = {};
-
-    // name + slug
-    if (body.name !== undefined) {
-      const name = normName(body.name);
-      if (!name) return NextResponse.json({ error: "Name cannot be empty" }, { status: 400 });
-      data.name = name;
-
-      // nếu client gửi slug rỗng mà gửi name, có thể auto
-      if (body.slug === undefined) {
-        // không auto bắt buộc, chỉ để hỗ trợ
-      }
-    }
-
-    if (body.slug !== undefined) {
-      const nameForSlug = data.name ?? undefined;
-      const slug = normSlug(body.slug, nameForSlug);
-      if (!slug) return NextResponse.json({ error: "Slug cannot be empty" }, { status: 400 });
-      data.slug = slug;
-    }
-
-    // sku
-    if (body.sku !== undefined) {
-      const sku = normSku(body.sku);
-      if (!sku) return NextResponse.json({ error: "SKU cannot be empty" }, { status: 400 });
-      data.sku = sku;
-    }
-
-    // barcode
-    if (body.barcode !== undefined) data.barcode = normBarcode(body.barcode);
-
-    // ✅ schema mới: costCents/priceCents/stock
-    if (body.costCents !== undefined) data.costCents = centsFrom(body.costCents);
-    if (body.priceCents !== undefined) data.priceCents = centsFrom(body.priceCents);
-    if (body.stock !== undefined) data.stock = stockFrom(body.stock);
-
-    // category
-    if (body.categoryId !== undefined) data.categoryId = body.categoryId ? String(body.categoryId) : null;
-
-    // active
-    if (body.isActive !== undefined) data.isActive = !!body.isActive;
-
-    // description
-    if (body.description !== undefined) {
-      const desc = String(body.description ?? "").trim();
-      data.description = desc.length ? desc : null;
-    }
-
-    // ✅ optional: replace images gallery
-    const wantsReplaceImages = body.images !== undefined;
-    const nextImages = wantsReplaceImages ? parseImages(body.images) : [];
-
-    const updated = await prisma.$transaction(async (tx) => {
-      // defense in depth
-      const owned = await tx.product.findFirst({ where: { id: pid, userId: user.id }, select: { id: true } });
-      if (!owned) throw new Error("FORBIDDEN");
-
-      // update product
-      await tx.product.update({
-        where: { id: pid },
-        data,
-      });
-
-      // replace images if requested
-      if (wantsReplaceImages) {
-        await tx.productImage.deleteMany({ where: { productId: pid } });
-
-        if (nextImages.length) {
-          await tx.productImage.createMany({
-            data: nextImages.map((x) => ({
-              productId: pid,
-              url: x.url,
-              sort: x.sort,
-              isCover: x.isCover,
-            })),
-          });
-        }
-      }
-
-      // return FULL (edit needs it)
-      const withAll = await tx.product.findFirst({
-        where: { id: pid, userId: user.id },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          sku: true,
-          barcode: true,
-          costCents: true,
-          priceCents: true,
-          stock: true,
-          isActive: true,
-          categoryId: true,
-          category: { select: { id: true, name: true } },
-          createdAt: true,
-          updatedAt: true,
-          images: {
-            orderBy: [{ isCover: "desc" }, { sort: "asc" }, { createdAt: "asc" }],
-            select: { id: true, url: true, isCover: true, sort: true },
-          },
-        },
-      });
-
-      return withAll;
-    });
-
-    if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json({ item: updated });
-  } catch (e: any) {
-    if (e?.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    if (e?.code === "P2002") return NextResponse.json({ error: "Unique constraint failed" }, { status: 409 });
-
-    // đừng trả 401 cho mọi lỗi prisma
+    console.error("GET /api/admin/commerce/products/[id] failed:", e);
     return NextResponse.json(
       { error: e?.message || "Server error" },
       { status: e?.message?.includes("Unauthorized") ? 401 : 500 },
@@ -286,31 +221,266 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 }
 
-/**
- * DELETE /api/admin/products/:id
- * SOFT DELETE => set isActive=false
- */
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAdminAuthUser();
+    await requireAdminAuthUser();
+
     const { id } = await ctx.params;
     const pid = String(id);
 
-    const current = await findOwnedProductLite(user.id, pid);
-    if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const current = await findProductLite(pid);
+    if (!current) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const data: Record<string, unknown> = {};
+
+    const nextSlug = body.slug !== undefined ? normSlug(body.slug, body.name) : undefined;
+
+    if (nextSlug !== undefined) {
+      if (!nextSlug) {
+        return NextResponse.json({ error: "Slug cannot be empty" }, { status: 400 });
+      }
+
+      const duplicate = await prisma.product.findFirst({
+        where: {
+          id: { not: pid },
+          siteId: current.siteId,
+          slug: nextSlug,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      });
+
+      if (duplicate) {
+        return NextResponse.json({ error: `Slug "${nextSlug}" already exists in this site` }, { status: 409 });
+      }
+    }
+
+    if (body.name !== undefined) {
+      const name = normName(body.name);
+      if (!name) {
+        return NextResponse.json({ error: "Name cannot be empty" }, { status: 400 });
+      }
+      data.name = name;
+    }
+
+    if (body.slug !== undefined) {
+      data.slug = nextSlug;
+    }
+
+    if (body.shortDescription !== undefined) {
+      const v = String(body.shortDescription ?? "").trim();
+      data.shortDescription = v || null;
+    }
+
+    if (body.description !== undefined) {
+      const v = String(body.description ?? "").trim();
+      data.description = v || null;
+    }
+
+    if (body.categoryId !== undefined) {
+      const v = String(body.categoryId ?? "").trim();
+      if (!v) {
+        return NextResponse.json({ error: "Category is required" }, { status: 400 });
+      }
+      data.categoryId = v;
+    }
+
+    if (body.brandId !== undefined) {
+      const v = String(body.brandId ?? "").trim();
+      data.brandId = v || null;
+    }
+
+    if (body.productType !== undefined) {
+      const v = String(body.productType ?? "")
+        .trim()
+        .toUpperCase();
+      if (!["PHYSICAL", "DIGITAL", "SERVICE"].includes(v)) {
+        return NextResponse.json({ error: "Invalid productType" }, { status: 400 });
+      }
+      data.productType = v;
+    }
+
+    if (body.vendor !== undefined) {
+      const v = String(body.vendor ?? "").trim();
+      data.vendor = v || null;
+    }
+
+    if (body.tags !== undefined) {
+      if (!Array.isArray(body.tags)) {
+        return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
+      }
+      data.tags = body.tags.map((x: unknown) => String(x ?? "").trim()).filter(Boolean);
+    }
+
+    if (body.status !== undefined) {
+      const v = String(body.status ?? "")
+        .trim()
+        .toUpperCase();
+      if (!["DRAFT", "ACTIVE", "ARCHIVED"].includes(v)) {
+        return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      }
+      data.status = v;
+    }
+
+    if (body.isVisible !== undefined) {
+      data.isVisible = !!body.isVisible;
+    }
+
+    if (body.publishedAt !== undefined) {
+      const raw = String(body.publishedAt ?? "").trim();
+      data.publishedAt = raw ? new Date(raw) : null;
+    }
+
+    if (body.metaTitle !== undefined) {
+      const v = String(body.metaTitle ?? "").trim();
+      data.metaTitle = v || null;
+    }
+
+    if (body.metaDescription !== undefined) {
+      const v = String(body.metaDescription ?? "").trim();
+      data.metaDescription = v || null;
+    }
+
+    if (body.weight !== undefined) data.weight = decimalOrNull(body.weight);
+    if (body.length !== undefined) data.length = decimalOrNull(body.length);
+    if (body.width !== undefined) data.width = decimalOrNull(body.width);
+    if (body.height !== undefined) data.height = decimalOrNull(body.height);
+
+    const wantsReplaceImages = body.media !== undefined || body.images !== undefined;
+    const nextImages = wantsReplaceImages ? parseImages(body.media !== undefined ? body.media : body.images) : [];
+
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: pid },
+        data,
+      });
+
+      if (wantsReplaceImages) {
+        await tx.productImage.deleteMany({
+          where: { productId: pid },
+        });
+
+        if (nextImages.length > 0) {
+          await tx.productImage.createMany({
+            data: nextImages.map((x) => ({
+              productId: pid,
+              imageUrl: x.imageUrl,
+              sortOrder: x.sortOrder,
+            })),
+          });
+        }
+      }
+
+      return tx.product.findFirst({
+        where: {
+          id: pid,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          siteId: true,
+          name: true,
+          slug: true,
+          shortDescription: true,
+          description: true,
+
+          categoryId: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+
+          brandId: true,
+          brand: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+
+          productType: true,
+          vendor: true,
+          tags: true,
+          status: true,
+          isVisible: true,
+          publishedAt: true,
+          metaTitle: true,
+          metaDescription: true,
+          weight: true,
+          length: true,
+          width: true,
+          height: true,
+          createdAt: true,
+          updatedAt: true,
+
+          images: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+            select: {
+              id: true,
+              imageUrl: true,
+              sortOrder: true,
+            },
+          },
+        },
+      });
+    });
+
+    if (!updated) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ item: serializeProductForEdit(updated) });
+  } catch (e: any) {
+    console.error("PATCH /api/admin/commerce/products/[id] failed:", e);
+
+    if (e?.code === "P2002") {
+      return NextResponse.json({ error: "Unique constraint failed" }, { status: 409 });
+    }
+
+    return NextResponse.json(
+      { error: e?.message || "Server error" },
+      { status: e?.message?.includes("Unauthorized") ? 401 : 500 },
+    );
+  }
+}
+
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  try {
+    await requireAdminAuthUser();
+
+    const { id } = await ctx.params;
+    const pid = String(id);
+
+    const current = await findProductLite(pid);
+    if (!current) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
     const updated = await prisma.product.update({
       where: { id: pid },
-      data: { isActive: false },
-      select: { id: true, isActive: true, updatedAt: true },
+      data: { deletedAt: new Date() },
+      select: {
+        id: true,
+        deletedAt: true,
+        updatedAt: true,
+      },
     });
-
-    // defense: ensure still owned
-    const owned = await prisma.product.findFirst({ where: { id: updated.id, userId: user.id }, select: { id: true } });
-    if (!owned) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     return NextResponse.json({ item: updated });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unauthorized" }, { status: 401 });
+    console.error("DELETE /api/admin/commerce/products/[id] failed:", e);
+    return NextResponse.json(
+      { error: e?.message || "Server error" },
+      { status: e?.message?.includes("Unauthorized") ? 401 : 500 },
+    );
   }
 }

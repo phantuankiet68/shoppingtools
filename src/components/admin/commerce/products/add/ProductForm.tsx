@@ -105,8 +105,95 @@ type Props = {
 type ApiResponse<T> = {
   items?: T[];
   data?: T[];
+  item?: T;
   categories?: T[];
   brands?: T[];
+  error?: string;
+  message?: string;
+};
+
+type ApiProductDetail = {
+  id: string;
+  siteId?: string;
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  shortDescription?: string | null;
+
+  categoryId?: string | null;
+  category?: { id?: string; name?: string } | null;
+
+  brandId?: string | null;
+  brand?: { id?: string; name?: string } | null;
+
+  productType?: ProductType;
+  vendor?: string | null;
+  tags?: string[];
+
+  status?: ProductStatus;
+  isVisible?: boolean;
+  isActive?: boolean;
+  publishedAt?: string | null;
+
+  costCents?: number;
+  priceCents?: number;
+  compareAtPriceCents?: number;
+
+  sku?: string | null;
+  barcode?: string | null;
+  stockQty?: number;
+  stock?: number;
+
+  weight?: number | string | null;
+  length?: number | string | null;
+  width?: number | string | null;
+  height?: number | string | null;
+
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+
+  media?: Array<{
+    id?: string;
+    type?: "image" | "video";
+    url?: string;
+    thumbUrl?: string;
+  }>;
+
+  images?: Array<{
+    id?: string;
+    url?: string;
+    thumbUrl?: string;
+    isCover?: boolean;
+    sort?: number;
+  }>;
+};
+
+const INITIAL_FORM: ProductFormState = {
+  name: "",
+  slug: "",
+  categoryId: "",
+  brandId: "",
+  productType: "PHYSICAL",
+  vendor: "",
+  tags: [],
+  tagsInput: "",
+  status: "DRAFT",
+  isVisible: true,
+  publishedAt: "",
+  shortDescription: "",
+  description: "",
+  cost: "0.00",
+  price: "0.00",
+  compareAtPrice: "",
+  sku: "",
+  barcode: "",
+  stockQty: "0",
+  weight: "",
+  length: "",
+  width: "",
+  height: "",
+  metaTitle: "",
+  metaDescription: "",
 };
 
 function cuidLike(prefix: string) {
@@ -130,6 +217,97 @@ function safePickList<T>(j: unknown): T[] {
   if (Array.isArray(obj?.categories)) return obj.categories;
   if (Array.isArray(obj?.brands)) return obj.brands;
   return [];
+}
+
+function safePickItem<T>(j: unknown): T | null {
+  if (!j || typeof j !== "object") return null;
+  const obj = j as ApiResponse<T> & T;
+  if (obj.item && typeof obj.item === "object") return obj.item;
+  return obj as T;
+}
+
+function moneyFromCents(value?: number | null) {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n)) return "0.00";
+  return (n / 100).toFixed(2);
+}
+
+function centsFromInput(v: string) {
+  const raw = String(v ?? "")
+    .trim()
+    .replace(/\s+/g, "");
+  const noThousands = raw.replace(/,/g, "");
+  const cleaned = noThousands.replace(/[^\d.]/g, "");
+  const parts = cleaned.split(".");
+  const normalized = parts.length <= 2 ? cleaned : `${parts[0]}.${parts.slice(1).join("")}`;
+  const n = Number(normalized);
+
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.round(n * 100));
+}
+
+function normalizeMediaFromProduct(product: ApiProductDetail): MediaItem[] {
+  if (Array.isArray(product.media) && product.media.length > 0) {
+    return product.media
+      .filter((m) => String(m?.url ?? "").trim())
+      .map((m, index) => ({
+        id: String(m?.id ?? cuidLike(`media_${index}`)),
+        type: m?.type === "video" ? "video" : "image",
+        url: String(m?.url ?? "").trim(),
+        thumbUrl: String(m?.thumbUrl ?? "").trim() || undefined,
+      }));
+  }
+
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    return product.images
+      .filter((img) => String(img?.url ?? "").trim())
+      .map((img, index) => ({
+        id: String(img?.id ?? cuidLike(`img_${index}`)),
+        type: "image" as const,
+        url: String(img?.url ?? "").trim(),
+        thumbUrl: String(img?.thumbUrl ?? img?.url ?? "").trim() || undefined,
+      }));
+  }
+
+  return [];
+}
+
+function toFormStateFromProduct(product: ApiProductDetail): ProductFormState {
+  const resolvedStatus: ProductStatus =
+    product.status === "ACTIVE" || product.status === "ARCHIVED" || product.status === "DRAFT"
+      ? product.status
+      : product.isActive
+        ? "ACTIVE"
+        : "DRAFT";
+
+  return {
+    name: String(product.name ?? ""),
+    slug: String(product.slug ?? ""),
+    categoryId: String(product.categoryId ?? product.category?.id ?? ""),
+    brandId: String(product.brandId ?? product.brand?.id ?? ""),
+    productType:
+      product.productType === "DIGITAL" || product.productType === "SERVICE" ? product.productType : "PHYSICAL",
+    vendor: String(product.vendor ?? ""),
+    tags: Array.isArray(product.tags) ? product.tags.map((x) => String(x)) : [],
+    tagsInput: "",
+    status: resolvedStatus,
+    isVisible: typeof product.isVisible === "boolean" ? product.isVisible : true,
+    publishedAt: String(product.publishedAt ?? ""),
+    shortDescription: String(product.shortDescription ?? ""),
+    description: String(product.description ?? ""),
+    cost: moneyFromCents(product.costCents),
+    price: moneyFromCents(product.priceCents),
+    compareAtPrice: product.compareAtPriceCents == null ? "" : moneyFromCents(product.compareAtPriceCents),
+    sku: String(product.sku ?? ""),
+    barcode: String(product.barcode ?? ""),
+    stockQty: String(product.stockQty ?? product.stock ?? 0),
+    weight: product.weight == null ? "" : String(product.weight),
+    length: product.length == null ? "" : String(product.length),
+    width: product.width == null ? "" : String(product.width),
+    height: product.height == null ? "" : String(product.height),
+    metaTitle: String(product.metaTitle ?? ""),
+    metaDescription: String(product.metaDescription ?? ""),
+  };
 }
 
 async function uploadMediaFiles(files: File[], signal?: AbortSignal): Promise<string[]> {
@@ -174,6 +352,7 @@ export default function ProductForm({
   const loadSites = useSiteStore((s) => s.loadSites);
 
   const effectiveSiteId = siteIdProp || selectedSiteId;
+  const isEditing = Boolean(editingId);
 
   useEffect(() => {
     if (siteIdProp) return;
@@ -189,7 +368,25 @@ export default function ProductForm({
   const [brandLoading, setBrandLoading] = useState(false);
   const [brandError, setBrandError] = useState("");
 
+  const [loadingProduct, setLoadingProduct] = useState(false);
+  const [productError, setProductError] = useState("");
+
   const loadCategories = useCallback(async () => {
+    if (Array.isArray(categoriesProp) && categoriesProp.length > 0) {
+      const normalized = categoriesProp
+        .filter((x) => x && x.id && x.name)
+        .map((x) => ({
+          id: String(x.id),
+          name: String(x.name),
+          slug: slugify(String(x.name)),
+          parentId: null,
+          count: x.count ?? 0,
+        }));
+      setCategories(normalized);
+      setCatError("");
+      return;
+    }
+
     if (!effectiveSiteId) {
       setCategories([]);
       setCatError("");
@@ -212,6 +409,7 @@ export default function ProductForm({
         method: "GET",
         cache: "no-store",
         signal: controller.signal,
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -244,7 +442,7 @@ export default function ProductForm({
     }
 
     return () => controller.abort();
-  }, [effectiveSiteId]);
+  }, [categoriesProp, effectiveSiteId]);
 
   const loadBrands = useCallback(async () => {
     if (!effectiveSiteId) {
@@ -269,6 +467,7 @@ export default function ProductForm({
         method: "GET",
         cache: "no-store",
         signal: controller.signal,
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -305,7 +504,7 @@ export default function ProductForm({
   useEffect(() => {
     let cleanup: void | (() => void);
 
-    (async () => {
+    void (async () => {
       cleanup = await loadCategories();
     })();
 
@@ -317,7 +516,7 @@ export default function ProductForm({
   useEffect(() => {
     let cleanup: void | (() => void);
 
-    (async () => {
+    void (async () => {
       cleanup = await loadBrands();
     })();
 
@@ -338,37 +537,82 @@ export default function ProductForm({
     };
   }, [media]);
 
-  const [form, setForm] = useState<ProductFormState>({
-    name: "",
-    slug: "",
-    categoryId: "",
-    brandId: "",
-    productType: "PHYSICAL",
-    vendor: "",
-    tags: [],
-    tagsInput: "",
-    status: "DRAFT",
-    isVisible: true,
-    publishedAt: "",
-    shortDescription: "",
-    description: "",
-    cost: "0.00",
-    price: "0.00",
-    compareAtPrice: "",
-    sku: "",
-    barcode: "",
-    stockQty: "0",
-    weight: "",
-    length: "",
-    width: "",
-    height: "",
-    metaTitle: "",
-    metaDescription: "",
-  });
+  const [form, setForm] = useState<ProductFormState>(INITIAL_FORM);
 
   const [hasVariants, setHasVariants] = useState(false);
   const [variantOptions, setVariantOptions] = useState<VariantOption[]>([]);
   const [variants, setVariants] = useState<VariantRow[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProductDetail(id: string) {
+      try {
+        setLoadingProduct(true);
+        setProductError("");
+
+        const res = await fetch(`/api/admin/commerce/products/${id}`, {
+          method: "GET",
+          cache: "no-store",
+          credentials: "include",
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j?.error ?? j?.message ?? "Load product detail failed");
+        }
+
+        const raw = await res.json();
+        const product = safePickItem<ApiProductDetail>(raw);
+
+        if (!product || !product.id) {
+          throw new Error("Invalid product detail response");
+        }
+
+        if (product.siteId && !siteIdProp) {
+          setSelectedSiteId(String(product.siteId));
+        }
+
+        setForm(toFormStateFromProduct(product));
+
+        const nextMedia = normalizeMediaFromProduct(product);
+        setMedia(nextMedia);
+        setActiveMediaId(nextMedia[0]?.id ?? null);
+
+        setHasVariants(false);
+        setVariantOptions([]);
+        setVariants([]);
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") return;
+        const message = e instanceof Error ? e.message : "Load product detail failed";
+        setProductError(message);
+        setForm(INITIAL_FORM);
+        setMedia([]);
+        setActiveMediaId(null);
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingProduct(false);
+        }
+      }
+    }
+
+    if (!editingId) {
+      setProductError("");
+      setLoadingProduct(false);
+      setForm(INITIAL_FORM);
+      setMedia([]);
+      setActiveMediaId(null);
+      setHasVariants(false);
+      setVariantOptions([]);
+      setVariants([]);
+      return () => controller.abort();
+    }
+
+    void loadProductDetail(editingId);
+
+    return () => controller.abort();
+  }, [editingId, setSelectedSiteId, siteIdProp]);
 
   const setField = useCallback(<K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
     setForm((p) => ({ ...p, [key]: value }));
@@ -537,6 +781,8 @@ export default function ProductForm({
             name: trimmed,
             slug: slugify(trimmed),
           }),
+          credentials: "include",
+          cache: "no-store",
         });
 
         if (!res.ok) {
@@ -566,11 +812,9 @@ export default function ProductForm({
     if (!form.name.trim()) errors.push("Name is required");
     if (!form.slug.trim()) errors.push("Slug is required");
     if (!form.categoryId.trim()) errors.push("Category is required");
-    if (!hasVariants && !form.sku.trim()) errors.push("SKU is required");
-    if (!hasVariants && !form.price.trim()) errors.push("Price is required");
 
     return errors;
-  }, [effectiveSiteId, form, hasVariants]);
+  }, [effectiveSiteId, form]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -585,6 +829,8 @@ export default function ProductForm({
       const controller = new AbortController();
 
       try {
+        setBusyProp?.(true);
+
         const toUpload = media.filter((m) => m.file && m.url.startsWith("blob:"));
         let uploadedUrls: string[] = [];
 
@@ -620,13 +866,31 @@ export default function ProductForm({
           media: mergedMedia,
           hasVariants,
           variantOptions,
-          variants: [],
+          variants,
         };
 
         onSubmit?.(payload);
 
         const apiPayload = {
-          ...payload,
+          siteId: payload.siteId,
+          name: payload.name.trim(),
+          slug: payload.slug.trim(),
+          categoryId: payload.categoryId || null,
+          brandId: payload.brandId || null,
+          productType: payload.productType,
+          vendor: payload.vendor.trim() || null,
+          tags: payload.tags,
+          status: payload.status,
+          isVisible: payload.isVisible,
+          publishedAt: payload.publishedAt || null,
+          shortDescription: payload.shortDescription.trim() || null,
+          description: payload.description.trim() || null,
+          weight: payload.weight.trim() || null,
+          length: payload.length.trim() || null,
+          width: payload.width.trim() || null,
+          height: payload.height.trim() || null,
+          metaTitle: payload.metaTitle.trim() || null,
+          metaDescription: payload.metaDescription.trim() || null,
           media: payload.media.map((m) => ({
             id: m.id,
             type: m.type,
@@ -634,29 +898,54 @@ export default function ProductForm({
             thumbUrl: m.thumbUrl,
           })),
         };
+        const endpoint = isEditing ? `/api/admin/commerce/products/${editingId}` : "/api/admin/commerce/products";
 
-        const res = await fetch("/api/admin/commerce/products", {
-          method: "POST",
+        const method = isEditing ? "PATCH" : "POST";
+
+        const res = await fetch(endpoint, {
+          method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(apiPayload),
+          credentials: "include",
+          cache: "no-store",
         });
 
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error ?? j?.message ?? "Create product failed");
+          throw new Error(j?.error ?? j?.message ?? (isEditing ? "Update product failed" : "Create product failed"));
         }
 
         await res.json().catch(() => null);
-        modal.success("Success", "Create product success!");
+        modal.success("Success", isEditing ? "Update product success!" : "Create product success!");
         onSaved?.();
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Create product failed";
-        modal.error("Create failed", message);
+        if (err instanceof Error && err.name === "AbortError") return;
+
+        const message =
+          err instanceof Error ? err.message : isEditing ? "Update product failed" : "Create product failed";
+
+        modal.error(isEditing ? "Update failed" : "Create failed", message);
+      } finally {
+        setBusyProp?.(false);
       }
 
       return () => controller.abort();
     },
-    [effectiveSiteId, form, hasVariants, media, modal, onSaved, onSubmit, validateBasic, variantOptions],
+    [
+      editingId,
+      effectiveSiteId,
+      form,
+      hasVariants,
+      isEditing,
+      media,
+      modal,
+      onSaved,
+      onSubmit,
+      setBusyProp,
+      validateBasic,
+      variantOptions,
+      variants,
+    ],
   );
 
   return (
@@ -681,7 +970,9 @@ export default function ProductForm({
                   />
                 )
               ) : (
-                <div className={styles.note}>No media yet. Upload images/videos.</div>
+                <div className={styles.note}>
+                  {loadingProduct ? "Loading product media..." : "No media yet. Upload images/videos."}
+                </div>
               )}
             </div>
 
@@ -707,6 +998,7 @@ export default function ProductForm({
                     style={{ position: "absolute", top: 4, right: 4 }}
                     onClick={() => removeMedia(m.id)}
                     title="Remove"
+                    disabled={loadingProduct || busyProp}
                   >
                     ×
                   </button>
@@ -720,6 +1012,7 @@ export default function ProductForm({
                   accept="image/*,video/*"
                   multiple
                   onChange={(e) => onFilesSelected(e.target.files)}
+                  disabled={loadingProduct || busyProp}
                 />
                 <div className={styles.uploadIcon}>☁</div>
                 <div className={styles.uploadText}>Drop your file here</div>
@@ -743,6 +1036,7 @@ export default function ProductForm({
                   className={styles.input}
                   value={form.metaTitle}
                   onChange={(e) => setField("metaTitle", e.target.value)}
+                  disabled={loadingProduct}
                 />
               </div>
 
@@ -762,6 +1056,7 @@ export default function ProductForm({
                 value={form.metaDescription}
                 onChange={(e) => setField("metaDescription", e.target.value)}
                 placeholder="Recommended 140–160 chars"
+                disabled={loadingProduct}
               />
               <div className={styles.mini}>{form.metaDescription.length}/160</div>
             </div>
@@ -771,7 +1066,7 @@ export default function ProductForm({
         <section className={styles.right}>
           <div className={styles.header}>
             <div className={styles.headerLeft}>
-              <div className={styles.headerTitle}>Create product</div>
+              <div className={styles.headerTitle}>{isEditing ? "Edit product" : "Create product"}</div>
               <div className={styles.headerMeta}>
                 <span className={styles.pill}>{form.status}</span>
                 <span className={`${styles.pill} ${form.isVisible ? styles.pillOn : styles.pillOff}`}>
@@ -786,22 +1081,39 @@ export default function ProductForm({
             </div>
 
             <div className={styles.headerActions}>
-              <button type="button" className={styles.btnGhost} onClick={onCancel}>
+              <button type="button" className={styles.btnGhost} onClick={onCancel} disabled={busyProp}>
                 Cancel
               </button>
-              <button type="button" className={styles.btnGhost} onClick={autoFill} title="Auto fill common fields">
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={autoFill}
+                title="Auto fill common fields"
+                disabled={loadingProduct || busyProp}
+              >
                 Auto fill
               </button>
-              <button type="button" className={styles.btnGhost} onClick={publishNow}>
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={publishNow}
+                disabled={loadingProduct || busyProp}
+              >
                 Publish now
               </button>
-              <button type="submit" className={styles.btnPrimary}>
-                Save
+              <button type="submit" className={styles.btnPrimary} disabled={loadingProduct || busyProp}>
+                {loadingProduct ? "Loading..." : isEditing ? "Update" : "Save"}
               </button>
             </div>
           </div>
 
           <div className={styles.body}>
+            {productError ? (
+              <div className={styles.note} style={{ marginBottom: 12 }}>
+                {productError}
+              </div>
+            ) : null}
+
             <div className={styles.section}>
               <div className={styles.grid2}>
                 {!siteIdProp && (
@@ -813,7 +1125,7 @@ export default function ProductForm({
                       className={styles.select}
                       value={selectedSiteId || ""}
                       onChange={(e) => setSelectedSiteId(e.target.value)}
-                      disabled={sitesLoading}
+                      disabled={sitesLoading || loadingProduct}
                     >
                       <option value="">{sitesLoading ? "Loading sites..." : "— Select site —"}</option>
                       {sites.map((s) => (
@@ -838,6 +1150,7 @@ export default function ProductForm({
                     className={styles.input}
                     value={form.name}
                     onChange={(e) => handleNameChange(e.target.value)}
+                    disabled={loadingProduct}
                   />
                 </div>
 
@@ -849,6 +1162,7 @@ export default function ProductForm({
                     className={styles.input}
                     value={form.slug}
                     onChange={(e) => setField("slug", e.target.value)}
+                    disabled={loadingProduct}
                   />
                 </div>
 
@@ -862,7 +1176,7 @@ export default function ProductForm({
                       className={styles.select}
                       value={form.categoryId}
                       onChange={(e) => setField("categoryId", e.target.value)}
-                      disabled={catLoading || !effectiveSiteId}
+                      disabled={catLoading || !effectiveSiteId || loadingProduct}
                       style={{ flex: 1 }}
                     >
                       <option value="">
@@ -884,7 +1198,7 @@ export default function ProductForm({
                       type="button"
                       className={styles.btnSmall}
                       onClick={openCreateCategory}
-                      disabled={!effectiveSiteId}
+                      disabled={!effectiveSiteId || loadingProduct}
                       title="Create category"
                     >
                       + New
@@ -904,6 +1218,7 @@ export default function ProductForm({
                     className={styles.select}
                     value={form.productType}
                     onChange={(e) => setField("productType", e.target.value as ProductType)}
+                    disabled={loadingProduct}
                   >
                     <option value="PHYSICAL">Physical</option>
                     <option value="DIGITAL">Digital</option>
@@ -917,7 +1232,7 @@ export default function ProductForm({
                     className={styles.select}
                     value={form.brandId}
                     onChange={(e) => setField("brandId", e.target.value)}
-                    disabled={brandLoading || !effectiveSiteId}
+                    disabled={brandLoading || !effectiveSiteId || loadingProduct}
                   >
                     <option value="">
                       {!effectiveSiteId ? "Select site first..." : brandLoading ? "Loading brands..." : "— No brand —"}
@@ -941,6 +1256,7 @@ export default function ProductForm({
                     className={styles.input}
                     value={form.vendor}
                     onChange={(e) => setField("vendor", e.target.value)}
+                    disabled={loadingProduct}
                   />
                 </div>
               </div>
@@ -959,8 +1275,9 @@ export default function ProductForm({
                         addTag();
                       }
                     }}
+                    disabled={loadingProduct}
                   />
-                  <button type="button" className={styles.btnSmall} onClick={addTag}>
+                  <button type="button" className={styles.btnSmall} onClick={addTag} disabled={loadingProduct}>
                     Add
                   </button>
                 </div>
@@ -969,7 +1286,12 @@ export default function ProductForm({
                   {form.tags.map((t) => (
                     <span key={t} className={styles.tag}>
                       {t}
-                      <button type="button" className={styles.tagX} onClick={() => removeTag(t)}>
+                      <button
+                        type="button"
+                        className={styles.tagX}
+                        onClick={() => removeTag(t)}
+                        disabled={loadingProduct}
+                      >
                         ×
                       </button>
                     </span>
@@ -985,6 +1307,7 @@ export default function ProductForm({
                     placeholder="1–2 lines shown on listings"
                     value={form.shortDescription}
                     onChange={(e) => setField("shortDescription", e.target.value)}
+                    disabled={loadingProduct}
                   />
                 </div>
 
@@ -994,6 +1317,7 @@ export default function ProductForm({
                     className={styles.select}
                     value={form.status}
                     onChange={(e) => setField("status", e.target.value as ProductStatus)}
+                    disabled={loadingProduct}
                   >
                     <option value="DRAFT">Draft</option>
                     <option value="ACTIVE">Active</option>
@@ -1017,6 +1341,7 @@ export default function ProductForm({
                     placeholder="Write a detailed product description..."
                     value={form.description}
                     onChange={(e) => setField("description", e.target.value)}
+                    disabled={loadingProduct}
                   />
                 </div>
               </div>
@@ -1030,6 +1355,7 @@ export default function ProductForm({
                       className={`${styles.toggle} ${form.isVisible ? styles.toggleOn : ""}`}
                       onClick={() => setField("isVisible", !form.isVisible)}
                       aria-pressed={form.isVisible}
+                      disabled={loadingProduct}
                     >
                       <span className={styles.knob} />
                     </button>
@@ -1044,6 +1370,113 @@ export default function ProductForm({
                     placeholder="ISO string (auto when Publish)"
                     value={form.publishedAt}
                     onChange={(e) => setField("publishedAt", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.grid2} style={{ marginTop: 12 }}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Cost</label>
+                  <input
+                    className={styles.input}
+                    value={form.cost}
+                    onChange={(e) => setField("cost", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Price</label>
+                  <input
+                    className={styles.input}
+                    value={form.price}
+                    onChange={(e) => setField("price", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Compare at price</label>
+                  <input
+                    className={styles.input}
+                    value={form.compareAtPrice}
+                    onChange={(e) => setField("compareAtPrice", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Stock</label>
+                  <input
+                    className={styles.input}
+                    value={form.stockQty}
+                    onChange={(e) => setField("stockQty", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.grid2} style={{ marginTop: 12 }}>
+                <div className={styles.field}>
+                  <label className={styles.label}>SKU</label>
+                  <input
+                    className={styles.input}
+                    value={form.sku}
+                    onChange={(e) => setField("sku", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Barcode</label>
+                  <input
+                    className={styles.input}
+                    value={form.barcode}
+                    onChange={(e) => setField("barcode", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.grid2} style={{ marginTop: 12 }}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Weight</label>
+                  <input
+                    className={styles.input}
+                    value={form.weight}
+                    onChange={(e) => setField("weight", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Length</label>
+                  <input
+                    className={styles.input}
+                    value={form.length}
+                    onChange={(e) => setField("length", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Width</label>
+                  <input
+                    className={styles.input}
+                    value={form.width}
+                    onChange={(e) => setField("width", e.target.value)}
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Height</label>
+                  <input
+                    className={styles.input}
+                    value={form.height}
+                    onChange={(e) => setField("height", e.target.value)}
+                    disabled={loadingProduct}
                   />
                 </div>
               </div>
