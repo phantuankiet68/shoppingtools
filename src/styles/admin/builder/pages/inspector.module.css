@@ -1,9 +1,8 @@
 /* panel shell */
 .panel {
   background: var(--bg);
-  border: 1px solid var(--line);
+  border: var(--bd-header);
   border-radius: 5px;
-  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.06);
   padding: 10px 5px;
   height: 83vh;
   overflow: auto;
@@ -11,8 +10,8 @@
 
 .empty {
   color: var(--muted);
-  font-size: 14px;
-  padding: 16px;
+  padding: 7px;
+  font-size: 13px;
 }
 
 /* header */
@@ -23,7 +22,7 @@
   padding: 6px 8px;
   border-radius: 10px;
   background: linear-gradient(180deg, #fff, #fafbff);
-  border: 1px solid var(--line);
+  border: var(--bd-header);
 }
 .headerLeft {
   display: flex;
@@ -34,11 +33,12 @@
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  background: #222;
+  background: var(--bg-pro);
 }
 .blockTitle {
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text);
+  font-size: 14px;
 }
 .kebab {
   border: none;
@@ -153,7 +153,7 @@
 .textarea {
   width: 100%;
   background: #fff;
-  border: 1px solid var(--line);
+  border: var(--bd-header);
   border-radius: 10px;
   padding: 8px 10px;
   font-size: 13px;

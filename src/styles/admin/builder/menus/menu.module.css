@@ -39,9 +39,10 @@
   justify-content: space-between;
   margin-bottom: 0.75rem;
   font-size: 13px;
-  background: #ffffff;
-  padding: 15px;
+  background: var(--bg-header);
+  padding: 10px;
   border-radius: 5px;
+  border: var(--bd-header);
 }
 .h4 {
   font-size: 1.25rem;
@@ -173,7 +174,7 @@
   justify-content: space-between;
   margin-bottom: 0.5rem;
   padding-bottom: 5px;
-  border-bottom: 1px solid #bfbfbf;
+  border-bottom: var(--bd-header);
 }
 
 .h6 {
@@ -236,9 +237,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #66e4ff1f;
-  border: 1px dashed rgba(255, 255, 255, 0.15);
-  color: #31e82d;
+  background: var(--bg-pro);
+  border: var(--bd-header);
+  color: var(--text);
 }
 .blockTitle {
   color: var(--text);
@@ -273,9 +274,9 @@
 }
 
 .btnOutlinePrimary {
-  color: #2e7fcb;
-  background: #2491ff1f;
-  border-color: #00bbff70;
+  color: var(--color-save);
+  background: var(--bg-save);
+  border-color: var(--bd-save);
 }
 
 .btnOutlineWarning {
@@ -330,11 +331,12 @@
   border: 1px solid #a5a5a533;
 }
 .formSelectSm {
-  padding: 0.5rem;
+  padding: 0.3rem;
   width: 174px;
   color: var(--text);
   background: var(--white);
   outline: none;
+  font-size: 13px;
 }
 
 .formControl:focus,
@@ -390,7 +392,7 @@
   min-width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: #0d6efd;
+  background: var(--bg-pro);
   display: inline-flex;
   align-items: center;
   justify-content: center;

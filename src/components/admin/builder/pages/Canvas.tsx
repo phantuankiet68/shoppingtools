@@ -369,7 +369,6 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
                               >
                                 <i className="bi bi-arrow-down" />
                               </button>
-                              <div className={cls.ftSep} />
                             </>
                           )}
                         </div>

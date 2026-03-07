@@ -58,7 +58,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
       <div className={styles.head}>
         <div className={styles.tabs}>
           <button className={`${styles.tab} ${styles.tabActive}`} type="button">
-            <i className="bi bi-grid-3x3-gap me-1" /> Elements
+            <i className="bi bi-grid-3x3-gap me-1" /> Templates
           </button>
         </div>
 
@@ -84,11 +84,6 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
 
       <div className={styles.templatesWrapper}>
         <div className={styles.templatesBox}>
-          <div className={styles.templatesHead}>
-            <span className={styles.templatesTitle}>Templates</span>
-            <span className={styles.templatesCount}>{templatesFiltered.length}</span>
-          </div>
-
           <ul className={styles.templatesList}>
             {templatesFiltered.map((tpl) => (
               <li key={tpl.id} className={styles.tplItem}>

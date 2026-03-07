@@ -285,8 +285,6 @@ function PageInspector({
 
       {hasPage && (
         <div className={styles.card}>
-          <div className={styles.cardTitle}>SEO</div>
-
           <div className={styles.field}>
             <div className={styles.fieldTop}>
               <label className={styles.label}>Meta Title</label>
@@ -303,7 +301,7 @@ function PageInspector({
               placeholder={page!.title || "Tiêu đề…"}
             />
           </div>
-          <div className={styles.twoCol}>
+          <div className={styles.threeCol}>
             <div className={styles.field}>
               <label className={styles.label}>OG Title</label>
               <input
@@ -323,6 +321,30 @@ function PageInspector({
                 <option value="summary_large_image">summary_large_image</option>
                 <option value="summary">summary</option>
               </select>
+            </div>
+            <div className={styles.checkRow}>
+              <label className={styles.label}>Chooses</label>
+              <div className={styles.dFlex}>
+                <label className={styles.check}>
+                  <input
+                    className={styles.checkInput}
+                    type="checkbox"
+                    checked={!!seo.noindex}
+                    onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))}
+                  />
+                  <span className={styles.checkText}>noindex</span>
+                </label>
+
+                <label className={styles.check}>
+                  <input
+                    className={styles.checkInput}
+                    type="checkbox"
+                    checked={!!seo.nofollow}
+                    onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))}
+                  />
+                  <span className={styles.checkText}>nofollow</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -364,28 +386,6 @@ function PageInspector({
                 placeholder="https://example.com/your-page"
               />
             </div>
-          </div>
-
-          <div className={styles.checkRow}>
-            <label className={styles.check}>
-              <input
-                className={styles.checkInput}
-                type="checkbox"
-                checked={!!seo.noindex}
-                onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))}
-              />
-              <span className={styles.checkText}>noindex</span>
-            </label>
-
-            <label className={styles.check}>
-              <input
-                className={styles.checkInput}
-                type="checkbox"
-                checked={!!seo.nofollow}
-                onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))}
-              />
-              <span className={styles.checkText}>nofollow</span>
-            </label>
           </div>
 
           <div className={styles.hr} />
@@ -486,12 +486,6 @@ function PageInspector({
               onChange={(e) => setSeo((prev) => ({ ...prev, structuredData: e.target.value }))}
               placeholder='{"@context":"https://schema.org","@type":"WebPage","name":"..."}'
             />
-
-            <div className={styles.jsonHint}>
-              {jsonLdStatus === "empty" && <span className={styles.jsonMuted}>Không bắt buộc</span>}
-              {jsonLdStatus === "valid" && <span className={styles.jsonOk}>JSON hợp lệ</span>}
-              {jsonLdStatus === "invalid" && <span className={styles.jsonBad}>JSON không hợp lệ</span>}
-            </div>
           </div>
 
           <div className={styles.footerActions}>

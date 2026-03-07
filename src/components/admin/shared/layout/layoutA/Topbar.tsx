@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useEffect } from "react";
-import styles from "@/styles/admin/layouts/LayoutA.module.css";
+import styles from "@/styles/admin/layouts/Topbar.module.css";
 import { useAdminLayoutStore } from "@/store/layout/layouta/index";
 
 type Props = {
@@ -10,15 +10,28 @@ type Props = {
   onLogout: () => void | Promise<void>;
 };
 
+const functionKeys = [
+  { key: "F1", label: "Help" },
+  { key: "F2", label: "Rename" },
+  { key: "F3", label: "Find" },
+  { key: "F4", label: "Open" },
+  { key: "F5", label: "Refresh" },
+  { key: "F6", label: "Focus" },
+  { key: "F7", label: "Report" },
+  { key: "F8", label: "Analytics" },
+  { key: "F9", label: "Users" },
+  { key: "F10", label: "Logs" },
+  { key: "F11", label: "Fullscreen" },
+  { key: "F12", label: "Dev" },
+];
+
 export default function Topbar({ meta, onLogout }: Props) {
   const {
     sidebarOpen,
     toggleSidebar,
-
     user,
     userMenuOpen,
     setUserMenuOpen,
-
     notiOpen,
     setNotiOpen,
     notiTab,
@@ -28,13 +41,13 @@ export default function Topbar({ meta, onLogout }: Props) {
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const notiRef = useRef<HTMLDivElement | null>(null);
 
-  // close when click outside (để chuẩn như code gốc - tránh đóng khi click bên trong)
   useEffect(() => {
     function onDocMouseDown(e: MouseEvent) {
       const t = e.target as Node;
       if (userMenuRef.current && !userMenuRef.current.contains(t)) setUserMenuOpen(false);
       if (notiRef.current && !notiRef.current.contains(t)) setNotiOpen(false);
     }
+
     function onEsc(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       setUserMenuOpen(false);
@@ -43,6 +56,7 @@ export default function Topbar({ meta, onLogout }: Props) {
 
     document.addEventListener("mousedown", onDocMouseDown);
     document.addEventListener("keydown", onEsc);
+
     return () => {
       document.removeEventListener("mousedown", onDocMouseDown);
       document.removeEventListener("keydown", onEsc);
@@ -54,57 +68,63 @@ export default function Topbar({ meta, onLogout }: Props) {
     await onLogout();
   };
 
+  const handleFunctionClick = (key: string) => {
+    // Tạm thời demo
+    // Sau này bạn có thể map từng key sang route/action cụ thể
+    console.log(`Function ${key} clicked`);
+  };
+
   return (
     <header className={styles.topbar}>
-      <div className={styles.row1}>
-        <div className={styles.left}>
+      <div className={styles.topbarShell}>
+        <div className={styles.topbarLeft}>
           <button
-            className={styles.burger}
+            className={styles.sidebarToggle}
             type="button"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
             aria-expanded={sidebarOpen}
           >
-            <i className={`bi ${sidebarOpen ? "bi-arrow-bar-left" : "bi-list"}`} />
+            <i className={`bi ${sidebarOpen ? "bi-text-indent-right" : "bi-list"}`} />
           </button>
 
-          <div className={styles.titleBlock}>
-            <h1 className={styles.pageTitle}>{meta.title}</h1>
-            <span className={styles.pageSubtitle}>{meta.subtitle ?? ""}</span>
+          <div className={styles.titleSection}>
+            <div className={styles.titleRow}>
+              <span className={styles.titleAccent} />
+              <h1 className={styles.pageTitle}>{meta.title}</h1>
+            </div>
+
+            <div className={styles.breadcrumb}>Admin Panel / Dashboard</div>
           </div>
         </div>
 
-        <div className={styles.center}>
-          <div className={styles.search}>
-            <span className={styles.searchIcon}>
-              <i className="bi bi-search" />
-            </span>
-            <input className={styles.searchInput} placeholder="Search anything…" />
-          </div>
-        </div>
-
-        <div className={styles.right}>
-          <div className={styles.row2}>
-            <div className={styles.row2Right}>
-              <button className={styles.ghostBtn} type="button">
-                <i className="bi bi-funnel" />
-                Filters
-              </button>
-
-              <button className={styles.ghostBtn} type="button">
-                <i className="bi bi-download" />
-                Export
-              </button>
-
-              <button className={styles.ghostBtn} type="button">
-                <i className="bi bi-sliders" />
-                Customize
-              </button>
+        <div className={styles.topbarCenter}>
+          <div className={styles.functionBar}>
+            <div className={styles.functionGrid}>
+              {functionKeys.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={styles.functionKey}
+                  onClick={() => handleFunctionClick(item.key)}
+                  title={`${item.key} - ${item.label}`}
+                >
+                  <span className={styles.functionKeyCode}>{item.key}</span>
+                  <span className={styles.functionKeyLabel}>{item.label}</span>
+                </button>
+              ))}
             </div>
           </div>
+        </div>
 
+        <div className={styles.topbarRight}>
+          <button className={styles.iconBtn} type="button" aria-label="Language">
+            <i className="bi bi-chat-dots" />
+            <span className={styles.notificationDot} />
+          </button>
           <button className={styles.iconBtn} type="button" aria-label="Language">
             <i className="bi bi-globe2" />
+            <span className={styles.notificationDot} />
           </button>
 
           <div className={styles.notiWrap} ref={notiRef}>
@@ -117,15 +137,19 @@ export default function Topbar({ meta, onLogout }: Props) {
               onClick={() => setNotiOpen(!notiOpen)}
             >
               <i className="bi bi-bell" />
-              <span className={styles.dot} />
+              <span className={styles.notificationDot} />
             </button>
 
             {notiOpen && (
-              <div className={styles.notiDropdown} role="menu" aria-label="Notifications menu">
-                <div className={styles.notiHead}>
-                  <div className={styles.notiTitle}>Notifications</div>
-                  <button className={styles.notiLink} type="button">
-                    VIEW ALL
+              <div className={styles.dropdownCard} role="menu" aria-label="Notifications menu">
+                <div className={styles.dropdownHeader}>
+                  <div>
+                    <div className={styles.dropdownTitle}>Notifications</div>
+                    <div className={styles.dropdownSubtitle}>You have 3 unread updates</div>
+                  </div>
+
+                  <button className={styles.textButton} type="button">
+                    View all
                   </button>
                 </div>
 
@@ -135,7 +159,7 @@ export default function Topbar({ meta, onLogout }: Props) {
                     className={`${styles.notiTab} ${notiTab === "all" ? styles.notiTabActive : ""}`}
                     onClick={() => setNotiTab("all")}
                   >
-                    All <span className={styles.notiBadge}>3</span>
+                    All
                   </button>
 
                   <button
@@ -143,7 +167,7 @@ export default function Topbar({ meta, onLogout }: Props) {
                     className={`${styles.notiTab} ${notiTab === "messages" ? styles.notiTabActive : ""}`}
                     onClick={() => setNotiTab("messages")}
                   >
-                    Messages <span className={styles.notiBadgeMuted}>2</span>
+                    Messages
                   </button>
 
                   <button
@@ -151,7 +175,7 @@ export default function Topbar({ meta, onLogout }: Props) {
                     className={`${styles.notiTab} ${notiTab === "tasks" ? styles.notiTabActive : ""}`}
                     onClick={() => setNotiTab("tasks")}
                   >
-                    Tasks <span className={styles.notiBadgeMuted}>1</span>
+                    Tasks
                   </button>
 
                   <button
@@ -163,42 +187,34 @@ export default function Topbar({ meta, onLogout }: Props) {
                   </button>
                 </div>
 
-                <div className={styles.notiList}>
-                  <button className={styles.notiItem} type="button">
-                    <span className={styles.notiBar} />
-                    <span className={styles.notiItemText}>
-                      <span className={styles.notiItemTitle}>You have a new task</span>
-                      <span className={styles.notiItemSub}>Just now</span>
+                <div className={styles.notificationList}>
+                  <button className={styles.notificationItem} type="button">
+                    <span className={styles.notificationAccent} />
+                    <span className={styles.notificationContent}>
+                      <span className={styles.notificationTitle}>You have a new task assigned</span>
+                      <span className={styles.notificationMeta}>Just now</span>
                     </span>
                   </button>
 
-                  <button className={styles.notiItem} type="button">
-                    <span className={styles.notiBar} />
-                    <span className={styles.notiItemText}>
-                      <span className={styles.notiItemTitle}>New message from Naomi</span>
-                      <span className={styles.notiItemSub}>1 hour ago</span>
+                  <button className={styles.notificationItem} type="button">
+                    <span className={styles.notificationAccent} />
+                    <span className={styles.notificationContent}>
+                      <span className={styles.notificationTitle}>Naomi sent you a new message</span>
+                      <span className={styles.notificationMeta}>1 hour ago</span>
                     </span>
                   </button>
 
-                  <button className={styles.notiItem} type="button">
-                    <span className={styles.notiBar} />
-                    <span className={styles.notiItemText}>
-                      <span className={styles.notiItemTitle}>Your role has been set to Admin</span>
-                      <span className={styles.notiItemSub}>3 days ago</span>
-                    </span>
-                  </button>
-
-                  <button className={styles.notiItem} type="button">
-                    <span className={styles.notiBar} />
-                    <span className={styles.notiItemText}>
-                      <span className={styles.notiItemTitle}>New message from Robert</span>
-                      <span className={styles.notiItemSub}>2 weeks ago</span>
+                  <button className={styles.notificationItem} type="button">
+                    <span className={styles.notificationAccent} />
+                    <span className={styles.notificationContent}>
+                      <span className={styles.notificationTitle}>Your account role was updated to Admin</span>
+                      <span className={styles.notificationMeta}>3 days ago</span>
                     </span>
                   </button>
                 </div>
 
-                <div className={styles.notiFoot}>
-                  <button className={styles.notiMark} type="button">
+                <div className={styles.dropdownFooter}>
+                  <button className={styles.ghostInlineBtn} type="button">
                     <i className="bi bi-check2" />
                     Mark all as read
                   </button>
@@ -207,11 +223,9 @@ export default function Topbar({ meta, onLogout }: Props) {
             )}
           </div>
 
-          <span className={styles.divider} />
-
           <div className={styles.userMenu} ref={userMenuRef}>
             <button
-              className={styles.userBtn}
+              className={styles.userTrigger}
               type="button"
               aria-label="User menu"
               aria-haspopup="menu"
@@ -219,58 +233,52 @@ export default function Topbar({ meta, onLogout }: Props) {
               onClick={() => setUserMenuOpen(!userMenuOpen)}
             >
               <div className={styles.avatarWrap}>
-                <div className={styles.avatar}>A</div>
-                <span className={styles.status} />
+                <div className={styles.avatar}>{user?.name?.charAt(0)?.toUpperCase() ?? "A"}</div>
+                <span className={styles.onlineDot} />
               </div>
 
-              <div className={styles.userText}>
-                <div className={styles.userName}>{user?.name ?? "—"}</div>
-                <div className={styles.userRole}>{user?.role ?? ""}</div>
+              <div className={styles.userInfo}>
+                <div className={styles.userName}>{user?.name ?? "admin"}</div>
+                <div className={styles.userRole}>{user?.role ?? "Admin"}</div>
               </div>
 
-              <span className={styles.userChevron}>
-                <i className={`bi bi-chevron-down ${userMenuOpen ? styles.chevOpen : ""}`} />
+              <span className={styles.chevron}>
+                <i className={`bi bi-chevron-down ${userMenuOpen ? styles.chevronOpen : ""}`} />
               </span>
             </button>
 
             {userMenuOpen && (
               <div className={styles.userDropdown} role="menu" aria-label="User options">
                 <Link
-                  className={styles.menuItem}
+                  className={styles.dropdownItem}
                   href="/admin/profile"
                   role="menuitem"
                   onClick={() => setUserMenuOpen(false)}
                 >
-                  <span className={styles.menuIcon}>
-                    <i className="bi bi-person" />
-                  </span>
-                  <span className={styles.menuText}>Profile</span>
+                  <i className="bi bi-person" />
+                  <span>Profile</span>
                 </Link>
 
                 <Link
-                  className={styles.menuItem}
+                  className={styles.dropdownItem}
                   href="/admin/settings"
                   role="menuitem"
                   onClick={() => setUserMenuOpen(false)}
                 >
-                  <span className={styles.menuIcon}>
-                    <i className="bi bi-gear" />
-                  </span>
-                  <span className={styles.menuText}>Settings</span>
+                  <i className="bi bi-gear" />
+                  <span>Settings</span>
                 </Link>
 
-                <div className={styles.userDropdownDivider} />
+                <div className={styles.dropdownDivider} />
 
                 <button
                   type="button"
-                  className={`${styles.menuItem} ${styles.danger}`}
+                  className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
                   role="menuitem"
                   onClick={handleLogoutClick}
                 >
-                  <span className={styles.menuIcon}>
-                    <i className="bi bi-box-arrow-right" />
-                  </span>
-                  <span className={styles.menuText}>Logout</span>
+                  <i className="bi bi-box-arrow-right" />
+                  <span>Logout</span>
                 </button>
               </div>
             )}

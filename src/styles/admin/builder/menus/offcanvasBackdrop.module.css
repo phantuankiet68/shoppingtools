@@ -119,7 +119,7 @@
   align-items: center;
   gap: 10px;
   font-weight: 500;
-  color: rgb(15 23 42);
+  color: var(--color-title);
   margin-bottom: 10px;
   font-size: 14px;
 }
@@ -146,9 +146,9 @@
 .formLabel {
   display: block;
   margin-bottom: 6px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: rgb(51 65 85);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .formControl,
@@ -317,7 +317,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 12px;
+  padding: 10px;
   border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(255, 255, 255, 0.75);
@@ -331,9 +331,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 900;
-  font-size: 12.5px;
-  color: rgb(51 65 85);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--color-title);
 }
 
 .previewValue {

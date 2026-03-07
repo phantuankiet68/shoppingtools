@@ -126,7 +126,7 @@ function PageList({
     <aside className={styles.leftPane}>
       <div className={styles.leftHead}>
         <div className={styles.listToolbar}>
-          <h2>List internal page</h2>
+          <h2>List Pages</h2>
           <button
             className={styles.refreshBtn}
             type="button"

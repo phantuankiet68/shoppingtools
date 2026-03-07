@@ -88,11 +88,14 @@
   border: none;
   background: transparent;
   color: var(--ui-fg);
-  transition: background 0.15s ease, transform 0.15s ease;
-  font-size: 15px;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+  font-size: 13px;
+  cursor: pointer;
 }
 .ghostBtn:hover {
-  background: var(--ui-soft);
+  background: var(--bg-save);
   transform: translateY(-1px);
 }
 

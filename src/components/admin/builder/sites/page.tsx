@@ -130,16 +130,13 @@ export default function SitesPage() {
                         <div className={styles.cardIcon}>
                           <i className="bi bi-globe2" />
                         </div>
+                        <div>
+                          <div className={styles.cardTitle}>{s.name}</div>
+                        </div>
                         <span className={styles.badge}>
                           <i className="bi bi-link-45deg" /> {s.domain}
                         </span>
                       </div>
-
-                      <div className={styles.cardTitle}>{s.name}</div>
-                      <div className={styles.cardDesc}>
-                        Updated: <span className={styles.mono}>{fmt(s.updatedAt)}</span>
-                      </div>
-
                       <div className={styles.cardBottom}>
                         <span className={styles.muted}>
                           <i className="bi bi-clock" /> Created {fmt(s.createdAt)}

@@ -4,10 +4,9 @@
   flex-direction: column;
   height: 100%;
   background: var(--background);
-  border: 1px solid var(--line);
+  border: var(--bd-header);
   border-radius: 5px;
   overflow: hidden;
-  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.06);
 }
 
 /* head */
@@ -35,7 +34,7 @@
 }
 .tabActive {
   background: #eef2ff;
-  color: var(--primary);
+  color: var(--color-title);
   border: 1px solid #e5e7ff;
 }
 .headTools {
@@ -60,7 +59,7 @@
 /* search */
 .searchBox {
   position: relative;
-  padding: 10px;
+  padding: 10px 10px 0px 10px;
 }
 .searchIcon {
   position: absolute;
@@ -72,7 +71,7 @@
 .searchInput {
   width: 100%;
   padding: 8px 12px 8px 36px;
-  border: 1px solid var(--line);
+  border: var(--bd-header);
   border-radius: 10px;
   font-size: 13px;
   background: #fafbff;
@@ -134,7 +133,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px;
+  padding: 5px 10px;
   font-size: 14px;
   border-radius: 8px;
   cursor: grab;
@@ -143,7 +142,7 @@
     transform 0.12s ease;
 }
 .item:hover {
-  background: #f7f8fe;
+  background: #dfeefd;
 }
 .item:active {
   cursor: grabbing;
@@ -165,6 +164,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  padding-top: 5px;
 }
 .iconMuted {
   color: #a3a8b4;
@@ -214,7 +214,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px 8px 1px;
+  padding: 6px 8px 0px 1px;
   border-radius: 8px;
 }
 .tplHeader:hover {
@@ -232,7 +232,7 @@
 .tplLabel {
   color: #7aa1ff;
   flex: 1 1;
-  font-size: 15px;
+  font-size: 14px;
 }
 .tplDragAll {
   border: 1px dashed var(--line);
@@ -249,13 +249,12 @@
 }
 .tplChildren {
   border-left: 2px dashed #eef1f7;
-  margin: 2px 0 6px 13px;
-  padding: 2px 0 0 3px;
-  list-style: none;
-  gap: 5px;
-  display: flex;
   flex-direction: column;
   justify-content: space-between;
+  margin: 2px 0 6px 11px;
+  padding: 5px 0 0 10px;
+  list-style: none;
+  display: flex;
 }
 /* templates.module.css (hoặc file hiện tại của bạn) */
 .templatesWrapper {

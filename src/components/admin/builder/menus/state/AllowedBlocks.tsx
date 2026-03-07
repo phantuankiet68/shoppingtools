@@ -129,7 +129,7 @@ export default function AllowedBlocks() {
           ) : (
             Object.entries(filteredSuggest).map(([group, items]) => (
               <div key={group} style={{ marginBottom: 10 }}>
-                <div style={{ fontWeight: 500, marginBottom: 6, color: "rgb(134 134 134)", fontSize: 16 }}>{group}</div>
+                <div style={{ fontWeight: 500, marginBottom: 6, color: "rgb(134 134 134)", fontSize: 13 }}>{group}</div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {items.map((name) => (
@@ -143,7 +143,7 @@ export default function AllowedBlocks() {
                       style={{
                         borderRadius: 20,
                         border: "1px dashed var(--bd,#cbd5e1)",
-                        background: "var(--chip-bg,rgba(16,185,129,.08))",
+                        background: "var(--bg-pro)",
                         padding: "6px 10px",
                         fontSize: 13,
                       }}

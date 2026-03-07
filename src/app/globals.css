@@ -38,11 +38,26 @@
 
   /* Page background (admin) */
   --bg-page: #f7f9ff;
-  --bg-primary: linear-gradient(135deg, #2bb5ff, #26bbff);
+  --bg-primary: linear-gradient(135deg, #88d6ff, #26bbff);
   --bg-soft: linear-gradient(135deg, #f3f3f3, #f3f3f3);
   --bg-header: linear-gradient(#fff 0%, #f9fbff 100%);
   --bg-blue: #4cb3ff;
   --bg-table: linear-gradient(#e9f4fff0 0%, #ecf5fff0 100%);
+  --title: #74b6f1;
+  --bd-header: 1px solid #e6edf7;
+  --bg-pro: linear-gradient(135deg, #8daaff, #d2e5ff);
+  --bg-add: #24ff9a1f;
+  --color-add: #2ecb96;
+  --bd-add: #00ff8970;
+  --bg-save: #4d99fb1f;
+  --bd-save: #58a7ff70;
+  --bd-s-save: 1px solid #44aaef69;
+  --color-save: #5ab1ff;
+  --color-title: #5581c5;
+  --bd-s-delete: 1px solid #ef444440;
+  --bg-delete: #ef44441a;
+  --color-delete: #b91c1c;
+  --bg-active: #e2ecff;
 }
 
 html {

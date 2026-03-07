@@ -1,7 +1,6 @@
 /* grid: left list + right detail */
 .grid {
   display: grid;
-  gap: 14px;
   grid-template-columns: 26% 1fr;
   min-height: calc(90vh);
 }
@@ -87,7 +86,9 @@
   background: transparent;
   cursor: pointer;
   position: relative;
-  transition: transform 0.08s ease, background 0.2s;
+  transition:
+    transform 0.08s ease,
+    background 0.2s;
   margin-bottom: 8px;
 }
 
