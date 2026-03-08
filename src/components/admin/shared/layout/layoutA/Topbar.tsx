@@ -1,29 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import styles from "@/styles/admin/layouts/Topbar.module.css";
 import { useAdminLayoutStore } from "@/store/layout/layouta/index";
+import { FunctionKeyBar, FunctionKeyCode, functionKeyMap } from "@/components/admin/shared/layout/function-keys";
+import { useDefaultFunctionKeys } from "@/components/admin/shared/layout/function-keys/defaultFunctionKeys";
 
 type Props = {
   meta: { title: string; subtitle?: string | null };
   onLogout: () => void | Promise<void>;
 };
-
-const functionKeys = [
-  { key: "F1", label: "Help" },
-  { key: "F2", label: "Rename" },
-  { key: "F3", label: "Find" },
-  { key: "F4", label: "Open" },
-  { key: "F5", label: "Refresh" },
-  { key: "F6", label: "Focus" },
-  { key: "F7", label: "Report" },
-  { key: "F8", label: "Analytics" },
-  { key: "F9", label: "Users" },
-  { key: "F10", label: "Logs" },
-  { key: "F11", label: "Fullscreen" },
-  { key: "F12", label: "Dev" },
-];
 
 export default function Topbar({ meta, onLogout }: Props) {
   const {
@@ -41,11 +28,19 @@ export default function Topbar({ meta, onLogout }: Props) {
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const notiRef = useRef<HTMLDivElement | null>(null);
 
+  const topbarFunctionKeys = useMemo(() => [functionKeyMap.F1, functionKeyMap.F4, functionKeyMap.F12], []);
+
   useEffect(() => {
     function onDocMouseDown(e: MouseEvent) {
       const t = e.target as Node;
-      if (userMenuRef.current && !userMenuRef.current.contains(t)) setUserMenuOpen(false);
-      if (notiRef.current && !notiRef.current.contains(t)) setNotiOpen(false);
+
+      if (userMenuRef.current && !userMenuRef.current.contains(t)) {
+        setUserMenuOpen(false);
+      }
+
+      if (notiRef.current && !notiRef.current.contains(t)) {
+        setNotiOpen(false);
+      }
     }
 
     function onEsc(e: KeyboardEvent) {
@@ -63,15 +58,14 @@ export default function Topbar({ meta, onLogout }: Props) {
     };
   }, [setNotiOpen, setUserMenuOpen]);
 
+  const actions = useDefaultFunctionKeys();
+
   const handleLogoutClick = async () => {
     setUserMenuOpen(false);
     await onLogout();
   };
-
-  const handleFunctionClick = (key: string) => {
-    // Tạm thời demo
-    // Sau này bạn có thể map từng key sang route/action cụ thể
-    console.log(`Function ${key} clicked`);
+  const handleFunctionClick = (key: FunctionKeyCode) => {
+    actions[key]?.();
   };
 
   return (
@@ -99,29 +93,15 @@ export default function Topbar({ meta, onLogout }: Props) {
         </div>
 
         <div className={styles.topbarCenter}>
-          <div className={styles.functionBar}>
-            <div className={styles.functionGrid}>
-              {functionKeys.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={styles.functionKey}
-                  onClick={() => handleFunctionClick(item.key)}
-                  title={`${item.key} - ${item.label}`}
-                >
-                  <span className={styles.functionKeyCode}>{item.key}</span>
-                  <span className={styles.functionKeyLabel}>{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          <FunctionKeyBar items={topbarFunctionKeys} onClick={handleFunctionClick} />
         </div>
 
         <div className={styles.topbarRight}>
-          <button className={styles.iconBtn} type="button" aria-label="Language">
+          <button className={styles.iconBtn} type="button" aria-label="Chat">
             <i className="bi bi-chat-dots" />
             <span className={styles.notificationDot} />
           </button>
+
           <button className={styles.iconBtn} type="button" aria-label="Language">
             <i className="bi bi-globe2" />
             <span className={styles.notificationDot} />

@@ -8,7 +8,7 @@ const DashboardA = dynamic(() => import("@/components/admin/builder/pages/Dashbo
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Dashboard Management" subtitle="Build, customize, and manage system dashboards" />
+      <AdminPageTitle title="Dashboard" />
       <DashboardA />
     </main>
   );
