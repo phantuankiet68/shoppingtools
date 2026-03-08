@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeaderFashion.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeaderFashion.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface HeaderFashionProps {

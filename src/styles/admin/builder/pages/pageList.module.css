@@ -8,9 +8,8 @@
   min-width: 360px;
   max-width: 520px;
   width: 420px;
-
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: var(--bg-header);
+  border: var(--bd-header);
   border-radius: 8px;
 
   overflow: hidden;
@@ -49,7 +48,7 @@
   padding: 8px 12px 8px 38px;
   border-radius: 6px;
   background: #fff;
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  border: var(--bd-header);
   transition:
     border-color 160ms ease,
     background 160ms ease;
@@ -119,10 +118,10 @@
   height: 30px;
   padding: 3px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(17, 24, 39, 0.12);
+  border: var(--bd-header);
   background: rgba(255, 255, 255, 0.95);
-  font-size: 13px;
-  color: rgba(17, 24, 39, 0.85);
+  font-size: 12px;
+  color: var(--muted);
   outline: none;
 }
 
@@ -139,10 +138,11 @@
   height: 30px;
   padding: 0 10px;
   border-radius: 6px;
-  border: 1px solid rgba(17, 24, 39, 0.1);
-  background: rgba(255, 255, 255, 0.7);
-  color: rgba(17, 24, 39, 0.78);
-  font-size: 13px;
+  border: var(--bd-header);
+  background: var(--bg-header);
+  color: var(--muted);
+  font-size: 12px;
+  min-width: 82px;
   cursor: pointer;
   transition:
     background 160ms ease,
@@ -379,21 +379,17 @@
   display: flex;
   align-items: center;
   gap: 10px;
-
   padding: 10px 12px;
-
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
+  border-top: var(--bd-header);
   background: rgba(255, 255, 255, 0.85);
 }
 
 .pageBtn {
   width: 36px;
   height: 36px;
-  border-radius: 14px;
-
-  border: 1px solid rgba(17, 24, 39, 0.1);
-  background: rgba(255, 255, 255, 0.7);
-
+  border-radius: 6px;
+  border: var(--bd-header);
+  background: var(--bg-header);
   display: grid;
   place-items: center;
 
@@ -455,8 +451,8 @@
 
 .muted {
   margin-left: 10px;
-  color: rgba(17, 24, 39, 0.55);
-  font-weight: 700;
+  color: var(--muted);
+  font-weight: 500;
   font-size: 12px;
 }
 

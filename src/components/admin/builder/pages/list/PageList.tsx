@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
+import { useModal } from "@/components/admin/shared/common/modal";
 import styles from "@/styles/admin/builder/pages/pageList.module.css";
 import type { PageRow } from "@/lib/page/types";
 import { PAGE_MESSAGES as M } from "@/features/builder/pages/messages";
@@ -42,7 +43,7 @@ type Props = {
   siteId: SiteFilter;
   setSiteId: (v: SiteFilter) => void;
 
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
 
   page: number;
   setPage: (n: number) => void;
@@ -79,13 +80,15 @@ function PageList({
   total,
   totalPages,
 }: Props) {
+  const modal = useModal();
+
   const toggleSort = useCallback(
     (k: SortKey) => {
-      // when sort changes -> page 1 to avoid empty pages
       setPage(1);
 
-      if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
-      else {
+      if (sortKey === k) {
+        setSortDir(sortDir === "asc" ? "desc" : "asc");
+      } else {
         setSortKey(k);
         setSortDir(k === "title" ? "asc" : "desc");
       }
@@ -93,11 +96,23 @@ function PageList({
     [sortKey, sortDir, setSortDir, setSortKey, setPage],
   );
 
+  const handleRefresh = useCallback(async () => {
+    try {
+      await onRefresh();
+    } catch (e: unknown) {
+      modal.error("Error", (e as Error)?.message || M.loadPagesError);
+    }
+  }, [onRefresh, modal]);
+
   const canPrev = page > 1;
   const canNext = page < totalPages;
 
   const dateFormatter = useMemo(() => {
-    return new Intl.DateTimeFormat(undefined, { year: "numeric", month: "2-digit", day: "2-digit" });
+    return new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   }, []);
 
   const onStatusChange = useCallback(
@@ -130,13 +145,14 @@ function PageList({
           <button
             className={styles.refreshBtn}
             type="button"
-            onClick={onRefresh}
+            onClick={() => void handleRefresh()}
             disabled={loading}
             aria-label={M.refresh}
           >
             <i className={`bi bi-arrow-repeat ${styles.iconLeft}`} />
           </button>
         </div>
+
         <div className={styles.toolbar}>
           <select className={styles.select} value={siteId} onChange={onSiteChange} aria-label="Site filter">
             <option value="all">{M.allSites}</option>
@@ -234,7 +250,6 @@ function PageList({
                   <span className={styles.dot}>•</span>
                   <code className={styles.code}>{p.path}</code>
 
-                  {/* Optional: show site tag */}
                   {site && (
                     <>
                       <span className={styles.dot}>•</span>

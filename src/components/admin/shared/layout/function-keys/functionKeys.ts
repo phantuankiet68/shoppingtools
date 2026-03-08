@@ -8,30 +8,30 @@ export type FunctionKeyItem = {
 
 export const functionKeys: FunctionKeyItem[] = [
   { key: "F1", label: "Help", icon: "bi-question-circle" },
-  { key: "F2", label: "Search", icon: "bi-search" },
+  { key: "F2", label: "Preview", icon: "bi bi-eye" },
   { key: "F3", label: "Delete", icon: "bi-trash" },
   { key: "F4", label: "Refresh", icon: "bi-arrow-clockwise" },
   { key: "F5", label: "Create", icon: "bi-plus-circle" },
-  { key: "F6", label: "Report", icon: "bi-bar-chart" },
+  { key: "F6", label: "Edit", icon: "bi bi-pencil-square" },
   { key: "F7", label: "Download", icon: "bi-download" },
   { key: "F8", label: "Import", icon: "bi-upload" },
-  { key: "F9", label: "Save", icon: "bi-save" },
+  { key: "F9", label: "Automation", icon: "bi-save" },
   { key: "F10", label: "Update", icon: "bi-pencil-square" },
-  { key: "F11", label: "Export", icon: "bi-box-arrow-up" },
+  { key: "F11", label: "Publish", icon: "bi bi-arrow-up-square" },
   { key: "F12", label: "Dashboard", icon: "bi-speedometer2" },
 ];
 
 export const functionKeyMap: Record<FunctionKeyCode, FunctionKeyItem> = {
   F1: { key: "F1", label: "Help", icon: "bi-question-circle" },
-  F2: { key: "F2", label: "Search", icon: "bi-search" },
+  F2: { key: "F2", label: "Preview", icon: "bi bi-eye" },
   F3: { key: "F3", label: "Delete", icon: "bi-trash" },
   F4: { key: "F4", label: "Refresh", icon: "bi-arrow-clockwise" },
   F5: { key: "F5", label: "Create", icon: "bi-plus-circle" },
-  F6: { key: "F6", label: "Report", icon: "bi-bar-chart" },
+  F6: { key: "F6", label: "Edit", icon: "bi bi-pencil-square" },
   F7: { key: "F7", label: "Download", icon: "bi-download" },
   F8: { key: "F8", label: "Import", icon: "bi-upload" },
-  F9: { key: "F9", label: "Save", icon: "bi-save" },
+  F9: { key: "F9", label: "Automation", icon: "bi-save" },
   F10: { key: "F10", label: "Update", icon: "bi-pencil-square" },
-  F11: { key: "F11", label: "Export", icon: "bi-box-arrow-up" },
+  F11: { key: "F11", label: "Publish", icon: "bi bi-arrow-up-square" },
   F12: { key: "F12", label: "Dashboard", icon: "bi-speedometer2" },
 };

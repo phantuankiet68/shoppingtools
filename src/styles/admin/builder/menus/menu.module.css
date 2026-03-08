@@ -109,6 +109,8 @@
   border-radius: 5px;
   padding: 10px;
   width: 50%;
+  height: 84vh;
+  border: var(--bd-header);
 }
 
 .searchInput {
@@ -116,7 +118,7 @@
   height: 39px;
   width: 500px;
   border-radius: 8px;
-  border: 1px solid var(--bd, #d1d5db);
+  border: var(--bd-header);
   background: var(--card-bg, #fff);
   color: var(--text);
 }
@@ -202,7 +204,7 @@
 }
 
 .blocksGridRight {
-  height: 72.5vh;
+  height: 80vh;
   overflow: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
@@ -221,11 +223,11 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.7rem 0.5rem;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: -webkit-grab;
   cursor: grab;
   font-size: 14px;
-  border: 1px solid #a5a5a533;
+  border: var(--bd-header);
 }
 .blockCard:hover {
   filter: brightness(1.05);
@@ -328,7 +330,7 @@
   padding: 0.5rem 0.6rem;
   width: 100%;
   color: var(--text);
-  border: 1px solid #a5a5a533;
+  border: var(--bd-header);
 }
 .formSelectSm {
   padding: 0.3rem;

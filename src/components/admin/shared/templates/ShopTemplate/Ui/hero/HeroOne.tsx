@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, MouseEvent } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroOne.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeroOne.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type LookKey = "office" | "street" | "party";

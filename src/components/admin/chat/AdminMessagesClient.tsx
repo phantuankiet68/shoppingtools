@@ -807,8 +807,14 @@ export default function AdminMessagesClient() {
                 {friendsLoading ? (
                   <div style={{ fontSize: 13, opacity: 0.8 }}>Loading friends…</div>
                 ) : friends.length === 0 ? (
-                  <div style={{ fontSize: 13, opacity: 0.8 }}>
-                    Bạn chưa có bạn bè. Hãy vào tab Add để gửi lời mời, hoặc tab Requests để Accept.
+                  <div className={styles.emptyNotice}>
+                    <i className={`bi bi-people ${styles.emptyIcon}`} />
+                    <div className={styles.emptyText}>
+                      <div className={styles.emptyTitle}>No friends yet</div>
+                      <div className={styles.emptyDesc}>
+                        Go to <b>Add</b> to send invitations or check <b>Requests</b> to accept new friends.
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div style={{ display: "grid", gap: 8 }}>
@@ -857,17 +863,32 @@ export default function AdminMessagesClient() {
                   </div>
                 ) : null}
 
-                <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                <div className={styles.requestSectionHead}>
+                  <div className={styles.requestHeadLeft}>
+                    <div className={styles.requestIcon}>
+                      <i className="bi bi-person-plus" />
+                    </div>
+                    <div className={styles.requestHeadText}>
+                      <div className={styles.requestTitle}>Incoming requests</div>
+                      <div className={styles.requestSubtitle}>Review and respond to new friend invitations</div>
+                    </div>
+                  </div>
+
                   <button type="button" className={styles.iconBtn} title="Refresh requests" onClick={loadIncoming}>
                     <i className="bi bi-arrow-clockwise" />
                   </button>
-                  <div style={{ fontSize: 13, opacity: 0.8, alignSelf: "center" }}>Incoming friend requests</div>
                 </div>
 
                 {incomingLoading ? (
-                  <div style={{ fontSize: 13, opacity: 0.8 }}>Loading requests…</div>
+                  <div className={styles.stateBox}>
+                    <i className={`bi bi-arrow-repeat ${styles.spin}`} />
+                    <span>Loading requests…</span>
+                  </div>
                 ) : incoming.length === 0 ? (
-                  <div style={{ fontSize: 13, opacity: 0.8 }}>Không có lời mời kết bạn nào.</div>
+                  <div className={styles.stateBox}>
+                    <i className="bi bi-inbox" />
+                    <span>Không có lời mời kết bạn nào.</span>
+                  </div>
                 ) : (
                   <div style={{ display: "grid", gap: 8 }}>
                     {incoming.map((r) => {
@@ -914,17 +935,24 @@ export default function AdminMessagesClient() {
 
             {newChatTab === "add" ? (
               <>
-                <div style={{ display: "grid", gap: 8 }}>
-                  <input
-                    className={styles.input}
-                    placeholder="Enter email to add friend (e.g. admin1@example.com)"
-                    value={addEmail}
-                    onChange={(e) => setAddEmail(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") sendFriendRequestByEmail();
-                    }}
-                    disabled={addBusy}
-                  />
+                <div className={styles.addFriendBox}>
+                  <div className={styles.addFriendField}>
+                    <label className={styles.addFriendLabel}>Add friend by email</label>
+
+                    <div className={styles.addFriendInputWrap}>
+                      <i className={`bi bi-envelope ${styles.addFriendInputIcon}`} />
+                      <input
+                        className={styles.input}
+                        placeholder="Enter email to add friend (e.g. admin1@example.com)"
+                        value={addEmail}
+                        onChange={(e) => setAddEmail(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") sendFriendRequestByEmail();
+                        }}
+                        disabled={addBusy}
+                      />
+                    </div>
+                  </div>
 
                   <button
                     type="button"
@@ -933,14 +961,15 @@ export default function AdminMessagesClient() {
                     disabled={addBusy || !isLikelyEmail(addEmail)}
                     title="Send friend request"
                   >
-                    <i className="bi bi-send" />
-                    <span className={styles.sendText} style={{ marginLeft: 6 }}>
-                      {addBusy ? "Sending…" : "Send request"}
-                    </span>
+                    <i className={`bi ${addBusy ? "bi-arrow-repeat" : "bi-send"} ${addBusy ? styles.spin : ""}`} />
+                    <span className={styles.sendText}>{addBusy ? "Sending…" : "Send request"}</span>
                   </button>
 
-                  <div style={{ fontSize: 12.5, opacity: 0.75, lineHeight: 1.35 }}>
-                    Tip: Người nhận phải vào tab <b>Requests</b> để <b>Accept</b> thì bạn mới chat được.
+                  <div className={styles.tipBox}>
+                    <i className={`bi bi-info-circle ${styles.tipIcon}`} />
+                    <div className={styles.tipText}>
+                      Tip: Người nhận phải vào tab <b>Requests</b> để <b>Accept</b> thì bạn mới chat được.
+                    </div>
                   </div>
                 </div>
               </>
@@ -991,9 +1020,15 @@ export default function AdminMessagesClient() {
 
         <div className={styles.chatList}>
           {loadingChats ? (
-            <div style={{ padding: 12, opacity: 0.8 }}>Loading chats…</div>
+            <div className={styles.emptyState}>
+              <i className={`bi bi-arrow-repeat ${styles.spin}`} />
+              <span>Loading chats…</span>
+            </div>
           ) : filteredChats.length === 0 ? (
-            <div style={{ padding: 12, opacity: 0.8 }}>No chats</div>
+            <div className={styles.emptyState}>
+              <i className="bi bi-chat-dots" />
+              <span>No chats</span>
+            </div>
           ) : (
             filteredChats.map((c) => {
               const active = c.id === activeChatId;
@@ -1156,9 +1191,15 @@ export default function AdminMessagesClient() {
           </div>
 
           {loadingMsgs ? (
-            <div style={{ padding: 12, opacity: 0.8 }}>Loading messages…</div>
+            <div className={styles.msgState}>
+              <i className={`bi bi-arrow-repeat ${styles.spin}`} />
+              <span>Loading messages…</span>
+            </div>
           ) : msgs.length === 0 ? (
-            <div style={{ padding: 12, opacity: 0.8 }}>No messages yet</div>
+            <div className={styles.msgState}>
+              <i className="bi bi-chat-left-dots" />
+              <span>No messages yet</span>
+            </div>
           ) : (
             msgs.map((m) => (
               <div

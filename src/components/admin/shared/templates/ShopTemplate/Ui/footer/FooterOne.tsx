@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, FC } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterOne.module.css";
+import styles from "@/styles/templates/ShopTemplate/footer/FooterOne.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type TickerMessage = {

@@ -2,7 +2,7 @@
 import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarBrightAurora.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/TopbarBrightAurora.module.css";
 
 export interface TopbarProTickerItem {
   text: string;

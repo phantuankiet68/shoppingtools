@@ -1,6 +1,6 @@
 // Ui/topbar/TopbarMulti.tsx
 import React, { useEffect, useRef, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarMulti.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/TopbarMulti.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarProTickerItem {

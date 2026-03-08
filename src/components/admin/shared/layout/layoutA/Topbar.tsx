@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect } from "react";
 import styles from "@/styles/admin/layouts/Topbar.module.css";
 import { useAdminLayoutStore } from "@/store/layout/layouta/index";
-import { FunctionKeyBar, FunctionKeyCode, functionKeyMap } from "@/components/admin/shared/layout/function-keys";
-import { useDefaultFunctionKeys } from "@/components/admin/shared/layout/function-keys/defaultFunctionKeys";
+import { FunctionKeyBar, type FunctionKeyCode } from "@/components/admin/shared/layout/function-keys";
+import { useFunctionKeysContext } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
 
 type Props = {
   meta: { title: string; subtitle?: string | null };
@@ -25,10 +25,10 @@ export default function Topbar({ meta, onLogout }: Props) {
     setNotiTab,
   } = useAdminLayoutStore();
 
+  const { items, actions } = useFunctionKeysContext();
+
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const notiRef = useRef<HTMLDivElement | null>(null);
-
-  const topbarFunctionKeys = useMemo(() => [functionKeyMap.F1, functionKeyMap.F4, functionKeyMap.F12], []);
 
   useEffect(() => {
     function onDocMouseDown(e: MouseEvent) {
@@ -58,12 +58,11 @@ export default function Topbar({ meta, onLogout }: Props) {
     };
   }, [setNotiOpen, setUserMenuOpen]);
 
-  const actions = useDefaultFunctionKeys();
-
   const handleLogoutClick = async () => {
     setUserMenuOpen(false);
     await onLogout();
   };
+
   const handleFunctionClick = (key: FunctionKeyCode) => {
     actions[key]?.();
   };
@@ -93,7 +92,7 @@ export default function Topbar({ meta, onLogout }: Props) {
         </div>
 
         <div className={styles.topbarCenter}>
-          <FunctionKeyBar items={topbarFunctionKeys} onClick={handleFunctionClick} />
+          <FunctionKeyBar items={items} onClick={handleFunctionClick} />
         </div>
 
         <div className={styles.topbarRight}>

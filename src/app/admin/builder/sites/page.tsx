@@ -7,7 +7,7 @@ const SiteBuilder = dynamic(() => import("@/components/admin/builder/sites/page"
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Site Management" subtitle="Customize and manage system Site" />
+      <AdminPageTitle title="Site Management" />
       <SiteBuilder />
     </main>
   );

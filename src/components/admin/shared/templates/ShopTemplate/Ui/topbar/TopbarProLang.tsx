@@ -1,7 +1,7 @@
 // src/components/templates/TopbarProLang.tsx
 
 import React, { useEffect, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarProLang.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/TopbarProLang.module.css";
 
 /**
  * ===== 1) Types =====

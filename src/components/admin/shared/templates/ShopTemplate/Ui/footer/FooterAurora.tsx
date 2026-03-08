@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterAurora.module.css";
+import styles from "@/styles/admin/templates/ShopTemplate/footer/FooterAurora.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type FooterAuroraVariant = "pill" | "grid" | "compact";

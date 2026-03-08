@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroWear.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeroWear.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ========== TYPES & DEFAULTS ========== */

@@ -4,7 +4,7 @@ import React, { useEffect, useState, FormEvent, MouseEvent } from "react";
 import type { FC } from "react";
 import styles from "@/styles/templates/ShopTemplate/footer/FooterPro.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
-// Newsletter
+
 export type FooterVariant = "default" | "soft" | "dark";
 
 export type FooterLink = {

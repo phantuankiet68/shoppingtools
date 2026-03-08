@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState, FormEvent, MouseEvent as ReactMouseEvent, KeyboardEvent } from "react";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderGreen.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderGreen.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB ===== */

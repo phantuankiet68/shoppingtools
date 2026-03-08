@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroBlue.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeroBlue.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ========== TYPES & DEFAULTS ========== */

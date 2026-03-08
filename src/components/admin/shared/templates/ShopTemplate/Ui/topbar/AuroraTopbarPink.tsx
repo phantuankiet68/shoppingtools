@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, MouseEvent as ReactMouseEvent } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/AuroraTopbarPink.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/AuroraTopbarPink.module.css";
 
 export type AuroraTopbarTickerItem = {
   text: string;

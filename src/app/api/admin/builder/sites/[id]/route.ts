@@ -1,24 +1,46 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+type Params = {
+  params: Promise<{ id: string }>;
+};
 
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: Params) {
   try {
-    const { id } = await ctx.params;
-    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    const { id } = await params;
+    const body = await req.json();
 
-    const result = await prisma.site.updateMany({
-      where: {
-        id,
-        deletedAt: null,
-      },
+    const updated = await prisma.site.update({
+      where: { id },
       data: {
-        deletedAt: new Date(),
+        name: body.name,
+        domain: body.domain,
+        status: body.status,
+        isPublic: body.isPublic,
+        publishedAt: body.publishedAt ? new Date(body.publishedAt) : null,
+        seoTitleDefault: body.seoTitleDefault,
+        seoDescDefault: body.seoDescDefault,
       },
     });
-    return NextResponse.json({ ok: true, updated: result.count });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Delete failed" }, { status: 400 });
+
+    return NextResponse.json(updated);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Update failed";
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  try {
+    const { id } = await params;
+
+    await prisma.site.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Delete failed";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

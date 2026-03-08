@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState, MouseEvent } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroOrange.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeroOrange.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type HeroOrangeTabKey = "flash" | "electronics" | "home" | "fashion";

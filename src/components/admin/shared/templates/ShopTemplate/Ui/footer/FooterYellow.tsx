@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterYellow.module.css";
+import styles from "@/styles/templates/ShopTemplate/footer/FooterYellow.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type FooterYellowLayout = "classic" | "split";

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroGreen.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeroGreen.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Props HeroGreen ===== */

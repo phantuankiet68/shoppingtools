@@ -1,18 +1,6 @@
 /* sites.module.css */
 
 .shell {
-  --bg: #f6f8fc;
-  --panel: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --line: rgba(15, 23, 42, 0.08);
-  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-  --shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.08);
-  --r-xl: 18px;
-  --r-lg: 14px;
-  --r-md: 12px;
-  --gap: 16px;
-
   background: var(--bg);
   min-height: 100vh;
   color: var(--text);
@@ -27,10 +15,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 0px 0px 10px 0px;
-  background: rgba(246, 248, 252, 0.85);
+  padding: 10px;
+  background: var(--background);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--bd-header);
 }
 
 .brand {
@@ -146,7 +134,7 @@
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  border: 1px solid var(--line);
+  border: var(--bd-header);
   border-radius: 6px;
   background: #fff;
 }
@@ -200,10 +188,10 @@
 }
 
 .card {
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: var(--background);
+  border: var(--bd-header);
   border-radius: 8px;
-  padding: 8px;
+  padding: 18px;
   cursor: pointer;
   transition:
     transform 0.12s ease,
@@ -218,7 +206,7 @@
 }
 
 .cardActive {
-  border-color: rgba(37, 99, 235, 0.45);
+  border-color: var(--bd-header-active);
 }
 
 .cardTop {
@@ -266,7 +254,7 @@
 }
 
 .badge {
-  border: 1px solid var(--line);
+  border: var(--bd-header);
   color: #0f172a;
   white-space: nowrap;
   background: #fff;
@@ -297,20 +285,21 @@
 }
 
 .panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: var(--background);
+  border: var(--bd-header);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .panelHeader {
   padding: 14px 14px 10px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--bd-header);
 }
 
 .panelTitle {
   font-size: 16px;
   font-weight: 800;
+  color: var(--muted);
 }
 
 .panelSub {
@@ -346,27 +335,26 @@
   display: grid;
   grid-template-columns: 120px 1fr;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   padding: 10px 15px;
-  border-radius: 14px;
+  border-radius: 6px;
   border: 1px solid var(--line);
   background: rgba(15, 23, 42, 0.02);
 }
 
 .k {
-  font-size: 12px;
-  font-weight: 900;
-  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .v {
-  font-size: 14px;
-  color: #0f172a;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 /* -------- Inline tip -------- */
 .tipInline {
-  margin-top: 10px;
   display: flex;
   gap: 8px;
   align-items: flex-start;
@@ -389,9 +377,9 @@
 .modal {
   width: min(720px, 100%);
   max-height: min(86vh, 860px);
-  background: var(--panel);
+  background: var(--background);
   border: 1px solid var(--line);
-  border-radius: var(--r-xl);
+  border-radius: 6px;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -414,27 +402,26 @@
 /* -------- Form -------- */
 .form {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   padding: 12px;
-  border-radius: var(--r-xl);
-  border: 1px solid var(--line);
-  background: rgba(15, 23, 42, 0.02);
+  border-radius: 6px;
+  border: var(--bd-header);
+  background: var(--bg-header);
 }
 
 .label {
-  font-size: 12px;
-  font-weight: 900;
-  color: #334155;
-  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .inputWrap {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: var(--bd-header);
   background: #fff;
 }
 

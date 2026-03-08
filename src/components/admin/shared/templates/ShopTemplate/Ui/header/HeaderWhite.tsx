@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, FormEvent, MouseEvent } from "react";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderWhite.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderWhite.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB (reuse từ HeaderPro) ===== */

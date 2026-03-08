@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, FormEvent, MouseEvent as ReactMouseEvent, KeyboardEvent } from "react";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderAurora.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderAurora.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Nav types (chuẩn giống HeaderPro) ===== */

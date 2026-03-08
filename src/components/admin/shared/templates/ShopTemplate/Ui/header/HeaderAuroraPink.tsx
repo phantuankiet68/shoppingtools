@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, FormEvent } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderAuroraPink.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderAuroraPink.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types menu dùng trong UI ===== */

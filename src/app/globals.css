@@ -44,7 +44,8 @@
   --bg-blue: #4cb3ff;
   --bg-table: linear-gradient(#e9f4fff0 0%, #ecf5fff0 100%);
   --title: #74b6f1;
-  --bd-header: 1px solid #e6edf7;
+  --bd-header: 1px solid #dae7fb;
+  --bd-header-active: #6e95e973;
   --bg-pro: linear-gradient(135deg, #8daaff, #d2e5ff);
   --bg-add: #24ff9a1f;
   --color-add: #2ecb96;
@@ -53,7 +54,7 @@
   --bd-save: #58a7ff70;
   --bd-s-save: 1px solid #44aaef69;
   --color-save: #5ab1ff;
-  --color-title: #5581c5;
+  --color-title: #6d8bff;
   --bd-s-delete: 1px solid #ef444440;
   --bg-delete: #ef44441a;
   --color-delete: #b91c1c;

@@ -1,7 +1,7 @@
 // src/components/templates/AuroraTopbarGreen.tsx
 import React, { useEffect, useRef, useState } from "react";
 import styles from "@/styles/templates/ShopTemplate/topbar/AuroraTopbarGreen.module.css";
-// src/components/templates/AuroraTopbarGreen.tsx
+
 export interface AuroraTopbarGreenTickerItem {
   text: string;
   badge?: string;

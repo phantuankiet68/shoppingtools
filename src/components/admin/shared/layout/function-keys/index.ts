@@ -8,7 +8,7 @@ export { default as F2SearchButton } from "./buttons/F2Button";
 export { default as F3DeleteButton } from "./buttons/F3Button";
 export { default as F4ClearButton } from "./buttons/F4Button";
 export { default as F5RefreshButton } from "./buttons/F5Button";
-export { default as F6ReportButton } from "./buttons/F6Button";
+export { default as F6EditButton } from "./buttons/F6Button";
 export { default as F7DownloadButton } from "./buttons/F7Button";
 export { default as F8ImportButton } from "./buttons/F8Button";
 export { default as F9SaveButton } from "./buttons/F9Button";

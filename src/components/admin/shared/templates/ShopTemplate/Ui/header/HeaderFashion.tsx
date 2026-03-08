@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, FormEvent, MouseEvent, KeyboardEvent } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderFashion.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderFashion.module.css";
 
 /* ============================
  * Types cho menu / nav

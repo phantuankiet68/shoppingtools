@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, FormEvent, useEffect } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderSimple.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderSimple.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB (giống HeaderPro) ===== */

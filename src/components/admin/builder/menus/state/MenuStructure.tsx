@@ -1,14 +1,13 @@
-// src/components/menu/state/MenuStructure.tsx
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/builder/menus/MenuStructure.module.css";
 import EditOffcanvas from "./EditOffcanvas";
 import React from "react";
 import { useMenuStore } from "@/components/admin/builder/menus/state/useMenuStore";
-import ConfirmDialog from "@/components/admin/shared/popup/delete/ConfirmDialog";
 import { MENU_MESSAGES as M } from "@/features/builder/menus/messages";
+import { useModal } from "@/components/admin/shared/common/modal";
 
 type MenuItem = ReturnType<typeof useMenuStore>["activeMenu"][number];
 
@@ -17,6 +16,11 @@ type DragInfo = null | {
   id: string;
   source: "root" | "children";
   parentId?: string | null;
+};
+
+type MenuStructureProps = {
+  q: string;
+  setQ: Dispatch<SetStateAction<string>>;
 };
 
 function slugifyLoose(input: string) {
@@ -31,44 +35,55 @@ function slugifyLoose(input: string) {
     .replace(/^-|-$/g, "");
 }
 
-export default function MenuStructure() {
+export default function MenuStructure({ q }: MenuStructureProps) {
   const router = useRouter();
+  const modal = useModal();
   const { activeMenu, setActiveMenu, removeItemById, buildHref, findItem } = useMenuStore();
 
   const [editing, setEditing] = useState<MenuItem | null>(null);
   const dragInfo = useRef<DragInfo>(null);
   const overRef = useRef<HTMLElement | null>(null);
 
-  const [q, setQ] = useState("");
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = React.useState<string | null>(null);
-  const [busy, setBusy] = React.useState(false);
+  const handleDelete = async (id: string) => {
+    const current = findItem(id);
+    const el = document.querySelector(`[data-menu-id="${id}"]`);
 
-  const askDelete = (id: string) => {
-    setPendingDeleteId(id);
-    setConfirmOpen(true);
-  };
-
-  const doDelete = async () => {
-    if (!pendingDeleteId) return;
-    const el = document.querySelector(`[data-menu-id="${pendingDeleteId}"]`);
-    if (el) (el as HTMLElement).style.opacity = "0.4";
+    if (el) {
+      (el as HTMLElement).style.opacity = "0.4";
+    }
 
     try {
-      setBusy(true);
-      const res = await fetch(`/api/admin/builder/menus/${pendingDeleteId}`, { method: "DELETE", cache: "no-store" });
-      if (!res.ok) throw new Error(await res.text());
+      const res = await fetch(`/api/admin/builder/menus/${id}`, {
+        method: "DELETE",
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      modal.success("Success", `Deleted “${current?.title || "menu item"}” successfully.`);
 
       router.refresh();
       setTimeout(() => window.location.reload(), 100);
     } catch (e: unknown) {
-      alert((e as Error)?.message || "Xóa thất bại");
-      if (el) (el as HTMLElement).style.opacity = "";
-    } finally {
-      setBusy(false);
-      setConfirmOpen(false);
-      setPendingDeleteId(null);
+      modal.error("Delete failed", (e as Error)?.message || "Xóa thất bại");
+      if (el) {
+        (el as HTMLElement).style.opacity = "";
+      }
     }
+  };
+
+  const askDelete = (id: string) => {
+    const current = findItem(id);
+
+    modal.confirmDelete(
+      M.menuStructure.confirmDeleteTitle || "Delete menu item?",
+      `Delete “${current?.title || "this item"}”? This action cannot be undone.`,
+      () => {
+        void handleDelete(id);
+      },
+    );
   };
 
   const filteredTree = useMemo(() => {
@@ -76,6 +91,7 @@ export default function MenuStructure() {
     if (!query) return activeMenu;
 
     const now = new Date();
+
     const matchNode = (node: MenuItem): MenuItem | null => {
       const href = buildHref(node, now);
       const titleHit = (node.title || "").toLowerCase().includes(query);
@@ -98,7 +114,6 @@ export default function MenuStructure() {
     else el.classList.remove(styles.dropActive);
   }
 
-  // ✅ only allow children drop for root items (2 levels only)
   function isRootItemId(id?: string) {
     if (!id) return false;
     return (activeMenu || []).some((it) => it.id === id);
@@ -108,7 +123,6 @@ export default function MenuStructure() {
     e.preventDefault();
     e.stopPropagation();
 
-    // ✅ prevent creating level-3 items
     if (zone === "children" && !isRootItemId(parentId)) return;
 
     const raw = e.dataTransfer.getData("application/json") || e.dataTransfer.getData("text/plain");
@@ -143,7 +157,7 @@ export default function MenuStructure() {
         newTab: false,
         internalPageId: (payload.internalPageId as string) ?? null,
         rawPath: (rawPath as string) ?? "",
-        ...(slug ? { slug: slug } : {}),
+        ...(slug ? { slug } : {}),
         schedules: [],
         children: [],
       };
@@ -162,17 +176,12 @@ export default function MenuStructure() {
     }
   }
 
-  const closeConfirm = () => {
-    if (busy) return;
-    setConfirmOpen(false);
-    setPendingDeleteId(null);
-  };
-
   function onDragStartRow(e: React.DragEvent, it: MenuItem, source: "root" | "children", parentId?: string) {
     dragInfo.current = { kind: "move", id: it.id, source, parentId };
     (e.target as HTMLElement).classList.add(styles.ghost);
     e.dataTransfer.effectAllowed = "move";
   }
+
   function onDragEndRow(e: React.DragEvent) {
     (e.target as HTMLElement).classList.remove(styles.ghost);
     dragInfo.current = null;
@@ -185,9 +194,7 @@ export default function MenuStructure() {
     const info = dragInfo.current;
     if (!info || info.kind !== "move") return;
 
-    // ✅ prevent moving into level-3 (only root can receive children)
     if (zone === "children" && !isRootItemId(parentId)) return;
-
     if (zone === "children" && parentId === info.id) return;
 
     const isDescendant = (nodeId: string, targetId?: string): boolean => {
@@ -221,6 +228,7 @@ export default function MenuStructure() {
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
+
     if (overRef.current !== e.currentTarget) {
       setOver(overRef.current, false);
       overRef.current = e.currentTarget;
@@ -234,6 +242,7 @@ export default function MenuStructure() {
     const tl = (text || "").toLowerCase();
     const i = tl.indexOf(ql);
     if (i === -1) return text;
+
     return (
       <>
         {text.slice(0, i)}
@@ -271,9 +280,10 @@ export default function MenuStructure() {
 
           <span className={styles.flex1}>{highlight(item.title || "(No title)", q.trim())}</span>
 
-          {hrefPreview ? <span className={styles.linkPill}>{hrefPreview}</span> : null}
+          {hrefPreview ? <span className={styles.linkPill}>{highlight(hrefPreview, q.trim())}</span> : null}
 
           <button
+            type="button"
             className={`${styles.btn} ${styles.btnIcon} ${styles.btnOutlineLight}`}
             onClick={() => setEditing(item)}
           >
@@ -294,23 +304,8 @@ export default function MenuStructure() {
           >
             <i className="bi bi-x-lg" />
           </button>
-
-          <ConfirmDialog
-            open={confirmOpen}
-            title="Xoá menu"
-            message={busy ? "Đang xoá..." : "Bạn có chắc muốn xoá mục này? Thao tác này sẽ được lưu lại."}
-            onCancel={() => {
-              if (busy) return;
-              setConfirmOpen(false);
-              setPendingDeleteId(null);
-            }}
-            onConfirm={() => {
-              if (!busy) void doDelete();
-            }}
-          />
         </div>
 
-        {/* ✅ only show submenu dropzone for level-1 items (depth === 1) */}
         {depth < 2 ? (
           <div className={styles.subwrap} data-parent={item.id}>
             <div className={styles.smallHelp}>
@@ -347,44 +342,13 @@ export default function MenuStructure() {
   return (
     <>
       <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h2 className={styles.h6} style={{ marginRight: "auto" }}>
-            Menu structure
-          </h2>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div className={styles.search} style={{ position: "relative" }}>
-              <i
-                className={`bi bi-search ${styles.iconSearch}`}
-                aria-hidden
-                style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", opacity: 0.6 }}
-              />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Tìm tiêu đề hoặc đường dẫn…"
-                aria-label="Tìm trong menu"
-                className={styles.searchInput}
-              />
-            </div>
-            {q ? (
-              <button
-                className={`${styles.btn} ${styles.btnOutlineSecondary}`}
-                onClick={() => setQ("")}
-                title="Xoá từ khoá"
-              >
-                <i className="bi bi-x-circle" /> Clear
-              </button>
-            ) : null}
-          </div>
-        </div>
-
         <div
           className={`${styles.dropzone} ${styles.appSoft}`}
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
             e.dataTransfer.dropEffect = dragInfo.current ? "move" : "copy";
+
             if (overRef.current !== e.currentTarget) {
               setOver(overRef.current, false);
               overRef.current = e.currentTarget as HTMLElement;
@@ -417,18 +381,6 @@ export default function MenuStructure() {
 
         {editing && <EditOffcanvas item={editing} onClose={() => setEditing(null)} />}
       </div>
-      <ConfirmDialog
-        open={confirmOpen}
-        title={M.menuStructure.confirmDeleteTitle}
-        message={busy ? M.menuStructure.confirmDeleting : M.menuStructure.confirmDeleteMsg}
-        onCancel={() => {
-          if (busy) return;
-          closeConfirm();
-        }}
-        onConfirm={() => {
-          if (!busy) void doDelete();
-        }}
-      />
     </>
   );
 }

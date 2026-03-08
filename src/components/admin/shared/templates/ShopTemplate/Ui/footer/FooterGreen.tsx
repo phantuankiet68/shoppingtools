@@ -2,7 +2,7 @@
 
 import React, { FC, useState } from "react";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterGreen.module.css";
+import styles from "@/styles/templates/ShopTemplate/footer/FooterGreen.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type LayoutMode = "classic" | "split" | "minimal";

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageList from "@/components/admin/builder/pages/list/PageList";
 import PageInspector from "@/components/admin/builder/pages/list/PageInspector";
+import { useModal } from "@/components/admin/shared/common/modal";
 import styles from "@/styles/admin/builder/pages/page/page.module.css";
 import type { PageRowWithSite } from "@/services/builder/pages/builderPages.service";
 import { useBuilderPagesStore } from "@/store/builder/pages/useBuilderPagesStore";
@@ -17,6 +18,7 @@ type SiteFilter = "all" | string;
 export default function UiBuilderListPage() {
   const router = useRouter();
   const sp = useSearchParams();
+  const modal = useModal();
 
   const initQ = sp.get("q") ?? "";
   const initStatus = (sp.get("status") as StatusFilter | null) ?? "all";
@@ -59,14 +61,6 @@ export default function UiBuilderListPage() {
     active,
   } = store;
 
-  const [msg, setMsg] = useState("");
-
-  const notify = (text: string, timeoutMs = 1800) => {
-    setMsg(text);
-    window.setTimeout(() => setMsg(""), timeoutMs);
-  };
-
-  // Sync querystring
   useEffect(() => {
     const params = new URLSearchParams(sp.toString());
 
@@ -85,13 +79,18 @@ export default function UiBuilderListPage() {
     if (page !== 1) params.set("page", String(page));
     else params.delete("page");
 
+    if (activeId) params.set("id", activeId);
+    else params.delete("id");
+
     const nextSearch = params.toString();
     if (nextSearch !== sp.toString()) {
       router.replace(`?${nextSearch}`, { scroll: false });
     }
   }, [q, status, sortKey, sortDir, siteId, page, activeId, router, sp]);
 
-  const openEdit = (id: string) => router.push(`/admin/builder/pages/add?id=${encodeURIComponent(id)}`);
+  const openEdit = (id: string) => {
+    router.push(`/admin/builder/pages/add?id=${encodeURIComponent(id)}`);
+  };
 
   function openPreview(p: PageRowWithSite) {
     if (!p.path) return;
@@ -106,64 +105,72 @@ export default function UiBuilderListPage() {
     window.open(`${base}${path}`, "_blank");
   }
 
-  // Load sites once
   useEffect(() => {
-    loadSites();
-  }, [loadSites]);
+    loadSites().catch((e: unknown) => {
+      modal.error("Error", (e as Error)?.message || "Failed to load sites.");
+    });
+  }, [loadSites, modal]);
 
-  // Load pages with debounce
   useEffect(() => {
     const t = window.setTimeout(() => {
       loadPages().catch((e: unknown) => {
-        notify((e as Error)?.message || PAGE_MESSAGES.loadPagesError);
+        modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.loadPagesError);
       });
     }, 260);
 
     return () => window.clearTimeout(t);
-  }, [loadPages]);
+  }, [loadPages, modal]);
 
-  // Reset page when site changes
   useEffect(() => {
     setPage(1);
   }, [siteId, setPage]);
 
   async function del(id: string) {
-    if (!confirm(PAGE_MESSAGES.confirmDelete)) return;
+    const current = pages.find((p) => p.id === id);
 
-    try {
-      await remove(id);
-    } catch (e: unknown) {
-      notify((e as Error)?.message || PAGE_MESSAGES.deleteError);
-    }
+    modal.confirmDelete(
+      "Delete page?",
+      `Delete “${current?.title ?? "this page"}”? This action cannot be undone.`,
+      async () => {
+        try {
+          await remove(id);
+          modal.success("Success", `Deleted “${current?.title ?? "this page"}” successfully.`);
+        } catch (e: unknown) {
+          modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.deleteError);
+        }
+      },
+    );
   }
 
   async function dupAction(id: string) {
+    const current = pages.find((p) => p.id === id);
+
     try {
       await dup(id);
-      notify(PAGE_MESSAGES.duplicateSuccess, 1200);
+      modal.success("Success", `Duplicated “${current?.title ?? "this page"}” successfully.`);
     } catch (e: unknown) {
-      notify((e as Error)?.message || PAGE_MESSAGES.duplicateError);
+      modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.duplicateError);
     }
   }
 
   async function pubAction(id: string, next: "publish" | "unpublish") {
+    const current = pages.find((p) => p.id === id);
+
     try {
       await pub(id, next);
+      modal.success(
+        "Success",
+        next === "publish"
+          ? `Published “${current?.title ?? "this page"}” successfully.`
+          : `Unpublished “${current?.title ?? "this page"}” successfully.`,
+      );
     } catch (e: unknown) {
-      notify((e as Error)?.message || PAGE_MESSAGES.publishError);
+      modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.publishError);
     }
   }
 
   return (
     <div className={styles.wrap}>
-      {msg && (
-        <div className="container-fluid">
-          <div className="alert alert-warning py-2 px-3 my-2 small">
-            <i className="bi bi-exclamation-triangle me-1" /> {msg}
-          </div>
-        </div>
-      )}
-
       <div className={styles.grid}>
         <PageList
           pages={pages}

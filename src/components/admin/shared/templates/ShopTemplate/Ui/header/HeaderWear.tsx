@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, MouseEvent, FormEvent } from "react";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderWear.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderWear.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB ===== */

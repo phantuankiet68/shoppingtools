@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, MouseEvent, FormEvent } from "react";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/header/HeaderAuroraFashion.module.css";
+import styles from "@/styles/templates/ShopTemplate/header/HeaderAuroraFashion.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types từ DB ===== */

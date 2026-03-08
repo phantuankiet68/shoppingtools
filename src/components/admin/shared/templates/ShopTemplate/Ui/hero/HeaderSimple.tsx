@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, KeyboardEvent } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeaderSimple.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeaderSimple.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface HeaderSimpleProps {

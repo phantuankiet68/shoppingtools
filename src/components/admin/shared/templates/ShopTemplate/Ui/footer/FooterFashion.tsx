@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterFashion.module.css";
+import styles from "@/styles/templates/ShopTemplate/footer/FooterFashion.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterFashionMode = "fashionGrid" | "boutiqueShell" | "minimalBar";

@@ -6,7 +6,6 @@
 }
 
 .card {
-  scrollbar-gutter: stable both-edges;
   overflow: auto;
   height: 81vh;
 }
@@ -22,10 +21,8 @@
   display: flex;
   align-items: center;
   gap: 5px;
-
   padding: 8px 12px;
-  border-radius: 14px;
-
+  border-radius: 6px;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.1);
   transition:
@@ -194,7 +191,7 @@
 .subwrap {
   margin-top: 10px;
   padding: 10px 10px 12px;
-  border-radius: 14px;
+  border-radius: 6px;
   border: 1px dashed rgba(15, 23, 42, 0.18);
   background: rgba(248, 250, 252, 0.6);
 }
@@ -215,8 +212,8 @@
 
 .dropzone {
   margin-top: 8px;
-  border-radius: 14px;
-  padding: 20px;
+  border-radius: 6px;
+  padding: 25px;
   border: 1px dashed rgba(15, 23, 42, 0.22);
   border-color: rgba(37, 99, 235, 0.22);
   background: rgba(37, 99, 235, 0.03);
@@ -277,9 +274,7 @@
 
 .card {
   border-radius: 6px;
-  border: 1px solid rgba(2, 6, 23, 0.08);
   background: rgba(255, 255, 255, 0.86);
-  padding: 12px 8px;
 }
 
 .headerRight {
@@ -323,10 +318,9 @@
 }
 
 .dropzone {
-  border-radius: 16px;
+  border-radius: 6px;
   border: 1.5px dashed rgba(99, 102, 241, 0.26);
   background: rgba(99, 102, 241, 0.03);
-  padding: 15px;
   transition:
     background 0.12s ease,
     border-color 0.12s ease;

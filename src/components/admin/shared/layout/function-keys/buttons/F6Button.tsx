@@ -6,6 +6,6 @@ type Props = {
   onClick?: () => void;
 };
 
-export default function F6ReportButton({ onClick }: Props) {
-  return <FunctionKeyButton hotkey="F6" label="Report" onClick={onClick} />;
+export default function F6EditButton({ onClick }: Props) {
+  return <FunctionKeyButton hotkey="F6" label="Edit" onClick={onClick} />;
 }

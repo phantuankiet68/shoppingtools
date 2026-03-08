@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeaderWhite.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeaderWhite.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface HeroWhiteProps {

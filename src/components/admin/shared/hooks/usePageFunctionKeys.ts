@@ -1,18 +1,53 @@
 "use client";
 
-import useFunctionKeys from "./useFunctionKeys";
-import { useDefaultFunctionKeys } from "@/components/admin/shared/layout/function-keys/defaultFunctionKeys";
-import { FunctionKeyCode } from "@/components/admin/shared/layout/function-keys/functionKeys";
+import { useEffect, useMemo } from "react";
+import { useFunctionKeysContext } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
+import type { FunctionKeyCode } from "@/components/admin/shared/layout/function-keys/functionKeys";
 
-type ActionMap = Partial<Record<FunctionKeyCode, () => void>>;
+type FunctionKeyActions = Partial<Record<FunctionKeyCode, () => void>>;
 
-export default function usePageFunctionKeys(pageActions: ActionMap = {}) {
-  const defaultActions = useDefaultFunctionKeys();
+function isTypingTarget(target: EventTarget | null) {
+  const el = target as HTMLElement | null;
+  if (!el) return false;
 
-  const actions = {
-    ...defaultActions,
-    ...pageActions,
-  };
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
+}
 
-  useFunctionKeys(actions);
+export function usePageFunctionKeys(pageActions: FunctionKeyActions) {
+  const { actions, setPageFunctionKeys, resetToDefault } = useFunctionKeysContext();
+
+  useEffect(() => {
+    setPageFunctionKeys(pageActions);
+
+    return () => {
+      resetToDefault();
+    };
+  }, [pageActions, setPageFunctionKeys, resetToDefault]);
+
+  const mergedActions = useMemo(
+    () => ({
+      ...actions,
+    }),
+    [actions],
+  );
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const key = e.key as FunctionKeyCode;
+      const action = mergedActions[key];
+
+      if (!action) return;
+      if (isTypingTarget(e.target)) return;
+
+      e.preventDefault();
+      action();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mergedActions]);
 }

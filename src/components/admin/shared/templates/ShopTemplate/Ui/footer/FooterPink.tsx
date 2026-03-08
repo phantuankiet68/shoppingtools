@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, FormEvent, MouseEvent } from "react";
 import type { FC } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterPink.module.css";
+import styles from "@/styles/templates/ShopTemplate/footer/FooterPink.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export type FooterPinkVariant = "aurora" | "glass" | "dusk";

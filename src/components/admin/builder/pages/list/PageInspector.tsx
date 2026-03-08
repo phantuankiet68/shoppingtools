@@ -5,6 +5,8 @@ import styles from "@/styles/admin/builder/pages/PageInspector.module.css";
 import type { PageRow, SEO } from "@/lib/page/types";
 import { buildAutoSEO } from "@/lib/page/seo-utils";
 import { API_ROUTES } from "@/constants/api";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import { useModal } from "@/components/admin/shared/common/modal";
 
 type Props = {
   page: PageRow | null;
@@ -42,36 +44,14 @@ function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
   };
 }
 
-function PageInspector({
-  page,
-  onEdit,
-  onPreview,
-  onPublish,
-  onUnpublish,
-  onDuplicate,
-  onDelete,
-  initialSeo = null,
-}: Props) {
+function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDelete, initialSeo = null }: Props) {
+  const modal = useModal();
   const hasPage = !!page?.id;
 
   const [seo, setSeo] = useState<SEO>(() => buildDefaultSEO(page, initialSeo));
   const [savingSEO, setSavingSEO] = useState(false);
-  const [flash, setFlash] = useState("");
 
-  const flashTimerRef = useRef<number | null>(null);
   const lastLoadedPageIdRef = useRef<string | null>(null);
-
-  const showFlash = useCallback((msg: string, ms = 1400) => {
-    setFlash(msg);
-    if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
-    flashTimerRef.current = window.setTimeout(() => setFlash(""), ms);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
-    };
-  }, []);
 
   const pathPretty = useMemo(() => ensureLeadingSlash(page?.path || "/"), [page?.path]);
 
@@ -91,7 +71,6 @@ function PageInspector({
     return ts ? dateTimeFormatter.format(new Date(ts)) : "(no date)";
   }, [page, dateTimeFormatter]);
 
-  // Reset SEO when switching page
   useEffect(() => {
     if (!page?.id) {
       lastLoadedPageIdRef.current = null;
@@ -103,7 +82,6 @@ function PageInspector({
     lastLoadedPageIdRef.current = null;
   }, [page, initialSeo]);
 
-  // Load SEO from API when initialSeo not provided
   useEffect(() => {
     if (!page?.id) return;
 
@@ -125,8 +103,11 @@ function PageInspector({
         });
 
         if (!r.ok) {
-          if (r.status === 404) showFlash("Trang không tồn tại", 1800);
-          else showFlash("Load SEO failed", 1800);
+          if (r.status === 404) {
+            modal.error("Not found", "Trang không tồn tại");
+          } else {
+            modal.error("Error", "Load SEO failed");
+          }
           return;
         }
 
@@ -142,9 +123,8 @@ function PageInspector({
     })();
 
     return () => controller.abort();
-  }, [page, initialSeo, showFlash]);
+  }, [page, initialSeo, modal]);
 
-  // Ensure title defaults are populated
   useEffect(() => {
     if (!page) return;
     setSeo((prev) => ({
@@ -160,16 +140,6 @@ function PageInspector({
   const seoOkTitle = metaLen <= 60 ? "good" : metaLen <= 70 ? "warn" : "bad";
   const seoOkDesc = descLen <= 160 ? "good" : descLen <= 180 ? "warn" : "bad";
 
-  const jsonLdStatus = useMemo(() => {
-    try {
-      if (!seo.structuredData?.trim()) return "empty" as const;
-      JSON.parse(seo.structuredData);
-      return "valid" as const;
-    } catch {
-      return "invalid" as const;
-    }
-  }, [seo.structuredData]);
-
   const handleAutoSEO = useCallback(() => {
     if (!page) return;
 
@@ -183,7 +153,9 @@ function PageInspector({
       ...suggestion,
       ogTitle: suggestion.metaTitle || prev.ogTitle,
     }));
-  }, [page, pathPretty, seo.metaTitle]);
+
+    modal.success("Success", "Đã autocomplete SEO");
+  }, [page, pathPretty, seo.metaTitle, modal]);
 
   const handleSaveSEO = useCallback(async () => {
     if (!page?.id) return;
@@ -203,13 +175,65 @@ function PageInspector({
         throw new Error(msg);
       }
 
-      showFlash("Đã lưu SEO", 1400);
+      modal.success("Success", "Đã lưu SEO");
     } catch (e: unknown) {
-      showFlash((e as Error)?.message || "Save SEO error", 1800);
+      modal.error("Error", (e as Error)?.message || "Save SEO error");
     } finally {
       setSavingSEO(false);
     }
-  }, [page?.id, seo, showFlash]);
+  }, [page?.id, seo, modal]);
+
+  const handleDelete = useCallback(() => {
+    if (!page?.id) return;
+
+    modal.confirmDelete("Delete page?", `Delete “${page.title || "this page"}”? This action cannot be undone.`, () =>
+      onDelete(),
+    );
+  }, [page, onDelete, modal]);
+
+  const functionKeys = useMemo(
+    () => ({
+      F2: () => {
+        if (!hasPage) return;
+        onPreview();
+      },
+      F3: () => {
+        if (!hasPage) return;
+        handleDelete();
+      },
+      F6: () => {
+        if (!hasPage) return;
+        onEdit();
+      },
+      F9: () => {
+        if (!hasPage) return;
+        handleAutoSEO();
+      },
+      F10: () => {
+        if (!hasPage || savingSEO) return;
+        void handleSaveSEO();
+      },
+      F11: () => {
+        if (!hasPage) return;
+        if (page?.status === "PUBLISHED") onUnpublish();
+        else onPublish();
+      },
+    }),
+    [
+      hasPage,
+      onPreview,
+      handleDelete,
+      onEdit,
+      handleAutoSEO,
+      handleSaveSEO,
+      savingSEO,
+      page?.status,
+      onPublish,
+      onUnpublish,
+    ],
+  );
+
+  usePageFunctionKeys(functionKeys);
 
   return (
     <section className={styles.rightPane}>
@@ -217,7 +241,9 @@ function PageInspector({
         <header className={styles.detailHead}>
           <div className={styles.detailInfo}>
             <h2 className={styles.detailTitle}>{page!.title || "(untitled)"}</h2>
+          </div>
 
+          <div className={styles.actionRow}>
             <div className={styles.kv}>
               <div className={styles.kvItem}>
                 <span className={styles.kvLabel}>Status</span>
@@ -234,52 +260,11 @@ function PageInspector({
               </div>
             </div>
           </div>
-
-          <div className={styles.actionRow}>
-            <button className={styles.primaryBtn} type="button" onClick={onEdit}>
-              <i className={`bi bi-pencil-square ${styles.iconLeft}`} />
-              Edit
-            </button>
-
-            <button className={styles.ghostBtn} type="button" onClick={onPreview}>
-              <i className={`bi bi-box-arrow-up-right ${styles.iconLeft}`} />
-              Preview
-            </button>
-
-            {page!.status === "PUBLISHED" ? (
-              <button className={styles.ghostBtn} type="button" onClick={onUnpublish}>
-                <i className={`bi bi-eye-slash ${styles.iconLeft}`} />
-                Unpublish
-              </button>
-            ) : (
-              <button className={styles.ghostBtn} type="button" onClick={onPublish}>
-                <i className={`bi bi-upload ${styles.iconLeft}`} />
-                Publish
-              </button>
-            )}
-
-            <button className={styles.ghostBtn} type="button" onClick={onDuplicate}>
-              <i className={`bi bi-layers ${styles.iconLeft}`} />
-              Duplicate
-            </button>
-
-            <button className={styles.dangerBtn} type="button" onClick={onDelete}>
-              <i className={`bi bi-trash ${styles.iconLeft}`} />
-              Delete
-            </button>
-          </div>
         </header>
       ) : (
         <div className={styles.rightEmpty}>
           <i className={`bi bi-layout-sidebar-inset ${styles.emptyIcon}`} />
           <p className={styles.emptyText}>Chọn một trang ở danh sách bên trái để chỉnh Settings & SEO.</p>
-        </div>
-      )}
-
-      {flash && (
-        <div className={styles.notice} role="status" aria-live="polite">
-          <i className={`bi bi-info-circle ${styles.iconLeft}`} />
-          <span>{flash}</span>
         </div>
       )}
 
@@ -301,6 +286,7 @@ function PageInspector({
               placeholder={page!.title || "Tiêu đề…"}
             />
           </div>
+
           <div className={styles.threeCol}>
             <div className={styles.field}>
               <label className={styles.label}>OG Title</label>
@@ -322,6 +308,7 @@ function PageInspector({
                 <option value="summary">summary</option>
               </select>
             </div>
+
             <div className={styles.checkRow}>
               <label className={styles.label}>Chooses</label>
               <div className={styles.dFlex}>
@@ -412,6 +399,7 @@ function PageInspector({
               </select>
             </div>
           </div>
+
           <div className={styles.twoCol}>
             <div className={styles.field}>
               <label className={styles.label}>OG Description</label>
@@ -486,24 +474,6 @@ function PageInspector({
               onChange={(e) => setSeo((prev) => ({ ...prev, structuredData: e.target.value }))}
               placeholder='{"@context":"https://schema.org","@type":"WebPage","name":"..."}'
             />
-          </div>
-
-          <div className={styles.footerActions}>
-            <button className={styles.ghostBtn} type="button" onClick={handleAutoSEO}>
-              <i className={`bi bi-magic ${styles.iconLeft}`} />
-              Autocomplete
-            </button>
-
-            <button className={styles.primaryBtn} type="button" onClick={handleSaveSEO} disabled={savingSEO}>
-              {savingSEO ? (
-                <>
-                  <span className={styles.spinner} aria-hidden="true" />
-                  <span>Saving…</span>
-                </>
-              ) : (
-                <>Save SEO</>
-              )}
-            </button>
           </div>
         </div>
       )}

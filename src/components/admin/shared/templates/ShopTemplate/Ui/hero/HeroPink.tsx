@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, MouseEvent } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/hero/HeroPink.module.css";
+import styles from "@/styles/templates/ShopTemplate/hero/HeroPink.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /** ===== Types cho hero data bên phải ===== */

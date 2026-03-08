@@ -1,6 +1,6 @@
 import React from "react";
 import type { CSSProperties } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarGreenYellowGradient2025.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/TopbarGreenYellowGradient2025.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarGreenYellowGradient2025TickerItem {

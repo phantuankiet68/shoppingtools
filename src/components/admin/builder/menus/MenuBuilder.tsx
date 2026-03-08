@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/builder/menus/menu.module.css";
 
@@ -8,17 +8,17 @@ import { useMenuStore, type MenuSetKey, type SiteKind } from "@/components/admin
 import AllowedBlocks from "@/components/admin/builder/menus/state/AllowedBlocks";
 import MenuStructure from "@/components/admin/builder/menus/state/MenuStructure";
 import { flattenTriples } from "@/lib/menu/deriveTitleSlugPath";
-import PopupNotice from "@/components/ui/PopupNotice";
-
 import { fetchSites, syncPagesFromMenu } from "@/services/builder/menus/menuBuilder.service";
 import { useMenuBuilderUIStore } from "@/store/builder/menus/useMenuBuilderUIStore";
-
 import { MENU_MESSAGES as M } from "@/features/builder/menus/messages";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import { useModal } from "@/components/admin/shared/common/modal";
 
 export default function MenuBuilder() {
   const router = useRouter();
+  const modal = useModal();
+  const [q, setQ] = useState("");
 
-  // Builder data store
   const {
     currentSet,
     setCurrentSet,
@@ -29,37 +29,25 @@ export default function MenuBuilder() {
     siteKind,
     setSiteKind,
     INTERNAL_PAGES,
+    addBlankItem,
   } = useMenuStore();
 
-  // UI store
   const {
     saving,
     loading,
     refreshing,
-    notice,
     sites,
     selectedSiteId,
     hideSiteSelect,
     setSaving,
     setLoading,
     setRefreshing,
-    setNotice,
     setSites,
     setSelectedSiteId,
     setHideSiteSelect,
   } = useMenuBuilderUIStore();
 
   const ioJson = useMemo(() => JSON.stringify(activeMenu, null, 2), [activeMenu]);
-
-  // -----------------------------
-  // Helpers
-  // -----------------------------
-  const openNotice = useCallback(
-    (next: { title: string; message: string; variant: "success" | "info" | "warning" | "error" }) => {
-      setNotice({ open: true, ...next });
-    },
-    [setNotice],
-  );
 
   const reloadAll = useCallback(
     async ({ hard = false }: { hard?: boolean } = {}) => {
@@ -71,7 +59,6 @@ export default function MenuBuilder() {
         router.refresh();
 
         if (hard) {
-          // Keep it small; reload is optional and controlled by the caller
           setTimeout(() => window.location.reload(), 150);
         }
       } finally {
@@ -81,9 +68,6 @@ export default function MenuBuilder() {
     [selectedSiteId, setRefreshing, loadFromServer, currentSet, router],
   );
 
-  // -----------------------------
-  // Effects: fetch sites
-  // -----------------------------
   useEffect(() => {
     let cancelled = false;
 
@@ -103,7 +87,6 @@ export default function MenuBuilder() {
     };
   }, [setSites]);
 
-  // Pick initial site
   useEffect(() => {
     if (!sites.length) return;
 
@@ -115,18 +98,15 @@ export default function MenuBuilder() {
     }
   }, [sites, selectedSiteId, setSelectedSiteId]);
 
-  // Persist selected site
   useEffect(() => {
     if (!selectedSiteId) return;
     localStorage.setItem("ui.selectedSiteId", selectedSiteId);
   }, [selectedSiteId]);
 
-  // Hide site selector for some sets
   useEffect(() => {
     setHideSiteSelect(currentSet === "v1");
   }, [currentSet, setHideSiteSelect]);
 
-  // Load menu data whenever set/site changes
   useEffect(() => {
     if (!selectedSiteId) return;
 
@@ -138,6 +118,7 @@ export default function MenuBuilder() {
         await loadFromServer(currentSet, selectedSiteId);
       } catch (e) {
         console.error("loadFromServer failed:", e);
+        modal.error("Load failed", (e as Error)?.message ?? M.error.unknown);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -146,32 +127,13 @@ export default function MenuBuilder() {
     return () => {
       cancelled = true;
     };
-  }, [currentSet, selectedSiteId, loadFromServer, setLoading]);
-
-  // -----------------------------
-  // Actions
-  // -----------------------------
-  const handleLoadFromDb = useCallback(async () => {
-    if (!selectedSiteId) return;
-
-    try {
-      setLoading(true);
-      await loadFromServer(currentSet, selectedSiteId);
-
-      openNotice({
-        title: M.notice.loadDbTitle,
-        message: M.notice.loadDbMsg,
-        variant: "info",
-      });
-    } finally {
-      setLoading(false);
-    }
-
-    router.refresh();
-  }, [selectedSiteId, setLoading, loadFromServer, currentSet, openNotice, router]);
+  }, [currentSet, selectedSiteId, loadFromServer, setLoading, modal]);
 
   const handleSaveAll = useCallback(async () => {
-    if (!selectedSiteId) return;
+    if (!selectedSiteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
 
     try {
       setSaving(true);
@@ -182,54 +144,25 @@ export default function MenuBuilder() {
 
       if (triples.length > 0) {
         await syncPagesFromMenu({
-          siteId: selectedSiteId || undefined,
+          siteId: selectedSiteId,
           items: triples,
         });
 
         await reloadAll({ hard: false });
 
-        openNotice({
-          title: M.notice.seoSavedTitle,
-          message: M.notice.seoSavedMsg,
-          variant: "success",
-        });
+        modal.success(M.notice.seoSavedTitle, M.notice.seoSavedMsg);
         return;
       }
 
       await reloadAll({ hard: false });
 
-      openNotice({
-        title: M.notice.menuSavedTitle,
-        message: M.notice.menuSavedMsg,
-        variant: "info",
-      });
+      modal.success(M.notice.menuSavedTitle, M.notice.menuSavedMsg);
     } catch (e: unknown) {
-      openNotice({
-        title: M.notice.saveFailedTitle,
-        message: (e as Error)?.message ?? M.error.unknown,
-        variant: "error",
-      });
+      modal.error(M.notice.saveFailedTitle, (e as Error)?.message ?? M.error.unknown);
     } finally {
       setSaving(false);
     }
-  }, [selectedSiteId, setSaving, saveToServer, currentSet, activeMenu, INTERNAL_PAGES, reloadAll, openNotice]);
-
-  const exportJSON = useCallback(() => {
-    navigator.clipboard?.writeText(ioJson).then(
-      () =>
-        openNotice({
-          title: M.notice.jsonCopiedTitle,
-          message: M.notice.jsonCopiedMsg,
-          variant: "success",
-        }),
-      () =>
-        openNotice({
-          title: M.notice.copyFailedTitle,
-          message: M.notice.copyFailedMsg,
-          variant: "warning",
-        }),
-    );
-  }, [ioJson, openNotice]);
+  }, [selectedSiteId, setSaving, saveToServer, currentSet, activeMenu, INTERNAL_PAGES, reloadAll, modal]);
 
   const importJSONFromPrompt = useCallback(() => {
     const text = prompt(M.prompt.pasteJson);
@@ -237,42 +170,35 @@ export default function MenuBuilder() {
 
     try {
       const data = JSON.parse(text);
-      if (!Array.isArray(data)) throw new Error(M.error.invalidJsonArray);
+      if (!Array.isArray(data)) {
+        throw new Error(M.error.invalidJsonArray);
+      }
 
       setActiveMenu(data);
 
-      openNotice({
-        title: M.notice.importSuccessTitle,
-        message: M.notice.importSuccessMsg,
-        variant: "success",
-      });
-
+      modal.success(M.notice.importSuccessTitle, M.notice.importSuccessMsg);
       router.refresh();
     } catch (e: unknown) {
-      openNotice({
-        title: M.notice.importErrorTitle,
-        message: (e as Error)?.message ?? M.error.unknown,
-        variant: "error",
-      });
+      modal.error(M.notice.importErrorTitle, (e as Error)?.message ?? M.error.unknown);
     }
-  }, [setActiveMenu, openNotice, router]);
+  }, [setActiveMenu, modal, router]);
 
-  // -----------------------------
-  // Render
-  // -----------------------------
-  const loadBtnLabel = loading ? M.btn.loading : refreshing ? M.btn.refreshing : M.btn.loadFromDb;
+  const pageFunctionKeys = useMemo(
+    () => ({
+      F5: () => addBlankItem(),
+      F8: () => importJSONFromPrompt(),
+      F9: () => "",
+      F10: () => {
+        void handleSaveAll();
+      },
+    }),
+    [addBlankItem, importJSONFromPrompt, handleSaveAll],
+  );
+
+  usePageFunctionKeys(pageFunctionKeys);
 
   return (
     <div className={styles.container}>
-      <PopupNotice
-        open={notice.open}
-        title={notice.title}
-        message={notice.message}
-        variant={notice.variant}
-        onClose={() => setNotice((s) => ({ ...s, open: false }))}
-        autoHideMs={2800}
-      />
-
       <header className={styles.topbar}>
         <div className={styles.topbarRight}>
           {!hideSiteSelect && (
@@ -327,40 +253,49 @@ export default function MenuBuilder() {
         </div>
 
         <div className={styles.topbarRight}>
-          <div className={styles.inline} style={{ gap: 6 }}>
+          <div className={styles.search} style={{ position: "relative" }}>
+            <i
+              className={`bi bi-search ${styles.iconSearch}`}
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                opacity: 0.6,
+              }}
+            />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Tìm tiêu đề hoặc đường dẫn…"
+              aria-label="Tìm trong menu"
+              className={styles.searchInput}
+            />
+          </div>
+
+          {q ? (
             <button
               className={`${styles.btn} ${styles.btnOutlineSecondary}`}
-              disabled={loading || refreshing || !selectedSiteId}
-              onClick={() => void handleLoadFromDb()}
-              title={M.tooltip.loadFromDb}
+              onClick={() => setQ("")}
+              title="Xoá từ khoá"
               type="button"
             >
-              <i className="bi bi-download" /> {loadBtnLabel}
+              <i className="bi bi-x-circle" /> Clear
             </button>
-          </div>
+          ) : null}
 
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnOutlinePrimary}`}
-            disabled={!selectedSiteId || saving}
-            onClick={() => void handleSaveAll()}
-            title={M.tooltip.saveDb}
-          >
-            <i className="bi bi-save" /> {saving ? M.btn.saving : M.btn.saveDb}
-          </button>
+          {saving ? (
+            <span className={styles.smallHelp} aria-live="polite">
+              Đang lưu...
+            </span>
+          ) : null}
 
-          <div className={styles.inline} style={{ gap: 6 }}>
-            <button className={`${styles.btn} ${styles.btnOutlineSuccess}`} onClick={exportJSON} type="button">
-              <i className="bi bi-clipboard" /> {M.btn.copyJson}
-            </button>
-            <button
-              className={`${styles.btn} ${styles.btnOutlineWarning}`}
-              onClick={importJSONFromPrompt}
-              type="button"
-            >
-              <i className="bi bi-upload" /> {M.btn.importJson}
-            </button>
-          </div>
+          {loading || refreshing ? (
+            <span className={styles.smallHelp} aria-live="polite">
+              {loading ? "Đang tải..." : "Đang làm mới..."}
+            </span>
+          ) : null}
         </div>
       </header>
 
@@ -370,9 +305,7 @@ export default function MenuBuilder() {
         </div>
 
         <div className={styles.rightCol}>
-          <MenuStructure key={`ms-${currentSet}-${selectedSiteId}`} siteId={selectedSiteId} />
-
-          {/* Hidden textarea to allow quick copy/paste via developer tools if needed */}
+          <MenuStructure q={q} setQ={setQ} />
           <textarea
             className={`${styles.formControl} ${styles.mt}`}
             style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, width: 0 }}

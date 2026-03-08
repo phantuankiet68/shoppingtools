@@ -12,13 +12,14 @@ function assertExt(p: string) {
 }
 
 function sanitizeTemplatePath(p: string) {
-  let rel = p.replace(/\\/g, "/").trim();
+  let rel = normalizeRel(p);
 
   if (rel.startsWith("@/")) rel = rel.slice(2);
   if (rel.startsWith("src/")) rel = rel.slice("src/".length);
   if (rel.startsWith("components/")) rel = rel.slice("components/".length);
+
   if (!(rel.startsWith("templates/") || rel.startsWith("admin/shared/templates/"))) {
-    throw new Error('Path must start with "templates/" or "admin/shared/templates/"');
+    throw new Error('Template path must start with "templates/" or "admin/shared/templates/"');
   }
 
   return rel;
@@ -26,20 +27,26 @@ function sanitizeTemplatePath(p: string) {
 
 function sanitizeStylesPath(p: string) {
   let rel = normalizeRel(p);
-  rel = rel.replace(/\\/g, "/").trim();
+
   if (rel.startsWith("@/")) rel = rel.slice(2);
   if (rel.startsWith("src/")) rel = rel.slice("src/".length);
   if (rel.startsWith("components/")) rel = rel.slice("components/".length);
   if (rel.startsWith("styles/")) rel = rel.slice("styles/".length);
-  if (!(rel.startsWith("templates/") || rel.startsWith("admin/shared/templates/"))) {
-    throw new Error('Style path must start with "templates/" or "admin/shared/templates/"');
+
+  if (!rel.startsWith("templates/")) {
+    throw new Error('Style path must start with "templates/"');
   }
 
   return rel;
 }
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({}));
+  interface WriteRequestBody {
+    path?: unknown;
+    content?: unknown;
+  }
+
+  const body = (await req.json().catch(() => ({}))) as WriteRequestBody;
 
   const rawPath = body.path;
   const rawContent = body.content;
@@ -52,35 +59,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Missing content" }, { status: 400 });
   }
 
-  const relPath = rawPath.trim();
+  const inputPath = rawPath.trim();
 
   try {
-    assertExt(relPath);
-    const scope: "styles" | "templates" = relPath.endsWith(".css")
-      ? "styles"
-      : body.scope === "styles"
-        ? "styles"
-        : "templates";
+    assertExt(inputPath);
+
+    const scope: "styles" | "templates" = inputPath.endsWith(".css") ? "styles" : "templates";
 
     const { componentsRoot, stylesRoot } = getAllowedRoots();
+    const cleanedRel = scope === "styles" ? sanitizeStylesPath(inputPath) : sanitizeTemplatePath(inputPath);
+
     const root = scope === "styles" ? stylesRoot : componentsRoot;
-
-    const cleanedRel = scope === "styles" ? sanitizeStylesPath(relPath) : sanitizeTemplatePath(relPath);
-
     const abs = safeJoin(root, cleanedRel);
 
     await fs.mkdir(path.dirname(abs), { recursive: true });
 
     try {
       const old = await fs.readFile(abs, "utf8");
-      await fs.writeFile(abs + ".bak", old, "utf8");
-    } catch {}
+      await fs.writeFile(`${abs}.bak`, old, "utf8");
+    } catch {
+      // file cũ chưa tồn tại thì bỏ qua
+    }
 
     await fs.writeFile(abs, rawContent, "utf8");
 
-    return NextResponse.json({ ok: true, scope, path: cleanedRel });
-  } catch (e: any) {
+    return NextResponse.json({
+      ok: true,
+      scope,
+      path: cleanedRel,
+    });
+  } catch (e: unknown) {
     console.error("WRITE ERROR:", e);
-    return NextResponse.json({ ok: false, error: e?.message || "Write failed" }, { status: 400 });
+    const message = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ ok: false, error: message || "Write failed" }, { status: 400 });
   }
 }

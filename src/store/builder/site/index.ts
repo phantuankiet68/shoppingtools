@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { sitesService, Site } from "@/services/builder/site";
+import { sitesService, Site, UpdateSitePayload } from "@/services/builder/site";
 
 type SitesState = {
   items: Site[];
@@ -16,6 +16,7 @@ type SitesState = {
   setActiveId: (id: string) => void;
   load: () => Promise<void>;
   createSite: (domain: string, name: string) => Promise<Site | null>;
+  updateActive: (payload: UpdateSitePayload) => Promise<Site | null>;
   deleteActive: () => Promise<void>;
 };
 
@@ -28,9 +29,7 @@ export const useSitesStore = create<SitesState>((set, get) => ({
   toast: null,
   showToast: (msg) => {
     set({ toast: msg });
-    // auto clear sau 2.5s
     window.setTimeout(() => {
-      // chỉ clear nếu toast vẫn là msg hiện tại (tránh race)
       if (get().toast === msg) set({ toast: null });
     }, 2500);
   },
@@ -48,8 +47,9 @@ export const useSitesStore = create<SitesState>((set, get) => ({
         items: data,
         activeId: prev && data.some((x) => x.id === prev) ? prev : data[0]?.id || "",
       });
-    } catch (e: any) {
-      get().showToast(e?.message || "Load failed");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Load failed";
+      get().showToast(msg);
     } finally {
       set({ loading: false });
     }
@@ -77,8 +77,47 @@ export const useSitesStore = create<SitesState>((set, get) => ({
       await get().load();
       set({ activeId: created.id });
       return created;
-    } catch (e: any) {
-      get().showToast(e?.message || "Create failed");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Create failed";
+      get().showToast(msg);
+      return null;
+    } finally {
+      set({ busy: false });
+    }
+  },
+
+  updateActive: async (payload) => {
+    const { activeId, items } = get();
+    const active = items.find((x) => x.id === activeId);
+
+    if (!active) {
+      get().showToast("No active site selected");
+      return null;
+    }
+
+    if (!payload.domain?.trim()) {
+      get().showToast("Domain is required");
+      return null;
+    }
+
+    if (!payload.name?.trim()) {
+      get().showToast("Site name is required");
+      return null;
+    }
+
+    set({ busy: true });
+    try {
+      const updated = await sitesService.update(active.id, payload);
+
+      set((state) => ({
+        items: state.items.map((item) => (item.id === active.id ? updated : item)),
+      }));
+
+      get().showToast("Saved.");
+      return updated;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Update failed";
+      get().showToast(msg);
       return null;
     } finally {
       set({ busy: false });
@@ -95,8 +134,9 @@ export const useSitesStore = create<SitesState>((set, get) => ({
       await sitesService.remove(active.id);
       get().showToast("Deleted.");
       await get().load();
-    } catch (e: any) {
-      get().showToast(e?.message || "Delete failed");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Delete failed";
+      get().showToast(msg);
     } finally {
       set({ busy: false });
     }

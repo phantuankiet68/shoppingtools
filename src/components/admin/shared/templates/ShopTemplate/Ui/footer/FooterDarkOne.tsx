@@ -2,7 +2,7 @@
 
 import React, { FC, useState } from "react";
 
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/footer/FooterDarkOne.module.css";
+import styles from "@/styles/templates/ShopTemplate/footer/FooterDarkOne.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 export type FooterDarkOneProps = Record<string, never>;
 

@@ -1,6 +1,6 @@
 // Ui/topbar/TopbarAurora2026.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarAurora2026.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/TopbarAurora2026.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 export interface TopbarProTickerItem {

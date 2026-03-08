@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarOrange2025.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/TopbarOrange2025.module.css";
 
 export interface TopbarOrangeLink {
   label: string;

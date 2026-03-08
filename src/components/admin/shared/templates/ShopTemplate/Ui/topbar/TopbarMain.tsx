@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import styles from "@/components/admin/shared/templates/ShopTemplate/styles/topbar/TopbarMain.module.css";
+import styles from "@/styles/templates/ShopTemplate/topbar/TopbarMain.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 type SocialLink = {
