@@ -1,47 +1,81 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/commerce/categories/categories.module.css";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 
 import type { CategoryRow } from "@/services/commerce/categories/categories.service";
 import { slugify } from "@/services/commerce/categories/categories.service";
 import { useCategoriesStore } from "@/store/commerce/categories/categories.store";
 import { useSiteStore } from "@/store/site/site.store";
+import { CATEGORY_MESSAGES as _MESSAGES } from "@/features/commerce/categories/messages";
 
-/** ===== Tree Types ===== */
-type CategoryTreeNode = CategoryRow & { children: CategoryTreeNode[] };
+/** ===== Types ===== */
+type CategoryTreeNode = CategoryRow & {
+  children: CategoryTreeNode[];
+};
 
-/** ===== Utils (UI-only) ===== */
-function bySortOrder(a: CategoryRow, b: CategoryRow) {
+type CategoryPatch = Partial<Pick<CategoryRow, "name" | "slug" | "parentId" | "sortOrder">>;
+
+/** ===== Utils ===== */
+function bySortOrder(a: CategoryRow, b: CategoryRow): number {
   if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
   return a.name.localeCompare(b.name);
 }
 
-function buildTree(rows: CategoryRow[]) {
+function buildTree(rows: CategoryRow[]): CategoryTreeNode[] {
   const map = new Map<string, CategoryTreeNode>();
-  rows.forEach((r) => map.set(r.id, { ...r, children: [] }));
 
-  const roots: CategoryTreeNode[] = [];
-  for (const r of map.values()) {
-    if (r.parentId && map.has(r.parentId)) map.get(r.parentId)!.children.push(r);
-    else roots.push(r);
+  for (const row of rows) {
+    map.set(row.id, { ...row, children: [] });
   }
 
-  const sortRec = (n: CategoryTreeNode) => {
-    n.children.sort(bySortOrder);
-    n.children.forEach(sortRec);
+  const roots: CategoryTreeNode[] = [];
+
+  for (const node of map.values()) {
+    if (node.parentId && map.has(node.parentId)) {
+      map.get(node.parentId)?.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  const sortRecursively = (node: CategoryTreeNode): void => {
+    node.children.sort(bySortOrder);
+    for (const child of node.children) {
+      sortRecursively(child);
+    }
   };
 
   roots.sort(bySortOrder);
-  roots.forEach(sortRec);
+  for (const root of roots) {
+    sortRecursively(root);
+  }
+
   return roots;
 }
 
+function useDebouncedValue<T>(value: T, delay = 250): T {
+  const [debounced, setDebounced] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delay);
+    return () => window.clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+}
+
+function clampPage(page: number, pageCount: number): number {
+  return Math.min(Math.max(1, page), Math.max(1, pageCount));
+}
+
+/** ===== Page ===== */
 export default function CategoriesPage() {
   const modal = useModal();
 
-  /** ===== Store ===== */
+  /** ===== Categories store ===== */
   const siteId = useCategoriesStore((s) => s.siteId);
   const siteLoading = useCategoriesStore((s) => s.siteLoading);
   const siteErr = useCategoriesStore((s) => s.siteErr);
@@ -52,7 +86,7 @@ export default function CategoriesPage() {
   const err = useCategoriesStore((s) => s.err);
 
   const activeId = useCategoriesStore((s) => s.activeId);
-  const q = useCategoriesStore((s) => s.q);
+  const globalQuery = useCategoriesStore((s) => s.q);
 
   const initSite = useCategoriesStore((s) => s.initSite);
   const loadTree = useCategoriesStore((s) => s.loadTree);
@@ -63,13 +97,7 @@ export default function CategoriesPage() {
   const patchOne = useCategoriesStore((s) => s.patchOne);
   const removeOne = useCategoriesStore((s) => s.removeOne);
 
-  /** ===== Local UI state ===== */
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
-
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createParentId, setCreateParentId] = useState<string | null>(null);
-  const [createName, setCreateName] = useState("");
-  const createInputRef = useRef<HTMLInputElement | null>(null);
+  /** ===== Site store ===== */
   const sites = useSiteStore((s) => s.sites);
   const sitesLoading = useSiteStore((s) => s.loading);
   const sitesErr = useSiteStore((s) => s.err);
@@ -78,298 +106,420 @@ export default function CategoriesPage() {
   const hydrateFromStorage = useSiteStore((s) => s.hydrateFromStorage);
   const loadSites = useSiteStore((s) => s.loadSites);
 
+  /** ===== Local UI ===== */
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [createOpen, setCreateOpen] = useState<boolean>(false);
+  const [createParentId, setCreateParentId] = useState<string | null>(null);
+  const [createName, setCreateName] = useState<string>("");
+
+  const [siblingQuery, setSiblingQuery] = useState<string>("");
+  const [pageSize, setPageSize] = useState<number>(8);
+  const [page, setPage] = useState<number>(1);
+
+  const createInputRef = useRef<HTMLInputElement | null>(null);
+  const globalSearchRef = useRef<HTMLInputElement | null>(null);
+
+  /** ===== Draft editor state ===== */
+  const active = useMemo<CategoryRow | null>(() => {
+    return rows.find((item) => item.id === activeId) ?? null;
+  }, [rows, activeId]);
+
+  const [draftName, setDraftName] = useState<string>("");
+  const [draftSlug, setDraftSlug] = useState<string>("");
+  const [draftParentId, setDraftParentId] = useState<string>("");
+  const [draftSortOrder, setDraftSortOrder] = useState<number>(0);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+
+  /** ===== Debounced queries ===== */
+  const debouncedGlobalQuery = useDebouncedValue(globalQuery, 250);
+  const debouncedSiblingQuery = useDebouncedValue(siblingQuery, 250);
+
+  /** ===== One-time site boot ===== */
   useEffect(() => {
     hydrateFromStorage();
     loadSites();
   }, [hydrateFromStorage, loadSites]);
 
-  // nếu bạn muốn đồng bộ siteId vào categories store:
-  useEffect(() => {
-    // ưu tiên site chọn từ dropdown
-    if (selectedSiteId) {
-      useCategoriesStore.setState({ siteId: selectedSiteId });
-    }
-  }, [selectedSiteId]);
-  const patchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    return () => {
-      if (patchTimer.current) clearTimeout(patchTimer.current);
-    };
-  }, []);
-
-  /** ===== Init ===== */
   useEffect(() => {
     initSite();
   }, [initSite]);
 
+  /**
+   * Đồng bộ site đã chọn sang categories store khi thực sự khác nhau.
+   */
   useEffect(() => {
-    if (!siteLoading && siteId) loadTree(siteId);
+    if (selectedSiteId && selectedSiteId !== siteId) {
+      useCategoriesStore.setState({ siteId: selectedSiteId });
+    }
+  }, [selectedSiteId, siteId]);
+
+  /**
+   * Chỉ load tree khi siteId sẵn sàng.
+   */
+  useEffect(() => {
+    if (!siteLoading && siteId) {
+      void loadTree(siteId);
+    }
   }, [siteLoading, siteId, loadTree]);
 
-  /** ===== Derived ===== */
-  const active = useMemo(() => rows.find((x) => x.id === activeId) || null, [rows, activeId]);
-  const byId = useMemo(() => new Map(rows.map((r) => [r.id, r] as const)), [rows]);
-  const tree = useMemo(() => buildTree(rows), [rows]);
-
-  const filteredIds = useMemo(() => {
-    const qq = q.trim().toLowerCase();
-    if (!qq) return new Set(rows.map((r) => r.id));
-
-    const match = new Set<string>();
-    for (const r of rows) {
-      if ((r.name + " " + r.slug).toLowerCase().includes(qq)) match.add(r.id);
+  /**
+   * Đồng bộ draft khi category active đổi.
+   */
+  useEffect(() => {
+    if (!active) {
+      setDraftName("");
+      setDraftSlug("");
+      setDraftParentId("");
+      setDraftSortOrder(0);
+      setIsEditing(false);
+      return;
     }
 
-    // include ancestors
-    for (const id of Array.from(match)) {
-      let cur = byId.get(id);
-      while (cur?.parentId) {
-        const p = cur.parentId;
-        if (!match.has(p)) match.add(p);
-        cur = byId.get(p);
-        if (!cur) break;
+    setDraftName(active.name);
+    setDraftSlug(active.slug);
+    setDraftParentId(active.parentId ?? "");
+    setDraftSortOrder(Number.isFinite(active.sortOrder) ? active.sortOrder : 0);
+    setIsEditing(false);
+  }, [active]);
+
+  /** ===== Derived ===== */
+  const byId = useMemo<Map<string, CategoryRow>>(() => {
+    return new Map(rows.map((row) => [row.id, row] as const));
+  }, [rows]);
+
+  const tree = useMemo<CategoryTreeNode[]>(() => buildTree(rows), [rows]);
+
+  const filteredIds = useMemo<Set<string>>(() => {
+    const query = debouncedGlobalQuery.trim().toLowerCase();
+    if (!query) return new Set(rows.map((row) => row.id));
+
+    const matched = new Set<string>();
+
+    for (const row of rows) {
+      const haystack = `${row.name} ${row.slug}`.toLowerCase();
+      if (haystack.includes(query)) {
+        matched.add(row.id);
       }
     }
 
-    return match;
-  }, [rows, q, byId]);
+    for (const id of Array.from(matched)) {
+      let current = byId.get(id);
+      while (current?.parentId) {
+        matched.add(current.parentId);
+        current = byId.get(current.parentId);
+      }
+    }
+
+    return matched;
+  }, [rows, debouncedGlobalQuery, byId]);
 
   useEffect(() => {
-    const qq = q.trim().toLowerCase();
-    if (!qq) return;
+    if (!debouncedGlobalQuery.trim()) return;
+
     setExpanded((prev) => {
       const next = new Set(prev);
       for (const id of filteredIds) next.add(id);
       return next;
     });
-  }, [q, filteredIds]);
+  }, [debouncedGlobalQuery, filteredIds]);
 
-  const flatSiblings = useMemo(() => {
+  const siblingRows = useMemo<CategoryRow[]>(() => {
     if (!active) return [];
     return rows
-      .filter((x) => x.parentId === active.parentId)
+      .filter((row) => row.parentId === active.parentId)
       .slice()
       .sort(bySortOrder);
   }, [rows, active]);
 
-  const PAGE_SIZE = 8;
-  const [page, setPage] = useState(1);
+  const filteredSiblings = useMemo<CategoryRow[]>(() => {
+    const query = debouncedSiblingQuery.trim().toLowerCase();
+    if (!query) return siblingRows;
 
-  const pageCount = useMemo(() => Math.max(1, Math.ceil(flatSiblings.length / PAGE_SIZE)), [flatSiblings.length]);
+    return siblingRows.filter((row) => {
+      const haystack = `${row.name} ${row.slug}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [siblingRows, debouncedSiblingQuery]);
+
+  const pageCount = useMemo<number>(() => {
+    return Math.max(1, Math.ceil(filteredSiblings.length / pageSize));
+  }, [filteredSiblings.length, pageSize]);
 
   useEffect(() => {
     setPage(1);
-  }, [active?.parentId]);
+  }, [active?.parentId, debouncedSiblingQuery, pageSize]);
 
   useEffect(() => {
-    setPage((p) => Math.min(Math.max(1, p), pageCount));
+    setPage((current) => clampPage(current, pageCount));
   }, [pageCount]);
 
-  const pagedSiblings = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return flatSiblings.slice(start, start + PAGE_SIZE);
-  }, [flatSiblings, page]);
+  const pagedSiblings = useMemo<CategoryRow[]>(() => {
+    const start = (page - 1) * pageSize;
+    return filteredSiblings.slice(start, start + pageSize);
+  }, [filteredSiblings, page, pageSize]);
 
-  /** ===== Tree expand ===== */
-  function isExpanded(id: string) {
-    return expanded.has(id);
-  }
-  function toggleExpand(id: string) {
+  /** ===== Helpers ===== */
+  const ensureSiteId = useCallback((): string | null => {
+    if (!siteId) {
+      modal.error(_MESSAGES.missingSiteTitle, _MESSAGES.missingSiteDescription);
+      return null;
+    }
+    return siteId;
+  }, [siteId, modal]);
+
+  const refreshTree = useCallback((): void => {
+    if (siteId) {
+      void loadTree(siteId);
+    } else {
+      void initSite();
+    }
+  }, [siteId, loadTree, initSite]);
+
+  /** ===== Create ===== */
+  const openCreate = useCallback((parentId: string | null): void => {
+    setCreateParentId(parentId);
+    setCreateName("");
+    setCreateOpen(true);
+    window.setTimeout(() => createInputRef.current?.focus(), 0);
+  }, []);
+
+  const closeCreate = useCallback((): void => {
+    setCreateOpen(false);
+    setCreateName("");
+    setCreateParentId(null);
+  }, []);
+
+  const submitCreate = useCallback(async (): Promise<void> => {
+    const name = createName.trim();
+    if (!name) return;
+
+    const currentSiteId = ensureSiteId();
+    if (!currentSiteId) return;
+
+    try {
+      const created = await createOne(createParentId, name);
+      const normalizedSlug = slugify(name);
+
+      if (created.slug !== normalizedSlug) {
+        await patchOne(created.id, { slug: normalizedSlug });
+      }
+
+      modal.success(_MESSAGES.successTitle, _MESSAGES.createSuccess(name));
+      closeCreate();
+      await loadTree(currentSiteId);
+      setActiveId(created.id);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : _MESSAGES.createFailedTitle;
+      modal.error(_MESSAGES.createFailedTitle, message);
+    }
+  }, [createName, ensureSiteId, createOne, createParentId, patchOne, modal, closeCreate, loadTree, setActiveId]);
+
+  const removeCategory = useCallback(
+    async (id: string): Promise<void> => {
+      const currentSiteId = ensureSiteId();
+      if (!currentSiteId) return;
+
+      const current = rows.find((row) => row.id === id);
+      if (!current) return;
+
+      const fallbackActive =
+        rows.find((row) => row.parentId === current.parentId && row.id !== id) ?? rows.find((row) => row.id !== id);
+
+      try {
+        await removeOne(id);
+        modal.success(_MESSAGES.successTitle, _MESSAGES.deleteSuccess(current.name));
+
+        if (activeId === id && fallbackActive) {
+          setActiveId(fallbackActive.id);
+        }
+
+        await loadTree(currentSiteId);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : _MESSAGES.deleteFailedTitle;
+        modal.error(_MESSAGES.deleteFailedTitle, message);
+      }
+    },
+    [ensureSiteId, rows, removeOne, modal, loadTree, activeId, setActiveId],
+  );
+
+  const handleDeleteById = useCallback(
+    (id: string): void => {
+      const current = rows.find((row) => row.id === id);
+      if (!current) return;
+
+      modal.confirmDelete(_MESSAGES.deleteConfirmTitle, _MESSAGES.deleteConfirmDescription(current.name), () => {
+        void removeCategory(id);
+      });
+    },
+    [rows, modal, removeCategory],
+  );
+
+  const handleDelete = useCallback((): void => {
+    if (!active) return;
+    handleDeleteById(active.id);
+  }, [active, handleDeleteById]);
+
+  /** ===== Inspector actions ===== */
+  const handleEnterEditMode = useCallback((): void => {
+    if (!active) return;
+    setIsEditing(true);
+  }, [active]);
+
+  const handleAutoSlug = useCallback((): void => {
+    if (!active) return;
+    setIsEditing(true);
+    setDraftSlug(slugify(draftName));
+  }, [active, draftName]);
+
+  const handleAddSibling = useCallback((): void => {
+    openCreate(active?.parentId ?? null);
+  }, [active, openCreate]);
+
+  const handleCreateChild = useCallback((): void => {
+    if (!active) return;
+    openCreate(active.id);
+  }, [active, openCreate]);
+
+  const handleFocusSearch = useCallback((): void => {
+    globalSearchRef.current?.focus();
+  }, []);
+
+  const handleSave = useCallback(async (): Promise<void> => {
+    if (!active) return;
+
+    const currentSiteId = ensureSiteId();
+    if (!currentSiteId) return;
+
+    const nextName = draftName.trim();
+    const nextSlug = slugify(draftSlug);
+    const nextParentId = draftParentId || null;
+    const nextSortOrder = Number.isFinite(draftSortOrder) ? Math.trunc(draftSortOrder) : 0;
+
+    if (!nextName) {
+      modal.error("Validation", "Name is required.");
+      return;
+    }
+
+    if (nextParentId === active.id) {
+      modal.error("Validation", "A category cannot be its own parent.");
+      return;
+    }
+
+    const patch: CategoryPatch = {};
+
+    if (nextName !== active.name) patch.name = nextName;
+    if (nextSlug !== active.slug) patch.slug = nextSlug;
+    if (nextParentId !== active.parentId) patch.parentId = nextParentId;
+    if (nextSortOrder !== active.sortOrder) patch.sortOrder = nextSortOrder;
+
+    if (Object.keys(patch).length === 0) {
+      modal.success(_MESSAGES.successTitle, "Nothing changed.");
+      setIsEditing(false);
+      return;
+    }
+
+    try {
+      await patchOne(active.id, patch);
+      modal.success(_MESSAGES.successTitle, `Saved “${nextName}”.`);
+      setIsEditing(false);
+      await loadTree(currentSiteId);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : _MESSAGES.saveFailedTitle;
+      modal.error(_MESSAGES.saveFailedTitle, message);
+    }
+  }, [active, ensureSiteId, draftName, draftSlug, draftParentId, draftSortOrder, modal, patchOne, loadTree]);
+
+  /** ===== Drag reorder ===== */
+  const [dragId, setDragId] = useState<string | null>(null);
+
+  const onDragStart = useCallback((id: string): void => {
+    setDragId(id);
+  }, []);
+
+  const onDrop = useCallback(
+    async (targetId: string): Promise<void> => {
+      const currentSiteId = ensureSiteId();
+      if (!currentSiteId) return;
+      if (!active) return;
+      if (!dragId || dragId === targetId) return;
+
+      const parentId = active.parentId ?? null;
+
+      const siblings = rows
+        .filter((row) => (row.parentId ?? null) === parentId)
+        .slice()
+        .sort(bySortOrder);
+
+      const fromIndex = siblings.findIndex((row) => row.id === dragId);
+      const toIndex = siblings.findIndex((row) => row.id === targetId);
+      if (fromIndex < 0 || toIndex < 0) return;
+
+      const reordered = [...siblings];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+
+      const changedItems = reordered
+        .map((row, index) => ({ id: row.id, sortOrder: (index + 1) * 10 }))
+        .filter(({ id, sortOrder }) => {
+          const prevSort = rows.find((row) => row.id === id)?.sortOrder ?? 0;
+          return prevSort !== sortOrder;
+        });
+
+      setDragId(null);
+
+      if (changedItems.length === 0) return;
+
+      try {
+        await Promise.all(changedItems.map((item) => patchOne(item.id, { sortOrder: item.sortOrder })));
+        modal.success(_MESSAGES.successTitle, _MESSAGES.reorderSuccess);
+        await loadTree(currentSiteId);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : _MESSAGES.reorderFailedTitle;
+        modal.error(_MESSAGES.reorderFailedTitle, message);
+        await loadTree(currentSiteId);
+      }
+    },
+    [ensureSiteId, active, dragId, rows, patchOne, modal, loadTree],
+  );
+
+  /** ===== Function keys ===== */
+  const functionKeyActions = useMemo(
+    () => ({
+      F3: handleDelete,
+      F5: handleAddSibling,
+      F6: handleEnterEditMode,
+      F9: handleAutoSlug,
+      F10: () => {
+        void handleSave();
+      },
+    }),
+    [handleDelete, handleAddSibling, handleEnterEditMode, handleAutoSlug, handleSave],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
+
+  /** ===== Tree ===== */
+  const isExpanded = useCallback(
+    (id: string): boolean => {
+      return expanded.has(id);
+    },
+    [expanded],
+  );
+
+  const toggleExpand = useCallback((id: string): void => {
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  }
+  }, []);
 
-  /** ===== Create ===== */
-  function openCreate(parentId: string | null) {
-    setCreateParentId(parentId);
-    setCreateName("");
-    setCreateOpen(true);
-    setTimeout(() => createInputRef.current?.focus(), 0);
-  }
-  function closeCreate() {
-    setCreateOpen(false);
-    setCreateName("");
-    setCreateParentId(null);
-  }
-
-  async function submitCreate() {
-    const name = createName.trim();
-    if (!name) return;
-
-    if (!siteId) {
-      modal.error("Missing site", "Please select a site first.");
-      return;
-    }
-
-    try {
-      // create via store (backend requires siteId handled in store)
-      const created = await createOne(createParentId, name);
-
-      // ensure slug is normalized (store createOne may not slugify)
-      const s = slugify(name);
-      if (created.slug !== s) {
-        await patchOne(created.id, { slug: s });
-      }
-
-      modal.success("Success", `Created “${name}”.`);
-      closeCreate();
-    } catch (e: unknown) {
-      const err = e as Error;
-      modal.error("Create failed", err?.message || "Create failed");
-    }
-  }
-
-  /** ===== Patch (debounced) ===== */
-  function patchDebounced(id: string, patch: Partial<Pick<CategoryRow, "name" | "slug" | "parentId" | "sortOrder">>) {
-    if (!siteId) {
-      modal.error("Missing site", "Please select a site first.");
-      return;
-    }
-
-    if (patchTimer.current) clearTimeout(patchTimer.current);
-    patchTimer.current = setTimeout(async () => {
-      try {
-        await patchOne(id, patch);
-      } catch (e: unknown) {
-        const err = e as Error;
-        modal.error("Save failed", err?.message || "Save failed");
-        loadTree(siteId);
-      }
-    }, 350);
-  }
-
-  function changeName(v: string) {
-    if (!active) return;
-    const name = v;
-    // optimistic in store via patchOne; but we debounce to reduce requests:
-    // We'll do a tiny local optimistic by calling patchOne only in debounce.
-    // UI displays from store rows, so we should update store immediately:
-    useCategoriesStore.setState((s) => ({
-      rows: s.rows.map((x) => (x.id === active.id ? { ...x, name } : x)),
-    }));
-    patchDebounced(active.id, { name: name.trim() });
-  }
-
-  function changeSlug(v: string) {
-    if (!active) return;
-    const s = slugify(v);
-    useCategoriesStore.setState((st) => ({
-      rows: st.rows.map((x) => (x.id === active.id ? { ...x, slug: s } : x)),
-    }));
-    patchDebounced(active.id, { slug: s });
-  }
-
-  function moveParent(newParentId: string | null) {
-    if (!active) return;
-    if (newParentId === active.id) return;
-
-    useCategoriesStore.setState((st) => ({
-      rows: st.rows.map((x) => (x.id === active.id ? { ...x, parentId: newParentId } : x)),
-    }));
-    patchDebounced(active.id, { parentId: newParentId });
-  }
-
-  function autoSlugFromName() {
-    if (!active) return;
-    const s = slugify(active.name);
-    useCategoriesStore.setState((st) => ({
-      rows: st.rows.map((x) => (x.id === active.id ? { ...x, slug: s } : x)),
-    }));
-    patchDebounced(active.id, { slug: s });
-  }
-
-  function changeSortOrder(v: number) {
-    if (!active) return;
-    const n = Math.trunc(Number(v));
-    const sortOrder = Number.isFinite(n) ? n : 0;
-
-    useCategoriesStore.setState((st) => ({
-      rows: st.rows.map((x) => (x.id === active.id ? { ...x, sortOrder } : x)),
-    }));
-    patchDebounced(active.id, { sortOrder });
-  }
-
-  /** ===== Delete ===== */
-  function askDelete(id: string, name: string) {
-    modal.confirmDelete("Delete category?", `Delete “${name}”? This action cannot be undone.`, async () => {
-      if (!siteId) {
-        modal.error("Missing site", "Please select a site first.");
-        return;
-      }
-      try {
-        await removeOne(id);
-        modal.success("Success", `Deleted “${name}” successfully.`);
-      } catch (e: unknown) {
-        const err = e as Error;
-        modal.error("Delete failed", err?.message || "Delete failed");
-      }
-    });
-  }
-
-  /** ===== Drag reorder within same parent ===== */
-  const [dragId, setDragId] = useState<string | null>(null);
-
-  function onDragStart(id: string) {
-    setDragId(id);
-  }
-
-  async function onDrop(targetId: string) {
-    if (!siteId) {
-      modal.error("Missing site", "Please select a site first.");
-      return;
-    }
-    if (!active) return;
-    if (!dragId || dragId === targetId) return;
-
-    const parentId = active.parentId;
-
-    const sibs = rows
-      .filter((x) => x.parentId === parentId)
-      .slice()
-      .sort(bySortOrder);
-
-    const from = sibs.findIndex((x) => x.id === dragId);
-    const to = sibs.findIndex((x) => x.id === targetId);
-    if (from < 0 || to < 0) return;
-
-    const next = [...sibs];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-
-    const sortMap = new Map(next.map((x, i) => [x.id, (i + 1) * 10] as const));
-    const changed = Array.from(sortMap.entries()).filter(([id, so]) => {
-      const before = rows.find((r) => r.id === id)?.sortOrder ?? 0;
-      return before !== so;
-    });
-
-    // optimistic reorder in store (no extra local state)
-    useCategoriesStore.setState((st) => ({
-      rows: st.rows.map((x) => (sortMap.has(x.id) ? { ...x, sortOrder: sortMap.get(x.id)! } : x)),
-    }));
-
-    setDragId(null);
-    if (changed.length === 0) return;
-
-    try {
-      await Promise.all(changed.map(([id, sortOrder]) => patchOne(id, { sortOrder })));
-      modal.success("Success", "Reordered successfully.");
-    } catch (e: unknown) {
-      const err = e as Error;
-      modal.error("Reorder failed", err?.message || "Reorder failed");
-      loadTree(siteId);
-    }
-  }
-
-  /** ===== Tree Node ===== */
   function TreeNode({ node, depth }: { node: CategoryTreeNode; depth: number }) {
     if (!filteredIds.has(node.id)) return null;
 
     const isActiveNode = node.id === activeId;
-    const hasChildren = (node.children?.length || 0) > 0;
+    const hasChildren = node.children.length > 0;
     const open = hasChildren ? isExpanded(node.id) : false;
 
     return (
@@ -379,8 +529,8 @@ export default function CategoriesPage() {
             <button
               type="button"
               className={styles.treeCaret}
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 toggleExpand(node.id);
               }}
               aria-label={open ? "Collapse" : "Expand"}
@@ -408,8 +558,8 @@ export default function CategoriesPage() {
 
         {hasChildren && open && (
           <div className={styles.treeChildren}>
-            {node.children.map((ch) => (
-              <TreeNode key={ch.id} node={ch} depth={depth + 1} />
+            {node.children.map((child) => (
+              <TreeNode key={child.id} node={child} depth={depth + 1} />
             ))}
           </div>
         )}
@@ -417,104 +567,12 @@ export default function CategoriesPage() {
     );
   }
 
+  const fromIndex = filteredSiblings.length === 0 ? 0 : (page - 1) * pageSize + 1;
+  const toIndex = Math.min(page * pageSize, filteredSiblings.length);
+
   /** ===== Render ===== */
   return (
     <div className={styles.shell}>
-      {/* HEADER */}
-      <header className={styles.topbar}>
-        <div className={styles.brand}>
-          <div className={styles.brandMark} aria-hidden="true">
-            <i className="bi bi-diagram-3" />
-          </div>
-
-          <div className={styles.brandText}>
-            <div className={styles.brandTitleRow}>
-              <div className={styles.brandTitle}>Categories</div>
-
-              <div className={styles.badge} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <i className="bi bi-globe2" />
-
-                <select
-                  value={selectedSiteId || ""}
-                  onChange={(e) => setSelectedSiteId(e.target.value)}
-                  disabled={sitesLoading}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    outline: "none",
-                    color: "inherit",
-                    fontWeight: 700,
-                    cursor: sitesLoading ? "not-allowed" : "pointer",
-                    maxWidth: 220,
-                  }}
-                >
-                  <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
-
-                  {sites.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name ?? s.id} ({s.id})
-                    </option>
-                  ))}
-                </select>
-
-                {sitesErr ? <span style={{ marginLeft: 8, opacity: 0.8 }}>({sitesErr})</span> : null}
-              </div>
-
-              {(loading || busy) && (
-                <span className={styles.badgeMuted}>
-                  <i className="bi bi-arrow-repeat" /> Syncing
-                </span>
-              )}
-            </div>
-
-            <div className={styles.brandSub}>
-              Tree · Sort order · Parent linking
-              <span className={styles.dot} />
-              <span className={styles.hint}>Tip: drag to reorder within parent</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.actions}>
-          <div className={styles.searchWrapTop}>
-            <i className="bi bi-search" />
-            <input
-              className={styles.searchTop}
-              placeholder={siteLoading ? "Loading..." : "Search categories..."}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              disabled={siteLoading || !siteId}
-            />
-            {q.trim() && (
-              <button className={styles.clearBtn} type="button" onClick={() => setQ("")} aria-label="Clear search">
-                <i className="bi bi-x-lg" />
-              </button>
-            )}
-          </div>
-
-          <div className={styles.actionBtns}>
-            <button
-              className={styles.ghostBtn}
-              type="button"
-              onClick={() => (siteId ? loadTree(siteId) : initSite())}
-              disabled={busy || loading || siteLoading}
-            >
-              <i className={`bi bi-arrow-repeat ${loading ? styles.spin : ""}`} /> Refresh
-            </button>
-
-            <button
-              className={styles.primaryBtn}
-              type="button"
-              onClick={() => openCreate(active?.parentId ?? null)}
-              disabled={busy || siteLoading || !siteId}
-            >
-              <i className="bi bi-plus-lg" />
-              <span>Add sibling</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
       {(siteErr || err) && (
         <div className={styles.pageError}>
           <i className="bi bi-exclamation-triangle" />
@@ -522,78 +580,124 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      {/* BODY */}
       <div className={styles.body}>
-        {/* SIDEBAR TREE */}
         <aside className={styles.sidebar}>
           <div className={styles.tree}>
             {siteLoading ? (
               <div className={styles.loadingBox}>
                 <i className="bi bi-arrow-repeat" />
-                <span>Loading site...</span>
+                <span>{_MESSAGES.loadingSite}</span>
               </div>
             ) : !siteId ? (
               <div className={styles.loadingBox}>
                 <i className="bi bi-exclamation-triangle" />
-                <span>No site selected.</span>
+                <span>{_MESSAGES.noSiteSelected}</span>
               </div>
             ) : loading ? (
               <div className={styles.loadingBox}>
                 <i className="bi bi-arrow-repeat" />
-                <span>Loading categories...</span>
+                <span>{_MESSAGES.loadingCategories}</span>
               </div>
             ) : tree.length === 0 ? (
               <div className={styles.loadingBox}>
                 <i className="bi bi-inbox" />
-                <span>No categories.</span>
+                <span>{_MESSAGES.noCategories}</span>
               </div>
             ) : (
-              tree.map((n) => <TreeNode key={n.id} node={n} depth={0} />)
+              tree.map((node) => <TreeNode key={node.id} node={node} depth={0} />)
             )}
           </div>
 
           <div className={styles.sidebarFooter}>
             <div className={styles.tip}>
               <i className="bi bi-lightbulb" />
-              <span>Tip: Drag sort is applied in Order within parent.</span>
+              <span>{_MESSAGES.dragTip}</span>
             </div>
           </div>
         </aside>
 
-        {/* MAIN */}
         <main className={styles.main}>
           <div className={styles.content}>
-            {/* LIST PANEL */}
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
-                <div>
-                  <div className={styles.panelTitle}>Order within parent</div>
-                  <div className={styles.panelSub}>Drag to sort (only within the same parent)</div>
+                <div className={styles.panelDflex}>
+                  <div className={styles.panelTitle}>{_MESSAGES.orderWithinParent}</div>
+                  <div className={styles.badge} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <i className="bi bi-globe2" />
+
+                    <select
+                      value={selectedSiteId || ""}
+                      onChange={(event) => setSelectedSiteId(event.target.value)}
+                      disabled={sitesLoading}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        outline: "none",
+                        color: "inherit",
+                        fontWeight: 700,
+                        cursor: sitesLoading ? "not-allowed" : "pointer",
+                        maxWidth: 240,
+                      }}
+                    >
+                      <option value="">
+                        {sitesLoading ? _MESSAGES.loadingSitesOption : _MESSAGES.selectSiteOption}
+                      </option>
+
+                      {sites.map((site) => (
+                        <option key={site.id} value={site.id}>
+                          {site.name ?? site.id} ({site.id})
+                        </option>
+                      ))}
+                    </select>
+
+                    {sitesErr ? <span style={{ marginLeft: 8, opacity: 0.8 }}>({sitesErr})</span> : null}
+                  </div>
                 </div>
 
-                <div className={styles.panelHeaderActions}>
+                <div className={styles.panelHeaderActions} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div className={styles.searchWrapTop} style={{ minWidth: 260 }}>
+                    <i className="bi bi-search" />
+                    <input
+                      className={styles.searchTop}
+                      placeholder={_MESSAGES.siblingSearchPlaceholder}
+                      value={siblingQuery}
+                      onChange={(event) => setSiblingQuery(event.target.value)}
+                      disabled={!active || busy}
+                    />
+                    {siblingQuery.trim() && (
+                      <button
+                        className={styles.clearBtn}
+                        type="button"
+                        onClick={() => setSiblingQuery("")}
+                        aria-label="Clear sibling search"
+                      >
+                        <i className="bi bi-x-lg" />
+                      </button>
+                    )}
+                  </div>
+
                   <button
                     className={styles.ghostBtn}
                     type="button"
-                    onClick={() => openCreate(active?.id ?? null)}
+                    onClick={handleCreateChild}
                     disabled={!active || busy || siteLoading || !siteId}
                   >
-                    <i className="bi bi-node-plus" /> Add child
+                    <i className="bi bi-node-plus" /> {_MESSAGES.addChild}
                   </button>
                 </div>
               </div>
 
               <div className={styles.pagerBar}>
                 <div className={styles.pagerLeft}>
-                  <span className={styles.pagerLabel}>Showing</span>
+                  <span className={styles.pagerLabel}>{_MESSAGES.showing}</span>
 
                   <span className={styles.pagerRange}>
-                    {flatSiblings.length > 0 ? (
+                    {filteredSiblings.length > 0 ? (
                       <>
-                        {(page - 1) * PAGE_SIZE + 1}
+                        {fromIndex}
                         <span className={styles.pagerDot} />
-                        {Math.min(page * PAGE_SIZE, flatSiblings.length)}
-                        <span style={{ opacity: 0.7, fontWeight: 700 }}>of</span> {flatSiblings.length}
+                        {toIndex}
+                        <span style={{ opacity: 0.7, fontWeight: 700 }}>{_MESSAGES.of}</span> {filteredSiblings.length}
                       </>
                     ) : (
                       <>0</>
@@ -601,18 +705,39 @@ export default function CategoriesPage() {
                   </span>
                 </div>
 
-                <div className={styles.pagerRight}>
+                <div className={styles.pagerRight} style={{ gap: 10 }}>
+                  <select
+                    className={styles.select}
+                    value={pageSize}
+                    onChange={(event) => setPageSize(Number(event.target.value))}
+                    style={{ maxWidth: 100 }}
+                  >
+                    <option value={8}>8 / page</option>
+                    <option value={12}>12 / page</option>
+                    <option value={20}>20 / page</option>
+                    <option value={50}>50 / page</option>
+                  </select>
+
                   <button
                     className={`${styles.ghostBtn} ${styles.pagerBtn}`}
                     type="button"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={busy || page <= 1 || flatSiblings.length === 0}
+                    onClick={() => setPage(1)}
+                    disabled={page <= 1 || filteredSiblings.length === 0}
                   >
-                    <i className="bi bi-chevron-left" /> Prev
+                    « First
+                  </button>
+
+                  <button
+                    className={`${styles.ghostBtn} ${styles.pagerBtn}`}
+                    type="button"
+                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                    disabled={page <= 1 || filteredSiblings.length === 0}
+                  >
+                    <i className="bi bi-chevron-left" /> {_MESSAGES.prev}
                   </button>
 
                   <div className={styles.pagerCenter}>
-                    <span>Page</span> <strong>{page}</strong>
+                    <span>{_MESSAGES.page}</span> <strong>{page}</strong>
                     <span style={{ opacity: 0.55 }}>/</span>
                     <strong>{pageCount}</strong>
                   </div>
@@ -620,31 +745,41 @@ export default function CategoriesPage() {
                   <button
                     className={`${styles.ghostBtn} ${styles.pagerBtn}`}
                     type="button"
-                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                    disabled={busy || page >= pageCount || flatSiblings.length === 0}
+                    onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+                    disabled={page >= pageCount || filteredSiblings.length === 0}
                   >
-                    Next <i className="bi bi-chevron-right" />
+                    {_MESSAGES.next} <i className="bi bi-chevron-right" />
+                  </button>
+
+                  <button
+                    className={`${styles.ghostBtn} ${styles.pagerBtn}`}
+                    type="button"
+                    onClick={() => setPage(pageCount)}
+                    disabled={page >= pageCount || filteredSiblings.length === 0}
+                  >
+                    Last »
                   </button>
                 </div>
               </div>
 
               <div className={styles.list}>
                 {!active ? (
-                  <div className={styles.empty}>Select a category</div>
-                ) : flatSiblings.length === 0 ? (
-                  <div className={styles.empty}>No categories here</div>
+                  <div className={styles.empty}>{_MESSAGES.selectCategory}</div>
+                ) : filteredSiblings.length === 0 ? (
+                  <div className={styles.empty}>{_MESSAGES.noCategoriesHere}</div>
                 ) : (
-                  pagedSiblings.map((c) => {
-                    const isActiveItem = c.id === activeId;
+                  pagedSiblings.map((category) => {
+                    const isActiveItem = category.id === activeId;
+
                     return (
                       <div
-                        key={c.id}
+                        key={category.id}
                         className={`${styles.item} ${isActiveItem ? styles.itemActive : ""}`}
                         draggable
-                        onDragStart={() => onDragStart(c.id)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => onDrop(c.id)}
-                        onClick={() => setActiveId(c.id)}
+                        onDragStart={() => onDragStart(category.id)}
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={() => void onDrop(category.id)}
+                        onClick={() => setActiveId(category.id)}
                         role="button"
                         tabIndex={0}
                       >
@@ -658,24 +793,26 @@ export default function CategoriesPage() {
                           </span>
 
                           <div className={styles.itemText}>
-                            <div className={styles.itemTitle}>{c.name}</div>
+                            <div className={styles.itemTitle}>{category.name}</div>
 
                             <div className={styles.itemMeta}>
-                              <span className={styles.mono}>sortOrder {c.sortOrder}</span>
+                              <span className={styles.mono}>{_MESSAGES.sortOrderText(category.sortOrder)}</span>
                               <span className={styles.dot}>•</span>
-                              <span className={styles.mono}>/{c.slug}</span>
+                              <span className={styles.mono}>{_MESSAGES.slugPath(category.slug)}</span>
                               <span className={styles.dot}>•</span>
-                              <span className={styles.mono}>{c.count} products</span>
+                              <span className={styles.mono}>
+                                {_MESSAGES.productsCount(Number(category.count ?? 0))}
+                              </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className={styles.itemActions} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.itemActions} onClick={(event) => event.stopPropagation()}>
                           <button
                             className={styles.iconBtn}
                             type="button"
                             title="Delete"
-                            onClick={() => askDelete(c.id, c.name)}
+                            onClick={() => handleDeleteById(category.id)}
                             disabled={busy}
                           >
                             <i className="bi bi-trash" />
@@ -688,7 +825,6 @@ export default function CategoriesPage() {
               </div>
             </section>
 
-            {/* INSPECTOR */}
             <aside className={styles.inspector}>
               <div className={styles.panel}>
                 {!active ? (
@@ -696,120 +832,156 @@ export default function CategoriesPage() {
                     <div className={styles.emptyInspector}>
                       <i className="bi bi-info-circle" />
                       <div>
-                        <div className={styles.emptyTitle}>Select a category</div>
-                        <div className={styles.emptyText}>Click a category to edit.</div>
+                        <div className={styles.emptyTitle}>{_MESSAGES.selectCategory}</div>
+                        <div className={styles.emptyText}>{_MESSAGES.selectCategoryDescription}</div>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className={styles.panelBody}>
-                    <div className={styles.headerRow}>
-                      <div>
-                        <div className={styles.headTitle}>{active.name}</div>
+                    <div className={styles.inspectorHeader}>
+                      <div className={styles.titleBlock}>
+                        <h3 className={styles.headTitle}>{draftName || active.name}</h3>
+
                         <div className={styles.headMeta}>
                           <span className={styles.badge}>
-                            <i className="bi bi-link-45deg" /> /{active.slug}
+                            <i className="bi bi-link-45deg" />/{draftSlug || active.slug}
                           </span>
+
                           <span className={styles.badge}>
-                            <i className="bi bi-sort-numeric-down" /> sortOrder {active.sortOrder}
+                            <i className="bi bi-sort-numeric-down" />
+                            {_MESSAGES.sortOrderText(draftSortOrder)}
+                          </span>
+
+                          <span className={styles.badge}>
+                            <i className="bi bi-box-seam" />
+                            {_MESSAGES.productsCount(Number(active.count ?? 0))}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className={styles.form}>
-                      <label className={styles.label}>Name</label>
-                      <div className={styles.inputWrap}>
-                        <i className="bi bi-type" />
-                        <input
-                          className={styles.input}
-                          value={active.name}
-                          onChange={(e) => changeName(e.target.value)}
-                          disabled={busy}
-                        />
-                      </div>
+                    <div className={styles.formSection}>
+                      <div className={styles.sectionTitle}>Editable information</div>
 
-                      <div className={styles.rowInline}>
-                        <div className={styles.rowGrow}>
-                          <label className={styles.label}>Slug</label>
+                      <div className={styles.formGrid}>
+                        <div className={styles.field}>
+                          <label className={styles.label}>{_MESSAGES.name}</label>
                           <div className={styles.inputWrap}>
-                            <i className="bi bi-hash" />
+                            <i className="bi bi-type" />
                             <input
                               className={styles.input}
-                              value={active.slug}
-                              onChange={(e) => changeSlug(e.target.value)}
-                              disabled={busy}
+                              value={draftName}
+                              onChange={(event) => setDraftName(event.target.value)}
+                              disabled={busy || !isEditing}
+                              placeholder="Category name"
                             />
                           </div>
                         </div>
 
-                        <button className={styles.ghostBtn} type="button" onClick={autoSlugFromName} disabled={busy}>
-                          <i className="bi bi-magic" /> Auto
-                        </button>
-                      </div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>{_MESSAGES.slug}</label>
+                          <div className={styles.inputWithAction}>
+                            <div className={styles.inputWrap}>
+                              <i className="bi bi-hash" />
+                              <input
+                                className={styles.input}
+                                value={draftSlug}
+                                onChange={(event) => setDraftSlug(event.target.value)}
+                                disabled={busy || !isEditing}
+                                placeholder="category-slug"
+                              />
+                            </div>
+                          </div>
+                        </div>
 
-                      <label className={styles.label}>Parent</label>
-                      <div className={styles.selectWrap}>
-                        <i className="bi bi-diagram-3" />
-                        <select
-                          className={styles.select}
-                          value={active.parentId ?? ""}
-                          onChange={(e) => moveParent(e.target.value ? e.target.value : null)}
-                          disabled={busy}
-                        >
-                          <option value="">(no parent)</option>
-                          {rows
-                            .filter((x) => x.id !== active.id)
-                            .slice()
-                            .sort(bySortOrder)
-                            .map((x) => (
-                              <option key={x.id} value={x.id}>
-                                {x.name} (/ {x.slug})
-                              </option>
-                            ))}
-                        </select>
-                      </div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>{_MESSAGES.parent}</label>
+                          <div className={styles.selectWrap}>
+                            <i className="bi bi-diagram-3" />
+                            <select
+                              className={styles.selectItem}
+                              value={draftParentId}
+                              onChange={(event) => setDraftParentId(event.target.value)}
+                              disabled={busy || !isEditing}
+                            >
+                              <option value="">{_MESSAGES.noParent}</option>
+                              {rows
+                                .filter((row) => row.id !== active.id)
+                                .slice()
+                                .sort(bySortOrder)
+                                .map((row) => (
+                                  <option key={row.id} value={row.id}>
+                                    {row.name} (/{row.slug})
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+                        </div>
 
-                      <label className={styles.label}>Sort order</label>
-                      <div className={styles.inputWrap}>
-                        <i className="bi bi-sort-numeric-down" />
-                        <input
-                          className={styles.input}
-                          type="number"
-                          value={Number.isFinite(active.sortOrder) ? active.sortOrder : 0}
-                          onChange={(e) => changeSortOrder(Number(e.target.value))}
-                          disabled={busy}
-                        />
+                        <div className={styles.field}>
+                          <label className={styles.label}>{_MESSAGES.sortOrder}</label>
+                          <div className={styles.inputWrap}>
+                            <i className="bi bi-sort-numeric-down" />
+                            <input
+                              className={styles.input}
+                              type="number"
+                              value={draftSortOrder}
+                              onChange={(event) => {
+                                const nextValue = Number(event.target.value);
+                                setDraftSortOrder(Number.isFinite(nextValue) ? Math.trunc(nextValue) : 0);
+                              }}
+                              disabled={busy || !isEditing}
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
                       </div>
+                    </div>
 
-                      <div className={styles.actions}>
-                        <button
-                          className={styles.primaryBtn}
-                          type="button"
-                          onClick={() => loadTree(siteId)}
-                          disabled={busy || !siteId}
-                        >
-                          <i className="bi bi-save2" /> Reload
-                        </button>
+                    <div className={styles.formSection}>
+                      <div className={styles.sectionTitle}>System information</div>
 
-                        <button
-                          className={styles.iconBtn}
-                          type="button"
-                          title="Delete"
-                          onClick={() => askDelete(active.id, active.name)}
-                          disabled={busy}
-                        >
-                          <i className="bi bi-trash" />
-                        </button>
+                      <div className={styles.metaGrid}>
+                        <div className={styles.metaItem}>
+                          <span className={styles.metaLabel}>ID</span>
+                          <span className={styles.metaValueMono}>{active.id}</span>
+                        </div>
+
+                        <div className={styles.metaItem}>
+                          <span className={styles.metaLabel}>Site ID</span>
+                          <span className={styles.metaValueMono}>{active.siteId}</span>
+                        </div>
+
+                        <div className={styles.metaItem}>
+                          <span className={styles.metaLabel}>Parent ID</span>
+                          <span className={styles.metaValueMono}>{active.parentId ?? "—"}</span>
+                        </div>
+
+                        <div className={styles.metaItem}>
+                          <span className={styles.metaLabel}>Products</span>
+                          <span className={styles.metaValue}>{Number(active.count ?? 0)}</span>
+                        </div>
+
+                        <div className={styles.metaItem}>
+                          <span className={styles.metaLabel}>Created at</span>
+                          <span className={styles.metaValue}>
+                            {active.createdAt ? new Date(active.createdAt).toLocaleString("vi-VN") : "—"}
+                          </span>
+                        </div>
+
+                        <div className={styles.metaItem}>
+                          <span className={styles.metaLabel}>Updated at</span>
+                          <span className={styles.metaValue}>
+                            {active.updatedAt ? new Date(active.updatedAt).toLocaleString("vi-VN") : "—"}
+                          </span>
+                        </div>
                       </div>
+                    </div>
 
-                      <div className={styles.tipInline}>
-                        <i className="bi bi-lightbulb" />
-                        <span>
-                          DB index gợi ý: <span className={styles.mono}>parentId</span>,{" "}
-                          <span className={styles.mono}>sortOrder</span> để load tree nhanh.
-                        </span>
-                      </div>
+                    <div className={styles.tipInline}>
+                      <i className="bi bi-lightbulb" />
+                      <span className={styles.mono}>{_MESSAGES.dbHint}</span>
                     </div>
                   </div>
                 )}
@@ -819,59 +991,58 @@ export default function CategoriesPage() {
         </main>
       </div>
 
-      {/* CREATE MODAL */}
       {createOpen && (
         <div
           className={styles.modalOverlay}
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) closeCreate();
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeCreate();
           }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") closeCreate();
+          onKeyDown={(event) => {
+            if (event.key === "Escape") closeCreate();
           }}
         >
           <div className={styles.modal} role="dialog" aria-modal="true">
             <div className={styles.modalHeader}>
-              <div className={styles.modalTitle}>Create category</div>
+              <div className={styles.modalTitle}>{_MESSAGES.createCategory}</div>
               <button className={styles.iconBtn} type="button" onClick={closeCreate} disabled={busy}>
                 <i className="bi bi-x-lg" />
               </button>
             </div>
 
             <div className={styles.modalBody}>
-              <label className={styles.label}>Name</label>
+              <label className={styles.label}>{_MESSAGES.name}</label>
               <div className={styles.inputWrap}>
                 <i className="bi bi-type" />
                 <input
                   ref={createInputRef}
                   className={styles.input}
                   value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") submitCreate();
-                    if (e.key === "Escape") closeCreate();
+                  onChange={(event) => setCreateName(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void submitCreate();
+                    if (event.key === "Escape") closeCreate();
                   }}
-                  placeholder="e.g. Accessories"
+                  placeholder={_MESSAGES.createPlaceholder}
                   disabled={busy}
                 />
               </div>
 
               <div className={styles.modalHint}>
-                Slug sẽ tự tạo: <span className={styles.mono}>/{slugify(createName)}</span>
+                {_MESSAGES.slugPreviewPrefix} <span className={styles.mono}>/{slugify(createName)}</span>
               </div>
             </div>
 
             <div className={styles.modalActions}>
               <button className={styles.ghostBtn} type="button" onClick={closeCreate} disabled={busy}>
-                Cancel
+                {_MESSAGES.cancel}
               </button>
               <button
                 className={styles.primaryBtn}
                 type="button"
-                onClick={submitCreate}
+                onClick={() => void submitCreate()}
                 disabled={busy || !createName.trim()}
               >
-                <i className="bi bi-plus-lg" /> Create
+                <i className="bi bi-plus-lg" /> {_MESSAGES.create}
               </button>
             </div>
           </div>

@@ -29,6 +29,7 @@ export const API_ROUTES = {
     PAGE_UNPUBLISH: "/api/admin/builder/pages/unpublish",
 
     PAGE_SEO: (id: string) => `/api/admin/builder/pages/${id}/seo`,
+    SITES: "/api/admin/builder/sites",
   },
   ADMIN_BUILDER_PAGES: "/api/admin/builder/pages",
   ADMIN_BUILDER_PAGE: (id: string) => `/api/admin/builder/pages/${id}`,
@@ -57,5 +58,9 @@ export const API_ROUTES = {
   ADMIN_BRAND: {
     BRAND_API: "/api/admin/commerce/brands",
     BRAND_IMAGE_UPLOAD_API: "/api/admin/commerce/brands/upload",
+  },
+  ADMIN_COMMERCE: {
+    BRANDS: "/api/admin/commerce/brands",
+    CATEGORIES: "/api/admin/commerce/categories",
   },
 } as const;
