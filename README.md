@@ -77,9 +77,9 @@ tôi muốn tách services/builder/menus/index.ts và store/builder/menus/index.
 
 tôi đang sử dụng next 16 Hiện tại mục folder store với mục service trong next js sẽ thực hiện những gì
 vậy bạn hãy tách store và service trông file code này giúp tôi nhé
-Vậy page này sẽ sửa lại như nào với lại bạn kiểm tra giúp tôi ở đây có validation.ts hay messages.ts gì không nhé
 
-Đây là file AllowedBlocks.tsx tôi muốn bạn lấy những message đang có trong page hãy thêm vào MENU_MESSAGES và Bạn hãy sửa và ghi lại AllowedBlocks.tsx theo phong cách chuyên nghiệp được không
+src/features/commerce/brands/messages.ts
+Vậy page này sẽ sửa lại như nào với lại bạn kiểm tra giúp tôi ở đây có validation.ts hay messages.ts gì không nhé Đây là file page.tsx của brands tôi muốn bạn lấy những message đang có trong page hãy thêm vào BRANDS_MESSAGES và Bạn hãy sửa và ghi lại page.tsx theo phong cách chuyên nghiệp được không
 
 Tôi đã tạo features/builder/pages/messages.ts hãy tách messeage vào đây giúp tôi nhé
 
@@ -134,3 +134,5 @@ hiện tại đang lỗi any bạn hãy sửa giúp tôi nhé Unexpected any. Sp
 Hiện tại Ui đang rất xấu và chưa có category bạn có thể giúp tôi độ lại design màu sáng với phong cách mới mẽ và có sort cho theader cho table nếu có thể hãy thêm những chức năng search khác nhé để tiện lợi chuyên sâu hơn cho người sử dụng nếu có thể hãy trích xuất những dữ liệu cần thiết vào theader bảng nhé
 
 giả sửa tôi muốn thêm F3 , F5, F8, F9,F10 vào file page.tsx sites phải làm sao Hãy chỉnh sửa theo cách chuyên nghiệp giúp tôi nhé
+
+Hiện tại phần design này chưa được đẹp bạn có thể dộ và thêm một số tính năng search giúp tôi được không nếu có thể hãy thêm phần panigation phần trang nửa nhé

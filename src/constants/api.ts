@@ -54,4 +54,8 @@ export const API_ROUTES = {
     ACCEPT: "/api/admin/user/friends/accept",
     REQUEST: "/api/admin/user/friends/request",
   },
+  ADMIN_BRAND: {
+    BRAND_API: "/api/admin/commerce/brands",
+    BRAND_IMAGE_UPLOAD_API: "/api/admin/commerce/brands/upload",
+  },
 } as const;
