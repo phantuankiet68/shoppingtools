@@ -1,46 +1,77 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { useSiteStore } from "@/store/site/site.store";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import { useModal } from "@/components/admin/shared/common/modal";
 import styles from "@/styles/admin/commerce/variants/variants.module.css";
 
-type ProductRow = {
-  id: string;
+type Id = string;
+type IsoDateString = string;
+type Nullable<T> = T | null;
+
+type ProductRow = Readonly<{
+  id: Id;
   name: string;
   skuPrefix: string;
-  image?: string | null;
-};
+  image: Nullable<string>;
+}>;
 
-type VariantImageRow = {
-  id: string;
+type VariantImageRow = Readonly<{
+  id: Id;
   url: string;
   isCover: boolean;
   sort: number;
-};
+}>;
 
-type VariantRow = {
-  id: string;
-  productId: string;
-  siteId: string;
+type VariantRow = Readonly<{
+  id: Id;
+  productId: Id;
+  siteId: Id;
   sku: string;
-  title?: string | null;
+  title: string;
   isActive: boolean;
   price: number;
-  compareAtPrice?: number | null;
-  cost?: number | null;
+  compareAtPrice: Nullable<number>;
+  cost: Nullable<number>;
   stockQty: number;
-  barcode?: string | null;
-  weight?: number | null;
-  length?: number | null;
-  width?: number | null;
-  height?: number | null;
+  barcode: Nullable<string>;
+  weight: Nullable<number>;
+  length: Nullable<number>;
+  width: Nullable<number>;
+  height: Nullable<number>;
   isDefault: boolean;
   images: VariantImageRow[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt: IsoDateString;
+  updatedAt: IsoDateString;
+}>;
+
+type VariantFormState = {
+  sku: string;
+  title: string;
+  isActive: boolean;
+  price: number;
+  compareAtPrice: Nullable<number>;
+  cost: Nullable<number>;
+  stockQty: number;
+  barcode: Nullable<string>;
+  weight: Nullable<number>;
+  length: Nullable<number>;
+  width: Nullable<number>;
+  height: Nullable<number>;
+  isDefault: boolean;
 };
 
-type LooseDbVariant = {
+type DbVariantImage = Readonly<{
+  id: string;
+  url?: string | null;
+  imageUrl?: string | null;
+  isCover?: boolean | null;
+  sort?: number | null;
+  sortOrder?: number | null;
+}>;
+
+type DbVariant = Readonly<{
   id: string;
   productId: string;
   siteId?: string | null;
@@ -59,85 +90,77 @@ type LooseDbVariant = {
   isDefault?: boolean | null;
   createdAt?: string | Date | null;
   updatedAt?: string | Date | null;
-  images?: Array<{
-    id: string;
-    url?: string | null;
-    imageUrl?: string | null;
-    isCover?: boolean | null;
-    sort?: number | null;
-    sortOrder?: number | null;
-  }>;
-};
+  images?: DbVariantImage[];
+}>;
 
-type ProductLiteResponse = {
-  items: ProductRow[];
-};
+type ApiListResponse<T> = Readonly<{
+  items: T[];
+}>;
 
-type VariantListResponse = {
-  items: LooseDbVariant[];
-};
+type ApiItemResponse<T> = Readonly<{
+  item: T;
+}>;
 
-type VariantItemResponse = {
-  item: LooseDbVariant;
-};
-
-type VariantImagesResponse = {
-  items: Array<{
-    id: string;
-    url?: string;
-    imageUrl?: string;
-    isCover?: boolean;
-    sort?: number;
-    sortOrder?: number;
-  }>;
-};
-
-type VariantCreatePayload = {
+type VariantCreatePayload = Readonly<{
   productId: string;
   siteId: string;
   sku: string;
-  title: string | null;
+  title: Nullable<string>;
   isActive: boolean;
   price: number;
-  compareAtPrice: number | null;
-  cost: number | null;
+  compareAtPrice: Nullable<number>;
+  cost: Nullable<number>;
   stockQty: number;
-  barcode: string | null;
-  weight: number | null;
-  length: number | null;
-  width: number | null;
-  height: number | null;
-  isDefault: boolean;
-};
-
-type VariantPatchPayload = Partial<{
-  sku: string;
-  title: string | null;
-  isActive: boolean;
-  price: number;
-  compareAtPrice: number | null;
-  cost: number | null;
-  stockQty: number;
-  barcode: string | null;
-  weight: number | null;
-  length: number | null;
-  width: number | null;
-  height: number | null;
+  barcode: Nullable<string>;
+  weight: Nullable<number>;
+  length: Nullable<number>;
+  width: Nullable<number>;
+  height: Nullable<number>;
   isDefault: boolean;
 }>;
 
+type VariantPatchPayload = Partial<Omit<VariantCreatePayload, "productId" | "siteId">>;
+
+type VariantImageCreatePayload = Readonly<{
+  url: string;
+  isCover: boolean;
+  sort: number;
+}>;
+
+type VariantImagePatchPayload = Readonly<{
+  imageId: string;
+  isCover: boolean;
+}>;
+
+type UploadResponse = Readonly<{
+  url?: string | null;
+  imageUrl?: string | null;
+  item?: {
+    url?: string | null;
+    imageUrl?: string | null;
+    path?: string | null;
+  } | null;
+  data?: {
+    url?: string | null;
+    imageUrl?: string | null;
+    path?: string | null;
+  } | null;
+}> | null;
+
+type FunctionKeyActionMap = Partial<Record<`F${number}`, () => void>>;
+
 const SAVE_METHOD: "PATCH" | "PUT" = "PATCH";
 
-function nowIso() {
+function nowIso(): IsoDateString {
   return new Date().toISOString();
 }
 
-function clamp(n: number, min: number, max: number) {
+function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
-function slugSku(s: string) {
-  return s
+function slugSku(value: string): string {
+  return value
     .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9]+/g, "-")
@@ -145,173 +168,205 @@ function slugSku(s: string) {
     .replace(/^-|-$/g, "");
 }
 
-function formatMoney(value: number | null | undefined) {
-  const n = Number(value ?? 0);
-  if (!Number.isFinite(n)) return "0.00";
-  return n.toFixed(2);
+function formatMoney(value: number | null | undefined): string {
+  const amount = Number(value ?? 0);
+  if (!Number.isFinite(amount)) return "0.00";
+  return amount.toFixed(2);
 }
 
-function uniqueSkuForProduct(prefix: string, existingSkus: Set<string>, base = "NEW") {
+function uniqueSkuForProduct(prefix: string, existingSkus: ReadonlySet<string>, base = "NEW"): string {
   const baseSku = slugSku(`${prefix}-${base}`);
   if (!existingSkus.has(baseSku)) return baseSku;
 
   for (let i = 2; i < 10000; i += 1) {
-    const sku = slugSku(`${prefix}-${base}-${i}`);
-    if (!existingSkus.has(sku)) return sku;
+    const candidate = slugSku(`${prefix}-${base}-${i}`);
+    if (!existingSkus.has(candidate)) return candidate;
   }
 
   return slugSku(`${prefix}-${base}-${Date.now()}`);
 }
 
-function getErrorMessage(error: unknown, fallback: string) {
+function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
-function isAbortError(error: unknown) {
+function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
-function safeIso(v: unknown) {
-  const d = v ? new Date(v as string | Date) : new Date();
-  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+function safeIso(value: unknown): IsoDateString {
+  const date = value ? new Date(value as string | Date) : new Date();
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
 }
 
-function toNumber(value: unknown, fallback = 0) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
+function toNumber(value: unknown, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function normalizeNullableNumber(value: unknown) {
+function normalizeNullableNumber(value: unknown): number | null {
   if (value === "" || value === undefined || value === null) return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-function normalizeImage(im: {
-  id: string;
-  url?: string | null;
-  imageUrl?: string | null;
-  isCover?: boolean | null;
-  sort?: number | null;
-  sortOrder?: number | null;
-}): VariantImageRow {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getApiErrorMessage(data: unknown, status: number): string {
+  if (!isRecord(data)) return `HTTP ${status}`;
+
+  const error = typeof data.error === "string" ? data.error : undefined;
+  const message = typeof data.message === "string" ? data.message : undefined;
+
+  return error || message || `HTTP ${status}`;
+}
+
+function normalizeImage(image: DbVariantImage): VariantImageRow {
+  const sort = typeof image.sort === "number" ? image.sort : typeof image.sortOrder === "number" ? image.sortOrder : 0;
+
   return {
-    id: String(im.id),
-    url: im.url || im.imageUrl || "",
-    isCover: !!im.isCover,
-    sort: typeof im.sort === "number" ? im.sort : (im.sortOrder ?? 0),
+    id: String(image.id),
+    url: image.url || image.imageUrl || "",
+    isCover: Boolean(image.isCover),
+    sort,
   };
 }
 
-function dbToUiVariant(v: LooseDbVariant): VariantRow {
-  const images = Array.isArray(v.images) ? v.images.map(normalizeImage) : [];
+function dbToUiVariant(variant: DbVariant): VariantRow {
+  const images = Array.isArray(variant.images) ? variant.images.map(normalizeImage) : [];
 
   return {
-    id: String(v.id),
-    productId: String(v.productId),
-    siteId: String(v.siteId ?? ""),
-    sku: String(v.sku ?? ""),
-    title: v.title?.trim() || "",
-    isActive: !!v.isActive,
-    price: toNumber(v.price, 0),
-    compareAtPrice: v.compareAtPrice == null ? null : toNumber(v.compareAtPrice, 0),
-    cost: v.cost == null ? null : toNumber(v.cost, 0),
-    stockQty: Number.isFinite(Number(v.stockQty)) ? Number(v.stockQty) : 0,
-    barcode: v.barcode ?? null,
-    weight: v.weight == null ? null : toNumber(v.weight, 0),
-    length: v.length == null ? null : toNumber(v.length, 0),
-    width: v.width == null ? null : toNumber(v.width, 0),
-    height: v.height == null ? null : toNumber(v.height, 0),
-    isDefault: !!v.isDefault,
+    id: String(variant.id),
+    productId: String(variant.productId),
+    siteId: String(variant.siteId ?? ""),
+    sku: String(variant.sku ?? ""),
+    title: variant.title?.trim() || "",
+    isActive: Boolean(variant.isActive),
+    price: toNumber(variant.price, 0),
+    compareAtPrice: variant.compareAtPrice == null ? null : toNumber(variant.compareAtPrice, 0),
+    cost: variant.cost == null ? null : toNumber(variant.cost, 0),
+    stockQty: Math.max(0, Math.trunc(toNumber(variant.stockQty, 0))),
+    barcode: variant.barcode ?? null,
+    weight: variant.weight == null ? null : toNumber(variant.weight, 0),
+    length: variant.length == null ? null : toNumber(variant.length, 0),
+    width: variant.width == null ? null : toNumber(variant.width, 0),
+    height: variant.height == null ? null : toNumber(variant.height, 0),
+    isDefault: Boolean(variant.isDefault),
     images,
-    createdAt: safeIso(v.createdAt),
-    updatedAt: safeIso(v.updatedAt),
+    createdAt: safeIso(variant.createdAt),
+    updatedAt: safeIso(variant.updatedAt),
   };
 }
 
-function uiToDbCreatePayload(
-  v: Partial<VariantRow> & { productId: string; siteId: string; sku: string },
-): VariantCreatePayload {
+function variantToFormState(variant: VariantRow): VariantFormState {
   return {
-    productId: v.productId,
-    siteId: v.siteId,
-    sku: v.sku,
-    title: v.title?.trim() ? v.title.trim() : null,
-    isActive: !!v.isActive,
-    price: toNumber(v.price, 0),
-    compareAtPrice: v.compareAtPrice == null ? null : toNumber(v.compareAtPrice, 0),
-    cost: v.cost == null ? null : toNumber(v.cost, 0),
-    stockQty: Math.max(0, Math.trunc(toNumber(v.stockQty, 0))),
-    barcode: v.barcode?.trim() ? v.barcode.trim() : null,
-    weight: v.weight == null ? null : toNumber(v.weight, 0),
-    length: v.length == null ? null : toNumber(v.length, 0),
-    width: v.width == null ? null : toNumber(v.width, 0),
-    height: v.height == null ? null : toNumber(v.height, 0),
-    isDefault: !!v.isDefault,
+    sku: variant.sku,
+    title: variant.title,
+    isActive: variant.isActive,
+    price: variant.price,
+    compareAtPrice: variant.compareAtPrice,
+    cost: variant.cost,
+    stockQty: variant.stockQty,
+    barcode: variant.barcode,
+    weight: variant.weight,
+    length: variant.length,
+    width: variant.width,
+    height: variant.height,
+    isDefault: variant.isDefault,
   };
 }
 
-function uiToDbPatchPayload(patch: Partial<VariantRow>): VariantPatchPayload {
-  const data: VariantPatchPayload = {};
+function uiToDbCreatePayload(data: VariantFormState & { productId: string; siteId: string }): VariantCreatePayload {
+  return {
+    productId: data.productId,
+    siteId: data.siteId,
+    sku: data.sku,
+    title: data.title.trim() ? data.title.trim() : null,
+    isActive: data.isActive,
+    price: toNumber(data.price, 0),
+    compareAtPrice: data.compareAtPrice == null ? null : toNumber(data.compareAtPrice, 0),
+    cost: data.cost == null ? null : toNumber(data.cost, 0),
+    stockQty: Math.max(0, Math.trunc(toNumber(data.stockQty, 0))),
+    barcode: data.barcode?.trim() ? data.barcode.trim() : null,
+    weight: data.weight == null ? null : toNumber(data.weight, 0),
+    length: data.length == null ? null : toNumber(data.length, 0),
+    width: data.width == null ? null : toNumber(data.width, 0),
+    height: data.height == null ? null : toNumber(data.height, 0),
+    isDefault: data.isDefault,
+  };
+}
 
-  if (patch.sku !== undefined) data.sku = patch.sku;
-  if (patch.title !== undefined) data.title = patch.title?.trim() ? patch.title.trim() : null;
-  if (patch.isActive !== undefined) data.isActive = !!patch.isActive;
-  if (patch.price !== undefined) data.price = toNumber(patch.price, 0);
-  if (patch.compareAtPrice !== undefined) {
-    data.compareAtPrice = patch.compareAtPrice == null ? null : toNumber(patch.compareAtPrice, 0);
-  }
-  if (patch.cost !== undefined) {
-    data.cost = patch.cost == null ? null : toNumber(patch.cost, 0);
-  }
-  if (patch.stockQty !== undefined) {
-    data.stockQty = Math.max(0, Math.trunc(toNumber(patch.stockQty, 0)));
-  }
-  if (patch.barcode !== undefined) data.barcode = patch.barcode?.trim() ? patch.barcode.trim() : null;
-  if (patch.weight !== undefined) data.weight = patch.weight == null ? null : toNumber(patch.weight, 0);
-  if (patch.length !== undefined) data.length = patch.length == null ? null : toNumber(patch.length, 0);
-  if (patch.width !== undefined) data.width = patch.width == null ? null : toNumber(patch.width, 0);
-  if (patch.height !== undefined) data.height = patch.height == null ? null : toNumber(patch.height, 0);
-  if (patch.isDefault !== undefined) data.isDefault = !!patch.isDefault;
+function uiToDbPatchPayload(data: VariantFormState): VariantPatchPayload {
+  return {
+    sku: data.sku,
+    title: data.title.trim() ? data.title.trim() : null,
+    isActive: data.isActive,
+    price: toNumber(data.price, 0),
+    compareAtPrice: data.compareAtPrice == null ? null : toNumber(data.compareAtPrice, 0),
+    cost: data.cost == null ? null : toNumber(data.cost, 0),
+    stockQty: Math.max(0, Math.trunc(toNumber(data.stockQty, 0))),
+    barcode: data.barcode?.trim() ? data.barcode.trim() : null,
+    weight: data.weight == null ? null : toNumber(data.weight, 0),
+    length: data.length == null ? null : toNumber(data.length, 0),
+    width: data.width == null ? null : toNumber(data.width, 0),
+    height: data.height == null ? null : toNumber(data.height, 0),
+    isDefault: data.isDefault,
+  };
+}
 
-  return data;
+function extractUploadedImageUrl(data: UploadResponse): string {
+  const candidates = [
+    data?.url,
+    data?.imageUrl,
+    data?.item?.url,
+    data?.item?.imageUrl,
+    data?.item?.path,
+    data?.data?.url,
+    data?.data?.imageUrl,
+    data?.data?.path,
+  ];
+
+  const matched = candidates.find((value) => typeof value === "string" && value.trim());
+  return matched?.trim() || "";
 }
 
 async function apiJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
 
-  if (init?.body && !headers.has("Content-Type")) {
+  if (init?.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
-  const res = await fetch(input, {
+  const response = await fetch(input, {
     ...init,
     headers,
   });
 
-  if (res.status === 204) return null as T;
+  if (response.status === 204) {
+    return null as T;
+  }
 
-  const data: unknown = await res.json().catch(() => null);
+  const data: unknown = await response.json().catch(() => null);
 
-  if (!res.ok) {
-    if (data && typeof data === "object") {
-      const errObj = data as { error?: string; message?: string };
-      throw new Error(errObj.error || errObj.message || `HTTP ${res.status}`);
-    }
-    throw new Error(`HTTP ${res.status}`);
+  if (!response.ok) {
+    throw new Error(getApiErrorMessage(data, response.status));
   }
 
   return data as T;
 }
 
 export default function VariantsPage() {
-  const sites = useSiteStore((s) => s.sites);
-  const sitesLoading = useSiteStore((s) => s.loading);
-  const sitesErr = useSiteStore((s) => s.err);
-  const selectedSiteId = useSiteStore((s) => s.siteId);
-  const setSelectedSiteId = useSiteStore((s) => s.setSiteId);
-  const hydrateFromStorage = useSiteStore((s) => s.hydrateFromStorage);
-  const loadSites = useSiteStore((s) => s.loadSites);
+  const modal = useModal();
+
+  const sites = useSiteStore((state) => state.sites);
+  const sitesLoading = useSiteStore((state) => state.loading);
+  const sitesErr = useSiteStore((state) => state.err);
+  const selectedSiteId = useSiteStore((state) => state.siteId);
+  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
+  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
+  const loadSites = useSiteStore((state) => state.loadSites);
 
   const [productQuery, setProductQuery] = useState("");
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -321,35 +376,50 @@ export default function VariantsPage() {
   const [variantQuery, setVariantQuery] = useState("");
   const [activeVariantId, setActiveVariantId] = useState("");
 
+  const [variantForm, setVariantForm] = useState<VariantFormState | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+
   const activeProduct = useMemo(
-    () => products.find((p) => p.id === activeProductId) || null,
+    () => products.find((product) => product.id === activeProductId) ?? null,
     [products, activeProductId],
   );
 
   const visibleProducts = useMemo(() => {
-    const q = productQuery.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter((p) => p.name.toLowerCase().includes(q) || p.skuPrefix.toLowerCase().includes(q));
+    const normalizedQuery = productQuery.trim().toLowerCase();
+    if (!normalizedQuery) return products;
+
+    return products.filter((product) => {
+      return (
+        product.name.toLowerCase().includes(normalizedQuery) ||
+        product.skuPrefix.toLowerCase().includes(normalizedQuery)
+      );
+    });
   }, [products, productQuery]);
 
   const productVariants = useMemo(() => {
-    const q = variantQuery.trim().toLowerCase();
+    const normalizedQuery = variantQuery.trim().toLowerCase();
+
     return variants
-      .filter((v) => v.productId === activeProductId)
-      .filter((v) => {
-        if (!q) return true;
-        return `${v.title ?? ""} ${v.sku} ${v.barcode ?? ""}`.toLowerCase().includes(q);
+      .filter((variant) => variant.productId === activeProductId)
+      .filter((variant) => {
+        if (!normalizedQuery) return true;
+        return `${variant.title} ${variant.sku} ${variant.barcode ?? ""}`.toLowerCase().includes(normalizedQuery);
       })
       .slice()
-      .sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      .sort((left, right) => left.title.localeCompare(right.title));
   }, [variants, activeProductId, variantQuery]);
 
   const activeVariant = useMemo(
-    () => variants.find((v) => v.id === activeVariantId) || null,
+    () => variants.find((variant) => variant.id === activeVariantId) ?? null,
     [variants, activeVariantId],
   );
 
@@ -359,368 +429,623 @@ export default function VariantsPage() {
   }, [hydrateFromStorage, loadSites]);
 
   useEffect(() => {
-    const ac = new AbortController();
+    return () => {
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+    };
+  }, [localPreviewUrl]);
 
-    async function loadProducts() {
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProductsBySite(): Promise<void> {
       if (!selectedSiteId) {
         setProducts([]);
         setActiveProductId("");
         setVariants([]);
         setActiveVariantId("");
+        setVariantForm(null);
+        setLocalPreviewUrl(null);
         return;
       }
 
       try {
         setError(null);
 
-        const data = await apiJson<ProductLiteResponse>(
+        const response = await apiJson<ApiListResponse<ProductRow>>(
           `/api/admin/commerce/products/lite?siteId=${encodeURIComponent(selectedSiteId)}`,
-          { signal: ac.signal },
+          { signal: controller.signal },
         );
 
-        const items = data.items ?? [];
+        const items = response.items ?? [];
         setProducts(items);
 
-        setActiveProductId((prev) => {
-          if (prev && items.some((item) => item.id === prev)) return prev;
-          return items[0]?.id || "";
+        setActiveProductId((previous) => {
+          if (previous && items.some((item) => item.id === previous)) return previous;
+          return items[0]?.id ?? "";
         });
 
         setVariants([]);
         setActiveVariantId("");
-      } catch (e: unknown) {
-        if (isAbortError(e)) return;
+        setVariantForm(null);
+        setLocalPreviewUrl(null);
+      } catch (err: unknown) {
+        if (isAbortError(err)) return;
+
         setProducts([]);
         setActiveProductId("");
         setVariants([]);
         setActiveVariantId("");
-        setError(getErrorMessage(e, "Failed to load products"));
+        setVariantForm(null);
+        setLocalPreviewUrl(null);
+        setError(getErrorMessage(err, "Failed to load products"));
       }
     }
 
-    void loadProducts();
-    return () => ac.abort();
+    void loadProductsBySite();
+
+    return () => controller.abort();
   }, [selectedSiteId]);
 
-  async function fetchVariantsByProduct(productId: string, signal?: AbortSignal) {
-    const data = await apiJson<VariantListResponse>(
+  const fetchVariantsByProduct = useCallback(async (productId: string, signal?: AbortSignal): Promise<VariantRow[]> => {
+    const response = await apiJson<ApiListResponse<DbVariant>>(
       `/api/admin/commerce/variants?productId=${encodeURIComponent(productId)}`,
       { signal },
     );
 
-    const rows = (data.items ?? []).map(dbToUiVariant);
+    return (response.items ?? []).map(dbToUiVariant);
+  }, []);
 
-    setVariants((prev) => {
-      const other = prev.filter((v) => v.productId !== productId);
-      return [...other, ...rows];
-    });
+  const reloadActiveProductVariants = useCallback(
+    async (preferredVariantId?: string): Promise<void> => {
+      if (!activeProductId) return;
 
-    return rows;
-  }
-
-  async function reloadActiveProductVariants(preferredVariantId?: string) {
-    if (!activeProductId) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const rows = await fetchVariantsByProduct(activeProductId);
-
-      setActiveVariantId((prev) => {
-        if (preferredVariantId && rows.some((row) => row.id === preferredVariantId)) return preferredVariantId;
-        if (prev && rows.some((row) => row.id === prev)) return prev;
-        return rows[0]?.id || "";
-      });
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to load variants"));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!activeProductId) {
-      setActiveVariantId("");
-      return;
-    }
-
-    const ac = new AbortController();
-
-    async function loadVariants() {
       setLoading(true);
       setError(null);
 
       try {
-        const rows = await fetchVariantsByProduct(activeProductId, ac.signal);
-        setActiveVariantId((prev) => (prev && rows.some((row) => row.id === prev) ? prev : rows[0]?.id || ""));
-      } catch (e: unknown) {
-        if (isAbortError(e)) return;
-        setError(getErrorMessage(e, "Failed to load variants"));
+        const rows = await fetchVariantsByProduct(activeProductId);
+        setVariants(rows);
+
+        setActiveVariantId((previous) => {
+          if (preferredVariantId && rows.some((row) => row.id === preferredVariantId)) {
+            return preferredVariantId;
+          }
+
+          if (previous && rows.some((row) => row.id === previous)) {
+            return previous;
+          }
+
+          return rows[0]?.id ?? "";
+        });
+      } catch (err: unknown) {
+        setError(getErrorMessage(err, "Failed to load variants"));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [activeProductId, fetchVariantsByProduct],
+  );
+
+  useEffect(() => {
+    if (!activeProductId) {
+      setVariants([]);
+      setActiveVariantId("");
+      setVariantForm(null);
+      setLocalPreviewUrl(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadVariantsByProduct(): Promise<void> {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const rows = await fetchVariantsByProduct(activeProductId, controller.signal);
+        setVariants(rows);
+        setActiveVariantId((previous) => {
+          if (previous && rows.some((row) => row.id === previous)) return previous;
+          return rows[0]?.id ?? "";
+        });
+      } catch (err: unknown) {
+        if (isAbortError(err)) return;
+
+        setVariants([]);
+        setActiveVariantId("");
+        setVariantForm(null);
+        setLocalPreviewUrl(null);
+        setError(getErrorMessage(err, "Failed to load variants"));
       } finally {
         setLoading(false);
       }
     }
 
-    void loadVariants();
-    return () => ac.abort();
-  }, [activeProductId]);
+    void loadVariantsByProduct();
 
-  function selectProduct(id: string) {
-    setActiveProductId(id);
+    return () => controller.abort();
+  }, [activeProductId, fetchVariantsByProduct]);
+
+  useEffect(() => {
+    if (!activeVariant) {
+      setVariantForm(null);
+      setLocalPreviewUrl(null);
+      return;
+    }
+
+    setVariantForm(variantToFormState(activeVariant));
+    setLocalPreviewUrl(null);
+  }, [activeVariant]);
+
+  const selectProduct = useCallback((productId: string) => {
+    setActiveProductId(productId);
     setVariantQuery("");
     setActiveVariantId("");
-  }
+    setVariantForm(null);
+    setLocalPreviewUrl(null);
+  }, []);
 
-  function patchVariantLocal(id: string, patch: Partial<VariantRow>) {
-    setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch, updatedAt: nowIso() } : v)));
-  }
+  const patchVariantForm = useCallback((patch: Partial<VariantFormState>) => {
+    setVariantForm((previous) => (previous ? { ...previous, ...patch } : previous));
+  }, []);
 
-  async function saveVariantRemote(id: string, patch: Partial<VariantRow>) {
-    setSavingId(id);
-    setError(null);
+  const saveVariantRemote = useCallback(
+    async (id: string, form: VariantFormState): Promise<void> => {
+      setSavingId(id);
+      setError(null);
 
-    try {
-      await apiJson<unknown>(`/api/admin/commerce/variants/${id}`, {
-        method: SAVE_METHOD,
-        body: JSON.stringify(uiToDbPatchPayload(patch)),
-      });
+      try {
+        await apiJson<unknown>(`/api/admin/commerce/variants/${id}`, {
+          method: SAVE_METHOD,
+          body: JSON.stringify(uiToDbPatchPayload(form)),
+        });
 
-      await reloadActiveProductVariants(id);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to save"));
-    } finally {
-      setSavingId(null);
+        await reloadActiveProductVariants(id);
+      } catch (err: unknown) {
+        const message = getErrorMessage(err, "Failed to save");
+        setError(message);
+        modal.error("Save failed", message);
+      } finally {
+        setSavingId(null);
+      }
+    },
+    [reloadActiveProductVariants, modal],
+  );
+
+  const createVariantRemote = useCallback(async (): Promise<void> => {
+    if (!selectedSiteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
     }
-  }
 
-  async function createVariantRemote() {
-    if (!activeProduct || !selectedSiteId) return;
+    if (!activeProduct) {
+      modal.error("Missing product", "Please select a product first.");
+      return;
+    }
 
     setError(null);
 
-    const existing = new Set(variants.filter((v) => v.productId === activeProduct.id).map((v) => v.sku));
-    const sku = uniqueSkuForProduct(activeProduct.skuPrefix, existing, "NEW");
+    const existingSkus = new Set(variants.map((variant) => variant.sku));
+    const sku = uniqueSkuForProduct(activeProduct.skuPrefix, existingSkus, "NEW");
+
+    const newVariantForm: VariantFormState = {
+      sku,
+      title: "New variant",
+      isActive: false,
+      price: 0,
+      compareAtPrice: null,
+      cost: null,
+      stockQty: 0,
+      barcode: null,
+      weight: null,
+      length: null,
+      width: null,
+      height: null,
+      isDefault: false,
+    };
 
     try {
-      const res = await apiJson<VariantItemResponse>(`/api/admin/commerce/variants`, {
+      const response = await apiJson<ApiItemResponse<DbVariant>>(`/api/admin/commerce/variants`, {
         method: "POST",
         body: JSON.stringify(
           uiToDbCreatePayload({
+            ...newVariantForm,
             productId: activeProduct.id,
             siteId: selectedSiteId,
-            sku,
-            title: "New variant",
-            isActive: false,
-            price: 0,
-            compareAtPrice: null,
-            cost: null,
-            stockQty: 0,
-            barcode: null,
-            weight: null,
-            length: null,
-            width: null,
-            height: null,
-            isDefault: false,
           }),
         ),
       });
 
-      const createdId = res?.item?.id ? String(res.item.id) : undefined;
+      const createdId = response.item?.id ? String(response.item.id) : undefined;
       await reloadActiveProductVariants(createdId);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to create"));
+      modal.success("Success", "Created variant successfully.");
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, "Failed to create");
+      setError(message);
+      modal.error("Create failed", message);
     }
-  }
+  }, [activeProduct, selectedSiteId, variants, reloadActiveProductVariants, modal]);
 
-  async function duplicateVariantRemote(id: string) {
-    const v = variants.find((x) => x.id === id);
-    if (!v) return;
+  const duplicateVariantRemote = useCallback(
+    async (id: string): Promise<void> => {
+      const sourceVariant = variants.find((variant) => variant.id === id);
+      if (!sourceVariant) return;
 
-    setError(null);
+      setError(null);
 
-    const p = products.find((pp) => pp.id === v.productId);
-    const prefix = p?.skuPrefix || "SKU";
+      const product = products.find((item) => item.id === sourceVariant.productId);
+      const skuPrefix = product?.skuPrefix || "SKU";
 
-    const existing = new Set(variants.filter((x) => x.productId === v.productId).map((x) => x.sku));
-    const sku = uniqueSkuForProduct(prefix, existing, "COPY");
+      const existingSkus = new Set(variants.map((variant) => variant.sku));
+      const duplicatedSku = uniqueSkuForProduct(skuPrefix, existingSkus, "COPY");
 
-    try {
-      const res = await apiJson<VariantItemResponse>(`/api/admin/commerce/variants`, {
-        method: "POST",
-        body: JSON.stringify(
-          uiToDbCreatePayload({
-            productId: v.productId,
-            siteId: v.siteId || selectedSiteId || "",
-            sku,
-            title: `${v.title || "Variant"} Copy`,
-            isActive: false,
-            price: v.price,
-            compareAtPrice: v.compareAtPrice,
-            cost: v.cost,
-            stockQty: v.stockQty,
-            barcode: v.barcode,
-            weight: v.weight,
-            length: v.length,
-            width: v.width,
-            height: v.height,
-            isDefault: false,
-          }),
-        ),
-      });
+      const duplicatedForm: VariantFormState = {
+        sku: duplicatedSku,
+        title: `${sourceVariant.title || "Variant"} Copy`,
+        isActive: false,
+        price: sourceVariant.price,
+        compareAtPrice: sourceVariant.compareAtPrice,
+        cost: sourceVariant.cost,
+        stockQty: sourceVariant.stockQty,
+        barcode: sourceVariant.barcode,
+        weight: sourceVariant.weight,
+        length: sourceVariant.length,
+        width: sourceVariant.width,
+        height: sourceVariant.height,
+        isDefault: false,
+      };
 
-      const createdId = res?.item?.id ? String(res.item.id) : undefined;
-      await reloadActiveProductVariants(createdId);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to duplicate"));
-    }
-  }
+      try {
+        const response = await apiJson<ApiItemResponse<DbVariant>>(`/api/admin/commerce/variants`, {
+          method: "POST",
+          body: JSON.stringify(
+            uiToDbCreatePayload({
+              ...duplicatedForm,
+              productId: sourceVariant.productId,
+              siteId: sourceVariant.siteId || selectedSiteId || "",
+            }),
+          ),
+        });
 
-  async function deleteVariantRemote(id: string) {
-    const v = variants.find((x) => x.id === id);
-    if (!v) return;
+        const createdId = response.item?.id ? String(response.item.id) : undefined;
+        await reloadActiveProductVariants(createdId);
+        modal.success("Success", `Duplicated “${sourceVariant.title || sourceVariant.sku}” successfully.`);
+      } catch (err: unknown) {
+        const message = getErrorMessage(err, "Failed to duplicate");
+        setError(message);
+        modal.error("Duplicate failed", message);
+      }
+    },
+    [variants, products, selectedSiteId, reloadActiveProductVariants, modal],
+  );
 
-    const ok = confirm(`Delete variant "${v.title || v.sku}"?`);
-    if (!ok) return;
+  const deleteVariantRemote = useCallback(
+    async (id: string): Promise<void> => {
+      const variant = variants.find((item) => item.id === id);
+      if (!variant) return;
 
-    setError(null);
+      modal.confirmDelete(
+        "Delete variant?",
+        `Delete “${variant.title || variant.sku}”? This action cannot be undone.`,
+        async () => {
+          setError(null);
 
-    try {
-      await apiJson<null>(`/api/admin/commerce/variants/${id}`, { method: "DELETE" });
-      await reloadActiveProductVariants();
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to delete"));
-    }
-  }
+          try {
+            await apiJson<null>(`/api/admin/commerce/variants/${id}`, { method: "DELETE" });
+            await reloadActiveProductVariants();
+            modal.success("Success", `Deleted “${variant.title || variant.sku}” successfully.`);
+          } catch (err: unknown) {
+            const message = getErrorMessage(err, "Failed to delete");
+            setError(message);
+            modal.error("Delete failed", message);
+          }
+        },
+      );
+    },
+    [variants, reloadActiveProductVariants, modal],
+  );
 
-  async function reloadImages(variantId: string) {
-    const res = await apiJson<VariantImagesResponse>(`/api/admin/commerce/variants/${variantId}/image`);
+  const reloadImages = useCallback(async (variantId: string): Promise<void> => {
+    const response = await apiJson<ApiListResponse<DbVariantImage>>(`/api/admin/commerce/variants/${variantId}/image`);
 
-    setVariants((prev) =>
-      prev.map((v) =>
-        v.id === variantId
+    setVariants((previous) =>
+      previous.map((variant) =>
+        variant.id === variantId
           ? {
-              ...v,
-              images: (res.items ?? []).map(normalizeImage),
+              ...variant,
+              images: (response.items ?? []).map(normalizeImage),
               updatedAt: nowIso(),
             }
-          : v,
+          : variant,
       ),
     );
-  }
+  }, []);
 
-  async function addImageRemote() {
-    if (!activeVariant) return;
+  const addImageByUrlRemote = useCallback(
+    async (url: string, showSuccess = true): Promise<void> => {
+      if (!activeVariant) {
+        modal.error("Missing variant", "Please select a variant first.");
+        return;
+      }
 
-    const url = prompt("Image URL?");
-    if (!url?.trim()) return;
+      const cleanUrl = url.trim();
+      if (!cleanUrl) return;
 
-    setError(null);
+      setError(null);
 
-    try {
-      await apiJson<{ item: unknown }>(`/api/admin/commerce/variants/${activeVariant.id}/image`, {
-        method: "POST",
-        body: JSON.stringify({
-          url: url.trim(),
-          isCover: activeVariant.images.length === 0,
-          sort: activeVariant.images.length,
-        }),
+      const payload: VariantImageCreatePayload = {
+        url: cleanUrl,
+        isCover: activeVariant.images.length === 0,
+        sort: activeVariant.images.length,
+      };
+
+      try {
+        await apiJson<ApiItemResponse<unknown>>(`/api/admin/commerce/variants/${activeVariant.id}/image`, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        await reloadImages(activeVariant.id);
+
+        if (showSuccess) {
+          modal.success("Success", "Added image successfully.");
+        }
+      } catch (err: unknown) {
+        const message = getErrorMessage(err, "Failed to add image");
+        setError(message);
+        modal.error("Add image failed", message);
+      }
+    },
+    [activeVariant, reloadImages, modal],
+  );
+
+  const addImageRemote = useCallback(async (): Promise<void> => {
+    if (!activeVariant) {
+      modal.error("Missing variant", "Please select a variant first.");
+      return;
+    }
+
+    const inputUrl = window.prompt("Image URL?");
+    if (!inputUrl?.trim()) return;
+
+    await addImageByUrlRemote(inputUrl);
+  }, [activeVariant, addImageByUrlRemote, modal]);
+
+  const uploadImageFileRemote = useCallback(
+    async (file: File): Promise<void> => {
+      if (!activeVariant) {
+        modal.error("Missing variant", "Please select a variant first.");
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        modal.error("Invalid file", "Please drop or select an image file.");
+        return;
+      }
+
+      setError(null);
+      setUploadingImage(true);
+
+      const previewUrl = URL.createObjectURL(file);
+      setLocalPreviewUrl((previous) => {
+        if (previous) URL.revokeObjectURL(previous);
+        return previewUrl;
       });
 
-      await reloadImages(activeVariant.id);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to add image"));
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("variantId", activeVariant.id);
+        formData.append("productId", activeVariant.productId);
+        formData.append("siteId", activeVariant.siteId);
+
+        const uploadResponse = await apiJson<UploadResponse>(`/api/admin/commerce/variants/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        const uploadedUrl = extractUploadedImageUrl(uploadResponse);
+
+        if (!uploadedUrl) {
+          throw new Error("Upload thành công nhưng API không trả về url ảnh");
+        }
+
+        await addImageByUrlRemote(uploadedUrl, false);
+        setLocalPreviewUrl(null);
+        modal.success("Success", "Uploaded image successfully.");
+      } catch (err: unknown) {
+        const message = getErrorMessage(err, "Failed to upload image");
+        setError(message);
+        modal.error("Upload failed", message);
+      } finally {
+        setUploadingImage(false);
+        setIsDragOver(false);
+
+        if (imageInputRef.current) {
+          imageInputRef.current.value = "";
+        }
+      }
+    },
+    [activeVariant, addImageByUrlRemote, modal],
+  );
+
+  const handleChooseImageFile = useCallback((): void => {
+    if (!activeVariant) {
+      modal.error("Missing variant", "Please select a variant first.");
+      return;
     }
-  }
 
-  async function setCoverRemote(imageId: string) {
-    if (!activeVariant) return;
+    if (uploadingImage) return;
+    imageInputRef.current?.click();
+  }, [activeVariant, uploadingImage, modal]);
 
-    setError(null);
+  const handleImageInputChange = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    try {
-      await apiJson<{ item: unknown }>(`/api/admin/commerce/variants/${activeVariant.id}/image`, {
-        method: "PATCH",
-        body: JSON.stringify({ imageId, isCover: true }),
-      });
+      await uploadImageFileRemote(file);
+    },
+    [uploadImageFileRemote],
+  );
 
-      await reloadImages(activeVariant.id);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to set cover"));
+  const handleDropZoneDragOver = useCallback(
+    (event: DragEvent<HTMLDivElement>): void => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!activeVariant || uploadingImage) return;
+      setIsDragOver(true);
+    },
+    [activeVariant, uploadingImage],
+  );
+
+  const handleDropZoneDragLeave = useCallback((event: DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDropZoneDrop = useCallback(
+    async (event: DragEvent<HTMLDivElement>): Promise<void> => {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsDragOver(false);
+
+      if (!activeVariant) {
+        modal.error("Missing variant", "Please select a variant first.");
+        return;
+      }
+
+      if (uploadingImage) return;
+
+      const file = event.dataTransfer.files?.[0];
+      if (!file) return;
+
+      await uploadImageFileRemote(file);
+    },
+    [activeVariant, uploadingImage, uploadImageFileRemote, modal],
+  );
+
+  const setCoverRemote = useCallback(
+    async (imageId: string): Promise<void> => {
+      if (!activeVariant) {
+        modal.error("Missing variant", "Please select a variant first.");
+        return;
+      }
+
+      setError(null);
+
+      const payload: VariantImagePatchPayload = {
+        imageId,
+        isCover: true,
+      };
+
+      try {
+        await apiJson<ApiItemResponse<unknown>>(`/api/admin/commerce/variants/${activeVariant.id}/image`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+
+        await reloadImages(activeVariant.id);
+        modal.success("Success", "Updated cover image successfully.");
+      } catch (err: unknown) {
+        const message = getErrorMessage(err, "Failed to set cover");
+        setError(message);
+        modal.error("Set cover failed", message);
+      }
+    },
+    [activeVariant, reloadImages, modal],
+  );
+
+  const saveActiveVariant = useCallback(async (): Promise<void> => {
+    if (!activeVariant || !variantForm) {
+      modal.error("Missing variant", "Please select a variant first.");
+      return;
     }
-  }
 
-  async function removeImageRemote(imageId: string) {
-    if (!activeVariant) return;
+    await saveVariantRemote(activeVariant.id, variantForm);
+    modal.success("Success", `Saved “${variantForm.title || activeVariant.sku}” successfully.`);
+  }, [activeVariant, variantForm, saveVariantRemote, modal]);
 
-    setError(null);
-
-    try {
-      await apiJson<null>(
-        `/api/admin/commerce/variants/${activeVariant.id}/image?imageId=${encodeURIComponent(imageId)}`,
-        { method: "DELETE" },
-      );
-
-      await reloadImages(activeVariant.id);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "Failed to remove image"));
+  const publishActiveVariant = useCallback(async (): Promise<void> => {
+    if (!activeVariant || !variantForm) {
+      modal.error("Missing variant", "Please select a variant first.");
+      return;
     }
-  }
 
-  async function saveActiveVariant() {
-    if (!activeVariant) return;
+    const publishForm: VariantFormState = {
+      ...variantForm,
+      isActive: true,
+    };
 
-    await saveVariantRemote(activeVariant.id, {
-      sku: activeVariant.sku,
-      title: activeVariant.title,
-      isActive: activeVariant.isActive,
-      price: activeVariant.price,
-      compareAtPrice: activeVariant.compareAtPrice,
-      cost: activeVariant.cost,
-      stockQty: activeVariant.stockQty,
-      barcode: activeVariant.barcode,
-      weight: activeVariant.weight,
-      length: activeVariant.length,
-      width: activeVariant.width,
-      height: activeVariant.height,
-      isDefault: activeVariant.isDefault,
+    setVariantForm(publishForm);
+    await saveVariantRemote(activeVariant.id, publishForm);
+    modal.success("Success", `Published “${publishForm.title || activeVariant.sku}” successfully.`);
+  }, [activeVariant, variantForm, saveVariantRemote, modal]);
+
+  const handleDelete = useCallback((): void => {
+    if (!activeVariant) {
+      modal.error("Missing variant", "Please select a variant first.");
+      return;
+    }
+
+    void deleteVariantRemote(activeVariant.id);
+  }, [activeVariant, deleteVariantRemote, modal]);
+
+  const handleNewVariant = useCallback((): void => {
+    void createVariantRemote();
+  }, [createVariantRemote]);
+
+  const handleAutocomplete = useCallback((): void => {
+    if (!activeProduct || !variantForm) {
+      modal.error("Missing data", "Please select a product and variant first.");
+      return;
+    }
+
+    const existingSkus = new Set(
+      variants.filter((variant) => variant.id !== activeVariantId).map((variant) => variant.sku),
+    );
+
+    const titleBase = variantForm.title.trim() || activeProduct.name.trim() || "Variant";
+    const skuBase = slugSku(titleBase) || "AUTO";
+    const nextSku = uniqueSkuForProduct(activeProduct.skuPrefix, existingSkus, skuBase);
+
+    setVariantForm((previous) => {
+      if (!previous) return previous;
+
+      return {
+        ...previous,
+        title: previous.title.trim() ? previous.title : titleBase,
+        sku: nextSku,
+      };
     });
-  }
+  }, [activeProduct, variantForm, variants, activeVariantId, modal]);
+
+  const handleSave = useCallback((): void => {
+    void saveActiveVariant();
+  }, [saveActiveVariant]);
+
+  const handlePublishSaveSeo = useCallback((): void => {
+    void publishActiveVariant();
+  }, [publishActiveVariant]);
+
+  const functionKeyActions = useMemo<FunctionKeyActionMap>(
+    () => ({
+      F3: handleDelete,
+      F5: handleNewVariant,
+      F9: handleAutocomplete,
+      F10: handleSave,
+      F11: handlePublishSaveSeo,
+    }),
+    [handleDelete, handleNewVariant, handleAutocomplete, handleSave, handlePublishSaveSeo],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
 
   return (
     <div className={styles.shell} style={{ fontSize: 14 }}>
-      <header className={styles.topbar}>
-        <div className={styles.brand}>
-          <span className={styles.brandDot} />
-          <div className={styles.brandText}>
-            <div className={styles.brandTitle}>Variants</div>
-            <div className={styles.brandSub}>Products · Variants · Images</div>
-          </div>
-        </div>
-
-        <div className={styles.topActions}>
-          <button
-            className={styles.primaryBtn}
-            type="button"
-            onClick={createVariantRemote}
-            disabled={!activeProduct || loading}
-            title="Create a single new variant"
-          >
-            <i className="bi bi-plus-lg" /> New variant
-          </button>
-
-          <button
-            className={styles.ghostBtn}
-            type="button"
-            onClick={() => void reloadActiveProductVariants(activeVariantId || undefined)}
-            disabled={!activeProductId || loading}
-            title="Reload variants"
-          >
-            <i className="bi bi-arrow-clockwise" /> Reload
-          </button>
-        </div>
-      </header>
-
       {error && (
         <div style={{ padding: 12, color: "#b91c1c" }}>
           <strong>Error:</strong> {error}
@@ -736,14 +1061,14 @@ export default function VariantsPage() {
 
               <select
                 value={selectedSiteId || ""}
-                onChange={(e) => setSelectedSiteId(e.target.value)}
+                onChange={(event) => setSelectedSiteId(event.target.value)}
                 disabled={sitesLoading}
                 className={styles.selectSite}
               >
                 <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
-                {sites.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name ?? s.id} ({s.id})
+                {sites.map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.name ?? site.id} ({site.id})
                   </option>
                 ))}
               </select>
@@ -758,7 +1083,7 @@ export default function VariantsPage() {
               className={styles.search}
               placeholder="Search product..."
               value={productQuery}
-              onChange={(e) => setProductQuery(e.target.value)}
+              onChange={(event) => setProductQuery(event.target.value)}
               disabled={!selectedSiteId}
             />
           </div>
@@ -781,29 +1106,29 @@ export default function VariantsPage() {
                 </div>
               </div>
             ) : (
-              visibleProducts.map((p) => {
-                const active = p.id === activeProductId;
+              visibleProducts.map((product) => {
+                const isActive = product.id === activeProductId;
 
                 return (
                   <button
-                    key={p.id}
+                    key={product.id}
                     type="button"
-                    className={`${styles.productBtn} ${active ? styles.productActive : ""}`}
-                    onClick={() => selectProduct(p.id)}
+                    className={`${styles.productBtn} ${isActive ? styles.productActive : ""}`}
+                    onClick={() => selectProduct(product.id)}
                   >
                     <div className={styles.productLeft}>
                       <div className={styles.thumb}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           className={styles.thumbImg}
-                          src={p.image || "https://picsum.photos/seed/na/200/200"}
-                          alt={p.name}
+                          src={product.image || "https://picsum.photos/seed/na/200/200"}
+                          alt={product.name}
                         />
                       </div>
                       <div className={styles.productText}>
-                        <div className={styles.productName}>{p.name}</div>
+                        <div className={styles.productName}>{product.name}</div>
                         <div className={styles.productMeta}>
-                          <span className={styles.mono}>{p.skuPrefix}</span>
+                          <span className={styles.mono}>{product.skuPrefix}</span>
                         </div>
                       </div>
                     </div>
@@ -830,20 +1155,21 @@ export default function VariantsPage() {
               <div className={styles.panelHeader}>
                 <div>
                   <div className={styles.panelTitle}>Variants list</div>
-                  <div className={styles.panelSub}>{loading ? "Loading..." : "Search, quick actions"}</div>
+                  <div className={styles.panelSub}>
+                    {loading ? "Loading..." : savingId ? "Saving..." : "Search, quick actions"}
+                  </div>
                 </div>
-              </div>
-
-              <div className={styles.toolbar}>
-                <div className={styles.searchWrapInline}>
-                  <i className="bi bi-search" />
-                  <input
-                    className={styles.searchInline}
-                    placeholder="Search variant..."
-                    value={variantQuery}
-                    onChange={(e) => setVariantQuery(e.target.value)}
-                    disabled={!activeProductId}
-                  />
+                <div className={styles.toolbar}>
+                  <div className={styles.searchWrapInline}>
+                    <i className="bi bi-search" />
+                    <input
+                      className={styles.searchInline}
+                      placeholder="Search variant..."
+                      value={variantQuery}
+                      onChange={(event) => setVariantQuery(event.target.value)}
+                      disabled={!activeProductId}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -876,54 +1202,63 @@ export default function VariantsPage() {
                         </td>
                       </tr>
                     ) : (
-                      productVariants.map((v) => {
-                        const active = v.id === activeVariantId;
+                      productVariants.map((variant) => {
+                        const isActive = variant.id === activeVariantId;
 
                         return (
                           <tr
-                            key={v.id}
-                            className={`${styles.tr} ${active ? styles.trActive : ""}`}
-                            onClick={() => setActiveVariantId(v.id)}
+                            key={variant.id}
+                            className={`${styles.tr} ${isActive ? styles.trActive : ""}`}
+                            onClick={() => setActiveVariantId(variant.id)}
                             role="button"
+                            tabIndex={0}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setActiveVariantId(variant.id);
+                              }
+                            }}
                           >
                             <td>
                               <div className={styles.cellTitle}>
                                 <span className={styles.dot} />
                                 <div>
                                   <div className={styles.nameRow}>
-                                    <span className={styles.name}>{v.title || "Untitled variant"}</span>
+                                    <span className={styles.name}>{variant.title || "Untitled variant"}</span>
                                   </div>
                                   <div className={styles.sub}>
                                     <span className={styles.mono}>
-                                      {v.isDefault ? "Default" : "Custom"}
-                                      {v.barcode ? `  ·  ${v.barcode}` : ""}
+                                      {variant.isDefault ? "Default" : "Custom"}
+                                      {variant.barcode ? `  ·  ${variant.barcode}` : ""}
                                     </span>
                                   </div>
                                 </div>
                               </div>
                             </td>
 
-                            <td className={styles.mono}>{v.sku}</td>
-                            <td className={styles.mono}>{formatMoney(v.price)}</td>
-                            <td className={styles.mono}>{v.stockQty}</td>
+                            <td className={styles.mono}>{variant.sku}</td>
+                            <td className={styles.mono}>{formatMoney(variant.price)}</td>
+                            <td className={styles.mono}>{variant.stockQty}</td>
 
                             <td>
-                              <span className={`${styles.status} ${v.isActive ? styles.ok : styles.off}`}>
-                                <i className={`bi ${v.isActive ? "bi-check2-circle" : "bi-pencil"}`} />
-                                {v.isActive ? "ACTIVE" : "DRAFT"}
+                              <span className={`${styles.status} ${variant.isActive ? styles.ok : styles.off}`}>
+                                <i className={`bi ${variant.isActive ? "bi-check2-circle" : "bi-pencil"}`} />
+                                {variant.isActive ? "ACTIVE" : "DRAFT"}
                               </span>
                             </td>
 
-                            <td className={styles.tdRight} onClick={(e) => e.stopPropagation()}>
+                            <td className={styles.tdRight} onClick={(event) => event.stopPropagation()}>
                               <button
                                 className={styles.iconBtn}
                                 type="button"
                                 title="Toggle status"
-                                onClick={() =>
-                                  void saveVariantRemote(v.id, {
-                                    isActive: !v.isActive,
-                                  })
-                                }
+                                onClick={() => {
+                                  const toggledForm: VariantFormState = {
+                                    ...variantToFormState(variant),
+                                    isActive: !variant.isActive,
+                                  };
+                                  void saveVariantRemote(variant.id, toggledForm);
+                                }}
                               >
                                 <i className="bi bi-toggle2-on" />
                               </button>
@@ -932,18 +1267,9 @@ export default function VariantsPage() {
                                 className={styles.iconBtn}
                                 type="button"
                                 title="Duplicate"
-                                onClick={() => duplicateVariantRemote(v.id)}
+                                onClick={() => void duplicateVariantRemote(variant.id)}
                               >
                                 <i className="bi bi-files" />
-                              </button>
-
-                              <button
-                                className={`${styles.iconBtn} ${styles.dangerBtn}`}
-                                type="button"
-                                title="Delete"
-                                onClick={() => deleteVariantRemote(v.id)}
-                              >
-                                <i className="bi bi-trash" />
                               </button>
                             </td>
                           </tr>
@@ -957,25 +1283,7 @@ export default function VariantsPage() {
 
             <aside className={styles.inspector}>
               <div className={styles.panel}>
-                <div className={styles.panelHeader}>
-                  <div>
-                    <div className={styles.panelTitle}>Inspector</div>
-                    <div className={styles.panelSub}>{savingId ? "Saving..." : "Edit fields and images"}</div>
-                  </div>
-
-                  {activeVariant ? (
-                    <button
-                      className={styles.primaryBtn}
-                      type="button"
-                      onClick={saveActiveVariant}
-                      disabled={savingId === activeVariant.id}
-                    >
-                      <i className="bi bi-floppy" /> Save
-                    </button>
-                  ) : null}
-                </div>
-
-                {!activeVariant ? (
+                {!activeVariant || !variantForm ? (
                   <div className={styles.panelBody}>
                     <div className={styles.emptyInspector}>
                       <i className="bi bi-info-circle" />
@@ -992,8 +1300,8 @@ export default function VariantsPage() {
                       <i className="bi bi-tag" />
                       <input
                         className={styles.input}
-                        value={activeVariant.title ?? ""}
-                        onChange={(e) => patchVariantLocal(activeVariant.id, { title: e.target.value })}
+                        value={variantForm.title}
+                        onChange={(event) => patchVariantForm({ title: event.target.value })}
                       />
                     </div>
 
@@ -1002,8 +1310,8 @@ export default function VariantsPage() {
                       <i className="bi bi-hash" />
                       <input
                         className={styles.input}
-                        value={activeVariant.sku}
-                        onChange={(e) => patchVariantLocal(activeVariant.id, { sku: slugSku(e.target.value) })}
+                        value={variantForm.sku}
+                        onChange={(event) => patchVariantForm({ sku: slugSku(event.target.value) })}
                       />
                     </div>
 
@@ -1016,10 +1324,10 @@ export default function VariantsPage() {
                             className={styles.input}
                             type="number"
                             step="0.01"
-                            value={activeVariant.price}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                price: toNumber(e.target.value, 0),
+                            value={variantForm.price}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                price: toNumber(event.target.value, 0),
                               })
                             }
                           />
@@ -1027,17 +1335,17 @@ export default function VariantsPage() {
                       </div>
 
                       <div>
-                        <label className={styles.label}>Compare at price</label>
+                        <label className={styles.label}>Price</label>
                         <div className={styles.inputWrap}>
                           <i className="bi bi-currency-dollar" />
                           <input
                             className={styles.input}
                             type="number"
                             step="0.01"
-                            value={activeVariant.compareAtPrice ?? ""}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                compareAtPrice: normalizeNullableNumber(e.target.value),
+                            value={variantForm.compareAtPrice ?? ""}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                compareAtPrice: normalizeNullableNumber(event.target.value),
                               })
                             }
                           />
@@ -1054,10 +1362,10 @@ export default function VariantsPage() {
                             className={styles.input}
                             type="number"
                             step="0.01"
-                            value={activeVariant.cost ?? ""}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                cost: normalizeNullableNumber(e.target.value),
+                            value={variantForm.cost ?? ""}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                cost: normalizeNullableNumber(event.target.value),
                               })
                             }
                           />
@@ -1071,10 +1379,10 @@ export default function VariantsPage() {
                           <input
                             className={styles.input}
                             type="number"
-                            value={activeVariant.stockQty}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                stockQty: clamp(Number(e.target.value || 0), 0, 1_000_000),
+                            value={variantForm.stockQty}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                stockQty: clamp(Number(event.target.value || 0), 0, 1_000_000),
                               })
                             }
                           />
@@ -1089,8 +1397,8 @@ export default function VariantsPage() {
                           <i className="bi bi-upc-scan" />
                           <input
                             className={styles.input}
-                            value={activeVariant.barcode ?? ""}
-                            onChange={(e) => patchVariantLocal(activeVariant.id, { barcode: e.target.value })}
+                            value={variantForm.barcode ?? ""}
+                            onChange={(event) => patchVariantForm({ barcode: event.target.value })}
                           />
                         </div>
                       </div>
@@ -1101,10 +1409,10 @@ export default function VariantsPage() {
                           <i className="bi bi-flag" />
                           <select
                             className={styles.select}
-                            value={String(activeVariant.isActive)}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                isActive: e.target.value === "true",
+                            value={String(variantForm.isActive)}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                isActive: event.target.value === "true",
                               })
                             }
                           >
@@ -1124,10 +1432,10 @@ export default function VariantsPage() {
                             className={styles.input}
                             type="number"
                             step="0.001"
-                            value={activeVariant.weight ?? ""}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                weight: normalizeNullableNumber(e.target.value),
+                            value={variantForm.weight ?? ""}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                weight: normalizeNullableNumber(event.target.value),
                               })
                             }
                           />
@@ -1140,10 +1448,10 @@ export default function VariantsPage() {
                           <i className="bi bi-star" />
                           <select
                             className={styles.select}
-                            value={String(activeVariant.isDefault)}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                isDefault: e.target.value === "true",
+                            value={String(variantForm.isDefault)}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                isDefault: event.target.value === "true",
                               })
                             }
                           >
@@ -1169,10 +1477,10 @@ export default function VariantsPage() {
                             className={styles.input}
                             type="number"
                             step="0.001"
-                            value={activeVariant.length ?? ""}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                length: normalizeNullableNumber(e.target.value),
+                            value={variantForm.length ?? ""}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                length: normalizeNullableNumber(event.target.value),
                               })
                             }
                           />
@@ -1187,10 +1495,10 @@ export default function VariantsPage() {
                             className={styles.input}
                             type="number"
                             step="0.001"
-                            value={activeVariant.width ?? ""}
-                            onChange={(e) =>
-                              patchVariantLocal(activeVariant.id, {
-                                width: normalizeNullableNumber(e.target.value),
+                            value={variantForm.width ?? ""}
+                            onChange={(event) =>
+                              patchVariantForm({
+                                width: normalizeNullableNumber(event.target.value),
                               })
                             }
                           />
@@ -1206,10 +1514,10 @@ export default function VariantsPage() {
                           className={styles.input}
                           type="number"
                           step="0.001"
-                          value={activeVariant.height ?? ""}
-                          onChange={(e) =>
-                            patchVariantLocal(activeVariant.id, {
-                              height: normalizeNullableNumber(e.target.value),
+                          value={variantForm.height ?? ""}
+                          onChange={(event) =>
+                            patchVariantForm({
+                              height: normalizeNullableNumber(event.target.value),
                             })
                           }
                         />
@@ -1223,22 +1531,86 @@ export default function VariantsPage() {
                     </div>
 
                     <div className={styles.images}>
-                      {activeVariant.images.length === 0 ? (
-                        <div className={styles.emptySmall}>No images. Add an image URL.</div>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={(event) => {
+                          void handleImageInputChange(event);
+                        }}
+                      />
+
+                      <div
+                        onDragOver={handleDropZoneDragOver}
+                        onDragLeave={handleDropZoneDragLeave}
+                        onDrop={(event) => {
+                          void handleDropZoneDrop(event);
+                        }}
+                        onClick={handleChooseImageFile}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleChooseImageFile();
+                          }
+                        }}
+                        style={{
+                          border: `2px dashed ${isDragOver ? "#2563eb" : "#cbd5e1"}`,
+                          borderRadius: 12,
+                          padding: 16,
+                          marginBottom: 12,
+                          background: isDragOver ? "#eff6ff" : "#f8fafc",
+                          cursor: uploadingImage ? "not-allowed" : "pointer",
+                          opacity: uploadingImage ? 0.7 : 1,
+                          transition: "all 0.2s ease",
+                          textAlign: "center",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                          <i className="bi bi-cloud-arrow-up" style={{ fontSize: 28 }} />
+                          <div style={{ fontWeight: 700 }}>
+                            {uploadingImage ? "Uploading image..." : "Drag & drop image here"}
+                          </div>
+                          <div style={{ opacity: 0.75 }}>or click to choose file</div>
+                        </div>
+                      </div>
+
+                      {localPreviewUrl ? (
+                        <div className={styles.imageRow} style={{ border: "1px dashed #cbd5e1" }}>
+                          <div className={styles.imageThumb}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={localPreviewUrl} alt="Preview upload" />
+                          </div>
+                          <div className={styles.imageMeta}>
+                            <div className={styles.mono}>Preview image upload...</div>
+                            <div className={styles.imageBadges}>
+                              <span className={styles.badge}>Preview</span>
+                              {uploadingImage && <span className={styles.badge}>Uploading</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {activeVariant.images.length === 0 && !localPreviewUrl ? (
+                        <div className={styles.emptySmall}>
+                          No images. Upload image, kéo thả ảnh hoặc thêm image URL.
+                        </div>
                       ) : (
                         activeVariant.images
                           .slice()
-                          .sort((a, b) => a.sort - b.sort)
-                          .map((im) => (
-                            <div key={im.id} className={styles.imageRow}>
+                          .sort((left, right) => left.sort - right.sort)
+                          .map((image) => (
+                            <div key={image.id} className={styles.imageRow}>
                               <div className={styles.imageThumb}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={im.url} alt="" />
+                                <img src={image.url} alt="" />
                               </div>
                               <div className={styles.imageMeta}>
-                                <div className={styles.mono}>{im.url}</div>
+                                <div className={styles.mono}>{image.url}</div>
                                 <div className={styles.imageBadges}>
-                                  {im.isCover && <span className={styles.badge}>Cover</span>}
+                                  {image.isCover && <span className={styles.badge}>Cover</span>}
                                 </div>
                               </div>
                               <div className={styles.imageActions}>
@@ -1246,26 +1618,14 @@ export default function VariantsPage() {
                                   className={styles.iconBtn}
                                   type="button"
                                   title="Set cover"
-                                  onClick={() => setCoverRemote(im.id)}
+                                  onClick={() => void setCoverRemote(image.id)}
                                 >
                                   <i className="bi bi-star" />
-                                </button>
-                                <button
-                                  className={`${styles.iconBtn} ${styles.dangerBtn}`}
-                                  type="button"
-                                  title="Remove"
-                                  onClick={() => removeImageRemote(im.id)}
-                                >
-                                  <i className="bi bi-trash" />
                                 </button>
                               </div>
                             </div>
                           ))
                       )}
-
-                      <button className={styles.ghostBtn} type="button" onClick={addImageRemote}>
-                        <i className="bi bi-plus-lg" /> Add image URL
-                      </button>
                     </div>
                   </div>
                 )}

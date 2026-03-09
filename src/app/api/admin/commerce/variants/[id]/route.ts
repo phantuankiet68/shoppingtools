@@ -21,30 +21,6 @@ function toDecimal(v: unknown, fallback = "0"): Prisma.Decimal {
   }
 }
 
-type SortKey = "newest" | "oldest" | "price_asc" | "price_desc" | "stock_asc" | "stock_desc" | "sku_asc" | "sku_desc";
-
-function buildVariantOrderBy(sort: SortKey): Prisma.ProductVariantOrderByWithRelationInput[] {
-  switch (sort) {
-    case "oldest":
-      return [{ createdAt: "asc" }];
-    case "price_asc":
-      return [{ price: "asc" }, { createdAt: "desc" }];
-    case "price_desc":
-      return [{ price: "desc" }, { createdAt: "desc" }];
-    case "stock_asc":
-      return [{ stockQty: "asc" }, { createdAt: "desc" }];
-    case "stock_desc":
-      return [{ stockQty: "desc" }, { createdAt: "desc" }];
-    case "sku_asc":
-      return [{ sku: "asc" }];
-    case "sku_desc":
-      return [{ sku: "desc" }];
-    case "newest":
-    default:
-      return [{ createdAt: "desc" }];
-  }
-}
-
 const variantSelect = {
   id: true,
   productId: true,
@@ -78,104 +54,25 @@ const variantSelect = {
   },
 } satisfies Prisma.ProductVariantSelect;
 
-/** GET /api/admin/commerce/variants?productId=... */
-export async function GET(req: Request) {
+type RouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export async function PATCH(req: Request, context: RouteContext) {
   let userId: string | null = null;
 
   try {
     const user = await requireAdminAuthUser();
     userId = user.id;
 
-    const { searchParams } = new URL(req.url);
+    const { id } = await context.params;
+    const variantId = id?.trim();
 
-    const productId = searchParams.get("productId")?.trim() || "";
-    const q = searchParams.get("q")?.trim() || "";
-    const sort = (searchParams.get("sort")?.trim() || "newest") as SortKey;
-
-    const pageRaw = Number(searchParams.get("page") || "1");
-    const limitRaw = Number(searchParams.get("limit") || "50");
-
-    const page = Number.isFinite(pageRaw) && pageRaw > 0 ? Math.trunc(pageRaw) : 1;
-    const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, Math.trunc(limitRaw))) : 50;
-    const skip = (page - 1) * limit;
-
-    if (!productId) {
-      return NextResponse.json({ error: "productId is required" }, { status: 400 });
+    if (!variantId) {
+      return NextResponse.json({ error: "Variant id is required" }, { status: 400 });
     }
-
-    const product = await prisma.product.findFirst({
-      where: {
-        id: productId,
-        deletedAt: null,
-        // TODO: thay bằng ownership check thật của bạn
-        // site: { userId },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
-    }
-
-    const where: Prisma.ProductVariantWhereInput = {
-      productId,
-      deletedAt: null,
-      ...(q
-        ? {
-            OR: [
-              { sku: { contains: q, mode: "insensitive" } },
-              { title: { contains: q, mode: "insensitive" } },
-              { barcode: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    };
-
-    const orderBy = buildVariantOrderBy(sort);
-
-    const [items, total] = await Promise.all([
-      prisma.productVariant.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        select: variantSelect,
-      }),
-      prisma.productVariant.count({
-        where,
-      }),
-    ]);
-
-    return NextResponse.json({
-      items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / limit)),
-      },
-    });
-  } catch (error: unknown) {
-    console.error("[GET /api/admin/commerce/variants] ERROR:", error);
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const message = error instanceof Error ? error.message : "Server error";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-/** POST /api/admin/commerce/variants */
-export async function POST(req: Request) {
-  let userId: string | null = null;
-
-  try {
-    const user = await requireAdminAuthUser();
-    userId = user.id;
 
     const ct = req.headers.get("content-type") || "";
     if (!ct.includes("application/json")) {
@@ -189,61 +86,51 @@ export async function POST(req: Request) {
 
     const dataIn = body as Record<string, unknown>;
 
-    const productId = String(dataIn.productId ?? "").trim();
-    if (!productId) {
-      return NextResponse.json({ error: "productId is required" }, { status: 400 });
-    }
-
-    const product = await prisma.product.findFirst({
+    const existing = await prisma.productVariant.findFirst({
       where: {
-        id: productId,
+        id: variantId,
         deletedAt: null,
-        // TODO: thay bằng ownership check thật của bạn
-        // site: { userId },
       },
       select: {
         id: true,
-        siteId: true,
       },
     });
 
-    if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    if (!existing) {
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
     }
 
-    const sku = String(dataIn.sku ?? "").trim();
-    if (!sku) {
-      return NextResponse.json({ error: "sku is required" }, { status: 400 });
-    }
-
-    const priceCents = Number(dataIn.priceCents ?? 0);
-    if (!Number.isFinite(priceCents)) {
-      return NextResponse.json({ error: "priceCents must be a number" }, { status: 400 });
-    }
-
-    const stock = Number(dataIn.stock ?? 0);
-    if (!Number.isFinite(stock)) {
-      return NextResponse.json({ error: "stock must be a number" }, { status: 400 });
-    }
-
-    const item = await prisma.productVariant.create({
+    const item = await prisma.productVariant.update({
+      where: { id: variantId },
       data: {
-        productId: product.id,
-        siteId: product.siteId,
-        sku,
-        title: cleanText(dataIn.name ?? dataIn.title, 200),
-        barcode: cleanText(dataIn.barcode, 64),
-        isActive: Boolean(dataIn.isActive ?? true),
-        price: new Prisma.Decimal((Math.max(0, Math.trunc(priceCents)) / 100).toString()),
-        cost: toDecimal(dataIn.costCents !== undefined ? Number(dataIn.costCents) / 100 : 0, "0"),
-        stockQty: Math.max(0, Math.trunc(stock)),
+        ...(dataIn.sku !== undefined ? { sku: String(dataIn.sku).trim() } : {}),
+        ...(dataIn.title !== undefined ? { title: cleanText(dataIn.title, 200) } : {}),
+        ...(dataIn.barcode !== undefined ? { barcode: cleanText(dataIn.barcode, 64) } : {}),
+        ...(dataIn.isActive !== undefined ? { isActive: Boolean(dataIn.isActive) } : {}),
+        ...(dataIn.price !== undefined ? { price: toDecimal(dataIn.price, "0") } : {}),
+        ...(dataIn.compareAtPrice !== undefined
+          ? { compareAtPrice: dataIn.compareAtPrice == null ? null : toDecimal(dataIn.compareAtPrice, "0") }
+          : {}),
+        ...(dataIn.cost !== undefined ? { cost: dataIn.cost == null ? null : toDecimal(dataIn.cost, "0") } : {}),
+        ...(dataIn.stockQty !== undefined ? { stockQty: Math.max(0, Math.trunc(Number(dataIn.stockQty) || 0)) } : {}),
+        ...(dataIn.weight !== undefined
+          ? { weight: dataIn.weight == null ? null : toDecimal(dataIn.weight, "0") }
+          : {}),
+        ...(dataIn.length !== undefined
+          ? { length: dataIn.length == null ? null : toDecimal(dataIn.length, "0") }
+          : {}),
+        ...(dataIn.width !== undefined ? { width: dataIn.width == null ? null : toDecimal(dataIn.width, "0") } : {}),
+        ...(dataIn.height !== undefined
+          ? { height: dataIn.height == null ? null : toDecimal(dataIn.height, "0") }
+          : {}),
+        ...(dataIn.isDefault !== undefined ? { isDefault: Boolean(dataIn.isDefault) } : {}),
       },
       select: variantSelect,
     });
 
-    return NextResponse.json({ item }, { status: 201 });
+    return NextResponse.json({ item });
   } catch (error: unknown) {
-    console.error("[POST /api/admin/commerce/variants] ERROR:", error);
+    console.error("[PATCH /api/admin/commerce/variants/[id]] ERROR:", error);
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -251,6 +138,54 @@ export async function POST(req: Request) {
 
     if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
       return NextResponse.json({ error: "SKU already exists in this site" }, { status: 409 });
+    }
+
+    const message = error instanceof Error ? error.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(_req: Request, context: RouteContext) {
+  let userId: string | null = null;
+
+  try {
+    const user = await requireAdminAuthUser();
+    userId = user.id;
+
+    const { id } = await context.params;
+    const variantId = id?.trim();
+
+    if (!variantId) {
+      return NextResponse.json({ error: "Variant id is required" }, { status: 400 });
+    }
+
+    const existing = await prisma.productVariant.findFirst({
+      where: {
+        id: variantId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    }
+
+    await prisma.productVariant.update({
+      where: { id: variantId },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error: unknown) {
+    console.error("[DELETE /api/admin/commerce/variants/[id]] ERROR:", error);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const message = error instanceof Error ? error.message : "Server error";

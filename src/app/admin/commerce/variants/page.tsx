@@ -7,7 +7,7 @@ const VariantsBuilder = dynamic(() => import("@/components/admin/commerce/varian
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Variant Management" subtitle="Create and manage product variants" />
+      <AdminPageTitle title="Variant" />
       <VariantsBuilder />
     </main>
   );

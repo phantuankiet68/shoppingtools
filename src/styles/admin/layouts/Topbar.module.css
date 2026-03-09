@@ -550,10 +550,20 @@
   .topbarShell {
     grid-template-columns: 1fr;
   }
+  .userTrigger {
+    min-width: 139px;
+  }
+  .topbarShell {
+    gap: 10px;
+  }
 
   .topbarRight {
-    justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 7px;
+  }
+  .breadcrumb {
+    font-size: 9px;
   }
 }
 
