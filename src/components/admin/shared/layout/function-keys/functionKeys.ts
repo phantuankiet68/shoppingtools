@@ -6,6 +6,12 @@ export type FunctionKeyItem = {
   icon?: string;
 };
 
+export type FunctionKeyConfig = {
+  action?: () => void;
+  label?: string;
+  icon?: string;
+};
+
 export const functionKeys: FunctionKeyItem[] = [
   { key: "F1", label: "Help", icon: "bi-question-circle" },
   { key: "F2", label: "Preview", icon: "bi bi-eye" },

@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo } from "react";
 import { useFunctionKeysContext } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
-import type { FunctionKeyCode } from "@/components/admin/shared/layout/function-keys/functionKeys";
+import type { FunctionKeyCode, FunctionKeyConfig } from "@/components/admin/shared/layout/function-keys/functionKeys";
 
-type FunctionKeyActions = Partial<Record<FunctionKeyCode, () => void>>;
+type FunctionKeyConfigs = Partial<Record<FunctionKeyCode, FunctionKeyConfig>>;
 
 function isTypingTarget(target: EventTarget | null) {
   const el = target as HTMLElement | null;
@@ -14,16 +14,16 @@ function isTypingTarget(target: EventTarget | null) {
   return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
 }
 
-export function usePageFunctionKeys(pageActions: FunctionKeyActions) {
+export function usePageFunctionKeys(pageConfigs: FunctionKeyConfigs) {
   const { actions, setPageFunctionKeys, resetToDefault } = useFunctionKeysContext();
 
   useEffect(() => {
-    setPageFunctionKeys(pageActions);
+    setPageFunctionKeys(pageConfigs);
 
     return () => {
       resetToDefault();
     };
-  }, [pageActions, setPageFunctionKeys, resetToDefault]);
+  }, [pageConfigs, setPageFunctionKeys, resetToDefault]);
 
   const mergedActions = useMemo(
     () => ({

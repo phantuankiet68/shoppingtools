@@ -2,50 +2,69 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { useDefaultFunctionKeys } from "./defaultFunctionKeys";
-import { functionKeyMap, type FunctionKeyCode, type FunctionKeyItem } from "./functionKeys";
+import { functionKeyMap, type FunctionKeyCode, type FunctionKeyConfig, type FunctionKeyItem } from "./functionKeys";
 
 type FunctionKeyActions = Partial<Record<FunctionKeyCode, () => void>>;
+type FunctionKeyConfigs = Partial<Record<FunctionKeyCode, FunctionKeyConfig>>;
 
 type FunctionKeysContextValue = {
   items: FunctionKeyItem[];
   actions: FunctionKeyActions;
-  setPageFunctionKeys: (extraActions?: FunctionKeyActions) => void;
+  setPageFunctionKeys: (configs?: FunctionKeyConfigs) => void;
   resetToDefault: () => void;
 };
 
 const FunctionKeysContext = createContext<FunctionKeysContextValue | null>(null);
 
-function buildItems(actions: FunctionKeyActions) {
-  return (Object.keys(actions) as FunctionKeyCode[])
-    .sort((a, b) => {
-      const aNum = Number(a.replace("F", ""));
-      const bNum = Number(b.replace("F", ""));
-      return aNum - bNum;
-    })
-    .map((key) => functionKeyMap[key]);
+function buildItems(configs: FunctionKeyConfigs) {
+  return (Object.keys(configs) as FunctionKeyCode[])
+    .filter((key) => !!configs[key]?.action)
+    .sort((a, b) => Number(a.replace("F", "")) - Number(b.replace("F", "")))
+    .map((key) => {
+      const base = functionKeyMap[key];
+      const override = configs[key];
+
+      return {
+        ...base,
+        ...(override?.label ? { label: override.label } : {}),
+        ...(override?.icon ? { icon: override.icon } : {}),
+      };
+    });
+}
+
+function buildActions(configs: FunctionKeyConfigs): FunctionKeyActions {
+  const result: FunctionKeyActions = {};
+
+  for (const key of Object.keys(configs) as FunctionKeyCode[]) {
+    const action = configs[key]?.action;
+    if (action) result[key] = action;
+  }
+
+  return result;
 }
 
 export function FunctionKeysProvider({ children }: { children: ReactNode }) {
-  const defaultActions = useDefaultFunctionKeys();
-  const [pageActions, setPageActions] = useState<FunctionKeyActions>({});
+  const defaultConfigs = useDefaultFunctionKeys();
+  const [pageConfigs, setPageConfigs] = useState<FunctionKeyConfigs>({});
 
-  const setPageFunctionKeys = useCallback((extraActions: FunctionKeyActions = {}) => {
-    setPageActions(extraActions);
+  const setPageFunctionKeys = useCallback((configs: FunctionKeyConfigs = {}) => {
+    setPageConfigs(configs);
   }, []);
 
   const resetToDefault = useCallback(() => {
-    setPageActions({});
+    setPageConfigs({});
   }, []);
 
-  const actions = useMemo<FunctionKeyActions>(
+  const mergedConfigs = useMemo<FunctionKeyConfigs>(
     () => ({
-      ...defaultActions,
-      ...pageActions,
+      ...defaultConfigs,
+      ...pageConfigs,
     }),
-    [defaultActions, pageActions],
+    [defaultConfigs, pageConfigs],
   );
 
-  const items = useMemo(() => buildItems(actions), [actions]);
+  const actions = useMemo(() => buildActions(mergedConfigs), [mergedConfigs]);
+  const items = useMemo(() => buildItems(mergedConfigs), [mergedConfigs]);
 
   const value = useMemo<FunctionKeysContextValue>(
     () => ({

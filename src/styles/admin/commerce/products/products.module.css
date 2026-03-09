@@ -3,23 +3,6 @@
 ========================= */
 
 .page {
-  --bg0: #f6f7fb;
-  --bg1: #eef2ff;
-  --card: #ffffff;
-
-  --text: #0b1220;
-  --muted: rgba(11, 18, 32, 0.58);
-  --line: rgba(11, 18, 32, 0.08);
-  --radius: 8px;
-  --radius-sm: 14px;
-
-  --primary: #0b1220;
-  --primary2: #0f172a;
-
-  --accent: #6366f1; /* indigo */
-  --accent2: #22c55e; /* green */
-  --danger: #ef4444;
-
   color: var(--text);
 }
 

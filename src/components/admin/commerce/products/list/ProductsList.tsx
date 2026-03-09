@@ -3,6 +3,8 @@
 import React, { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import styles from "@/styles/admin/commerce/products/list/productsList.module.css";
+import { useModal } from "@/components/admin/shared/common/modal";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import type { ApiProduct, Filters, SortKey } from "@/components/admin/commerce/products/client/AdminProductsClient";
 
 type ApiCategory = {
@@ -365,6 +367,8 @@ export default function ProductsList(props: {
     onOpenForm,
   } = props;
 
+  const modal = useModal();
+
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -391,7 +395,9 @@ export default function ProductsList(props: {
     return normalizedItems.filter((p) => matchesAdvancedSearch(p, q)).slice(0, 8);
   }, [normalizedItems, filters.q]);
 
-  const checkedCount = filtered.reduce((acc, p) => acc + (selected[p.id] ? 1 : 0), 0);
+  const selectedProducts = useMemo(() => filtered.filter((p) => selected[p.id]), [filtered, selected]);
+
+  const checkedCount = selectedProducts.length;
   const allChecked = filtered.length > 0 && filtered.every((p) => selected[p.id]);
 
   const stats = useMemo(() => {
@@ -417,41 +423,132 @@ export default function ProductsList(props: {
     };
   }, [filtered]);
 
-  async function softDeleteOne(product: NormalizedProduct) {
-    if (!confirm(`Deactivate “${product.name}”?`)) return;
+  function toggleSelectAll() {
+    if (allChecked) {
+      setSelected({});
+      return;
+    }
+
+    const next: Record<string, boolean> = {};
+    filtered.forEach((p) => {
+      next[p.id] = true;
+    });
+    setSelected(next);
+  }
+
+  async function deactivateProducts(products: NormalizedProduct[]) {
+    if (products.length === 0) {
+      modal.error("No products selected", "Please select at least one product.");
+      return;
+    }
 
     props.setBusy(true);
 
     try {
-      const res = await fetch(`/api/admin/commerce/products/${product.id}`, {
-        method: "DELETE",
-        credentials: "include",
-        cache: "no-store",
-      });
+      for (const product of products) {
+        const res = await fetch(`/api/admin/commerce/products/${product.id}`, {
+          method: "DELETE",
+          credentials: "include",
+          cache: "no-store",
+        });
 
-      const json = await safeJson<ApiError>(res);
-      if (!res.ok) throw new Error(json?.error || "Delete failed");
+        const json = await safeJson<ApiError>(res);
+        if (!res.ok) {
+          throw new Error(json?.error || `Deactivate failed for “${product.name}”.`);
+        }
+      }
 
+      setSelected({});
       props.afterMutate();
+
+      if (products.length === 1) {
+        modal.success("Success", `Deactivated “${products[0].name}” successfully.`);
+      } else {
+        modal.success("Success", `Deactivated ${products.length} products successfully.`);
+      }
     } catch (e: unknown) {
-      const err = e instanceof Error ? e : new Error("Delete failed");
-      alert(err.message || "Delete failed");
+      const err = e instanceof Error ? e : new Error("Deactivate failed");
+      modal.error("Deactivate failed", err.message || "Deactivate failed");
     } finally {
       props.setBusy(false);
     }
   }
 
-  function resetFilters() {
-    setFilters((prev) => ({
-      ...prev,
-      q: "",
-      categoryIds: [],
-      priceMin: "",
-      priceMax: "",
-      active: "all",
-      sort: "Newest",
-    }));
+  function handleToggleFilters() {
+    setFiltersOpen((v) => !v);
   }
+
+  function handleCreateProduct() {
+    if (!selectedSiteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
+
+    onOpenForm();
+  }
+
+  function handleEditSelected() {
+    if (checkedCount === 0) {
+      modal.error("No product selected", "Please select one product to edit.");
+      return;
+    }
+
+    if (checkedCount > 1) {
+      modal.error("Multiple products selected", "Please select only one product to edit.");
+      return;
+    }
+
+    onEdit(selectedProducts[0].id);
+  }
+
+  function handleDeactivateSelected() {
+    if (checkedCount === 0) {
+      modal.error("No product selected", "Please select at least one product to deactivate.");
+      return;
+    }
+
+    const namesPreview =
+      checkedCount === 1
+        ? `Deactivate “${selectedProducts[0].name}”? This action cannot be undone.`
+        : `Deactivate ${checkedCount} selected products? This action cannot be undone.`;
+
+    modal.confirmDelete("Deactivate product?", namesPreview, () => {
+      void deactivateProducts(selectedProducts);
+    });
+  }
+
+  const functionKeyActions = useMemo(
+    () => ({
+      F2: {
+        action: handleToggleFilters,
+        label: "Filters",
+        icon: "bi-funnel",
+      },
+      F3: {
+        action: handleDeactivateSelected,
+        label: "Deactivate",
+        icon: "bi-trash",
+      },
+      F5: {
+        action: handleCreateProduct,
+        label: "Create",
+        icon: "bi-plus-circle",
+      },
+      F6: {
+        action: handleEditSelected,
+        label: "Edit",
+        icon: "bi-pencil-square",
+      },
+      F11: {
+        action: toggleSelectAll,
+        label: "Select all",
+        icon: "bi-check2-square",
+      },
+    }),
+    [checkedCount, selectedProducts, selectedSiteId],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
 
   return (
     <div className={styles.page}>
@@ -528,17 +625,6 @@ export default function ProductsList(props: {
                 </div>
               ) : null}
             </div>
-
-            <button
-              className={styles.filterToggle}
-              type="button"
-              aria-label="Advanced filters"
-              onClick={() => setFiltersOpen((v) => !v)}
-              disabled={loading || busy}
-              aria-expanded={filtersOpen}
-            >
-              Filters
-            </button>
           </div>
 
           <div className={styles.toolbarRight}>
@@ -561,25 +647,6 @@ export default function ProductsList(props: {
               <option value="StatusAsc">Status A → Z</option>
               <option value="StatusDesc">Status Z → A</option>
             </select>
-
-            <button className={styles.ghostBtn} type="button" onClick={resetFilters} disabled={busy}>
-              Reset
-            </button>
-
-            <label className={styles.checkAllCard}>
-              <input
-                type="checkbox"
-                checked={allChecked}
-                onChange={(e) => {
-                  const next: Record<string, boolean> = {};
-                  filtered.forEach((p) => {
-                    next[p.id] = e.target.checked;
-                  });
-                  setSelected(next);
-                }}
-              />
-              <span>{checkedCount ? `${checkedCount} selected` : "Select all"}</span>
-            </label>
           </div>
         </div>
 
@@ -617,7 +684,7 @@ export default function ProductsList(props: {
             <button
               className={styles.tabBtn}
               type="button"
-              onClick={onOpenForm}
+              onClick={handleCreateProduct}
               disabled={!selectedSiteId}
               title={!selectedSiteId ? "Please select site first" : undefined}
             >
@@ -626,6 +693,7 @@ export default function ProductsList(props: {
           </div>
         </div>
       </header>
+
       <div className={styles.toolbarCard}>
         {filtersOpen ? (
           <div className={styles.filtersPanel}>
@@ -883,19 +951,17 @@ export default function ProductsList(props: {
                   ) : (
                     <div className={styles.productImageEmpty}>No image</div>
                   )}
+
+                  <div className={styles.imageOverlay}>
+                    {product.category?.name ? (
+                      <span className={styles.categoryTag}>{product.category.name}</span>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div className={styles.productCardBody}>
                   <div className={styles.productCardMain}>
-                    <div className={styles.productCardTitleRow}>
-                      <h3 className={styles.productCardName}>{product.name}</h3>
-
-                      {product.category?.name ? (
-                        <span className={styles.categoryTag}>{product.category.name}</span>
-                      ) : (
-                        <span className={styles.categoryEmpty}>No category</span>
-                      )}
-                    </div>
+                    <h3 className={styles.productCardName}>{product.name}</h3>
 
                     <p className={styles.productCardDesc}>
                       {product.description?.trim() ? product.description : "No description available"}
@@ -908,22 +974,6 @@ export default function ProductsList(props: {
                       <span className={styles.metaChip}>Barcode: {String(product.barcode)}</span>
                     ) : null}
                   </div>
-                </div>
-
-                <div className={styles.productCardFooter}>
-                  <button className={styles.actionBtn} type="button" onClick={() => onEdit(product.id)} disabled={busy}>
-                    <i className="bi bi-pen-fill"></i> Edit product
-                  </button>
-
-                  <button
-                    className={styles.moreBtn}
-                    type="button"
-                    onClick={() => void softDeleteOne(product)}
-                    disabled={busy}
-                    title="Deactivate"
-                  >
-                    ⋯
-                  </button>
                 </div>
               </article>
             );
