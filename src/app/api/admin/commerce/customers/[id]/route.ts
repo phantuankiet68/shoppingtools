@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-// ✅ Next 16 validator expects params to be Promise
+// Next 16 validator expects params to be Promise
 type Params = { params: Promise<{ id: string }> };
 
 /**
@@ -20,9 +20,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const { id } = await params;
 
     const customer = await prisma.customer.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        userId,
+        deletedAt: null,
+      },
       select: {
         id: true,
+        siteId: true,
         name: true,
         phone: true,
         email: true,
@@ -31,7 +36,6 @@ export async function GET(_req: NextRequest, { params }: Params) {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        // address fields (nếu có) add ở đây
       },
     });
 
@@ -39,26 +43,36 @@ export async function GET(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
     }
 
-    // Stats from Order table
     const [agg, lastOrder, recentOrders] = await Promise.all([
       prisma.order.aggregate({
-        where: { userId, customerId: id },
+        where: {
+          siteId: customer.siteId,
+          customerId: id,
+          deletedAt: null,
+        },
         _count: { id: true },
         _sum: { totalCents: true },
       }),
       prisma.order.findFirst({
-        where: { userId, customerId: id },
+        where: {
+          siteId: customer.siteId,
+          customerId: id,
+          deletedAt: null,
+        },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         select: { createdAt: true },
       }),
       prisma.order.findMany({
-        where: { userId, customerId: id },
+        where: {
+          siteId: customer.siteId,
+          customerId: id,
+          deletedAt: null,
+        },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: 20,
         select: {
           id: true,
-          number: true,
-          reference: true,
+          orderNumber: true,
           status: true,
           paymentStatus: true,
           fulfillmentStatus: true,
@@ -81,7 +95,23 @@ export async function GET(_req: NextRequest, { params }: Params) {
       lastOrderAt: lastOrder?.createdAt || null,
     };
 
-    return NextResponse.json({ data: { customer, stats, recentOrders } });
+    return NextResponse.json({
+      data: {
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          notes: customer.notes,
+          tags: customer.tags,
+          isActive: customer.isActive,
+          createdAt: customer.createdAt,
+          updatedAt: customer.updatedAt,
+        },
+        stats,
+        recentOrders,
+      },
+    });
   } catch (e: any) {
     if (e?.message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
@@ -93,7 +123,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 /**
  * PATCH /api/admin/commerce/customers/[id]
  * Body can include:
- * { name?, phone?, email?, notes?, tags?, isActive?, address... }
+ * { name?, phone?, email?, notes?, tags?, isActive? }
  */
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
@@ -101,36 +131,48 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const userId = admin.id;
 
     const { id } = await params;
-
     const body = await req.json();
 
-    // Ensure it belongs to this user
     const exists = await prisma.customer.findFirst({
-      where: { id, userId },
-      select: { id: true },
+      where: {
+        id,
+        userId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+      },
     });
-    if (!exists) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
 
-    const data: any = {};
+    if (!exists) {
+      return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+    }
+
+    const data: Record<string, unknown> = {};
+
     if (typeof body.name === "string") data.name = body.name.trim();
-    if (body.phone === null || typeof body.phone === "string") data.phone = body.phone ? body.phone.trim() : null;
-    if (body.email === null || typeof body.email === "string")
+    if (body.phone === null || typeof body.phone === "string") {
+      data.phone = body.phone ? body.phone.trim() : null;
+    }
+    if (body.email === null || typeof body.email === "string") {
       data.email = body.email ? body.email.trim().toLowerCase() : null;
-
-    if (body.notes === null || typeof body.notes === "string") data.notes = body.notes;
-    if (body.tags === null || typeof body.tags === "string") data.tags = body.tags;
-    if (typeof body.isActive === "boolean") data.isActive = body.isActive;
-
-    // If you added address fields, map them here too:
-    // for (const k of ["address1","address2","city","state","postal","country"]) {
-    //   if (body[k] === null || typeof body[k] === "string") data[k] = body[k] ? String(body[k]) : null;
-    // }
+    }
+    if (body.notes === null || typeof body.notes === "string") {
+      data.notes = body.notes;
+    }
+    if (body.tags === null || Array.isArray(body.tags) || typeof body.tags === "string") {
+      data.tags = body.tags;
+    }
+    if (typeof body.isActive === "boolean") {
+      data.isActive = body.isActive;
+    }
 
     const updated = await prisma.customer.update({
       where: { id },
       data,
       select: {
         id: true,
+        siteId: true,
         name: true,
         phone: true,
         email: true,
@@ -156,7 +198,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 /**
  * DELETE /api/admin/commerce/customers/[id]
- * Soft delete -> isActive=false (safer than hard delete)
+ * Soft delete -> isActive=false
  */
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
@@ -166,10 +208,19 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const { id } = await params;
 
     const customer = await prisma.customer.findFirst({
-      where: { id, userId },
-      select: { id: true },
+      where: {
+        id,
+        userId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+      },
     });
-    if (!customer) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+
+    if (!customer) {
+      return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+    }
 
     const updated = await prisma.customer.update({
       where: { id },

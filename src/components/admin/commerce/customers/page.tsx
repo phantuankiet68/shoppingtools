@@ -1,18 +1,38 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/commerce/customers/customers.module.css";
 import { useShallow } from "zustand/react/shallow";
 import { useCustomerStore } from "@/store/commerce/customers/customer.store";
+import { useSiteStore } from "@/store/site/site.store";
+import { apiDeleteCustomer, apiPatchCustomer } from "@/services/commerce/customers/customer.service";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import { useModal } from "@/components/admin/shared/common/modal";
 import type { CustomerStore, CustomerStatus, Customer } from "@/store/commerce/customers/customer.store";
 
-function fmtMoney(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+type LeftFormMode = "CREATE" | "EDIT";
+type CustomerSort = "LAST_ORDER" | "TOTAL_SPENT" | "CREATED_AT";
+type CustomerFilterStatus = "ANY" | CustomerStatus;
+
+function formatMoney(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
 }
-function fmtDate(iso?: string) {
+
+function formatDate(iso?: string): string {
   if (!iso) return "—";
-  const d = new Date(iso);
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(d);
+
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(date);
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  return "Unknown error";
 }
 
 const statusMeta: Record<CustomerStatus, { label: string; icon: string }> = {
@@ -22,50 +42,61 @@ const statusMeta: Record<CustomerStatus, { label: string; icon: string }> = {
 };
 
 export default function CustomersPage() {
-  const store = useCustomerStore(
-    useShallow((s: CustomerStore) => ({
-      siteId: s.siteId,
-      siteErr: s.siteErr,
+  const modal = useModal();
 
-      customers: s.customers,
-      nextCursor: s.nextCursor,
-      statsServer: s.statsServer,
-      allTagsServer: s.allTagsServer,
+  const selectedSiteId = useSiteStore((state) => state.siteId);
+  const sites = useSiteStore((state) => state.sites);
+  const sitesLoading = useSiteStore((state) => state.loading);
+  const sitesError = useSiteStore((state) => state.err);
+  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
+  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
+  const loadSites = useSiteStore((state) => state.loadSites);
 
-      query: s.query,
-      segment: s.segment,
-      statusFilter: s.statusFilter,
-      tagFilter: s.tagFilter,
-      sort: s.sort,
+  const customerStore = useCustomerStore(
+    useShallow((state: CustomerStore) => ({
+      siteId: state.siteId,
+      siteErr: state.siteErr,
+      setSiteId: state.setSiteId,
 
-      selected: s.selected,
-      loading: s.loading,
-      err: s.err,
+      customers: state.customers,
+      nextCursor: state.nextCursor,
+      statsServer: state.statsServer,
+      allTagsServer: state.allTagsServer,
 
-      initSite: s.initSite,
-      setQuery: s.setQuery,
-      setSegment: s.setSegment,
-      setStatusFilter: s.setStatusFilter,
-      setTagFilter: s.setTagFilter,
-      setSort: s.setSort,
+      query: state.query,
+      segment: state.segment,
+      statusFilter: state.statusFilter,
+      tagFilter: state.tagFilter,
+      sort: state.sort,
 
-      toggleSelect: s.toggleSelect,
-      bulkSelect: s.bulkSelect,
-      clearSelection: s.clearSelection,
+      selected: state.selected,
+      loading: state.loading,
+      err: state.err,
 
-      fetchCustomers: s.fetchCustomers,
-      loadMore: s.loadMore,
-      openDetailAndMerge: s.openDetailAndMerge,
+      setQuery: state.setQuery,
+      setSegment: state.setSegment,
+      setStatusFilter: state.setStatusFilter,
+      setTagFilter: state.setTagFilter,
+      setSort: state.setSort,
 
-      bulkSetStatus: s.bulkSetStatus,
-      bulkDeactivate: s.bulkDeactivate,
-      createCustomer: s.createCustomer,
+      toggleSelect: state.toggleSelect,
+      bulkSelect: state.bulkSelect,
+      clearSelection: state.clearSelection,
+
+      fetchCustomers: state.fetchCustomers,
+      loadMore: state.loadMore,
+      openDetailAndMerge: state.openDetailAndMerge,
+
+      bulkSetStatus: state.bulkSetStatus,
+      bulkDeactivate: state.bulkDeactivate,
+      createCustomer: state.createCustomer,
     })),
   );
 
   const {
     siteId,
     siteErr,
+    setSiteId,
 
     customers,
     nextCursor,
@@ -82,7 +113,6 @@ export default function CustomersPage() {
     loading,
     err,
 
-    initSite,
     setQuery,
     setSegment,
     setStatusFilter,
@@ -100,711 +130,579 @@ export default function CustomersPage() {
     bulkSetStatus,
     bulkDeactivate,
     createCustomer,
-  } = store;
+  } = customerStore;
 
-  // ✅ init site (store đã guard StrictMode)
-  useEffect(() => {
-    initSite();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ✅ refetch when filters change (debounce 250ms)
-  useEffect(() => {
-    if (!siteId) return;
-    const t = window.setTimeout(() => {
-      fetchCustomers();
-    }, 250);
-    return () => window.clearTimeout(t);
-  }, [siteId, query, segment, statusFilter, fetchCustomers]);
-
-  // Drawer (store-backed, avoid stale objects)
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeCustomerId, setActiveCustomerId] = useState<string | null>(null);
   const [drawerLoading, setDrawerLoading] = useState(false);
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [detailEditMode, setDetailEditMode] = useState(false);
+  const [savingDetailEdit, setSavingDetailEdit] = useState(false);
+  const [detailName, setDetailName] = useState("");
+  const [detailEmail, setDetailEmail] = useState("");
+  const [detailPhone, setDetailPhone] = useState("");
+  const [detailStatus, setDetailStatus] = useState<CustomerStatus>("ACTIVE");
+  const [detailNote, setDetailNote] = useState("");
 
-  // Pagination (client paging over loaded items)
   const [page, setPage] = useState(1);
   const pageSize = 8;
+
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
+  const tagInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [leftFormMode, setLeftFormMode] = useState<LeftFormMode>("CREATE");
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
+
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formStatus, setFormStatus] = useState<CustomerStatus>("ACTIVE");
+  const [formTags, setFormTags] = useState<string[]>([]);
+  const [formTagInput, setFormTagInput] = useState("");
+  const [formNote, setFormNote] = useState("");
+  const [submittingForm, setSubmittingForm] = useState(false);
+
+  useEffect(() => {
+    hydrateFromStorage();
+    void loadSites();
+  }, [hydrateFromStorage, loadSites]);
+
+  useEffect(() => {
+    if (!selectedSiteId || selectedSiteId === siteId) return;
+    setSiteId(selectedSiteId);
+  }, [selectedSiteId, siteId, setSiteId]);
+
+  useEffect(() => {
+    if (!siteId) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void fetchCustomers();
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [siteId, query, segment, statusFilter, tagFilter, sort, fetchCustomers]);
 
   const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
 
   const allTags = useMemo(() => {
-    const s = new Set<string>(allTagsServer);
-    customers.forEach((c) => c.tags.forEach((t) => s.add(t)));
-    return Array.from(s).sort();
+    const mergedTags = new Set<string>(allTagsServer);
+
+    for (const customer of customers) {
+      for (const tag of customer.tags) {
+        mergedTags.add(tag);
+      }
+    }
+
+    return Array.from(mergedTags).sort((a, b) => a.localeCompare(b));
   }, [allTagsServer, customers]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  const filteredCustomers = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
 
-    const list = customers.filter((c) => {
+    const result = customers.filter((customer) => {
       const matchesQuery =
-        !q ||
-        c.name.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        (c.phone || "").toLowerCase().includes(q) ||
-        c.id.toLowerCase().includes(q);
+        !normalizedQuery ||
+        customer.name.toLowerCase().includes(normalizedQuery) ||
+        customer.email.toLowerCase().includes(normalizedQuery) ||
+        (customer.phone ?? "").toLowerCase().includes(normalizedQuery) ||
+        customer.id.toLowerCase().includes(normalizedQuery) ||
+        customer.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
 
-      const matchesSegment = segment === "ALL" ? true : c.status === segment;
-      const matchesStatus = statusFilter === "ANY" ? true : c.status === statusFilter;
-      const matchesTag = !tagFilter ? true : c.tags.includes(tagFilter);
+      const matchesSegment = segment === "ALL" ? true : customer.status === segment;
+      const matchesStatus = statusFilter === "ANY" ? true : customer.status === statusFilter;
+      const matchesTag = !tagFilter ? true : customer.tags.includes(tagFilter);
 
       return matchesQuery && matchesSegment && matchesStatus && matchesTag;
     });
 
-    list.sort((a, b) => {
-      if (sort === "TOTAL_SPENT") return b.totalSpent - a.totalSpent;
-      if (sort === "CREATED_AT") return +new Date(b.createdAt) - +new Date(a.createdAt);
-      return +new Date(b.lastOrderAt || 0) - +new Date(a.lastOrderAt || 0);
+    result.sort((customerA, customerB) => {
+      if (sort === "TOTAL_SPENT") {
+        return customerB.totalSpent - customerA.totalSpent;
+      }
+
+      if (sort === "CREATED_AT") {
+        return +new Date(customerB.createdAt) - +new Date(customerA.createdAt);
+      }
+
+      return +new Date(customerB.lastOrderAt ?? 0) - +new Date(customerA.lastOrderAt ?? 0);
     });
 
-    return list;
+    return result;
   }, [customers, query, segment, statusFilter, tagFilter, sort]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged = useMemo(() => filtered.slice((page - 1) * pageSize, page * pageSize), [filtered, page]);
+  const pageCount = useMemo(
+    () => Math.max(1, Math.ceil(filteredCustomers.length / pageSize)),
+    [filteredCustomers.length],
+  );
 
   useEffect(() => {
-    setPage((p) => Math.min(Math.max(1, p), pageCount));
+    setPage((currentPage) => Math.min(Math.max(1, currentPage), pageCount));
   }, [pageCount]);
 
-  // ✅ derive active customer from store (avoid stale local copy)
+  useEffect(() => {
+    setPage(1);
+  }, [query, segment, statusFilter, tagFilter, sort]);
+
+  const pagedCustomers = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = page * pageSize;
+    return filteredCustomers.slice(startIndex, endIndex);
+  }, [filteredCustomers, page]);
+
   const activeCustomer = useMemo(() => {
     if (!activeCustomerId) return null;
-    return customers.find((c) => c.id === activeCustomerId) ?? null;
+    return customers.find((customer) => customer.id === activeCustomerId) ?? null;
   }, [customers, activeCustomerId]);
 
-  // ✅ select all with single store update
-  function toggleSelectAllOnPage(v: boolean) {
-    bulkSelect(
-      paged.map((c) => c.id),
-      v,
-    );
-  }
-
-  async function openDrawer(c: Customer) {
-    setActiveCustomerId(c.id);
-    setDrawerOpen(true);
-    setDrawerLoading(true);
-    try {
-      await openDetailAndMerge(c.id);
-    } finally {
-      setDrawerLoading(false);
+  useEffect(() => {
+    if (!activeCustomer) {
+      setDetailEditMode(false);
+      setDetailName("");
+      setDetailEmail("");
+      setDetailPhone("");
+      setDetailStatus("ACTIVE");
+      setDetailNote("");
+      return;
     }
-  }
+
+    setDetailName(activeCustomer.name ?? "");
+    setDetailEmail(activeCustomer.email ?? "");
+    setDetailPhone(activeCustomer.phone ?? "");
+    setDetailStatus(activeCustomer.status);
+    setDetailNote(activeCustomer.note ?? "");
+  }, [activeCustomer]);
 
   const stats = useMemo(() => {
     const total = statsServer?.total ?? customers.length;
-    const active = statsServer?.active ?? customers.filter((c) => c.status === "ACTIVE" || c.status === "VIP").length;
-    const vip = customers.filter((c) => c.status === "VIP").length;
-    const revenue = customers.reduce((sum, c) => sum + c.totalSpent, 0);
+    const active =
+      statsServer?.active ??
+      customers.filter((customer) => customer.status === "ACTIVE" || customer.status === "VIP").length;
+    const vip = customers.filter((customer) => customer.status === "VIP").length;
+    const revenue = customers.reduce((sum, customer) => sum + customer.totalSpent, 0);
+
     return { total, active, vip, revenue };
   }, [customers, statsServer]);
 
+  const isFormValid = useMemo(() => {
+    return formName.trim().length >= 2 && formEmail.includes("@") && !loading && !submittingForm && Boolean(siteId);
+  }, [formName, formEmail, loading, submittingForm, siteId]);
+
+  const resetLeftForm = useCallback(() => {
+    setLeftFormMode("CREATE");
+    setEditingCustomerId(null);
+    setFormName("");
+    setFormEmail("");
+    setFormPhone("");
+    setFormStatus("ACTIVE");
+    setFormTags([]);
+    setFormTagInput("");
+    setFormNote("");
+  }, []);
+
+  const populateLeftFormForEdit = useCallback((customer: Customer) => {
+    setLeftFormMode("EDIT");
+    setEditingCustomerId(customer.id);
+    setFormName(customer.name ?? "");
+    setFormEmail(customer.email ?? "");
+    setFormPhone(customer.phone ?? "");
+    setFormStatus(customer.status);
+    setFormTags(customer.tags ?? []);
+    setFormTagInput("");
+    setFormNote(customer.note ?? "");
+  }, []);
+
+  const toggleSelectAllOnPage = useCallback(
+    (checked: boolean) => {
+      bulkSelect(
+        pagedCustomers.map((customer) => customer.id),
+        checked,
+      );
+    },
+    [bulkSelect, pagedCustomers],
+  );
+
+  const toggleFormTag = useCallback((tag: string) => {
+    setFormTags((previousTags) =>
+      previousTags.includes(tag) ? previousTags.filter((currentTag) => currentTag !== tag) : [...previousTags, tag],
+    );
+  }, []);
+
+  const addCustomFormTag = useCallback(() => {
+    const nextTag = formTagInput.trim();
+    if (!nextTag) return;
+
+    setFormTags((previousTags) => {
+      const alreadyExists = previousTags.some((tag) => tag.toLowerCase() === nextTag.toLowerCase());
+      if (alreadyExists) return previousTags;
+      return [...previousTags, nextTag];
+    });
+
+    setFormTagInput("");
+    tagInputRef.current?.focus();
+  }, [formTagInput]);
+
+  const removeFormTag = useCallback((tag: string) => {
+    setFormTags((previousTags) => previousTags.filter((currentTag) => currentTag !== tag));
+  }, []);
+
+  const openDrawer = useCallback(
+    async (customer: Customer) => {
+      setActiveCustomerId(customer.id);
+      setDrawerOpen(true);
+      setDrawerLoading(true);
+      setDetailEditMode(false);
+
+      try {
+        await openDetailAndMerge(customer.id);
+      } finally {
+        setDrawerLoading(false);
+      }
+    },
+    [openDetailAndMerge],
+  );
+
+  const handleCreate = useCallback(async () => {
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
+
+    if (!isFormValid) {
+      nameInputRef.current?.focus();
+      return;
+    }
+
+    try {
+      setSubmittingForm(true);
+
+      await createCustomer({
+        name: formName.trim(),
+        email: formEmail.trim(),
+        phone: formPhone.trim(),
+        status: formStatus,
+        tags: formTags,
+        note: formNote.trim(),
+      });
+
+      resetLeftForm();
+      nameInputRef.current?.focus();
+      modal.success("Success", `Created “${formName.trim()}” successfully.`);
+    } catch (error: unknown) {
+      console.error("Create customer failed", error);
+      modal.error("Create failed", getErrorMessage(error));
+    } finally {
+      setSubmittingForm(false);
+    }
+  }, [
+    siteId,
+    isFormValid,
+    createCustomer,
+    formName,
+    formEmail,
+    formPhone,
+    formStatus,
+    formTags,
+    formNote,
+    resetLeftForm,
+    modal,
+  ]);
+
+  const handleUpdateFromLeftForm = useCallback(async () => {
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
+
+    if (!editingCustomerId || !isFormValid) {
+      nameInputRef.current?.focus();
+      return;
+    }
+
+    try {
+      setSubmittingForm(true);
+
+      const normalizedTags =
+        formStatus === "VIP"
+          ? Array.from(new Set([...formTags, "vip"]))
+          : formTags.filter((tag) => tag.toLowerCase() !== "vip");
+
+      await apiPatchCustomer(siteId, editingCustomerId, {
+        name: formName.trim(),
+        email: formEmail.trim() || undefined,
+        phone: formPhone.trim() || undefined,
+        notes: formNote.trim() || undefined,
+        isActive: formStatus !== "INACTIVE",
+        tags: normalizedTags,
+      });
+
+      await fetchCustomers();
+      resetLeftForm();
+      nameInputRef.current?.focus();
+      modal.success("Success", `Updated “${formName.trim()}” successfully.`);
+    } catch (error: unknown) {
+      console.error("Update customer from left form failed", error);
+      modal.error("Update failed", getErrorMessage(error));
+    } finally {
+      setSubmittingForm(false);
+    }
+  }, [
+    siteId,
+    editingCustomerId,
+    isFormValid,
+    formName,
+    formEmail,
+    formPhone,
+    formNote,
+    formStatus,
+    formTags,
+    fetchCustomers,
+    resetLeftForm,
+    modal,
+  ]);
+
+  const handleSubmitLeftForm = useCallback(async () => {
+    if (leftFormMode === "EDIT") {
+      await handleUpdateFromLeftForm();
+      return;
+    }
+
+    await handleCreate();
+  }, [leftFormMode, handleUpdateFromLeftForm, handleCreate]);
+
+  const handleFocusCreateForm = useCallback(() => {
+    nameInputRef.current?.focus();
+  }, []);
+
+  const handleEnterDetailEditMode = useCallback(() => {
+    if (!drawerOpen || !activeCustomer) return;
+    setDetailEditMode(true);
+  }, [drawerOpen, activeCustomer]);
+
+  const handleSaveDetail = useCallback(async () => {
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
+
+    if (!activeCustomer || !detailEditMode || savingDetailEdit) return;
+
+    try {
+      setSavingDetailEdit(true);
+
+      const nextTags =
+        detailStatus === "VIP"
+          ? Array.from(new Set([...(activeCustomer.tags ?? []), "vip"]))
+          : (activeCustomer.tags ?? []).filter((tag) => tag.toLowerCase() !== "vip");
+
+      await apiPatchCustomer(siteId, activeCustomer.id, {
+        name: detailName.trim(),
+        email: detailEmail.trim() || undefined,
+        phone: detailPhone.trim() || undefined,
+        notes: detailNote.trim() || undefined,
+        isActive: detailStatus !== "INACTIVE",
+        tags: nextTags,
+      });
+
+      await openDetailAndMerge(activeCustomer.id);
+      await fetchCustomers();
+      setDetailEditMode(false);
+      modal.success("Success", `Updated “${detailName.trim()}” successfully.`);
+    } catch (error: unknown) {
+      console.error("Save detail customer failed", error);
+      modal.error("Save failed", getErrorMessage(error));
+    } finally {
+      setSavingDetailEdit(false);
+    }
+  }, [
+    siteId,
+    activeCustomer,
+    detailEditMode,
+    savingDetailEdit,
+    detailName,
+    detailEmail,
+    detailPhone,
+    detailNote,
+    detailStatus,
+    openDetailAndMerge,
+    fetchCustomers,
+    modal,
+  ]);
+
+  const executeDelete = useCallback(async () => {
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
+
+    if (loading) return;
+
+    try {
+      if (selectedCount > 0) {
+        await bulkDeactivate();
+
+        setDrawerOpen(false);
+        setActiveCustomerId(null);
+        setDetailEditMode(false);
+
+        modal.success("Success", `Deactivated ${selectedCount} selected customer(s) successfully.`);
+        return;
+      }
+
+      if (!activeCustomer) return;
+
+      await apiDeleteCustomer(siteId, activeCustomer.id);
+
+      useCustomerStore.setState((state) => ({
+        customers: state.customers.map((customer) =>
+          customer.id === activeCustomer.id
+            ? {
+                ...customer,
+                status: "INACTIVE",
+              }
+            : customer,
+        ),
+      }));
+
+      setDrawerOpen(false);
+      setActiveCustomerId(null);
+      setDetailEditMode(false);
+
+      modal.success("Success", `Deleted “${activeCustomer.name}” successfully.`);
+    } catch (error: unknown) {
+      console.error("Delete customer failed", error);
+      modal.error("Delete failed", getErrorMessage(error));
+    }
+  }, [siteId, loading, selectedCount, bulkDeactivate, activeCustomer, modal]);
+
+  const handleDelete = useCallback(() => {
+    if (!siteId) {
+      modal.error("Missing site", "Please select a site first.");
+      return;
+    }
+
+    if (selectedCount > 0) {
+      modal.confirmDelete("Deactivate selected customers?", `Deactivate ${selectedCount} selected customer(s)?`, () => {
+        void executeDelete();
+      });
+      return;
+    }
+
+    if (activeCustomer) {
+      modal.confirmDelete("Delete customer?", `Delete “${activeCustomer.name}”? This action cannot be undone.`, () => {
+        void executeDelete();
+      });
+    }
+  }, [siteId, selectedCount, activeCustomer, executeDelete, modal]);
+
+  const handleDeleteSingle = useCallback(
+    (customer: Customer) => {
+      if (!siteId) {
+        modal.error("Missing site", "Please select a site first.");
+        return;
+      }
+
+      modal.confirmDelete("Delete customer?", `Delete “${customer.name}”? This action cannot be undone.`, async () => {
+        try {
+          await apiDeleteCustomer(siteId, customer.id);
+
+          useCustomerStore.setState((state) => ({
+            customers: state.customers.map((item) =>
+              item.id === customer.id
+                ? {
+                    ...item,
+                    status: "INACTIVE",
+                  }
+                : item,
+            ),
+          }));
+
+          if (activeCustomerId === customer.id) {
+            setDrawerOpen(false);
+            setActiveCustomerId(null);
+            setDetailEditMode(false);
+          }
+
+          modal.success("Success", `Deleted “${customer.name}” successfully.`);
+        } catch (error: unknown) {
+          console.error("Delete single customer failed", error);
+          modal.error("Delete failed", getErrorMessage(error));
+        }
+      });
+    },
+    [siteId, activeCustomerId, modal],
+  );
+
+  const functionKeyActions = useMemo(
+    () => ({
+      F3: handleDelete,
+      F5: handleFocusCreateForm,
+      F6: handleEnterDetailEditMode,
+      F10: detailEditMode ? handleSaveDetail : handleSubmitLeftForm,
+    }),
+    [
+      handleDelete,
+      handleFocusCreateForm,
+      handleEnterDetailEditMode,
+      detailEditMode,
+      handleSaveDetail,
+      handleSubmitLeftForm,
+    ],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
+
+  const leftFormTitle = leftFormMode === "EDIT" ? "Edit customer" : "Create customer";
+  const leftFormShortcutHint =
+    leftFormMode === "EDIT" ? "F5: focus form · F10: update customer" : "F5: focus form · F10: create customer";
+
   return (
     <div className={styles.page}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.titleRow}>
-            <h1 className={styles.title}>Customers</h1>
-            <span className={styles.subtitle}>Manage customers, segments, and engagement</span>
-          </div>
-
-          <div className={styles.kpis}>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTop}>
-                <span className={styles.kpiLabel}>Total</span>
-                <i className={`bi bi-people ${styles.kpiIcon}`} />
-              </div>
-              <div className={styles.kpiValue}>{stats.total}</div>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTop}>
-                <span className={styles.kpiLabel}>Active</span>
-                <i className={`bi bi-check2-circle ${styles.kpiIcon}`} />
-              </div>
-              <div className={styles.kpiValue}>{stats.active}</div>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTop}>
-                <span className={styles.kpiLabel}>VIP</span>
-                <i className={`bi bi-stars ${styles.kpiIcon}`} />
-              </div>
-              <div className={styles.kpiValue}>{stats.vip}</div>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTop}>
-                <span className={styles.kpiLabel}>Revenue</span>
-                <i className={`bi bi-cash-coin ${styles.kpiIcon}`} />
-              </div>
-              <div className={styles.kpiValue}>{fmtMoney(stats.revenue)}</div>
-            </div>
-          </div>
-
-          {siteErr ? (
-            <div style={{ marginTop: 10, color: "#b42318", fontSize: 13 }}>
-              <b>Site error:</b> {siteErr}
-            </div>
-          ) : null}
-
-          {err ? (
-            <div style={{ marginTop: 10, color: "#b42318", fontSize: 13 }}>
-              <b>Error:</b> {err}
-            </div>
-          ) : null}
-        </div>
-
-        <div className={styles.headerRight}>
-          <button
-            className={styles.secondaryBtn}
-            type="button"
-            onClick={() => alert("Export — connect backend CSV later")}
-          >
-            <i className="bi bi-download" />
-            Export
-          </button>
-
-          <button
-            className={styles.primaryBtn}
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            disabled={loading || !siteId}
-          >
-            <i className="bi bi-plus-lg" />
-            New customer
-          </button>
-        </div>
-      </div>
-
-      {/* Segments */}
-      <div className={styles.segmentBar}>
-        <button
-          type="button"
-          className={`${styles.segment} ${segment === "ALL" ? styles.segmentActive : ""}`}
-          onClick={() => setSegment("ALL")}
-        >
-          <i className="bi bi-grid" />
-          All
-        </button>
-        <button
-          type="button"
-          className={`${styles.segment} ${segment === "ACTIVE" ? styles.segmentActive : ""}`}
-          onClick={() => setSegment("ACTIVE")}
-        >
-          <i className="bi bi-check-circle" />
-          Active
-        </button>
-        <button
-          type="button"
-          className={`${styles.segment} ${segment === "VIP" ? styles.segmentActive : ""}`}
-          onClick={() => setSegment("VIP")}
-        >
-          <i className="bi bi-stars" />
-          VIP
-        </button>
-        <button
-          type="button"
-          className={`${styles.segment} ${segment === "INACTIVE" ? styles.segmentActive : ""}`}
-          onClick={() => setSegment("INACTIVE")}
-        >
-          <i className="bi bi-dash-circle" />
-          Inactive
-        </button>
-      </div>
-
-      {/* Toolbar */}
-      <div className={styles.toolbar}>
-        <div className={styles.searchWrap}>
-          <i className={`bi bi-search ${styles.searchIcon}`} />
-          <input
-            className={styles.searchInput}
-            placeholder="Search by name, email, phone, or ID…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {query ? (
-            <button className={styles.clearBtn} type="button" onClick={() => setQuery("")} aria-label="Clear">
-              <i className="bi bi-x-lg" />
-            </button>
-          ) : null}
-        </div>
-
-        <div className={styles.filters}>
-          <div className={styles.selectWrap}>
-            <i className={`bi bi-funnel ${styles.selectIcon}`} />
-            <select
-              className={styles.select}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as "ANY" | CustomerStatus)}
-            >
-              <option value="ANY">Status: Any</option>
-              <option value="ACTIVE">Status: Active</option>
-              <option value="VIP">Status: VIP</option>
-              <option value="INACTIVE">Status: Inactive</option>
-            </select>
-          </div>
-
-          <div className={styles.selectWrap}>
-            <i className={`bi bi-tags ${styles.selectIcon}`} />
-            <select className={styles.select} value={tagFilter} onChange={(e) => setTagFilter(e.target.value)}>
-              <option value="">Tag: Any</option>
-              {allTags.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.selectWrap}>
-            <i className={`bi bi-sort-down ${styles.selectIcon}`} />
-            <select
-              className={styles.select}
-              value={sort}
-              onChange={(e) => setSort(e.target.value as "LAST_ORDER" | "TOTAL_SPENT" | "CREATED_AT")}
-            >
-              <option value="LAST_ORDER">Sort: Last order</option>
-              <option value="TOTAL_SPENT">Sort: Total spent</option>
-              <option value="CREATED_AT">Sort: Created</option>
-            </select>
-          </div>
-
-          <button
-            className={styles.secondaryBtn}
-            disabled={loading || !nextCursor || !siteId}
-            onClick={loadMore}
-            type="button"
-          >
-            <i className="bi bi-arrow-down-circle" /> Load more
-          </button>
-        </div>
-      </div>
-
-      {/* Bulk bar */}
-      {selectedCount > 0 ? (
-        <div className={styles.bulkBar}>
-          <div className={styles.bulkLeft}>
-            <span className={styles.bulkPill}>
-              <i className="bi bi-check2-square" />
-              {selectedCount} selected
-            </span>
-            <button className={styles.bulkBtn} type="button" onClick={clearSelection} disabled={loading}>
-              Clear
-            </button>
-          </div>
-
-          <div className={styles.bulkRight}>
-            <div className={styles.bulkGroup}>
-              <button
-                className={styles.bulkBtn}
-                type="button"
-                onClick={() => bulkSetStatus("ACTIVE")}
-                disabled={loading || !siteId}
-              >
-                <i className="bi bi-check-circle" /> Set Active
-              </button>
-              <button
-                className={styles.bulkBtn}
-                type="button"
-                onClick={() => bulkSetStatus("VIP")}
-                disabled={loading || !siteId}
-              >
-                <i className="bi bi-stars" /> Set VIP
-              </button>
-              <button
-                className={styles.bulkBtn}
-                type="button"
-                onClick={() => bulkSetStatus("INACTIVE")}
-                disabled={loading || !siteId}
-              >
-                <i className="bi bi-dash-circle" /> Set Inactive
-              </button>
-            </div>
-
-            <button
-              className={`${styles.bulkBtn} ${styles.danger}`}
-              type="button"
-              onClick={bulkDeactivate}
-              disabled={loading || !siteId}
-            >
-              <i className="bi bi-trash3" /> Deactivate
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Table */}
-      <div className={styles.tableCard}>
-        <div className={styles.tableHead}>
-          <div className={styles.tableHeadLeft}>
-            <span className={styles.tableTitle}>Customers</span>
-            <span className={styles.tableMeta}>
-              {!siteId
-                ? "Loading site..."
-                : loading
-                  ? "Loading..."
-                  : `${filtered.length} result${filtered.length === 1 ? "" : "s"}`}
-            </span>
-          </div>
-
-          <div className={styles.tableHeadRight}>
-            <button
-              className={styles.iconBtn}
-              type="button"
-              onClick={() => alert("Columns (mock) — add builder later")}
-            >
-              <i className="bi bi-layout-three-columns" />
-            </button>
-            <button className={styles.iconBtn} type="button" onClick={() => alert("Saved views (mock) — add later")}>
-              <i className="bi bi-bookmarks" />
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.thCheck}>
-                  <input
-                    type="checkbox"
-                    checked={paged.length > 0 && paged.every((c) => !!selected[c.id])}
-                    onChange={(e) => toggleSelectAllOnPage(e.target.checked)}
-                    aria-label="Select all on page"
-                  />
-                </th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th>Tags</th>
-                <th className={styles.thNum}>Orders</th>
-                <th className={styles.thNum}>Total spent</th>
-                <th>Last order</th>
-                <th>Created</th>
-                <th className={styles.thActions}></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {paged.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className={styles.emptyCell}>
-                    <div className={styles.empty}>
-                      <i className="bi bi-person-x" />
-                      <div className={styles.emptyTitle}>No customers found</div>
-                      <div className={styles.emptyHint}>
-                        {!siteId ? "Waiting for site context..." : "Try adjusting your search or filters."}
-                      </div>
-                      <button
-                        className={styles.primaryBtn}
-                        type="button"
-                        onClick={() => setCreateOpen(true)}
-                        disabled={loading || !siteId}
-                      >
-                        <i className="bi bi-plus-lg" /> Create customer
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paged.map((c) => {
-                  const meta = statusMeta[c.status];
-                  return (
-                    <tr key={c.id} className={styles.tr} onDoubleClick={() => openDrawer(c)}>
-                      <td className={styles.tdCheck} onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={!!selected[c.id]}
-                          onChange={(e) => toggleSelect(c.id, e.target.checked)}
-                          aria-label={`Select customer ${c.name}`}
-                        />
-                      </td>
-
-                      <td className={styles.tdCustomer} onClick={() => openDrawer(c)}>
-                        <div className={styles.customerCell}>
-                          <div className={styles.avatar} aria-hidden="true">
-                            {c.name
-                              .split(" ")
-                              .slice(0, 2)
-                              .map((x) => x[0]?.toUpperCase())
-                              .join("")}
-                          </div>
-                          <div className={styles.customerInfo}>
-                            <div className={styles.customerName}>
-                              {c.name} <span className={styles.muted}>•</span>{" "}
-                              <span className={styles.mono}>{c.id}</span>
-                            </div>
-                            <div className={styles.customerSub}>
-                              <span className={styles.muted}>{c.email || "—"}</span>
-                              {c.phone ? (
-                                <>
-                                  <span className={styles.dot}>•</span>
-                                  <span className={styles.muted}>{c.phone}</span>
-                                </>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td>
-                        <span className={`${styles.badge} ${styles["badge_" + c.status]}`}>
-                          <i className={`bi ${meta.icon}`} />
-                          {meta.label}
-                        </span>
-                      </td>
-
-                      <td>
-                        <div className={styles.tagRow}>
-                          {c.tags.length === 0 ? <span className={styles.muted}>—</span> : null}
-                          {c.tags.slice(0, 2).map((t) => (
-                            <span key={t} className={styles.tag}>
-                              {t}
-                            </span>
-                          ))}
-                          {c.tags.length > 2 ? <span className={styles.moreTag}>+{c.tags.length - 2}</span> : null}
-                        </div>
-                      </td>
-
-                      <td className={styles.tdNum}>{c.orders}</td>
-                      <td className={styles.tdNum}>{fmtMoney(c.totalSpent)}</td>
-                      <td>{fmtDate(c.lastOrderAt)}</td>
-                      <td>{fmtDate(c.createdAt)}</td>
-
-                      <td className={styles.tdActions} onClick={(e) => e.stopPropagation()}>
-                        <button className={styles.rowBtn} type="button" onClick={() => openDrawer(c)} title="View">
-                          <i className="bi bi-chevron-right" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className={styles.pagination}>
-          <div className={styles.paginationLeft}>
-            <span className={styles.muted}>
-              Page <b>{page}</b> / {pageCount}
-            </span>
-          </div>
-
-          <div className={styles.paginationRight}>
-            <button className={styles.pageBtn} type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              <i className="bi bi-chevron-left" />
-              Prev
-            </button>
-            <button
-              className={styles.pageBtn}
-              type="button"
-              disabled={page >= pageCount}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-              <i className="bi bi-chevron-right" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Drawer */}
-      <aside className={`${styles.drawer} ${drawerOpen ? styles.drawerOpen : ""}`} aria-hidden={!drawerOpen}>
-        <div className={styles.drawerHeader}>
-          <div className={styles.drawerTitle}>
-            <i className="bi bi-person-badge" />
-            Customer details
-          </div>
-          <button className={styles.iconBtn} type="button" onClick={() => setDrawerOpen(false)} aria-label="Close">
-            <i className="bi bi-x-lg" />
-          </button>
-        </div>
-
-        {activeCustomer ? (
-          <div className={styles.drawerBody}>
-            <div className={styles.drawerCard}>
-              <div className={styles.drawerTop}>
-                <div className={styles.drawerAvatar} aria-hidden="true">
-                  {activeCustomer.name
-                    .split(" ")
-                    .slice(0, 2)
-                    .map((x) => x[0]?.toUpperCase())
-                    .join("")}
-                </div>
-                <div className={styles.drawerInfo}>
-                  <div className={styles.drawerName}>{activeCustomer.name}</div>
-                  <div className={styles.drawerMeta}>
-                    <span className={styles.mono}>{activeCustomer.id}</span>
-                    <span className={styles.dot}>•</span>
-                    <span className={styles.muted}>{activeCustomer.email || "—"}</span>
-                  </div>
-                </div>
-              </div>
-
-              {drawerLoading ? <div className={styles.muted}>Loading details…</div> : null}
-
-              <div className={styles.drawerGrid}>
-                <div className={styles.field}>
-                  <div className={styles.fieldLabel}>Status</div>
-                  <div className={styles.fieldValue}>
-                    <span className={`${styles.badge} ${styles["badge_" + activeCustomer.status]}`}>
-                      <i className={`bi ${statusMeta[activeCustomer.status].icon}`} />
-                      {statusMeta[activeCustomer.status].label}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.field}>
-                  <div className={styles.fieldLabel}>Phone</div>
-                  <div className={styles.fieldValue}>{activeCustomer.phone || "—"}</div>
-                </div>
-
-                <div className={styles.field}>
-                  <div className={styles.fieldLabel}>Orders</div>
-                  <div className={styles.fieldValue}>{activeCustomer.orders}</div>
-                </div>
-
-                <div className={styles.field}>
-                  <div className={styles.fieldLabel}>Total spent</div>
-                  <div className={styles.fieldValue}>{fmtMoney(activeCustomer.totalSpent)}</div>
-                </div>
-
-                <div className={styles.field}>
-                  <div className={styles.fieldLabel}>Last order</div>
-                  <div className={styles.fieldValue}>{fmtDate(activeCustomer.lastOrderAt)}</div>
-                </div>
-
-                <div className={styles.field}>
-                  <div className={styles.fieldLabel}>Created</div>
-                  <div className={styles.fieldValue}>{fmtDate(activeCustomer.createdAt)}</div>
-                </div>
-              </div>
-
-              <div className={styles.section}>
-                <div className={styles.sectionTitle}>
-                  <i className="bi bi-tags" /> Tags
-                </div>
-                <div className={styles.sectionBody}>
-                  {activeCustomer.tags.length === 0 ? <span className={styles.muted}>No tags</span> : null}
-                  <div className={styles.tagRow}>
-                    {activeCustomer.tags.map((t) => (
-                      <span key={t} className={styles.tag}>
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.section}>
-                <div className={styles.sectionTitle}>
-                  <i className="bi bi-journal-text" /> Notes
-                </div>
-                <div className={styles.sectionBody}>
-                  <div className={styles.noteBox}>{activeCustomer.note || "—"}</div>
-                </div>
-              </div>
-
-              <div className={styles.drawerActions}>
-                <button
-                  className={styles.secondaryBtn}
-                  type="button"
-                  onClick={() => alert("Open customer profile — route later")}
-                >
-                  <i className="bi bi-box-arrow-up-right" />
-                  Open profile
-                </button>
-                <button
-                  className={styles.secondaryBtn}
-                  type="button"
-                  onClick={() => alert("Send email — integrate provider later")}
-                >
-                  <i className="bi bi-envelope" />
-                  Email
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.drawerBody}>
-            <div className={styles.muted}>Select a customer…</div>
-          </div>
-        )}
-      </aside>
-
-      {/* Overlay for drawer */}
-      {drawerOpen ? (
-        <button className={styles.backdrop} onClick={() => setDrawerOpen(false)} aria-label="Close drawer" />
-      ) : null}
-
-      {/* Create Modal */}
-      {createOpen ? (
-        <CreateCustomerModal
-          onClose={() => setCreateOpen(false)}
-          onCreate={async (payload) => {
-            await createCustomer(payload);
-            setCreateOpen(false);
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "330px minmax(0, 1fr)",
+          gap: 16,
+          alignItems: "start",
+        }}
+      >
+        <aside
+          style={{
+            border: "1px solid #d7e3f4",
+            borderRadius: 6,
+            background: "#fff",
+            padding: 16,
+            position: "sticky",
+            top: 12,
           }}
-          allTags={allTags}
-          loading={loading}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function CreateCustomerModal({
-  onClose,
-  onCreate,
-  allTags,
-  loading,
-}: {
-  onClose: () => void;
-  onCreate: (payload: Pick<Customer, "name" | "email" | "phone" | "status" | "tags" | "note">) => void | Promise<void>;
-  allTags: string[];
-  loading: boolean;
-}) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [status, setStatus] = useState<CustomerStatus>("ACTIVE");
-  const [tags, setTags] = useState<string[]>([]);
-  const [note, setNote] = useState("");
-
-  const canSave = name.trim().length >= 2 && email.includes("@") && !loading;
-
-  function toggleTag(t: string) {
-    setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
-  }
-
-  return (
-    <div className={styles.modalRoot} role="dialog" aria-modal="true">
-      <button className={styles.modalBackdrop} onClick={onClose} aria-label="Close modal" />
-      <div className={styles.modal}>
-        <div className={styles.modalHeader}>
-          <div className={styles.modalTitle}>
-            <i className="bi bi-person-plus" /> New customer
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 14,
+            }}
+          >
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#294f7d" }}>
+              <i
+                className={leftFormMode === "EDIT" ? "bi bi-pencil-square" : "bi bi-person-plus"}
+                style={{ marginRight: 8 }}
+              />
+              {leftFormTitle}
+            </div>
+            <span className={styles.badge}>F5</span>
           </div>
-          <button className={styles.iconBtn} type="button" onClick={onClose} aria-label="Close">
-            <i className="bi bi-x-lg" />
-          </button>
-        </div>
 
-        <div className={styles.modalBody}>
-          <div className={styles.formGrid}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
             <label className={styles.label}>
               <span className={styles.labelText}>Full name</span>
               <input
+                ref={nameInputRef}
                 className={styles.input}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={formName}
+                onChange={(event) => setFormName(event.target.value)}
                 placeholder="e.g. Nguyễn Văn A"
               />
             </label>
@@ -813,8 +711,8 @@ function CreateCustomerModal({
               <span className={styles.labelText}>Email</span>
               <input
                 className={styles.input}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formEmail}
+                onChange={(event) => setFormEmail(event.target.value)}
                 placeholder="e.g. customer@email.com"
               />
             </label>
@@ -823,8 +721,8 @@ function CreateCustomerModal({
               <span className={styles.labelText}>Phone</span>
               <input
                 className={styles.input}
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={formPhone}
+                onChange={(event) => setFormPhone(event.target.value)}
                 placeholder="Optional"
               />
             </label>
@@ -835,8 +733,8 @@ function CreateCustomerModal({
                 <i className={`bi bi-activity ${styles.selectIcon}`} />
                 <select
                   className={styles.select}
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as CustomerStatus)}
+                  value={formStatus}
+                  onChange={(event) => setFormStatus(event.target.value as CustomerStatus)}
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="VIP">VIP</option>
@@ -846,63 +744,565 @@ function CreateCustomerModal({
             </label>
           </div>
 
-          <div className={styles.section}>
+          <div className={styles.section} style={{ marginTop: 18 }}>
             <div className={styles.sectionTitle}>
               <i className="bi bi-tags" /> Tags
             </div>
+
             <div className={styles.sectionBody}>
-              {allTags.length === 0 ? (
-                <div className={styles.muted}>No tags available yet. Create after saving.</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                <input
+                  ref={tagInputRef}
+                  className={styles.input}
+                  value={formTagInput}
+                  onChange={(event) => setFormTagInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addCustomFormTag();
+                    }
+                  }}
+                  placeholder="Add custom tag"
+                  style={{ flex: 1 }}
+                />
+                <button className={styles.secondaryBtn} type="button" onClick={addCustomFormTag}>
+                  <i className="bi bi-plus-lg" />
+                  Add
+                </button>
+              </div>
+
+              {allTags.length > 0 ? (
+                <div className={styles.tagPickRow} style={{ marginBottom: 12 }}>
+                  {allTags.map((tag) => {
+                    const active = formTags.includes(tag);
+
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        className={`${styles.tagPick} ${active ? styles.tagPickActive : ""}`}
+                        onClick={() => toggleFormTag(tag)}
+                      >
+                        <i className={`bi ${active ? "bi-check2" : "bi-plus"}`} />
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
               ) : null}
-              <div className={styles.tagPickRow}>
-                {allTags.map((t) => (
+
+              <div className={styles.tagRow}>
+                {formTags.length === 0 ? <span className={styles.muted}>No tags selected</span> : null}
+                {formTags.map((tag) => (
                   <button
-                    key={t}
+                    key={tag}
                     type="button"
-                    className={`${styles.tagPick} ${tags.includes(t) ? styles.tagPickActive : ""}`}
-                    onClick={() => toggleTag(t)}
+                    className={styles.tag}
+                    onClick={() => removeFormTag(tag)}
+                    title={`Remove ${tag}`}
+                    style={{ cursor: "pointer" }}
                   >
-                    <i className={`bi ${tags.includes(t) ? "bi-check2" : "bi-plus"}`} />
-                    {t}
+                    {tag} <span style={{ marginLeft: 6 }}>×</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <label className={styles.label}>
+          <label className={styles.label} style={{ display: "flex", marginTop: 16 }}>
             <span className={styles.labelText}>Notes</span>
             <textarea
               className={styles.textarea}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+              value={formNote}
+              onChange={(event) => setFormNote(event.target.value)}
               placeholder="Internal notes (optional)..."
+              rows={5}
             />
           </label>
-        </div>
 
-        <div className={styles.modalFooter}>
-          <button className={styles.secondaryBtn} type="button" onClick={onClose} disabled={loading}>
-            Cancel
-          </button>
-          <button
-            className={styles.primaryBtn}
-            type="button"
-            disabled={!canSave}
-            onClick={() =>
-              onCreate({
-                name: name.trim(),
-                email: email.trim(),
-                phone: phone.trim(),
-                status,
-                tags,
-                note: note.trim(),
-              })
-            }
-          >
-            <i className="bi bi-check2" />
-            Create
-          </button>
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <button
+              className={styles.secondaryBtn}
+              type="button"
+              onClick={resetLeftForm}
+              disabled={submittingForm || loading}
+              style={{ flex: 1 }}
+            >
+              {leftFormMode === "EDIT" ? "Cancel edit" : "Clear"}
+            </button>
+
+            <button
+              className={styles.primaryBtn}
+              type="button"
+              onClick={() => void handleSubmitLeftForm()}
+              disabled={!isFormValid}
+              style={{ flex: 1 }}
+            >
+              {submittingForm
+                ? leftFormMode === "EDIT"
+                  ? "Updating..."
+                  : "Creating..."
+                : leftFormMode === "EDIT"
+                  ? "Update"
+                  : "Create"}
+            </button>
+          </div>
+
+          <div className={styles.muted} style={{ marginTop: 10, fontSize: 12 }}>
+            {leftFormShortcutHint}
+          </div>
+
+          {siteErr ? (
+            <div style={{ marginTop: 12, color: "#b42318", fontSize: 13 }}>
+              <b>Site:</b> {siteErr}
+            </div>
+          ) : null}
+
+          {err ? (
+            <div style={{ marginTop: 8, color: "#b42318", fontSize: 13 }}>
+              <b>Error:</b> {err}
+            </div>
+          ) : null}
+
+          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div className={styles.badge}>Total: {stats.total}</div>
+            <div className={styles.badge}>Active: {stats.active}</div>
+            <div className={styles.badge}>VIP: {stats.vip}</div>
+            <div className={styles.badge}>Revenue: {formatMoney(stats.revenue)}</div>
+          </div>
+        </aside>
+
+        <div>
+          <div className={styles.segmentBar}>
+            <div className={styles.segmentBtn}>
+              <button
+                type="button"
+                className={`${styles.segment} ${segment === "ALL" ? styles.segmentActive : ""}`}
+                onClick={() => setSegment("ALL")}
+              >
+                <i className="bi bi-grid" />
+                All
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.segment} ${segment === "ACTIVE" ? styles.segmentActive : ""}`}
+                onClick={() => setSegment("ACTIVE")}
+              >
+                <i className="bi bi-check-circle" />
+                Active
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.segment} ${segment === "VIP" ? styles.segmentActive : ""}`}
+                onClick={() => setSegment("VIP")}
+              >
+                <i className="bi bi-stars" />
+                VIP
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.segment} ${segment === "INACTIVE" ? styles.segmentActive : ""}`}
+                onClick={() => setSegment("INACTIVE")}
+              >
+                <i className="bi bi-dash-circle" />
+                Inactive
+              </button>
+            </div>
+
+            <div
+              className={styles.badge}
+              style={{ display: "flex", alignItems: "center", gap: 8, width: "fit-content" }}
+            >
+              <i className="bi bi-globe2" />
+
+              <select
+                value={selectedSiteId || ""}
+                onChange={(event) => setSelectedSiteId(event.target.value)}
+                disabled={sitesLoading}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  color: "inherit",
+                  fontWeight: 400,
+                  cursor: sitesLoading ? "not-allowed" : "pointer",
+                  maxWidth: 240,
+                }}
+              >
+                <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
+
+                {sites.map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.name ?? site.id} ({site.id})
+                  </option>
+                ))}
+              </select>
+
+              {sitesError ? <span style={{ marginLeft: 8, opacity: 0.8 }}>({sitesError})</span> : null}
+            </div>
+          </div>
+
+          <div className={styles.toolbar}>
+            <div className={styles.searchWrap}>
+              <i className={`bi bi-search ${styles.searchIcon}`} />
+              <input
+                className={styles.searchInput}
+                placeholder="Search by name, email, phone, ID, tag…"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+              {query ? (
+                <button className={styles.clearBtn} type="button" onClick={() => setQuery("")} aria-label="Clear">
+                  <i className="bi bi-x-lg" />
+                </button>
+              ) : null}
+            </div>
+
+            <div className={styles.filters}>
+              <div className={styles.selectWrap}>
+                <i className={`bi bi-funnel ${styles.selectIcon}`} />
+                <select
+                  className={styles.select}
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value as CustomerFilterStatus)}
+                >
+                  <option value="ANY">Status: Any</option>
+                  <option value="ACTIVE">Status: Active</option>
+                  <option value="VIP">Status: VIP</option>
+                  <option value="INACTIVE">Status: Inactive</option>
+                </select>
+              </div>
+
+              <div className={styles.selectWrap}>
+                <i className={`bi bi-tags ${styles.selectIcon}`} />
+                <select
+                  className={styles.select}
+                  value={tagFilter}
+                  onChange={(event) => setTagFilter(event.target.value)}
+                >
+                  <option value="">Tag: Any</option>
+                  {allTags.map((tag) => (
+                    <option key={tag} value={tag}>
+                      {tag}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.selectWrap}>
+                <i className={`bi bi-sort-down ${styles.selectIcon}`} />
+                <select
+                  className={styles.select}
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value as CustomerSort)}
+                >
+                  <option value="LAST_ORDER">Sort: Last order</option>
+                  <option value="TOTAL_SPENT">Sort: Total spent</option>
+                  <option value="CREATED_AT">Sort: Created</option>
+                </select>
+              </div>
+
+              <button
+                className={styles.secondaryBtn}
+                disabled={loading || !nextCursor || !siteId}
+                onClick={() => void loadMore()}
+                type="button"
+              >
+                <i className="bi bi-arrow-down-circle" /> Load more
+              </button>
+            </div>
+          </div>
+
+          {selectedCount > 0 ? (
+            <div className={styles.bulkBar}>
+              <div className={styles.bulkLeft}>
+                <span className={styles.bulkPill}>
+                  <i className="bi bi-check2-square" />
+                  {selectedCount} selected
+                </span>
+
+                <button className={styles.bulkBtn} type="button" onClick={clearSelection} disabled={loading}>
+                  Clear
+                </button>
+              </div>
+
+              <div className={styles.bulkRight}>
+                <div className={styles.bulkGroup}>
+                  <button
+                    className={styles.bulkBtn}
+                    type="button"
+                    onClick={() => void bulkSetStatus("ACTIVE")}
+                    disabled={loading || !siteId}
+                  >
+                    <i className="bi bi-check-circle" /> Set Active
+                  </button>
+
+                  <button
+                    className={styles.bulkBtn}
+                    type="button"
+                    onClick={() => void bulkSetStatus("VIP")}
+                    disabled={loading || !siteId}
+                  >
+                    <i className="bi bi-stars" /> Set VIP
+                  </button>
+
+                  <button
+                    className={styles.bulkBtn}
+                    type="button"
+                    onClick={() => void bulkSetStatus("INACTIVE")}
+                    disabled={loading || !siteId}
+                  >
+                    <i className="bi bi-dash-circle" /> Set Inactive
+                  </button>
+                </div>
+
+                <button
+                  className={`${styles.bulkBtn} ${styles.danger}`}
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={loading || !siteId}
+                >
+                  <i className="bi bi-trash3" /> Deactivate
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className={styles.tableCard}>
+            <div className={styles.tableHead}>
+              <div className={styles.tableHeadLeft}>
+                <span className={styles.tableTitle}>Customers</span>
+                <span className={styles.tableMeta}>
+                  {!siteId
+                    ? "Waiting for site..."
+                    : loading
+                      ? "Loading..."
+                      : `${filteredCustomers.length} result${filteredCustomers.length === 1 ? "" : "s"}`}
+                </span>
+              </div>
+
+              <div className={styles.tableHeadRight}>
+                <button
+                  className={styles.iconBtn}
+                  type="button"
+                  onClick={() => modal.success("Coming soon", "Columns builder will be added later.")}
+                >
+                  <i className="bi bi-layout-three-columns" />
+                </button>
+
+                <button
+                  className={styles.iconBtn}
+                  type="button"
+                  onClick={() => modal.success("Coming soon", "Saved views will be added later.")}
+                >
+                  <i className="bi bi-bookmarks" />
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.thCheck}>
+                      <input
+                        type="checkbox"
+                        checked={
+                          pagedCustomers.length > 0 &&
+                          pagedCustomers.every((customer) => Boolean(selected[customer.id]))
+                        }
+                        onChange={(event) => toggleSelectAllOnPage(event.target.checked)}
+                        aria-label="Select all on page"
+                      />
+                    </th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Tags</th>
+                    <th className={styles.thNum}>Orders</th>
+                    <th className={styles.thNum}>Total spent</th>
+                    <th>Last order</th>
+                    <th>Created</th>
+                    <th className={styles.thActions}>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {pagedCustomers.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className={styles.emptyCell}>
+                        <div className={styles.empty}>
+                          <i className="bi bi-person-x" />
+                          <div className={styles.emptyTitle}>No customers found</div>
+                          <div className={styles.emptyHint}>
+                            {!siteId
+                              ? "Please select a site to load customers."
+                              : "Try adjusting your search or filters."}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    pagedCustomers.map((customer) => {
+                      const meta = statusMeta[customer.status];
+
+                      return (
+                        <tr key={customer.id} className={styles.tr} onDoubleClick={() => void openDrawer(customer)}>
+                          <td className={styles.tdCheck} onClick={(event) => event.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={Boolean(selected[customer.id])}
+                              onChange={(event) => {
+                                const checked = event.target.checked;
+                                toggleSelect(customer.id, checked);
+
+                                if (checked) {
+                                  populateLeftFormForEdit(customer);
+                                  nameInputRef.current?.focus();
+                                } else if (editingCustomerId === customer.id) {
+                                  resetLeftForm();
+                                }
+                              }}
+                              aria-label={`Select customer ${customer.name}`}
+                            />
+                          </td>
+
+                          <td className={styles.tdCustomer} onClick={() => void openDrawer(customer)}>
+                            <div className={styles.customerCell}>
+                              <div className={styles.avatar} aria-hidden="true">
+                                {customer.name
+                                  .trim()
+                                  .split(/\s+/)
+                                  .slice(0, 2)
+                                  .map((part) => part[0]?.toUpperCase())
+                                  .join("")}
+                              </div>
+
+                              <div className={styles.customerInfo}>
+                                <div className={styles.customerName}>
+                                  {customer.name} <span className={styles.muted}>•</span>{" "}
+                                  <span className={styles.mono}>{customer.id}</span>
+                                </div>
+
+                                <div className={styles.customerSub}>
+                                  <span className={styles.muted}>{customer.email || "—"}</span>
+                                  {customer.phone ? (
+                                    <>
+                                      <span className={styles.dot}>•</span>
+                                      <span className={styles.muted}>{customer.phone}</span>
+                                    </>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td>
+                            <span className={`${styles.badge} ${styles[`badge_${customer.status}`]}`}>
+                              <i className={`bi ${meta.icon}`} />
+                              {meta.label}
+                            </span>
+                          </td>
+
+                          <td>
+                            <div className={styles.tagRow}>
+                              {customer.tags.length === 0 ? <span className={styles.muted}>—</span> : null}
+                              {customer.tags.slice(0, 2).map((tag) => (
+                                <span key={tag} className={styles.tag}>
+                                  {tag}
+                                </span>
+                              ))}
+                              {customer.tags.length > 2 ? (
+                                <span className={styles.moreTag}>+{customer.tags.length - 2}</span>
+                              ) : null}
+                            </div>
+                          </td>
+
+                          <td className={styles.tdNum}>{customer.orders}</td>
+                          <td className={styles.tdNum}>{formatMoney(customer.totalSpent)}</td>
+                          <td>{formatDate(customer.lastOrderAt)}</td>
+                          <td>{formatDate(customer.createdAt)}</td>
+
+                          <td className={styles.tdActions}>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                type="button"
+                                className={styles.iconBtn}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  populateLeftFormForEdit(customer);
+                                  nameInputRef.current?.focus();
+                                }}
+                                title="Edit in left form"
+                              >
+                                <i className="bi bi-pencil-square" />
+                              </button>
+
+                              <button
+                                type="button"
+                                className={styles.iconBtn}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void openDrawer(customer);
+                                }}
+                                title="Open details"
+                              >
+                                <i className="bi bi-eye" />
+                              </button>
+
+                              <button
+                                type="button"
+                                className={`${styles.iconBtn} ${styles.danger}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeleteSingle(customer);
+                                }}
+                                title="Delete customer"
+                              >
+                                <i className="bi bi-trash3" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className={styles.pagination}>
+              <div className={styles.paginationLeft}>
+                <span className={styles.muted}>
+                  Page <b>{page}</b> / {pageCount}
+                </span>
+              </div>
+
+              <div className={styles.paginationRight}>
+                <button
+                  className={styles.pageBtn}
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((currentPage) => currentPage - 1)}
+                >
+                  <i className="bi bi-chevron-left" />
+                  Prev
+                </button>
+
+                <button
+                  className={styles.pageBtn}
+                  type="button"
+                  disabled={page >= pageCount}
+                  onClick={() => setPage((currentPage) => currentPage + 1)}
+                >
+                  Next
+                  <i className="bi bi-chevron-right" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

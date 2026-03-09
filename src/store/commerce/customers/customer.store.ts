@@ -106,7 +106,7 @@ export type CustomerStore = {
   // context
   siteId: string;
   siteErr: string | null;
-  initLoading: boolean; // ✅ guard StrictMode
+  initLoading: boolean;
 
   // data
   customers: Customer[];
@@ -130,6 +130,8 @@ export type CustomerStore = {
 
   // actions
   initSite: () => Promise<void>;
+  setSiteId: (siteId: string) => void;
+
   setQuery: (v: string) => void;
   setSegment: (v: Segment) => void;
   setStatusFilter: (v: "ANY" | CustomerStatus) => void;
@@ -137,7 +139,7 @@ export type CustomerStore = {
   setSort: (v: CustomerStore["sort"]) => void;
 
   toggleSelect: (id: string, v: boolean) => void;
-  bulkSelect: (ids: string[], v: boolean) => void; // ✅ select all one shot
+  bulkSelect: (ids: string[], v: boolean) => void;
   clearSelection: () => void;
 
   fetchCustomers: () => Promise<void>;
@@ -171,15 +173,26 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   loading: false,
   err: null,
 
-  // ✅ Guard: tránh gọi profile 2 lần ở StrictMode
+  // Dùng khi đồng bộ site từ useSiteStore sang customer store
+  setSiteId: (siteId) =>
+    set({
+      siteId,
+      siteErr: siteId ? null : "MISSING_SITE_ID",
+    }),
+
+  // Guard: tránh gọi profile 2 lần ở StrictMode
   initSite: async () => {
     const { siteId, initLoading } = get();
     if (siteId || initLoading) return;
 
     set({ initLoading: true, siteErr: null });
+
     try {
       const ctx = await apiGetAdminContext();
-      set({ siteId: ctx.siteId });
+      set({
+        siteId: ctx.siteId,
+        siteErr: ctx.siteId ? null : "MISSING_SITE_ID",
+      });
     } catch (e: unknown) {
       set({ siteErr: e instanceof Error ? e.message : "LOAD_SITE_FAILED" });
     } finally {
@@ -198,7 +211,6 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
       selected: { ...st.selected, [id]: v },
     })),
 
-  // ✅ Select all 1 lần setState (không loop gọi toggleSelect)
   bulkSelect: (ids, v) =>
     set((st) => {
       const next = { ...st.selected };
@@ -210,7 +222,11 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   fetchCustomers: async () => {
     const { siteId, query, segment, statusFilter } = get();
-    if (!siteId) return;
+
+    if (!siteId) {
+      set({ siteErr: "MISSING_SITE_ID" });
+      return;
+    }
 
     const isActive =
       segment === "ACTIVE" || statusFilter === "ACTIVE"
@@ -220,9 +236,14 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
           : undefined;
 
     try {
-      set({ loading: true, err: null });
+      set({ loading: true, err: null, siteErr: null });
 
-      const resp = await apiListCustomers(siteId, { q: query.trim() || undefined, isActive, take: 50 });
+      const resp = await apiListCustomers(siteId, {
+        q: query.trim() || undefined,
+        isActive,
+        take: 50,
+      });
+
       const uiRows = resp.data.map((r) => mapRowToUI(r));
 
       const s = new Set<string>();
@@ -244,7 +265,13 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   loadMore: async () => {
     const { siteId, query, segment, statusFilter, nextCursor, allTagsServer } = get();
-    if (!siteId || !nextCursor) return;
+
+    if (!siteId) {
+      set({ siteErr: "MISSING_SITE_ID" });
+      return;
+    }
+
+    if (!nextCursor) return;
 
     const isActive =
       segment === "ACTIVE" || statusFilter === "ACTIVE"
@@ -254,7 +281,7 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
           : undefined;
 
     try {
-      set({ loading: true, err: null });
+      set({ loading: true, err: null, siteErr: null });
 
       const resp = await apiListCustomers(siteId, {
         q: query.trim() || undefined,
@@ -282,7 +309,11 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   openDetailAndMerge: async (id) => {
     const { siteId } = get();
-    if (!siteId) return null;
+
+    if (!siteId) {
+      set({ siteErr: "MISSING_SITE_ID" });
+      return null;
+    }
 
     try {
       const detail = await apiGetCustomerDetail(siteId, id);
@@ -300,15 +331,20 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   bulkSetStatus: async (nextStatus) => {
     const { siteId, selected, customers } = get();
-    if (!siteId) return;
+
+    if (!siteId) {
+      set({ siteErr: "MISSING_SITE_ID" });
+      return;
+    }
 
     const ids = Object.entries(selected)
       .filter(([, v]) => v)
       .map(([id]) => id);
+
     if (ids.length === 0) return;
 
     try {
-      set({ loading: true, err: null });
+      set({ loading: true, err: null, siteErr: null });
 
       await Promise.all(
         ids.map(async (id) => {
@@ -331,9 +367,19 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
       set((st) => ({
         customers: st.customers.map((c) => {
           if (!ids.includes(c.id)) return c;
-          if (nextStatus === "ACTIVE")
-            return { ...c, status: "ACTIVE", tags: c.tags.filter((t) => t.toLowerCase() !== "vip") };
-          if (nextStatus === "INACTIVE") return { ...c, status: "INACTIVE" };
+
+          if (nextStatus === "ACTIVE") {
+            return {
+              ...c,
+              status: "ACTIVE",
+              tags: c.tags.filter((t) => t.toLowerCase() !== "vip"),
+            };
+          }
+
+          if (nextStatus === "INACTIVE") {
+            return { ...c, status: "INACTIVE" };
+          }
+
           return {
             ...c,
             status: "VIP",
@@ -351,15 +397,20 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   bulkDeactivate: async () => {
     const { siteId, selected } = get();
-    if (!siteId) return;
+
+    if (!siteId) {
+      set({ siteErr: "MISSING_SITE_ID" });
+      return;
+    }
 
     const ids = Object.entries(selected)
       .filter(([, v]) => v)
       .map(([id]) => id);
+
     if (ids.length === 0) return;
 
     try {
-      set({ loading: true, err: null });
+      set({ loading: true, err: null, siteErr: null });
 
       await Promise.all(ids.map((id) => apiDeleteCustomer(siteId, id)));
 
@@ -376,16 +427,20 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   createCustomer: async (payload) => {
     const { siteId, allTagsServer } = get();
-    if (!siteId) throw new Error("MISSING_SITE_ID_ON_CLIENT");
+
+    if (!siteId) {
+      set({ siteErr: "MISSING_SITE_ID" });
+      throw new Error("MISSING_SITE_ID_ON_CLIENT");
+    }
 
     try {
-      set({ loading: true, err: null });
+      set({ loading: true, err: null, siteErr: null });
 
       const isActive = payload.status !== "INACTIVE";
       const tags =
         payload.status === "VIP"
-          ? Array.from(new Set([...payload.tags, "vip"]))
-          : payload.tags.filter((t) => t.toLowerCase() !== "vip");
+          ? Array.from(new Set([...(payload.tags ?? []), "vip"]))
+          : (payload.tags ?? []).filter((t) => t.toLowerCase() !== "vip");
 
       const row = await apiCreateCustomer(siteId, {
         name: payload.name,

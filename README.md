@@ -75,13 +75,12 @@ const functionKeyActions = useMemo(
 F3: handleDelete,
 F5: ,
 F6: ,
-F9: ,
 F10: ,
 }),
 [handleDelete, handleEnterEditMode, onF10, onF11],
 );
 
-Hiện tại tôi muốn thêm F3 sẽ là delete,F5 là Add sibling, F6 là Edit, F9 là Auto, F10 là save. Bạn hãy giúp tôi thêm vào có được không
+Hiện tại tôi muốn thêm F3 sẽ là delete,F5 là Create customer, F6 là Edit, F10 là save. Bạn hãy giúp tôi thêm vào có được không
 
 Bước 4.
 Vậy bạn hãy sửa và thêm và ghi lại toàn bộ file nhé hiện tại tôi đã có
