@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useFunctionKeysContext } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
-import type { FunctionKeyCode, FunctionKeyConfig } from "@/components/admin/shared/layout/function-keys/functionKeys";
-
-type FunctionKeyConfigs = Partial<Record<FunctionKeyCode, FunctionKeyConfig>>;
+import type { FunctionKeyCode, FunctionKeyInput } from "@/components/admin/shared/layout/function-keys/functionKeys";
 
 function isTypingTarget(target: EventTarget | null) {
   const el = target as HTMLElement | null;
@@ -14,7 +12,7 @@ function isTypingTarget(target: EventTarget | null) {
   return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
 }
 
-export function usePageFunctionKeys(pageConfigs: FunctionKeyConfigs) {
+export function usePageFunctionKeys(pageConfigs: FunctionKeyInput) {
   const { actions, setPageFunctionKeys, resetToDefault } = useFunctionKeysContext();
 
   useEffect(() => {

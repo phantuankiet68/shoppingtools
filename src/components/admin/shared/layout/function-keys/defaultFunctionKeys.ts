@@ -2,31 +2,23 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import type { FunctionKeyCode, FunctionKeyConfig } from "@/components/admin/shared/layout/function-keys/functionKeys";
+import type { FunctionKeyCode, FunctionKeyInput } from "@/components/admin/shared/layout/function-keys/functionKeys";
 
-type FunctionKeyConfigs = Partial<Record<FunctionKeyCode, FunctionKeyConfig>>;
+type FunctionKeyDefaults = Partial<Record<FunctionKeyCode, () => void>> | FunctionKeyInput;
 
-export function useDefaultFunctionKeys(): FunctionKeyConfigs {
+export function useDefaultFunctionKeys(): FunctionKeyDefaults {
   const router = useRouter();
 
-  return useMemo<FunctionKeyConfigs>(
+  return useMemo(
     () => ({
-      F1: {
-        action: () => {
-          console.log("Open Help");
-        },
+      F1: () => {
+        console.log("Open Help");
       },
-
-      F4: {
-        action: () => {
-          window.location.reload();
-        },
+      F4: () => {
+        window.location.reload();
       },
-
-      F12: {
-        action: () => {
-          router.push("/admin");
-        },
+      F12: () => {
+        router.push("/admin");
       },
     }),
     [router],

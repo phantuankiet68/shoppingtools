@@ -12,6 +12,8 @@ export type FunctionKeyConfig = {
   icon?: string;
 };
 
+export type FunctionKeyInput = Partial<Record<FunctionKeyCode, FunctionKeyConfig | (() => void)>>;
+
 export const functionKeys: FunctionKeyItem[] = [
   { key: "F1", label: "Help", icon: "bi-question-circle" },
   { key: "F2", label: "Preview", icon: "bi bi-eye" },

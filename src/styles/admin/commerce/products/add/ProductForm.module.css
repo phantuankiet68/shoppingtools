@@ -337,15 +337,18 @@
 
 /* Body */
 .body {
-  height: 79vh;
+  height: 86vh;
   padding: 10px 15px;
   overflow: auto;
 }
 
 /* Sections */
 .section {
-  padding: 0px 0 18px;
+  padding: 10px;
   border-bottom: 1px solid #eef1f6;
+  background: var(--bg-header);
+  border: 8px;
+  margin-top: 10px;
 }
 
 .section:last-child {
@@ -503,7 +506,7 @@
 }
 
 .textarea {
-  min-height: 160px;
+  min-height: 203px;
   width: 100%;
   border: none;
   resize: vertical;

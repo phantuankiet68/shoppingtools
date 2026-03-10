@@ -2,7 +2,13 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { useDefaultFunctionKeys } from "./defaultFunctionKeys";
-import { functionKeyMap, type FunctionKeyCode, type FunctionKeyConfig, type FunctionKeyItem } from "./functionKeys";
+import {
+  functionKeyMap,
+  type FunctionKeyCode,
+  type FunctionKeyConfig,
+  type FunctionKeyInput,
+  type FunctionKeyItem,
+} from "./functionKeys";
 
 type FunctionKeyActions = Partial<Record<FunctionKeyCode, () => void>>;
 type FunctionKeyConfigs = Partial<Record<FunctionKeyCode, FunctionKeyConfig>>;
@@ -10,11 +16,28 @@ type FunctionKeyConfigs = Partial<Record<FunctionKeyCode, FunctionKeyConfig>>;
 type FunctionKeysContextValue = {
   items: FunctionKeyItem[];
   actions: FunctionKeyActions;
-  setPageFunctionKeys: (configs?: FunctionKeyConfigs) => void;
+  setPageFunctionKeys: (configs?: FunctionKeyInput) => void;
   resetToDefault: () => void;
 };
 
 const FunctionKeysContext = createContext<FunctionKeysContextValue | null>(null);
+
+function normalizeFunctionKeyInput(input: FunctionKeyInput = {}): FunctionKeyConfigs {
+  const result: FunctionKeyConfigs = {};
+
+  for (const key of Object.keys(input) as FunctionKeyCode[]) {
+    const value = input[key];
+    if (!value) continue;
+
+    if (typeof value === "function") {
+      result[key] = { action: value };
+    } else {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
 
 function buildItems(configs: FunctionKeyConfigs) {
   return (Object.keys(configs) as FunctionKeyCode[])
@@ -44,24 +67,26 @@ function buildActions(configs: FunctionKeyConfigs): FunctionKeyActions {
 }
 
 export function FunctionKeysProvider({ children }: { children: ReactNode }) {
-  const defaultConfigs = useDefaultFunctionKeys();
-  const [pageConfigs, setPageConfigs] = useState<FunctionKeyConfigs>({});
+  const defaultInput = useDefaultFunctionKeys();
+  const [pageInput, setPageInput] = useState<FunctionKeyInput>({});
 
-  const setPageFunctionKeys = useCallback((configs: FunctionKeyConfigs = {}) => {
-    setPageConfigs(configs);
+  const setPageFunctionKeys = useCallback((configs: FunctionKeyInput = {}) => {
+    setPageInput(configs);
   }, []);
 
   const resetToDefault = useCallback(() => {
-    setPageConfigs({});
+    setPageInput({});
   }, []);
 
-  const mergedConfigs = useMemo<FunctionKeyConfigs>(
-    () => ({
-      ...defaultConfigs,
-      ...pageConfigs,
-    }),
-    [defaultConfigs, pageConfigs],
-  );
+  const mergedConfigs = useMemo<FunctionKeyConfigs>(() => {
+    const normalizedDefault = normalizeFunctionKeyInput(defaultInput);
+    const normalizedPage = normalizeFunctionKeyInput(pageInput);
+
+    return {
+      ...normalizedDefault,
+      ...normalizedPage,
+    };
+  }, [defaultInput, pageInput]);
 
   const actions = useMemo(() => buildActions(mergedConfigs), [mergedConfigs]);
   const items = useMemo(() => buildItems(mergedConfigs), [mergedConfigs]);

@@ -5,6 +5,7 @@ import styles from "@/styles/admin/commerce/products/add/ProductForm.module.css"
 import Image from "next/image";
 import { useModal } from "@/components/admin/shared/common/modal";
 import { useSiteStore } from "@/store/site/site.store";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 
 type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 type ProductType = "PHYSICAL" | "DIGITAL" | "SERVICE";
@@ -339,6 +340,9 @@ export default function ProductForm({
 
   const effectiveSiteId = siteIdProp || selectedSiteId;
   const isEditing = Boolean(editingId);
+
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (siteIdProp) return;
@@ -885,7 +889,6 @@ export default function ProductForm({
           })),
         };
         const endpoint = isEditing ? `/api/admin/commerce/products/${editingId}` : "/api/admin/commerce/products";
-
         const method = isEditing ? "PATCH" : "POST";
 
         const res = await fetch(endpoint, {
@@ -934,9 +937,68 @@ export default function ProductForm({
     ],
   );
 
+  const handleCancelAction = useCallback(() => {
+    if (busyProp || loadingProduct) return;
+    onCancel?.();
+  }, [busyProp, loadingProduct, onCancel]);
+
+  const handlePublishNowAction = useCallback(() => {
+    if (busyProp || loadingProduct) return;
+    publishNow();
+  }, [busyProp, loadingProduct, publishNow]);
+
+  const handleAutoFillAction = useCallback(() => {
+    if (busyProp || loadingProduct) return;
+    autoFill();
+  }, [busyProp, loadingProduct, autoFill]);
+
+  const handleEditAction = useCallback(() => {
+    if (busyProp || loadingProduct) return;
+    nameInputRef.current?.focus();
+    nameInputRef.current?.select();
+  }, [busyProp, loadingProduct]);
+
+  const handleSaveAction = useCallback(() => {
+    if (busyProp || loadingProduct) return;
+    formRef.current?.requestSubmit();
+  }, [busyProp, loadingProduct]);
+
+  const functionKeyActions = useMemo(
+    () => ({
+      F2: {
+        action: handleCancelAction,
+        label: "Cancel",
+        icon: "bi-x-circle",
+      },
+      F3: {
+        action: handlePublishNowAction,
+        label: "Publish now",
+        icon: "bi-upload",
+      },
+      F6: {
+        action: handleEditAction,
+        label: "Edit",
+        icon: "bi-pencil-square",
+      },
+      F9: {
+        action: handleAutoFillAction,
+        label: "Auto fill",
+        icon: "bi-magic",
+      },
+      F10: {
+        action: handleSaveAction,
+        label: "Save",
+        icon: "bi-save",
+      },
+    }),
+    [handleAutoFillAction, handleCancelAction, handleEditAction, handlePublishNowAction, handleSaveAction],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
+
   return (
     <div className={styles.page}>
-      <form className={styles.shell} onSubmit={handleSubmit}>
+      <form ref={formRef} className={styles.shell} onSubmit={handleSubmit}>
         <aside className={styles.left}>
           <div className={styles.mediaCard}>
             <div className={styles.mediaPreview}>
@@ -1053,6 +1115,9 @@ export default function ProductForm({
           <div className={styles.header}>
             <div className={styles.headerLeft}>
               <div className={styles.headerTitle}>{isEditing ? "Edit product" : "Create product"}</div>
+            </div>
+
+            <div className={styles.headerActions}>
               <div className={styles.headerMeta}>
                 <span className={styles.pill}>{form.status}</span>
                 <span className={`${styles.pill} ${form.isVisible ? styles.pillOn : styles.pillOff}`}>
@@ -1064,32 +1129,6 @@ export default function ProductForm({
                   <span className={styles.mini}>Not published</span>
                 )}
               </div>
-            </div>
-
-            <div className={styles.headerActions}>
-              <button type="button" className={styles.btnGhost} onClick={onCancel} disabled={busyProp}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.btnGhost}
-                onClick={autoFill}
-                title="Auto fill common fields"
-                disabled={loadingProduct || busyProp}
-              >
-                Auto fill
-              </button>
-              <button
-                type="button"
-                className={styles.btnGhost}
-                onClick={publishNow}
-                disabled={loadingProduct || busyProp}
-              >
-                Publish now
-              </button>
-              <button type="submit" className={styles.btnPrimary} disabled={loadingProduct || busyProp}>
-                {loadingProduct ? "Loading..." : isEditing ? "Update" : "Save"}
-              </button>
             </div>
           </div>
 
@@ -1133,6 +1172,7 @@ export default function ProductForm({
                     Name <span className={styles.req}>*</span>
                   </label>
                   <input
+                    ref={nameInputRef}
                     className={styles.input}
                     value={form.name}
                     onChange={(e) => handleNameChange(e.target.value)}
