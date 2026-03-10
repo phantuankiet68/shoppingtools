@@ -305,7 +305,7 @@ F10: ,
 [handleDelete, handleEnterEditMode, onF10, onF11],
 );
 
-Hiện tại tôi muốn thêm F3 sẽ là delete,F5 là Create customer, F6 là Edit, F10 là save. Bạn hãy giúp tôi thêm vào có được không
+Hiện tại tôi muốn thêm F2 sẽ là tương ứng với Send email,F5 là Create customer, F6 là Edit, F10 là save. Bạn hãy giúp tôi thêm vào có được không
 
 Bước 4.
 Vậy bạn hãy sửa và thêm và ghi lại toàn bộ file nhé hiện tại tôi đã có
@@ -336,3 +336,5 @@ ADMIN_BRAND: {
 Bước 7:
 tôi đang sử dụng next 16 Hiện tại mục folder store với mục service trong next js sẽ thực hiện những gì
 vậy bạn hãy tách store và service trông file code này giúp tôi nhé
+
+Tôi muốn độ lại phần này hiện tại Ui chưa được mới mẽ và chuyên nghiệp chưa có tính tỉ mĩ và đa dang trong front end với level là serior hãy độ lại với next 16 và css module giúp tôi nhé không cần box-shadow đâu

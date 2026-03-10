@@ -1,6 +1,8 @@
 import Head from "next/head";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/integrations/email/email.module.css";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import { useModal } from "@/components/admin/shared/common/modal";
 
 type ApiResponse = {
   ok: boolean;
@@ -12,30 +14,32 @@ type ApiResponse = {
 };
 
 export default function AdminSendEmailPage() {
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const modal = useModal();
+
   const [fromName, setFromName] = useState("Your Store");
   const [fromEmail, setFromEmail] = useState("no-reply@yourdomain.com");
   const [replyToEmail, setReplyToEmail] = useState("support@yourdomain.com");
 
-  const [subject, setSubject] = useState("Sản phẩm mới đã có mặt 🎉");
-  const [previewText, setPreviewText] = useState("Khám phá sản phẩm mới với ưu đãi dành riêng cho bạn.");
+  const [subject, setSubject] = useState("New product just arrived 🎉");
+  const [previewText, setPreviewText] = useState("Discover our latest product with an exclusive offer just for you.");
 
   const [brandName, setBrandName] = useState("Your Store");
   const [productName, setProductName] = useState("Nike Air Max 2025");
-  const [productPrice, setProductPrice] = useState("2.990.000đ");
+  const [productPrice, setProductPrice] = useState("2,990,000₫");
   const [productDescription, setProductDescription] = useState(
-    "Thiết kế hiện đại, nhẹ, êm và phù hợp cho cả đi chơi lẫn vận động hằng ngày.",
+    "Modern design, lightweight, comfortable, and perfect for both casual outings and everyday activity.",
   );
   const [productImage, setProductImage] = useState(
     "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
   );
-  const [buttonText, setButtonText] = useState("Mua ngay");
+  const [buttonText, setButtonText] = useState("Shop now");
   const [buttonUrl, setButtonUrl] = useState("https://yourdomain.com/products/new");
   const [couponCode, setCouponCode] = useState("NEW10");
 
   const [recipientsText, setRecipientsText] = useState("");
   const [testMode, setTestMode] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
 
   const recipients = useMemo(() => {
     return Array.from(
@@ -63,32 +67,75 @@ export default function AdminSendEmailPage() {
     });
   }, [brandName, productName, productPrice, productDescription, productImage, buttonText, buttonUrl, couponCode]);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setMessage("");
+  const handleSendEmail = useCallback(() => {
+    if (submitting) return;
 
     if (!subject.trim()) {
-      setMessage("Vui lòng nhập tiêu đề email.");
+      modal.error("Missing subject", "Please enter an email subject.");
       return;
     }
 
     if (!productName.trim()) {
-      setMessage("Vui lòng nhập tên sản phẩm.");
+      modal.error("Missing product name", "Please enter a product name.");
       return;
     }
 
     if (!buttonUrl.trim()) {
-      setMessage("Vui lòng nhập link sản phẩm.");
+      modal.error("Missing product link", "Please enter the product link.");
       return;
     }
 
     if (recipients.length === 0) {
-      setMessage("Vui lòng nhập ít nhất 1 email khách hàng.");
+      modal.error("Missing recipients", "Please enter at least 1 customer email.");
       return;
     }
 
     if (tooManyRecipients) {
-      setMessage("Chỉ được gửi tối đa 100 khách hàng mỗi lần.");
+      modal.error("Recipient limit exceeded", "You can only send to a maximum of 100 customers at a time.");
+      return;
+    }
+
+    formRef.current?.requestSubmit();
+  }, [submitting, subject, productName, buttonUrl, recipients.length, tooManyRecipients, modal]);
+
+  const functionKeyActions = useMemo(
+    () => ({
+      F2: {
+        action: handleSendEmail,
+        label: "Send email",
+        icon: "bi bi-envelope-arrow-down",
+      },
+    }),
+    [handleSendEmail],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    if (!subject.trim()) {
+      modal.error("Missing subject", "Please enter an email subject.");
+      return;
+    }
+
+    if (!productName.trim()) {
+      modal.error("Missing product name", "Please enter a product name.");
+      return;
+    }
+
+    if (!buttonUrl.trim()) {
+      modal.error("Missing product link", "Please enter the product link.");
+      return;
+    }
+
+    if (recipients.length === 0) {
+      modal.error("Missing recipients", "Please enter at least 1 customer email.");
+      return;
+    }
+
+    if (tooManyRecipients) {
+      modal.error("Recipient limit exceeded", "You can only send to a maximum of 100 customers at a time.");
       return;
     }
 
@@ -102,11 +149,11 @@ export default function AdminSendEmailPage() {
         `${productPrice}`,
         `${productDescription}`,
         ``,
-        `Mã ưu đãi: ${couponCode}`,
+        `Promo code: ${couponCode}`,
         `${buttonText}: ${buttonUrl}`,
       ].join("\n");
 
-      const res = await fetch("/api/admin/emails/send-bulk", {
+      const res = await fetch("/api/admin/integrations/email/send-bulk", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,12 +175,22 @@ export default function AdminSendEmailPage() {
       const json: ApiResponse = await res.json();
 
       if (!res.ok || !json.ok) {
-        throw new Error(json.message || "Gửi email thất bại");
+        throw new Error(json.message || "Failed to send email");
       }
 
-      setMessage(`Đã tạo email cho ${json.data?.totalRecipients || recipients.length} khách hàng.`);
-    } catch (error: any) {
-      setMessage(error?.message || "Có lỗi xảy ra.");
+      modal.success(
+        "Success",
+        `Email created successfully for ${json.data?.totalRecipients || recipients.length} customers.`,
+      );
+    } catch (error: unknown) {
+      let msg: string;
+      if (error instanceof Error) {
+        msg = error.message;
+      } else {
+        msg = String(error);
+      }
+
+      modal.error("Send email failed", msg || "Something went wrong.");
     } finally {
       setSubmitting(false);
     }
@@ -146,11 +203,19 @@ export default function AdminSendEmailPage() {
       </Head>
 
       <div className={styles.page}>
-        <form className={styles.layout} onSubmit={handleSubmit}>
+        <form ref={formRef} className={styles.layout} onSubmit={handleSubmit}>
           <section className={styles.formCard}>
-            <div className={styles.sectionTitle}>Thông tin gửi email</div>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionTitleRow}>
+                <div className={styles.sectionHeaderTop}>
+                  <span className={styles.sectionAccent} />
+                  <h2 className={styles.sectionTitle}>Email sending information</h2>
+                </div>
+                <span className={styles.sectionTag}>Step 1</span>
+              </div>
+            </div>
 
-            <div className={styles.grid2}>
+            <div className={styles.grid4}>
               <div className={styles.field}>
                 <label>From name</label>
                 <input className={styles.input} value={fromName} onChange={(e) => setFromName(e.target.value)} />
@@ -160,9 +225,6 @@ export default function AdminSendEmailPage() {
                 <label>From email</label>
                 <input className={styles.input} value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} />
               </div>
-            </div>
-
-            <div className={styles.grid2}>
               <div className={styles.field}>
                 <label>Reply-to email</label>
                 <input
@@ -173,13 +235,13 @@ export default function AdminSendEmailPage() {
               </div>
 
               <div className={styles.field}>
-                <label>Tên thương hiệu</label>
+                <label>Brand name</label>
                 <input className={styles.input} value={brandName} onChange={(e) => setBrandName(e.target.value)} />
               </div>
             </div>
 
             <div className={styles.field}>
-              <label>Tiêu đề email</label>
+              <label>Email subject</label>
               <input className={styles.input} value={subject} onChange={(e) => setSubject(e.target.value)} />
             </div>
 
@@ -188,16 +250,14 @@ export default function AdminSendEmailPage() {
               <input className={styles.input} value={previewText} onChange={(e) => setPreviewText(e.target.value)} />
             </div>
 
-            <div className={styles.sectionTitle}>Thông tin sản phẩm</div>
-
             <div className={styles.grid2}>
               <div className={styles.field}>
-                <label>Tên sản phẩm</label>
+                <label>Product name</label>
                 <input className={styles.input} value={productName} onChange={(e) => setProductName(e.target.value)} />
               </div>
 
               <div className={styles.field}>
-                <label>Giá</label>
+                <label>Price</label>
                 <input
                   className={styles.input}
                   value={productPrice}
@@ -207,77 +267,61 @@ export default function AdminSendEmailPage() {
             </div>
 
             <div className={styles.field}>
-              <label>Mô tả sản phẩm</label>
+              <label>Product description</label>
               <textarea
                 className={styles.textarea}
-                rows={4}
+                rows={3}
                 value={productDescription}
                 onChange={(e) => setProductDescription(e.target.value)}
               />
             </div>
-
-            <div className={styles.field}>
-              <label>Link hình ảnh sản phẩm</label>
-              <input className={styles.input} value={productImage} onChange={(e) => setProductImage(e.target.value)} />
-            </div>
-
             <div className={styles.grid2}>
               <div className={styles.field}>
-                <label>Text nút bấm</label>
+                <label>Product image URL</label>
+                <input
+                  className={styles.input}
+                  value={productImage}
+                  onChange={(e) => setProductImage(e.target.value)}
+                />
+              </div>
+              <div className={styles.field}>
+                <label>Product / landing page URL</label>
+                <input className={styles.input} value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} />
+              </div>
+            </div>
+            <div className={styles.grid2}>
+              <div className={styles.field}>
+                <label>Button text</label>
                 <input className={styles.input} value={buttonText} onChange={(e) => setButtonText(e.target.value)} />
               </div>
 
               <div className={styles.field}>
-                <label>Mã giảm giá</label>
+                <label>Coupon code</label>
                 <input className={styles.input} value={couponCode} onChange={(e) => setCouponCode(e.target.value)} />
               </div>
             </div>
 
             <div className={styles.field}>
-              <label>Link sản phẩm / landing page</label>
-              <input className={styles.input} value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} />
-            </div>
-
-            <div className={styles.field}>
-              <label>Danh sách khách hàng</label>
+              <label className={styles.dflexField}>
+                Customer list{" "}
+                <div className={styles.hintRow}>
+                  <span>{recipients.length} / 100 customers</span>
+                  {tooManyRecipients ? <span className={styles.errorText}>Exceeded the 100 email limit</span> : null}
+                </div>
+              </label>
               <textarea
                 className={styles.textarea}
-                rows={7}
+                rows={4}
                 value={recipientsText}
                 onChange={(e) => setRecipientsText(e.target.value)}
                 placeholder={`customer1@gmail.com
-customer2@gmail.com
-customer3@gmail.com`}
+                customer2@gmail.com
+                customer3@gmail.com`}
               />
-              <div className={styles.hintRow}>
-                <span>{recipients.length} / 100 khách hàng</span>
-                {tooManyRecipients ? <span className={styles.errorText}>Vượt quá giới hạn 100 email</span> : null}
-              </div>
             </div>
-
-            <div className={styles.actions}>
-              <label className={styles.checkbox}>
-                <input type="checkbox" checked={testMode} onChange={(e) => setTestMode(e.target.checked)} />
-                <span>Test mode</span>
-              </label>
-
-              <button type="submit" className={styles.button} disabled={submitting || tooManyRecipients}>
-                {submitting ? "Đang gửi..." : "Gửi email"}
-              </button>
-            </div>
-
-            {message ? <div className={styles.message}>{message}</div> : null}
           </section>
 
           <aside className={styles.previewCard}>
-            <div className={styles.previewTop}>
-              <div>
-                <div className={styles.previewLabel}>Template preview</div>
-                <div className={styles.previewSubject}>{subject || "Tiêu đề email"}</div>
-                <div className={styles.previewText}>{previewText || "Preview text"}</div>
-              </div>
-            </div>
-
             <div className={styles.previewFrame}>
               <div className={styles.previewContent} dangerouslySetInnerHTML={{ __html: htmlPreview }} />
             </div>
@@ -287,6 +331,7 @@ customer3@gmail.com`}
     </>
   );
 }
+
 function buildEmailTemplate({
   brandName,
   productName,
@@ -308,56 +353,39 @@ function buildEmailTemplate({
 }) {
   const year = new Date().getFullYear();
 
-  const relatedProducts = [
-    {
-      name: "Nón bảo hiểm nửa đầu",
-      price: "₫ 50,000",
-      sold: "18 đã bán",
-      image: "https://images.unsplash.com/photo-1558980394-0c199d55f1c7?auto=format&fit=crop&w=700&q=80",
-      url: buttonUrl,
-    },
-    {
-      name: "Nhẫn titan thời trang",
-      price: "₫ 50,000",
-      sold: "0 đã bán",
-      image: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=700&q=80",
-      url: buttonUrl,
-    },
-  ];
-
   return `
   <div style="margin:0;padding:0;background:#f4f4f4;color:#0f172a;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f4f4f4;">
       <tr>
-        <td align="center" style="padding:20px 10px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border:1px solid #e5e7eb;">
+        <td align="center" style="padding:10px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border:1px solid #dae7fb;">
 
             <tr>
-              <td style="background:#f76d6d;color:#ffffff;padding:10px 18px;text-align:center;font-size:13px;font-weight:00;">
-                Ưu đãi đặc biệt hôm nay · Mã giảm giá dành riêng cho bạn
+              <td style="background:linear-gradient(135deg, #88d6ff, #26bbff);color:#ffffff;padding:10px 18px;text-align:center;font-size:13px;font-weight:400;">
+                Special offer today · A promo code just for you
               </td>
             </tr>
 
             <tr>
-              <td style="padding:16px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(135deg, #fbaa74, #e2631da1);border-radius:6px;overflow:hidden;">
+              <td style="padding:10px 16px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(135deg, #88d6ff, #26bbff);border-radius:6px;overflow:hidden;">
                   <tr>
                     <td style="padding:15px">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                         <tr>
                           <td valign="top" style="padding-right:12px;">
                             <div style="font-size:13px;line-height:1.4;font-weight:800;color:#ffffff;text-transform:uppercase;">
-                              Siêu sale chính hãng
+                              Official mega sale
                             </div>
-                            <div style="font-size:25px;line-height:1.1;font-weight:800;color:#ffffff;margin-top:8px;">
-                              QUÀ ĐẶC BIỆT
+                            <div style="font-size:25px;line-height:1.1;font-weight:600;color:#ffffff;margin-top:5px;">
+                              SPECIAL GIFT
                             </div>
-                            <div style="font-size:13px;line-height:1.6;color:#fffaf0;margin-top:8px;">
-                              Tặng riêng bạn cơ hội mua sắm sản phẩm nổi bật với ưu đãi tốt hơn hôm nay.
+                            <div style="font-size:13px;line-height:1.6;color:#fffaf0;margin-top:5px;">
+                              Enjoy a special opportunity to shop our featured product at a better price today.
                             </div>
                             <div style="margin-top:10px;">
-                              <a href="${escapeAttr(buttonUrl)}" style="display:inline-block;padding:6px 25px;border:1px solid #ffffff;border-radius:999px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;">
-                                Săn ngay
+                              <a href="${escapeAttr(buttonUrl)}" style="display:inline-block;padding:6px 25px;border:1px solid #ffffff;border-radius:999px;color:#ffffff;text-decoration:none;font-size:13px;font-weight:500;">
+                                Shop now
                               </a>
                             </div>
                           </td>
@@ -366,9 +394,8 @@ function buildEmailTemplate({
                               <tr>
                                 <td
                                   style="
-                                    background:rgba(255,255,255,0.12);
+                                    background:rgb(167 167 167 / 13%);
                                     border:1px solid rgba(255,255,255,0.18);
-                                    border-radius:18px;
                                     padding:18px 20px;
                                     text-align:right;
                                     min-width:160px;
@@ -394,7 +421,7 @@ function buildEmailTemplate({
 
                                   <div
                                     style="
-                                      font-size:32px;
+                                      font-size:18px;
                                       line-height:0.95;
                                       font-weight:900;
                                       color:#ffffff;
@@ -412,7 +439,7 @@ function buildEmailTemplate({
                                       color:#fff4e6;
                                     "
                                   >
-                                    Giá tốt trong thời gian ngắn
+                                    Great price for a limited time
                                   </div>
                                 </td>
                               </tr>
@@ -430,8 +457,7 @@ function buildEmailTemplate({
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
             <tr>
 
-            <!-- LEFT: PRODUCT -->
-            <td width="50%" valign="top" style="padding-right:8px;">
+            <td width="35%" valign="top" >
               <table
                 role="presentation"
                 width="100%"
@@ -462,7 +488,7 @@ function buildEmailTemplate({
                 </tr>
 
                 <tr>
-                  <td style="padding:10px; border: 1px solid #e5e7eb;   border-radius:8px;">
+                  <td style="padding: 5px 10px; border: 1px solid #e5e7eb; border-radius:8px;">
                     <div
                       style="
                         display:inline-block;
@@ -471,7 +497,7 @@ function buildEmailTemplate({
                         color:#ea580c;
                         font-size:11px;
                         line-height:1;
-                        font-weight:800;
+                        font-weight:600;
                         text-transform:uppercase;
                         letter-spacing:.08em;
                         margin-bottom:12px;
@@ -480,7 +506,7 @@ function buildEmailTemplate({
                         right: 10px;
                       "
                     >
-                      Sản phẩm nổi bật
+                      Featured product
                     </div>
 
                     <div
@@ -491,7 +517,7 @@ function buildEmailTemplate({
                         color:#fff;
                         margin:0;
                         position: absolute;
-                        top: 33%;
+                        top: 35%;
                       "
                     >
                       ${escapeHtml(productName)}
@@ -499,12 +525,12 @@ function buildEmailTemplate({
 
                     <div
                       style="
-                        font-size:28px;
+                        font-size:18px;
                         line-height:1.15;
                         font-weight:900;
                         color:#fff;
                         position: absolute;
-                        top: 38%;
+                        top: 45%;
                       "
                     >
                       ${escapeHtml(productPrice)}
@@ -512,7 +538,7 @@ function buildEmailTemplate({
 
                     <div
                       style="
-                        font-size:14px;
+                        font-size:13px;
                         line-height:1.8;
                         color:#475569;
                       "
@@ -525,59 +551,34 @@ function buildEmailTemplate({
                       cellspacing="0"
                       cellpadding="0"
                       border="0"
-                      style="margin-top:18px;"
+                      style="margin-top:10px;"
                     >
-                      <tr>
-                        <td
-                          style="
-                            background:linear-gradient(180deg,#ff6b3d 0%,#f6542c 100%);
-                            border-radius:12px;
-                          "
-                        >
-                          <a
-                            href="${escapeAttr(buttonUrl)}"
-                            style="
-                              display:inline-block;
-                              padding:12px 22px;
-                              font-size:15px;
-                              line-height:1;
-                              font-weight:800;
-                              color:#ffffff;
-                              text-decoration:none;
-                            "
-                          >
-                            ${escapeHtml(buttonText)}
-                          </a>
-                        </td>
-                      </tr>
                     </table>
                   </td>
                 </tr>
               </table>
             </td>
 
-
-            <!-- RIGHT: CAMPAIGN -->
-            <td width="50%" valign="top" style="padding-left:8px;">
+            <td width="60%" valign="top" style="padding-left:8px;">
 
             ${buildVoucherCard({
-              bg: "#33d3d6",
-              title: "Miễn phí vận chuyển",
-              condition: "Đơn tối thiểu 0đ",
-              badge: "Dành riêng cho bạn",
-              expiry: "Hạn sử dụng: 25/02/2026",
-              actionText: "Dùng ngay",
+              bg: "#1adef3",
+              title: "Free shipping",
+              condition: "Minimum order 0₫",
+              badge: "Exclusive for you",
+              expiry: "Expires: 25/02/2026",
+              actionText: "Use now",
             })}
 
             <div style="height:10px"></div>
 
             ${buildVoucherCard({
-              bg: "#f6542c",
-              title: "Giảm 10.000đ",
-              condition: "Đơn tối thiểu 0đ",
+              bg: "#ff6161",
+              title: "Discount 10,000₫",
+              condition: "Minimum order 0₫",
               badge: "",
-              expiry: "Hạn sử dụng: 25/02/2026",
-              actionText: "Dùng ngay",
+              expiry: "Expires: 25/02/2026",
+              actionText: "Use now",
             })}
 
             </td>
@@ -588,19 +589,19 @@ function buildEmailTemplate({
             </tr>
 
             <tr>
-                <td style="padding:22px 28px 0 28px;">
+                <td style="padding:12px 16px 0 16px;">
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tr>
-                      <td style="padding:0 0 12px 0;font-size:18px;font-weight:700;color:#0f172a;">
-                        Vì sao khách hàng thích sản phẩm này
+                      <td style="padding:0 0 5px 0;font-size:15px;font-weight:700;color:#6d8bff;">
+                        Why customers love this product
                       </td>
                     </tr>
                     <tr>
                       <td>
                         ${buildFeatureList([
-                          "Thiết kế nổi bật, dễ phối đồ và phù hợp nhiều phong cách.",
-                          "Chất liệu tối ưu cho trải nghiệm êm ái, thoải mái cả ngày.",
-                          "Số lượng mở bán giới hạn, ưu đãi tốt trong thời gian ngắn.",
+                          "Eye-catching design that is easy to match with different styles.",
+                          "Optimized materials for a soft and comfortable all-day experience.",
+                          "Limited launch quantity with a great offer for a short time only.",
                         ])}
                       </td>
                     </tr>
@@ -609,10 +610,10 @@ function buildEmailTemplate({
               </tr>
 
               <tr>
-                <td style="padding:28px 28px 0 28px;" align="center">
+                <td style="padding:10px 28px 0 28px;" align="center">
                   <a
                     href="${escapeAttr(buttonUrl)}"
-                    style="display:inline-block;background:linear-gradient(135deg,#2563eb 0%, #1d4ed8 100%);color:#ffffff;text-decoration:none;font-size:17px;font-weight:700;line-height:1;padding:18px 34px;border-radius:14px;box-shadow:0 10px 24px rgba(37,99,235,0.28);"
+                    style="display:inline-block;background:linear-gradient(135deg, #88d6ff, #26bbff);color:#ffffff;text-decoration:none;font-size:13px;font-weight:400;line-height:1;padding:10px 34px;border-radius:14px;"
                   >
                     ${escapeHtml(buttonText)}
                   </a>
@@ -620,20 +621,20 @@ function buildEmailTemplate({
               </tr>
 
               <tr>
-                <td style="padding:18px 28px 0 28px;" align="center">
+                <td style="padding:10px 28px 0 28px;" align="center">
                   <div style="font-size:13px;line-height:1.8;color:#94a3b8;">
-                    Đặt sớm để giữ ưu đãi tốt nhất và tránh tình trạng hết hàng.
+                    Order early to secure the best offer and avoid missing out on stock.
                   </div>
                 </td>
               </tr>
 
               <tr>
-                <td style="padding:26px 28px 0 28px;">
+                <td style="padding:8px 28px 0 28px">
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-top:1px solid #e5e7eb;">
                     <tr>
-                      <td style="padding:18px 0 0 0;font-size:12px;line-height:1.8;color:#9ca3af;text-align:center;">
+                      <td style="padding:13px 0 0 0;font-size:12px;line-height:1.8;color:#9ca3af;text-align:center;">
                         © ${year} ${escapeHtml(brandName)}. All rights reserved.<br/>
-                        Bạn nhận email này vì đã đăng ký nhận thông tin sản phẩm và ưu đãi từ cửa hàng.
+                        You are receiving this email because you subscribed to product updates and promotions from our store.
                       </td>
                     </tr>
                   </table>
@@ -651,18 +652,19 @@ function buildEmailTemplate({
   </div>
   `;
 }
+
 function buildFeatureList(items: string[]) {
   return items
     .map(
       (item) => `
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:12px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:5px;">
           <tr>
             <td valign="top" width="28" style="padding-top:2px;">
               <div style="width:20px;height:20px;line-height:20px;text-align:center;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;">
                 ✓
               </div>
             </td>
-            <td valign="top" style="font-size:15px;line-height:1.8;color:#475569;">
+            <td valign="top" style="font-size:13px;line-height:1.8;color:#475569;">
               ${escapeHtml(item)}
             </td>
           </tr>
@@ -671,6 +673,7 @@ function buildFeatureList(items: string[]) {
     )
     .join("");
 }
+
 function buildVoucherCard({
   bg,
   title,
@@ -691,56 +694,19 @@ function buildVoucherCard({
       <tr>
         <td valign="middle" width="120" style="background:${bg};padding:18px 12px;text-align:center;color:#ffffff;">
           <div style="font-size:16px;font-weight:800;line-height:1.2;">
-            ${bg === "#33d3d6" ? "FREE<br/>SHIP" : "SHOP"}
+            ${bg === "#1adef3" ? "FREE<br/>SHIP" : "SHOP"}
           </div>
         </td>
-        <td valign="middle" style="padding:12px 10px 0px; 12px">
-          <div style="font-size:14px;font-weight:600;color:#ff7811;">${escapeHtml(title)}</div>
-          <div style="font-size:13px;color:#111827;margin-top:4px;">${escapeHtml(condition)}</div>
-          ${
-            badge
-              ? `<div style="display:inline-block;margin-top:6px;padding:4px 8px;border:1px solid #fb923c;color:#ea580c;font-size:12px; border-radius: 6px;font-weight: 500;">${escapeHtml(
-                  badge,
-                )}</div>`
-              : ""
-          }
-          <div style="font-size:12px;color:#94a3b8;margin-top:10px;">${escapeHtml(expiry)}</div>
-          <div valign="middle" width="120" align="center" style="padding:12px;">
-            <a href="#" style="display:inline-block;background:#f6542c;color:#ffffff;text-decoration:none;padding:8px 18px;font-size:13px;font-weight:500;border-radius: 6px">
+        <td valign="middle" style="padding:10px 10px 0px 10px">
+          <div style="font-size:13px;font-weight:600;color:#ff7811;">${escapeHtml(title)}</div>
+          <div style="font-size:13px;color:#111827;margin-top:3px;">${escapeHtml(condition)}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:3px;">${escapeHtml(expiry)}</div>
+         <div valign="middle" width="120" align="center" style="padding:10px;">
+            <a href="#" style="display:inline-block;background:linear-gradient(135deg, #88d6ff, #26bbff);color:#ffffff;text-decoration:none;padding:6px 18px;font-size:13px;font-weight:500;border-radius: 6px">
               ${escapeHtml(actionText)}
             </a>
           </div>
-        </td>
-      </tr>
-    </table>
-  `;
-}
-
-function buildProductCard(product: { name: string; price: string; sold: string; image: string; url: string }) {
-  return `
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;border:1px solid #ececec;">
-      <tr>
-        <td style="padding:0;">
-          <img
-            src="${escapeAttr(product.image)}"
-            alt="${escapeAttr(product.name)}"
-            width="100%"
-            style="display:block;width:100%;height:auto;border:0;"
-          />
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:10px;">
-          <div style="font-size:14px;line-height:1.45;color:#111827;min-height:42px;">
-            ${escapeHtml(product.name)}
-          </div>
-          <div style="font-size:12px;line-height:1.4;color:#f6542c;font-weight:700;margin-top:10px;">
-            ${escapeHtml(product.price)}
-          </div>
-          <div style="font-size:12px;color:#9ca3af;margin-top:2px;">
-            ${escapeHtml(product.sold)}
-          </div>
-        </td>
+          </td>
       </tr>
     </table>
   `;

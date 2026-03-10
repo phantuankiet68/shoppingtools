@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma, EmailProvider, EmailRecipientStatus, EmailStatus, EmailType, EmailLogStatus } from "@prisma/client";
+import { EmailProvider, EmailRecipientStatus, EmailStatus, EmailType, EmailLogStatus } from "@prisma/client";
 
+// variables used in templates; values are stringified when rendering
+// `unknown` keeps us from depending on `any` while still accepting arbitrary data.
+type TemplateVars = Record<string, unknown>;
+
+// normalized recipient shape used throughout the handler
 type RecipientInput = {
   email: string;
   name?: string;
-  variables?: Record<string, any>;
+  variables?: TemplateVars;
 };
 
 type BulkSendBody = {
   templateId: string;
   subjectOverride?: string;
   testMode?: boolean;
-  recipients: RecipientInput[];
+  recipients: RecipientInput[] | string[];
   siteId?: string;
 };
 
@@ -24,27 +29,43 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function renderTemplate(content: string, vars: Record<string, any>) {
+function renderTemplate(content: string, vars: TemplateVars) {
   return content.replace(/\{\{(\w+)\}\}/g, (_, key) => {
     const value = vars?.[key];
     return value == null ? "" : String(value);
   });
 }
 
+function normalizeRecipients(list: BulkSendBody["recipients"]): RecipientInput[] {
+  if (!Array.isArray(list)) return [];
+
+  return list
+    .map((item) => {
+      if (typeof item === "string") {
+        return {
+          email: item.trim().toLowerCase(),
+          variables: {},
+        };
+      }
+
+      return {
+        email: String(item?.email || "")
+          .trim()
+          .toLowerCase(),
+        name: item?.name ? String(item.name).trim() : undefined,
+        variables: item?.variables && typeof item.variables === "object" ? item.variables : {},
+      };
+    })
+    .filter((item) => item.email);
+}
+
 function dedupeRecipients(list: RecipientInput[]) {
   const map = new Map<string, RecipientInput>();
 
   for (const item of list) {
-    const email = String(item?.email || "")
-      .trim()
-      .toLowerCase();
-    if (!email) continue;
-    if (!map.has(email)) {
-      map.set(email, {
-        email,
-        name: item?.name ? String(item.name).trim() : undefined,
-        variables: item?.variables && typeof item.variables === "object" ? item.variables : {},
-      });
+    if (!item.email) continue;
+    if (!map.has(item.email)) {
+      map.set(item.email, item);
     }
   }
 
@@ -69,7 +90,8 @@ async function sendWithProvider(params: {
   fromEmail?: string | null;
   replyToEmail?: string | null;
 }) {
-  // mock provider result
+  void params;
+
   return {
     ok: true,
     providerMessageId: `mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -79,6 +101,7 @@ async function sendWithProvider(params: {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as BulkSendBody;
+    console.log("POST /send-bulk body =", body);
 
     // TODO: thay bằng auth thật
     const admin = { id: "YOUR_ADMIN_USER_ID" };
@@ -88,12 +111,15 @@ export async function POST(req: NextRequest) {
     const testMode = Boolean(body?.testMode);
     const siteId = typeof body?.siteId === "string" && body.siteId.trim() ? body.siteId.trim() : null;
 
-    if (!templateId) return badRequest("templateId is required");
+    if (!templateId) {
+      return badRequest("templateId is required");
+    }
+
     if (!Array.isArray(body?.recipients) || body.recipients.length === 0) {
       return badRequest("recipients is required");
     }
 
-    const recipients = dedupeRecipients(body.recipients);
+    const recipients = dedupeRecipients(normalizeRecipients(body.recipients));
 
     if (recipients.length === 0) {
       return badRequest("No valid recipients");
@@ -134,10 +160,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: "Template not found or disabled" }, { status: 404 });
     }
 
-    /**
-     * TODO:
-     * Chỗ này nên load settings thật từ DB sau
-     */
     const currentProvider: EmailProvider = EmailProvider.RESEND;
     const fromName = "Your App";
     const fromEmail = "no-reply@yourdomain.com";
@@ -198,15 +220,11 @@ export async function POST(req: NextRequest) {
     }> = [];
 
     for (const recipient of emailBatch.recipients) {
-      const vars =
-        recipient.variables && typeof recipient.variables === "object"
-          ? (recipient.variables as Record<string, any>)
-          : {};
+      const vars: TemplateVars =
+        recipient.variables && typeof recipient.variables === "object" ? (recipient.variables as TemplateVars) : {};
 
       const finalSubject = renderTemplate(subjectOverride || template.subject, vars);
-
       const finalHtml = template.htmlContent ? renderTemplate(template.htmlContent, vars) : null;
-
       const finalText = template.textContent ? renderTemplate(template.textContent, vars) : null;
 
       if (testMode) {
@@ -232,9 +250,7 @@ export async function POST(req: NextRequest) {
               provider: currentProvider,
               status: EmailLogStatus.SENT,
               sentAt: new Date(),
-              meta: {
-                testMode: true,
-              },
+              meta: { testMode: true },
             },
           });
         }
@@ -289,9 +305,7 @@ export async function POST(req: NextRequest) {
               providerMessageId: sent.providerMessageId,
               status: EmailLogStatus.SENT,
               sentAt: new Date(),
-              meta: {
-                provider: currentProvider,
-              },
+              meta: { provider: currentProvider },
             },
           });
         }
@@ -303,8 +317,14 @@ export async function POST(req: NextRequest) {
           status: "SENT",
           providerMessageId: sent.providerMessageId,
         });
-      } catch (error: any) {
-        const errorMessage = error?.message || "Send failed";
+      } catch (error: unknown) {
+        let errorMessage: string;
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else {
+          errorMessage = String(error);
+        }
+        errorMessage = errorMessage || "Send failed";
 
         await prisma.emailRecipient.update({
           where: { id: recipient.id },
@@ -329,9 +349,7 @@ export async function POST(req: NextRequest) {
               status: EmailLogStatus.FAILED,
               errorMessage,
               failedAt: new Date(),
-              meta: {
-                provider: currentProvider,
-              },
+              meta: { provider: currentProvider },
             },
           });
         }
@@ -376,7 +394,14 @@ export async function POST(req: NextRequest) {
         items: results,
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ ok: false, message: error?.message || "Bulk send failed" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("send-bulk error =", error);
+    let msg: string;
+    if (error instanceof Error) {
+      msg = error.message;
+    } else {
+      msg = String(error);
+    }
+    return NextResponse.json({ ok: false, message: msg || "Bulk send failed" }, { status: 500 });
   }
 }
