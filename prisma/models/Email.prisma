@@ -1,0 +1,183 @@
+enum EmailProvider {
+  SMTP
+  RESEND
+  SENDGRID
+}
+
+enum EmailStatus {
+  DRAFT
+  QUEUED
+  SCHEDULED
+  SENT
+  PARTIAL
+  FAILED
+  CANCELLED
+}
+
+enum EmailType {
+  SYSTEM
+  TEMPLATE
+  BULK
+  TEST
+}
+
+enum EmailRecipientStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+  OPENED
+  CLICKED
+}
+
+enum EmailLogStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  FAILED
+  BOUNCED
+}
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  userId      String
+  key         String
+  name        String
+  subject     String
+  htmlContent String?  @db.Text
+  textContent String?  @db.Text
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emails    Email[]
+  emailLogs EmailLog[]
+
+  @@unique([userId, key])
+  @@index([userId, isActive])
+  @@index([createdAt])
+}
+
+model Email {
+  id              String      @id @default(cuid())
+  userId          String
+  templateId      String?
+  type            EmailType   @default(SYSTEM)
+  status          EmailStatus @default(DRAFT)
+
+  templateKey     String?
+  subject         String
+  previewText     String?     @db.Text
+
+  fromName        String?
+  fromEmail       String?
+  replyToEmail    String?
+
+  provider        EmailProvider?
+  htmlContent     String?     @db.Text
+  textContent     String?     @db.Text
+
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+
+  totalRecipients Int         @default(0)
+  successCount    Int         @default(0)
+  failedCount     Int         @default(0)
+
+  testMode        Boolean     @default(false)
+  lastError       String?     @db.Text
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  recipients EmailRecipient[]
+  logs       EmailLog[]
+
+  @@index([userId, createdAt])
+  @@index([userId, status])
+  @@index([templateId])
+  @@index([templateKey])
+  @@index([scheduledAt])
+}
+
+model EmailRecipient {
+  id                String               @id @default(cuid())
+  emailId           String
+  email             String
+  name              String?
+  status            EmailRecipientStatus @default(PENDING)
+
+  subject           String?
+  error             String?              @db.Text
+
+  variables         Json?
+  providerMessageId String?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  bouncedAt         DateTime?
+
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  emailRecord Email @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  logs EmailLog[]
+
+  @@index([emailId])
+  @@index([email])
+  @@index([status])
+  @@index([providerMessageId])
+}
+
+model EmailLog {
+  id                String         @id @default(cuid())
+  siteId            String         @map("site_id")
+  emailId           String?        @map("email_id")
+  recipientId       String?        @map("recipient_id")
+  templateId        String?        @map("template_id")
+
+  toEmail           String         @map("to_email")
+  toName            String?        @map("to_name")
+  subjectSnapshot   String         @map("subject_snapshot")
+
+  provider          EmailProvider?
+  providerMessageId String?        @map("provider_message_id")
+
+  status            EmailLogStatus @default(QUEUED)
+  errorMessage      String?        @map("error_message") @db.Text
+
+  sentAt            DateTime?      @map("sent_at")
+  deliveredAt       DateTime?      @map("delivered_at")
+  openedAt          DateTime?      @map("opened_at")
+  clickedAt         DateTime?      @map("clicked_at")
+  failedAt          DateTime?      @map("failed_at")
+  bouncedAt         DateTime?      @map("bounced_at")
+
+  meta              Json?
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  site      Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  email     Email?         @relation(fields: [emailId], references: [id], onDelete: SetNull)
+  recipient EmailRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+  template  EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([emailId], map: "idx_email_logs_email")
+  @@index([recipientId], map: "idx_email_logs_recipient")
+  @@index([siteId, createdAt], map: "idx_email_logs_site_created_at")
+  @@index([siteId, status], map: "idx_email_logs_site_status")
+  @@index([templateId], map: "idx_email_logs_template")
+  @@index([providerMessageId], map: "idx_email_logs_provider_message_id")
+  @@map("email_logs")
+}

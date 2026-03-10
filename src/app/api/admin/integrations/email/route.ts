@@ -1,73 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-function jsonOk<T>(data: T, init?: ResponseInit) {
-  return NextResponse.json({ ok: true, data }, init);
-}
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ ok: false, message: "Method Not Allowed" });
+  }
 
-function jsonErr(message: string, status = 400, details?: unknown) {
-  return NextResponse.json({ ok: false, message, details }, { status });
-}
-
-const EmailTypeEnum = z.enum(["SYSTEM", "MARKETING", "TRANSACTIONAL", "INTERNAL"]);
-const EmailStatusEnum = z.enum(["DRAFT", "QUEUED", "SENDING", "SENT", "FAILED", "CANCELLED"]);
-
-const CreateRecipientSchema = z.object({
-  toEmail: z.string().email(),
-  toName: z.string().trim().min(1).optional(),
-});
-
-const CreateEmailSchema = z.object({
-  type: EmailTypeEnum.optional(),
-  subject: z.string().trim().min(1),
-  previewText: z.string().trim().optional().nullable(),
-  htmlContent: z.string().optional().nullable(),
-  textContent: z.string().optional().nullable(),
-  templateKey: z.string().trim().optional().nullable(),
-  templateData: z.any().optional().nullable(),
-  fromName: z.string().trim().optional().nullable(),
-  fromEmail: z.string().email().optional().nullable(),
-  recipients: z.array(CreateRecipientSchema).min(1),
-});
-
-export async function GET(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser(); // <- your auth
-    const userId = admin.id;
+    const limit = Math.min(Number(req.query.limit || 30), 100);
+    const skip = Math.max(Number(req.query.skip || 0), 0);
 
-    const { searchParams } = new URL(req.url);
+    const status = String(req.query.status || "").trim();
+    const type = String(req.query.type || "").trim();
+    const q = String(req.query.q || "").trim();
 
-    const status = searchParams.get("status");
-    const type = searchParams.get("type");
-    const q = (searchParams.get("q") || "").trim();
-
-    const page = Math.max(1, Number(searchParams.get("page") || 1));
-    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") || 20)));
-    const skip = (page - 1) * limit;
-
-    if (status && !EmailStatusEnum.safeParse(status).success) {
-      return jsonErr("Invalid status", 400);
-    }
-    if (type && !EmailTypeEnum.safeParse(type).success) {
-      return jsonErr("Invalid type", 400);
-    }
+    const admin = { id: "YOUR_ADMIN_USER_ID" };
 
     const where: any = {
-      userId,
-      ...(status ? { status } : {}),
-      ...(type ? { type } : {}),
-      ...(q
-        ? {
-            OR: [
-              { subject: { contains: q, mode: "insensitive" } },
-              { templateKey: { contains: q, mode: "insensitive" } },
-              { fromEmail: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
+      userId: admin.id,
     };
+
+    if (status) where.status = status;
+    if (type) where.type = type;
+
+    if (q) {
+      where.OR = [
+        { subject: { contains: q, mode: "insensitive" } },
+        { templateKey: { contains: q, mode: "insensitive" } },
+        { fromEmail: { contains: q, mode: "insensitive" } },
+      ];
+    }
 
     const [items, total] = await Promise.all([
       prisma.email.findMany({
@@ -99,81 +61,17 @@ export async function GET(req: NextRequest) {
       prisma.email.count({ where }),
     ]);
 
-    return jsonOk({
-      data: items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+    return res.status(200).json({
+      ok: true,
+      data: {
+        items,
+        pagination: { total, skip, limit },
       },
     });
-  } catch (e: any) {
-    console.error(e);
-    return jsonErr("Failed to fetch emails", 500);
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
-
-    const body = await req.json();
-    const parsed = CreateEmailSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return jsonErr("Validation failed", 422, parsed.error.flatten());
-    }
-
-    const input = parsed.data;
-
-    const hasContent = !!(input.htmlContent || input.textContent);
-    const hasTemplate = !!input.templateKey;
-    if (!hasContent && !hasTemplate) {
-      return jsonErr("Provide htmlContent/textContent or templateKey", 422);
-    }
-
-    // ✅ FIX: gán type cho tx để hết implicit any
-    const email = await prisma.$transaction(async (tx: typeof prisma) => {
-      return tx.email.create({
-        data: {
-          userId,
-          type: input.type ?? "SYSTEM",
-          subject: input.subject,
-          previewText: input.previewText ?? null,
-          htmlContent: input.htmlContent ?? null,
-          textContent: input.textContent ?? null,
-          templateKey: input.templateKey ?? null,
-          templateData: (input.templateData ?? null) as any,
-          fromName: input.fromName ?? null,
-          fromEmail: input.fromEmail ?? null,
-
-          createdBy: admin.id,
-
-          totalRecipients: input.recipients.length,
-          recipients: {
-            create: input.recipients.map((r) => ({
-              toEmail: r.toEmail,
-              toName: r.toName ?? null,
-            })),
-          },
-        },
-        select: {
-          id: true,
-          userId: true,
-          status: true,
-          type: true,
-          subject: true,
-          totalRecipients: true,
-          createdAt: true,
-        },
-      });
+  } catch (error: any) {
+    return res.status(500).json({
+      ok: false,
+      message: error?.message || "Failed to load emails",
     });
-
-    return NextResponse.json({ ok: true, data: email }, { status: 201 });
-  } catch (e: any) {
-    console.error(e);
-    return jsonErr("Failed to create email", 500);
   }
 }

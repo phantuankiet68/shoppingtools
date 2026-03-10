@@ -62,6 +62,231 @@ src/
 │
 └── styles/
 
+1. Bộ lọc thời gian
+
+Nên có 1 bộ lọc ở đầu trang:
+
+Tháng
+
+Năm
+
+Ví dụ:
+
+March 2026
+
+February 2026
+
+Như vậy toàn bộ widget bên dưới sẽ đồng bộ theo cùng một khoảng thời gian.
+
+2. 4 card đầu tiên
+   Revenue
+
+Hiển thị:
+
+Tổng doanh thu trong tháng
+
+So với tháng trước tăng/giảm bao nhiêu %
+
+Ví dụ:
+
+Revenue: 45,200,000đ
+
++12.5% vs last month
+
+Orders
+
+Hiển thị:
+
+Tổng số đơn trong tháng
+
+Có thể thêm Paid Orders
+
+Ví dụ:
+
+Orders: 186
+
++8.2% vs last month
+
+Visitors
+
+Hiển thị:
+
+Tổng lượt truy cập trong tháng
+
+Ví dụ:
+
+Visitors: 12,450
+
++5.1% vs last month
+
+Conversion
+
+Hiển thị:
+
+Tỷ lệ chuyển đổi tháng
+
+Công thức:
+
+Conversion = Orders / Visitors \* 100
+
+Ví dụ:
+
+Conversion: 1.49%
+
+3. Revenue Chart
+
+Khối này rất quan trọng.
+
+Nên vẽ:
+
+trục X: từng ngày trong tháng
+
+trục Y: doanh thu mỗi ngày
+
+Ví dụ tháng 3:
+
+01/03
+
+02/03
+
+03/03
+
+...
+
+Bạn có thể thêm toggle:
+
+Daily Revenue
+
+Cumulative Revenue
+
+Nếu muốn đơn giản thì chỉ cần Daily Revenue là đủ.
+
+4. Top Products
+
+Nên hiển thị top 5 hoặc top 10 sản phẩm bán tốt nhất trong tháng.
+
+Cột nên có:
+
+Tên sản phẩm
+
+Số lượng bán
+
+Doanh thu
+
+Tỷ trọng doanh thu
+
+Ví dụ:
+
+Product Sold Revenue
+Áo thun basic 42 8,400,000đ
+Quần jeans 25 7,500,000đ
+Túi đeo chéo 18 5,400,000đ 5) Traffic Sources
+
+Hiển thị nguồn truy cập trong tháng.
+
+Ví dụ:
+
+Direct
+
+Google
+
+Facebook
+
+TikTok
+
+Email
+
+Other
+
+Có thể dùng:
+
+pie chart
+
+hoặc bảng phần trăm
+
+Ví dụ:
+
+Source Visitors %
+Google 5,200 41.8%
+Facebook 3,100 24.9%
+Direct 2,400 19.3% 6) Customer Analytics
+
+Khối này nên đơn giản, dễ đọc.
+
+Nên có:
+
+New Customers
+
+Returning Customers
+
+Total Customers Purchased
+
+Ví dụ:
+
+Metric Value
+New Customers 84
+Returning Customers 39
+Total Purchasing Customers 123
+
+Nếu muốn thêm sau này:
+
+repeat purchase rate
+
+7. Email Analytics
+
+Nếu web bạn có gửi mail thì khối này rất đáng giữ.
+
+Nên có:
+
+Emails Sent
+
+Delivered
+
+Opened
+
+Failed
+
+Open Rate
+
+Ví dụ:
+
+Metric Value
+Emails Sent 2,400
+Delivered 2,320
+Opened 1,180
+Failed 80
+Open Rate 50.9% 8) Refund / Failed Orders
+
+Khối này giúp bạn nhìn rủi ro vận hành.
+
+Nên có:
+
+Refunded Orders
+
+Failed Orders
+
+Cancelled Orders nếu có
+
+Ví dụ:
+
+Metric Value
+Refunded 6
+Failed 4 9) Database tối thiểu cần có
+
+Để làm đúng dashboard này theo tháng, thường bạn cần ít nhất:
+
+orders
+
+order_items
+
+products
+
+visitors hoặc page_views
+
+email_logs
+
+users
+
 Bước 1:
 tôi đang sử dụng next 16 .Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé và hãy chỉnh sửa các model cho phù hợp với phong cách chuyên nghiệp nhé. hiện tại đang lỗi any bạn hãy sửa giúp tôi nhé Unexpected any. Specify a different type.eslint@typescript-eslint/no-explicit-any
 

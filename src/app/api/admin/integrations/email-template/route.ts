@@ -1,116 +1,126 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-function jsonOk<T>(data: T, init?: ResponseInit) {
-  return NextResponse.json({ ok: true, data }, init);
-}
-function jsonErr(message: string, status = 400, details?: unknown) {
-  return NextResponse.json({ ok: false, message, details }, { status });
+function badRequest(message: string) {
+  return NextResponse.json({ ok: false, message }, { status: 400 });
 }
 
-const EmailTemplateCreateSchema = z.object({
-  key: z.string().trim().min(2).max(100),
-  name: z.string().trim().min(2).max(200),
-  subject: z.string().trim().min(1).max(500),
-  htmlContent: z.string().optional().nullable(),
-  textContent: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  isActive: z.boolean().optional(),
-});
+type Ctx = {
+  params: Promise<{ id: string }>;
+};
 
-export async function GET(req: NextRequest) {
+export async function PATCH(req: NextRequest, { params }: Ctx) {
   try {
-    const admin = await requireAdminAuthUser();
-    const { searchParams } = new URL(req.url);
+    const { id } = await params;
+    const body = await req.json();
+    const admin = { id: "YOUR_ADMIN_USER_ID" };
 
-    const q = (searchParams.get("q") || "").trim();
-    const isActiveParam = searchParams.get("isActive");
-    const isActive = isActiveParam === null ? undefined : isActiveParam === "true";
+    const found = await prisma.emailTemplate.findFirst({
+      where: {
+        id,
+        userId: admin.id,
+      },
+      select: { id: true },
+    });
 
-    const page = Math.max(1, Number(searchParams.get("page") || 1));
-    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") || 20)));
-    const skip = (page - 1) * limit;
+    if (!found) {
+      return NextResponse.json({ ok: false, message: "Template not found" }, { status: 404 });
+    }
 
-    const where: any = {
-      userId: admin.id,
-      ...(typeof isActive === "boolean" ? { isActive } : {}),
-      ...(q
-        ? {
-            OR: [
-              { key: { contains: q, mode: "insensitive" } },
-              { name: { contains: q, mode: "insensitive" } },
-              { subject: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    };
+    const data: any = {};
 
-    const [items, total] = await Promise.all([
-      prisma.emailTemplate.findMany({
-        where,
-        orderBy: { updatedAt: "desc" },
-        skip,
-        take: limit,
+    if (typeof body?.name === "string") data.name = body.name.trim();
+    if (typeof body?.subject === "string") data.subject = body.subject.trim();
+    if (typeof body?.htmlContent === "string" || body?.htmlContent === null) {
+      data.htmlContent = body.htmlContent ? String(body.htmlContent).trim() : null;
+    }
+    if (typeof body?.textContent === "string" || body?.textContent === null) {
+      data.textContent = body.textContent ? String(body.textContent).trim() : null;
+    }
+    if (typeof body?.description === "string" || body?.description === null) {
+      data.description = body.description ? String(body.description).trim() : null;
+    }
+    if (typeof body?.isActive === "boolean") {
+      data.isActive = body.isActive;
+    }
+
+    if ("name" in data && !data.name) return badRequest("name is invalid");
+    if ("subject" in data && !data.subject) return badRequest("subject is invalid");
+
+    if (
+      Object.prototype.hasOwnProperty.call(data, "htmlContent") ||
+      Object.prototype.hasOwnProperty.call(data, "textContent")
+    ) {
+      const current = await prisma.emailTemplate.findUnique({
+        where: { id },
         select: {
-          id: true,
-          userId: true,
-          key: true,
-          name: true,
-          subject: true,
-          description: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
+          htmlContent: true,
+          textContent: true,
         },
-      }),
-      prisma.emailTemplate.count({ where }),
-    ]);
+      });
 
-    return jsonOk({
-      items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+      const nextHtml = Object.prototype.hasOwnProperty.call(data, "htmlContent")
+        ? data.htmlContent
+        : current?.htmlContent;
+      const nextText = Object.prototype.hasOwnProperty.call(data, "textContent")
+        ? data.textContent
+        : current?.textContent;
+
+      if (!nextHtml && !nextText) {
+        return badRequest("htmlContent or textContent is required");
+      }
+    }
+
+    const updated = await prisma.emailTemplate.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        userId: true,
+        key: true,
+        name: true,
+        subject: true,
+        htmlContent: true,
+        textContent: true,
+        description: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
-  } catch (e) {
-    console.error(e);
-    return jsonErr("Failed to fetch email templates", 500);
+
+    return NextResponse.json({
+      ok: true,
+      data: updated,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ ok: false, message: error?.message || "Failed to update template" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function DELETE(_: NextRequest, { params }: Ctx) {
   try {
-    const admin = await requireAdminAuthUser();
-    const body = await req.json();
+    const { id } = await params;
 
-    const parsed = EmailTemplateCreateSchema.safeParse(body);
-    if (!parsed.success) {
-      return jsonErr("Validation failed", 422, parsed.error.flatten());
-    }
+    // TODO: thay bằng auth thật
+    const admin = { id: "YOUR_ADMIN_USER_ID" };
 
-    const input = parsed.data;
-
-    // Require at least one content
-    if (!input.htmlContent && !input.textContent) {
-      return jsonErr("Provide htmlContent or textContent", 422);
-    }
-
-    const created = await prisma.emailTemplate.create({
-      data: {
+    const found = await prisma.emailTemplate.findFirst({
+      where: {
+        id,
         userId: admin.id,
-        key: input.key,
-        name: input.name,
-        subject: input.subject,
-        htmlContent: input.htmlContent ?? null,
-        textContent: input.textContent ?? null,
-        description: input.description ?? null,
-        isActive: input.isActive ?? true,
+      },
+      select: { id: true },
+    });
+
+    if (!found) {
+      return NextResponse.json({ ok: false, message: "Template not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.emailTemplate.update({
+      where: { id },
+      data: {
+        isActive: false,
       },
       select: {
         id: true,
@@ -127,13 +137,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return jsonOk(created, { status: 201 });
-  } catch (e: any) {
-    // Prisma unique constraint
-    if (e?.code === "P2002") {
-      return jsonErr("Template key already exists", 409, e?.meta);
-    }
-    console.error(e);
-    return jsonErr("Failed to create email template", 500);
+    return NextResponse.json({
+      ok: true,
+      data: updated,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ ok: false, message: error?.message || "Failed to disable template" }, { status: 500 });
   }
 }

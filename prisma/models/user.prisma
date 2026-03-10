@@ -29,24 +29,17 @@ model User {
   twoFactor       UserTwoFactor?
   backupCodes     UserBackupCode[]
   devices         UserDevice[]
-
   image           String?
   profile         Profile?   @relation("UserProfile")
-
-  // ✅ Reverse relation cho Site.owner
   ownedSites      Site[]     @relation("SiteOwner")
-
-  // ===== Chat relations =====
   conversationMembers ConversationMember[]
   sentMessages        Message[]
-
   friendRequestsSent     FriendRequest[] @relation("FriendRequestFrom")
   friendRequestsReceived FriendRequest[] @relation("FriendRequestTo")
-
-  // ===== Block relations (FIX) =====
   blocksSent     Block[] @relation("UserBlocksSent")
   blocksReceived Block[] @relation("UserBlocksReceived")
-
+  emailTemplates EmailTemplate[]
+  emails         Email[]
   calendarsOwned        Calendar[]      @relation("CalendarOwner")
   calendarEventsCreated CalendarEvent[] @relation("CalendarEventCreator")
   calendarEventsForUser CalendarEvent[] @relation("CalendarEventUser")

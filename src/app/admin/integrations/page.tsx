@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const IntegrationBuilder = dynamic(() => import("@/components/admin/builder/integration/page"), { ssr: false });
+const IntegrationBuilder = dynamic(() => import("@/components/admin/integrations/page/page"), { ssr: false });
 
 export default function Page() {
   return (
