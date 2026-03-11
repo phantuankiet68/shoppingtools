@@ -40,6 +40,25 @@
 
 .formCard {
   padding: 15px;
+  height: 91.5vh;
+  overflow: auto;
+}
+
+.formCard::-webkit-scrollbar {
+  width: 2px;
+}
+
+.formCard::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.formCard::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.formCard::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .previewCard {
@@ -47,6 +66,23 @@
   position: sticky;
   height: 91.5vh;
   overflow: auto;
+}
+
+.previewCard::-webkit-scrollbar {
+  width: 2px;
+}
+
+.previewCard::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.previewCard::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.previewCard::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .sectionTitle {
@@ -85,7 +121,7 @@
 }
 
 .field label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--muted);
 }
@@ -96,7 +132,7 @@
   border: var(--bd-header);
   border-radius: 6px;
   padding: 8px 14px;
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
   background: #fff;
   color: #0f172a;
@@ -318,4 +354,142 @@
     font-size: 13px;
     line-height: 1.7;
   }
+}
+
+.customerLabel {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.recipientComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.recipientInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: var(--bd-header);
+  border-radius: 8px;
+  outline: none;
+  background: #ffffff;
+  font-size: 14px;
+  color: #0f172a;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.recipientInput:focus {
+  border-color: #b7d5ff;
+  box-shadow: 0 0 0 3px #a2c9ff26;
+}
+
+.addButton {
+  height: 40px;
+  min-width: 74px;
+  padding: 0 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.addButton:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.addButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.addButtonIcon {
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.recipientMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.recipientChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.recipientChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 14px 6px 16px;
+  border: var(--bd-header);
+  border-radius: 999px;
+  background: var(--bg-pro);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.recipientChip:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.recipientChipText {
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.recipientChipClose {
+  font-size: 16px;
+  line-height: 1;
+  color: #475569;
+}
+
+.hiddenRecipientsTextarea {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.fieldDflex {
+  display: flex;
+  justify-content: space-between;
+}
+
+.customersLabel {
+  font-size: 13px;
+  color: var(--muted);
 }

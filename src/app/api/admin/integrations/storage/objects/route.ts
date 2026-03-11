@@ -1,79 +1,38 @@
-import { NextResponse } from "next/server";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
-import { prisma } from "@/lib/prisma";
-import { ensureIntegration } from "@/lib/storage/ensureIntegration";
-import { objectToRow } from "@/lib/storage/dto";
+import { NextRequest, NextResponse } from "next/server";
+import { deleteObject, listObjects, resolveSiteId } from "@/features/integrations/storage/types";
 
-function jsonOk(data: any) {
-  return NextResponse.json({ ok: true, data });
-}
-function jsonBad(msg: string, status = 400) {
-  return NextResponse.json({ ok: false, error: msg }, { status });
-}
-
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
-
-    const integration = await ensureIntegration(userId);
-
-    const { searchParams } = new URL(req.url);
-    const query = (searchParams.get("query") || "").trim();
-    const visibility = (searchParams.get("visibility") || "ALL").toUpperCase();
-
-    const where: any = {
-      integrationId: integration.id,
-      deletedAt: null,
-    };
-
-    if (query) {
-      where.key = { contains: query, mode: "insensitive" };
-    }
-    if (visibility === "PUBLIC" || visibility === "PRIVATE") {
-      where.visibility = visibility;
-    }
-
-    const objects = await prisma.storageObject.findMany({
-      where,
-      orderBy: { updatedAt: "desc" },
-      take: 200,
+    const siteId = await resolveSiteId({
+      siteId: req.nextUrl.searchParams.get("siteId"),
     });
 
-    return jsonOk(objects.map(objectToRow));
-  } catch {
-    return jsonBad("Unauthorized", 401);
+    const query = req.nextUrl.searchParams.get("query") || "";
+    const visibility = req.nextUrl.searchParams.get("visibility") || "ALL";
+
+    const data = await listObjects(siteId, query, visibility);
+    return NextResponse.json({ ok: true, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to get objects.";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
-
-    const integration = await ensureIntegration(userId);
-    const { searchParams } = new URL(req.url);
-    const key = (searchParams.get("key") || "").trim();
-    if (!key) return jsonBad("Missing key", 400);
-
-    // Soft delete DB record (real delete from S3/R2 bạn làm sau)
-    const updated = await prisma.storageObject.updateMany({
-      where: { integrationId: integration.id, key, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const siteId = await resolveSiteId({
+      siteId: req.nextUrl.searchParams.get("siteId"),
     });
 
-    await prisma.storageLog.create({
-      data: {
-        integrationId: integration.id,
-        level: "WARN",
-        action: "Delete object",
-        message: `Deleted ${key} (DB only).`,
-        meta: { key, affected: updated.count },
-      },
-    });
+    const key = req.nextUrl.searchParams.get("key") || "";
+    if (!key) {
+      return NextResponse.json({ ok: false, error: "Object key is required." }, { status: 400 });
+    }
 
-    return jsonOk({ deleted: true, affected: updated.count });
-  } catch {
-    return jsonBad("Unauthorized", 401);
+    const data = await deleteObject(siteId, key);
+    return NextResponse.json({ ok: true, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to delete object.";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

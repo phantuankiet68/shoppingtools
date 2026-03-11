@@ -1402,11 +1402,127 @@ model Site {
   productVariants         ProductVariant[]
   productCategories       ProductCategory[]
 
+  storageIntegration StorageIntegration?
+  storageLogs        StorageLog[]
+
   @@index([ownerUserId])
   @@index([status])
   @@index([isPublic])
   @@index([publishedAt])
   @@map("sites")
+}
+
+// ==== part: StorageIntegration.prisma ====
+enum StorageProvider {
+  LOCAL
+  R2
+}
+
+enum StorageStatus {
+  DISCONNECTED
+  CONNECTED
+  ERROR
+}
+
+enum StorageVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum StorageLogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+model StorageIntegration {
+  id     String @id @default(cuid())
+  siteId String @unique @map("site_id")
+
+  provider StorageProvider @default(R2)
+  status   StorageStatus   @default(DISCONNECTED)
+
+  publicBaseUrl       String? @map("public_base_url")
+  rootPrefix          String  @default("uploads/") @map("root_prefix")
+  privateByDefault    Boolean @default(true) @map("private_by_default")
+  signedUrlEnabled    Boolean @default(true) @map("signed_url_enabled")
+  signedUrlTtlSeconds Int     @default(900) @map("signed_url_ttl_seconds")
+
+  maxUploadMb             Int     @default(50) @map("max_upload_mb")
+  allowedMime             String  @default("image/*,application/pdf") @map("allowed_mime")
+  enableImageOptimization Boolean @default(true) @map("enable_image_optimization")
+
+  localDir String? @map("local_dir")
+
+  region             String? @default("auto")
+  bucket             String?
+  endpointUrl        String? @map("endpoint_url")
+  accessKeyId        String? @map("access_key_id")
+  secretAccessKeyEnc String? @map("secret_access_key_enc")
+
+  cacheControl String? @map("cache_control")
+  purgeEnabled Boolean @default(false) @map("purge_enabled")
+
+  lastCheckedAt DateTime? @map("last_checked_at")
+  lastError     String?   @map("last_error") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  buckets StorageBucket[]
+  logs    StorageLog[]
+
+  @@index([provider], map: "idx_storage_integrations_provider")
+  @@index([status], map: "idx_storage_integrations_status")
+  @@map("storage_integrations")
+}
+
+model StorageBucket {
+  id                   String @id @default(cuid())
+  storageIntegrationId String @map("storage_integration_id")
+
+  name     String
+  region   String?
+  provider StorageProvider
+
+  objects Int     @default(0)
+  sizeGb  Decimal @default(0) @map("size_gb") @db.Decimal(18, 3)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  storageIntegration StorageIntegration @relation(fields: [storageIntegrationId], references: [id], onDelete: Cascade)
+
+  @@index([storageIntegrationId], map: "idx_storage_buckets_integration")
+  @@index([provider], map: "idx_storage_buckets_provider")
+  @@map("storage_buckets")
+}
+
+model StorageLog {
+  id                   String @id @default(cuid())
+  storageIntegrationId String @map("storage_integration_id")
+  siteId               String @map("site_id")
+
+  level   StorageLogLevel @default(INFO)
+  action  String
+  message String          @db.Text
+
+  objectKey  String?            @map("object_key")
+  visibility StorageVisibility?
+
+  metaJson Json? @map("meta_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  storageIntegration StorageIntegration @relation(fields: [storageIntegrationId], references: [id], onDelete: Cascade)
+  site               Site               @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([storageIntegrationId, createdAt], map: "idx_storage_logs_integration_created")
+  @@index([siteId, createdAt], map: "idx_storage_logs_site_created")
+  @@index([level], map: "idx_storage_logs_level")
+  @@map("storage_logs")
 }
 
 // ==== part: Transaction.prisma ====

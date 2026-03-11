@@ -1,72 +1,33 @@
-import { NextResponse } from "next/server";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
-import { prisma } from "@/lib/prisma";
-import { ensureIntegration } from "@/lib/storage/ensureIntegration";
-import { bucketToRow } from "@/lib/storage/dto";
-
-function jsonOk(data: any) {
-  return NextResponse.json({ ok: true, data });
-}
-function jsonBad(msg: string, status = 400) {
-  return NextResponse.json({ ok: false, error: msg }, { status });
-}
-
-export async function GET() {
+import { NextRequest, NextResponse } from "next/server";
+import { createBucket, listBuckets, resolveSiteId } from "@/features/integrations/storage/types";
+export async function GET(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
-
-    const integration = await ensureIntegration(userId);
-
-    const buckets = await prisma.storageBucket.findMany({
-      where: { integrationId: integration.id },
-      orderBy: { updatedAt: "desc" },
-      take: 100,
+    const siteId = await resolveSiteId({
+      siteId: req.nextUrl.searchParams.get("siteId"),
     });
 
-    return jsonOk(buckets.map(bucketToRow));
-  } catch {
-    return jsonBad("Unauthorized", 401);
+    const data = await listBuckets(siteId);
+    return NextResponse.json({ ok: true, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to get buckets.";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
+    const body = (await req.json()) as { name?: string; siteId?: string };
+    const siteId = await resolveSiteId({ siteId: body.siteId });
 
-    const integration = await ensureIntegration(userId);
-    const body = await req.json();
+    const name = (body.name || "").trim();
+    if (!name) {
+      return NextResponse.json({ ok: false, error: "Bucket name is required." }, { status: 400 });
+    }
 
-    const name = String(body.name || "").trim();
-    if (!name) return jsonBad("Bucket name is required.", 400);
-
-    const created = await prisma.storageBucket.create({
-      data: {
-        integrationId: integration.id,
-        provider: integration.provider,
-        name,
-        region: integration.region,
-        endpointUrl: integration.endpointUrl,
-        objectsCount: 0,
-        sizeBytes: BigInt(0),
-      },
-    });
-
-    await prisma.storageLog.create({
-      data: {
-        integrationId: integration.id,
-        level: "INFO",
-        action: "Add bucket",
-        message: `Bucket ${name} added (mock).`,
-        meta: { name },
-      },
-    });
-
-    return jsonOk(bucketToRow(created));
-  } catch (e: any) {
-    // Unique constraint bucket name (nếu bạn set @@unique)
-    if (String(e?.code) === "P2002") return jsonBad("Bucket already exists.", 409);
-    return jsonBad("Unauthorized", 401);
+    const data = await createBucket(siteId, name);
+    return NextResponse.json({ ok: true, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to create bucket.";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
