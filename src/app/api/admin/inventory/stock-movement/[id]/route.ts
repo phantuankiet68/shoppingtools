@@ -1,110 +1,185 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
 
-function isUnauthorized(e: any) {
-  return e?.message === "UNAUTHORIZED";
-}
+type RouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
-async function applyStockDelta(
-  tx: Prisma.TransactionClient,
-  args: { productId: string; variantId?: string | null; qtyDelta: number },
-) {
-  const { productId, variantId, qtyDelta } = args;
+const PROTECTED_REFERENCE_TYPES = new Set([
+  "ORDER",
+  "ORDER_ITEM",
+  "PURCHASE_ORDER",
+  "PURCHASE_ORDER_RECEIPT",
+  "SYSTEM",
+]);
 
-  if (variantId) {
-    await tx.productVariant.update({
-      where: { id: variantId },
-      data: { stock: { increment: qtyDelta } },
-    });
-  } else {
-    await tx.product.update({
-      where: { id: productId },
-      data: { stock: { increment: qtyDelta } },
-    });
-  }
-}
-
-export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, context: RouteContext) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
-    const id = ctx.params.id;
+    const { id } = await context.params;
+    const { searchParams } = new URL(req.url);
+    const siteId = searchParams.get("siteId");
+
+    if (!siteId) {
+      return NextResponse.json({ message: "siteId is required" }, { status: 400 });
+    }
 
     const movement = await prisma.stockMovement.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        siteId,
+      },
       include: {
-        product: { select: { id: true, name: true, sku: true } },
-        variant: { select: { id: true, sku: true, name: true } },
+        variant: {
+          include: {
+            product: true,
+          },
+        },
+        stockLevel: true,
       },
     });
 
     if (!movement) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ message: "Stock movement not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ data: movement });
-  } catch (e: any) {
-    if (isUnauthorized(e)) {
-      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    }
-    return NextResponse.json({ error: e?.message ?? "Unknown error" }, { status: 500 });
+    return NextResponse.json({
+      data: movement,
+    });
+  } catch (error) {
+    console.error("GET /api/admin/inventory/stock-movement/[id] error:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
-type VoidBody = { note?: string };
-
-export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
-    const id = ctx.params.id;
+    const { id } = await context.params;
+    const { searchParams } = new URL(req.url);
+    const siteId = searchParams.get("siteId");
+    const force = searchParams.get("force") === "true";
 
-    const body = (await req.json()) as VoidBody;
+    if (!siteId) {
+      return NextResponse.json({ message: "siteId is required" }, { status: 400 });
+    }
+
+    const movement = await prisma.stockMovement.findFirst({
+      where: {
+        id,
+        siteId,
+      },
+      include: {
+        stockLevel: true,
+      },
+    });
+
+    if (!movement) {
+      return NextResponse.json({ message: "Stock movement not found" }, { status: 404 });
+    }
+
+    if (movement.referenceType && PROTECTED_REFERENCE_TYPES.has(movement.referenceType) && !force) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete protected stock movement with referenceType ${movement.referenceType}`,
+        },
+        { status: 400 },
+      );
+    }
 
     const result = await prisma.$transaction(async (tx) => {
-      const original = await tx.stockMovement.findFirst({
-        where: { id, userId },
-      });
-      if (!original) {
-        throw new Error("Not found");
-      }
-      if (original.type === "VOID") {
-        throw new Error("Cannot void a VOID movement");
+      let stockLevel = movement.stockLevel;
+
+      if (!stockLevel) {
+        stockLevel = await tx.stockLevel.findUnique({
+          where: {
+            variantId: movement.variantId,
+          },
+        });
       }
 
-      const reversed = await tx.stockMovement.create({
-        data: {
-          userId,
-          productId: original.productId,
-          variantId: original.variantId,
-          type: "VOID",
-          source: "MANUAL",
-          qtyDelta: -original.qtyDelta,
-          occurredAt: new Date(),
-          note: body?.note ?? `Void movement ${original.id}`,
-          reference: original.reference ?? undefined,
+      if (!stockLevel) {
+        throw new Error("Stock level not found for rollback");
+      }
+
+      const latestMovement = await tx.stockMovement.findFirst({
+        where: {
+          siteId,
+          variantId: movement.variantId,
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       });
 
-      await applyStockDelta(tx, {
-        productId: original.productId,
-        variantId: original.variantId ?? null,
-        qtyDelta: -original.qtyDelta,
+      if (!latestMovement) {
+        throw new Error("No stock movement found for rollback");
+      }
+
+      const isLatestMovement = latestMovement.id === movement.id;
+
+      if (!isLatestMovement && !force) {
+        throw new Error(
+          "Only the latest stock movement can be deleted safely. Pass force=true if you really want to continue.",
+        );
+      }
+
+      await tx.stockLevel.update({
+        where: {
+          id: stockLevel.id,
+        },
+        data: {
+          onHand: movement.beforeOnHand,
+          reserved: movement.beforeReserved,
+          available: movement.beforeAvailable,
+        },
       });
 
-      return reversed;
+      await tx.productVariant.update({
+        where: {
+          id: movement.variantId,
+        },
+        data: {
+          stockQty: movement.beforeAvailable,
+        },
+      });
+
+      await tx.stockMovement.delete({
+        where: {
+          id: movement.id,
+        },
+      });
+
+      const updatedStockLevel = await tx.stockLevel.findUnique({
+        where: {
+          id: stockLevel.id,
+        },
+        include: {
+          variant: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      return {
+        deletedMovementId: movement.id,
+        rolledBackTo: {
+          onHand: movement.beforeOnHand,
+          reserved: movement.beforeReserved,
+          available: movement.beforeAvailable,
+        },
+        stockLevel: updatedStockLevel,
+      };
     });
 
-    return NextResponse.json({ data: result }, { status: 201 });
-  } catch (e: any) {
-    if (isUnauthorized(e)) {
-      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    }
-    if (e?.message === "Not found") {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
-    return NextResponse.json({ error: e?.message ?? "Unknown error" }, { status: 500 });
+    return NextResponse.json({
+      message: "Stock movement deleted and rolled back successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("DELETE /api/admin/inventory/stock-movement/[id] error:", error);
+    return NextResponse.json({ message: error.message || "Internal server error" }, { status: 400 });
   }
 }

@@ -337,4 +337,6 @@ Bước 7:
 tôi đang sử dụng next 16 Hiện tại mục folder store với mục service trong next js sẽ thực hiện những gì
 vậy bạn hãy tách store và service trông file code này giúp tôi nhé
 
-Tôi muốn độ lại phần này hiện tại Ui chưa được mới mẽ và chuyên nghiệp chưa có tính tỉ mĩ và đa dang trong front end với level là serior hãy độ lại với next 16 và css module giúp tôi nhé không cần box-shadow đâu
+Dựa vào api và model purchase-orders bạn có thể độ lại vầ thêm các api vào page.tsx purchase-orders giúp tôi được không hiện tại tôi đang sử dụng next 16 và css module bạn hãy dộ lại với phong cách mới mẽ và chuyên nghiệp nhé
+
+Hiện tại design rất xấu và chua có phong cách chuyên nghiệp nên hãy dộ lại giúp tôi nhé nếu ngư có thể thì hãy để list và Tạo purchase order hãy dộ lại giúp tôi nhé tôi đang sử dụng next 16 và css module. không cần box shadow

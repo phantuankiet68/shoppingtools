@@ -1,146 +1,206 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
+import { StockMovementType } from "@prisma/client";
 
-function parseIntSafe(v: string | null, fallback: number) {
-  if (!v) return fallback;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function isUnauthorized(e: any) {
-  return e?.message === "UNAUTHORIZED";
-}
-
-async function applyStockDelta(tx: Prisma.TransactionClient, args: { productId: string; variantId?: string | null; qtyDelta: number }) {
-  const { productId, variantId, qtyDelta } = args;
-
-  if (variantId) {
-    await tx.productVariant.update({
-      where: { id: variantId },
-      data: { stock: { increment: qtyDelta } },
-    });
-  } else {
-    await tx.product.update({
-      where: { id: productId },
-      data: { stock: { increment: qtyDelta } },
-    });
-  }
+function recalcAvailable(onHand: number, reserved: number) {
+  return onHand - reserved;
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
-
     const { searchParams } = new URL(req.url);
 
-    const productId = searchParams.get("productId");
+    const siteId = searchParams.get("siteId");
     const variantId = searchParams.get("variantId");
-    const type = searchParams.get("type"); // IN | OUT | ADJUST | RETURN_IN | VOID...
-    const source = searchParams.get("source"); // RECEIPT | ORDER | MANUAL...
+    const referenceType = searchParams.get("referenceType");
+    const referenceId = searchParams.get("referenceId");
+    const page = Number(searchParams.get("page") || 1);
+    const limit = Number(searchParams.get("limit") || 20);
 
-    const from = searchParams.get("from"); // ISO string
-    const to = searchParams.get("to"); // ISO string
+    if (!siteId) {
+      return NextResponse.json({ message: "siteId is required" }, { status: 400 });
+    }
 
-    const cursor = searchParams.get("cursor"); // movement id
-    const take = Math.min(parseIntSafe(searchParams.get("take"), 20), 100);
+    const where: any = { siteId };
 
-    const where: Prisma.StockMovementWhereInput = {
-      userId,
-      ...(productId ? { productId } : {}),
-      ...(variantId ? { variantId } : {}),
-      ...(type ? { type: type as any } : {}),
-      ...(source ? { source: source as any } : {}),
-      ...(from || to
-        ? {
-            occurredAt: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
+    if (variantId) where.variantId = variantId;
+    if (referenceType) where.referenceType = referenceType;
+    if (referenceId) where.referenceId = referenceId;
+
+    const [rows, total] = await Promise.all([
+      prisma.stockMovement.findMany({
+        where,
+        include: {
+          variant: {
+            include: {
+              product: true,
             },
-          }
-        : {}),
-    };
+          },
+          stockLevel: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.stockMovement.count({ where }),
+    ]);
 
-    const items = await prisma.stockMovement.findMany({
-      where,
-      orderBy: [{ occurredAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
-      take: take + 1,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      include: {
-        product: { select: { id: true, name: true, sku: true } },
-        variant: { select: { id: true, sku: true, name: true } },
+    return NextResponse.json({
+      data: rows,
+      meta: {
+        page,
+        limit,
+        total,
       },
     });
-
-    const hasNextPage = items.length > take;
-    const data = hasNextPage ? items.slice(0, take) : items;
-    const nextCursor = hasNextPage ? data[data.length - 1]?.id : null;
-
-    return NextResponse.json({ data, nextCursor });
-  } catch (e: any) {
-    if (isUnauthorized(e)) {
-      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    }
-    return NextResponse.json({ error: e?.message ?? "Unknown error" }, { status: 500 });
+  } catch (error) {
+    console.error("GET /api/admin/inventory/stock-movements error:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
-type AdjustBody = {
-  productId: string;
-  variantId?: string | null;
-  qtyDelta: number; // + hoặc -
-  occurredAt?: string; // ISO optional
-  note?: string;
-  reference?: string;
-};
-
 export async function POST(req: NextRequest) {
   try {
-    const admin = await requireAdminAuthUser();
-    const userId = admin.id;
+    const body = await req.json();
 
-    const body = (await req.json()) as AdjustBody;
+    const { siteId, variantId, type, quantity, note, referenceType, referenceId, createdBy, metadata } = body as {
+      siteId: string;
+      variantId: string;
+      type: StockMovementType;
+      quantity: number;
+      note?: string;
+      referenceType?: string;
+      referenceId?: string;
+      createdBy?: string;
+      metadata?: any;
+    };
 
-    if (!body?.productId) {
-      return NextResponse.json({ error: "productId is required" }, { status: 400 });
+    if (!siteId || !variantId || !type || !quantity) {
+      return NextResponse.json({ message: "siteId, variantId, type, quantity are required" }, { status: 400 });
     }
-    if (!Number.isInteger(body.qtyDelta) || body.qtyDelta === 0) {
-      return NextResponse.json({ error: "qtyDelta must be a non-zero integer" }, { status: 400 });
-    }
 
-    const occurredAt = body.occurredAt ? new Date(body.occurredAt) : new Date();
+    const result = await prisma.$transaction(async (tx) => {
+      let stockLevel = await tx.stockLevel.findUnique({
+        where: { variantId },
+      });
 
-    const created = await prisma.$transaction(async (tx) => {
-      const movement = await tx.stockMovement.create({
+      if (!stockLevel) {
+        stockLevel = await tx.stockLevel.create({
+          data: {
+            siteId,
+            variantId,
+            onHand: 0,
+            reserved: 0,
+            available: 0,
+            incoming: 0,
+          },
+        });
+      }
+
+      const beforeOnHand = stockLevel.onHand;
+      const beforeReserved = stockLevel.reserved;
+      const beforeAvailable = stockLevel.available;
+
+      let afterOnHand = beforeOnHand;
+      let afterReserved = beforeReserved;
+
+      switch (type) {
+        case "ADJUSTMENT_INCREASE":
+        case "RESTOCK":
+        case "RETURN":
+        case "PURCHASE_RECEIPT":
+        case "OPENING":
+          afterOnHand += quantity;
+          break;
+
+        case "ADJUSTMENT_DECREASE":
+        case "DAMAGE":
+        case "LOSS":
+        case "SALE":
+          if (beforeOnHand < quantity) {
+            throw new Error("Insufficient onHand stock");
+          }
+          afterOnHand -= quantity;
+          break;
+
+        case "RESERVE":
+          if (beforeAvailable < quantity) {
+            throw new Error("Insufficient available stock");
+          }
+          afterReserved += quantity;
+          break;
+
+        case "RELEASE_RESERVATION":
+          if (beforeReserved < quantity) {
+            throw new Error("Insufficient reserved stock");
+          }
+          afterReserved -= quantity;
+          break;
+
+        case "MANUAL":
+          afterOnHand += quantity;
+          break;
+
+        default:
+          throw new Error(`Unsupported movement type: ${type}`);
+      }
+
+      const afterAvailable = recalcAvailable(afterOnHand, afterReserved);
+
+      const updatedStockLevel = await tx.stockLevel.update({
+        where: { variantId },
         data: {
-          userId,
-          productId: body.productId,
-          variantId: body.variantId ?? null,
-          type: "ADJUST",
-          source: "MANUAL",
-          qtyDelta: body.qtyDelta,
-          occurredAt,
-          note: body.note ?? undefined,
-          reference: body.reference ?? undefined,
+          onHand: afterOnHand,
+          reserved: afterReserved,
+          available: afterAvailable,
         },
       });
 
-      await applyStockDelta(tx, {
-        productId: body.productId,
-        variantId: body.variantId ?? null,
-        qtyDelta: body.qtyDelta,
+      const movement = await tx.stockMovement.create({
+        data: {
+          siteId,
+          variantId,
+          stockLevelId: updatedStockLevel.id,
+          type,
+          quantityDelta: quantity,
+          beforeOnHand,
+          afterOnHand,
+          beforeReserved,
+          afterReserved,
+          beforeAvailable,
+          afterAvailable,
+          note,
+          referenceType,
+          referenceId,
+          createdBy,
+          metadata,
+        },
       });
 
-      return movement;
+      await tx.productVariant.update({
+        where: {
+          id: variantId,
+        },
+        data: {
+          stockQty: afterAvailable,
+        },
+      });
+
+      return {
+        stockLevel: updatedStockLevel,
+        movement,
+      };
     });
 
-    return NextResponse.json({ data: created }, { status: 201 });
-  } catch (e: any) {
-    if (isUnauthorized(e)) {
-      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    }
-    return NextResponse.json({ error: e?.message ?? "Unknown error" }, { status: 500 });
+    return NextResponse.json({
+      message: "Stock movement created successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("POST /api/admin/inventory/stock-movements error:", error);
+
+    return NextResponse.json({ message: error.message || "Internal server error" }, { status: 400 });
   }
 }

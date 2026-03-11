@@ -804,6 +804,207 @@ model ImageAsset {
   @@index([userId, folderId])
 }
 
+// ==== part: Inventory.prisma ====
+enum StockMovementType {
+  OPENING
+  SALE
+  RESTOCK
+  RESERVE
+  RELEASE_RESERVATION
+  ADJUSTMENT_INCREASE
+  ADJUSTMENT_DECREASE
+  RETURN
+  DAMAGE
+  LOSS
+  PURCHASE_RECEIPT
+  PURCHASE_RECEIPT_CANCEL
+  MANUAL
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum PurchaseOrderLineStatus {
+  PENDING
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+model StockLevel {
+  id           String   @id @default(cuid())
+  siteId       String   @map("site_id")
+  variantId    String   @map("variant_id")
+  onHand       Int      @default(0) @map("on_hand")
+  reserved     Int      @default(0)
+  available    Int      @default(0)
+  incoming     Int      @default(0)
+  reorderPoint Int?     @map("reorder_point")
+  safetyStock  Int?     @map("safety_stock")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  site           Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  variant        ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  stockMovements StockMovement[]
+
+  @@unique([variantId])
+  @@index([siteId])
+  @@index([siteId, available])
+  @@index([siteId, onHand])
+  @@index([siteId, reorderPoint])
+  @@map("stock_levels")
+}
+
+model StockMovement {
+  id              String            @id @default(cuid())
+  siteId          String            @map("site_id")
+  variantId       String            @map("variant_id")
+  stockLevelId    String?           @map("stock_level_id")
+  type            StockMovementType
+  quantityDelta   Int               @map("quantity_delta")
+  beforeOnHand    Int               @default(0) @map("before_on_hand")
+  afterOnHand     Int               @default(0) @map("after_on_hand")
+  beforeReserved  Int               @default(0) @map("before_reserved")
+  afterReserved   Int               @default(0) @map("after_reserved")
+  beforeAvailable Int               @default(0) @map("before_available")
+  afterAvailable  Int               @default(0) @map("after_available")
+  referenceType   String?           @map("reference_type")
+  referenceId     String?           @map("reference_id")
+  note            String?
+  metadata        Json?
+  createdBy       String?           @map("created_by")
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  site       Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  stockLevel StockLevel?    @relation(fields: [stockLevelId], references: [id], onDelete: SetNull)
+
+  @@index([siteId])
+  @@index([variantId])
+  @@index([stockLevelId])
+  @@index([siteId, variantId, createdAt])
+  @@index([referenceType, referenceId])
+  @@map("stock_movements")
+}
+
+model PurchaseOrder {
+  id             String              @id @default(cuid())
+  siteId         String              @map("site_id")
+  poNumber       String              @map("po_number")
+  supplierName   String              @map("supplier_name")
+  supplierCode   String?             @map("supplier_code")
+  supplierEmail  String?             @map("supplier_email")
+  supplierPhone  String?             @map("supplier_phone")
+  status         PurchaseOrderStatus @default(DRAFT)
+  orderedAt      DateTime?           @map("ordered_at")
+  expectedAt     DateTime?           @map("expected_at")
+  receivedAt     DateTime?           @map("received_at")
+  currency       String              @default("VND")
+  subtotalAmount Decimal             @default(0) @map("subtotal_amount") @db.Decimal(12, 2)
+  discountAmount Decimal             @default(0) @map("discount_amount") @db.Decimal(12, 2)
+  taxAmount      Decimal             @default(0) @map("tax_amount") @db.Decimal(12, 2)
+  shippingAmount Decimal             @default(0) @map("shipping_amount") @db.Decimal(12, 2)
+  totalAmount    Decimal             @default(0) @map("total_amount") @db.Decimal(12, 2)
+  note           String?
+  createdBy      String?             @map("created_by")
+  approvedBy     String?             @map("approved_by")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  cancelledAt    DateTime?           @map("cancelled_at")
+
+  site     Site                   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  lines    PurchaseOrderLine[]
+  receipts PurchaseOrderReceipt[]
+
+  @@unique([siteId, poNumber])
+  @@index([siteId])
+  @@index([siteId, status])
+  @@index([siteId, orderedAt])
+  @@index([siteId, expectedAt])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderLine {
+  id              String                  @id @default(cuid())
+  purchaseOrderId String                  @map("purchase_order_id")
+  siteId          String                  @map("site_id")
+  variantId       String                  @map("variant_id")
+  sku             String
+  productName     String                  @map("product_name")
+  variantTitle    String?                 @map("variant_title")
+  orderedQty      Int                     @map("ordered_qty")
+  receivedQty     Int                     @default(0) @map("received_qty")
+  remainingQty    Int                     @default(0) @map("remaining_qty")
+  unitCost        Decimal                 @map("unit_cost") @db.Decimal(12, 2)
+  lineTotal       Decimal                 @map("line_total") @db.Decimal(12, 2)
+  status          PurchaseOrderLineStatus @default(PENDING)
+  note            String?
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+
+  purchaseOrder PurchaseOrder              @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  site          Site                       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  variant       ProductVariant             @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  receiptLines  PurchaseOrderReceiptLine[]
+
+  @@index([purchaseOrderId])
+  @@index([siteId])
+  @@index([variantId])
+  @@index([siteId, sku])
+  @@map("purchase_order_lines")
+}
+
+model PurchaseOrderReceipt {
+  id              String   @id @default(cuid())
+  purchaseOrderId String   @map("purchase_order_id")
+  siteId          String   @map("site_id")
+  receiptNumber   String   @map("receipt_number")
+  receivedAt      DateTime @map("received_at")
+  note            String?
+  createdBy       String?  @map("created_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  purchaseOrder PurchaseOrder              @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  site          Site                       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  lines         PurchaseOrderReceiptLine[]
+
+  @@unique([siteId, receiptNumber])
+  @@index([purchaseOrderId])
+  @@index([siteId])
+  @@index([siteId, receivedAt])
+  @@map("purchase_order_receipts")
+}
+
+model PurchaseOrderReceiptLine {
+  id                     String   @id @default(cuid())
+  purchaseOrderReceiptId String   @map("purchase_order_receipt_id")
+  purchaseOrderLineId    String   @map("purchase_order_line_id")
+  siteId                 String   @map("site_id")
+  variantId              String   @map("variant_id")
+  receivedQty            Int      @map("received_qty")
+  unitCost               Decimal? @map("unit_cost") @db.Decimal(12, 2)
+  note                   String?
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  purchaseOrderReceipt PurchaseOrderReceipt @relation(fields: [purchaseOrderReceiptId], references: [id], onDelete: Cascade)
+  purchaseOrderLine    PurchaseOrderLine    @relation(fields: [purchaseOrderLineId], references: [id], onDelete: Cascade)
+  site                 Site                 @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  variant              ProductVariant       @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderReceiptId])
+  @@index([purchaseOrderLineId])
+  @@index([siteId])
+  @@index([variantId])
+  @@map("purchase_order_receipt_lines")
+}
+
 // ==== part: Menu.prisma ====
 enum MenuSetKey {
   home
@@ -1217,28 +1418,32 @@ model ProductBrand {
 }
 
 model ProductVariant {
-  id             String         @id @default(cuid())
-  productId      String         @map("product_id")
-  siteId         String         @map("site_id")
-  sku            String
-  title          String?
-  isActive       Boolean        @default(true) @map("is_active")
-  price          Decimal        @db.Decimal(12, 2)
-  compareAtPrice Decimal?       @map("compare_at_price") @db.Decimal(12, 2)
-  cost           Decimal?       @db.Decimal(12, 2)
-  stockQty       Int            @default(0) @map("stock_qty")
-  barcode        String?
-  weight         Decimal?       @db.Decimal(12, 3)
-  length         Decimal?       @db.Decimal(12, 3)
-  width          Decimal?       @db.Decimal(12, 3)
-  height         Decimal?       @db.Decimal(12, 3)
-  isDefault      Boolean        @default(false) @map("is_default")
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-  deletedAt      DateTime?      @map("deleted_at")
-  product        Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  site           Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  images         ProductImage[]
+  id                        String                     @id @default(cuid())
+  productId                 String                     @map("product_id")
+  siteId                    String                     @map("site_id")
+  sku                       String
+  title                     String?
+  isActive                  Boolean                    @default(true) @map("is_active")
+  price                     Decimal                    @db.Decimal(12, 2)
+  compareAtPrice            Decimal?                   @map("compare_at_price") @db.Decimal(12, 2)
+  cost                      Decimal?                   @db.Decimal(12, 2)
+  stockQty                  Int                        @default(0) @map("stock_qty")
+  barcode                   String?
+  weight                    Decimal?                   @db.Decimal(12, 3)
+  length                    Decimal?                   @db.Decimal(12, 3)
+  width                     Decimal?                   @db.Decimal(12, 3)
+  height                    Decimal?                   @db.Decimal(12, 3)
+  isDefault                 Boolean                    @default(false) @map("is_default")
+  createdAt                 DateTime                   @default(now()) @map("created_at")
+  updatedAt                 DateTime                   @updatedAt @map("updated_at")
+  deletedAt                 DateTime?                  @map("deleted_at")
+  product                   Product                    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  site                      Site                       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  images                    ProductImage[]
+  stockLevel                StockLevel?
+  stockMovements            StockMovement[]
+  purchaseOrderLines        PurchaseOrderLine[]
+  purchaseOrderReceiptLines PurchaseOrderReceiptLine[]
 
   @@unique([siteId, sku])
   @@index([productId])
@@ -1402,8 +1607,14 @@ model Site {
   productVariants         ProductVariant[]
   productCategories       ProductCategory[]
 
-  storageIntegration StorageIntegration?
-  storageLogs        StorageLog[]
+  storageIntegration        StorageIntegration?
+  storageLogs               StorageLog[]
+  stockLevels               StockLevel[]
+  stockMovements            StockMovement[]
+  purchaseOrders            PurchaseOrder[]
+  purchaseOrderLines        PurchaseOrderLine[]
+  purchaseOrderReceipts     PurchaseOrderReceipt[]
+  purchaseOrderReceiptLines PurchaseOrderReceiptLine[]
 
   @@index([ownerUserId])
   @@index([status])

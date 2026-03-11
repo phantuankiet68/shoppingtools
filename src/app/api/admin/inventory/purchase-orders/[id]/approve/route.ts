@@ -1,32 +1,132 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { PurchaseOrderStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
-import { isUnauthorized } from "@/lib/errors/errors";
 
-export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+type RouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+const APPROVABLE_STATUSES: PurchaseOrderStatus[] = ["DRAFT", "SUBMITTED"];
+
+export async function POST(req: NextRequest, context: RouteContext) {
   try {
-    const admin = await requireAdminAuthUser();
+    const { id } = await context.params;
+    const body = await req.json();
 
-    const po = await prisma.purchaseOrder.findFirst({
-      where: { id: params.id, userId: admin.id },
-      include: { lines: true },
-    });
+    const {
+      siteId,
+      approvedBy,
+      note,
+      syncIncoming = true,
+    } = body as {
+      siteId: string;
+      approvedBy?: string;
+      note?: string;
+      syncIncoming?: boolean;
+    };
 
-    if (!po) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (po.status !== "DRAFT") return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-    if (po.lines.length === 0) return NextResponse.json({ error: "PO must have at least one line" }, { status: 400 });
+    if (!siteId) {
+      return NextResponse.json({ message: "siteId is required" }, { status: 400 });
+    }
 
-    const updated = await prisma.purchaseOrder.update({
-      where: { id: po.id },
-      data: {
-        status: "APPROVED",
-        approvedAt: new Date(),
+    const purchaseOrder = await prisma.purchaseOrder.findFirst({
+      where: {
+        id,
+        siteId,
+      },
+      include: {
+        lines: true,
       },
     });
 
-    return NextResponse.json({ data: updated });
-  } catch (e: any) {
-    if (isUnauthorized(e)) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    if (!purchaseOrder) {
+      return NextResponse.json({ message: "Purchase order not found" }, { status: 404 });
+    }
+
+    if (!APPROVABLE_STATUSES.includes(purchaseOrder.status)) {
+      return NextResponse.json(
+        {
+          message: `Purchase order in status ${purchaseOrder.status} cannot be approved`,
+        },
+        { status: 400 },
+      );
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedPo = await tx.purchaseOrder.update({
+        where: {
+          id: purchaseOrder.id,
+        },
+        data: {
+          status: "APPROVED",
+          approvedBy: approvedBy ?? null,
+          note: note ? [purchaseOrder.note, note].filter(Boolean).join("\n") : purchaseOrder.note,
+        },
+        include: {
+          lines: true,
+          receipts: {
+            include: {
+              lines: true,
+            },
+            orderBy: {
+              receivedAt: "desc",
+            },
+          },
+        },
+      });
+
+      if (syncIncoming) {
+        const remainingByVariant = new Map<string, number>();
+
+        for (const line of purchaseOrder.lines) {
+          const remainingQty = Math.max(line.orderedQty - line.receivedQty, 0);
+          if (remainingQty <= 0) continue;
+
+          remainingByVariant.set(line.variantId, (remainingByVariant.get(line.variantId) || 0) + remainingQty);
+        }
+
+        for (const [variantId, incomingToAdd] of remainingByVariant.entries()) {
+          let stockLevel = await tx.stockLevel.findUnique({
+            where: {
+              variantId,
+            },
+          });
+
+          if (!stockLevel) {
+            stockLevel = await tx.stockLevel.create({
+              data: {
+                siteId,
+                variantId,
+                onHand: 0,
+                reserved: 0,
+                available: 0,
+                incoming: 0,
+              },
+            });
+          }
+
+          await tx.stockLevel.update({
+            where: {
+              variantId,
+            },
+            data: {
+              incoming: stockLevel.incoming + incomingToAdd,
+            },
+          });
+        }
+      }
+
+      return updatedPo;
+    });
+
+    return NextResponse.json({
+      message: "Purchase order approved successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("POST /api/admin/inventory/purchase-orders/[id]/approve error:", error);
+    return NextResponse.json({ message: error.message || "Internal server error" }, { status: 400 });
   }
 }
