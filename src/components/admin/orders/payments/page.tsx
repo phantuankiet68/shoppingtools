@@ -1,33 +1,126 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/orders/payments/payments.module.css";
+import { useSiteStore } from "@/store/site/site.store";
 
-type Status = "PAID" | "PENDING" | "FAILED" | "REFUNDED";
-type Method = "CARD" | "BANK_TRANSFER" | "MOMO" | "ZALOPAY" | "CASH";
+/* =========================
+ * UI types
+ * ========================= */
+
+type UiPaymentStatus = "PAID" | "PENDING" | "FAILED" | "REFUNDED";
+type UiPaymentMethod = "CARD" | "BANK_TRANSFER" | "MOMO" | "ZALOPAY" | "CASH";
 
 type PaymentRow = {
   id: string;
-  createdAt: string; // ISO
+  createdAt: string;
   orderCode: string;
-  customer: { name: string; email: string };
-  method: Method;
-  amount: number; // VND
-  status: Status;
-  fee: number; // VND
-  net: number; // VND
+  customer: {
+    name: string;
+    email: string;
+  };
+  method: UiPaymentMethod;
+  amount: number;
+  status: UiPaymentStatus;
+  fee: number;
+  net: number;
   reference?: string;
 };
 
+/* =========================
+ * API types
+ * ========================= */
+
+type ApiPaymentTxStatus = "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELED";
+type ApiPaymentMethod = "COD" | "CARD" | "BANK_TRANSFER" | "WALLET";
+
+type ApiOrderSummary = {
+  id: string;
+  orderNumber?: string | null;
+  status?: string | null;
+  paymentStatus?: string | null;
+  fulfillmentStatus?: string | null;
+  totalCents?: number | null;
+  currency?: string | null;
+  createdAt?: string | null;
+  customerNameSnapshot?: string | null;
+  customerEmailSnapshot?: string | null;
+  shipToName?: string | null;
+} | null;
+
+type ApiPaymentRow = {
+  id: string;
+  siteId: string;
+  orderId: string;
+  direction: "CAPTURE" | "REFUND";
+  status: ApiPaymentTxStatus;
+  method: ApiPaymentMethod;
+  currency: string;
+  amountCents: number;
+  provider?: string | null;
+  providerTransactionId?: string | null;
+  reference?: string | null;
+  occurredAt: string;
+  idempotencyKey?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  order?: ApiOrderSummary;
+};
+
+type PaymentsListResponse = {
+  data?: ApiPaymentRow[];
+  nextCursor?: string | null;
+  error?: string;
+};
+
+type PaymentDetailResponse = {
+  data?: ApiPaymentRow;
+  error?: string;
+};
+
+type PatchPaymentPayload = Partial<{
+  direction: "CAPTURE" | "REFUND";
+  status: ApiPaymentTxStatus;
+  method: ApiPaymentMethod;
+  currency: string;
+  amountCents: number;
+  provider: string | null;
+  providerTransactionId: string | null;
+  reference: string | null;
+  occurredAt: string;
+  idempotencyKey: string | null;
+}>;
+
+/* =========================
+ * Constants
+ * ========================= */
+
+const API_LIST = "/api/admin/orders/payments";
+const API_DETAIL = "/api/admin/orders/payments";
+
+const SEARCH_DEBOUNCE_MS = 300;
+const FETCH_TAKE = 100;
+
+/* =========================
+ * Utils
+ * ========================= */
+
 function formatVND(n: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
-}
-function formatDT(iso: string) {
-  const d = new Date(iso);
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(d);
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(n);
 }
 
-function badgeClass(status: Status) {
+function formatDT(iso: string) {
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
+}
+
+function badgeClass(status: UiPaymentStatus) {
   switch (status) {
     case "PAID":
       return styles.badgePaid;
@@ -37,11 +130,13 @@ function badgeClass(status: Status) {
       return styles.badgeFailed;
     case "REFUNDED":
       return styles.badgeRefunded;
+    default:
+      return "";
   }
 }
 
-function methodLabel(m: Method) {
-  switch (m) {
+function methodLabel(method: UiPaymentMethod) {
+  switch (method) {
     case "CARD":
       return "Card";
     case "BANK_TRANSFER":
@@ -52,86 +147,84 @@ function methodLabel(m: Method) {
       return "ZaloPay";
     case "CASH":
       return "Cash";
+    default:
+      return "Unknown";
   }
 }
 
-/** --- MAPPING UI <-> DB --- */
-type DbStatus = "PENDING" | "PAID" | "REFUNDED" | "CANCELLED";
-type DbMethod = "CARD" | "BANK" | "CASH" | "EWALLET" | "COD";
-
-function uiStatusToDb(s: Status): DbStatus {
-  if (s === "FAILED") return "CANCELLED";
-  return s;
-}
-function dbStatusToUi(s: DbStatus): Status {
-  if (s === "CANCELLED") return "FAILED";
-  return s;
-}
-
-function uiMethodToDb(m: Method): DbMethod {
-  switch (m) {
-    case "BANK_TRANSFER":
-      return "BANK";
-    case "MOMO":
-    case "ZALOPAY":
-      return "EWALLET";
-    case "CARD":
-      return "CARD";
-    case "CASH":
-      return "CASH";
-  }
-}
-function dbMethodToUi(m: DbMethod, provider?: string | null): Method {
-  // nếu bạn muốn phân biệt MoMo/ZaloPay theo provider thì làm ở đây
-  if (m === "BANK") return "BANK_TRANSFER";
-  if (m === "EWALLET") {
-    if (provider === "MOMO") return "MOMO";
-    if (provider === "ZALOPAY") return "ZALOPAY";
-    return "MOMO";
-  }
-  if (m === "CARD") return "CARD";
-  return "CASH";
-}
-
-/** fee demo: 2.5% cho paid */
 function calcFee(amount: number) {
   return Math.round(amount * 0.025);
 }
 
-type ApiRow = {
-  id: string;
-  orderId: string;
-  occurredAt: string;
-  amountCents: number;
-  currency: "USD" | "VND";
-  status: "PENDING" | "PAID" | "REFUNDED" | "CANCELLED";
-  method: "CARD" | "BANK" | "CASH" | "EWALLET" | "COD";
-  provider?: string | null;
-  reference?: string | null;
-  notes?: string | null;
-  order?: {
-    id: string;
-    number?: string | null;
-    reference?: string | null;
-    customerNameSnapshot?: string | null;
-    customerEmailSnapshot?: string | null;
-    shipToName?: string | null;
-  } | null;
-};
-
-function centsToVnd(amountCents: number) {
-  // bạn đang lưu amountCents nhưng UI đang hiển thị VND integer -> coi như cents = VND
-  // Nếu sau này muốn đúng cents, đổi: return Math.round(amountCents / 100)
+/**
+ * Hiện tại backend đang dùng amountCents nhưng thực tế đang lưu theo VND integer.
+ * Nếu sau này bạn lưu đúng cents thì đổi thành Math.round(amountCents / 100).
+ */
+function centsToDisplayAmount(amountCents: number) {
   return amountCents;
 }
 
-function toPaymentRow(api: ApiRow): PaymentRow {
-  const amount = centsToVnd(api.amountCents);
-  const uiStatus = dbStatusToUi(api.status);
-  const fee = uiStatus === "PAID" ? calcFee(amount) : 0;
-  const net = uiStatus === "PAID" ? amount - fee : 0;
+/* =========================
+ * UI <-> API mapping
+ * ========================= */
 
-  const orderCode = api.order?.number || api.order?.reference || api.orderId;
+function uiStatusToApi(status: UiPaymentStatus): ApiPaymentTxStatus {
+  switch (status) {
+    case "PAID":
+      return "SUCCEEDED";
+    case "PENDING":
+      return "PENDING";
+    case "FAILED":
+      return "FAILED";
+    case "REFUNDED":
+      return "SUCCEEDED";
+    default:
+      return "PENDING";
+  }
+}
+
+function apiStatusToUi(status: ApiPaymentTxStatus, direction: "CAPTURE" | "REFUND"): UiPaymentStatus {
+  if (direction === "REFUND" && status === "SUCCEEDED") return "REFUNDED";
+  if (status === "SUCCEEDED") return "PAID";
+  if (status === "PENDING") return "PENDING";
+  return "FAILED";
+}
+
+function uiMethodToApi(method: UiPaymentMethod): ApiPaymentMethod {
+  switch (method) {
+    case "BANK_TRANSFER":
+      return "BANK_TRANSFER";
+    case "MOMO":
+    case "ZALOPAY":
+      return "WALLET";
+    case "CARD":
+      return "CARD";
+    case "CASH":
+      return "COD";
+    default:
+      return "COD";
+  }
+}
+
+function apiMethodToUi(method: ApiPaymentMethod, provider?: string | null): UiPaymentMethod {
+  if (method === "BANK_TRANSFER") return "BANK_TRANSFER";
+
+  if (method === "WALLET") {
+    if (provider === "ZALOPAY") return "ZALOPAY";
+    return "MOMO";
+  }
+
+  if (method === "CARD") return "CARD";
+  return "CASH";
+}
+
+function toPaymentRow(api: ApiPaymentRow): PaymentRow {
+  const amount = centsToDisplayAmount(api.amountCents);
+  const status = apiStatusToUi(api.status, api.direction);
+  const fee = status === "PAID" ? calcFee(amount) : 0;
+  const net = status === "PAID" ? amount - fee : 0;
+
+  const orderCode = api.order?.orderNumber || api.orderId;
 
   return {
     id: api.id,
@@ -141,187 +234,347 @@ function toPaymentRow(api: ApiRow): PaymentRow {
       name: api.order?.customerNameSnapshot || api.order?.shipToName || "—",
       email: api.order?.customerEmailSnapshot || "—",
     },
-    method: dbMethodToUi(api.method, api.provider || null),
+    method: apiMethodToUi(api.method, api.provider),
     amount,
-    status: uiStatus,
+    status,
     fee,
     net,
     reference: api.reference || undefined,
   };
 }
 
+/* =========================
+ * Component
+ * ========================= */
+
 export default function PaymentsPage() {
   const [rows, setRows] = useState<PaymentRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [err, setErr] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<Status | "ALL">("ALL");
-  const [method, setMethod] = useState<Method | "ALL">("ALL");
-  const [from, setFrom] = useState<string>("");
-  const [to, setTo] = useState<string>("");
+  const [qDebounced, setQDebounced] = useState("");
+
+  const [status, setStatus] = useState<UiPaymentStatus | "ALL">("ALL");
+  const [method, setMethod] = useState<UiPaymentMethod | "ALL">("ALL");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
   const [selected, setSelected] = useState<PaymentRow | null>(null);
 
-  // debounce search để không spam API
-  const [qDebounced, setQDebounced] = useState(q);
-  useEffect(() => {
-    const t = setTimeout(() => setQDebounced(q), 300);
-    return () => clearTimeout(t);
-  }, [q]);
+  const sites = useSiteStore((state) => state.sites);
+  const sitesLoading = useSiteStore((state) => state.loading);
+  const sitesErr = useSiteStore((state) => state.err);
+  const selectedSiteId = useSiteStore((state) => state.siteId);
+  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
+  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
+  const loadSites = useSiteStore((state) => state.loadSites);
+
+  const selectedSite = useMemo(() => {
+    return sites.find((site) => site.id === selectedSiteId) ?? null;
+  }, [sites, selectedSiteId]);
 
   const abortRef = useRef<AbortController | null>(null);
 
-  async function fetchPayments() {
+  useEffect(() => {
+    hydrateFromStorage();
+  }, [hydrateFromStorage]);
+
+  useEffect(() => {
+    void loadSites();
+  }, [loadSites]);
+
+  useEffect(() => {
+    if (!selectedSiteId && sites.length > 0) {
+      setSelectedSiteId(sites[0].id);
+    }
+  }, [selectedSiteId, setSelectedSiteId, sites]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setQDebounced(q.trim());
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [q]);
+
+  const buildQueryString = useCallback(() => {
+    const params = new URLSearchParams();
+
+    if (qDebounced) params.set("q", qDebounced);
+    if (status !== "ALL") params.set("status", uiStatusToApi(status));
+    if (method !== "ALL") params.set("method", uiMethodToApi(method));
+
+    if (from) {
+      params.set("from", new Date(`${from}T00:00:00+07:00`).toISOString());
+    }
+
+    if (to) {
+      params.set("to", new Date(`${to}T23:59:59+07:00`).toISOString());
+    }
+
+    params.set("take", String(FETCH_TAKE));
+
+    return params.toString();
+  }, [from, method, qDebounced, status, to]);
+
+  const fetchPayments = useCallback(async () => {
+    if (!selectedSiteId) {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setErr("");
 
     abortRef.current?.abort();
-    abortRef.current = new AbortController();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     try {
-      const params = new URLSearchParams();
-      if (qDebounced.trim()) params.set("q", qDebounced.trim());
+      const query = buildQueryString();
 
-      if (status !== "ALL") params.set("status", uiStatusToDb(status));
-      if (method !== "ALL") params.set("method", uiMethodToDb(method));
-
-      if (from) params.set("from", new Date(from + "T00:00:00+07:00").toISOString());
-      if (to) params.set("to", new Date(to + "T23:59:59+07:00").toISOString());
-
-      params.set("take", "100"); // hoặc 20/50, tuỳ UI bạn
-
-      const res = await fetch(`/api/payments?${params.toString()}`, {
+      const res = await fetch(`${API_LIST}?${query}`, {
         method: "GET",
-        signal: abortRef.current.signal,
+        signal: controller.signal,
+        cache: "no-store",
+        headers: {
+          "x-site-id": selectedSiteId,
+        },
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to fetch payments");
+      const json: PaymentsListResponse = await res.json();
 
-      const apiRows: ApiRow[] = json.data || [];
-      const mapped: PaymentRow[] = apiRows.map((r: any) => {
-        // patch fallback field nếu API không select order number
-        const patched: any = { ...r, orderIdFallback: r.orderId };
-        return toPaymentRow(patched);
-      });
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to fetch payments");
+      }
 
-      setRows(mapped);
-    } catch (e: any) {
-      if (e?.name === "AbortError") return;
-      setErr(e?.message || "SERVER_ERROR");
+      const apiRows = Array.isArray(json.data) ? json.data : [];
+      const mappedRows = apiRows.map(toPaymentRow);
+
+      setRows(mappedRows);
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
+      const message = error instanceof Error ? error.message : "SERVER_ERROR";
+      setErr(message);
     } finally {
-      setLoading(false);
+      if (abortRef.current === controller) {
+        setLoading(false);
+      }
     }
-  }
+  }, [buildQueryString, selectedSiteId]);
 
   useEffect(() => {
-    fetchPayments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qDebounced, status, method, from, to]);
+    if (sitesLoading) return;
 
-  const filtered = useMemo(() => {
-    // vì đã filter trên server, client filter chỉ dùng nếu bạn muốn
-    return rows;
-  }, [rows]);
+    void fetchPayments();
+
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, [fetchPayments, sitesLoading]);
 
   const stats = useMemo(() => {
-    const paid = filtered.filter((r) => r.status === "PAID");
-    const pending = filtered.filter((r) => r.status === "PENDING");
-    const failed = filtered.filter((r) => r.status === "FAILED");
-    const refunded = filtered.filter((r) => r.status === "REFUNDED");
+    const paidRows = rows.filter((row) => row.status === "PAID");
+    const pendingRows = rows.filter((row) => row.status === "PENDING");
+    const failedRows = rows.filter((row) => row.status === "FAILED");
+    const refundedRows = rows.filter((row) => row.status === "REFUNDED");
 
-    const gross = paid.reduce((s, r) => s + r.amount, 0);
-    const fees = paid.reduce((s, r) => s + r.fee, 0);
-    const net = paid.reduce((s, r) => s + r.net, 0);
+    const gross = paidRows.reduce((sum, row) => sum + row.amount, 0);
+    const fees = paidRows.reduce((sum, row) => sum + row.fee, 0);
+    const net = paidRows.reduce((sum, row) => sum + row.net, 0);
 
     return {
-      count: filtered.length,
-      paid: paid.length,
-      pending: pending.length,
-      failed: failed.length,
-      refunded: refunded.length,
+      count: rows.length,
+      paid: paidRows.length,
+      pending: pendingRows.length,
+      failed: failedRows.length,
+      refunded: refundedRows.length,
       gross,
       fees,
       net,
     };
-  }, [filtered]);
+  }, [rows]);
 
-  function clearFilters() {
+  const clearFilters = useCallback(() => {
     setQ("");
     setStatus("ALL");
     setMethod("ALL");
     setFrom("");
     setTo("");
-  }
+  }, []);
 
-  function exportCSV() {
-    const header = ["id", "createdAt", "orderCode", "customerName", "customerEmail", "method", "amount", "status", "fee", "net", "reference"];
-    const data = filtered.map((r) => [r.id, r.createdAt, r.orderCode, r.customer.name, r.customer.email, r.method, r.amount, r.status, r.fee, r.net, r.reference || ""]);
+  const exportCSV = useCallback(() => {
+    const header = [
+      "id",
+      "createdAt",
+      "orderCode",
+      "customerName",
+      "customerEmail",
+      "method",
+      "amount",
+      "status",
+      "fee",
+      "net",
+      "reference",
+    ];
 
-    const csv = [header, ...data].map((line) => line.map((x) => `"${String(x).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const data = rows.map((row) => [
+      row.id,
+      row.createdAt,
+      row.orderCode,
+      row.customer.name,
+      row.customer.email,
+      row.method,
+      row.amount,
+      row.status,
+      row.fee,
+      row.net,
+      row.reference || "",
+    ]);
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `payments_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
+    const csv = [header, ...data]
+      .map((line) => line.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","))
+      .join("\n");
 
-  async function patchPayment(id: string, data: any) {
-    const res = await fetch(`/api/payments/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8",
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json?.error || "Update failed");
-    return json.data;
-  }
 
-  async function markAsPaid(id: string) {
-    // optimistic
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        if (r.status === "PAID" || r.status === "REFUNDED") return r;
-        const fee = calcFee(r.amount);
-        return { ...r, status: "PAID", fee, net: r.amount - fee };
-      }),
-    );
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
 
-    try {
-      await patchPayment(id, { status: "PAID", direction: "CAPTURE" });
-      // optional: refetch để đồng bộ
-      // await fetchPayments();
-    } catch (e: any) {
-      setErr(e?.message || "Update failed");
-      // rollback bằng cách refetch (đơn giản nhất)
-      await fetchPayments();
-    }
-  }
+    anchor.href = url;
+    anchor.download = `payments_${new Date().toISOString().slice(0, 10)}.csv`;
 
-  async function refund(id: string) {
-    // optimistic
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        if (r.status !== "PAID") return r;
-        return { ...r, status: "REFUNDED", net: 0 };
-      }),
-    );
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
 
-    try {
-      await patchPayment(id, { status: "REFUNDED", direction: "REFUND" });
-      // await fetchPayments();
-    } catch (e: any) {
-      setErr(e?.message || "Refund failed");
-      await fetchPayments();
-    }
-  }
+    URL.revokeObjectURL(url);
+  }, [rows]);
+
+  const patchPayment = useCallback(
+    async (id: string, payload: PatchPaymentPayload) => {
+      if (!selectedSiteId) {
+        throw new Error("Missing selected site");
+      }
+
+      const res = await fetch(`${API_DETAIL}/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-site-id": selectedSiteId,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const json: PaymentDetailResponse = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || "Update failed");
+      }
+
+      return json.data;
+    },
+    [selectedSiteId],
+  );
+
+  const markAsPaid = useCallback(
+    async (id: string) => {
+      setRows((prev) =>
+        prev.map((row) => {
+          if (row.id !== id) return row;
+          if (row.status === "PAID" || row.status === "REFUNDED") return row;
+
+          const fee = calcFee(row.amount);
+
+          return {
+            ...row,
+            status: "PAID",
+            fee,
+            net: row.amount - fee,
+          };
+        }),
+      );
+
+      setSelected((prev) => {
+        if (!prev || prev.id !== id) return prev;
+        if (prev.status === "PAID" || prev.status === "REFUNDED") return prev;
+
+        const fee = calcFee(prev.amount);
+
+        return {
+          ...prev,
+          status: "PAID",
+          fee,
+          net: prev.amount - fee,
+        };
+      });
+
+      try {
+        await patchPayment(id, {
+          status: "SUCCEEDED",
+          direction: "CAPTURE",
+        });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Update failed";
+        setErr(message);
+        await fetchPayments();
+      }
+    },
+    [fetchPayments, patchPayment],
+  );
+
+  const refund = useCallback(
+    async (id: string) => {
+      setRows((prev) =>
+        prev.map((row) => {
+          if (row.id !== id) return row;
+          if (row.status !== "PAID") return row;
+
+          return {
+            ...row,
+            status: "REFUNDED",
+            fee: 0,
+            net: 0,
+          };
+        }),
+      );
+
+      setSelected((prev) => {
+        if (!prev || prev.id !== id) return prev;
+        if (prev.status !== "PAID") return prev;
+
+        return {
+          ...prev,
+          status: "REFUNDED",
+          fee: 0,
+          net: 0,
+        };
+      });
+
+      try {
+        await patchPayment(id, {
+          status: "SUCCEEDED",
+          direction: "REFUND",
+        });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Refund failed";
+        setErr(message);
+        await fetchPayments();
+      }
+    },
+    [fetchPayments, patchPayment],
+  );
+
+  const pageError = err || sitesErr || "";
 
   return (
     <div className={styles.page}>
@@ -331,8 +584,14 @@ export default function PaymentsPage() {
             <i className={`bi bi-credit-card-2-front ${styles.titleIcon}`} />
             <h1 className={styles.title}>Payments</h1>
           </div>
+
           <p className={styles.subtitle}>Manage transactions, fees, payouts and payment methods.</p>
-          {err ? <div className={styles.errorBanner}>⚠️ {err}</div> : null}
+
+          <p className={styles.subtitle}>
+            Site: <strong>{selectedSite?.name || "Chưa chọn site"}</strong>
+          </p>
+
+          {pageError ? <div className={styles.errorBanner}>⚠️ {pageError}</div> : null}
         </div>
 
         <div className={styles.headerActions}>
@@ -340,18 +599,24 @@ export default function PaymentsPage() {
             <i className="bi bi-arrow-counterclockwise" />
             Reset
           </button>
-          <button className={styles.btnGhost} onClick={exportCSV} type="button" disabled={loading}>
+
+          <button className={styles.btnGhost} onClick={exportCSV} type="button" disabled={loading || rows.length === 0}>
             <i className="bi bi-download" />
             Export CSV
           </button>
-          <button className={styles.btnPrimary} type="button" disabled={loading} onClick={() => alert("Hook this to POST /api/payments (create manual payment)")}>
+
+          <button
+            className={styles.btnPrimary}
+            type="button"
+            disabled={loading || !selectedSiteId}
+            onClick={() => alert("Hook this button to POST /api/admin/orders/payments")}
+          >
             <i className="bi bi-plus-lg" />
             New payment
           </button>
         </div>
       </div>
 
-      {/* Stats */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statTop}>
@@ -387,6 +652,7 @@ export default function PaymentsPage() {
             <span className={styles.statLabel}>Statuses</span>
             <i className="bi bi-bar-chart-line" />
           </div>
+
           <div className={styles.statPills}>
             <span className={`${styles.pill} ${styles.pillPaid}`}>
               <i className="bi bi-check2-circle" /> {stats.paid}
@@ -401,12 +667,12 @@ export default function PaymentsPage() {
               <i className="bi bi-arrow-return-left" /> {stats.refunded}
             </span>
           </div>
+
           <div className={styles.statHint}>Counts in current view</div>
         </div>
       </div>
 
       <div className={styles.mainGrid}>
-        {/* Filters panel */}
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
             <div className={styles.panelTitle}>
@@ -421,14 +687,25 @@ export default function PaymentsPage() {
               <span className={styles.label}>Search</span>
               <div className={styles.inputWrap}>
                 <i className={`bi bi-search ${styles.inputIcon}`} />
-                <input className={styles.input} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Order, customer, email, payment id, reference..." />
+                <input
+                  className={styles.input}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Order, customer, email, payment id, reference..."
+                  disabled={!selectedSiteId || sitesLoading}
+                />
               </div>
             </label>
 
             <div className={styles.fieldRow}>
               <label className={styles.field}>
                 <span className={styles.label}>Status</span>
-                <select className={styles.select} value={status} onChange={(e) => setStatus(e.target.value as any)} disabled={loading}>
+                <select
+                  className={styles.select}
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as UiPaymentStatus | "ALL")}
+                  disabled={loading || !selectedSiteId}
+                >
                   <option value="ALL">All</option>
                   <option value="PAID">Paid</option>
                   <option value="PENDING">Pending</option>
@@ -439,7 +716,12 @@ export default function PaymentsPage() {
 
               <label className={styles.field}>
                 <span className={styles.label}>Method</span>
-                <select className={styles.select} value={method} onChange={(e) => setMethod(e.target.value as any)} disabled={loading}>
+                <select
+                  className={styles.select}
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value as UiPaymentMethod | "ALL")}
+                  disabled={loading || !selectedSiteId}
+                >
                   <option value="ALL">All</option>
                   <option value="CARD">Card</option>
                   <option value="BANK_TRANSFER">Bank transfer</option>
@@ -453,12 +735,24 @@ export default function PaymentsPage() {
             <div className={styles.fieldRow}>
               <label className={styles.field}>
                 <span className={styles.label}>From</span>
-                <input className={styles.input} type="date" value={from} onChange={(e) => setFrom(e.target.value)} disabled={loading} />
+                <input
+                  className={styles.input}
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  disabled={loading || !selectedSiteId}
+                />
               </label>
 
               <label className={styles.field}>
                 <span className={styles.label}>To</span>
-                <input className={styles.input} type="date" value={to} onChange={(e) => setTo(e.target.value)} disabled={loading} />
+                <input
+                  className={styles.input}
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  disabled={loading || !selectedSiteId}
+                />
               </label>
             </div>
 
@@ -467,6 +761,7 @@ export default function PaymentsPage() {
                 <i className="bi bi-eraser" />
                 Clear
               </button>
+
               <div className={styles.miniTip}>
                 <i className="bi bi-info-circle" />
                 Tip: click a row to view details.
@@ -475,14 +770,13 @@ export default function PaymentsPage() {
           </div>
         </section>
 
-        {/* Table panel */}
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
             <div className={styles.panelTitle}>
               <i className="bi bi-list-check" />
               <h2>Transactions</h2>
             </div>
-            <span className={styles.panelHint}>{loading ? "Loading…" : `${filtered.length} results`}</span>
+            <span className={styles.panelHint}>{loading ? "Loading…" : `${rows.length} results`}</span>
           </div>
 
           <div className={styles.tableWrap}>
@@ -499,8 +793,9 @@ export default function PaymentsPage() {
                   <th className={styles.thActions}>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {loading ? (
+                {sitesLoading || loading ? (
                   <tr>
                     <td colSpan={8} className={styles.empty}>
                       <div className={styles.emptyBox}>
@@ -512,7 +807,19 @@ export default function PaymentsPage() {
                       </div>
                     </td>
                   </tr>
-                ) : filtered.length === 0 ? (
+                ) : !selectedSiteId ? (
+                  <tr>
+                    <td colSpan={8} className={styles.empty}>
+                      <div className={styles.emptyBox}>
+                        <i className="bi bi-shop" />
+                        <div>
+                          <div className={styles.emptyTitle}>No site selected</div>
+                          <div className={styles.emptySub}>Please select a site to view payments.</div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
                   <tr>
                     <td colSpan={8} className={styles.empty}>
                       <div className={styles.emptyBox}>
@@ -525,54 +832,87 @@ export default function PaymentsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((r) => (
-                    <tr key={r.id} className={styles.tr} onClick={() => setSelected(r)} role="button" tabIndex={0}>
-                      <td className={styles.muted}>{formatDT(r.createdAt)}</td>
+                  rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={styles.tr}
+                      onClick={() => setSelected(row)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelected(row);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <td className={styles.muted}>{formatDT(row.createdAt)}</td>
+
                       <td>
                         <div className={styles.paymentCell}>
-                          <div className={styles.payId}>{r.id}</div>
+                          <div className={styles.payId}>{row.id}</div>
                           <div className={styles.paySub}>
-                            <i className="bi bi-bag" /> {r.orderCode}
-                            {r.reference ? (
+                            <i className="bi bi-bag" /> {row.orderCode}
+                            {row.reference ? (
                               <>
                                 <span className={styles.dot} />
-                                <i className="bi bi-hash" /> {r.reference}
+                                <i className="bi bi-hash" /> {row.reference}
                               </>
                             ) : null}
                           </div>
                         </div>
                       </td>
+
                       <td>
                         <div className={styles.customer}>
-                          <div className={styles.customerName}>{r.customer.name}</div>
-                          <div className={styles.customerEmail}>{r.customer.email}</div>
+                          <div className={styles.customerName}>{row.customer.name}</div>
+                          <div className={styles.customerEmail}>{row.customer.email}</div>
                         </div>
                       </td>
+
                       <td>
                         <span className={styles.methodPill}>
                           <i className="bi bi-credit-card" />
-                          {methodLabel(r.method)}
+                          {methodLabel(row.method)}
                         </span>
                       </td>
-                      <td className={styles.tdRight}>{formatVND(r.amount)}</td>
+
+                      <td className={styles.tdRight}>{formatVND(row.amount)}</td>
+
                       <td>
-                        <span className={`${styles.badge} ${badgeClass(r.status)}`}>
-                          {r.status === "PAID" && <i className="bi bi-check2-circle" />}
-                          {r.status === "PENDING" && <i className="bi bi-hourglass-split" />}
-                          {r.status === "FAILED" && <i className="bi bi-x-circle" />}
-                          {r.status === "REFUNDED" && <i className="bi bi-arrow-return-left" />}
-                          {r.status}
+                        <span className={`${styles.badge} ${badgeClass(row.status)}`}>
+                          {row.status === "PAID" && <i className="bi bi-check2-circle" />}
+                          {row.status === "PENDING" && <i className="bi bi-hourglass-split" />}
+                          {row.status === "FAILED" && <i className="bi bi-x-circle" />}
+                          {row.status === "REFUNDED" && <i className="bi bi-arrow-return-left" />}
+                          {row.status}
                         </span>
                       </td>
-                      <td className={styles.tdRight}>{formatVND(r.net)}</td>
+
+                      <td className={styles.tdRight}>{formatVND(row.net)}</td>
+
                       <td className={styles.tdActions} onClick={(e) => e.stopPropagation()}>
-                        <button className={styles.iconBtn} title="View" onClick={() => setSelected(r)} type="button">
+                        <button className={styles.iconBtn} title="View" onClick={() => setSelected(row)} type="button">
                           <i className="bi bi-eye" />
                         </button>
-                        <button className={styles.iconBtn} title="Mark as paid" onClick={() => markAsPaid(r.id)} disabled={r.status === "PAID" || r.status === "REFUNDED"} type="button">
+
+                        <button
+                          className={styles.iconBtn}
+                          title="Mark as paid"
+                          onClick={() => markAsPaid(row.id)}
+                          disabled={row.status === "PAID" || row.status === "REFUNDED" || !selectedSiteId}
+                          type="button"
+                        >
                           <i className="bi bi-check2" />
                         </button>
-                        <button className={styles.iconBtnDanger} title="Refund" onClick={() => refund(r.id)} disabled={r.status !== "PAID"} type="button">
+
+                        <button
+                          className={styles.iconBtnDanger}
+                          title="Refund"
+                          onClick={() => refund(row.id)}
+                          disabled={row.status !== "PAID" || !selectedSiteId}
+                          type="button"
+                        >
                           <i className="bi bi-arrow-return-left" />
                         </button>
                       </td>
@@ -583,9 +923,6 @@ export default function PaymentsPage() {
             </table>
           </div>
         </section>
-
-        {/* các section còn lại giữ nguyên của bạn */}
-        {/* ... Payment methods / Payouts ... */}
       </div>
 
       {selected ? (
@@ -600,6 +937,7 @@ export default function PaymentsPage() {
                   {selected.id} • {formatDT(selected.createdAt)}
                 </div>
               </div>
+
               <button className={styles.modalClose} onClick={() => setSelected(null)} type="button" aria-label="Close">
                 <i className="bi bi-x-lg" />
               </button>
@@ -645,22 +983,41 @@ export default function PaymentsPage() {
               </div>
 
               <div className={styles.modalActions}>
-                <button className={styles.btnSoft} type="button" onClick={() => navigator.clipboard.writeText(selected.id)}>
+                <button
+                  className={styles.btnSoft}
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(selected.id)}
+                >
                   <i className="bi bi-clipboard" />
                   Copy payment id
                 </button>
 
-                <button className={styles.btnSoft} type="button" onClick={() => navigator.clipboard.writeText(selected.orderCode)}>
+                <button
+                  className={styles.btnSoft}
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(selected.orderCode)}
+                >
                   <i className="bi bi-clipboard-check" />
                   Copy order code
                 </button>
 
                 <div className={styles.modalActionsRight}>
-                  <button className={styles.btnSoft} type="button" onClick={() => markAsPaid(selected.id)} disabled={selected.status === "PAID" || selected.status === "REFUNDED"}>
+                  <button
+                    className={styles.btnSoft}
+                    type="button"
+                    onClick={() => markAsPaid(selected.id)}
+                    disabled={selected.status === "PAID" || selected.status === "REFUNDED" || !selectedSiteId}
+                  >
                     <i className="bi bi-check2" />
                     Mark as paid
                   </button>
-                  <button className={styles.btnDanger} type="button" onClick={() => refund(selected.id)} disabled={selected.status !== "PAID"}>
+
+                  <button
+                    className={styles.btnDanger}
+                    type="button"
+                    onClick={() => refund(selected.id)}
+                    disabled={selected.status !== "PAID" || !selectedSiteId}
+                  >
                     <i className="bi bi-arrow-return-left" />
                     Refund
                   </button>

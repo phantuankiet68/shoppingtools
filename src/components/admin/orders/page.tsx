@@ -126,6 +126,7 @@ export default function OrdersPage() {
   const [activeId, setActiveId] = useState<string>("");
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [detail, setDetail] = useState<OrderDetail | null>(null);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
   const [editNotes, setEditNotes] = useState("");
   const [editCarrier, setEditCarrier] = useState("");
@@ -164,8 +165,15 @@ export default function OrdersPage() {
       if (reset) {
         setRows(data);
         setNextCursor(nc);
-        const firstId = data[0]?.id || "";
-        setActiveId(firstId);
+
+        if (activeId) {
+          const stillExists = data.some((x) => x.id === activeId);
+          if (!stillExists) {
+            setActiveId("");
+            setDetail(null);
+            setIsInspectorOpen(false);
+          }
+        }
       } else {
         setRows((prev) => [...prev, ...data]);
         setNextCursor(nc);
@@ -218,6 +226,23 @@ export default function OrdersPage() {
     if (activeId) fetchDetail(activeId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
+
+  useEffect(() => {
+    if (!isInspectorOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsInspectorOpen(false);
+    };
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isInspectorOpen]);
 
   async function saveShippingAndNotes() {
     if (!detail) return;
@@ -355,6 +380,38 @@ export default function OrdersPage() {
   );
 
   usePageFunctionKeys(functionKeyActions);
+
+  function labelPayment(s: PaymentStatus) {
+    if (s === "PAID") return "Paid";
+    if (s === "PARTIAL") return "Partially Paid";
+    if (s === "REFUNDED") return "Refunded";
+    if (s === "CANCELLED") return "Cancelled";
+    return "Unpaid";
+  }
+
+  function labelFulfillment(s: FulfillmentStatus) {
+    if (s === "FULFILLED") return "Fulfilled";
+    if (s === "PARTIAL") return "Partially Fulfilled";
+    if (s === "RETURNED") return "Returned";
+    if (s === "CANCELLED") return "Cancelled";
+    return "Unfulfilled";
+  }
+
+  function paymentStatusClass(s: PaymentStatus, styles: Record<string, string>) {
+    if (s === "PAID") return styles.chipBlue;
+    if (s === "PARTIAL") return styles.chipAmber;
+    if (s === "REFUNDED") return styles.chipRose;
+    if (s === "CANCELLED") return styles.chipGray;
+    return styles.chipGray;
+  }
+
+  function fulfillmentStatusClass(s: FulfillmentStatus, styles: Record<string, string>) {
+    if (s === "FULFILLED") return styles.chipBlue;
+    if (s === "PARTIAL") return styles.chipAmber;
+    if (s === "RETURNED") return styles.chipRose;
+    if (s === "CANCELLED") return styles.chipGray;
+    return styles.chipAmber;
+  }
 
   return (
     <div className={styles.page}>
@@ -533,26 +590,26 @@ export default function OrdersPage() {
         </aside>
 
         <section className={styles.center}>
-          <div className={styles.listPanel}>
-            <div className={styles.listPanelHeader}>
-              <div>
-                <div className={styles.panelTitle}>Order list</div>
-                <div className={styles.panelSub}>{loadingList ? "Loading..." : "Click a row to inspect."}</div>
+          <div className={styles.ordersCard}>
+            <div className={styles.ordersHead}>
+              <div className={styles.ordersHeadLeft}>
+                <h2 className={styles.ordersTitle}>Orders</h2>
+                <p className={styles.ordersSub}>{loadingList ? "Loading orders..." : `${rows.length} order(s)`}</p>
               </div>
 
-              <div className={styles.listPanelMeta}>
+              <div className={styles.ordersHeadRight}>
                 {nextCursor ? (
                   <button
-                    className={styles.ghostButton}
+                    className={styles.headAction}
                     type="button"
                     onClick={() => fetchList(false)}
                     disabled={loadingList}
                   >
-                    <i className="bi bi-chevron-double-down" />
+                    <i className="bi bi-arrow-down-circle" />
                     Load more
                   </button>
                 ) : (
-                  <span className={styles.metaPill}>
+                  <span className={styles.headPill}>
                     <i className="bi bi-check2-circle" />
                     End
                   </span>
@@ -560,30 +617,34 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            <div className={styles.tableShell}>
-              <table className={styles.table}>
+            <div className={styles.ordersTableWrap}>
+              <table className={styles.ordersTable}>
                 <thead>
                   <tr>
-                    <th>Order</th>
+                    <th className={styles.checkboxCol}>
+                      <input type="checkbox" />
+                    </th>
+                    <th>Order ID</th>
                     <th>Customer</th>
-                    <th>Badges</th>
-                    <th className={styles.numeric}>Items</th>
-                    <th className={styles.numeric}>Amount</th>
-                    <th>Updated</th>
+                    <th>Location</th>
+                    <th>Payment Status</th>
+                    <th>Date</th>
+                    <th>Fulfillment Status</th>
+                    <th className={styles.numeric}>Total</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={6}>
-                        <div className={styles.emptyState}>
-                          <div className={styles.emptyIcon}>
-                            <i className="bi bi-inbox" />
+                      <td colSpan={8}>
+                        <div className={styles.emptyStateModern}>
+                          <div className={styles.emptyStateIcon}>
+                            <i className="bi bi-bag-x" />
                           </div>
                           <div>
-                            <div className={styles.emptyTitle}>No orders</div>
-                            <div className={styles.emptyText}>Try filters or create orders.</div>
+                            <div className={styles.emptyStateTitle}>No orders found</div>
+                            <div className={styles.emptyStateText}>Try changing filters or create a new order.</div>
                           </div>
                         </div>
                       </td>
@@ -591,56 +652,78 @@ export default function OrdersPage() {
                   ) : (
                     rows.map((r) => {
                       const active = r.id === activeId;
-                      const code = r.number || r.id.slice(0, 8);
-                      const customer = r.customerNameSnapshot || r.shipToName || "—";
-                      const phone = r.customerPhoneSnapshot || r.shipToPhone || "—";
+
+                      const orderCode = r.number || r.reference || r.id.slice(0, 8);
+                      const customerName = r.customerNameSnapshot || r.shipToName || "Guest customer";
+                      const customerPhone = r.customerPhoneSnapshot || r.shipToPhone || "No phone";
+                      const location = [detail?.shipToCity, detail?.shipToCountry].filter(Boolean).join(", ") || "—";
+                      const dateText = new Date(r.updatedAt).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      });
 
                       return (
                         <tr
                           key={r.id}
-                          className={active ? styles.rowActive : styles.row}
-                          onClick={() => setActiveId(r.id)}
+                          className={active ? styles.orderRowActive : styles.orderRow}
+                          onClick={() => {
+                            setActiveId(r.id);
+                            setIsInspectorOpen(true);
+                          }}
                         >
+                          <td className={styles.checkboxCol}>
+                            <input type="checkbox" onClick={(e) => e.stopPropagation()} />
+                          </td>
+
                           <td>
-                            <div className={styles.orderCell}>
-                              <div className={styles.orderMain}>{code}</div>
-                              <div className={styles.orderMetaLine}>
-                                <span className={styles.inlinePill}>
-                                  <i className="bi bi-shop" />
-                                  {channelLabel(r.channel)}
-                                </span>
-                                <span className={styles.inlinePill}>
-                                  <i className="bi bi-link-45deg" />
-                                  {r.reference || "—"}
-                                </span>
+                            <div className={styles.orderIdCell}>
+                              <div className={styles.orderIdMain}>#{orderCode}</div>
+                              <div className={styles.orderIdSub}>{r._count?.items ?? 0} item(s)</div>
+                            </div>
+                          </td>
+
+                          <td>
+                            <div className={styles.customerModern}>
+                              <div className={styles.customerAvatar}>{customerName.charAt(0).toUpperCase()}</div>
+                              <div className={styles.customerModernBody}>
+                                <div className={styles.customerModernName}>{customerName}</div>
+                                <div className={styles.customerModernSub}>{customerPhone}</div>
                               </div>
                             </div>
                           </td>
 
                           <td>
-                            <div className={styles.customerCell}>
-                              <div className={styles.customerName}>{customer}</div>
-                              <div className={styles.customerSub}>{phone}</div>
+                            <div className={styles.locationCell}>
+                              <span className={styles.locationText}>
+                                {[r.shipToName, r.shipToPhone].filter(Boolean).join(" · ") || "—"}
+                              </span>
                             </div>
                           </td>
 
                           <td>
-                            <div className={styles.badges}>
-                              <span className={`${styles.badge} ${badgeClassStatus(r.status)}`}>{r.status}</span>
-                              <span className={`${styles.badge} ${badgeClassPay(r.paymentStatus)}`}>
-                                {r.paymentStatus}
-                              </span>
-                              <span className={`${styles.badge} ${badgeClassFull(r.fulfillmentStatus)}`}>
-                                {r.fulfillmentStatus}
-                              </span>
-                            </div>
+                            <span className={`${styles.statusChip} ${paymentStatusClass(r.paymentStatus, styles)}`}>
+                              {labelPayment(r.paymentStatus)}
+                            </span>
                           </td>
 
-                          <td className={styles.numeric}>{r._count?.items ?? 0}</td>
-                          <td className={styles.numeric}>
-                            {r.currency} {fmtMoney(r.totalCents, r.currency)}
+                          <td>
+                            <div className={styles.dateCell}>{dateText}</div>
                           </td>
-                          <td>{new Date(r.updatedAt).toLocaleString()}</td>
+
+                          <td>
+                            <span
+                              className={`${styles.statusChip} ${fulfillmentStatusClass(r.fulfillmentStatus, styles)}`}
+                            >
+                              {labelFulfillment(r.fulfillmentStatus)}
+                            </span>
+                          </td>
+
+                          <td className={styles.numeric}>
+                            <div className={styles.totalCell}>
+                              {r.currency} {fmtMoney(r.totalCents, r.currency)}
+                            </div>
+                          </td>
                         </tr>
                       );
                     })
@@ -648,16 +731,68 @@ export default function OrdersPage() {
                 </tbody>
               </table>
             </div>
+
+            <div className={styles.ordersFooter}>
+              <div className={styles.footerLeft}>
+                <button className={styles.footerSelect} type="button">
+                  10 Documents
+                  <i className="bi bi-chevron-down" />
+                </button>
+              </div>
+
+              <div className={styles.footerRight}>
+                <button className={styles.pageNavBtn} type="button">
+                  <i className="bi bi-chevron-left" />
+                  Previous
+                </button>
+
+                <button className={`${styles.pageBtn} ${styles.pageBtnActive}`} type="button">
+                  1
+                </button>
+                <button className={styles.pageBtn} type="button">
+                  2
+                </button>
+                <button className={styles.pageBtn} type="button">
+                  3
+                </button>
+
+                <span className={styles.pageDots}>...</span>
+
+                <button className={styles.pageNavBtn} type="button">
+                  Next
+                  <i className="bi bi-chevron-right" />
+                </button>
+              </div>
+            </div>
           </div>
         </section>
+      </div>
 
-        <aside className={styles.inspector}>
-          <div className={styles.inspectorPanel}>
-            <div className={styles.inspectorHeader}>
-              <div className={styles.panelTitle}>{computedTitle}</div>
-              <div className={styles.panelSub}>
-                {loadingDetail ? "Loading detail..." : "Shipping · Items · Actions"}
+      {isInspectorOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsInspectorOpen(false)}>
+          <div
+            className={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Order inspector"
+          >
+            <div className={styles.modalHeader}>
+              <div className={styles.modalHeaderTitle}>
+                <div className={styles.panelTitle}>{computedTitle}</div>
+                <div className={styles.panelSub}>
+                  {loadingDetail ? "Loading detail..." : "Shipping · Items · Actions"}
+                </div>
               </div>
+
+              <button
+                type="button"
+                className={styles.iconButton}
+                onClick={() => setIsInspectorOpen(false)}
+                aria-label="Close inspector"
+              >
+                <i className="bi bi-x-lg" />
+              </button>
             </div>
 
             {!detail ? (
@@ -671,7 +806,7 @@ export default function OrdersPage() {
                 </div>
               </div>
             ) : (
-              <div className={styles.inspectorBody}>
+              <div className={styles.modalBody}>
                 <div className={styles.summaryTop}>
                   <div>
                     <div className={styles.orderCodeLine}>{detail.number || detail.id.slice(0, 8)}</div>
@@ -810,7 +945,7 @@ export default function OrdersPage() {
                         return (
                           <div key={it.id} className={styles.itemCard}>
                             <div className={styles.itemHeader}>
-                              <div>
+                              <div className={styles.itemHeader}>
                                 <div className={styles.itemName}>
                                   {label}
                                   {variant}
@@ -964,8 +1099,8 @@ export default function OrdersPage() {
               </div>
             )}
           </div>
-        </aside>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
