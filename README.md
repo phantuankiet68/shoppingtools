@@ -287,6 +287,28 @@ email_logs
 
 users
 
+import { useSiteStore } from "@/store/site/site.store";
+const sites = useSiteStore((state) => state.sites);
+const sitesLoading = useSiteStore((state) => state.loading);
+const sitesErr = useSiteStore((state) => state.err);
+const selectedSiteId = useSiteStore((state) => state.siteId);
+const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
+const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
+const loadSites = useSiteStore((state) => state.loadSites);
+
+    const selectedSite = useMemo(() => {
+    return sites.find((site) => site.id === selectedSiteId);
+
+}, [sites, selectedSiteId]);
+
+const selectedBrand = useMemo(() => {
+return items.find((brand) => brand.id === selectedBrandId) ?? null;
+}, [items, selectedBrandId]);
+
+const withLogoCount = useMemo(() => {
+return items.filter((brand) => Boolean(brand.logoUrl)).length;
+}, [items]);
+
 Bước 1:
 tôi đang sử dụng next 16 .Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé và hãy chỉnh sửa các model cho phù hợp với phong cách chuyên nghiệp nhé. hiện tại đang lỗi any bạn hãy sửa giúp tôi nhé Unexpected any. Specify a different type.eslint@typescript-eslint/no-explicit-any
 
@@ -340,3 +362,111 @@ vậy bạn hãy tách store và service trông file code này giúp tôi nhé
 Dựa vào api và model purchase-orders bạn có thể độ lại vầ thêm các api vào page.tsx purchase-orders giúp tôi được không hiện tại tôi đang sử dụng next 16 và css module bạn hãy dộ lại với phong cách mới mẽ và chuyên nghiệp nhé
 
 Hiện tại design rất xấu và chua có phong cách chuyên nghiệp nên hãy dộ lại giúp tôi nhé nếu ngư có thể thì hãy để list và Tạo purchase order hãy dộ lại giúp tôi nhé tôi đang sử dụng next 16 và css module. không cần box shadow
+
+low-code = drag & drop builder chuyển đổi AI + low-code
+
+low-code = design system engine
+
+Nên chuyển sang mô hình metadata-driven resource.
+
+Bắt buộc có RBAC + tenant isolation + RLS + audit log + least privilege.
+
+Điều công ty sẽ thích ở bạn
+
+Nếu bạn đi phỏng vấn và nói:
+
+"Tôi đã build một low-code SaaS system trong 1 năm"
+
+Người phỏng vấn sẽ hỏi:
+
+multi-tenant làm thế nào?
+
+database model ra sao?
+
+auth thế nào?
+
+deploy thế nào?
+
+Nếu bạn trả lời được → ấn tượng rất mạnh.
+
+1️⃣ Kỹ năng cốt lõi (Technical Mastery)
+
+Bạn đã có hướng khá rõ: performance + architecture + SaaS systems. Từ giờ tới 2030, nếu muốn bứt phá trong ngành dev, bạn nên tập trung sâu vào vài thứ:
+
+System design / architecture (multi-tenant, scalability, caching, queues)
+
+Backend performance (database design, indexing, async jobs)
+
+Security cơ bản cho SaaS (auth, permission, tenant isolation)
+
+Cloud & deployment (Docker, CI/CD, monitoring)
+
+AI integration (không cần làm model, nhưng biết dùng AI vào product)
+
+Nếu bạn giỏi mấy thứ này, bạn có thể trở thành:
+
+Senior / Staff Engineer
+
+Platform engineer
+
+hoặc founder kỹ thuật
+
+2️⃣ Tài sản công nghệ của riêng bạn
+
+Project low-code của bạn không chỉ là project học tập. Nếu phát triển tốt, nó có thể trở thành:
+
+engine SaaS của riêng bạn
+
+template ecommerce để bán cho người khác
+
+portfolio rất mạnh khi đi xin việc
+
+Bạn nên đặt mục tiêu:
+
+2025–2026: deploy hệ thống, dùng thật
+2026–2027: cải tiến architecture, performance
+2027–2028: thêm template / automation / AI
+2028–2030: có user thật hoặc thu nhập phụ
+
+Không cần quá lớn; chỉ cần thực sự chạy được và dùng được.
+
+3️⃣ Ổn định cuộc sống
+
+Để đến 2030 cảm thấy “ổn”, thường cần 3 yếu tố:
+
+thu nhập ổn định (job hoặc sản phẩm)
+
+kỹ năng có giá trị cao (để không sợ thất nghiệp)
+
+một tài sản cá nhân (project, business, hoặc đầu tư)
+
+Bạn đang đi theo hướng khá tốt vì:
+
+bạn thích xây system lớn
+
+bạn có project dài hạn
+
+bạn muốn tự chủ platform
+
+4️⃣ Nhưng có một điều mình muốn bạn nhớ
+
+2030 còn vài năm nữa. Nếu bạn cứ nghĩ:
+
+phải bứt phá ngay
+phải thành công nhanh
+
+thì dễ tự tạo áp lực cho mình.
+
+Thực tế, người bứt phá thường là người kiên trì tiến từng bước nhưng không dừng.
+
+✅ Tóm lại, nếu hướng tới 2030, bạn nên tập trung:
+
+nâng cấp architecture & system design
+
+hoàn thiện project SaaS của mình
+
+deploy và dùng trong đời sống thật
+
+học thêm cloud + performance + AI integration
+
+Những thứ này sẽ giúp bạn không bị mắc kẹt ở mức junior.

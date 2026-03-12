@@ -99,11 +99,15 @@ export async function POST(req: NextRequest) {
       }>;
     };
 
+    console.log("POST purchase-orders body:", body);
+
     if (!siteId || !poNumber || !supplierName || !lines?.length) {
       return NextResponse.json({ message: "siteId, poNumber, supplierName and lines are required" }, { status: 400 });
     }
 
     const variantIds = lines.map((line) => line.variantId);
+    console.log("siteId:", siteId);
+    console.log("variantIds:", variantIds);
 
     const variants = await prisma.productVariant.findMany({
       where: {
@@ -115,11 +119,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    console.log("variants found:", variants);
+
     const variantMap = new Map(variants.map((v) => [v.id, v]));
 
     for (const line of lines) {
       if (!variantMap.has(line.variantId)) {
-        return NextResponse.json({ message: `Variant not found: ${line.variantId}` }, { status: 400 });
+        return NextResponse.json(
+          {
+            message: `Variant not found: ${line.variantId}`,
+            debug: {
+              siteId,
+              variantId: line.variantId,
+            },
+          },
+          { status: 400 },
+        );
       }
     }
 

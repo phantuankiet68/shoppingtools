@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "@/styles/admin/inventory/stock-levels/stock-levels.module.css";
+import { useSiteStore } from "@/store/site/site.store";
+import { useVariantStore } from "@/store/inventory/purchase-orders/purchase-orders.store";
 
 type MovementType =
   | "OPENING"
@@ -16,13 +18,18 @@ type MovementType =
   | "LOSS"
   | "PURCHASE_RECEIPT"
   | "PURCHASE_RECEIPT_CANCEL"
-  | "MANUAL"
-  | string;
+  | "MANUAL";
 
 type ProductLite = {
   id: string;
   name: string;
   slug?: string;
+};
+
+type SiteLite = {
+  id: string;
+  name: string;
+  code?: string | null;
 };
 
 type VariantLite = {
@@ -48,6 +55,8 @@ type StockLevel = {
   variant?: VariantLite | null;
 };
 
+type JsonObject = Record<string, unknown>;
+
 type StockMovement = {
   id: string;
   siteId: string;
@@ -64,20 +73,22 @@ type StockMovement = {
   referenceType?: string | null;
   referenceId?: string | null;
   note?: string | null;
-  metadata?: any;
+  metadata?: JsonObject | null;
   createdBy?: string | null;
   createdAt: string;
   variant?: VariantLite | null;
   stockLevel?: StockLevel | null;
 };
 
+type PaginationMeta = {
+  page: number;
+  limit: number;
+  total: number;
+};
+
 type StockLevelsResponse = {
   data: StockLevel[];
-  meta?: {
-    page: number;
-    limit: number;
-    total: number;
-  };
+  meta?: PaginationMeta;
 };
 
 type StockLevelDetailResponse = {
@@ -86,11 +97,7 @@ type StockLevelDetailResponse = {
 
 type StockMovementsResponse = {
   data: StockMovement[];
-  meta?: {
-    page: number;
-    limit: number;
-    total: number;
-  };
+  meta?: PaginationMeta;
 };
 
 type StockMovementCreateResponse = {
@@ -101,22 +108,46 @@ type StockMovementCreateResponse = {
   };
 };
 
-const SITE_ID = "site_123"; // đổi theo site thật của bạn
+type ApiErrorResponse = {
+  message?: string;
+};
+
+type EditFormState = {
+  onHand: number;
+  reserved: number;
+  incoming: number;
+  reorderPoint: number;
+  safetyStock: number;
+  note: string;
+  createdBy: string;
+};
+
+type MovementFormState = {
+  type: MovementType;
+  quantity: number;
+  note: string;
+  referenceType: string;
+  referenceId: string;
+  createdBy: string;
+};
+
+const DEFAULT_CREATED_BY = "admin_001";
 
 async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  const response = await fetch(url, {
     ...init,
     headers: {
-      ...(init?.headers || {}),
+      ...(init?.headers ?? {}),
       "Content-Type": "application/json",
     },
     cache: "no-store",
   });
 
-  const data = await res.json().catch(() => ({}));
+  const data: unknown = await response.json().catch(() => ({}));
 
-  if (!res.ok) {
-    throw new Error((data as any)?.message || `HTTP ${res.status}`);
+  if (!response.ok) {
+    const errorData = data as ApiErrorResponse;
+    throw new Error(errorData.message || `HTTP ${response.status}`);
   }
 
   return data as T;
@@ -124,6 +155,11 @@ async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
+}
+
+function toSafeInt(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.trunc(value);
 }
 
 function formatDate(value?: string | null) {
@@ -137,7 +173,7 @@ function formatDate(value?: string | null) {
 }
 
 function movementLabel(type: MovementType) {
-  switch (String(type).toUpperCase()) {
+  switch (type) {
     case "OPENING":
       return "Tồn đầu kỳ";
     case "SALE":
@@ -170,18 +206,22 @@ function movementLabel(type: MovementType) {
 }
 
 function movementBadgeClass(type: MovementType) {
-  const t = String(type).toUpperCase();
-
-  if (t === "RESTOCK" || t === "RETURN" || t === "PURCHASE_RECEIPT" || t === "ADJUSTMENT_INCREASE" || t === "OPENING") {
+  if (
+    type === "RESTOCK" ||
+    type === "RETURN" ||
+    type === "PURCHASE_RECEIPT" ||
+    type === "ADJUSTMENT_INCREASE" ||
+    type === "OPENING"
+  ) {
     return styles.badgeOk;
   }
 
   if (
-    t === "SALE" ||
-    t === "DAMAGE" ||
-    t === "LOSS" ||
-    t === "ADJUSTMENT_DECREASE" ||
-    t === "PURCHASE_RECEIPT_CANCEL"
+    type === "SALE" ||
+    type === "DAMAGE" ||
+    type === "LOSS" ||
+    type === "ADJUSTMENT_DECREASE" ||
+    type === "PURCHASE_RECEIPT_CANCEL"
   ) {
     return styles.badgeBad;
   }
@@ -194,84 +234,114 @@ function shortId(id: string) {
   return id.length > 12 ? `${id.slice(0, 6)}…${id.slice(-4)}` : id;
 }
 
-export default function StockLevelsPage() {
-  const [stockLevels, setStockLevels] = useState<StockLevel[]>([]);
-  const [activeVariantId, setActiveVariantId] = useState<string>("");
-
-  const [activeStockLevel, setActiveStockLevel] = useState<StockLevel | null>(null);
-  const [movements, setMovements] = useState<StockMovement[]>([]);
-
-  const [query, setQuery] = useState("");
-  const [lowStockOnly, setLowStockOnly] = useState(false);
-  const [movementTypeFilter, setMovementTypeFilter] = useState<MovementType | "ALL">("ALL");
-
-  const [loadingList, setLoadingList] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const [editForm, setEditForm] = useState({
-    onHand: 0,
-    reserved: 0,
-    incoming: 0,
-    reorderPoint: 0,
-    safetyStock: 0,
+function buildDefaultEditForm(stock?: StockLevel | null): EditFormState {
+  return {
+    onHand: Number(stock?.onHand ?? 0),
+    reserved: Number(stock?.reserved ?? 0),
+    incoming: Number(stock?.incoming ?? 0),
+    reorderPoint: Number(stock?.reorderPoint ?? 0),
+    safetyStock: Number(stock?.safetyStock ?? 0),
     note: "",
-    createdBy: "admin_001",
-  });
+    createdBy: DEFAULT_CREATED_BY,
+  };
+}
 
-  const [movementForm, setMovementForm] = useState({
-    type: "ADJUSTMENT_INCREASE" as MovementType,
+function buildDefaultMovementForm(): MovementFormState {
+  return {
+    type: "ADJUSTMENT_INCREASE",
     quantity: 1,
     note: "",
     referenceType: "",
     referenceId: "",
-    createdBy: "admin_001",
-  });
+    createdBy: DEFAULT_CREATED_BY,
+  };
+}
+
+export default function StockLevelsPage() {
+  const sites = useSiteStore((state) => state.sites as SiteLite[]);
+  const selectedSiteId = useSiteStore((state) => state.siteId);
+  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
+  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
+  const loadSites = useSiteStore((state) => state.loadSites);
+
+  const variants = useVariantStore((state) => state.variants as VariantLite[]);
+  const variantsLoading = useVariantStore((state) => state.loading);
+  const variantsErr = useVariantStore((state) => state.err as string | null);
+  const loadVariants = useVariantStore((state) => state.loadVariants);
+
+  const [stockLevels, setStockLevels] = useState<StockLevel[]>([]);
+  const [selectedVariantFilterId, setSelectedVariantFilterId] = useState<string>("");
+  const [activeVariantId, setActiveVariantId] = useState<string>("");
+  const [activeStockLevel, setActiveStockLevel] = useState<StockLevel | null>(null);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [query, setQuery] = useState("");
+  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [movementTypeFilter, setMovementTypeFilter] = useState<MovementType | "ALL">("ALL");
+  const [loadingList, setLoadingList] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [busy, setBusy] = useState<"saveStockLevel" | "createMovement" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditFormState>(buildDefaultEditForm());
+  const [movementForm, setMovementForm] = useState<MovementFormState>(buildDefaultMovementForm());
+
+  const selectedSite = useMemo(() => {
+    return sites.find((site) => site.id === selectedSiteId) ?? null;
+  }, [sites, selectedSiteId]);
+
+  const variantOptions = useMemo(() => {
+    return variants
+      .map((variant) => ({
+        id: variant.id,
+        label: `${variant.product?.name ?? "Unnamed product"} · ${variant.sku}${variant.title ? ` · ${variant.title}` : ""}`,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  }, [variants]);
 
   const visibleStockLevels = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = lowStockOnly
-      ? stockLevels.filter((x) => (x.reorderPoint != null ? x.available <= Number(x.reorderPoint) : false))
-      : stockLevels;
 
-    if (!q) {
-      return [...list].sort((a, b) => {
-        const aLow = a.reorderPoint != null && a.available <= Number(a.reorderPoint) ? 1 : 0;
-        const bLow = b.reorderPoint != null && b.available <= Number(b.reorderPoint) ? 1 : 0;
-        if (aLow !== bLow) return bLow - aLow;
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      });
-    }
+    const filtered = stockLevels.filter((item) => {
+      const matchLowStock = lowStockOnly
+        ? item.reorderPoint != null && item.available <= Number(item.reorderPoint)
+        : true;
 
-    return list
-      .filter((item) => {
-        const productName = item.variant?.product?.name ?? "";
-        const sku = item.variant?.sku ?? "";
-        const title = item.variant?.title ?? "";
-        const text = `${productName} ${sku} ${title} ${item.variantId}`.toLowerCase();
-        return text.includes(q);
-      })
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-  }, [stockLevels, lowStockOnly, query]);
+      const matchVariant = selectedVariantFilterId ? item.variantId === selectedVariantFilterId : true;
+
+      if (!matchLowStock || !matchVariant) return false;
+
+      if (!q) return true;
+
+      const productName = item.variant?.product?.name ?? "";
+      const sku = item.variant?.sku ?? "";
+      const title = item.variant?.title ?? "";
+      const text = `${productName} ${sku} ${title} ${item.variantId}`.toLowerCase();
+      return text.includes(q);
+    });
+
+    return [...filtered].sort((a, b) => {
+      const aLow = a.reorderPoint != null && a.available <= Number(a.reorderPoint) ? 1 : 0;
+      const bLow = b.reorderPoint != null && b.available <= Number(b.reorderPoint) ? 1 : 0;
+
+      if (aLow !== bLow) return bLow - aLow;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+  }, [lowStockOnly, query, selectedVariantFilterId, stockLevels]);
 
   const visibleMovements = useMemo(() => {
     const list =
-      movementTypeFilter === "ALL"
-        ? movements
-        : movements.filter((m) => String(m.type).toUpperCase() === String(movementTypeFilter).toUpperCase());
+      movementTypeFilter === "ALL" ? movements : movements.filter((movement) => movement.type === movementTypeFilter);
 
     return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [movements, movementTypeFilter]);
+  }, [movementTypeFilter, movements]);
 
   const stats = useMemo(() => {
     const total = stockLevels.length;
-    const lowStock = stockLevels.filter((x) =>
-      x.reorderPoint != null ? x.available <= Number(x.reorderPoint) : false,
+    const lowStock = stockLevels.filter((item) =>
+      item.reorderPoint != null ? item.available <= Number(item.reorderPoint) : false,
     ).length;
-    const outOfStock = stockLevels.filter((x) => x.available <= 0).length;
-    const totalOnHand = stockLevels.reduce((sum, x) => sum + Number(x.onHand || 0), 0);
-    const totalReserved = stockLevels.reduce((sum, x) => sum + Number(x.reserved || 0), 0);
+    const outOfStock = stockLevels.filter((item) => item.available <= 0).length;
+    const totalOnHand = stockLevels.reduce((sum, item) => sum + Number(item.onHand || 0), 0);
+    const totalReserved = stockLevels.reduce((sum, item) => sum + Number(item.reserved || 0), 0);
 
     return {
       total,
@@ -282,111 +352,127 @@ export default function StockLevelsPage() {
     };
   }, [stockLevels]);
 
-  async function loadStockLevels() {
+  const loadStockLevels = useCallback(async () => {
+    if (!selectedSiteId) {
+      setStockLevels([]);
+      setActiveVariantId("");
+      setActiveStockLevel(null);
+      setMovements([]);
+      return;
+    }
+
     try {
       setLoadingList(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      params.set("siteId", SITE_ID);
-      params.set("page", "1");
-      params.set("limit", "200");
+      const params = new URLSearchParams({
+        siteId: selectedSiteId,
+        page: "1",
+        limit: "200",
+      });
+
       if (lowStockOnly) params.set("lowStockOnly", "true");
+      if (selectedVariantFilterId) params.set("variantId", selectedVariantFilterId);
 
-      const res = await apiJson<StockLevelsResponse>(`/api/admin/inventory/stock-levels?${params.toString()}`);
+      const response = await apiJson<StockLevelsResponse>(`/api/admin/inventory/stock-levels?${params.toString()}`);
 
-      const list = res.data ?? [];
+      const list = response.data ?? [];
       setStockLevels(list);
 
-      setActiveVariantId((prev) => {
-        if (prev && list.some((x) => x.variantId === prev)) return prev;
-        return list[0]?.variantId || "";
+      setActiveVariantId((previous) => {
+        if (previous && list.some((item) => item.variantId === previous)) return previous;
+        return list[0]?.variantId ?? "";
       });
-    } catch (e: any) {
-      setError(e?.message || "Không tải được stock levels");
+    } catch (caughtError: unknown) {
+      const message = caughtError instanceof Error ? caughtError.message : "Không tải được stock levels";
+      setError(message);
     } finally {
       setLoadingList(false);
     }
-  }
+  }, [lowStockOnly, selectedSiteId, selectedVariantFilterId]);
 
-  async function loadStockLevelDetail(variantId: string) {
-    try {
-      setLoadingDetail(true);
-      setError(null);
+  const loadStockLevelDetail = useCallback(
+    async (variantId: string) => {
+      if (!selectedSiteId || !variantId) return;
 
-      const params = new URLSearchParams({ siteId: SITE_ID });
+      try {
+        setLoadingDetail(true);
+        setError(null);
 
-      const [stockRes, movementsRes] = await Promise.all([
-        apiJson<StockLevelDetailResponse>(`/api/admin/inventory/stock-levels/${variantId}?${params.toString()}`),
-        apiJson<StockMovementsResponse>(
-          `/api/admin/inventory/stock-movements?siteId=${encodeURIComponent(
-            SITE_ID,
-          )}&variantId=${encodeURIComponent(variantId)}&page=1&limit=100`,
-        ),
-      ]);
+        const params = new URLSearchParams({ siteId: selectedSiteId });
 
-      const stock = stockRes.data;
-      setActiveStockLevel(stock);
-      setMovements(movementsRes.data ?? []);
+        const [stockResponse, movementsResponse] = await Promise.all([
+          apiJson<StockLevelDetailResponse>(`/api/admin/inventory/stock-levels/${variantId}?${params.toString()}`),
+          apiJson<StockMovementsResponse>(
+            `/api/admin/inventory/stock-movements?siteId=${encodeURIComponent(selectedSiteId)}&variantId=${encodeURIComponent(
+              variantId,
+            )}&page=1&limit=100`,
+          ),
+        ]);
 
-      setEditForm({
-        onHand: Number(stock.onHand || 0),
-        reserved: Number(stock.reserved || 0),
-        incoming: Number(stock.incoming || 0),
-        reorderPoint: Number(stock.reorderPoint || 0),
-        safetyStock: Number(stock.safetyStock || 0),
-        note: "",
-        createdBy: "admin_001",
-      });
-
-      setMovementForm((prev) => ({
-        ...prev,
-        quantity: 1,
-        note: "",
-        referenceType: "",
-        referenceId: "",
-      }));
-    } catch (e: any) {
-      setError(e?.message || "Không tải được chi tiết stock level");
-    } finally {
-      setLoadingDetail(false);
-    }
-  }
+        const stock = stockResponse.data;
+        setActiveStockLevel(stock);
+        setMovements(movementsResponse.data ?? []);
+        setEditForm(buildDefaultEditForm(stock));
+        setMovementForm(buildDefaultMovementForm());
+      } catch (caughtError: unknown) {
+        const message = caughtError instanceof Error ? caughtError.message : "Không tải được chi tiết stock level";
+        setError(message);
+      } finally {
+        setLoadingDetail(false);
+      }
+    },
+    [selectedSiteId],
+  );
 
   useEffect(() => {
-    loadStockLevels();
-  }, [lowStockOnly]);
+    hydrateFromStorage();
+    void loadSites();
+  }, [hydrateFromStorage, loadSites]);
 
   useEffect(() => {
-    if (activeVariantId) {
-      loadStockLevelDetail(activeVariantId);
-    } else {
+    if (!selectedSiteId) return;
+    void loadVariants(selectedSiteId);
+  }, [loadVariants, selectedSiteId]);
+
+  useEffect(() => {
+    void loadStockLevels();
+  }, [loadStockLevels]);
+
+  useEffect(() => {
+    if (!activeVariantId) {
       setActiveStockLevel(null);
       setMovements([]);
+      return;
     }
+
+    void loadStockLevelDetail(activeVariantId);
+  }, [activeVariantId, loadStockLevelDetail]);
+
+  useEffect(() => {
+    setMovementTypeFilter("ALL");
   }, [activeVariantId]);
 
-  function selectVariant(variantId: string) {
+  const selectVariant = (variantId: string) => {
     setActiveVariantId(variantId);
-    setMovementTypeFilter("ALL");
-  }
+  };
 
-  async function saveStockLevel() {
-    if (!activeVariantId) return;
+  const saveStockLevel = async () => {
+    if (!activeVariantId || !selectedSiteId) return;
 
     try {
       setBusy("saveStockLevel");
       setError(null);
 
       const payload = {
-        siteId: SITE_ID,
-        onHand: clamp(Math.trunc(Number(editForm.onHand || 0)), 0, 1_000_000_000),
-        reserved: clamp(Math.trunc(Number(editForm.reserved || 0)), 0, 1_000_000_000),
-        incoming: clamp(Math.trunc(Number(editForm.incoming || 0)), 0, 1_000_000_000),
-        reorderPoint: clamp(Math.trunc(Number(editForm.reorderPoint || 0)), 0, 1_000_000_000),
-        safetyStock: clamp(Math.trunc(Number(editForm.safetyStock || 0)), 0, 1_000_000_000),
+        siteId: selectedSiteId,
+        onHand: clamp(toSafeInt(Number(editForm.onHand || 0)), 0, 1_000_000_000),
+        reserved: clamp(toSafeInt(Number(editForm.reserved || 0)), 0, 1_000_000_000),
+        incoming: clamp(toSafeInt(Number(editForm.incoming || 0)), 0, 1_000_000_000),
+        reorderPoint: clamp(toSafeInt(Number(editForm.reorderPoint || 0)), 0, 1_000_000_000),
+        safetyStock: clamp(toSafeInt(Number(editForm.safetyStock || 0)), 0, 1_000_000_000),
         note: editForm.note || "Manual stock level update",
-        createdBy: editForm.createdBy || "admin_001",
+        createdBy: editForm.createdBy || DEFAULT_CREATED_BY,
         syncStockQty: true,
       };
 
@@ -397,29 +483,30 @@ export default function StockLevelsPage() {
 
       await loadStockLevels();
       await loadStockLevelDetail(activeVariantId);
-    } catch (e: any) {
-      setError(e?.message || "Cập nhật stock level thất bại");
+    } catch (caughtError: unknown) {
+      const message = caughtError instanceof Error ? caughtError.message : "Cập nhật stock level thất bại";
+      setError(message);
     } finally {
       setBusy(null);
     }
-  }
+  };
 
-  async function createMovement() {
-    if (!activeVariantId) return;
+  const createMovement = async () => {
+    if (!activeVariantId || !selectedSiteId) return;
 
     try {
       setBusy("createMovement");
       setError(null);
 
       const payload = {
-        siteId: SITE_ID,
+        siteId: selectedSiteId,
         variantId: activeVariantId,
         type: movementForm.type,
-        quantity: clamp(Math.trunc(Number(movementForm.quantity || 0)), 1, 1_000_000_000),
+        quantity: clamp(toSafeInt(Number(movementForm.quantity || 0)), 1, 1_000_000_000),
         note: movementForm.note || undefined,
         referenceType: movementForm.referenceType.trim() || undefined,
         referenceId: movementForm.referenceId.trim() || undefined,
-        createdBy: movementForm.createdBy || "admin_001",
+        createdBy: movementForm.createdBy || DEFAULT_CREATED_BY,
       };
 
       await apiJson<StockMovementCreateResponse>(`/api/admin/inventory/stock-movements`, {
@@ -427,22 +514,16 @@ export default function StockLevelsPage() {
         body: JSON.stringify(payload),
       });
 
-      setMovementForm((prev) => ({
-        ...prev,
-        quantity: 1,
-        note: "",
-        referenceType: "",
-        referenceId: "",
-      }));
-
+      setMovementForm(buildDefaultMovementForm());
       await loadStockLevels();
       await loadStockLevelDetail(activeVariantId);
-    } catch (e: any) {
-      setError(e?.message || "Tạo stock movement thất bại");
+    } catch (caughtError: unknown) {
+      const message = caughtError instanceof Error ? caughtError.message : "Tạo stock movement thất bại";
+      setError(message);
     } finally {
       setBusy(null);
     }
-  }
+  };
 
   const activeProductName = activeStockLevel?.variant?.product?.name || "Unknown product";
   const activeSku = activeStockLevel?.variant?.sku || shortId(activeStockLevel?.variantId || "");
@@ -456,8 +537,10 @@ export default function StockLevelsPage() {
             <i className="bi bi-box-seam" />
           </div>
           <div className={styles.brandText}>
-            <div className={styles.title}>Inventory Stock Levels</div>
-            <div className={styles.subtitle}>Theo dõi tồn kho, điều chỉnh số lượng và audit stock movements</div>
+            <h1 className={styles.title}>Inventory Stock Levels</h1>
+            <p className={styles.subtitle}>
+              Theo dõi tồn kho, điều chỉnh số lượng, quản lý theo site và audit stock movements.
+            </p>
           </div>
         </div>
 
@@ -465,8 +548,8 @@ export default function StockLevelsPage() {
           <button
             className={styles.btnGhost}
             type="button"
-            onClick={() => loadStockLevels()}
-            disabled={loadingList || busy !== null}
+            onClick={() => void loadStockLevels()}
+            disabled={loadingList || busy !== null || !selectedSiteId}
           >
             <i className="bi bi-arrow-clockwise" />
             Refresh
@@ -475,8 +558,8 @@ export default function StockLevelsPage() {
           <button
             className={styles.btnPrimary}
             type="button"
-            onClick={() => setLowStockOnly((prev) => !prev)}
-            disabled={busy !== null}
+            onClick={() => setLowStockOnly((previous) => !previous)}
+            disabled={busy !== null || !selectedSiteId}
           >
             <i className="bi bi-exclamation-diamond" />
             {lowStockOnly ? "Show all" : "Low stock only"}
@@ -484,7 +567,86 @@ export default function StockLevelsPage() {
         </div>
       </header>
 
-      {error && (
+      <section className={styles.filterBar}>
+        <div className={styles.filterCard}>
+          <label className={styles.filterLabel} htmlFor="site-select">
+            Site
+          </label>
+          <select
+            id="site-select"
+            className={styles.select}
+            value={selectedSiteId ?? ""}
+            onChange={(event) => {
+              const nextSiteId = event.target.value;
+              setSelectedSiteId(nextSiteId);
+              setSelectedVariantFilterId("");
+              setActiveVariantId("");
+              setActiveStockLevel(null);
+              setMovements([]);
+              setEditForm(buildDefaultEditForm());
+              setMovementForm(buildDefaultMovementForm());
+            }}
+          >
+            <option value="">Chọn site</option>
+            {sites.map((site) => (
+              <option key={site.id} value={site.id}>
+                {site.name}
+                {site.code ? ` (${site.code})` : ""}
+              </option>
+            ))}
+          </select>
+          <div className={styles.filterHint}>{selectedSite ? `Đang xem: ${selectedSite.name}` : "Chưa chọn site"}</div>
+        </div>
+
+        <div className={styles.filterCard}>
+          <label className={styles.filterLabel} htmlFor="variant-filter">
+            Variant filter
+          </label>
+          <select
+            id="variant-filter"
+            className={styles.select}
+            value={selectedVariantFilterId}
+            onChange={(event) => {
+              const nextVariantId = event.target.value;
+              setSelectedVariantFilterId(nextVariantId);
+              if (nextVariantId) setActiveVariantId(nextVariantId);
+            }}
+            disabled={!selectedSiteId || variantsLoading}
+          >
+            <option value="">Tất cả variants</option>
+            {variantOptions.map((variant) => (
+              <option key={variant.id} value={variant.id}>
+                {variant.label}
+              </option>
+            ))}
+          </select>
+          <div className={styles.filterHint}>
+            {variantsLoading
+              ? "Đang tải variants..."
+              : variantsErr
+                ? variantsErr
+                : `${variantOptions.length} variants khả dụng`}
+          </div>
+        </div>
+
+        <div className={styles.filterCardWide}>
+          <label className={styles.filterLabel} htmlFor="stock-search">
+            Search
+          </label>
+          <div className={styles.searchWrapLarge}>
+            <i className="bi bi-search" />
+            <input
+              id="stock-search"
+              className={styles.search}
+              placeholder="Search by product, sku, variant..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
+        </div>
+      </section>
+
+      {error ? (
         <div className={styles.errorBar}>
           <i className="bi bi-exclamation-triangle" />
           <div>
@@ -492,7 +654,7 @@ export default function StockLevelsPage() {
             <div className={styles.errorText}>{error}</div>
           </div>
         </div>
-      )}
+      ) : null}
 
       <section className={styles.statsStrip}>
         <div className={styles.statCard}>
@@ -518,28 +680,17 @@ export default function StockLevelsPage() {
       </section>
 
       <div className={styles.body}>
-        {/* Left panel */}
         <aside className={styles.sidebar}>
           <div className={styles.panelHead}>
             <div className={styles.panelTitle}>Stock levels</div>
-            <div className={styles.panelHint}>Danh sách variant tồn kho hiện tại</div>
-          </div>
-
-          <div className={styles.searchWrap}>
-            <i className="bi bi-search" />
-            <input
-              className={styles.search}
-              placeholder="Search by product, sku, variant..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+            <div className={styles.panelHint}>Danh sách variant tồn kho hiện tại theo site</div>
           </div>
 
           <div className={styles.list}>
             {loadingList ? (
               <div className={styles.skeletonList}>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div className={styles.skeletonRow} key={i} />
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div className={styles.skeletonRow} key={index} />
                 ))}
               </div>
             ) : visibleStockLevels.length === 0 ? (
@@ -552,20 +703,16 @@ export default function StockLevelsPage() {
               </div>
             ) : (
               visibleStockLevels.map((item) => {
-                const active = item.variantId === activeVariantId;
+                const isActive = item.variantId === activeVariantId;
                 const isLow = item.reorderPoint != null ? item.available <= Number(item.reorderPoint) : false;
                 const isOut = Number(item.available) <= 0;
 
                 return (
-                  <div
+                  <button
                     key={item.id}
-                    role="button"
-                    tabIndex={0}
-                    className={`${styles.rowBtn} ${active ? styles.rowActive : ""}`}
+                    type="button"
+                    className={`${styles.rowBtn} ${isActive ? styles.rowActive : ""}`}
                     onClick={() => selectVariant(item.variantId)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") selectVariant(item.variantId);
-                    }}
                   >
                     <div className={styles.rowMain}>
                       <div className={styles.rowTitle}>
@@ -606,23 +753,30 @@ export default function StockLevelsPage() {
                         <span className={`${styles.badge} ${styles.badgeOk}`}>Healthy</span>
                       )}
                     </div>
-                  </div>
+                  </button>
                 );
               })
             )}
           </div>
         </aside>
 
-        {/* Right detail */}
         <section className={styles.detail}>
           <div className={styles.panelHead}>
             <div>
               <div className={styles.panelTitle}>Stock detail</div>
-              <div className={styles.panelHint}>Xem tồn kho chi tiết, cập nhật trực tiếp và theo dõi movement log</div>
+              <div className={styles.panelHint}>Xem tồn kho chi tiết, cập nhật trực tiếp và theo dõi movement log.</div>
             </div>
           </div>
 
-          {!activeVariantId ? (
+          {!selectedSiteId ? (
+            <div className={styles.emptyBig}>
+              <i className="bi bi-buildings" />
+              <div>
+                <div className={styles.emptyTitle}>Select a site</div>
+                <div className={styles.emptyText}>Vui lòng chọn site trước khi thao tác tồn kho.</div>
+              </div>
+            </div>
+          ) : !activeVariantId ? (
             <div className={styles.emptyBig}>
               <i className="bi bi-layout-text-sidebar-reverse" />
               <div>
@@ -714,7 +868,7 @@ export default function StockLevelsPage() {
                   <div className={styles.itemsTitle}>
                     <i className="bi bi-sliders2" /> Update stock level
                   </div>
-                  <div className={styles.itemsHint}>Cập nhật trực tiếp các số tồn và đồng bộ `stockQty`</div>
+                  <div className={styles.itemsHint}>Cập nhật trực tiếp các số tồn và đồng bộ stockQty</div>
                 </div>
 
                 <div className={styles.formGrid}>
@@ -724,10 +878,10 @@ export default function StockLevelsPage() {
                       className={styles.search}
                       type="number"
                       value={editForm.onHand}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          onHand: clamp(Number(e.target.value || 0), 0, 1_000_000_000),
+                      onChange={(event) =>
+                        setEditForm((previous) => ({
+                          ...previous,
+                          onHand: clamp(Number(event.target.value || 0), 0, 1_000_000_000),
                         }))
                       }
                     />
@@ -739,10 +893,10 @@ export default function StockLevelsPage() {
                       className={styles.search}
                       type="number"
                       value={editForm.reserved}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          reserved: clamp(Number(e.target.value || 0), 0, 1_000_000_000),
+                      onChange={(event) =>
+                        setEditForm((previous) => ({
+                          ...previous,
+                          reserved: clamp(Number(event.target.value || 0), 0, 1_000_000_000),
                         }))
                       }
                     />
@@ -754,10 +908,10 @@ export default function StockLevelsPage() {
                       className={styles.search}
                       type="number"
                       value={editForm.incoming}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          incoming: clamp(Number(e.target.value || 0), 0, 1_000_000_000),
+                      onChange={(event) =>
+                        setEditForm((previous) => ({
+                          ...previous,
+                          incoming: clamp(Number(event.target.value || 0), 0, 1_000_000_000),
                         }))
                       }
                     />
@@ -769,10 +923,10 @@ export default function StockLevelsPage() {
                       className={styles.search}
                       type="number"
                       value={editForm.reorderPoint}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          reorderPoint: clamp(Number(e.target.value || 0), 0, 1_000_000_000),
+                      onChange={(event) =>
+                        setEditForm((previous) => ({
+                          ...previous,
+                          reorderPoint: clamp(Number(event.target.value || 0), 0, 1_000_000_000),
                         }))
                       }
                     />
@@ -784,10 +938,10 @@ export default function StockLevelsPage() {
                       className={styles.search}
                       type="number"
                       value={editForm.safetyStock}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          safetyStock: clamp(Number(e.target.value || 0), 0, 1_000_000_000),
+                      onChange={(event) =>
+                        setEditForm((previous) => ({
+                          ...previous,
+                          safetyStock: clamp(Number(event.target.value || 0), 0, 1_000_000_000),
                         }))
                       }
                     />
@@ -798,25 +952,25 @@ export default function StockLevelsPage() {
                     <input
                       className={styles.search}
                       value={editForm.createdBy}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          createdBy: e.target.value,
+                      onChange={(event) =>
+                        setEditForm((previous) => ({
+                          ...previous,
+                          createdBy: event.target.value,
                         }))
                       }
                     />
                   </div>
 
-                  <div className={styles.metaField} style={{ gridColumn: "1 / -1" }}>
+                  <div className={styles.metaFieldFull}>
                     <div className={styles.metaLabel}>Note</div>
                     <textarea
-                      className={styles.search}
+                      className={styles.textarea}
                       rows={3}
                       value={editForm.note}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          note: e.target.value,
+                      onChange={(event) =>
+                        setEditForm((previous) => ({
+                          ...previous,
+                          note: event.target.value,
                         }))
                       }
                       placeholder="Manual stock audit, stock correction, etc."
@@ -844,12 +998,12 @@ export default function StockLevelsPage() {
                   <div className={styles.metaField}>
                     <div className={styles.metaLabel}>Movement type</div>
                     <select
-                      className={styles.search}
+                      className={styles.select}
                       value={movementForm.type}
-                      onChange={(e) =>
-                        setMovementForm((prev) => ({
-                          ...prev,
-                          type: e.target.value,
+                      onChange={(event) =>
+                        setMovementForm((previous) => ({
+                          ...previous,
+                          type: event.target.value as MovementType,
                         }))
                       }
                     >
@@ -873,10 +1027,10 @@ export default function StockLevelsPage() {
                       type="number"
                       min={1}
                       value={movementForm.quantity}
-                      onChange={(e) =>
-                        setMovementForm((prev) => ({
-                          ...prev,
-                          quantity: clamp(Number(e.target.value || 1), 1, 1_000_000_000),
+                      onChange={(event) =>
+                        setMovementForm((previous) => ({
+                          ...previous,
+                          quantity: clamp(Number(event.target.value || 1), 1, 1_000_000_000),
                         }))
                       }
                     />
@@ -887,10 +1041,10 @@ export default function StockLevelsPage() {
                     <input
                       className={styles.search}
                       value={movementForm.createdBy}
-                      onChange={(e) =>
-                        setMovementForm((prev) => ({
-                          ...prev,
-                          createdBy: e.target.value,
+                      onChange={(event) =>
+                        setMovementForm((previous) => ({
+                          ...previous,
+                          createdBy: event.target.value,
                         }))
                       }
                     />
@@ -901,10 +1055,10 @@ export default function StockLevelsPage() {
                     <input
                       className={styles.search}
                       value={movementForm.referenceType}
-                      onChange={(e) =>
-                        setMovementForm((prev) => ({
-                          ...prev,
-                          referenceType: e.target.value,
+                      onChange={(event) =>
+                        setMovementForm((previous) => ({
+                          ...previous,
+                          referenceType: event.target.value,
                         }))
                       }
                       placeholder="ORDER / MANUAL / RETURN / AUDIT"
@@ -916,26 +1070,26 @@ export default function StockLevelsPage() {
                     <input
                       className={styles.search}
                       value={movementForm.referenceId}
-                      onChange={(e) =>
-                        setMovementForm((prev) => ({
-                          ...prev,
-                          referenceId: e.target.value,
+                      onChange={(event) =>
+                        setMovementForm((previous) => ({
+                          ...previous,
+                          referenceId: event.target.value,
                         }))
                       }
                       placeholder="order_123 / audit_001"
                     />
                   </div>
 
-                  <div className={styles.metaField} style={{ gridColumn: "1 / -1" }}>
+                  <div className={styles.metaFieldFull}>
                     <div className={styles.metaLabel}>Note</div>
                     <textarea
-                      className={styles.search}
+                      className={styles.textarea}
                       rows={3}
                       value={movementForm.note}
-                      onChange={(e) =>
-                        setMovementForm((prev) => ({
-                          ...prev,
-                          note: e.target.value,
+                      onChange={(event) =>
+                        setMovementForm((previous) => ({
+                          ...previous,
+                          note: event.target.value,
                         }))
                       }
                       placeholder="Lý do tạo stock movement"
@@ -1058,8 +1212,8 @@ export default function StockLevelsPage() {
               <div className={styles.footerNote}>
                 <i className="bi bi-shield-check" />
                 <span>
-                  Tip: `available = onHand - reserved`. Khi manual update hoặc tạo movement, hệ thống sẽ sync lại
-                  `ProductVariant.stockQty`.
+                  Tip: available = onHand - reserved. Khi manual update hoặc tạo movement, hệ thống sẽ sync lại
+                  ProductVariant.stockQty.
                 </span>
               </div>
             </>
