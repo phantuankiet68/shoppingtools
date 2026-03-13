@@ -1,6 +1,6 @@
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import { TEMPLATES } from "@/constants/builder/pages/templates.constants";
-import type { BuilderTemplate } from "@/constants/builder/pages/templates.constants";
+import type { BuilderTemplate, RegistryKind } from "@/constants/builder/pages/templates.constants";
 
 export function filterTemplates(args: {
   templates: readonly BuilderTemplate[];
@@ -29,4 +29,4 @@ export function filterTemplates(args: {
     .filter((t) => t.children.length > 0);
 }
 
-export { TEMPLATES };
+export { TEMPLATES, type RegistryKind };

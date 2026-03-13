@@ -14,7 +14,7 @@ function tpl(id: string, label: string, children: RegistryKind[]): BuilderTempla
 
 export const TEMPLATES: readonly BuilderTemplate[] = [
   tpl("tpl-topbar", "Topbar", [
-    "Announcement",
+    "TopbarGreen",
     "Header1",
     "Hero1",
     "BestSeller1",

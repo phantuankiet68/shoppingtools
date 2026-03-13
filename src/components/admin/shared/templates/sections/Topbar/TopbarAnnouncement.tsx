@@ -1,5 +1,7 @@
+"use client";
+
 // src/components/admin/shared/templates/sections/Topbar/TopbarAnnouncement.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { RegItem } from "@/lib/ui-builder/types";
 import styles from "@/styles/templates/sections/Topbar/TopbarAnnouncement.module.css";
 
@@ -39,11 +41,10 @@ export interface TopbarAnnouncementProps extends Record<string, unknown> {
   preview?: boolean;
 }
 
-// ===== DEFAULT DATA =====
+/* ===== DEFAULT DATA ===== */
 
 export const DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS: TopbarAnnouncementTickerItem[] = [
   { text: "Ưu đãi xanh – giao nhanh trong ngày.", badge: "Hot" },
-  { text: "Gói thành viên Eco: tích điểm xanh mỗi đơn hàng.", badge: "Eco" },
   { text: "Miễn phí đổi trả trong 7 ngày.", badge: "Support" },
 ];
 
@@ -87,63 +88,173 @@ export const TopbarAnnouncement: React.FC<TopbarAnnouncementProps> = ({
   links: linksProp,
   preview = false,
 }) => {
-  const links = linksProp ?? DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS;
-  const tickerItems = tickerItemsProp ?? DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS;
+  const links = useMemo(
+    () => (linksProp?.length ? linksProp : DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS),
+    [linksProp],
+  );
+
+  const tickerItems = useMemo(
+    () => (tickerItemsProp?.length ? tickerItemsProp : DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS),
+    [tickerItemsProp],
+  );
 
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerPhase, setTickerPhase] = useState<"active" | "leaving" | "entering">("active");
-  const tbRightRef = useRef<HTMLDivElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const tbRightRef = useRef<HTMLDivElement | null>(null);
+  const rotateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rotateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const mountedRef = useRef(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+
+      if (rotateIntervalRef.current) {
+        clearInterval(rotateIntervalRef.current);
+        rotateIntervalRef.current = null;
+      }
+
+      if (rotateTimeoutRef.current) {
+        clearTimeout(rotateTimeoutRef.current);
+        rotateTimeoutRef.current = null;
+      }
+
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!showTicker || tickerItems.length <= 1) {
+      setTickerIndex(0);
+      setTickerPhase("active");
+
+      if (rotateIntervalRef.current) {
+        clearInterval(rotateIntervalRef.current);
+        rotateIntervalRef.current = null;
+      }
+
+      if (rotateTimeoutRef.current) {
+        clearTimeout(rotateTimeoutRef.current);
+        rotateTimeoutRef.current = null;
+      }
+
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+
       return;
     }
 
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const runCycle = () => {
+      if (!mountedRef.current) return;
 
-    const startCycle = () => {
       setTickerPhase("leaving");
 
-      timeoutId = setTimeout(() => {
+      if (rotateTimeoutRef.current) {
+        clearTimeout(rotateTimeoutRef.current);
+      }
+
+      rotateTimeoutRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
+
         setTickerIndex((prev) => (prev + 1) % tickerItems.length);
         setTickerPhase("entering");
 
-        requestAnimationFrame(() => {
-          void document.body.offsetWidth;
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+        }
+
+        rafRef.current = requestAnimationFrame(() => {
+          if (!mountedRef.current) return;
           setTickerPhase("active");
         });
       }, 250);
     };
 
-    const intervalId = setInterval(startCycle, 4200);
+    rotateIntervalRef.current = setInterval(runCycle, 4200);
 
     return () => {
-      clearInterval(intervalId);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      if (rotateIntervalRef.current) {
+        clearInterval(rotateIntervalRef.current);
+        rotateIntervalRef.current = null;
+      }
+
+      if (rotateTimeoutRef.current) {
+        clearTimeout(rotateTimeoutRef.current);
+        rotateTimeoutRef.current = null;
+      }
+
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
     };
   }, [showTicker, tickerItems.length]);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen || preview) return;
 
-    const handleClick = (event: MouseEvent) => {
-      if (!tbRightRef.current) return;
-      if (!tbRightRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      if (tbRightRef.current?.contains(target)) return;
+      setMenuOpen(false);
     };
 
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, [menuOpen]);
+    document.addEventListener("click", handleDocumentClick);
+
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, [menuOpen, preview]);
+
+  useEffect(() => {
+    if (preview && menuOpen) {
+      setMenuOpen(false);
+    }
+  }, [preview, menuOpen]);
+
+  const handlePreventInPreview = (e: React.SyntheticEvent) => {
+    if (!preview) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   const handleLinkClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
     if (preview) {
       e.preventDefault();
+      e.stopPropagation();
     }
+  };
+
+  const handleRegionClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    if (preview) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    // Placeholder cho action sau này
+  };
+
+  const handleMoreClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    if (preview) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    setMenuOpen((open) => !open);
   };
 
   const rootStyle: React.CSSProperties & Record<string, string> = {
@@ -162,13 +273,22 @@ export const TopbarAnnouncement: React.FC<TopbarAnnouncementProps> = ({
     .filter(Boolean)
     .join(" ");
 
-  const tbRightClassName = [styles.tbRight, menuOpen ? styles.tbRightOpen : ""].filter(Boolean).join(" ");
+  const tbRightClassName = [styles.tbRight, menuOpen ? styles.tbRightOpen : ""]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className={styles.topbar} style={rootStyle}>
+    <div
+      className={styles.topbar}
+      style={rootStyle}
+      onClick={handlePreventInPreview}
+      aria-label="Topbar Announcement"
+    >
       <div className={styles.topbarInner}>
         <div className={styles.tbLeft}>
-          <div className={styles.logoCircle}>{logoIconClass ? <i className={logoIconClass} /> : null}</div>
+          <div className={styles.logoCircle} aria-hidden="true">
+            {logoIconClass ? <i className={logoIconClass} /> : null}
+          </div>
 
           <div>
             <div className={styles.brandTitle}>{brandTitle}</div>
@@ -176,52 +296,70 @@ export const TopbarAnnouncement: React.FC<TopbarAnnouncementProps> = ({
           </div>
 
           {showRegionButton && (
-            <button className={styles.regionBtn} type="button">
-              {regionIconClass && <i className={regionIconClass} />}
+            <button
+              className={styles.regionBtn}
+              type="button"
+              onClick={handleRegionClick}
+              aria-label={regionLabel}
+            >
+              {regionIconClass ? <i className={regionIconClass} aria-hidden="true" /> : null}
               <span>{regionLabel}</span>
-              {regionChevronIconClass && <i className={regionChevronIconClass} />}
+              {regionChevronIconClass ? (
+                <i className={regionChevronIconClass} aria-hidden="true" />
+              ) : null}
             </button>
           )}
         </div>
 
         <div className={styles.tbCenter}>
-          {showTicker && tickerItem && (
+          {showTicker && tickerItem ? (
             <div className={styles.ticker}>
               <div className={styles.tickerBox}>
                 <span className={styles.tickerLabel}>{tickerLabel}</span>
+
                 <div className={tickerTextClassName}>
                   <span>{tickerItem.text}</span>
-                  {tickerItem.badge && <span className={styles.tag}>{tickerItem.badge}</span>}
+                  {tickerItem.badge ? <span className={styles.tag}>{tickerItem.badge}</span> : null}
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         <div className={tbRightClassName} ref={tbRightRef}>
           <div className={styles.tbLinks}>
             {links.map((link, index) => (
-              <a key={index} className={styles.tbLink} href={link.href || "#"} onClick={handleLinkClick}>
-                {link.iconClass && <i className={link.iconClass} />}
+              <a
+                key={`${link.label}-${index}`}
+                className={styles.tbLink}
+                href={link.href || "#"}
+                onClick={handleLinkClick}
+              >
+                {link.iconClass ? <i className={link.iconClass} aria-hidden="true" /> : null}
                 <span>{link.label}</span>
               </a>
             ))}
           </div>
 
-          {showStatus && (
+          {showStatus ? (
             <div className={styles.statusPill}>
-              <span className={styles.dot} style={statusDotColor ? { backgroundColor: statusDotColor } : undefined} />
+              <span
+                className={styles.dot}
+                style={statusDotColor ? { backgroundColor: statusDotColor } : undefined}
+              />
               <span>{statusText}</span>
             </div>
-          )}
+          ) : null}
 
           <button
             className={styles.moreBtn}
             id="topbarAnnouncementMoreBtn"
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={handleMoreClick}
+            aria-label="Mở menu topbar"
+            aria-expanded={menuOpen}
           >
-            <i className="bi bi-list" />
+            <i className="bi bi-list" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -259,3 +397,5 @@ export const SHOP_TOPBAR_ANNOUNCEMENT: RegItem = {
   inspector: [],
   render: (props) => <TopbarAnnouncement {...(props as TopbarAnnouncementProps)} />,
 };
+
+export default TopbarAnnouncement;

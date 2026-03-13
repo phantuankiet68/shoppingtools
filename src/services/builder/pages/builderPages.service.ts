@@ -1,4 +1,4 @@
-import type { PageRow } from "@/lib/page/types";
+import type { PageRow } from "@/lib/builder/pages/types";
 import { API_ROUTES } from "@/constants/api";
 
 type StatusFilter = "all" | "DRAFT" | "PUBLISHED";
