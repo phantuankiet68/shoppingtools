@@ -1,18 +1,13 @@
-/* src/components/templates/AuroraTopbarGreen.module.css */
-/* src/components/templates/AuroraTopbarGreen.module.css */
+/* src/components/templates/TopbarAnnouncement.module.css */
 .topbar {
   width: 100%;
-  /* Các biến màu scope trong block */
   --green-main: #a7f3d0;
   --green-dark: #047857;
   --green-soft: #dcfce7;
-
   --ink-main: #064e3b;
   --ink-muted: #64746f;
-
   --radius: 10px;
-
-  background: var(--aurora-topbar-background, var(--green-main));
+  background: var(--topbar-announcement-background, var(--green-main));
   padding: 8px 0;
   color: var(--ink-main);
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
@@ -130,10 +125,12 @@
   transform: translateY(-100%);
   opacity: 0;
 }
+
 .isEntering {
   transform: translateY(100%);
   opacity: 0;
 }
+
 .isActive {
   transform: translateY(0);
   opacity: 1;

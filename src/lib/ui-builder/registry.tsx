@@ -1,6 +1,9 @@
 // lib/ui-builder/registry.ts
 import type { RegItem } from "@/lib/ui-builder/types";
 
+// ===== Web page Topbar  =====
+import { SHOP_TOPBAR_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Topbar/TopbarAnnouncement";
+
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
 import { SHOP_HEADER_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/header/header1";
@@ -18,6 +21,9 @@ import { SHOP_FOOTER_GREEN_ONE } from "@/components/admin/shared/templates/shopG
 export const BASIC: RegItem[] = [];
 
 export const REGISTRY_HOME: RegItem[] = [
+  // ===== Web page Topbar  =====
+  SHOP_TOPBAR_ANNOUNCEMENT,
+
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,
   SHOP_HEADER_GREEN_ONE,

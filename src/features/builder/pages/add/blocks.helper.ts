@@ -1,5 +1,5 @@
-import type { Block, DropMeta, InternalProps } from "@/lib/page/types";
-import { uid } from "@/lib/page/utils";
+import type { Block, DropMeta, InternalProps } from "@/lib/builder/pages/types";
+import { uid } from "@/lib/builder/pages/utils";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 
 export function normalizeBlocks(raw: unknown[]): Block[] {

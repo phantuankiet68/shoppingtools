@@ -1,19 +1,20 @@
-// src/components/templates/AuroraTopbarGreen.tsx
+// src/components/admin/shared/templates/sections/Topbar/TopbarAnnouncement.tsx
 import React, { useEffect, useRef, useState } from "react";
-import styles from "@/styles/templates/ShopTemplate/topbar/AuroraTopbarGreen.module.css";
-// src/components/templates/AuroraTopbarGreen.tsx
-export interface AuroraTopbarGreenTickerItem {
+import type { RegItem } from "@/lib/ui-builder/types";
+import styles from "@/styles/templates/sections/Topbar/TopbarAnnouncement.module.css";
+
+export interface TopbarAnnouncementTickerItem {
   text: string;
   badge?: string;
 }
 
-export interface AuroraTopbarGreenLinkItem {
+export interface TopbarAnnouncementLinkItem {
   label: string;
   href?: string;
   iconClass?: string;
 }
 
-export interface AuroraTopbarGreenProps {
+export interface TopbarAnnouncementProps extends Record<string, unknown> {
   logoIconClass?: string;
   brandTitle?: string;
   brandSubtitle?: string;
@@ -25,7 +26,7 @@ export interface AuroraTopbarGreenProps {
 
   showTicker?: boolean;
   tickerLabel?: string;
-  tickerItems?: AuroraTopbarGreenTickerItem[];
+  tickerItems?: TopbarAnnouncementTickerItem[];
 
   backgroundColor?: string;
 
@@ -33,20 +34,20 @@ export interface AuroraTopbarGreenProps {
   statusText?: string;
   statusDotColor?: string;
 
-  links?: AuroraTopbarGreenLinkItem[];
+  links?: TopbarAnnouncementLinkItem[];
 
   preview?: boolean;
 }
 
 // ===== DEFAULT DATA =====
 
-export const DEFAULT_AURORA_TOPBAR_GREEN_TICKERS: AuroraTopbarGreenTickerItem[] = [
+export const DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS: TopbarAnnouncementTickerItem[] = [
   { text: "Ưu đãi xanh – giao nhanh trong ngày.", badge: "Hot" },
   { text: "Gói thành viên Eco: tích điểm xanh mỗi đơn hàng.", badge: "Eco" },
   { text: "Miễn phí đổi trả trong 7 ngày.", badge: "Support" },
 ];
 
-export const DEFAULT_AURORA_TOPBAR_GREEN_LINKS: AuroraTopbarGreenLinkItem[] = [
+export const DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS: TopbarAnnouncementLinkItem[] = [
   {
     label: "Hỗ trợ",
     href: "#",
@@ -64,17 +65,7 @@ export const DEFAULT_AURORA_TOPBAR_GREEN_LINKS: AuroraTopbarGreenLinkItem[] = [
   },
 ];
 
-// Optional local RegItem type để tránh lỗi type khi không import được từ nơi khác
-// make it generic so callers can specify the props shape instead of using `any`
-export interface RegItem<P = unknown> {
-  kind: string;
-  label: string;
-  defaults: P;
-  inspector: unknown[];
-  render: (props: P) => React.ReactElement;
-}
-
-export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
+export const TopbarAnnouncement: React.FC<TopbarAnnouncementProps> = ({
   logoIconClass = "bi bi-leaf-fill",
   brandTitle = "Aurora Green",
   brandSubtitle = "Topbar 2025 – Xanh lá nhạt, nhẹ mắt",
@@ -96,15 +87,14 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
   links: linksProp,
   preview = false,
 }) => {
-  const links = linksProp ?? DEFAULT_AURORA_TOPBAR_GREEN_LINKS;
-  const tickerItems = tickerItemsProp ?? DEFAULT_AURORA_TOPBAR_GREEN_TICKERS;
+  const links = linksProp ?? DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS;
+  const tickerItems = tickerItemsProp ?? DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS;
 
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerPhase, setTickerPhase] = useState<"active" | "leaving" | "entering">("active");
   const tbRightRef = useRef<HTMLDivElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Auto rotate ticker
   useEffect(() => {
     if (!showTicker || tickerItems.length <= 1) {
       return;
@@ -120,7 +110,6 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
         setTickerPhase("entering");
 
         requestAnimationFrame(() => {
-          // Force reflow để CSS transition chạy lại
           void document.body.offsetWidth;
           setTickerPhase("active");
         });
@@ -137,7 +126,6 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
     };
   }, [showTicker, tickerItems.length]);
 
-  // Click bên ngoài để đóng menu mobile
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -158,13 +146,9 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
     }
   };
 
-  // expand CSSProperties to allow arbitrary custom props (CSS custom properties)
   const rootStyle: React.CSSProperties & Record<string, string> = {
-    // Cho phép override background qua CSS custom prop
-    // nhưng vẫn set backgroundColor để tương thích
     backgroundColor,
-    // custom property để CSS có thể dùng nếu cần
-    "--aurora-topbar-background": backgroundColor,
+    "--topbar-announcement-background": backgroundColor,
   };
 
   const tickerItem = tickerItems[tickerIndex];
@@ -183,7 +167,6 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
   return (
     <div className={styles.topbar} style={rootStyle}>
       <div className={styles.topbarInner}>
-        {/* LEFT */}
         <div className={styles.tbLeft}>
           <div className={styles.logoCircle}>{logoIconClass ? <i className={logoIconClass} /> : null}</div>
 
@@ -201,7 +184,6 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
           )}
         </div>
 
-        {/* CENTER */}
         <div className={styles.tbCenter}>
           {showTicker && tickerItem && (
             <div className={styles.ticker}>
@@ -216,7 +198,6 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
           )}
         </div>
 
-        {/* RIGHT */}
         <div className={tbRightClassName} ref={tbRightRef}>
           <div className={styles.tbLinks}>
             {links.map((link, index) => (
@@ -236,7 +217,7 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
 
           <button
             className={styles.moreBtn}
-            id="auroraTopbarGreenMoreBtn"
+            id="topbarAnnouncementMoreBtn"
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
           >
@@ -248,11 +229,9 @@ export const AuroraTopbarGreen: React.FC<AuroraTopbarGreenProps> = ({
   );
 };
 
-// ===== RegItem =====
-
-export const AURORA_TOPBAR_GREEN_REGITEM: RegItem<AuroraTopbarGreenProps> = {
-  kind: "TopbarGreen",
-  label: "Aurora Green",
+export const SHOP_TOPBAR_ANNOUNCEMENT: RegItem = {
+  kind: "Announcement",
+  label: "Announcement",
   defaults: {
     logoIconClass: "bi bi-leaf-fill",
     brandTitle: "Aurora Green",
@@ -265,7 +244,7 @@ export const AURORA_TOPBAR_GREEN_REGITEM: RegItem<AuroraTopbarGreenProps> = {
 
     showTicker: true,
     tickerLabel: "Tin mới",
-    tickerItems: DEFAULT_AURORA_TOPBAR_GREEN_TICKERS,
+    tickerItems: DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS,
 
     backgroundColor: "#a7f3d0",
 
@@ -273,10 +252,10 @@ export const AURORA_TOPBAR_GREEN_REGITEM: RegItem<AuroraTopbarGreenProps> = {
     statusText: "Online",
     statusDotColor: "#16a34a",
 
-    links: DEFAULT_AURORA_TOPBAR_GREEN_LINKS,
+    links: DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS,
 
     preview: false,
-  } satisfies AuroraTopbarGreenProps,
+  },
   inspector: [],
-  render: (p) => <AuroraTopbarGreen {...(p as AuroraTopbarGreenProps)} />,
+  render: (props) => <TopbarAnnouncement {...(props as TopbarAnnouncementProps)} />,
 };
