@@ -2,11 +2,10 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/builder/pages/PageInspector.module.css";
-import type { PageRow, SEO } from "@/lib/page/types";
-import { buildAutoSEO } from "@/lib/page/seo-utils";
 import { API_ROUTES } from "@/constants/api";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { fillAutoSEO, PageRow, SEO } from "@/lib/builder/pages/types";
 
 type Props = {
   page: PageRow | null;
@@ -18,6 +17,21 @@ type Props = {
   onDelete: () => void;
   initialSeo?: SEO | null;
 };
+
+function hasMeaningfulSeo(seo?: Partial<SEO> | null) {
+  if (!seo) return false;
+
+  return Boolean(
+    seo.metaTitle ||
+    seo.metaDescription ||
+    seo.keywords ||
+    seo.canonicalUrl ||
+    seo.ogTitle ||
+    seo.ogDescription ||
+    seo.ogImage ||
+    seo.structuredData,
+  );
+}
 
 function ensureLeadingSlash(p?: string | null) {
   if (!p) return "/";
@@ -78,14 +92,14 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
       return;
     }
 
-    setSeo(buildDefaultSEO(page, initialSeo));
+    setSeo(buildDefaultSEO(page, hasMeaningfulSeo(initialSeo) ? initialSeo : null));
     lastLoadedPageIdRef.current = null;
-  }, [page, initialSeo]);
+  }, [page?.id, initialSeo]);
 
   useEffect(() => {
     if (!page?.id) return;
 
-    if (initialSeo) {
+    if (hasMeaningfulSeo(initialSeo)) {
       lastLoadedPageIdRef.current = page.id;
       return;
     }
@@ -114,25 +128,31 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
         const data = await r.json();
         if (controller.signal.aborted) return;
 
-        if (data?.seo) setSeo((prev) => ({ ...prev, ...data.seo }));
+        if (data?.seo) {
+          setSeo((prev) => ({
+            ...prev,
+            ...data.seo,
+          }));
+        }
 
         lastLoadedPageIdRef.current = pageId;
-      } catch {
-        // silent
+      } catch (e) {
+        console.error("Load SEO error:", e);
       }
     })();
 
     return () => controller.abort();
-  }, [page, initialSeo, modal]);
+  }, [page?.id, initialSeo, modal]);
 
   useEffect(() => {
-    if (!page) return;
+    if (!page?.id) return;
+
     setSeo((prev) => ({
       ...prev,
       metaTitle: prev.metaTitle || page.title || "",
       ogTitle: prev.ogTitle || page.title || "",
     }));
-  }, [page]);
+  }, [page?.id, page?.title]);
 
   const metaLen = (seo.metaTitle || "").length;
   const descLen = (seo.metaDescription || "").length;
@@ -141,17 +161,16 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
   const seoOkDesc = descLen <= 160 ? "good" : descLen <= 180 ? "warn" : "bad";
 
   const handleAutoSEO = useCallback(() => {
-    if (!page) return;
+    if (!page?.id) return;
 
-    const suggestion = buildAutoSEO({
-      title: page.title || seo.metaTitle || "Trang mới",
-      path: pathPretty,
+    const { seo: nextSeo } = fillAutoSEO({
+      title: page.title || "Trang mới",
+      path: page.path || "/",
     });
 
     setSeo((prev) => ({
       ...prev,
-      ...suggestion,
-      ogTitle: suggestion.metaTitle || prev.ogTitle,
+      ...nextSeo,
     }));
 
     modal.success("Success", "Đã autocomplete SEO");

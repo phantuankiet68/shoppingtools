@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import styles from "@/styles/admin/builder/pages/add.module.css";
-
 import DesignHeader from "@/components/admin/builder/pages/DesignHeader";
 import { ControlsPalette, Canvas, Inspector } from "@/components/admin/builder/pages";
-
-import type { Block, DropMeta } from "@/lib/page/types";
+import type { Block, DropMeta } from "@/lib/builder/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-
 import { useUiBuilderAddStore } from "@/store/builder/pages/add/uiBuilderAdd.store";
-import { fetchSites, type SiteRow } from "@/services/builder/pages/add/adminSites.service";
+import { useSiteStore } from "@/store/site/site.store";
 import { fetchAdminPage, publishAdminPage, saveAdminPage } from "@/services/builder/pages/add/adminPages.service";
 
 import {
@@ -26,18 +23,33 @@ import {
 } from "@/features/builder/pages/add/blocks.helper";
 import { BUILDER_ADD_MESSAGES } from "@/features/builder/pages/add/messages";
 
+type RouteParams = {
+  locale?: "en";
+};
+
+type SiteOption = {
+  id: string;
+  name: string;
+  domain?: string;
+};
+
 export default function UiBuilderAddPage() {
-  const { locale: routeLocale } = useParams<{ locale: "en" }>();
+  const { locale: routeLocale } = useParams<RouteParams>();
   const sp = useSearchParams();
   const initialId = sp.get("id");
-
   const [state, dispatch] = useUiBuilderAddStore(initialId);
 
-  const [sites, setSites] = useState<SiteRow[]>([]);
-  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const sites = useSiteStore((state) => state.sites);
+  const sitesLoading = useSiteStore((state) => state.loading);
+  const sitesErr = useSiteStore((state) => state.err);
+  const selectedSiteId = useSiteStore((state) => state.siteId);
+  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
+  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
+  const loadSites = useSiteStore((state) => state.loadSites);
 
-  const [guardMsg, setGuardMsg] = useState("");
+  const [guardMsg, setGuardMsg] = React.useState("");
   const guardTimeoutRef = useRef<number | null>(null);
+
   const setGuard = (msg: string, ms = 1800) => {
     setGuardMsg(msg);
     if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
@@ -60,60 +72,63 @@ export default function UiBuilderAddPage() {
     [state.blocks, state.activeId],
   );
 
-  // init
+  const selectedSite = useMemo(() => {
+    return sites.find((site) => site.id === selectedSiteId) ?? null;
+  }, [sites, selectedSiteId]);
+
+  const siteOptions = useMemo<SiteOption[]>(() => {
+    return sites.map((site) => ({
+      id: String(site.id),
+      name: site.name ?? site.domain ?? `Site ${site.id}`,
+      domain: site.domain,
+    }));
+  }, [sites]);
+
   useEffect(() => {
     const ac = new AbortController();
 
     (async () => {
       try {
-        const siteList = await fetchSites(ac.signal);
-        setSites(siteList);
+        hydrateFromStorage();
 
-        let activeSiteId = "";
+        await loadSites();
 
         if (initialId) {
           const p = await fetchAdminPage(initialId, ac.signal);
+
           if (p) {
             dispatch({ type: "setPageId", pageId: p.id });
             dispatch({ type: "setTitle", title: p.title ?? "Untitled" });
             dispatch({ type: "setSlug", slug: p.slug ?? "" });
-            dispatch({ type: "setBlocks", blocks: normalizeBlocks((p.blocks ?? []) as unknown[]) });
+            dispatch({
+              type: "setBlocks",
+              blocks: normalizeBlocks((p.blocks ?? []) as unknown[]),
+            });
 
             dispatch({
               type: "patchSeo",
-              patch: { metaTitle: p.title ?? "", ogTitle: p.title ?? "" },
+              patch: {
+                metaTitle: p.title ?? "",
+                ogTitle: p.title ?? "",
+              },
             });
 
-            if (p.siteId && siteList.some((s) => s.id === p.siteId)) activeSiteId = p.siteId;
+            if (p.siteId) {
+              setSelectedSiteId(p.siteId);
+            }
           }
         }
-
-        if (!activeSiteId) {
-          const saved = localStorage.getItem("pages_selected_site");
-          const fallback = siteList[0]?.id ?? "";
-          activeSiteId = saved && siteList.some((s) => s.id === saved) ? saved : fallback;
-        }
-
-        if (activeSiteId) setSelectedSiteId(activeSiteId);
       } catch (err) {
-        if ((err as Error).name !== "AbortError") console.error("Initialization error:", err);
+        if ((err as Error).name !== "AbortError") {
+          console.error("Initialization error:", err);
+        }
       }
     })();
 
     return () => ac.abort();
-  }, [initialId, routeLocale, dispatch]);
+  }, [initialId, routeLocale, dispatch, hydrateFromStorage, loadSites, setSelectedSiteId]);
 
   useEffect(() => {
-    if (selectedSiteId) localStorage.setItem("pages_selected_site", selectedSiteId);
-  }, [selectedSiteId]);
-
-  const currentSite = useMemo(() => {
-    if (sites.length === 0) return undefined;
-    return sites.find((s) => s.id === selectedSiteId) ?? sites[0];
-  }, [sites, selectedSiteId]);
-
-  useEffect(() => {
-    // auto fill metaTitle / ogTitle if empty
     dispatch({
       type: "patchSeo",
       patch: {
@@ -132,12 +147,11 @@ export default function UiBuilderAddPage() {
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const meta = (e as React.DragEvent & { zbMeta?: DropMeta }).zbMeta || null;
-
     const txt = e.dataTransfer.getData("text/plain") || "";
 
-    // template drop
     const droppedTpl = (() => {
       if (!txt.startsWith("template:")) return null;
+
       try {
         const raw = e.dataTransfer.getData("application/json");
         const payload = raw ? JSON.parse(raw) : null;
@@ -154,7 +168,6 @@ export default function UiBuilderAddPage() {
       return;
     }
 
-    // single block drop
     const kind = txt;
     if (!REGISTRY.some((r) => r.kind === kind)) return;
 
@@ -166,11 +179,13 @@ export default function UiBuilderAddPage() {
   const move = React.useCallback(
     (dir: -1 | 1) => {
       if (!state.activeId) return;
+
       dispatch({
         type: "setBlocks",
         blocks: (() => {
           const idx = state.blocks.findIndex((b) => b.id === state.activeId);
           if (idx < 0) return state.blocks;
+
           const next = [...state.blocks];
           const ni = Math.min(Math.max(idx + dir, 0), state.blocks.length - 1);
           const [it] = next.splice(idx, 1);
@@ -184,7 +199,11 @@ export default function UiBuilderAddPage() {
 
   const remove = React.useCallback(() => {
     if (!state.activeId) return;
-    dispatch({ type: "setBlocks", blocks: state.blocks.filter((b) => b.id !== state.activeId) });
+
+    dispatch({
+      type: "setBlocks",
+      blocks: state.blocks.filter((b) => b.id !== state.activeId),
+    });
     dispatch({ type: "setActiveId", id: null });
   }, [state.activeId, state.blocks, dispatch]);
 
@@ -208,7 +227,11 @@ export default function UiBuilderAddPage() {
             nextProps = { ...def, ...nextProps };
           }
 
-          return { ...b, kind: nextKind, props: nextProps };
+          return {
+            ...b,
+            kind: nextKind,
+            props: nextProps,
+          };
         }),
       });
     },
@@ -216,6 +239,11 @@ export default function UiBuilderAddPage() {
   );
 
   async function savePage() {
+    if (!selectedSiteId) {
+      setGuard("Chưa chọn site", 1800);
+      return;
+    }
+
     try {
       dispatch({ type: "setSaving", saving: true });
 
@@ -223,6 +251,8 @@ export default function UiBuilderAddPage() {
 
       const body = {
         id: state.pageId ?? undefined,
+        siteId: selectedSiteId,
+        domain: selectedSite?.domain || "",
         title: safeTitle,
         slug: finalSlug,
         path: finalPath,
@@ -234,18 +264,33 @@ export default function UiBuilderAddPage() {
         },
       };
 
-      const rs = await saveAdminPage({ body, siteDomain: currentSite?.domain || "" });
-      if (!rs.ok) throw new Error(rs.error);
+      const rs = await saveAdminPage({
+        body,
+        siteDomain: selectedSite?.domain || "",
+      });
+
+      if (!rs.ok) {
+        throw new Error(rs.error || BUILDER_ADD_MESSAGES.SAVE_ERROR_FALLBACK);
+      }
+
+      if (rs.id && rs.id !== state.pageId) {
+        dispatch({ type: "setPageId", pageId: rs.id });
+      }
 
       setGuard(BUILDER_ADD_MESSAGES.SAVE_DRAFT_OK, 1500);
     } catch (e: unknown) {
-      setGuard((e as Error)?.message || BUILDER_ADD_MESSAGES.SAVE_ERROR_FALLBACK, 2000);
+      setGuard((e as Error)?.message || BUILDER_ADD_MESSAGES.SAVE_ERROR_FALLBACK, 2200);
     } finally {
       dispatch({ type: "setSaving", saving: false });
     }
   }
 
   async function publishPage() {
+    if (!selectedSiteId) {
+      setGuard("Chưa chọn site", 1800);
+      return;
+    }
+
     if (!state.pageId) {
       setGuard(BUILDER_ADD_MESSAGES.NEED_SAVE_BEFORE_PUBLISH, 1800);
       return;
@@ -254,11 +299,17 @@ export default function UiBuilderAddPage() {
     try {
       dispatch({ type: "setPublishing", publishing: true });
 
-      const rs = await publishAdminPage({ id: state.pageId, siteDomain: currentSite?.domain || "" });
-      if (!rs.ok) throw new Error(rs.error);
+      const rs = await publishAdminPage({
+        id: state.pageId,
+        siteDomain: selectedSite?.domain || "",
+      });
+
+      if (!rs.ok) {
+        throw new Error(rs.error || BUILDER_ADD_MESSAGES.PUBLISH_ERROR_FALLBACK);
+      }
 
       const safePath = ensureLeadingSlash(derivedPath);
-      const siteOrigin = originFromDomain(currentSite?.domain);
+      const siteOrigin = originFromDomain(selectedSite?.domain);
       const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
       window.open(url, "_blank");
     } catch (e: unknown) {
@@ -270,7 +321,7 @@ export default function UiBuilderAddPage() {
 
   const openPreview = () => {
     const safePath = ensureLeadingSlash(derivedPath);
-    const siteOrigin = originFromDomain(currentSite?.domain);
+    const siteOrigin = originFromDomain(selectedSite?.domain);
     const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
     window.open(url, "_blank");
   };
@@ -288,24 +339,6 @@ export default function UiBuilderAddPage() {
           </div>
         </div>
       )}
-
-      <div className={styles.siteBar}>
-        <div className={`${styles.siteRow} ${styles.hidden}`}>
-          <i className="bi bi-globe2" />
-          <select
-            className={styles.siteSelect}
-            value={selectedSiteId}
-            onChange={(e) => setSelectedSiteId(e.target.value)}
-            aria-label="Chọn site"
-          >
-            {sites.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} — {s.domain} ({s.localeDefault})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
 
       <div>
         {state.mode === "design" ? (
@@ -333,6 +366,7 @@ export default function UiBuilderAddPage() {
               <DesignHeader
                 title={state.title}
                 setTitle={(v) => dispatch({ type: "setTitle", title: v })}
+                path={derivedPath}
                 saving={state.saving}
                 saved={!state.saving}
                 publishing={state.publishing}
@@ -340,7 +374,12 @@ export default function UiBuilderAddPage() {
                 onPublish={publishPage}
                 onPreview={openPreview}
                 onRefresh={() => {}}
+                device={state.device}
                 setDevice={(d) => dispatch({ type: "setDevice", device: d })}
+                sites={siteOptions}
+                selectedSiteId={selectedSiteId || ""}
+                onChangeSite={setSelectedSiteId}
+                disableSiteSelect={Boolean(state.pageId)}
               />
               <Inspector active={active} move={move} remove={remove} updateActive={updateActive} />
             </aside>
@@ -382,6 +421,9 @@ export default function UiBuilderAddPage() {
           </div>
         )}
       </div>
+
+      {sitesLoading && <div className="small text-secondary mt-2">Đang tải site...</div>}
+      {sitesErr && <div className="small text-danger mt-2">{sitesErr}</div>}
     </div>
   );
 }

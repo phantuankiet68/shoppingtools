@@ -1017,7 +1017,7 @@
   font-size: 22px;
   line-height: 1.2;
   font-weight: 700;
-  color: #101828;
+  color: var(--color-blue);
 }
 
 .ordersSub {

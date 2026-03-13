@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const ShippingBuilder = dynamic(() => import("@/components/admin/system/settings/shipping/page"), { ssr: false });
+const ShippingBuilder = dynamic(() => import("@/components/admin/settings/shipping/page"), { ssr: false });
 
 export default function Page() {
   return (

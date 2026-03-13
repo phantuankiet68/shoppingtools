@@ -2,15 +2,15 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import type { PageRowWithSite, SiteFilter, SiteOption } from "@/services/builder/pages/builderPages.service";
+import type { PageRowWithSite, SiteFilter } from "@/services/builder/pages/builderPages.service";
 import {
   deletePage,
   duplicatePage,
   fetchPagesList,
-  fetchSites,
   publishPage,
   unpublishPage,
 } from "@/services/builder/pages/builderPages.service";
+import { useSiteStore } from "@/store/site/site.store";
 
 type StatusFilter = "all" | "DRAFT" | "PUBLISHED";
 type SortKey = "updatedAt" | "createdAt" | "title";
@@ -34,31 +34,31 @@ export function useBuilderPagesStore(init: {
   const [status, setStatus] = useState<StatusFilter>(init.status);
   const [sortKey, setSortKey] = useState<SortKey>(init.sortKey);
   const [sortDir, setSortDir] = useState<SortDir>(init.sortDir);
-
-  const [sites, setSites] = useState<SiteOption[]>([]);
-  const [siteId, setSiteId] = useState<SiteFilter>(init.siteId);
-
   const [page, setPage] = useState<number>(init.page);
   const [total, setTotal] = useState<number>(0);
-
   const [activeId, setActiveId] = useState<string | null>(init.activeId);
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(total / PAGE_SIZE)), [total]);
-  const active = useMemo(() => pages.find((p) => p.id === activeId) ?? null, [pages, activeId]);
+  const sites = useSiteStore((state) => state.sites);
+  const sitesLoading = useSiteStore((state) => state.loading);
+  const sitesErr = useSiteStore((state) => state.err);
+  const loadSites = useSiteStore((state) => state.loadSites);
 
-  const loadSites = useCallback(async () => {
-    try {
-      const s = await fetchSites();
-      setSites(s);
-    } catch {
-      setSites([]);
-    }
+  const [siteId, setSiteIdState] = useState<SiteFilter>(init.siteId ?? "all");
+
+  const setSiteId = useCallback((next: SiteFilter) => {
+    setSiteIdState(next);
   }, []);
+
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(total / PAGE_SIZE)), [total]);
+
+  const active = useMemo(() => {
+    return pages.find((p) => p.id === activeId) ?? null;
+  }, [pages, activeId]);
 
   const loadPages = useCallback(async () => {
     setLoading(true);
     try {
-      const { items, total, derivedSites } = await fetchPagesList({
+      const { items, total } = await fetchPagesList({
         q,
         page,
         pageSize: PAGE_SIZE,
@@ -71,13 +71,6 @@ export function useBuilderPagesStore(init: {
       setPages(items);
       setTotal(total);
 
-      // Guard sites update
-      setSites((prev) => {
-        if (prev.length === derivedSites.length && prev.every((s, i) => s.id === derivedSites[i].id)) return prev;
-        return derivedSites;
-      });
-
-      // Functional setActiveId
       setActiveId((prev) => {
         if (!prev && items.length) return items[0].id;
         if (prev && !items.find((p) => p.id === prev)) return items[0]?.id ?? null;
@@ -100,7 +93,10 @@ export function useBuilderPagesStore(init: {
       if (page > willBeTotalPages) setPage(willBeTotalPages);
 
       await loadPages();
-      if (activeId === id) setActiveId(null);
+
+      if (activeId === id) {
+        setActiveId(null);
+      }
     },
     [total, page, loadPages, activeId],
   );
@@ -117,6 +113,7 @@ export function useBuilderPagesStore(init: {
     async (id: string, next: "publish" | "unpublish") => {
       if (next === "publish") await publishPage(id);
       else await unpublishPage(id);
+
       await loadPages();
     },
     [loadPages],
@@ -124,7 +121,6 @@ export function useBuilderPagesStore(init: {
 
   return useMemo(
     () => ({
-      // state
       pages,
       loading,
       q,
@@ -132,6 +128,8 @@ export function useBuilderPagesStore(init: {
       sortKey,
       sortDir,
       sites,
+      sitesLoading,
+      sitesErr,
       siteId,
       page,
       total,
@@ -139,7 +137,6 @@ export function useBuilderPagesStore(init: {
       activeId,
       active,
 
-      // setters
       setQ,
       setStatus,
       setSortKey,
@@ -148,14 +145,12 @@ export function useBuilderPagesStore(init: {
       setPage,
       setActiveId,
 
-      // actions
       loadSites,
       loadPages,
       remove,
       dup,
       pub,
 
-      // constants
       PAGE_SIZE,
     }),
     [
@@ -166,12 +161,15 @@ export function useBuilderPagesStore(init: {
       sortKey,
       sortDir,
       sites,
+      sitesLoading,
+      sitesErr,
       siteId,
       page,
       total,
       totalPages,
       activeId,
       active,
+      setSiteId,
       loadSites,
       loadPages,
       remove,

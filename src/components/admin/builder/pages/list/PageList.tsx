@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useModal } from "@/components/admin/shared/common/modal";
 import styles from "@/styles/admin/builder/pages/pageList.module.css";
-import type { PageRow } from "@/lib/page/types";
+import type { PageRow } from "@/lib/builder/pages/types";
 import { PAGE_MESSAGES as M } from "@/features/builder/pages/messages";
 
 type SortKey = "updatedAt" | "createdAt" | "title";
@@ -13,10 +13,6 @@ type StatusFilter = "all" | "DRAFT" | "PUBLISHED";
 type SiteOption = { id: string; name?: string };
 type SiteFilter = "all" | string;
 
-/**
- * Extend PageRow safely for projects that may return either `siteId` or `site_id`.
- * (No `any`, no changes required in your shared types.)
- */
 type PageRowWithSite = PageRow & {
   siteId?: string | null;
   site_id?: string | null;
@@ -40,6 +36,8 @@ type Props = {
   setSortDir: (d: SortDir) => void;
 
   sites: SiteOption[];
+  sitesLoading?: boolean;
+  sitesErr?: string | null;
   siteId: SiteFilter;
   setSiteId: (v: SiteFilter) => void;
 
@@ -72,6 +70,8 @@ function PageList({
   setSortKey,
   setSortDir,
   sites,
+  sitesLoading,
+  sitesErr,
   siteId,
   setSiteId,
   onRefresh,
@@ -88,10 +88,11 @@ function PageList({
 
       if (sortKey === k) {
         setSortDir(sortDir === "asc" ? "desc" : "asc");
-      } else {
-        setSortKey(k);
-        setSortDir(k === "title" ? "asc" : "desc");
+        return;
       }
+
+      setSortKey(k);
+      setSortDir(k === "title" ? "asc" : "desc");
     },
     [sortKey, sortDir, setSortDir, setSortKey, setPage],
   );
@@ -148,14 +149,21 @@ function PageList({
             onClick={() => void handleRefresh()}
             disabled={loading}
             aria-label={M.refresh}
+            title={M.refresh}
           >
             <i className={`bi bi-arrow-repeat ${styles.iconLeft}`} />
           </button>
         </div>
 
         <div className={styles.toolbar}>
-          <select className={styles.select} value={siteId} onChange={onSiteChange} aria-label="Site filter">
-            <option value="all">{M.allSites}</option>
+          <select
+            className={styles.select}
+            value={siteId || "all"}
+            onChange={onSiteChange}
+            aria-label="Site filter"
+            disabled={!!sitesLoading}
+          >
+            <option value="all">{sitesLoading ? "Loading sites..." : M.allSites}</option>
             {sites.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name || s.id}
@@ -163,7 +171,13 @@ function PageList({
             ))}
           </select>
 
-          <select className={styles.select} value={status} onChange={onStatusChange} aria-label="Status filter">
+          <select
+            className={styles.select}
+            value={status}
+            onChange={onStatusChange}
+            aria-label="Status filter"
+            disabled={loading}
+          >
             <option value="all">{M.allStatuses}</option>
             <option value="PUBLISHED">{M.publish}</option>
             <option value="DRAFT">{M.unpublish}</option>
@@ -174,6 +188,7 @@ function PageList({
             type="button"
             onClick={() => toggleSort("updatedAt")}
             title={`${M.sort} by ${M.updated}`}
+            disabled={loading}
           >
             <i className={`bi ${updatedSortIcon}`} />
             <span className={styles.btnText}>{M.updated}</span>
@@ -184,11 +199,14 @@ function PageList({
             type="button"
             onClick={() => toggleSort("title")}
             title={`${M.sort} by ${M.title}`}
+            disabled={loading}
           >
             <i className={`bi ${titleSortIcon}`} />
             <span className={styles.btnText}>{M.title}</span>
           </button>
         </div>
+
+        {sitesErr ? <div className={styles.empty}>{sitesErr}</div> : null}
 
         <div className={styles.searchBox}>
           <i className={`bi bi-search ${styles.searchIcon}`} />
@@ -199,6 +217,8 @@ function PageList({
               setPage(1);
             }}
             placeholder={M.searchPlaceholder}
+            aria-label="Search pages"
+            disabled={loading}
           />
           {q && (
             <button
@@ -210,6 +230,7 @@ function PageList({
               type="button"
               title="Clear"
               aria-label="Clear"
+              disabled={loading}
             >
               <i className="bi bi-x-lg" />
             </button>

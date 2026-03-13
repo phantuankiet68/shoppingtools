@@ -1,9 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import cls from "@/styles/admin/builder/pages/design-header.module.css";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 
 type Device = "desktop" | "tablet" | "mobile";
+
+type SiteOption = {
+  id: string;
+  name: string;
+  domain?: string;
+  localeDefault?: string;
+};
 
 type Props = {
   title: string;
@@ -18,9 +26,14 @@ type Props = {
   onRefresh?: () => void;
   device?: Device;
   setDevice?: (d: Device) => void;
+
+  sites?: SiteOption[];
+  selectedSiteId?: string;
+  onChangeSite?: (siteId: string) => void;
+  disableSiteSelect?: boolean;
 };
 
-export default React.memo(function DesignHeader({
+function DesignHeader({
   title,
   setTitle,
   path,
@@ -33,34 +46,52 @@ export default React.memo(function DesignHeader({
   onRefresh,
   device = "desktop",
   setDevice,
+  sites = [],
+  selectedSiteId = "",
+  onChangeSite,
+  disableSiteSelect = false,
 }: Props) {
-  const canEditTitle = Boolean(setTitle);
+  const handleRefresh = React.useCallback(() => {
+    window.location.href = "/admin/builder/pages";
+  }, []);
+
+  const functionKeyActions = useMemo(
+    () => ({
+      F2: {
+        action: () => onPublish?.(),
+        label: "Publish",
+        icon: "bi-arrow-right-short",
+      },
+      F3: {
+        action: () => onPreview?.(),
+        label: "Preview",
+        icon: "bi-eye",
+      },
+      F5: {
+        action: () => onSave?.(),
+        label: "Save",
+        icon: "bi-save",
+      },
+      F6: {
+        action: handleRefresh,
+        label: "Scancel",
+        icon: "bi-arrow-repeat",
+      },
+    }),
+    [onPublish, onPreview, onSave, handleRefresh],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
 
   return (
     <div className={`${cls.bar} mb-2`} role="toolbar" aria-label="Builder header">
-      <div className={cls.left}>
-        <div className={cls.iconGroup}>
-          <button
-            type="button"
-            className={cls.iconBtn}
-            onClick={() => {
-              window.location.href = "/admin/builder/page";
-            }}
-            title="Refresh"
-            aria-label="Refresh"
-          >
-            <i className="bi bi-arrow-repeat" />
-          </button>
-        </div>
-      </div>
-
       <div className={cls.center}>
         <div className={cls.titleRow}>
-          {canEditTitle ? (
+          {setTitle ? (
             <input
               className={cls.titleInput}
               value={title}
-              onChange={(e) => setTitle?.(e.target.value)}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="Nhập tiêu đề trang…"
               aria-label="Page title"
             />
@@ -72,47 +103,29 @@ export default React.memo(function DesignHeader({
         </div>
 
         <div className={cls.subRow}>
-          {path && (
-            <div className={`${cls.kv} ms-3`}>
-              <span className="text-secondary small me-2">Path</span>
-              <code className={cls.code}>{path}</code>
-              <button
-                type="button"
-                className={`${cls.ghostBtn} ms-2`}
-                title="Copy path"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(path);
-                  } catch {}
-                }}
-              >
-                <i className="bi bi-clipboard-check" />
-              </button>
-            </div>
-          )}
+          <div className={`${cls.kv} me-3`}>
+            <select
+              className={cls.select}
+              value={selectedSiteId}
+              onChange={(e) => onChangeSite?.(e.target.value)}
+              disabled={disableSiteSelect}
+              aria-label="Chọn site"
+            >
+              {sites.length === 0 ? (
+                <option value="">No site</option>
+              ) : (
+                sites.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.domain ? `— ${s.domain}` : ""} {s.localeDefault ? `(${s.localeDefault})` : ""}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
         </div>
       </div>
 
       <div className={cls.right}>
-        <div className={cls.btnGroup}>
-          <button
-            type="button"
-            className={cls.ghostBtn}
-            onClick={onSave}
-            title="Save"
-            aria-label="Save"
-            disabled={saving}
-          >
-            {saving ? <span className="spinner-border spinner-border-sm me-2" /> : <i className="bi bi-save me-1" />}
-            {saving ? "Saving…" : "Save"}
-          </button>
-
-          <button type="button" className={cls.ghostBtn} onClick={onPreview} title="Preview" aria-label="Preview">
-            <i className="bi bi-eye me-1" />
-            Preview
-          </button>
-        </div>
-
         <div className={cls.deviceGroup} role="group" aria-label="Device">
           {(["desktop", "tablet", "mobile"] as const).map((d) => (
             <button
@@ -127,27 +140,9 @@ export default React.memo(function DesignHeader({
             </button>
           ))}
         </div>
-
-        <button
-          className={cls.publishBtn}
-          onClick={onPublish}
-          disabled={publishing || saving}
-          aria-busy={publishing || saving}
-          title="Publish"
-        >
-          {publishing ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-              Đang publish…
-            </>
-          ) : (
-            <>
-              Publish
-              <i className="bi bi-arrow-right-short ms-1" />
-            </>
-          )}
-        </button>
       </div>
     </div>
   );
-});
+}
+
+export default React.memo(DesignHeader);

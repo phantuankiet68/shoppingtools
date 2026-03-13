@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageList from "@/components/admin/builder/pages/list/PageList";
 import PageInspector from "@/components/admin/builder/pages/list/PageInspector";
@@ -24,7 +24,10 @@ export default function UiBuilderListPage() {
   const initStatus = (sp.get("status") as StatusFilter | null) ?? "all";
   const initSort = (sp.get("sort") as SortKey | null) ?? "updatedAt";
   const initDir = (sp.get("dir") as SortDir | null) ?? "desc";
-  const initPage = Math.max(1, Number(sp.get("page") || "1"));
+
+  const pageParam = Number(sp.get("page"));
+  const initPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+
   const initSiteId = (sp.get("siteId") as SiteFilter | null) ?? "all";
   const initActiveId = sp.get("id");
 
@@ -56,11 +59,12 @@ export default function UiBuilderListPage() {
     pages,
     loading,
     sites,
+    sitesLoading,
+    sitesErr,
     total,
     totalPages,
     active,
   } = store;
-
   useEffect(() => {
     const params = new URLSearchParams(sp.toString());
 
@@ -70,8 +74,8 @@ export default function UiBuilderListPage() {
     if (status !== "all") params.set("status", status);
     else params.delete("status");
 
-    if (sortKey) params.set("sort", sortKey);
-    if (sortDir) params.set("dir", sortDir);
+    params.set("sort", sortKey);
+    params.set("dir", sortDir);
 
     if (siteId !== "all") params.set("siteId", siteId);
     else params.delete("siteId");
@@ -106,12 +110,6 @@ export default function UiBuilderListPage() {
   }
 
   useEffect(() => {
-    loadSites().catch((e: unknown) => {
-      modal.error("Error", (e as Error)?.message || "Failed to load sites.");
-    });
-  }, [loadSites, modal]);
-
-  useEffect(() => {
     const t = window.setTimeout(() => {
       loadPages().catch((e: unknown) => {
         modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.loadPagesError);
@@ -121,9 +119,20 @@ export default function UiBuilderListPage() {
     return () => window.clearTimeout(t);
   }, [loadPages, modal]);
 
+  const didMountRef = useRef(false);
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     setPage(1);
   }, [siteId, setPage]);
+
+  useEffect(() => {
+    loadSites().catch((e: unknown) => {
+      modal.error("Error", (e as Error)?.message || "Failed to load sites.");
+    });
+  }, [loadSites, modal]);
 
   async function del(id: string) {
     const current = pages.find((p) => p.id === id);
@@ -186,6 +195,8 @@ export default function UiBuilderListPage() {
           setSortKey={store.setSortKey}
           setSortDir={store.setSortDir}
           sites={sites}
+          sitesLoading={sitesLoading}
+          sitesErr={sitesErr}
           siteId={siteId}
           setSiteId={store.setSiteId}
           onRefresh={loadPages}

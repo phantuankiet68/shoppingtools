@@ -33,8 +33,8 @@ type TaxRule = {
 
   scope: TaxScope;
   regionId: string | "ALL";
-  productTag: string; // match product tag/category (mock)
-  rateOverride?: number | null; // if set, override rate
+  productTag: string;
+  rateOverride?: number | null;
   customerType: "ALL" | "B2B" | "B2C";
   note?: string;
 };
@@ -218,7 +218,10 @@ export default function TaxesPage() {
   ]);
 
   const [selectedRegionId, setSelectedRegionId] = useState(regions[0]?.id || "");
-  const selectedRegion = useMemo(() => regions.find((r) => r.id === selectedRegionId) || null, [regions, selectedRegionId]);
+  const selectedRegion = useMemo(
+    () => regions.find((r) => r.id === selectedRegionId) || null,
+    [regions, selectedRegionId],
+  );
 
   const [selectedRuleId, setSelectedRuleId] = useState(rules[0]?.id || "");
   const selectedRule = useMemo(() => rules.find((r) => r.id === selectedRuleId) || null, [rules, selectedRuleId]);
@@ -355,7 +358,13 @@ export default function TaxesPage() {
     return list;
   }
 
-  function pickRate(scope: TaxScope, region: TaxRegion | null, input: TestInput, rulesApplied: TaxRule[], notes: string[]): number {
+  function pickRate(
+    scope: TaxScope,
+    region: TaxRegion | null,
+    input: TestInput,
+    rulesApplied: TaxRule[],
+    notes: string[],
+  ): number {
     // Base: from region standard
     let base = region ? region.standardRate : settings.defaultRate;
 
@@ -449,12 +458,30 @@ export default function TaxesPage() {
     }
 
     if (settings.rounding === "LINE_ITEM") {
-      lines.push({ label: "Physical goods", base: physicalBase, rate: ratePhysical, tax: taxFromBase(physicalBase, ratePhysical) });
-      lines.push({ label: "Digital goods", base: digitalBase, rate: rateDigital, tax: taxFromBase(digitalBase, rateDigital) });
-      lines.push({ label: "Shipping", base: shippingBase, rate: rateShipping, tax: taxFromBase(shippingBase, rateShipping) });
+      lines.push({
+        label: "Physical goods",
+        base: physicalBase,
+        rate: ratePhysical,
+        tax: taxFromBase(physicalBase, ratePhysical),
+      });
+      lines.push({
+        label: "Digital goods",
+        base: digitalBase,
+        rate: rateDigital,
+        tax: taxFromBase(digitalBase, rateDigital),
+      });
+      lines.push({
+        label: "Shipping",
+        base: shippingBase,
+        rate: rateShipping,
+        tax: taxFromBase(shippingBase, rateShipping),
+      });
     } else {
       // ORDER_TOTAL: compute combined rate by parts (simple sum of extracted taxes)
-      const t = taxFromBase(physicalBase, ratePhysical) + taxFromBase(digitalBase, rateDigital) + taxFromBase(shippingBase, rateShipping);
+      const t =
+        taxFromBase(physicalBase, ratePhysical) +
+        taxFromBase(digitalBase, rateDigital) +
+        taxFromBase(shippingBase, rateShipping);
       lines.push({ label: "Order total (rounded)", base: subtotal, rate: -1, tax: roundTax(t) });
     }
 
@@ -462,7 +489,9 @@ export default function TaxesPage() {
 
     const total = settings.mode === "EXCLUSIVE" ? subtotal + taxTotal : subtotal; // already included
 
-    const regionName = region ? `${region.name} (${region.country}${region.region ? "-" + region.region : ""})` : "No region matched";
+    const regionName = region
+      ? `${region.name} (${region.country}${region.region ? "-" + region.region : ""})`
+      : "No region matched";
 
     setCalc({
       matchedRegion: region || undefined,
@@ -481,15 +510,19 @@ export default function TaxesPage() {
   }
 
   function validate(): { ok: boolean; msg?: string } {
-    if (settings.defaultRate < 0 || settings.defaultRate > 100) return { ok: false, msg: "Default rate must be 0–100." };
+    if (settings.defaultRate < 0 || settings.defaultRate > 100)
+      return { ok: false, msg: "Default rate must be 0–100." };
     for (const r of regions) {
       if (!r.name.trim()) return { ok: false, msg: "Region name is required." };
-      if (r.standardRate < 0 || r.standardRate > 100) return { ok: false, msg: `Standard rate invalid in "${r.name}".` };
-      if (r.reducedRate != null && (r.reducedRate < 0 || r.reducedRate > 100)) return { ok: false, msg: `Reduced rate invalid in "${r.name}".` };
+      if (r.standardRate < 0 || r.standardRate > 100)
+        return { ok: false, msg: `Standard rate invalid in "${r.name}".` };
+      if (r.reducedRate != null && (r.reducedRate < 0 || r.reducedRate > 100))
+        return { ok: false, msg: `Reduced rate invalid in "${r.name}".` };
     }
     for (const t of rules) {
       if (!t.name.trim()) return { ok: false, msg: "Rule name is required." };
-      if (t.rateOverride != null && (t.rateOverride < 0 || t.rateOverride > 100)) return { ok: false, msg: `Rule override invalid in "${t.name}".` };
+      if (t.rateOverride != null && (t.rateOverride < 0 || t.rateOverride > 100))
+        return { ok: false, msg: `Rule override invalid in "${t.name}".` };
     }
     return { ok: true };
   }
@@ -546,11 +579,18 @@ export default function TaxesPage() {
 
           <div className={styles.titleRow}>
             <h1 className={styles.title}>Taxes</h1>
-            <div className={styles.subtitle}>Tax mode, regions & rates, exemptions and invoice settings for your lowcode store</div>
+            <div className={styles.subtitle}>
+              Tax mode, regions & rates, exemptions and invoice settings for your lowcode store
+            </div>
           </div>
 
           <div className={styles.kpis}>
-            <Kpi icon="bi-toggle-on" label="Taxes" value={settings.enabled ? "Enabled" : "Disabled"} tone={settings.enabled ? "ok" : "warn"} />
+            <Kpi
+              icon="bi-toggle-on"
+              label="Taxes"
+              value={settings.enabled ? "Enabled" : "Disabled"}
+              tone={settings.enabled ? "ok" : "warn"}
+            />
             <Kpi icon="bi-percent" label="Mode" value={settings.mode === "INCLUSIVE" ? "Inclusive" : "Exclusive"} />
             <Kpi icon="bi-map" label="Regions" value={`${overview.enabledRegions}/${overview.totalRegions} enabled`} />
             <Kpi icon="bi-diagram-3" label="Rules" value={`${overview.enabledRules}/${overview.totalRules} enabled`} />
@@ -572,19 +612,39 @@ export default function TaxesPage() {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        <button className={`${styles.tab} ${activeTab === "OVERVIEW" ? styles.tabActive : ""}`} onClick={() => setActiveTab("OVERVIEW")} type="button">
+        <button
+          className={`${styles.tab} ${activeTab === "OVERVIEW" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("OVERVIEW")}
+          type="button"
+        >
           <i className="bi bi-sliders" /> Overview
         </button>
-        <button className={`${styles.tab} ${activeTab === "REGIONS" ? styles.tabActive : ""}`} onClick={() => setActiveTab("REGIONS")} type="button">
+        <button
+          className={`${styles.tab} ${activeTab === "REGIONS" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("REGIONS")}
+          type="button"
+        >
           <i className="bi bi-map" /> Regions
         </button>
-        <button className={`${styles.tab} ${activeTab === "RULES" ? styles.tabActive : ""}`} onClick={() => setActiveTab("RULES")} type="button">
+        <button
+          className={`${styles.tab} ${activeTab === "RULES" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("RULES")}
+          type="button"
+        >
           <i className="bi bi-diagram-3" /> Rules
         </button>
-        <button className={`${styles.tab} ${activeTab === "INVOICES" ? styles.tabActive : ""}`} onClick={() => setActiveTab("INVOICES")} type="button">
+        <button
+          className={`${styles.tab} ${activeTab === "INVOICES" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("INVOICES")}
+          type="button"
+        >
           <i className="bi bi-receipt" /> Invoices
         </button>
-        <button className={`${styles.tab} ${activeTab === "TEST" ? styles.tabActive : ""}`} onClick={() => setActiveTab("TEST")} type="button">
+        <button
+          className={`${styles.tab} ${activeTab === "TEST" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("TEST")}
+          type="button"
+        >
           <i className="bi bi-calculator" /> Test calculator
         </button>
       </div>
@@ -607,13 +667,21 @@ export default function TaxesPage() {
                 <div className={styles.cardBody}>
                   <div className={styles.formGrid}>
                     <Field label="Taxes enabled" hint="Master switch">
-                      <Toggle checked={settings.enabled} onChange={(v) => updateSettings("enabled", v)} labels={["Off", "On"]} />
+                      <Toggle
+                        checked={settings.enabled}
+                        onChange={(v) => updateSettings("enabled", v)}
+                        labels={["Off", "On"]}
+                      />
                     </Field>
 
                     <Field label="Tax mode" hint="Inclusive vs Exclusive">
                       <div className={styles.selectWrap}>
                         <i className={`bi bi-percent ${styles.selectIcon}`} />
-                        <select className={styles.select} value={settings.mode} onChange={(e) => updateSettings("mode", e.target.value as any)}>
+                        <select
+                          className={styles.select}
+                          value={settings.mode}
+                          onChange={(e) => updateSettings("mode", e.target.value as any)}
+                        >
                           <option value="EXCLUSIVE">Exclusive (add tax at checkout)</option>
                           <option value="INCLUSIVE">Inclusive (prices include tax)</option>
                         </select>
@@ -623,7 +691,11 @@ export default function TaxesPage() {
                     <Field label="Rounding" hint="Line item vs order total">
                       <div className={styles.selectWrap}>
                         <i className={`bi bi-bounding-box ${styles.selectIcon}`} />
-                        <select className={styles.select} value={settings.rounding} onChange={(e) => updateSettings("rounding", e.target.value as any)}>
+                        <select
+                          className={styles.select}
+                          value={settings.rounding}
+                          onChange={(e) => updateSettings("rounding", e.target.value as any)}
+                        >
                           <option value="LINE_ITEM">Line item</option>
                           <option value="ORDER_TOTAL">Order total</option>
                         </select>
@@ -633,29 +705,50 @@ export default function TaxesPage() {
                     <Field label="Default rate (%)" hint="Used when no region matched">
                       <div className={styles.inputWrap}>
                         <i className={`bi bi-speedometer2 ${styles.inputIcon}`} />
-                        <input className={styles.input} type="number" value={settings.defaultRate} onChange={(e) => updateSettings("defaultRate", clampPercent(Number(e.target.value || 0)))} />
+                        <input
+                          className={styles.input}
+                          type="number"
+                          value={settings.defaultRate}
+                          onChange={(e) => updateSettings("defaultRate", clampPercent(Number(e.target.value || 0)))}
+                        />
                       </div>
                     </Field>
 
                     <Field label="Apply taxes to shipping">
-                      <Toggle checked={settings.applyToShipping} onChange={(v) => updateSettings("applyToShipping", v)} labels={["Off", "On"]} />
+                      <Toggle
+                        checked={settings.applyToShipping}
+                        onChange={(v) => updateSettings("applyToShipping", v)}
+                        labels={["Off", "On"]}
+                      />
                     </Field>
 
                     <Field label="Apply taxes to digital goods">
-                      <Toggle checked={settings.applyToDigital} onChange={(v) => updateSettings("applyToDigital", v)} labels={["Off", "On"]} />
+                      <Toggle
+                        checked={settings.applyToDigital}
+                        onChange={(v) => updateSettings("applyToDigital", v)}
+                        labels={["Off", "On"]}
+                      />
                     </Field>
 
                     <Field label="Customer-facing hint" hint="Shown at checkout (optional)">
                       <div className={styles.inputWrap}>
                         <i className={`bi bi-chat-left-text ${styles.inputIcon}`} />
-                        <input className={styles.input} value={settings.pricesIncludeTaxHint} onChange={(e) => updateSettings("pricesIncludeTaxHint", e.target.value)} />
+                        <input
+                          className={styles.input}
+                          value={settings.pricesIncludeTaxHint}
+                          onChange={(e) => updateSettings("pricesIncludeTaxHint", e.target.value)}
+                        />
                       </div>
                     </Field>
 
                     <Field label="Origin country (ISO2)" hint="Default for your store">
                       <div className={styles.inputWrap}>
                         <i className={`bi bi-flag ${styles.inputIcon}`} />
-                        <input className={styles.input} value={settings.originCountry} onChange={(e) => updateSettings("originCountry", e.target.value.toUpperCase())} />
+                        <input
+                          className={styles.input}
+                          value={settings.originCountry}
+                          onChange={(e) => updateSettings("originCountry", e.target.value.toUpperCase())}
+                        />
                       </div>
                     </Field>
                   </div>
@@ -663,7 +756,8 @@ export default function TaxesPage() {
                   <div className={styles.noteCallout}>
                     <i className="bi bi-info-circle" />
                     <div>
-                      <b>Low-code tip:</b> Nếu bạn dùng <b>Inclusive</b>, số thuế sẽ được “tách ra” từ giá đã gồm thuế để hiển thị trên invoice/receipt.
+                      <b>Low-code tip:</b> Nếu bạn dùng <b>Inclusive</b>, số thuế sẽ được “tách ra” từ giá đã gồm thuế
+                      để hiển thị trên invoice/receipt.
                     </div>
                   </div>
                 </div>
@@ -684,27 +778,44 @@ export default function TaxesPage() {
                     <Field label="Tax ID label" hint="VAT ID / GST ID / Tax number">
                       <div className={styles.inputWrap}>
                         <i className={`bi bi-badge-tm ${styles.inputIcon}`} />
-                        <input className={styles.input} value={settings.taxIdLabel} onChange={(e) => updateSettings("taxIdLabel", e.target.value)} />
+                        <input
+                          className={styles.input}
+                          value={settings.taxIdLabel}
+                          onChange={(e) => updateSettings("taxIdLabel", e.target.value)}
+                        />
                       </div>
                     </Field>
 
                     <Field label="Collect Tax ID" hint="Show input on checkout for B2B">
-                      <Toggle checked={settings.collectVatId} onChange={(v) => updateSettings("collectVatId", v)} labels={["Off", "On"]} />
+                      <Toggle
+                        checked={settings.collectVatId}
+                        onChange={(v) => updateSettings("collectVatId", v)}
+                        labels={["Off", "On"]}
+                      />
                     </Field>
 
                     <Field label="Validate Tax ID" hint="Mock toggle (connect real validator later)">
-                      <Toggle checked={settings.validateVatId} onChange={(v) => updateSettings("validateVatId", v)} labels={["Off", "On"]} />
+                      <Toggle
+                        checked={settings.validateVatId}
+                        onChange={(v) => updateSettings("validateVatId", v)}
+                        labels={["Off", "On"]}
+                      />
                     </Field>
 
                     <Field label="Exempt if valid Tax ID" hint="B2B can be exempt">
-                      <Toggle checked={settings.exemptionIfValidVatId} onChange={(v) => updateSettings("exemptionIfValidVatId", v)} labels={["Off", "On"]} />
+                      <Toggle
+                        checked={settings.exemptionIfValidVatId}
+                        onChange={(v) => updateSettings("exemptionIfValidVatId", v)}
+                        labels={["Off", "On"]}
+                      />
                     </Field>
                   </div>
 
                   <div className={styles.noteCallout}>
                     <i className="bi bi-shield-check" />
                     <div>
-                      <b>Best practice:</b> B2B exemption thường là rule (scope ALL, customer B2B, requires valid tax id). Page này đã có mẫu rule.
+                      <b>Best practice:</b> B2B exemption thường là rule (scope ALL, customer B2B, requires valid tax
+                      id). Page này đã có mẫu rule.
                     </div>
                   </div>
                 </div>
@@ -732,7 +843,12 @@ export default function TaxesPage() {
                 <div className={styles.split}>
                   <div className={styles.list}>
                     {regions.map((r) => (
-                      <button key={r.id} type="button" className={`${styles.listItem} ${r.id === selectedRegionId ? styles.listItemActive : ""}`} onClick={() => setSelectedRegionId(r.id)}>
+                      <button
+                        key={r.id}
+                        type="button"
+                        className={`${styles.listItem} ${r.id === selectedRegionId ? styles.listItemActive : ""}`}
+                        onClick={() => setSelectedRegionId(r.id)}
+                      >
                         <div className={styles.listTop}>
                           <div className={styles.listTitle}>
                             <i className="bi bi-geo-alt" /> {r.name}
@@ -766,7 +882,11 @@ export default function TaxesPage() {
                             <i className="bi bi-sliders" /> Edit region
                           </div>
                           <div className={styles.editorActions}>
-                            <button className={`${styles.secondaryBtn} ${styles.dangerBtn}`} type="button" onClick={() => deleteRegion(selectedRegion.id)}>
+                            <button
+                              className={`${styles.secondaryBtn} ${styles.dangerBtn}`}
+                              type="button"
+                              onClick={() => deleteRegion(selectedRegion.id)}
+                            >
                               <i className="bi bi-trash3" /> Delete
                             </button>
                           </div>
@@ -776,12 +896,20 @@ export default function TaxesPage() {
                           <Field label="Name">
                             <div className={styles.inputWrap}>
                               <i className={`bi bi-type ${styles.inputIcon}`} />
-                              <input className={styles.input} value={selectedRegion.name} onChange={(e) => updateRegion(selectedRegion.id, { name: e.target.value })} />
+                              <input
+                                className={styles.input}
+                                value={selectedRegion.name}
+                                onChange={(e) => updateRegion(selectedRegion.id, { name: e.target.value })}
+                              />
                             </div>
                           </Field>
 
                           <Field label="Enabled">
-                            <Toggle checked={selectedRegion.enabled} onChange={(v) => updateRegion(selectedRegion.id, { enabled: v })} labels={["Off", "On"]} />
+                            <Toggle
+                              checked={selectedRegion.enabled}
+                              onChange={(v) => updateRegion(selectedRegion.id, { enabled: v })}
+                              labels={["Off", "On"]}
+                            />
                           </Field>
 
                           <Field label="Priority" hint="Higher wins">
@@ -791,7 +919,9 @@ export default function TaxesPage() {
                                 className={styles.input}
                                 type="number"
                                 value={selectedRegion.priority}
-                                onChange={(e) => updateRegion(selectedRegion.id, { priority: Number(e.target.value || 0) })}
+                                onChange={(e) =>
+                                  updateRegion(selectedRegion.id, { priority: Number(e.target.value || 0) })
+                                }
                               />
                             </div>
                           </Field>
@@ -799,14 +929,26 @@ export default function TaxesPage() {
                           <Field label="Country (ISO2)" hint='Use "*" for fallback'>
                             <div className={styles.inputWrap}>
                               <i className={`bi bi-flag ${styles.inputIcon}`} />
-                              <input className={styles.input} value={selectedRegion.country} onChange={(e) => updateRegion(selectedRegion.id, { country: e.target.value.toUpperCase() })} />
+                              <input
+                                className={styles.input}
+                                value={selectedRegion.country}
+                                onChange={(e) =>
+                                  updateRegion(selectedRegion.id, { country: e.target.value.toUpperCase() })
+                                }
+                              />
                             </div>
                           </Field>
 
                           <Field label="Region/State code" hint="Optional">
                             <div className={styles.inputWrap}>
                               <i className={`bi bi-map ${styles.inputIcon}`} />
-                              <input className={styles.input} value={selectedRegion.region ?? ""} onChange={(e) => updateRegion(selectedRegion.id, { region: e.target.value || undefined })} />
+                              <input
+                                className={styles.input}
+                                value={selectedRegion.region ?? ""}
+                                onChange={(e) =>
+                                  updateRegion(selectedRegion.id, { region: e.target.value || undefined })
+                                }
+                              />
                             </div>
                           </Field>
 
@@ -835,7 +977,11 @@ export default function TaxesPage() {
                                 className={styles.input}
                                 type="number"
                                 value={selectedRegion.standardRate}
-                                onChange={(e) => updateRegion(selectedRegion.id, { standardRate: clampPercent(Number(e.target.value || 0)) })}
+                                onChange={(e) =>
+                                  updateRegion(selectedRegion.id, {
+                                    standardRate: clampPercent(Number(e.target.value || 0)),
+                                  })
+                                }
                               />
                             </div>
                           </Field>
@@ -849,25 +995,36 @@ export default function TaxesPage() {
                                 value={selectedRegion.reducedRate ?? ""}
                                 onChange={(e) => {
                                   const v = e.target.value;
-                                  updateRegion(selectedRegion.id, { reducedRate: v === "" ? null : clampPercent(Number(v)) });
+                                  updateRegion(selectedRegion.id, {
+                                    reducedRate: v === "" ? null : clampPercent(Number(v)),
+                                  });
                                 }}
                               />
                             </div>
                           </Field>
 
                           <Field label="Taxable: shipping">
-                            <Toggle checked={selectedRegion.shippingTaxable} onChange={(v) => updateRegion(selectedRegion.id, { shippingTaxable: v })} labels={["Off", "On"]} />
+                            <Toggle
+                              checked={selectedRegion.shippingTaxable}
+                              onChange={(v) => updateRegion(selectedRegion.id, { shippingTaxable: v })}
+                              labels={["Off", "On"]}
+                            />
                           </Field>
 
                           <Field label="Taxable: digital goods">
-                            <Toggle checked={selectedRegion.digitalTaxable} onChange={(v) => updateRegion(selectedRegion.id, { digitalTaxable: v })} labels={["Off", "On"]} />
+                            <Toggle
+                              checked={selectedRegion.digitalTaxable}
+                              onChange={(v) => updateRegion(selectedRegion.id, { digitalTaxable: v })}
+                              labels={["Off", "On"]}
+                            />
                           </Field>
                         </div>
 
                         <div className={styles.noteCallout}>
                           <i className="bi bi-info-circle" />
                           <div>
-                            <b>Low-code tip:</b> Region là “base tax profile”. Rule sẽ override/miễn thuế cho trường hợp đặc biệt.
+                            <b>Low-code tip:</b> Region là “base tax profile”. Rule sẽ override/miễn thuế cho trường hợp
+                            đặc biệt.
                           </div>
                         </div>
                       </>
@@ -904,7 +1061,12 @@ export default function TaxesPage() {
                 <div className={styles.split}>
                   <div className={styles.list}>
                     {rules.map((r) => (
-                      <button key={r.id} type="button" className={`${styles.listItem} ${r.id === selectedRuleId ? styles.listItemActive : ""}`} onClick={() => setSelectedRuleId(r.id)}>
+                      <button
+                        key={r.id}
+                        type="button"
+                        className={`${styles.listItem} ${r.id === selectedRuleId ? styles.listItemActive : ""}`}
+                        onClick={() => setSelectedRuleId(r.id)}
+                      >
                         <div className={styles.listTop}>
                           <div className={styles.listTitle}>
                             <i className="bi bi-diagram-3" /> {r.name}
@@ -937,7 +1099,11 @@ export default function TaxesPage() {
                             <i className="bi bi-sliders" /> Edit rule
                           </div>
                           <div className={styles.editorActions}>
-                            <button className={`${styles.secondaryBtn} ${styles.dangerBtn}`} type="button" onClick={() => deleteRule(selectedRule.id)}>
+                            <button
+                              className={`${styles.secondaryBtn} ${styles.dangerBtn}`}
+                              type="button"
+                              onClick={() => deleteRule(selectedRule.id)}
+                            >
                               <i className="bi bi-trash3" /> Delete
                             </button>
                           </div>
@@ -947,18 +1113,30 @@ export default function TaxesPage() {
                           <Field label="Name">
                             <div className={styles.inputWrap}>
                               <i className={`bi bi-type ${styles.inputIcon}`} />
-                              <input className={styles.input} value={selectedRule.name} onChange={(e) => updateRule(selectedRule.id, { name: e.target.value })} />
+                              <input
+                                className={styles.input}
+                                value={selectedRule.name}
+                                onChange={(e) => updateRule(selectedRule.id, { name: e.target.value })}
+                              />
                             </div>
                           </Field>
 
                           <Field label="Enabled">
-                            <Toggle checked={selectedRule.enabled} onChange={(v) => updateRule(selectedRule.id, { enabled: v })} labels={["Off", "On"]} />
+                            <Toggle
+                              checked={selectedRule.enabled}
+                              onChange={(v) => updateRule(selectedRule.id, { enabled: v })}
+                              labels={["Off", "On"]}
+                            />
                           </Field>
 
                           <Field label="Type">
                             <div className={styles.selectWrap}>
                               <i className={`bi bi-tag ${styles.selectIcon}`} />
-                              <select className={styles.select} value={selectedRule.type} onChange={(e) => updateRule(selectedRule.id, { type: e.target.value as any })}>
+                              <select
+                                className={styles.select}
+                                value={selectedRule.type}
+                                onChange={(e) => updateRule(selectedRule.id, { type: e.target.value as any })}
+                              >
                                 <option value="STANDARD">STANDARD</option>
                                 <option value="REDUCED">REDUCED</option>
                                 <option value="ZERO">ZERO</option>
@@ -970,7 +1148,11 @@ export default function TaxesPage() {
                           <Field label="Scope">
                             <div className={styles.selectWrap}>
                               <i className={`bi bi-layers ${styles.selectIcon}`} />
-                              <select className={styles.select} value={selectedRule.scope} onChange={(e) => updateRule(selectedRule.id, { scope: e.target.value as any })}>
+                              <select
+                                className={styles.select}
+                                value={selectedRule.scope}
+                                onChange={(e) => updateRule(selectedRule.id, { scope: e.target.value as any })}
+                              >
                                 <option value="ALL">ALL</option>
                                 <option value="PHYSICAL">PHYSICAL</option>
                                 <option value="DIGITAL">DIGITAL</option>
@@ -982,7 +1164,11 @@ export default function TaxesPage() {
                           <Field label="Region" hint='Pick region or "ALL"'>
                             <div className={styles.selectWrap}>
                               <i className={`bi bi-map ${styles.selectIcon}`} />
-                              <select className={styles.select} value={selectedRule.regionId} onChange={(e) => updateRule(selectedRule.id, { regionId: e.target.value as any })}>
+                              <select
+                                className={styles.select}
+                                value={selectedRule.regionId}
+                                onChange={(e) => updateRule(selectedRule.id, { regionId: e.target.value as any })}
+                              >
                                 <option value="ALL">ALL</option>
                                 {regions.map((r) => (
                                   <option key={r.id} value={r.id}>
@@ -996,7 +1182,11 @@ export default function TaxesPage() {
                           <Field label="Customer type">
                             <div className={styles.selectWrap}>
                               <i className={`bi bi-people ${styles.selectIcon}`} />
-                              <select className={styles.select} value={selectedRule.customerType} onChange={(e) => updateRule(selectedRule.id, { customerType: e.target.value as any })}>
+                              <select
+                                className={styles.select}
+                                value={selectedRule.customerType}
+                                onChange={(e) => updateRule(selectedRule.id, { customerType: e.target.value as any })}
+                              >
                                 <option value="ALL">ALL</option>
                                 <option value="B2C">B2C</option>
                                 <option value="B2B">B2B</option>
@@ -1007,7 +1197,11 @@ export default function TaxesPage() {
                           <Field label="Product tag" hint='Use "*" for any'>
                             <div className={styles.inputWrap}>
                               <i className={`bi bi-tag ${styles.inputIcon}`} />
-                              <input className={styles.input} value={selectedRule.productTag} onChange={(e) => updateRule(selectedRule.id, { productTag: e.target.value })} />
+                              <input
+                                className={styles.input}
+                                value={selectedRule.productTag}
+                                onChange={(e) => updateRule(selectedRule.id, { productTag: e.target.value })}
+                              />
                             </div>
                           </Field>
 
@@ -1020,7 +1214,9 @@ export default function TaxesPage() {
                                 value={selectedRule.rateOverride ?? ""}
                                 onChange={(e) => {
                                   const v = e.target.value;
-                                  updateRule(selectedRule.id, { rateOverride: v === "" ? null : clampPercent(Number(v)) });
+                                  updateRule(selectedRule.id, {
+                                    rateOverride: v === "" ? null : clampPercent(Number(v)),
+                                  });
                                 }}
                               />
                             </div>
@@ -1029,7 +1225,11 @@ export default function TaxesPage() {
                           <Field label="Note" hint="Optional">
                             <div className={styles.inputWrap}>
                               <i className={`bi bi-chat-left-text ${styles.inputIcon}`} />
-                              <input className={styles.input} value={selectedRule.note ?? ""} onChange={(e) => updateRule(selectedRule.id, { note: e.target.value })} />
+                              <input
+                                className={styles.input}
+                                value={selectedRule.note ?? ""}
+                                onChange={(e) => updateRule(selectedRule.id, { note: e.target.value })}
+                              />
                             </div>
                           </Field>
                         </div>
@@ -1037,7 +1237,8 @@ export default function TaxesPage() {
                         <div className={styles.noteCallout}>
                           <i className="bi bi-info-circle" />
                           <div>
-                            <b>Rule order:</b> Trong demo này, override được áp bằng “first applicable override” theo danh sách rule (sort theo name). Bạn có thể đổi thành drag & drop.
+                            <b>Rule order:</b> Trong demo này, override được áp bằng “first applicable override” theo
+                            danh sách rule (sort theo name). Bạn có thể đổi thành drag & drop.
                           </div>
                         </div>
                       </>
@@ -1068,7 +1269,11 @@ export default function TaxesPage() {
               <div className={styles.cardBody}>
                 <div className={styles.formGrid}>
                   <Field label="Enable invoices">
-                    <Toggle checked={settings.invoice.enableInvoices} onChange={(v) => updateInvoice("enableInvoices", v)} labels={["Off", "On"]} />
+                    <Toggle
+                      checked={settings.invoice.enableInvoices}
+                      onChange={(v) => updateInvoice("enableInvoices", v)}
+                      labels={["Off", "On"]}
+                    />
                   </Field>
 
                   <Field label="Invoice prefix" hint="e.g. INV">
@@ -1084,17 +1289,30 @@ export default function TaxesPage() {
                   </Field>
 
                   <Field label="Require Tax ID for B2B">
-                    <Toggle checked={settings.invoice.requireVatIdForB2B} onChange={(v) => updateInvoice("requireVatIdForB2B", v)} labels={["Off", "On"]} />
+                    <Toggle
+                      checked={settings.invoice.requireVatIdForB2B}
+                      onChange={(v) => updateInvoice("requireVatIdForB2B", v)}
+                      labels={["Off", "On"]}
+                    />
                   </Field>
 
                   <Field label="Show Tax ID on invoice">
-                    <Toggle checked={settings.invoice.showTaxIdOnInvoice} onChange={(v) => updateInvoice("showTaxIdOnInvoice", v)} labels={["Off", "On"]} />
+                    <Toggle
+                      checked={settings.invoice.showTaxIdOnInvoice}
+                      onChange={(v) => updateInvoice("showTaxIdOnInvoice", v)}
+                      labels={["Off", "On"]}
+                    />
                   </Field>
 
                   <Field label="Company name">
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-building ${styles.inputIcon}`} />
-                      <input className={styles.input} value={settings.invoice.companyName} disabled={!settings.invoice.enableInvoices} onChange={(e) => updateInvoice("companyName", e.target.value)} />
+                      <input
+                        className={styles.input}
+                        value={settings.invoice.companyName}
+                        disabled={!settings.invoice.enableInvoices}
+                        onChange={(e) => updateInvoice("companyName", e.target.value)}
+                      />
                     </div>
                   </Field>
 
@@ -1114,7 +1332,8 @@ export default function TaxesPage() {
                 <div className={styles.noteCallout}>
                   <i className="bi bi-info-circle" />
                   <div>
-                    <b>Low-code tip:</b> Invoice prefix + sequence có thể được generate ở server để tránh trùng (transaction/atomic counter).
+                    <b>Low-code tip:</b> Invoice prefix + sequence có thể được generate ở server để tránh trùng
+                    (transaction/atomic counter).
                   </div>
                 </div>
               </div>
@@ -1132,7 +1351,8 @@ export default function TaxesPage() {
                 </div>
                 <div className={styles.headActions}>
                   <button className={styles.primaryBtn} type="button" onClick={runCalc} disabled={busy}>
-                    <i className={`bi ${busy ? "bi-hourglass-split" : "bi-play-circle"}`} /> {busy ? "Running..." : "Run"}
+                    <i className={`bi ${busy ? "bi-hourglass-split" : "bi-play-circle"}`} />{" "}
+                    {busy ? "Running..." : "Run"}
                   </button>
                 </div>
               </div>
@@ -1142,28 +1362,44 @@ export default function TaxesPage() {
                   <Field label="Country (ISO2)">
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-flag ${styles.inputIcon}`} />
-                      <input className={styles.input} value={test.country} onChange={(e) => setTest((s) => ({ ...s, country: e.target.value.toUpperCase() }))} />
+                      <input
+                        className={styles.input}
+                        value={test.country}
+                        onChange={(e) => setTest((s) => ({ ...s, country: e.target.value.toUpperCase() }))}
+                      />
                     </div>
                   </Field>
 
                   <Field label="Region/State">
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-map ${styles.inputIcon}`} />
-                      <input className={styles.input} value={test.region} onChange={(e) => setTest((s) => ({ ...s, region: e.target.value }))} />
+                      <input
+                        className={styles.input}
+                        value={test.region}
+                        onChange={(e) => setTest((s) => ({ ...s, region: e.target.value }))}
+                      />
                     </div>
                   </Field>
 
                   <Field label="Postal code">
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-mailbox ${styles.inputIcon}`} />
-                      <input className={styles.input} value={test.postalCode} onChange={(e) => setTest((s) => ({ ...s, postalCode: e.target.value }))} />
+                      <input
+                        className={styles.input}
+                        value={test.postalCode}
+                        onChange={(e) => setTest((s) => ({ ...s, postalCode: e.target.value }))}
+                      />
                     </div>
                   </Field>
 
                   <Field label="Customer type">
                     <div className={styles.selectWrap}>
                       <i className={`bi bi-people ${styles.selectIcon}`} />
-                      <select className={styles.select} value={test.customerType} onChange={(e) => setTest((s) => ({ ...s, customerType: e.target.value as any }))}>
+                      <select
+                        className={styles.select}
+                        value={test.customerType}
+                        onChange={(e) => setTest((s) => ({ ...s, customerType: e.target.value as any }))}
+                      >
                         <option value="B2C">B2C</option>
                         <option value="B2B">B2B</option>
                       </select>
@@ -1173,7 +1409,14 @@ export default function TaxesPage() {
                   <Field label="Physical subtotal">
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-bag ${styles.inputIcon}`} />
-                      <input className={styles.input} type="number" value={test.orderSubtotal} onChange={(e) => setTest((s) => ({ ...s, orderSubtotal: Math.max(0, Number(e.target.value || 0)) }))} />
+                      <input
+                        className={styles.input}
+                        type="number"
+                        value={test.orderSubtotal}
+                        onChange={(e) =>
+                          setTest((s) => ({ ...s, orderSubtotal: Math.max(0, Number(e.target.value || 0)) }))
+                        }
+                      />
                     </div>
                   </Field>
 
@@ -1184,7 +1427,9 @@ export default function TaxesPage() {
                         className={styles.input}
                         type="number"
                         value={test.digitalSubtotal}
-                        onChange={(e) => setTest((s) => ({ ...s, digitalSubtotal: Math.max(0, Number(e.target.value || 0)) }))}
+                        onChange={(e) =>
+                          setTest((s) => ({ ...s, digitalSubtotal: Math.max(0, Number(e.target.value || 0)) }))
+                        }
                       />
                     </div>
                   </Field>
@@ -1192,25 +1437,43 @@ export default function TaxesPage() {
                   <Field label="Shipping">
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-truck ${styles.inputIcon}`} />
-                      <input className={styles.input} type="number" value={test.shipping} onChange={(e) => setTest((s) => ({ ...s, shipping: Math.max(0, Number(e.target.value || 0)) }))} />
+                      <input
+                        className={styles.input}
+                        type="number"
+                        value={test.shipping}
+                        onChange={(e) => setTest((s) => ({ ...s, shipping: Math.max(0, Number(e.target.value || 0)) }))}
+                      />
                     </div>
                   </Field>
 
                   <Field label="Product tag" hint='For rules (e.g. "digital")'>
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-tag ${styles.inputIcon}`} />
-                      <input className={styles.input} value={test.productTag} onChange={(e) => setTest((s) => ({ ...s, productTag: e.target.value }))} />
+                      <input
+                        className={styles.input}
+                        value={test.productTag}
+                        onChange={(e) => setTest((s) => ({ ...s, productTag: e.target.value }))}
+                      />
                     </div>
                   </Field>
 
                   <Field label={`${settings.taxIdLabel} provided`}>
-                    <Toggle checked={test.vatIdProvided} onChange={(v) => setTest((s) => ({ ...s, vatIdProvided: v }))} labels={["No", "Yes"]} />
+                    <Toggle
+                      checked={test.vatIdProvided}
+                      onChange={(v) => setTest((s) => ({ ...s, vatIdProvided: v }))}
+                      labels={["No", "Yes"]}
+                    />
                   </Field>
 
                   <Field label={`${settings.taxIdLabel} value`} hint='Mock validation: include "VALID"'>
                     <div className={styles.inputWrap}>
                       <i className={`bi bi-badge-tm ${styles.inputIcon}`} />
-                      <input className={styles.input} value={vatIdInput} onChange={(e) => setVatIdInput(e.target.value)} disabled={!test.vatIdProvided || !settings.collectVatId} />
+                      <input
+                        className={styles.input}
+                        value={vatIdInput}
+                        onChange={(e) => setVatIdInput(e.target.value)}
+                        disabled={!test.vatIdProvided || !settings.collectVatId}
+                      />
                     </div>
                   </Field>
                 </div>
@@ -1326,7 +1589,8 @@ export default function TaxesPage() {
               <div className={styles.sideHint}>
                 <i className="bi bi-lightbulb" />
                 <div>
-                  <b>Recommended:</b> Region “fallback” (country="*") giúp tránh lỗi khi địa chỉ không match region cụ thể.
+                  <b>Recommended:</b> Region “fallback” (country="*") giúp tránh lỗi khi địa chỉ không match region cụ
+                  thể.
                 </div>
               </div>
             </div>
@@ -1334,7 +1598,9 @@ export default function TaxesPage() {
 
           {toast ? (
             <div className={`${styles.toast} ${styles["toast_" + toast.type]}`}>
-              <i className={`bi ${toast.type === "success" ? "bi-check2-circle" : toast.type === "error" ? "bi-x-circle" : "bi-info-circle"}`} />
+              <i
+                className={`bi ${toast.type === "success" ? "bi-check2-circle" : toast.type === "error" ? "bi-x-circle" : "bi-info-circle"}`}
+              />
               <div className={styles.toastText}>{toast.text}</div>
               <button className={styles.toastClose} onClick={() => setToast(null)} aria-label="Close toast">
                 <i className="bi bi-x" />
@@ -1379,11 +1645,24 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
-function Toggle({ checked, onChange, labels }: { checked: boolean; onChange: (v: boolean) => void; labels?: [string, string] }) {
+function Toggle({
+  checked,
+  onChange,
+  labels,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  labels?: [string, string];
+}) {
   const off = labels?.[0] || "Off";
   const on = labels?.[1] || "On";
   return (
-    <button type="button" className={`${styles.toggle} ${checked ? styles.toggleOn : ""}`} onClick={() => onChange(!checked)} aria-pressed={checked}>
+    <button
+      type="button"
+      className={`${styles.toggle} ${checked ? styles.toggleOn : ""}`}
+      onClick={() => onChange(!checked)}
+      aria-pressed={checked}
+    >
       <span className={styles.toggleKnob} />
       <span className={styles.toggleText}>{checked ? on : off}</span>
     </button>

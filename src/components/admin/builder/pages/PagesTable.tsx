@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import styles from "@/styles/admin/builder/pages/page/page.module.css";
-import type { PageRow } from "@/lib/page/types";
+import type { PageRow } from "@/lib/builder/pages/types";
 
 import { PAGE_MESSAGES as M } from "@/features/builder/pages/messages";
 

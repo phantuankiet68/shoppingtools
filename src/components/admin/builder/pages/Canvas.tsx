@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import type { Block, DropMeta, InternalProps } from "@/lib/page/types";
+import type { Block, DropMeta, InternalProps } from "@/lib/builder/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import cls from "@/styles/admin/builder/pages/canvas.module.css";
 

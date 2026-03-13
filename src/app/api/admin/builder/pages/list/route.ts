@@ -13,18 +13,21 @@ export async function GET(req: NextRequest) {
   const sortDirParam = (searchParams.get("dir") as "asc" | "desc") || "desc";
   const siteId = searchParams.get("siteId") || undefined;
 
-  const ci = (v: string) => ({ contains: v, mode: Prisma.QueryMode.insensitive } as const);
+  const ci = (v: string) => ({ contains: v, mode: Prisma.QueryMode.insensitive }) as const;
 
   const whereBase: Prisma.PageWhereInput = {
-    ...(siteId ? { siteId } : {}),
+    ...(siteId && siteId !== "all" ? { siteId } : {}),
     ...(statusParam && statusParam !== "all" ? { status: statusParam as PageStatus } : {}),
-    ...(q ? { OR: [{ title: ci(q) }, { slug: ci(q) }, { path: ci(q) }] } : {}),
+    ...(q
+      ? {
+          OR: [{ title: ci(q) }, { slug: ci(q) }, { path: ci(q) }],
+        }
+      : {}),
   };
 
-  // ✅ Lấy list path của menu setKey=home
   const menuPaths = await prisma.menuItem.findMany({
     where: {
-      ...(siteId ? { siteId } : {}),
+      ...(siteId && siteId !== "all" ? { siteId } : {}),
       setKey: "home",
       visible: true,
       path: { not: null },
@@ -33,17 +36,18 @@ export async function GET(req: NextRequest) {
   });
 
   const allowedPaths = menuPaths.map((m) => m.path!).filter(Boolean);
-  // nếu không có menu -> trả rỗng (đúng theo yêu cầu "chỉ home mới hiển thị")
-  if (allowedPaths.length === 0) {
-    return NextResponse.json({ items: [], total: 0, hasMore: false });
-  }
 
-  const where: Prisma.PageWhereInput = {
-    ...whereBase,
-    path: { in: allowedPaths },
+  const where: Prisma.PageWhereInput =
+    allowedPaths.length > 0
+      ? {
+          ...whereBase,
+          path: { in: allowedPaths },
+        }
+      : whereBase;
+
+  const orderBy: Prisma.PageOrderByWithRelationInput = {
+    [sortKeyParam]: sortDirParam,
   };
-
-  const orderBy: Prisma.PageOrderByWithRelationInput = { [sortKeyParam]: sortDirParam };
 
   const [items, total] = await Promise.all([
     prisma.page.findMany({

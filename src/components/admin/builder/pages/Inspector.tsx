@@ -2,7 +2,7 @@
 
 "use client";
 import React from "react";
-import type { Block } from "@/lib/page/types";
+import type { Block } from "@/lib/builder/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import type { InspectorField } from "@/lib/ui-builder/types";
 import cls from "@/styles/admin/builder/pages/inspector.module.css";

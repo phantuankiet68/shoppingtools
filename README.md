@@ -305,9 +305,7 @@ const selectedBrand = useMemo(() => {
 return items.find((brand) => brand.id === selectedBrandId) ?? null;
 }, [items, selectedBrandId]);
 
-const withLogoCount = useMemo(() => {
-return items.filter((brand) => Boolean(brand.logoUrl)).length;
-}, [items]);
+<div className={styles.badge} style={{ display: "flex", alignItems: "center", gap: 8 }}> <i className="bi bi-globe2" /> <select value={selectedSiteId || ""} onChange={(event) => setSelectedSiteId(event.target.value)} disabled={sitesLoading} style={{ background: "transparent", border: "none", outline: "none", color: "inherit", fontWeight: 700, cursor: sitesLoading ? "not-allowed" : "pointer", maxWidth: 240, }} > <option value=""> {sitesLoading ? _MESSAGES.loadingSitesOption : _MESSAGES.selectSiteOption} </option> {sites.map((site) => ( <option key={site.id} value={site.id}> {site.name ?? site.id} ({site.id}) </option> ))} </select> {sitesErr ? <span style={{ marginLeft: 8, opacity: 0.8 }}>({sitesErr})</span> : null} </div>
 
 Bước 1:
 tôi đang sử dụng next 16 .Bạn hãy kiểm tra giúp tôi các bug ẩn dư thừa khiến tiêu tốn tài nguyên không cần thiết nhé. với lại hãy kiểm tra kỹ giúp tôi về cách sử dụng useEffect có hợp lệ chưa nhé và hãy chỉnh sửa các model cho phù hợp với phong cách chuyên nghiệp nhé. hiện tại đang lỗi any bạn hãy sửa giúp tôi nhé Unexpected any. Specify a different type.eslint@typescript-eslint/no-explicit-any
@@ -319,13 +317,16 @@ Bước 3:
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 const functionKeyActions = useMemo(
 () => ({
-F3: handleDelete,
-F5: ,
-F6: ,
-F10: ,
+F2: {
+action: doShipAll,
+label: "Ship all",
+icon: "bi-plus-circle",
+},
 }),
-[handleDelete, handleEnterEditMode, onF10, onF11],
+[doShipAll],
 );
+
+usePageFunctionKeys(functionKeyActions);
 
 Hiện tại tôi muốn thêm F2 sẽ là tương ứng với Send email,F5 là Create customer, F6 là Edit, F10 là save. Bạn hãy giúp tôi thêm vào có được không
 
