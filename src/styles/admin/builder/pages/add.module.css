@@ -1,8 +1,12 @@
 .builderGrid {
   display: grid;
   gap: 12px;
-  grid-template-columns: 280px 1fr 280px;
+  grid-template-columns: 330px 1fr;
   align-items: start;
+}
+
+.left {
+  height: 92vh;
 }
 
 /* responsive tương tự col-12 trên mobile */
@@ -235,4 +239,66 @@
   to {
     transform: rotate(360deg);
   }
+}
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: #d6efff8c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 31%;
+}
+
+.modalPanel {
+  width: min(920px, 100%);
+  min-height: calc(100vh);
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow:
+    0 20px 60px rgb(0 0 0 / 0.18),
+    0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.modalHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #ffffff;
+  border-bottom: var(--bd-header);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+
+.modalClose {
+  width: 38px;
+  height: 38px;
+  border: var(--bd-s-delete);
+  border-radius: 10px;
+  background: var(--bg-delete);
+  color: var(--color-delete);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalClose:hover {
+  background: #e5e7eb;
+}
+
+.modalBody {
+  padding: 10px;
 }

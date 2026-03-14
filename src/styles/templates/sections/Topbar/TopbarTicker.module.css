@@ -1,0 +1,450 @@
+.topbarTicker {
+  width: 100%;
+  position: relative;
+  z-index: 20;
+  color: #ecfeff;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  overflow: visible;
+}
+
+.tkInner {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: auto minmax(280px, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 0 18px;
+  margin: 0 auto;
+  width: 1200px;
+}
+
+/* ===== LEFT ===== */
+.tkLeft {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.tkBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tkBrandPulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #22d3ee, #14b8a6);
+  box-shadow:
+    0 0 0 6px rgba(34, 211, 238, 0.08),
+    0 0 18px rgba(34, 211, 238, 0.18);
+  animation: tickerPulse 1.8s ease-in-out infinite;
+}
+
+.tkBrandText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tkBrandTitle {
+  font-size: 14px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #f0fdff;
+  white-space: nowrap;
+}
+
+.tkBrandSub {
+  font-size: 11px;
+  line-height: 1.1;
+  color: #8ab3bd;
+  white-space: nowrap;
+}
+
+/* ===== CENTER ===== */
+.tkCenter {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tkTickerWrap {
+  min-width: 0;
+  max-width: 720px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(103, 232, 249, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 20px rgba(2, 6, 23, 0.18);
+}
+
+.tkTickerLabel {
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #06242d;
+  background: linear-gradient(135deg, #67e8f9, #2dd4bf);
+}
+
+.tkTickerDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #0f766e;
+  animation: tickerDotBlink 1.3s ease-in-out infinite;
+}
+
+.tkTickerText {
+  min-width: 0;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+  will-change: opacity, transform;
+}
+
+.tkTickerText .main {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #d9fbff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tkTickerText .chip {
+  flex-shrink: 0;
+  height: 23px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(94, 234, 212, 0.16);
+  color: #99f6e4;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.isActive {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.isLeaving {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.isEntering {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ===== RIGHT ===== */
+.tkRight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.tkPhone {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #f0fdff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(103, 232, 249, 0.12);
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.tkPhone:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(103, 232, 249, 0.2);
+}
+
+.tkPhone:active {
+  transform: translateY(1px);
+}
+
+.tkPhone i {
+  font-size: 13px;
+  line-height: 1;
+  color: #67e8f9;
+}
+
+.tkPhone span {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tkStatus {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  color: #bdebf0;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(103, 232, 249, 0.1);
+  font-size: 12px;
+}
+
+.tkStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #2dd4bf;
+  box-shadow:
+    0 0 0 4px rgba(45, 212, 191, 0.12),
+    0 0 10px rgba(45, 212, 191, 0.22);
+  animation: tickerStatusPulse 1.8s ease-in-out infinite;
+}
+
+.tkMenuBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  appearance: none;
+  border: 1px solid rgba(103, 232, 249, 0.12);
+  background: rgba(255, 255, 255, 0.045);
+  color: #d9fbff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+.tkMenuBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(103, 232, 249, 0.2);
+  color: #ffffff;
+}
+
+.tkMenuBtn:active {
+  transform: translateY(1px);
+}
+
+.tkMenuBtn i {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.isOpen .tkMenuBtn {
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(94, 234, 212, 0.18);
+  color: #ccfbf1;
+}
+
+.tkDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 230px;
+  padding: 8px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(8, 21, 28, 0.98), rgba(11, 27, 36, 0.98));
+  border: 1px solid rgba(103, 232, 249, 0.12);
+  box-shadow:
+    0 18px 38px rgba(2, 6, 23, 0.38),
+    0 4px 12px rgba(2, 6, 23, 0.22);
+  backdrop-filter: blur(12px);
+  animation: tickerDropdownIn 0.18s ease-out;
+}
+
+.tkDropdownItem {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #d7f9fc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.tkDropdownItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.tkDropdownItem i {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #67e8f9;
+}
+
+/* ===== Animations ===== */
+@keyframes tickerPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.16);
+    opacity: 0.82;
+  }
+}
+
+@keyframes tickerStatusPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.14);
+    opacity: 0.84;
+  }
+}
+
+@keyframes tickerDotBlink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes tickerDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1080px) {
+  .tkInner {
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    padding: 0 14px;
+  }
+
+  .tkStatus {
+    display: none;
+  }
+
+  .tkTickerWrap {
+    max-width: 540px;
+  }
+}
+
+@media (max-width: 760px) {
+  .tkInner {
+    min-height: 52px;
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .tkBrandSub {
+    display: none;
+  }
+
+  .tkPhone span {
+    display: none;
+  }
+
+  .tkTickerText .chip {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .tkInner {
+    gap: 8px;
+  }
+
+  .tkBrandTitle {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tkTickerWrap {
+    height: 36px;
+    gap: 8px;
+    padding: 0 10px;
+  }
+
+  .tkTickerLabel {
+    padding: 0 8px;
+    font-size: 9px;
+  }
+
+  .tkTickerText .main {
+    font-size: 12px;
+  }
+
+  .tkDropdown {
+    min-width: 210px;
+  }
+}

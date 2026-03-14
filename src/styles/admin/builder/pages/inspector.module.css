@@ -3,8 +3,8 @@
   background: var(--bg);
   border: var(--bd-header);
   border-radius: 5px;
-  padding: 10px 5px;
-  height: 83vh;
+  padding: 10px;
+  height: 75vh;
   overflow: auto;
 }
 
@@ -95,7 +95,7 @@
 
 /* sections (accordion) */
 .section {
-  border-top: 1px solid var(--line);
+  border-top: var(--bd-header);
   padding-top: 8px;
   margin-top: 8px;
 }
@@ -125,12 +125,12 @@
 
 /* labeled row */
 .row {
-  display: flex;
-  align-items: center;
   gap: 5px;
-  padding: 6px 0;
   flex-wrap: wrap;
   width: 100%;
+  flex-direction: column;
+  display: flex;
+  width: 48.5%;
 }
 .rowLabel {
   color: var(--muted);
@@ -160,8 +160,40 @@
   min-width: 238px;
 }
 .textarea {
-  min-height: 92px;
+  min-width: 480px;
+  min-height: 250px;
   resize: vertical;
+  outline: none;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #85abf7 transparent;
+}
+
+/* Chrome / Edge / Safari */
+.textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: #78a0ef;
+  border-radius: 8px;
+}
+
+.textarea::-webkit-scrollbar-thumb:hover {
+  background: #71acff;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--border-color);
+  box-shadow: var(--box-shadow);
+  outline: none;
 }
 
 /* segmented control */
@@ -278,9 +310,9 @@
   margin-top: 10px;
 }
 .btnGhost {
-  border: 1px solid var(--line);
+  border: var(--bd-header);
   background: #fff;
-  color: #374151;
+  color: #1163e7;
   padding: 6px 10px;
   border-radius: 10px;
 }
@@ -367,8 +399,33 @@
 .sectionBody {
   background: #fafbff;
   border: 1px dashed var(--line);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  height: 57vh;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #85abf7 transparent;
+}
+
+/* Chrome / Edge / Safari */
+.sectionBody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sectionBody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sectionBody::-webkit-scrollbar-thumb {
+  background: #78a0ef;
+  border-radius: 8px;
+}
+
+.sectionBody::-webkit-scrollbar-thumb:hover {
+  background: #71acff;
 }
 
 /* make header more dense */

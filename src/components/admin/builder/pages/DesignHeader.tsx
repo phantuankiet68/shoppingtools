@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import cls from "@/styles/admin/builder/pages/design-header.module.css";
-import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 
 type Device = "desktop" | "tablet" | "mobile";
 
@@ -36,14 +35,6 @@ type Props = {
 function DesignHeader({
   title,
   setTitle,
-  path,
-  saving,
-  saved,
-  publishing,
-  onSave,
-  onPublish,
-  onPreview,
-  onRefresh,
   device = "desktop",
   setDevice,
   sites = [],
@@ -51,38 +42,6 @@ function DesignHeader({
   onChangeSite,
   disableSiteSelect = false,
 }: Props) {
-  const handleRefresh = React.useCallback(() => {
-    window.location.href = "/admin/builder/pages";
-  }, []);
-
-  const functionKeyActions = useMemo(
-    () => ({
-      F2: {
-        action: () => onPublish?.(),
-        label: "Publish",
-        icon: "bi-arrow-right-short",
-      },
-      F3: {
-        action: () => onPreview?.(),
-        label: "Preview",
-        icon: "bi-eye",
-      },
-      F5: {
-        action: () => onSave?.(),
-        label: "Save",
-        icon: "bi-save",
-      },
-      F6: {
-        action: handleRefresh,
-        label: "Scancel",
-        icon: "bi-arrow-repeat",
-      },
-    }),
-    [onPublish, onPreview, onSave, handleRefresh],
-  );
-
-  usePageFunctionKeys(functionKeyActions);
-
   return (
     <div className={`${cls.bar} mb-2`} role="toolbar" aria-label="Builder header">
       <div className={cls.center}>

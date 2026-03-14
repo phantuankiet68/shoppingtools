@@ -471,3 +471,9 @@ deploy và dùng trong đời sống thật
 học thêm cloud + performance + AI integration
 
 Những thứ này sẽ giúp bạn không bị mắc kẹt ở mức junior.
+
+Hiện tại tôi muốn độ design và ghi vào TopbarUtility.tsx hãy giúp tôi độ lại tương tự cấu trúc nhưng khác với UI nhé. có thể một row và tiếp luôn file CSS module tương ứng
+
+Hiện tại design Ui đã có thể topbar như này đã đạt web seo cho web bán hàng có gọi là xuất sắc chưa á. Bạn hãy kiểm tra lại giúp tôi nhé rất cảm ơn
+
+tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé

@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import styles from "@/styles/admin/builder/pages/add.module.css";
 import DesignHeader from "@/components/admin/builder/pages/DesignHeader";
 import { ControlsPalette, Canvas, Inspector } from "@/components/admin/builder/pages";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+
 import type { Block, DropMeta } from "@/lib/builder/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import { useUiBuilderAddStore } from "@/store/builder/pages/add/uiBuilderAdd.store";
@@ -39,28 +41,42 @@ export default function UiBuilderAddPage() {
   const initialId = sp.get("id");
   const [state, dispatch] = useUiBuilderAddStore(initialId);
 
-  const sites = useSiteStore((state) => state.sites);
-  const sitesLoading = useSiteStore((state) => state.loading);
-  const sitesErr = useSiteStore((state) => state.err);
-  const selectedSiteId = useSiteStore((state) => state.siteId);
-  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
-  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
-  const loadSites = useSiteStore((state) => state.loadSites);
+  const sites = useSiteStore((siteState) => siteState.sites);
+  const sitesLoading = useSiteStore((siteState) => siteState.loading);
+  const sitesErr = useSiteStore((siteState) => siteState.err);
+  const selectedSiteId = useSiteStore((siteState) => siteState.siteId);
+  const setSelectedSiteId = useSiteStore((siteState) => siteState.setSiteId);
+  const hydrateFromStorage = useSiteStore((siteState) => siteState.hydrateFromStorage);
+  const loadSites = useSiteStore((siteState) => siteState.loadSites);
 
   const [guardMsg, setGuardMsg] = React.useState("");
+  const [showEditorModal, setShowEditorModal] = React.useState(false);
+
   const guardTimeoutRef = useRef<number | null>(null);
 
-  const setGuard = (msg: string, ms = 1800) => {
+  const setGuard = React.useCallback((msg: string, ms = 1800) => {
     setGuardMsg(msg);
     if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
     guardTimeoutRef.current = window.setTimeout(() => setGuardMsg(""), ms);
-  };
+  }, []);
 
   useEffect(() => {
     return () => {
       if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (showEditorModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showEditorModal]);
 
   const { finalPath: derivedPath } = useMemo(
     () => normalizeSlugAndPath(state.slug, state.title),
@@ -73,7 +89,7 @@ export default function UiBuilderAddPage() {
   );
 
   const selectedSite = useMemo(() => {
-    return sites.find((site) => site.id === selectedSiteId) ?? null;
+    return sites.find((site) => String(site.id) === String(selectedSiteId)) ?? null;
   }, [sites, selectedSiteId]);
 
   const siteOptions = useMemo<SiteOption[]>(() => {
@@ -90,7 +106,6 @@ export default function UiBuilderAddPage() {
     (async () => {
       try {
         hydrateFromStorage();
-
         await loadSites();
 
         if (initialId) {
@@ -114,7 +129,7 @@ export default function UiBuilderAddPage() {
             });
 
             if (p.siteId) {
-              setSelectedSiteId(p.siteId);
+              setSelectedSiteId(String(p.siteId));
             }
           }
         }
@@ -139,42 +154,58 @@ export default function UiBuilderAddPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.title]);
 
-  const onDragStart = (kind: string) => (e: React.DragEvent) => {
-    e.dataTransfer.setData("text/plain", kind);
-    e.dataTransfer.effectAllowed = "copy";
-  };
+  const onDragStart = React.useCallback((kind: string) => {
+    return (e: React.DragEvent) => {
+      e.dataTransfer.setData("text/plain", kind);
+      e.dataTransfer.effectAllowed = "copy";
+    };
+  }, []);
 
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const meta = (e as React.DragEvent & { zbMeta?: DropMeta }).zbMeta || null;
-    const txt = e.dataTransfer.getData("text/plain") || "";
+  const onDrop = React.useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
 
-    const droppedTpl = (() => {
-      if (!txt.startsWith("template:")) return null;
+      const meta = (e as React.DragEvent & { zbMeta?: DropMeta }).zbMeta || null;
+      const txt = e.dataTransfer.getData("text/plain") || "";
 
-      try {
-        const raw = e.dataTransfer.getData("application/json");
-        const payload = raw ? JSON.parse(raw) : null;
-        const templateId: string = (payload?.templateId || txt.replace("template:", "")).trim();
-        return buildDroppedTemplateBlocks(`template:${templateId}`, meta);
-      } catch {
-        return null;
+      const droppedTpl = (() => {
+        if (!txt.startsWith("template:")) return null;
+
+        try {
+          const raw = e.dataTransfer.getData("application/json");
+          const payload = raw ? JSON.parse(raw) : null;
+          const templateId: string = (payload?.templateId || txt.replace("template:", "")).trim();
+          return buildDroppedTemplateBlocks(`template:${templateId}`, meta);
+        } catch {
+          return null;
+        }
+      })();
+
+      if (droppedTpl) {
+        dispatch({ type: "appendBlocks", blocks: droppedTpl });
+        dispatch({ type: "setActiveId", id: droppedTpl[0]?.id ?? null });
+        setShowEditorModal(true);
+        return;
       }
-    })();
 
-    if (droppedTpl) {
-      dispatch({ type: "appendBlocks", blocks: droppedTpl });
-      dispatch({ type: "setActiveId", id: droppedTpl[0]?.id ?? null });
-      return;
-    }
+      const kind = txt;
+      if (!REGISTRY.some((r) => r.kind === kind)) return;
 
-    const kind = txt;
-    if (!REGISTRY.some((r) => r.kind === kind)) return;
+      const block: Block = buildDroppedSingleBlock(kind, meta);
+      dispatch({ type: "appendBlocks", blocks: [block] });
+      dispatch({ type: "setActiveId", id: block.id });
+      setShowEditorModal(true);
+    },
+    [dispatch],
+  );
 
-    const b: Block = buildDroppedSingleBlock(kind, meta);
-    dispatch({ type: "appendBlocks", blocks: [b] });
-    dispatch({ type: "setActiveId", id: b.id });
-  };
+  const handleSelectBlock = React.useCallback(
+    (id: string | null) => {
+      dispatch({ type: "setActiveId", id });
+      if (id) setShowEditorModal(true);
+    },
+    [dispatch],
+  );
 
   const move = React.useCallback(
     (dir: -1 | 1) => {
@@ -205,6 +236,7 @@ export default function UiBuilderAddPage() {
       blocks: state.blocks.filter((b) => b.id !== state.activeId),
     });
     dispatch({ type: "setActiveId", id: null });
+    setShowEditorModal(false);
   }, [state.activeId, state.blocks, dispatch]);
 
   const updateActive = React.useCallback(
@@ -223,8 +255,8 @@ export default function UiBuilderAddPage() {
             "props" in patch ? ((patch.props as Record<string, unknown>) ?? {}) : { ...(b.props ?? {}), ...patch };
 
           if (kindChanged && !("props" in patch)) {
-            const def = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
-            nextProps = { ...def, ...nextProps };
+            const defaults = REGISTRY.find((r) => r.kind === nextKind)?.defaults ?? {};
+            nextProps = { ...defaults, ...nextProps };
           }
 
           return {
@@ -238,7 +270,7 @@ export default function UiBuilderAddPage() {
     [state.activeId, state.blocks, dispatch],
   );
 
-  async function savePage() {
+  const savePage = React.useCallback(async () => {
     if (!selectedSiteId) {
       setGuard("Chưa chọn site", 1800);
       return;
@@ -283,9 +315,9 @@ export default function UiBuilderAddPage() {
     } finally {
       dispatch({ type: "setSaving", saving: false });
     }
-  }
+  }, [dispatch, selectedSiteId, selectedSite, state, setGuard]);
 
-  async function publishPage() {
+  const publishPage = React.useCallback(async () => {
     if (!selectedSiteId) {
       setGuard("Chưa chọn site", 1800);
       return;
@@ -311,20 +343,53 @@ export default function UiBuilderAddPage() {
       const safePath = ensureLeadingSlash(derivedPath);
       const siteOrigin = originFromDomain(selectedSite?.domain);
       const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
+
       window.open(url, "_blank");
     } catch (e: unknown) {
       setGuard((e as Error)?.message || BUILDER_ADD_MESSAGES.PUBLISH_ERROR_FALLBACK, 2000);
     } finally {
       dispatch({ type: "setPublishing", publishing: false });
     }
-  }
+  }, [dispatch, selectedSiteId, selectedSite, state.pageId, derivedPath, setGuard]);
 
-  const openPreview = () => {
+  const openPreview = React.useCallback(() => {
     const safePath = ensureLeadingSlash(derivedPath);
     const siteOrigin = originFromDomain(selectedSite?.domain);
     const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
     window.open(url, "_blank");
-  };
+  }, [derivedPath, selectedSite]);
+
+  const handleRefresh = React.useCallback(() => {
+    window.location.href = "/admin/builder/pages";
+  }, []);
+
+  const functionKeyActions = useMemo(
+    () => ({
+      F2: {
+        action: publishPage,
+        label: "Publish",
+        icon: "bi-arrow-right-short",
+      },
+      F3: {
+        action: openPreview,
+        label: "Preview",
+        icon: "bi-eye",
+      },
+      F5: {
+        action: savePage,
+        label: "Save",
+        icon: "bi-save",
+      },
+      F6: {
+        action: handleRefresh,
+        label: "Cancel",
+        icon: "bi-arrow-repeat",
+      },
+    }),
+    [publishPage, openPreview, savePage, handleRefresh],
+  );
+
+  usePageFunctionKeys(functionKeyActions);
 
   return (
     <div className={styles.wrapper}>
@@ -355,34 +420,12 @@ export default function UiBuilderAddPage() {
               <Canvas
                 blocks={state.blocks}
                 activeId={state.activeId}
-                setActiveId={(id) => dispatch({ type: "setActiveId", id })}
+                setActiveId={handleSelectBlock}
                 onDrop={onDrop}
                 move={move}
                 device={state.device}
               />
             </main>
-
-            <aside className={styles.right}>
-              <DesignHeader
-                title={state.title}
-                setTitle={(v) => dispatch({ type: "setTitle", title: v })}
-                path={derivedPath}
-                saving={state.saving}
-                saved={!state.saving}
-                publishing={state.publishing}
-                onSave={savePage}
-                onPublish={publishPage}
-                onPreview={openPreview}
-                onRefresh={() => {}}
-                device={state.device}
-                setDevice={(d) => dispatch({ type: "setDevice", device: d })}
-                sites={siteOptions}
-                selectedSiteId={selectedSiteId || ""}
-                onChangeSite={setSelectedSiteId}
-                disableSiteSelect={Boolean(state.pageId)}
-              />
-              <Inspector active={active} move={move} remove={remove} updateActive={updateActive} />
-            </aside>
           </div>
         ) : (
           <div className={styles.previewCard}>
@@ -421,6 +464,53 @@ export default function UiBuilderAddPage() {
           </div>
         )}
       </div>
+
+      {showEditorModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowEditorModal(false)} role="presentation">
+          <div
+            className={styles.modalPanel}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Builder editor"
+          >
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Page Editor</h3>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={() => setShowEditorModal(false)}
+                aria-label="Close modal"
+              >
+                <i className="bi bi-x-lg" />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <DesignHeader
+                title={state.title}
+                setTitle={(v) => dispatch({ type: "setTitle", title: v })}
+                path={derivedPath}
+                saving={state.saving}
+                saved={!state.saving}
+                publishing={state.publishing}
+                onSave={savePage}
+                onPublish={publishPage}
+                onPreview={openPreview}
+                onRefresh={handleRefresh}
+                device={state.device}
+                setDevice={(d) => dispatch({ type: "setDevice", device: d })}
+                sites={siteOptions}
+                selectedSiteId={selectedSiteId || ""}
+                onChangeSite={setSelectedSiteId}
+                disableSiteSelect={Boolean(state.pageId)}
+              />
+
+              <Inspector active={active} move={move} remove={remove} updateActive={updateActive} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {sitesLoading && <div className="small text-secondary mt-2">Đang tải site...</div>}
       {sitesErr && <div className="small text-danger mt-2">{sitesErr}</div>}

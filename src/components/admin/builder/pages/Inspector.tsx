@@ -1,6 +1,5 @@
-// Inspector.tsx (phiên bản generic + custom editor)
-
 "use client";
+
 import React from "react";
 import type { Block } from "@/lib/builder/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
@@ -105,7 +104,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                   <Row key={field.key} label={field.label} stack>
                     <textarea
                       className={cls.textarea}
-                      rows={6}
+                      rows={8}
                       value={value}
                       onChange={(e) => updateActive({ [field.key]: e.target.value })}
                     />
@@ -131,14 +130,12 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                 );
               }
 
-              // fallback
               return null;
             })}
           </div>
         </div>
       )}
 
-      {/* Footer nút move / delete */}
       <div className={cls.footerBtns}>
         <button className={cls.btnGhost} onClick={() => move(-1)} title="Move up">
           <i className="bi bi-arrow-up" />

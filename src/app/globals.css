@@ -63,6 +63,8 @@
   --bg-table: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 255, 0.92));
   --color-white: #fff;
   --color-blue: #7ea9ff;
+  --border-color: #3b82f6b3;
+  --box-shadow: 0 0 0 4px #3b82f626;
 }
 
 html {

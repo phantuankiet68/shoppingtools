@@ -1,0 +1,504 @@
+/* ================================== */
+/* Topbar Classic - Elegant Store UI  */
+/* ================================== */
+
+.topbarClassic {
+  width: 100%;
+  position: relative;
+  z-index: 40;
+  color: #ffffff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+    linear-gradient(90deg, #0d3a2d 0%, #14553e 50%, #0f4635 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.tcInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 56px;
+  padding: 8px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ================= LEFT ================= */
+
+.tcLeft {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.tcInfoChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.tcInfoChip:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tcInfoChip i {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+.tcInfoChip span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ================= CENTER ================= */
+
+.tcCenter {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.tcBrandBlock {
+  min-width: 0;
+  max-width: 720px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.tcBrandMark {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(130, 255, 182, 0.24), rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.tcBrandMark i {
+  font-size: 15px;
+}
+
+.tcBrandContent {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tcBrandTitle {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+
+.tcTicker {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tcTickerLabel {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #073823;
+  background: linear-gradient(135deg, #8dffbf, #c5ffdf);
+  box-shadow: 0 4px 14px rgba(141, 255, 191, 0.24);
+}
+
+.tcTickerText {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition:
+    opacity 0.26s ease,
+    transform 0.26s ease,
+    filter 0.26s ease;
+  transform-origin: center;
+}
+
+.main {
+  display: block;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.96;
+}
+
+.note {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+/* animation */
+
+.isActive {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.isLeaving {
+  opacity: 0;
+  transform: translateY(-8px);
+  filter: blur(2px);
+}
+
+.isEntering {
+  opacity: 0;
+  transform: translateY(8px);
+  filter: blur(2px);
+}
+
+/* ================= RIGHT ================= */
+
+.tcRight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tcPhone {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tcPhone:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tcPhone i {
+  font-size: 13px;
+}
+
+.tcWorking {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tcDot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #6dffb3;
+  box-shadow:
+    0 0 0 4px rgba(109, 255, 179, 0.12),
+    0 0 14px rgba(109, 255, 179, 0.9);
+  animation: tcClassicPulse 1.8s infinite ease-in-out;
+}
+
+@keyframes tcClassicPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.82;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tcMenuBtn {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tcMenuBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tcMenuBtn i {
+  font-size: 16px;
+}
+
+/* dropdown */
+
+.tcDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 220px;
+  padding: 8px;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #18251f;
+  border: 1px solid rgba(9, 30, 20, 0.06);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  animation: tcClassicDropdownIn 0.18s ease;
+  transform-origin: top right;
+  z-index: 20;
+}
+
+@keyframes tcClassicDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tcDropdownItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 11px;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+  color: #1a2d24;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+.tcDropdownItem:hover {
+  background: #eef8f2;
+  color: #0d5c3a;
+  transform: translateX(2px);
+}
+
+.tcDropdownItem i {
+  font-size: 14px;
+  color: #178e5b;
+}
+
+.isOpen .tcMenuBtn {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
+  .tcInner {
+    grid-template-columns: 1fr minmax(300px, auto) 1fr;
+    gap: 12px;
+  }
+
+  .main {
+    max-width: 260px;
+  }
+
+  .tcWorking span:last-child {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 900px) {
+  .tcInner {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "left right"
+      "center center";
+    row-gap: 10px;
+    min-height: auto;
+  }
+
+  .tcLeft {
+    grid-area: left;
+  }
+
+  .tcRight {
+    grid-area: right;
+  }
+
+  .tcCenter {
+    grid-area: center;
+    justify-content: stretch;
+  }
+
+  .tcBrandBlock {
+    width: 100%;
+    border-radius: 18px;
+  }
+
+  .main {
+    max-width: 380px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tcInner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .tcInfoChip {
+    padding: 8px 10px;
+  }
+
+  .tcInfoChip span {
+    max-width: 110px;
+  }
+
+  .tcPhone span {
+    display: none;
+  }
+
+  .tcWorking span:last-child {
+    display: none;
+  }
+
+  .tcBrandBlock {
+    padding: 10px 12px;
+  }
+
+  .tcTickerLabel {
+    display: none;
+  }
+
+  .main {
+    max-width: 180px;
+    font-size: 11px;
+  }
+
+  .note {
+    font-size: 9px;
+    padding: 3px 7px;
+  }
+
+  .tcDropdown {
+    width: 200px;
+  }
+}
+
+@media (max-width: 420px) {
+  .tcBrandMark {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .tcBrandTitle {
+    font-size: 13px;
+  }
+
+  .main {
+    max-width: 145px;
+  }
+
+  .tcInfoChip span {
+    display: none;
+  }
+}

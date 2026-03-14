@@ -1,401 +1,357 @@
 "use client";
 
-// src/components/admin/shared/templates/sections/Topbar/TopbarAnnouncement.tsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import cls from "@/styles/templates/sections/Topbar/TopbarAnnouncement.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/styles/templates/sections/Topbar/TopbarAnnouncement.module.css";
 
-export interface TopbarAnnouncementTickerItem {
-  text: string;
-  badge?: string;
-}
+export type AnnouncementItem = {
+  title: string;
+  meta: string;
+};
 
-export interface TopbarAnnouncementLinkItem {
-  label: string;
-  href?: string;
-  iconClass?: string;
-}
-
-export interface TopbarAnnouncementProps extends Record<string, unknown> {
-  logoIconClass?: string;
+export type TopbarAnnouncementProps = {
   brandTitle?: string;
-  brandSubtitle?: string;
-
-  showRegionButton?: boolean;
-  regionLabel?: string;
-  regionIconClass?: string;
-  regionChevronIconClass?: string;
-
-  showTicker?: boolean;
-  tickerLabel?: string;
-  tickerItems?: TopbarAnnouncementTickerItem[];
-
-  backgroundColor?: string;
-
-  showStatus?: boolean;
-  statusText?: string;
-  statusDotColor?: string;
-
-  links?: TopbarAnnouncementLinkItem[];
-
+  branchLabel?: string;
+  hotline?: string;
+  supportText?: string;
+  announcementLabel?: string;
+  announcementItems?: AnnouncementItem[];
+  background?: string;
   preview?: boolean;
-}
+};
 
-/* ===== DEFAULT DATA ===== */
-
-export const DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS: TopbarAnnouncementTickerItem[] = [
-  { text: "Ưu đãi xanh – giao nhanh trong ngày.", badge: "Hot" },
-  { text: "Miễn phí đổi trả trong 7 ngày.", badge: "Support" },
-];
-
-export const DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS: TopbarAnnouncementLinkItem[] = [
-  {
-    label: "Hỗ trợ",
-    href: "#",
-    iconClass: "bi bi-life-preserver",
-  },
-  {
-    label: "Theo dõi đơn",
-    href: "#",
-    iconClass: "bi bi-truck",
-  },
-  {
-    label: "Tài khoản",
-    href: "#",
-    iconClass: "bi bi-person-circle",
-  },
-];
-
-export const TopbarAnnouncement: React.FC<TopbarAnnouncementProps> = ({
-  logoIconClass = "bi bi-leaf-fill",
-  brandTitle = "Aurora Green",
-  brandSubtitle = "Topbar 2025 – Xanh lá nhạt, nhẹ mắt",
-
-  showRegionButton = true,
-  regionLabel = "KV: Hồ Chí Minh",
-  regionIconClass = "bi bi-geo-alt",
-  regionChevronIconClass = "bi bi-chevron-down",
-
-  showTicker = true,
-  tickerLabel = "Tin mới",
-  tickerItems: tickerItemsProp,
-  backgroundColor = "#a7f3d0",
-
-  showStatus = true,
-  statusText = "Online",
-  statusDotColor,
-
-  links: linksProp,
-  preview = false,
-}) => {
-  const links = useMemo(
-    () => (linksProp?.length ? linksProp : DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS),
-    [linksProp],
-  );
-
-  const tickerItems = useMemo(
-    () => (tickerItemsProp?.length ? tickerItemsProp : DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS),
-    [tickerItemsProp],
-  );
-
-  const [tickerIndex, setTickerIndex] = useState(0);
-  const [tickerPhase, setTickerPhase] = useState<"active" | "leaving" | "entering">("active");
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const tbRightRef = useRef<HTMLDivElement | null>(null);
-  const rotateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const rotateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const rafRef = useRef<number | null>(null);
-  const mountedRef = useRef(false);
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
-    mountedRef.current = true;
+    if (typeof window === "undefined" || !window.matchMedia) return;
 
-    return () => {
-      mountedRef.current = false;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(media.matches);
 
-      if (rotateIntervalRef.current) {
-        clearInterval(rotateIntervalRef.current);
-        rotateIntervalRef.current = null;
-      }
+    onChange();
 
-      if (rotateTimeoutRef.current) {
-        clearTimeout(rotateTimeoutRef.current);
-        rotateTimeoutRef.current = null;
-      }
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
 
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
   }, []);
 
-  useEffect(() => {
-    if (!showTicker || tickerItems.length <= 1) {
-      setTickerIndex(0);
-      setTickerPhase("active");
+  return reduced;
+}
 
-      if (rotateIntervalRef.current) {
-        clearInterval(rotateIntervalRef.current);
-        rotateIntervalRef.current = null;
-      }
+export function TopbarAnnouncement({
+  brandTitle = "Aurora Hub",
+  branchLabel = "Chi nhánh Hồ Chí Minh",
+  hotline = "0867105900",
+  supportText = "Hỗ trợ 24/7",
+  announcementLabel = "THÔNG BÁO",
+  announcementItems,
+  background = "#47c98b",
+  preview = false,
+}: TopbarAnnouncementProps) {
+  const items = useMemo<AnnouncementItem[]>(
+    () =>
+      announcementItems?.length
+        ? announcementItems
+        : [
+            { title: "Miễn phí vận chuyển cho đơn từ 499K", meta: "Freeship" },
+            { title: "Đổi trả nhanh trong 7 ngày với lỗi kỹ thuật", meta: "7 ngày đổi trả" },
+            { title: "Tư vấn đặt hàng và hỗ trợ nhanh mỗi ngày", meta: "Hỗ trợ nhanh" },
+          ],
+    [announcementItems],
+  );
 
-      if (rotateTimeoutRef.current) {
-        clearTimeout(rotateTimeoutRef.current);
-        rotateTimeoutRef.current = null;
-      }
+  const reducedMotion = usePrefersReducedMotion();
+  const menuId = useId();
+  const timeoutRef = useRef<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const menuBtnRef = useRef<HTMLButtonElement | null>(null);
 
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
+  const [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<"active" | "leaving" | "entering">("active");
+  const [menuOpen, setMenuOpen] = useState(false);
 
-      return;
-    }
-
-    const runCycle = () => {
-      if (!mountedRef.current) return;
-
-      setTickerPhase("leaving");
-
-      if (rotateTimeoutRef.current) {
-        clearTimeout(rotateTimeoutRef.current);
-      }
-
-      rotateTimeoutRef.current = setTimeout(() => {
-        if (!mountedRef.current) return;
-
-        setTickerIndex((prev) => (prev + 1) % tickerItems.length);
-        setTickerPhase("entering");
-
-        if (rafRef.current !== null) {
-          cancelAnimationFrame(rafRef.current);
-        }
-
-        rafRef.current = requestAnimationFrame(() => {
-          if (!mountedRef.current) return;
-          setTickerPhase("active");
-        });
-      }, 250);
-    };
-
-    rotateIntervalRef.current = setInterval(runCycle, 4200);
-
-    return () => {
-      if (rotateIntervalRef.current) {
-        clearInterval(rotateIntervalRef.current);
-        rotateIntervalRef.current = null;
-      }
-
-      if (rotateTimeoutRef.current) {
-        clearTimeout(rotateTimeoutRef.current);
-        rotateTimeoutRef.current = null;
-      }
-
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [showTicker, tickerItems.length]);
-
-  useEffect(() => {
-    if (!menuOpen || preview) return;
-
-    const handleDocumentClick = (event: MouseEvent) => {
-      const target = event.target as Node | null;
-      if (!target) return;
-
-      if (tbRightRef.current?.contains(target)) return;
-      setMenuOpen(false);
-    };
-
-    document.addEventListener("click", handleDocumentClick);
-
-    return () => {
-      document.removeEventListener("click", handleDocumentClick);
-    };
-  }, [menuOpen, preview]);
-
-  useEffect(() => {
-    if (preview && menuOpen) {
-      setMenuOpen(false);
-    }
-  }, [preview, menuOpen]);
-
-  const handlePreventInPreview = (e: React.SyntheticEvent) => {
+  const onBlockClick = (e: React.SyntheticEvent) => {
     if (!preview) return;
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleLinkClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
-    if (preview) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
+  useEffect(() => {
+    if (!items.length || reducedMotion) return;
 
-  const handleRegionClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    if (preview) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
+    const interval = window.setInterval(() => {
+      setPhase("leaving");
 
-    // Placeholder cho action sau này
-  };
+      timeoutRef.current = window.setTimeout(() => {
+        setIndex((prev) => (prev + 1) % items.length);
+        setPhase("entering");
 
-  const handleMoreClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    if (preview) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setPhase("active"));
+        });
+      }, 260);
+    }, 4200);
 
-    setMenuOpen((open) => !open);
-  };
+    return () => {
+      window.clearInterval(interval);
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [items.length, reducedMotion]);
 
-  const rootStyle: React.CSSProperties & Record<string, string> = {
-    backgroundColor,
-    "--topbar-announcement-background": backgroundColor,
-  };
+  useEffect(() => {
+    if (!menuOpen || preview) return;
 
-  const tickerItem = tickerItems[tickerIndex];
+    const onDocClick = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
 
-  const tickerTextClassName = [
-    styles.tickerText,
-    tickerPhase === "leaving" ? styles.isLeaving : "",
-    tickerPhase === "entering" ? styles.isEntering : "",
-    tickerPhase === "active" ? styles.isActive : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+      if (dropdownRef.current?.contains(target)) return;
+      if (menuBtnRef.current?.contains(target)) return;
 
-  const tbRightClassName = [styles.tbRight, menuOpen ? styles.tbRightOpen : ""]
-    .filter(Boolean)
-    .join(" ");
+      setMenuOpen(false);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        menuBtnRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("click", onDocClick);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen, preview]);
+
+  const current = items[index] ?? { title: "", meta: "" };
+  const telHref = `tel:${String(hotline).replace(/\s+/g, "")}`;
 
   return (
-    <div
-      className={styles.topbar}
-      style={rootStyle}
-      onClick={handlePreventInPreview}
-      aria-label="Topbar Announcement"
+    <header
+      className={cls.announcementBar}
+      onClick={onBlockClick}
+      role="region"
+      aria-label="Thanh thông báo và hỗ trợ cửa hàng"
+      style={{ background }}
     >
-      <div className={styles.topbarInner}>
-        <div className={styles.tbLeft}>
-          <div className={styles.logoCircle} aria-hidden="true">
-            {logoIconClass ? <i className={logoIconClass} /> : null}
-          </div>
-
-          <div>
-            <div className={styles.brandTitle}>{brandTitle}</div>
-            <div className={styles.brandSub}>{brandSubtitle}</div>
-          </div>
-
-          {showRegionButton && (
-            <button
-              className={styles.regionBtn}
-              type="button"
-              onClick={handleRegionClick}
-              aria-label={regionLabel}
-            >
-              {regionIconClass ? <i className={regionIconClass} aria-hidden="true" /> : null}
-              <span>{regionLabel}</span>
-              {regionChevronIconClass ? (
-                <i className={regionChevronIconClass} aria-hidden="true" />
-              ) : null}
-            </button>
-          )}
-        </div>
-
-        <div className={styles.tbCenter}>
-          {showTicker && tickerItem ? (
-            <div className={styles.ticker}>
-              <div className={styles.tickerBox}>
-                <span className={styles.tickerLabel}>{tickerLabel}</span>
-
-                <div className={tickerTextClassName}>
-                  <span>{tickerItem.text}</span>
-                  {tickerItem.badge ? <span className={styles.tag}>{tickerItem.badge}</span> : null}
-                </div>
-              </div>
+      <div className={cls.inner}>
+        {/* LEFT */}
+        <div className={cls.leftZone}>
+          <div className={cls.brandWrap}>
+            <div className={cls.brandIcon} aria-hidden="true">
+              <i className="bi bi-megaphone-fill" />
             </div>
-          ) : null}
-        </div>
 
-        <div className={tbRightClassName} ref={tbRightRef}>
-          <div className={styles.tbLinks}>
-            {links.map((link, index) => (
-              <a
-                key={`${link.label}-${index}`}
-                className={styles.tbLink}
-                href={link.href || "#"}
-                onClick={handleLinkClick}
-              >
-                {link.iconClass ? <i className={link.iconClass} aria-hidden="true" /> : null}
-                <span>{link.label}</span>
-              </a>
-            ))}
-          </div>
-
-          {showStatus ? (
-            <div className={styles.statusPill}>
-              <span
-                className={styles.dot}
-                style={statusDotColor ? { backgroundColor: statusDotColor } : undefined}
-              />
-              <span>{statusText}</span>
+            <div className={cls.brandText}>
+              <span className={cls.brandName}>{brandTitle}</span>
+              <span className={cls.brandSub}>{announcementLabel}</span>
             </div>
-          ) : null}
+          </div>
 
           <button
-            className={styles.moreBtn}
-            id="topbarAnnouncementMoreBtn"
             type="button"
-            onClick={handleMoreClick}
-            aria-label="Mở menu topbar"
-            aria-expanded={menuOpen}
+            className={cls.branchChip}
+            onClick={(e) => {
+              onBlockClick(e);
+              if (preview) return;
+              alert("Sau này có thể mở danh sách chi nhánh / khu vực tại đây.");
+            }}
+            aria-label={`Khu vực hiện tại: ${branchLabel}`}
+            title={branchLabel}
           >
-            <i className="bi bi-list" aria-hidden="true" />
+            <i className="bi bi-shop" aria-hidden="true" />
+            <span>{branchLabel}</span>
+            <i className="bi bi-chevron-down" aria-hidden="true" />
           </button>
         </div>
-      </div>
-    </div>
-  );
-};
 
+        {/* CENTER */}
+        <div className={cls.centerZone}>
+          <div className={cls.announcementTrack} aria-live={reducedMotion ? "off" : "polite"} aria-atomic="true">
+            <span className={cls.labelPill}>{announcementLabel}</span>
+
+            <div
+              className={[
+                cls.announcementText,
+                phase === "active" ? cls.isActive : "",
+                phase === "leaving" ? cls.isLeaving : "",
+                phase === "entering" ? cls.isEntering : "",
+              ].join(" ")}
+            >
+              <span className={cls.title}>{current.title}</span>
+              <span className={cls.meta}>{current.meta}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div className={`${cls.rightZone} ${menuOpen ? cls.isOpen : ""}`}>
+          <a
+            href={telHref}
+            className={cls.hotlineBtn}
+            onClick={onBlockClick}
+            aria-label={`Gọi hotline ${hotline}`}
+            title={`Hotline đặt hàng ${hotline}`}
+          >
+            <i className="bi bi-telephone-outbound" aria-hidden="true" />
+            <span>{hotline}</span>
+          </a>
+
+          <div className={cls.supportBadge} aria-label={supportText} title={supportText}>
+            <span className={cls.liveDot} aria-hidden="true" />
+            <span>{supportText}</span>
+          </div>
+
+          <button
+            ref={menuBtnRef}
+            type="button"
+            className={cls.menuBtn}
+            onClick={(e) => {
+              onBlockClick(e);
+              if (preview) return;
+              setMenuOpen((v) => !v);
+            }}
+            aria-label="Mở menu tiện ích"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+          >
+            <i className="bi bi-grid-3x3-gap" aria-hidden="true" />
+          </button>
+
+          {!preview && menuOpen ? (
+            <div id={menuId} ref={dropdownRef} className={cls.dropdownMenu} role="menu" aria-label="Menu tiện ích">
+              <button type="button" className={cls.dropdownItem} role="menuitem">
+                <i className="bi bi-bell" aria-hidden="true" />
+                <span>Thông báo mới</span>
+              </button>
+              <button type="button" className={cls.dropdownItem} role="menuitem">
+                <i className="bi bi-ticket-perforated" aria-hidden="true" />
+                <span>Ưu đãi hôm nay</span>
+              </button>
+              <button type="button" className={cls.dropdownItem} role="menuitem">
+                <i className="bi bi-headset" aria-hidden="true" />
+                <span>Liên hệ hỗ trợ</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ================ Helpers ================ */
+function parseAnnouncementItems(raw?: string): AnnouncementItem[] | undefined {
+  if (!raw) return undefined;
+
+  try {
+    const val = JSON.parse(raw);
+    if (!Array.isArray(val)) return undefined;
+
+    const ok = val
+      .map((x) => ({
+        title: String(x?.title ?? "").trim(),
+        meta: String(x?.meta ?? "").trim(),
+      }))
+      .filter((x) => x.title && x.meta);
+
+    return ok.length ? ok : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function parseBackground(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const value = String(raw).trim();
+  return value || undefined;
+}
+
+const BACKGROUND_PRESETS = [
+  "linear-gradient(90deg, #4ed595, #49b884)",
+  "linear-gradient(90deg, rgb(213 78 78), rgb(184 73 73))",
+  "linear-gradient(90deg, rgb(213 125 78), rgb(184 108 73))",
+  "linear-gradient(90deg, rgb(78 213 194), rgb(73, 184, 132))",
+  "linear-gradient(90deg, rgb(78 213 184), rgb(73 184 169))",
+  "linear-gradient(90deg, rgb(78 182 213), rgb(73 175 184))",
+  "linear-gradient(90deg, rgb(78 132 213), rgb(73 154 184))",
+  "linear-gradient(90deg, rgb(124 78 213), rgb(73 89 184))",
+  "linear-gradient(90deg, rgb(174 78 213), rgb(152 73 184))",
+  "linear-gradient(90deg, rgb(203 78 213), rgb(184 73 175))",
+  "linear-gradient(90deg, rgb(255 103 204), rgb(253 130 243))",
+];
+
+/* ================ Registry ================ */
 export const SHOP_TOPBAR_ANNOUNCEMENT: RegItem = {
   kind: "Announcement",
   label: "Announcement",
   defaults: {
-    logoIconClass: "bi bi-leaf-fill",
-    brandTitle: "Aurora Green",
-    brandSubtitle: "Topbar 2025 – Xanh lá nhạt, nhẹ mắt",
-
-    showRegionButton: true,
-    regionLabel: "KV: Hồ Chí Minh",
-    regionIconClass: "bi bi-geo-alt",
-    regionChevronIconClass: "bi bi-chevron-down",
-
-    showTicker: true,
-    tickerLabel: "Tin mới",
-    tickerItems: DEFAULT_TOPBAR_ANNOUNCEMENT_TICKERS,
-
-    backgroundColor: "#a7f3d0",
-
-    showStatus: true,
-    statusText: "Online",
-    statusDotColor: "#16a34a",
-
-    links: DEFAULT_TOPBAR_ANNOUNCEMENT_LINKS,
-
-    preview: false,
+    brandTitle: "Aurora Hub",
+    branchLabel: "Chi nhánh Hồ Chí Minh",
+    hotline: "0867105900",
+    supportText: "Hỗ trợ nhanh 24/7",
+    announcementLabel: "THÔNG BÁO",
+    background: BACKGROUND_PRESETS[0],
+    announcementItems: JSON.stringify(
+      [
+        { title: "Miễn phí vận chuyển cho đơn từ 499K", meta: "Freeship" },
+        { title: "Đổi trả nhanh trong 7 ngày với lỗi kỹ thuật", meta: "7 ngày đổi trả" },
+        { title: "Tư vấn đặt hàng và hỗ trợ nhanh mỗi ngày", meta: "Hỗ trợ nhanh" },
+      ],
+      null,
+      2,
+    ),
   },
-  inspector: [],
-  render: (props) => <TopbarAnnouncement {...(props as TopbarAnnouncementProps)} />,
+  inspector: [
+    { key: "brandTitle", label: "Brand Title", kind: "text" },
+    { key: "branchLabel", label: "Branch Label", kind: "text" },
+    { key: "hotline", label: "Hotline", kind: "text" },
+    { key: "supportText", label: "Support Text", kind: "text" },
+    { key: "announcementLabel", label: "Announcement Label", kind: "text" },
+    { key: "background", label: "Background", kind: "select", options: BACKGROUND_PRESETS },
+    {
+      key: "announcementItems",
+      label: "Announcement Items (JSON)",
+      kind: "textarea",
+      rows: 6,
+      placeholder: `Ví dụ:
+[
+  { "title": "Miễn phí vận chuyển cho đơn từ 499K", "meta": "Freeship" },
+  { "title": "Đổi trả nhanh trong 7 ngày với lỗi kỹ thuật", "meta": "7 ngày đổi trả" }
+]`,
+    },
+  ],
+  render: (p) => {
+    const items = parseAnnouncementItems(p.announcementItems as string | undefined);
+    const background = parseBackground(p.background as string | undefined);
+
+    return (
+      <div aria-label="Shop Topbar Announcement">
+        <TopbarAnnouncement
+          brandTitle={p.brandTitle as string | undefined}
+          branchLabel={p.branchLabel as string | undefined}
+          hotline={p.hotline as string | undefined}
+          supportText={p.supportText as string | undefined}
+          announcementLabel={p.announcementLabel as string | undefined}
+          announcementItems={items}
+          background={background}
+          preview={true}
+        />
+      </div>
+    );
+  },
 };
 
 export default TopbarAnnouncement;

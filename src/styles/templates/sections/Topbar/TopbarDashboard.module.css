@@ -1,0 +1,439 @@
+.topbarDashboard {
+  width: 100%;
+  position: relative;
+  z-index: 20;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  color: #e5eefc;
+  overflow: visible;
+}
+
+.dbInner {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(260px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 0 18px;
+  margin: 0 auto;
+  width: 1200px;
+}
+
+/* ========= LEFT ========= */
+.dbLeft {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.dbBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dbBrandBadge {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(59, 130, 246, 0.12));
+  border: 1px solid rgba(129, 140, 248, 0.24);
+  color: #c7d2fe;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 18px rgba(15, 23, 42, 0.24);
+  flex-shrink: 0;
+}
+
+.dbBrandBadge i {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.dbBrandText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dbBrandTitle {
+  font-size: 14px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #f8fbff;
+  white-space: nowrap;
+}
+
+.dbBrandSub {
+  font-size: 12px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* ========= CENTER ========= */
+.dbCenter {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dbTickerShell {
+  min-width: 0;
+  max-width: 680px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  backdrop-filter: blur(10px);
+}
+
+.dbTickerLabel {
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #eff6ff;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.28);
+}
+
+.dbTickerText {
+  min-width: 0;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+  will-change: opacity, transform;
+}
+
+.dbTickerText .main {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #dbe7f5;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dbTickerText .chip {
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  color: #a7f3d0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.isActive {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.isLeaving {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.isEntering {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ========= RIGHT ========= */
+.dbRight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.dbContact {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #f8fbff;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.dbContact:hover {
+  background: rgba(255, 255, 255, 0.075);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.dbContact:active {
+  transform: translateY(1px);
+}
+
+.dbContact i {
+  font-size: 14px;
+  line-height: 1;
+  color: #93c5fd;
+}
+
+.dbContact span {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dbStatus {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #c8d6e8;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.dbStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.12),
+    0 0 12px rgba(34, 197, 94, 0.32);
+  animation: dashboardPulse 1.8s ease-in-out infinite;
+}
+
+.dbActionBtn,
+.dbMenuBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+  color: #dbeafe;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.dbActionBtn:hover,
+.dbMenuBtn:hover {
+  background: rgba(255, 255, 255, 0.075);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #ffffff;
+}
+
+.dbActionBtn:active,
+.dbMenuBtn:active {
+  transform: translateY(1px);
+}
+
+.dbActionBtn i,
+.dbMenuBtn i {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.isOpen .dbMenuBtn {
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(129, 140, 248, 0.28);
+  color: #e0e7ff;
+}
+
+.dbDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 230px;
+  padding: 8px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow:
+    0 18px 38px rgba(2, 6, 23, 0.38),
+    0 4px 12px rgba(2, 6, 23, 0.22);
+  backdrop-filter: blur(14px);
+  animation: dashboardDropdownIn 0.18s ease-out;
+}
+
+.dbDropdownItem {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #dce8f7;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.dbDropdownItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.dbDropdownItem i {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #93c5fd;
+}
+
+/* ========= Animations ========= */
+@keyframes dashboardPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.14);
+    opacity: 0.84;
+  }
+}
+
+@keyframes dashboardDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ========= Responsive ========= */
+@media (max-width: 1080px) {
+  .dbInner {
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    padding: 0 14px;
+  }
+
+  .dbStatus {
+    display: none;
+  }
+
+  .dbTickerShell {
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  .dbInner {
+    min-height: 54px;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .dbBrandSub {
+    display: none;
+  }
+
+  .dbContact span {
+    display: none;
+  }
+
+  .dbTickerShell {
+    height: 38px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .dbTickerText .chip {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .dbInner {
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+  }
+
+  .dbBrandBadge {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .dbBrandTitle {
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dbTickerLabel {
+    padding: 0 8px;
+    font-size: 9px;
+  }
+
+  .dbTickerText .main {
+    font-size: 12px;
+  }
+
+  .dbActionBtn {
+    display: none;
+  }
+
+  .dbDropdown {
+    min-width: 200px;
+  }
+}

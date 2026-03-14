@@ -1,0 +1,518 @@
+/* ================================== */
+/* Topbar Centered - Modern UI        */
+/* ================================== */
+
+.topbarCentered {
+  width: 100%;
+  position: relative;
+  z-index: 40;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at top left, rgba(86, 255, 172, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(87, 160, 255, 0.16), transparent 24%),
+    linear-gradient(90deg, #0c3b2e 0%, #11553e 50%, #0f4635 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.tcInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 58px;
+  padding: 8px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ================= LEFT ================= */
+
+.tcLeft {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.tcUtility {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.tcUtility:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tcUtility i {
+  font-size: 14px;
+  opacity: 0.95;
+  flex: 0 0 auto;
+}
+
+.tcUtility span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ================= CENTER ================= */
+
+.tcCenter {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.tcBrandWrap {
+  min-width: 0;
+  max-width: 680px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.tcBrandIcon {
+  width: 18px;
+  height: 25px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(130, 255, 182, 0.28), rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tcBrandIcon i {
+  font-size: 15px;
+}
+
+.tcBrandText {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tcBrandTitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.tcTicker {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tcTickerLabel {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #063923;
+  background: linear-gradient(135deg, #79ffb6, #a0ffd0);
+  box-shadow: 0 4px 14px rgba(121, 255, 182, 0.28);
+}
+
+.tcTickerText {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    opacity 0.26s ease,
+    transform 0.26s ease,
+    filter 0.26s ease;
+  transform-origin: center;
+}
+
+.main {
+  display: block;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.96;
+}
+
+.badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* animation states */
+
+.isActive {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.isLeaving {
+  opacity: 0;
+  transform: translateY(-8px);
+  filter: blur(2px);
+}
+
+.isEntering {
+  opacity: 0;
+  transform: translateY(8px);
+  filter: blur(2px);
+}
+
+/* ================= RIGHT ================= */
+
+.tcRight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tcPhone {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.tcPhone:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tcPhone i {
+  font-size: 13px;
+}
+
+.tcStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tcDot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #65ffaf;
+  box-shadow:
+    0 0 0 4px rgba(101, 255, 175, 0.12),
+    0 0 14px rgba(101, 255, 175, 0.9);
+  animation: tcPulse 1.8s infinite ease-in-out;
+}
+
+@keyframes tcPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.82;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tcMenuBtn {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tcMenuBtn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tcMenuBtn i {
+  font-size: 15px;
+}
+
+/* dropdown */
+
+.tcDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 220px;
+  padding: 8px;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #18251f;
+  border: 1px solid rgba(9, 30, 20, 0.06);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  animation: tcDropdownIn 0.18s ease;
+  transform-origin: top right;
+  z-index: 20;
+}
+
+@keyframes tcDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tcDropdownItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 11px;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+  color: #1a2d24;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+.tcDropdownItem:hover {
+  background: #eef8f2;
+  color: #0d5c3a;
+  transform: translateX(2px);
+}
+
+.tcDropdownItem i {
+  font-size: 14px;
+  color: #178e5b;
+}
+
+/* optional state hook */
+.isOpen .tcMenuBtn {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
+  .tcInner {
+    grid-template-columns: 1fr minmax(280px, auto) 1fr;
+    gap: 12px;
+  }
+
+  .main {
+    max-width: 260px;
+  }
+
+  .tcStatus span:last-child {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 900px) {
+  .tcInner {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "left right"
+      "center center";
+    row-gap: 10px;
+    min-height: auto;
+  }
+
+  .tcLeft {
+    grid-area: left;
+  }
+
+  .tcRight {
+    grid-area: right;
+  }
+
+  .tcCenter {
+    grid-area: center;
+    justify-content: stretch;
+  }
+
+  .tcBrandWrap {
+    width: 100%;
+    justify-content: center;
+    border-radius: 18px;
+  }
+
+  .main {
+    max-width: 380px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbarCentered {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .tcInner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .tcUtility {
+    padding: 8px 10px;
+  }
+
+  .tcUtility span {
+    max-width: 120px;
+  }
+
+  .tcPhone span {
+    display: none;
+  }
+
+  .tcStatus span:last-child {
+    display: none;
+  }
+
+  .tcBrandWrap {
+    padding: 10px 12px;
+  }
+
+  .tcTicker {
+    gap: 6px;
+  }
+
+  .tcTickerLabel {
+    display: none;
+  }
+
+  .main {
+    max-width: 190px;
+    font-size: 11px;
+  }
+
+  .badge {
+    font-size: 9px;
+    padding: 3px 7px;
+  }
+
+  .tcDropdown {
+    width: 200px;
+  }
+}
+
+@media (max-width: 420px) {
+  .tcBrandIcon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .tcBrandTitle {
+    font-size: 13px;
+  }
+
+  .main {
+    max-width: 150px;
+  }
+
+  .tcUtility span {
+    display: none;
+  }
+}

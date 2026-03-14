@@ -1,0 +1,414 @@
+.topbarMinimal {
+  width: 100%;
+  position: relative;
+  z-index: 20;
+  background: #ffffff;
+  color: #0f172a;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.mnInner {
+  min-height: 47px;
+  display: grid;
+  grid-template-columns: auto minmax(240px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== LEFT ===== */
+.mnLeft {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mnBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.mnBrandMark {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #0f172a;
+  box-shadow: 0 0 0 5px rgba(15, 23, 42, 0.06);
+  flex-shrink: 0;
+}
+
+.mnBrandTitle {
+  letter-spacing: 0.02em;
+  color: #0848de;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mnDivider {
+  width: 1px;
+  height: 18px;
+  background: rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+}
+
+.mnLeftMeta {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #0755c5;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    color 0.18s ease,
+    opacity 0.18s ease;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.mnLeftMeta:hover {
+  color: #0f172a;
+}
+
+.mnLeftMeta i {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ===== CENTER ===== */
+.mnCenter {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mnTicker {
+  max-width: 620px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mnTickerLabel {
+  flex-shrink: 0;
+  color: #063373;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mnTickerText {
+  min-width: 0;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+  will-change: opacity, transform;
+}
+
+.mnTickerText .main {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.mnTickerText .chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  color: #285cd6;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.isActive {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.isLeaving {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.isEntering {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ===== RIGHT ===== */
+.mnRight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.mnPhone {
+  text-decoration: none;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: var(--bd-header);
+  background: transparent;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.mnPhone:hover {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.mnPhone:active {
+  transform: translateY(1px);
+}
+
+.mnPhone i {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.mnPhone span {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.mnStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border: var(--bd-header);
+  border-radius: 6px;
+}
+
+.mnStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.12),
+    0 0 10px rgba(34, 197, 94, 0.18);
+  animation: minimalPulse 1.8s ease-in-out infinite;
+}
+
+.mnMenuBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  appearance: none;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.mnMenuBtn:hover {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.mnMenuBtn:active {
+  transform: translateY(1px);
+}
+
+.mnMenuBtn i {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.isOpen .mnMenuBtn {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.mnDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+  padding: 8px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.08),
+    0 4px 12px rgba(15, 23, 42, 0.05);
+  animation: minimalDropdownIn 0.18s ease-out;
+}
+
+.mnDropdownItem {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.mnDropdownItem:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.mnDropdownItem i {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ===== Animations ===== */
+@keyframes minimalPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.12);
+    opacity: 0.82;
+  }
+}
+
+@keyframes minimalDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 980px) {
+  .mnInner {
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    padding: 0 14px;
+  }
+
+  .mnStatus {
+    display: none;
+  }
+
+  .mnTicker {
+    max-width: 480px;
+  }
+}
+
+@media (max-width: 720px) {
+  .mnInner {
+    min-height: 48px;
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .mnLeft {
+    gap: 8px;
+  }
+
+  .mnLeftMeta span {
+    display: none;
+  }
+
+  .mnPhone span {
+    display: none;
+  }
+
+  .mnTickerText .chip {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .mnBrandTitle {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mnDivider {
+    display: none;
+  }
+
+  .mnLeftMeta {
+    display: none;
+  }
+
+  .mnTicker {
+    gap: 8px;
+  }
+
+  .mnTickerLabel {
+    font-size: 10px;
+  }
+
+  .mnTickerText .main {
+    font-size: 12px;
+  }
+
+  .mnDropdown {
+    min-width: 200px;
+  }
+}

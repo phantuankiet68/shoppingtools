@@ -317,12 +317,17 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
           }}
         >
           {rootBlocks.length === 0 && (
-            <div className={cls.empty}>
-              <div className={cls.emptyIcon}>
-                <i className="bi bi-magic" />
+            <div className={`${cls.empty}`}>
+              <div className={cls.emptyCard}>
+                <div className={cls.emptyIconWrap}>
+                  <div className={cls.emptyIcon}>
+                    <i className="bi bi-magic" />
+                  </div>
+                </div>
+
+                <div className={cls.emptyTitle}>Kéo block vào đây</div>
+                <div className={cls.emptyHint}>Thả component từ palette sang để bắt đầu thiết kế ✨</div>
               </div>
-              <div className={cls.emptyTitle}>Kéo block vào đây</div>
-              <div className={cls.emptyHint}>Thả component từ palette sang để bắt đầu thiết kế ✨</div>
             </div>
           )}
           <div className={cls.viewportOuter}>

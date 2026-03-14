@@ -6,9 +6,8 @@
   gap: 8px;
   padding: 12px;
   background: var(--ui-bg);
-  border: 1px solid var(--ui-line);
+  border: var(--bd-header);
   border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.06);
 }
 
 .left,
@@ -16,10 +15,6 @@
 .right {
   display: flex;
   align-items: center;
-}
-
-.center {
-  justify-content: center;
 }
 
 .right {

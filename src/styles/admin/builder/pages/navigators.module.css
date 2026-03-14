@@ -77,6 +77,12 @@
   background: #fafbff;
 }
 
+.searchInput:focus {
+  border-color: #3b82f6b3;
+  box-shadow: 0 0 0 4px #3b82f626;
+  outline: none;
+}
+
 /* tree */
 .tree {
   list-style: none;
@@ -260,7 +266,7 @@
 }
 /* templates.module.css (hoặc file hiện tại của bạn) */
 .templatesWrapper {
-  height: 77vh;
+  height: 81vh;
   overflow: auto;
 
   /* Trải nghiệm cuộn mượt + tránh layout shift khi xuất hiện scrollbar */

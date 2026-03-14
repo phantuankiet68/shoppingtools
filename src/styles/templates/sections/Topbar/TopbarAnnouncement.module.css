@@ -1,315 +1,282 @@
-/* src/components/templates/TopbarAnnouncement.module.css */
-.topbar {
-  --green-main: #a7f3d0;
-  --green-dark: #047857;
-  --green-soft: #dcfce7;
-  --ink-main: #064e3b;
-  --ink-muted: #64746f;
-  --radius: 10px;
-  background: var(--topbar-announcement-background, var(--green-main));
-  padding: 8px 0;
-  color: var(--ink-main);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+/* ============================= */
+/* Topbar Announcement 2026 UI   */
+/* ============================= */
+
+.announcementBar {
+  width: 100%;
+  position: relative;
+  z-index: 50;
+  background: linear-gradient(90deg, #4ed595, #49b884);
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.topbarInner {
+.inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
+  padding: 6px 18px;
 }
 
-/* LEFT */
-
-.tbLeft {
+.leftZone {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  gap: 14px;
 }
 
-.logoCircle {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  background: #ffffff;
-  color: var(--green-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.brandTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--green-dark);
-  white-space: nowrap;
-}
-
-.brandSub {
-  font-size: 12px;
-  color: var(--ink-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.regionBtn {
-  border: none;
-  background: rgba(255, 255, 255, 0.6);
-  padding: 4px 10px;
-  border-radius: var(--radius);
-  font-size: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ink-main);
-  transition: 0.2s;
-  white-space: nowrap;
-}
-
-.regionBtn:hover {
-  background: #ffffff;
-}
-
-/* CENTER – Ticker */
-
-.tbCenter {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  min-width: 0;
-}
-
-.ticker {
-  max-width: 420px;
-  width: 100%;
-  overflow: hidden;
-}
-
-.tickerBox {
-  background: rgba(255, 255, 255, 0.7);
-  padding: 4px 12px;
-  border-radius: var(--radius);
+.brandWrap {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.tickerLabel {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--green-dark);
-  white-space: nowrap;
-}
-
-.tickerText {
-  display: inline-flex;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--ink-main);
-  white-space: nowrap;
-  transition: 0.3s ease;
-}
-
-/* Animation phases cho ticker */
-.isLeaving {
-  transform: translateY(-100%);
-  opacity: 0;
-}
-
-.isEntering {
-  transform: translateY(100%);
-  opacity: 0;
-}
-
-.isActive {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.tag {
-  background: var(--green-soft);
-  padding: 1px 6px;
-  border-radius: 6px;
-  font-size: 10px;
-  color: #166534;
-}
-
-/* RIGHT */
-
-.tbRight {
+.brandIcon {
   display: flex;
+  background: #ffffff;
+  border-radius: 8px;
+  justify-content: center;
   align-items: center;
-  gap: 16px;
-  position: relative;
+  width: 30px;
+  height: 30px;
+  backdrop-filter: blur(6px);
+  color: #3ecb91;
 }
 
-.tbLinks {
-  display: flex;
-  gap: 16px;
-}
-
-.tbLink {
-  font-size: 12px;
-  color: var(--ink-main);
-  opacity: 0.9;
-  text-decoration: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tbLink i {
+.brandIcon i {
   font-size: 14px;
 }
 
-.tbLink:hover {
-  opacity: 1;
-  text-decoration: underline;
+.brandText {
+  display: flex;
+  flex-direction: column;
 }
 
-.statusPill {
-  background: rgba(255, 255, 255, 0.7);
-  padding: 3px 10px;
-  border-radius: var(--radius);
-  font-size: 11px;
+.brandName {
+  font-weight: 600;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.brandSub {
+  font-size: 12px;
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+.branchChip {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--ink-main);
-  white-space: nowrap;
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  background: #16a34a;
-  border-radius: 50%;
-  animation: ping 1.7s infinite;
-}
-
-@keyframes ping {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  70% {
-    transform: scale(1.8);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
-}
-
-/* MOBILE BUTTON */
-
-.moreBtn {
-  display: none;
-  font-size: 20px;
-  background: transparent;
+  padding: 4px 10px;
+  border-radius: 20px;
   border: none;
-  color: var(--ink-main);
+  background: #ffffff4f;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.branchChip:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* ================= CENTER ================= */
+
+.centerZone {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.announcementTrack {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 520px;
+}
+
+.labelPill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: #03ff97;
+  background: #4e897870;
+}
+
+.announcementText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  background: #ffffff4f;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.title {
+  font-weight: 500;
+  color: var(--color-white);
+  font-size: 11px;
+}
+
+.meta {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #29c3a487;
+}
+
+/* Animation */
+
+.isActive {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.isLeaving {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.isEntering {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ================= RIGHT ================= */
+
+.rightZone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.hotlineBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 5px 15px;
+  background: #ffffff4f;
+  border-radius: 999px;
+}
+
+.hotlineBtn:hover {
+  opacity: 0.8;
+}
+
+.supportBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #ffffff4f;
+}
+
+.supportBadge span {
+  color: #fff;
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2eff9c;
+
+  box-shadow: 0 0 6px rgba(46, 255, 156, 0.8);
+}
+
+.menuBtn {
+  border: none;
+  background: #ffffff4f;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menuBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ================= DROPDOWN ================= */
+
+.dropdownMenu {
+  position: absolute;
+  top: 36px;
+  right: 0;
+
+  width: 190px;
+
+  background: #ffffff;
+  color: #333;
+
+  border-radius: 10px;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+  padding: 6px;
+}
+
+.dropdownItem {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 10px;
+
+  border: none;
+  background: transparent;
+
+  border-radius: 8px;
+
+  font-size: 13px;
   cursor: pointer;
 }
 
-/* ===== RESPONSIVE ===== */
+.dropdownItem:hover {
+  background: #f1f3f5;
+}
 
-/* Tablet / laptop nhỏ: 840px */
-@media (max-width: 840px) {
-  .tbCenter {
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+  .centerZone {
     display: none;
   }
 
-  .brandSub {
-    max-width: 180px;
+  .branchChip span {
+    display: none;
+  }
+
+  .supportBadge span {
+    display: none;
   }
 }
 
-/* Mobile <= 640px */
-@media (max-width: 640px) {
-  .topbarInner {
-    padding: 0 10px;
+@media (max-width: 600px) {
+  .inner {
+    padding: 6px 10px;
   }
 
-  .brandSub {
+  .brandText {
     display: none;
-  }
-
-  .regionBtn {
-    display: none;
-  }
-
-  .moreBtn {
-    display: block;
-  }
-
-  .tbLinks {
-    display: none;
-    position: absolute;
-    top: 32px;
-    right: 0;
-    background: var(--green-dark);
-    padding: 10px;
-    border-radius: var(--radius);
-    flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-    min-width: 180px;
-    z-index: 20;
-  }
-
-  .tbRightOpen .tbLinks {
-    display: flex;
-  }
-
-  .statusPill {
-    display: none;
-  }
-
-  .tbLink {
-    color: #f9fafb;
-  }
-
-  .tbLink:hover {
-    text-decoration: none;
-    opacity: 1;
-  }
-}
-
-/* Mobile rất nhỏ <= 480px */
-@media (max-width: 480px) {
-  .topbarInner {
-    padding: 0 8px;
-    gap: 8px;
-  }
-
-  .logoCircle {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-  }
-
-  .brandTitle {
-    font-size: 12px;
-  }
-
-  .tickerBox {
-    padding: 3px 8px;
-  }
-
-  .tbLinks {
-    top: 30px;
-    min-width: 170px;
   }
 }
