@@ -287,8 +287,8 @@ export function TopbarRegion({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_REGION: RegItem = {
-  kind: "Region",
-  label: "Region",
+  kind: "TopbarRegion",
+  label: "Topbar Region",
   defaults: {
     brandTitle: "Aurora Hub",
     brandHref: "/",

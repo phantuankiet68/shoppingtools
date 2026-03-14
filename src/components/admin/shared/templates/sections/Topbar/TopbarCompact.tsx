@@ -291,8 +291,8 @@ export function TopbarCompact({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_COMPACT: RegItem = {
-  kind: "Compact",
-  label: "Compact",
+  kind: "TopbarCompact",
+  label: "Topbar Compact",
   defaults: {
     brandTitle: "Aurora Hub",
     leftLabel: "Cửa hàng chính hãng",

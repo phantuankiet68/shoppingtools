@@ -299,8 +299,8 @@ export function TopbarDashboard({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_DASHBOARD: RegItem = {
-  kind: "Dashboard",
-  label: "Dashboard",
+  kind: "TopbarDashboard",
+  label: "Topbar Dashboard",
   defaults: {
     brandTitle: "Aurora Hub",
     leftLabel: "Cửa hàng chính hãng",

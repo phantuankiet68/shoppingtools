@@ -284,8 +284,8 @@ export function TopbarMinimal({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_MINIMAL: RegItem = {
-  kind: "Minimal",
-  label: "Minimal",
+  kind: "TopbarMinimal",
+  label: "Topbar Minimal",
   defaults: {
     brandTitle: "Aurora Hub",
     brandHref: "/",

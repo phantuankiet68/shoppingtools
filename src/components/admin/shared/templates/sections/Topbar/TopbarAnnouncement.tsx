@@ -295,8 +295,8 @@ const BACKGROUND_PRESETS = [
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_ANNOUNCEMENT: RegItem = {
-  kind: "Announcement",
-  label: "Announcement",
+  kind: "TopbarAnnouncement",
+  label: "Topbar Announcement",
   defaults: {
     brandTitle: "Aurora Hub",
     branchLabel: "Chi nhánh Hồ Chí Minh",

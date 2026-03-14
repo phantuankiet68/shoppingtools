@@ -273,8 +273,8 @@ export function TopbarSplit({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_SPLIT: RegItem = {
-  kind: "Split",
-  label: "Split",
+  kind: "TopbarSplit",
+  label: "TopbarSplit",
   defaults: {
     brandTitle: "Aurora Hub",
     brandHref: "/",

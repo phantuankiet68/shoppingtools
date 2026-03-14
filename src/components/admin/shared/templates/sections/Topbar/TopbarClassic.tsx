@@ -294,8 +294,8 @@ export function TopbarClassic({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_CLASSIC: RegItem = {
-  kind: "Classic",
-  label: "Classic",
+  kind: "TopbarClassic",
+  label: "Topbar Classic",
   defaults: {
     locationLabel: "Hồ Chí Minh",
     hotline: "0867105900",

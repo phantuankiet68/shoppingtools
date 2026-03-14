@@ -285,8 +285,8 @@ export function TopbarUtility({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_UTILITY: RegItem = {
-  kind: "Utility",
-  label: "Utility",
+  kind: "TopbarUtility",
+  label: "Topbar Utility",
   defaults: {
     brandTitle: "Aurora Hub",
     brandHref: "/",

@@ -292,8 +292,8 @@ export function TopbarCentered({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_CENTERED: RegItem = {
-  kind: "Centered",
-  label: "Centered",
+  kind: "TopbarCentered",
+  label: "Topbar Centered",
   defaults: {
     brandTitle: "Aurora Hub",
     leftLabel: "Giao nhanh nội thành",

@@ -440,13 +440,11 @@ export function Header1({
           <div className={cls.tbRight}>
             <button className={cls.tbLink} type="button" onClick={onBlockClick}>
               <i className="bi bi-geo-alt" />
-              <span>Store Locator</span>
               <span className={cls.badge}>{badgeStoreLocator}</span>
             </button>
 
             <button className={cls.tbLink} type="button" onClick={onBlockClick}>
               <i className="bi bi-cart" />
-              <span>Cart</span>
               <span className={cls.badge}>{badgeCart}</span>
             </button>
 
@@ -824,7 +822,7 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
 
     navItems: "[]",
 
-    menuApiUrl: "/api/admin/menu-items/header-menu",
+    menuApiUrl: "/api/admin/builder/menus/header-menu",
     menuSetKey: "home",
     menuSiteIdKey: "builder_site_id",
 
@@ -849,7 +847,8 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
 
     { key: "navItems", label: "Nav Items (JSON, preview)", kind: "textarea", rows: 10 },
   ],
-  render: (p) => {
+  render: (props) => {
+    const p = props as Record<string, any>;
     const navItems = parseNavItems(p.navItems);
 
     return (
@@ -865,7 +864,7 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
           badgeCart={p.badgeCart}
           preview={p.preview}
           navItems={navItems ?? []}
-          menuApiUrl={p.menuApiUrl || "/api/admin/menu-items/header-menu"}
+          menuApiUrl={p.menuApiUrl || "/api/admin/builder/menus/header-menu"}
           menuSetKey={p.menuSetKey || "home"}
           menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
           isAuthed={Number(p.isAuthed) === 1}

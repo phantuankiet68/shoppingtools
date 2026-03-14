@@ -281,8 +281,8 @@ export function TopbarTicker({
 
 /* ================ Registry ================ */
 export const SHOP_TOPBAR_TICKER: RegItem = {
-  kind: "Ticker",
-  label: "Ticker",
+  kind: "TopbarTicker",
+  label: "Topbar Ticker",
   defaults: {
     brandTitle: "Aurora Hub",
     brandHref: "/",
