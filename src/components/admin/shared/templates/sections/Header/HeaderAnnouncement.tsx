@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import cls from "@/styles/templates/sections/Header/HeaderAnnouncement.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
+import HeaderAuthModal from "@/components/admin/shared/popup/header/HeaderAuthModal";
 
 export type MegaColumn = {
   title: string;
@@ -22,6 +23,26 @@ export type CategoryMenuItem = {
   emoji?: string;
 };
 
+export type CartPopupItem = {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  image?: string;
+  href?: string;
+};
+
+export type ProductNotificationItem = {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  href?: string;
+  unread?: boolean;
+  thumbnail?: string;
+  tag?: string;
+};
+
 export type HeaderAnnouncementProps = {
   brandHref?: string;
   brandName?: string;
@@ -34,6 +55,8 @@ export type HeaderAnnouncementProps = {
   badgeCart?: number;
   navItems?: NavItem[];
   categoryItems?: CategoryMenuItem[];
+  notifications?: ProductNotificationItem[];
+  notificationHref?: string;
   preview?: boolean;
   menuApiUrl?: string;
   menuSetKey?: string;
@@ -41,10 +64,10 @@ export type HeaderAnnouncementProps = {
   isAuthed?: boolean;
   onLogin?: (payload: { email: string; password: string }) => Promise<void> | void;
   onRegister?: (payload: { name: string; email: string; password: string }) => Promise<void> | void;
+
+  cartItems?: CartPopupItem[];
+  cartHref?: string;
 };
-
-
-
 type AuthMode = "login" | "register";
 
 type ApiLayoutItem = {
@@ -67,6 +90,8 @@ type ApiTreeNode = {
   parentKey: string | null;
   children?: ApiTreeNode[];
 };
+
+
 
 function normalizePath(p?: string | null): string {
   const s = String(p || "").trim();
@@ -188,17 +213,89 @@ function treeToNavItems(tree: ApiTreeNode[]): NavItem[] {
   return out;
 }
 
+const DEFAULT_CATEGORY_ITEMS: CategoryMenuItem[] = [
+  { label: "New Arrivals", href: "/new-arrivals", emoji: "🆕" },
+  { label: "Best Sellers", href: "/best-sellers", emoji: "🔥" },
+  { label: "Promotions", href: "/sale", emoji: "🏷️" },
+  { label: "Accessories", href: "/accessories", emoji: "⌚" },
+  { label: "Personal Care", href: "/beauty", emoji: "💄" },
+  { label: "Health Care", href: "/health", emoji: "💊" },
+  { label: "Home Appliances", href: "/home-living", emoji: "🏠" },
+  { label: "Technology", href: "/tech", emoji: "📱" },
+  { label: "Sports & Outdoor", href: "/sports", emoji: "🏃" },
+  { label: "Mother & Baby", href: "/mom-baby", emoji: "🍼" },
+  { label: "Gifts", href: "/gifts", emoji: "🎁" },
+];
+
+const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
+  {
+    id: "1",
+    title: "New product available",
+    message: "Laneige Lip Sleeping Mask has just arrived.",
+    time: "20 min ago",
+    href: "/products/laneige-lip-sleeping-mask",
+    unread: true,
+    thumbnail: "/assets/images/logo.jpg",
+    tag: "New",
+  },
+  {
+    id: "2",
+    title: "Flash sale started",
+    message: "Up to 40% off on skincare products today.",
+    time: "1 hour ago",
+    href: "/sale",
+    unread: true,
+    thumbnail: "/assets/images/logo.jpg",
+    tag: "Sale",
+  },
+  {
+    id: "3",
+    title: "Back in stock",
+    message: "CeraVe Foaming Cleanser is available again.",
+    time: "3 hours ago",
+    href: "/products/cerave-foaming-cleanser",
+    unread: false,
+    thumbnail: "/assets/images/logo.jpg",
+    tag: "Stock",
+  },
+  {
+    id: "4",
+    title: "Order update",
+    message: "Your recent order is being prepared for shipping.",
+    time: "Today",
+    href: "/account/orders",
+    unread: false,
+    thumbnail: "/assets/images/logo.jpg",
+    tag: "Order",
+  },
+];
+
+
+  const DEFAULT_CART_ITEMS: CartPopupItem[] = [
+    {
+      id: "1",
+      name: "Dán nút phím Surface Laptop 3 & 4 ...",
+      price: 39000,
+      qty: 2,
+      href: "/products/surface-keycap",
+      image: "/assets/images/logo.jpg",
+    },
+  ];
+
 export function HeaderAnnouncement({
   brandHref = "/",
   brandName = "Tuan Kiet Store",
   brandSub = "COSMETICS",
   logoSrc,
   logoAlt = "",
-  searchPlaceholder = "What are you looking for?",
+  searchPlaceholder = "What are you looking for today?",
   onSearchSubmit,
   badgeStoreLocator = 2,
   badgeCart = 0,
   navItems,
+  categoryItems = DEFAULT_CATEGORY_ITEMS,
+  notifications = DEFAULT_NOTIFICATIONS,
+  notificationHref = "/notifications",
   preview = false,
   menuApiUrl = "/api/admin/builder/menus/header-menu",
   menuSetKey = "home",
@@ -206,19 +303,42 @@ export function HeaderAnnouncement({
   isAuthed = false,
   onLogin,
   onRegister,
+  cartItems = DEFAULT_CART_ITEMS,
+  cartHref = "/cart",
 }: HeaderAnnouncementProps) {
   const rootRef = useRef<HTMLElement | null>(null);
 
   const [safeLogo, setSafeLogo] = useState(logoSrc || "/assets/images/logo.jpg");
-  useEffect(() => setSafeLogo(logoSrc || "/assets/images/logo.jpg"), [logoSrc]);
-
   const [apiNav, setApiNav] = useState<NavItem[]>([]);
   const [menuLoaded, setMenuLoaded] = useState(false);
+
+  const [query, setQuery] = useState("");
+  const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
+
+  useEffect(() => {
+    setSafeLogo(logoSrc || "/assets/images/logo.jpg");
+  }, [logoSrc]);
 
   const items = useMemo(() => {
     if (navItems && navItems.length > 0) return navItems;
     return apiNav;
   }, [navItems, apiNav]);
+
+  const unreadNotificationCount = useMemo(
+    () => notifications.filter((x) => x.unread).length,
+    [notifications],
+  );
+
+  const onBlockClick = (e: React.SyntheticEvent) => {
+    if (!preview) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   useEffect(() => {
     let alive = true;
@@ -235,6 +355,7 @@ export function HeaderAnnouncement({
 
         const siteId =
           typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
+
         if (siteId) qs.set("siteId", siteId);
 
         const res = await fetch(`${menuApiUrl}?${qs.toString()}`, {
@@ -275,20 +396,12 @@ export function HeaderAnnouncement({
     return () => {
       alive = false;
     };
-  }, [preview, menuApiUrl, menuSetKey, menuSiteIdKey]);
-
-  const [query, setQuery] = useState("");
-  const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
-
-  const onBlockClick = (e: React.SyntheticEvent) => {
-    if (!preview) return;
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  }, [menuApiUrl, menuSetKey, menuSiteIdKey]);
 
   const closeAll = () => {
     setOpenMegaIndex(null);
     setCategoryOpen(false);
+    setNotificationOpen(false);
   };
 
   useEffect(() => {
@@ -300,7 +413,10 @@ export function HeaderAnnouncement({
     };
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeAll();
+      if (e.key === "Escape") {
+        closeAll();
+        setAuthOpen(false);
+      }
     };
 
     document.addEventListener("click", onDocClick);
@@ -312,576 +428,458 @@ export function HeaderAnnouncement({
     };
   }, []);
 
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<AuthMode>("login");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPass, setLoginPass] = useState("");
-  const [regName, setRegName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPass, setRegPass] = useState("");
-  const [showPass, setShowPass] = useState(false);
-
-  const firstInputRef = useRef<HTMLInputElement | null>(null);
-
   const openAuth = (mode: AuthMode) => {
-    setErr("");
     setAuthMode(mode);
     setAuthOpen(true);
   };
 
-  const closeAuth = () => {
-    setAuthOpen(false);
-    setBusy(false);
-    setErr("");
-  };
+  const shouldRenderNav = items.length > 0;
 
-  useEffect(() => {
-    if (!authOpen) return;
-    const t = window.setTimeout(() => firstInputRef.current?.focus(), 0);
-    return () => window.clearTimeout(t);
-  }, [authOpen, authMode]);
+  return (
+    <header className={cls.header} ref={rootRef}>
+      <div className={cls.mainShell}>
+        <div className={cls.container}>
+          <div className={cls.mainRow}>
+            <div className={cls.leftZone}>
+              {preview ? (
+                <a className={cls.logo} href="#" aria-label={brandName} onClick={onBlockClick}>
+                  <span className={cls.logoBadge}>
+                    <Image
+                      src={safeLogo}
+                      alt={logoAlt}
+                      fill
+                      className={cls.logoImg}
+                      onError={() => setSafeLogo("/assets/images/logo.jpg")}
+                    />
+                  </span>
 
-  const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(v.trim());
+                  <span className={cls.logoText}>
+                    <span className={cls.logoName}>{brandName}</span>
+                    <span className={cls.logoSub}>{brandSub}</span>
+                  </span>
+                </a>
+              ) : (
+                <Link className={cls.logo} href={brandHref as Route} aria-label={brandName}>
+                  <span className={cls.logoBadge}>
+                    <Image
+                      src={safeLogo}
+                      alt={logoAlt}
+                      fill
+                      className={cls.logoImg}
+                      onError={() => {
+                        const fallback = "/assets/images/logo.jpg";
+                        if (safeLogo !== fallback) setSafeLogo(fallback);
+                      }}
+                    />
+                  </span>
 
-  const submitLogin = async () => {
-    setErr("");
-    const email = loginEmail.trim();
-    const password = loginPass;
+                  <span className={cls.logoText}>
+                    <span className={cls.logoName}>{brandName}</span>
+                    <span className={cls.logoSub}>{brandSub}</span>
+                  </span>
+                </Link>
+              )}
+            </div>
 
-    if (!validateEmail(email)) return setErr("Please enter a valid email.");
-    if (!password || password.length < 6) {
-      return setErr("Password must be at least 6 characters.");
-    }
-
-    setBusy(true);
-    try {
-      await onLogin?.({ email, password });
-      closeAuth();
-    } catch (e: any) {
-      setErr(e?.message || "Login failed. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const submitRegister = async () => {
-    setErr("");
-    const name = regName.trim();
-    const email = regEmail.trim();
-    const password = regPass;
-
-    if (!name) return setErr("Please enter your name.");
-    if (!validateEmail(email)) return setErr("Please enter a valid email.");
-    if (!password || password.length < 6) {
-      return setErr("Password must be at least 6 characters.");
-    }
-
-    setBusy(true);
-    try {
-      await onRegister?.({ name, email, password });
-      closeAuth();
-    } catch (e: any) {
-      setErr(e?.message || "Register failed. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onAccountClick = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!isAuthed) {
-      openAuth("login");
-      return;
-    }
-
-    openAuth("login");
-  };
-  const categoryItems = [
-     { label: "Sản phẩm mới", href: "/new-arrivals", emoji: "🆕" },
-    { label: "Bán chạy", href: "/best-sellers", emoji: "🔥" },
-    { label: "Khuyến mãi", href: "/sale", emoji: "🏷️" },
-    { label: "Phụ kiện", href: "/accessories", emoji: "⌚" },
-    { label: "Chăm sóc cá nhân", href: "/beauty", emoji: "💄" },
-    { label: "Chăm sóc sức khỏe", href: "/health", emoji: "💊" },
-    { label: "Đồ gia dụng", href: "/home-living", emoji: "🏠" },
-    { label: "Công nghệ", href: "/tech", emoji: "📱" },
-    { label: "Thể thao & dã ngoại", href: "/sports", emoji: "🏃" },
-    { label: "Mẹ & bé", href: "/mom-baby", emoji: "🍼" },
-    { label: "Quà tặng", href: "/gifts", emoji: "🎁" }
-  ]
-  const [categoryOpen, setCategoryOpen] = useState(false);
-
- return (
-  <header className={cls.header} ref={rootRef}>
-    <div className={cls.mainShell}>
-      <div className={cls.container}>
-        <div className={cls.mainRow}>
-          <div className={cls.leftZone}>
-            {preview ? (
-              <a className={cls.logo} href="#" aria-label={brandName} onClick={onBlockClick}>
-                <span className={cls.logoBadge}>
-                  <Image
-                    src={safeLogo}
-                    alt={logoAlt}
-                    fill
-                    className={cls.logoImg}
-                    onError={() => setSafeLogo("/assets/images/logo.jpg")}
-                  />
-                </span>
-
-                <span className={cls.logoText}>
-                  <span className={cls.logoName}>{brandName}</span>
-                  <span className={cls.logoSub}>{brandSub}</span>
-                </span>
-              </a>
-            ) : (
-              <Link className={cls.logo} href={brandHref as Route} aria-label={brandName}>
-                <span className={cls.logoBadge}>
-                  <Image
-                    src={safeLogo}
-                    alt={logoAlt}
-                    fill
-                    className={cls.logoImg}
-                    onError={() => {
-                      const fallback = "/assets/images/logo.jpg";
-                      if (safeLogo !== fallback) setSafeLogo(fallback);
-                    }}
-                  />
-                </span>
-
-                <span className={cls.logoText}>
-                  <span className={cls.logoName}>{brandName}</span>
-                  <span className={cls.logoSub}>{brandSub}</span>
-                </span>
-              </Link>
-            )}
-          </div>
-
-          <div className={cls.centerZone}>
+            <div className={cls.centerZone}>
               <form
-              className={cls.search}
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (preview) return;
-                onSearchSubmit?.(query);
-              }}
-            >
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                type="text"
-                placeholder={searchPlaceholder}
-              />
-              <button type="submit" aria-label="Search">
-                <i className="bi bi-search" />
-              </button>
-            </form>
-          </div>
-
-          <div className={cls.rightZone}>
-            <button
-              className={`${cls.actionBtn} ${cls.accountBtn}`}
-              type="button"
-              onClick={onAccountClick}
-              aria-haspopup="dialog"
-              aria-expanded={authOpen}
-            >
-              <span className={cls.actionIcon}>
-                <i className="bi bi-person-fill" />
-              </span>
-              <span className={cls.actionText}>
-                <span>Đăng nhập</span>
-                <strong>Tài khoản</strong>
-              </span>
-              <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
-            </button>
-
-            <button
-              className={cls.actionBtn}
-              type="button"
-              onClick={onBlockClick}
-              aria-label="Store system"
-            >
-              <span className={cls.actionIcon}>
-                <i className="bi bi-shop" />
-              </span>
-              <span className={cls.actionText}>
-                <span>Hệ thống</span>
-                <strong>Thông báo</strong>
-              </span>
-            </button>
-            <button
-              className={cls.cartBtn}
-              type="button"
-              onClick={onBlockClick}
-              aria-label="Cart"
-            >
-              <i className="bi bi-cart3" />
-              <span className={cls.badge}>{badgeCart}</span>
-            </button>
-          </div>
-        </div>
-        <div className={cls.navWrap}>
-  <div
-    className={`${cls.categoryNav} ${categoryOpen ? cls.categoryNavOpen : ""}`}
-    tabIndex={0}
-    role="button"
-    aria-haspopup="true"
-    aria-expanded={categoryOpen}
-    onMouseEnter={() => {
-      if (!preview) setCategoryOpen(true);
-    }}
-    onMouseLeave={() => {
-      if (!preview) setCategoryOpen(false);
-    }}
-    onClick={(e) => {
-      if (preview) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      setCategoryOpen((v) => !v);
-    }}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        setCategoryOpen((v) => !v);
-      }
-      if (e.key === "Escape") setCategoryOpen(false);
-    }}
-  >
-    <div className={cls.categoryTrigger}>
-      <span className={cls.categoryTriggerLeft}>
-        <i className="bi bi-list" />
-        <span>Danh mục sản phẩm</span>
-      </span>
-    </div>
-
-    <div className={cls.categoryDropdown}>
-      <div className={cls.categoryPanel}>
-          {categoryItems.map((cat, idx) =>
-            preview ? (
-              <a key={idx} href="#" className={cls.categoryItem} onClick={onBlockClick}>
-                <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                <span className={cls.categoryItemText}>{cat.label}</span>
-              </a>
-            ) : (
-              <Link
-                key={idx}
-                href={(cat.href || "/") as Route}
-                className={cls.categoryItem}
+                className={cls.search}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (preview) return;
+                  onSearchSubmit?.(query);
+                }}
               >
-                <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                <span className={cls.categoryItemText}>{cat.label}</span>
-              </Link>
-            ),
-          )}
-        </div>
-      </div>
-    </div>
+                <div className={cls.searchIcon}>
+                  <i className="bi bi-search" />
+                </div>
 
-    <nav className={cls.nav} aria-label="Primary navigation">
-      {items.map((it, idx) => {
-        const iconCls = `bi ${it.icon}`;
-        const isMega = it.type === "mega";
-        const isOpen = openMegaIndex === idx;
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  type="text"
+                  placeholder={searchPlaceholder}
+                />
 
-        if (!isMega) {
-          return preview ? (
-            <a key={idx} className={cls.navItem} href="#" onClick={onBlockClick}>
-              <i className={iconCls} />
-              <span>{it.label}</span>
-            </a>
-          ) : (
-            <Link key={idx} className={cls.navItem} href={(it.href || "/") as Route}>
-              <i className={iconCls} />
-              <span>{it.label}</span>
-            </Link>
-          );
-        }
+                <button type="submit" aria-label="Search">
+                  <i className="bi bi-search" />
+                </button>
+              </form>
+            </div>
 
-        return (
-          <div
-            key={idx}
-            className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.open : ""}`}
-            tabIndex={0}
-            role="button"
-            aria-haspopup="true"
-            aria-expanded={isOpen}
-            onMouseEnter={() => {
-              if (!preview) setOpenMegaIndex(idx);
-            }}
-            onMouseLeave={() => {
-              if (!preview) setOpenMegaIndex(null);
-            }}
-            onClick={(e) => {
-              if (preview) {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-                return;
-              }
-              setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-              }
-              if (e.key === "Escape") setOpenMegaIndex(null);
-            }}
-          >
-            <i className={iconCls} />
-            <span>{it.label}</span>
-            <i className={`bi bi-chevron-down ${cls.navCaret}`} />
+            <div className={cls.rightZone}>
+              <button
+                className={`${cls.actionBtn} ${cls.accountBtn}`}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openAuth("login");
+                }}
+                aria-haspopup="dialog"
+                aria-expanded={authOpen}
+              >
+                <span className={cls.actionIcon}>
+                  <i className="bi bi-person" />
+                </span>
+                <span className={cls.actionText}>
+                  <span>{isAuthed ? "Hello" : "Login"}</span>
+                  <strong>{isAuthed ? "Your account" : "Account"}</strong>
+                </span>
+                <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
+              </button>
 
-            <div className={cls.mega} role="menu" aria-label={`${it.label} menu`}>
-              <div className={cls.megaGrid}>
-                {it.columns.map((col, cIdx) => (
-                  <div className={cls.megaCol} key={cIdx}>
-                    <h4>{col.title}</h4>
+              {preview ? (
+                <a
+                  href="#"
+                  className={cls.actionBtn}
+                  aria-label="Store locations"
+                  onClick={onBlockClick}
+                >
+                  <span className={cls.actionIcon}>
+                    <i className="bi bi-shop" />
+                  </span>
+                  <span className={cls.actionText}>
+                    <span>Store</span>
+                    <strong>Locations</strong>
+                  </span>
+                  {badgeStoreLocator > 0 ? (
+                    <span className={cls.miniBadge}>{badgeStoreLocator}</span>
+                  ) : null}
+                </a>
+              ) : (
+                <Link
+                  href={"/stores" as Route}
+                  className={cls.actionBtn}
+                  aria-label="Store locations"
+                >
+                  <span className={cls.actionIcon}>
+                    <i className="bi bi-shop" />
+                  </span>
+                  <span className={cls.actionText}>
+                    <span>Store</span>
+                    <strong>Locations</strong>
+                  </span>
+                  {badgeStoreLocator > 0 ? (
+                    <span className={cls.miniBadge}>{badgeStoreLocator}</span>
+                  ) : null}
+                </Link>
+              )}
 
-                    {col.items.map((link, lIdx) =>
-                      preview ? (
-                        <a key={lIdx} href="#" onClick={onBlockClick}>
-                          <span>{link.label}</span>
-                          <i className="bi bi-arrow-right-short" />
+              <div className={cls.notificationWrap}>
+                <button
+                  className={cls.actionBtn}
+                  type="button"
+                  aria-label="Notifications"
+                  aria-haspopup="dialog"
+                  aria-expanded={notificationOpen}
+                  onClick={(e) => {
+                    if (preview) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setNotificationOpen((v) => !v);
+                  }}
+                >
+                  <span className={cls.actionIcon}>
+                    <i className="bi bi-bell" />
+                  </span>
+                  <span className={cls.actionText}>
+                    <span>Updates</span>
+                    <strong>Notifications</strong>
+                  </span>
+                  {unreadNotificationCount > 0 ? (
+                    <span className={cls.miniBadge}>{unreadNotificationCount}</span>
+                  ) : null}
+                </button>
+
+                {notificationOpen && (
+                  <div
+                    className={cls.notificationDropdown}
+                    role="dialog"
+                    aria-label="Notifications popup"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className={cls.notificationHead}>
+                      <strong>Notifications</strong>
+                      <button
+                        type="button"
+                        className={cls.notificationRefresh}
+                        aria-label="Refresh notifications"
+                      >
+                        <i className="bi bi-arrow-clockwise" />
+                      </button>
+                    </div>
+
+                    <div className={cls.notificationTabs}>
+                      <button
+                        type="button"
+                        className={`${cls.notificationTab} ${cls.notificationTabActive}`}
+                      >
+                        All
+                        <span>{notifications.length}</span>
+                      </button>
+                      <button type="button" className={cls.notificationTab}>
+                        Unread
+                        <span>{unreadNotificationCount}</span>
+                      </button>
+                    </div>
+
+                    <div className={cls.notificationList}>
+                      {notifications.map((item) =>
+                        preview ? (
+                          <a
+                            key={item.id}
+                            href="#"
+                            className={`${cls.notificationItem} ${
+                              item.unread ? cls.notificationUnread : ""
+                            }`}
+                            onClick={onBlockClick}
+                          >
+                            <span className={cls.notificationThumb}>
+                              <Image
+                                src={item.thumbnail || "/assets/images/logo.jpg"}
+                                alt={item.title}
+                                fill
+                                className={cls.notificationThumbImg}
+                              />
+                            </span>
+
+                            <span className={cls.notificationBody}>
+                              <span className={cls.notificationTitle}>{item.title}</span>
+                              <span className={cls.notificationMessage}>{item.message}</span>
+
+                              <span className={cls.notificationMeta}>
+                                {item.tag ? (
+                                  <span className={cls.notificationTag}>{item.tag}</span>
+                                ) : null}
+                                <span className={cls.notificationTime}>{item.time}</span>
+                              </span>
+                            </span>
+                          </a>
+                        ) : (
+                          <Link
+                            key={item.id}
+                            href={(item.href || notificationHref || "/notifications") as Route}
+                            className={`${cls.notificationItem} ${
+                              item.unread ? cls.notificationUnread : ""
+                            }`}
+                            onClick={() => setNotificationOpen(false)}
+                          >
+                            <span className={cls.notificationThumb}>
+                              <Image
+                                src={item.thumbnail || "/assets/images/logo.jpg"}
+                                alt={item.title}
+                                fill
+                                className={cls.notificationThumbImg}
+                              />
+                            </span>
+
+                            <span className={cls.notificationBody}>
+                              <span className={cls.notificationTitle}>{item.title}</span>
+                              <span className={cls.notificationMessage}>{item.message}</span>
+
+                              <span className={cls.notificationMeta}>
+                                {item.tag ? (
+                                  <span className={cls.notificationTag}>{item.tag}</span>
+                                ) : null}
+                                <span className={cls.notificationTime}>{item.time}</span>
+                              </span>
+                            </span>
+                          </Link>
+                        ),
+                      )}
+                    </div>
+
+                    <div className={cls.notificationFooter}>
+                      <button type="button" className={cls.notificationFooterLink}>
+                        Mark all as read
+                      </button>
+
+                      {preview ? (
+                        <a
+                          href="#"
+                          className={cls.notificationFooterBtn}
+                          onClick={onBlockClick}
+                        >
+                          Go to notification center
                         </a>
                       ) : (
-                        <Link key={lIdx} href={(link.href || "/") as Route}>
-                          <span>{link.label}</span>
-                          <i className="bi bi-arrow-right-short" />
+                        <Link
+                          href={(notificationHref || "/notifications") as Route}
+                          className={cls.notificationFooterBtn}
+                          onClick={() => setNotificationOpen(false)}
+                        >
+                          Go to notification center
                         </Link>
-                      ),
-                    )}
+                      )}
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
+
+              <button
+                className={cls.cartBtn}
+                type="button"
+                onClick={onBlockClick}
+                aria-label="Cart"
+              >
+                <i className="bi bi-bag" />
+                <span className={cls.badge}>{badgeCart}</span>
+              </button>
             </div>
           </div>
-        );
-      })}
-    </nav>
-  </div>
-      </div>
-    </div>
 
-    {authOpen && (
-      <div
-        className={cls.authOverlay}
-        role="dialog"
-        aria-modal="true"
-        aria-label={authMode === "login" ? "Login dialog" : "Register dialog"}
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget) closeAuth();
-        }}
-      >
-        <div className={cls.authPanel}>
-          <div className={cls.authHead}>
-            <div className={cls.authTitle}>
-              {authMode === "login" ? "Welcome back" : "Create your account"}
+          <div className={cls.navWrap}>
+            <div
+              className={`${cls.categoryNav} ${categoryOpen ? cls.categoryNavOpen : ""}`}
+              tabIndex={0}
+              role="button"
+              aria-haspopup="true"
+              aria-expanded={categoryOpen}
+              onMouseEnter={() => !preview && setCategoryOpen(true)}
+              onMouseLeave={() => !preview && setCategoryOpen(false)}
+              onClick={(e) => {
+                if (preview) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                setCategoryOpen((v) => !v);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setCategoryOpen((v) => !v);
+                }
+                if (e.key === "Escape") setCategoryOpen(false);
+              }}
+            >
+              <div className={cls.categoryTrigger}>
+                <span className={cls.categoryTriggerLeft}>
+                  <i className="bi bi-grid-3x3-gap" />
+                  <span>Product Categories</span>
+                </span>
+                <i className={`bi bi-chevron-down ${cls.categoryTriggerCaret}`} />
+              </div>
+
+              <div className={cls.categoryDropdown}>
+                <div className={cls.categoryPanel}>
+                  {categoryItems.map((cat, idx) =>
+                    preview ? (
+                      <a key={idx} href="#" className={cls.categoryItem} onClick={onBlockClick}>
+                        <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
+                        <span className={cls.categoryItemText}>{cat.label}</span>
+                        <i className="bi bi-chevron-right" />
+                      </a>
+                    ) : (
+                      <Link
+                        key={idx}
+                        href={(cat.href || "/") as Route}
+                        className={cls.categoryItem}
+                      >
+                        <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
+                        <span className={cls.categoryItemText}>{cat.label}</span>
+                        <i className="bi bi-chevron-right" />
+                      </Link>
+                    ),
+                  )}
+                </div>
+              </div>
             </div>
 
-            <button
-              className={cls.authClose}
-              type="button"
-              onClick={closeAuth}
-              aria-label="Close"
-            >
-              <i className="bi bi-x-lg" />
-            </button>
+            <nav className={cls.nav} aria-label="Primary navigation">
+              {shouldRenderNav &&
+                items.map((it, idx) => {
+                  const iconCls = `bi ${it.icon}`;
+                  const isOpen = openMegaIndex === idx;
+
+                  if (it.type !== "mega") {
+                    return preview ? (
+                      <a key={idx} className={cls.navItem} href="#" onClick={onBlockClick}>
+                        <i className={iconCls} />
+                        <span>{it.label}</span>
+                      </a>
+                    ) : (
+                      <Link key={idx} className={cls.navItem} href={(it.href || "/") as Route}>
+                        <i className={iconCls} />
+                        <span>{it.label}</span>
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.open : ""}`}
+                      tabIndex={0}
+                      role="button"
+                      aria-haspopup="true"
+                      aria-expanded={isOpen}
+                      onMouseEnter={() => !preview && setOpenMegaIndex(idx)}
+                      onMouseLeave={() => !preview && setOpenMegaIndex(null)}
+                      onClick={(e) => {
+                        if (preview) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }
+                        setOpenMegaIndex((cur) => (cur === idx ? null : idx));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setOpenMegaIndex((cur) => (cur === idx ? null : idx));
+                        }
+                        if (e.key === "Escape") setOpenMegaIndex(null);
+                      }}
+                    >
+                      <i className={iconCls} />
+                      <span>{it.label}</span>
+                      <i className={`bi bi-chevron-down ${cls.navCaret}`} />
+
+                      <div className={cls.mega} role="menu" aria-label={`${it.label} menu`}>
+                        <div className={cls.megaGrid}>
+                          {it.columns.map((col, cIdx) => (
+                            <div className={cls.megaCol} key={cIdx}>
+                              {col.items.map((link, lIdx) =>
+                                preview ? (
+                                  <a key={lIdx} href="#" onClick={onBlockClick}>
+                                    <span>{link.label}</span>
+                                    <i className="bi bi-arrow-right-short" />
+                                  </a>
+                                ) : (
+                                  <Link key={lIdx} href={(link.href || "/") as Route}>
+                                    <span>{link.label}</span>
+                                    <i className="bi bi-arrow-right-short" />
+                                  </Link>
+                                ),
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {!shouldRenderNav && menuLoaded ? null : null}
+            </nav>
           </div>
-
-          <div className={cls.authTabs} role="tablist" aria-label="Auth tabs">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={authMode === "login"}
-              className={`${cls.authTab} ${authMode === "login" ? cls.authTabActive : ""}`}
-              onClick={() => {
-                setErr("");
-                setAuthMode("login");
-              }}
-            >
-              Login
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={authMode === "register"}
-              className={`${cls.authTab} ${authMode === "register" ? cls.authTabActive : ""}`}
-              onClick={() => {
-                setErr("");
-                setAuthMode("register");
-              }}
-            >
-              Register
-            </button>
-          </div>
-
-          {err ? (
-            <div className={cls.authError} role="status" aria-live="polite">
-              <i className="bi bi-exclamation-triangle" />
-              <span>{err}</span>
-            </div>
-          ) : null}
-
-          {authMode === "login" ? (
-            <form
-              className={cls.authForm}
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (busy) return;
-                submitLogin();
-              }}
-            >
-              <label className={cls.authLabel}>
-                Email
-                <div className={cls.authInputWrap}>
-                  <i className={`bi bi-envelope ${cls.authInputIcon}`} />
-                  <input
-                    ref={firstInputRef}
-                    className={cls.authInput}
-                    type="email"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                  />
-                </div>
-              </label>
-
-              <label className={cls.authLabel}>
-                Password
-                <div className={cls.authInputWrap}>
-                  <i className={`bi bi-lock ${cls.authInputIcon}`} />
-                  <input
-                    className={cls.authInput}
-                    type={showPass ? "text" : "password"}
-                    value={loginPass}
-                    onChange={(e) => setLoginPass(e.target.value)}
-                    placeholder="••••••••"
-                    autoComplete="current-password"
-                  />
-                  <button
-                    className={cls.authEye}
-                    type="button"
-                    onClick={() => setShowPass((v) => !v)}
-                    aria-label={showPass ? "Hide password" : "Show password"}
-                  >
-                    <i className={`bi ${showPass ? "bi-eye-slash" : "bi-eye"}`} />
-                  </button>
-                </div>
-              </label>
-
-              <div className={cls.authRow}>
-                <button className={cls.authPrimary} type="submit" disabled={busy}>
-                  {busy ? "Signing in…" : "Login"}
-                </button>
-
-                <button
-                  className={cls.authGhost}
-                  type="button"
-                  onClick={() => {
-                    setErr("");
-                    setAuthMode("register");
-                  }}
-                >
-                  Create account
-                </button>
-              </div>
-            </form>
-          ) : (
-            <form
-              className={cls.authForm}
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (busy) return;
-                submitRegister();
-              }}
-            >
-              <label className={cls.authLabel}>
-                Full name
-                <div className={cls.authInputWrap}>
-                  <i className={`bi bi-person ${cls.authInputIcon}`} />
-                  <input
-                    ref={firstInputRef}
-                    className={cls.authInput}
-                    type="text"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    placeholder="Your name"
-                    autoComplete="name"
-                  />
-                </div>
-              </label>
-
-              <label className={cls.authLabel}>
-                Email
-                <div className={cls.authInputWrap}>
-                  <i className={`bi bi-envelope ${cls.authInputIcon}`} />
-                  <input
-                    className={cls.authInput}
-                    type="email"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                  />
-                </div>
-              </label>
-
-              <label className={cls.authLabel}>
-                Password
-                <div className={cls.authInputWrap}>
-                  <i className={`bi bi-lock ${cls.authInputIcon}`} />
-                  <input
-                    className={cls.authInput}
-                    type={showPass ? "text" : "password"}
-                    value={regPass}
-                    onChange={(e) => setRegPass(e.target.value)}
-                    placeholder="At least 6 characters"
-                    autoComplete="new-password"
-                  />
-                  <button
-                    className={cls.authEye}
-                    type="button"
-                    onClick={() => setShowPass((v) => !v)}
-                    aria-label={showPass ? "Hide password" : "Show password"}
-                  >
-                    <i className={`bi ${showPass ? "bi-eye-slash" : "bi-eye"}`} />
-                  </button>
-                </div>
-              </label>
-
-              <div className={cls.authRow}>
-                <button className={cls.authPrimary} type="submit" disabled={busy}>
-                  {busy ? "Creating…" : "Register"}
-                </button>
-
-                <button
-                  className={cls.authGhost}
-                  type="button"
-                  onClick={() => {
-                    setErr("");
-                    setAuthMode("login");
-                  }}
-                >
-                  I already have an account
-                </button>
-              </div>
-            </form>
-          )}
         </div>
       </div>
-    )}
-  </header>
-);
+
+      <HeaderAuthModal
+        open={authOpen}
+        mode={authMode}
+        onModeChange={setAuthMode}
+        onClose={() => setAuthOpen(false)}
+        onLogin={onLogin}
+        onRegister={onRegister}
+      />
+    </header>
+  );
 }
 
 function parseNavItems(raw?: string): NavItem[] | undefined {
@@ -947,17 +945,13 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
     brandSub: "COSMETICS",
     logoSrc: "/assets/images/logo.jpg",
     logoAlt: "Tuan Kiet Store",
-
-    searchPlaceholder: "What are you looking for?",
+    searchPlaceholder: "What are you looking for today?",
     badgeStoreLocator: 2,
     badgeCart: 0,
-
     navItems: "[]",
-
     menuApiUrl: "/api/admin/builder/menus/header-menu",
     menuSetKey: "home",
     menuSiteIdKey: "builder_site_id",
-
     isAuthed: 0,
   },
   inspector: [
@@ -966,17 +960,13 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
     { key: "brandSub", label: "Brand Sub", kind: "text" },
     { key: "logoSrc", label: "Logo Src", kind: "text" },
     { key: "logoAlt", label: "Logo Alt", kind: "text" },
-
     { key: "searchPlaceholder", label: "Search Placeholder", kind: "text" },
     { key: "badgeStoreLocator", label: "Badge (Store)", kind: "number" },
     { key: "badgeCart", label: "Badge (Cart)", kind: "number" },
-
     { key: "menuApiUrl", label: "Menu API URL", kind: "text" },
     { key: "menuSetKey", label: "Menu setKey", kind: "text" },
     { key: "menuSiteIdKey", label: "LocalStorage siteId key", kind: "text" },
-
     { key: "isAuthed", label: "Is Authed (0/1)", kind: "number" },
-
     { key: "navItems", label: "Nav Items (JSON, preview)", kind: "textarea", rows: 10 },
   ],
   render: (props) => {
@@ -995,7 +985,7 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
           badgeStoreLocator={p.badgeStoreLocator}
           badgeCart={p.badgeCart}
           preview={p.preview}
-          navItems={navItems ?? []}
+          navItems={navItems}
           menuApiUrl={p.menuApiUrl || "/api/admin/builder/menus/header-menu"}
           menuSetKey={p.menuSetKey || "home"}
           menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
