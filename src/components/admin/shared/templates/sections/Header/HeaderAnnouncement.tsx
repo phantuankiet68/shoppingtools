@@ -7,6 +7,7 @@ import type { Route } from "next";
 import cls from "@/styles/templates/sections/Header/HeaderAnnouncement.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 import HeaderAuthModal from "@/components/admin/shared/popup/header/HeaderAuthModal";
+import { getMe, logoutUser } from "@/store/auth/auth-client";
 
 export type MegaColumn = {
   title: string;
@@ -43,6 +44,17 @@ export type ProductNotificationItem = {
   tag?: string;
 };
 
+export type OrderPopupItem = {
+  id: string;
+  orderNumber: string;
+  placedAt: string;
+  deliveryText: string;
+  deliveryTone?: "success" | "warning" | "muted";
+  rating?: number;
+  image?: string;
+  href?: string;
+};
+
 export type HeaderAnnouncementProps = {
   brandHref?: string;
   brandName?: string;
@@ -62,12 +74,14 @@ export type HeaderAnnouncementProps = {
   menuSetKey?: string;
   menuSiteIdKey?: string;
   isAuthed?: boolean;
-  onLogin?: (payload: { email: string; password: string }) => Promise<void> | void;
-  onRegister?: (payload: { name: string; email: string; password: string }) => Promise<void> | void;
 
   cartItems?: CartPopupItem[];
   cartHref?: string;
+
+  orders?: OrderPopupItem[];
+  orderHref?: string;
 };
+
 type AuthMode = "login" | "register";
 
 type ApiLayoutItem = {
@@ -91,7 +105,14 @@ type ApiTreeNode = {
   children?: ApiTreeNode[];
 };
 
-
+type CurrentUser = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  image?: string | null;
+  name?: string | null;
+};
 
 function normalizePath(p?: string | null): string {
   const s = String(p || "").trim();
@@ -213,6 +234,13 @@ function treeToNavItems(tree: ApiTreeNode[]): NavItem[] {
   return out;
 }
 
+function renderStars(rating = 0) {
+  return Array.from({ length: 5 }, (_, idx) => {
+    const filled = idx < Math.max(0, Math.min(5, rating));
+    return <i key={idx} className={`bi ${filled ? "bi-star-fill" : "bi-star"} ${cls.orderStar}`} aria-hidden="true" />;
+  });
+}
+
 const DEFAULT_CATEGORY_ITEMS: CategoryMenuItem[] = [
   { label: "New Arrivals", href: "/new-arrivals", emoji: "🆕" },
   { label: "Best Sellers", href: "/best-sellers", emoji: "🔥" },
@@ -270,17 +298,79 @@ const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
   },
 ];
 
+const DEFAULT_CART_ITEMS: CartPopupItem[] = [
+  {
+    id: "1",
+    name: "Dán nút phím Surface Laptop 3 & 4 ...",
+    price: 39000,
+    qty: 2,
+    href: "/products/surface-keycap",
+    image: "/assets/images/logo.jpg",
+  },
+];
 
-  const DEFAULT_CART_ITEMS: CartPopupItem[] = [
-    {
-      id: "1",
-      name: "Dán nút phím Surface Laptop 3 & 4 ...",
-      price: 39000,
-      qty: 2,
-      href: "/products/surface-keycap",
-      image: "/assets/images/logo.jpg",
-    },
-  ];
+const DEFAULT_ORDERS: OrderPopupItem[] = [
+  {
+    id: "1",
+    orderNumber: "#999012",
+    placedAt: "20-Dec-2019, 3:00 PM",
+    deliveryText: "Estimated Delivery on 21 Dec",
+    deliveryTone: "success",
+    rating: 1,
+    image: "/assets/images/logo.jpg",
+    href: "/account/orders/999012",
+  },
+  {
+    id: "2",
+    orderNumber: "#6660212",
+    placedAt: "15-Dec-2019, 1:00 PM",
+    deliveryText: "Delivered on 16 Dec",
+    deliveryTone: "warning",
+    rating: 4,
+    image: "/assets/images/logo.jpg",
+    href: "/account/orders/6660212",
+  },
+  {
+    id: "3",
+    orderNumber: "#551221",
+    placedAt: "14-Dec-2019, 3:00 PM",
+    deliveryText: "Delivered on 15 Dec",
+    deliveryTone: "warning",
+    rating: 4,
+    image: "/assets/images/logo.jpg",
+    href: "/account/orders/551221",
+  },
+  {
+    id: "4",
+    orderNumber: "#4445202",
+    placedAt: "12-Dec-2019, 3:00 PM",
+    deliveryText: "Delivered on 13 Dec",
+    deliveryTone: "warning",
+    rating: 4,
+    image: "/assets/images/logo.jpg",
+    href: "/account/orders/4445202",
+  },
+  {
+    id: "5",
+    orderNumber: "#4525253",
+    placedAt: "11-Dec-2019, 3:00 PM",
+    deliveryText: "Delivered on 11 Dec",
+    deliveryTone: "warning",
+    rating: 5,
+    image: "/assets/images/logo.jpg",
+    href: "/account/orders/4525253",
+  },
+  {
+    id: "6",
+    orderNumber: "#3355242",
+    placedAt: "08-Dec-2019, 3:00 PM",
+    deliveryText: "Delivered on 09 Dec",
+    deliveryTone: "warning",
+    rating: 4,
+    image: "/assets/images/logo.jpg",
+    href: "/account/orders/3355242",
+  },
+];
 
 export function HeaderAnnouncement({
   brandHref = "/",
@@ -301,10 +391,10 @@ export function HeaderAnnouncement({
   menuSetKey = "home",
   menuSiteIdKey = "builder_site_id",
   isAuthed = false,
-  onLogin,
-  onRegister,
   cartItems = DEFAULT_CART_ITEMS,
   cartHref = "/cart",
+  orders = DEFAULT_ORDERS,
+  orderHref = "/account/orders",
 }: HeaderAnnouncementProps) {
   const rootRef = useRef<HTMLElement | null>(null);
 
@@ -316,9 +406,14 @@ export function HeaderAnnouncement({
   const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
+
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     setSafeLogo(logoSrc || "/assets/images/logo.jpg");
@@ -329,16 +424,54 @@ export function HeaderAnnouncement({
     return apiNav;
   }, [navItems, apiNav]);
 
-  const unreadNotificationCount = useMemo(
-    () => notifications.filter((x) => x.unread).length,
-    [notifications],
-  );
+  const unreadNotificationCount = useMemo(() => notifications.filter((x) => x.unread).length, [notifications]);
+  const orderPreviewItems = useMemo(() => orders.slice(0, 6), [orders]);
+
+  const isLoggedIn = preview ? !!isAuthed : !!currentUser;
+
+  const displayName = useMemo(() => {
+    if (!currentUser) return "Your account";
+    if (currentUser.name && currentUser.name.trim()) return currentUser.name.trim();
+    if (currentUser.email) return currentUser.email.split("@")[0];
+    return "Your account";
+  }, [currentUser]);
+
+  const displayRole = useMemo(() => {
+    return currentUser?.role || "Account";
+  }, [currentUser]);
 
   const onBlockClick = (e: React.SyntheticEvent) => {
     if (!preview) return;
     e.preventDefault();
     e.stopPropagation();
   };
+
+  useEffect(() => {
+    if (preview) {
+      setAuthChecked(true);
+      return;
+    }
+
+    let alive = true;
+
+    (async () => {
+      try {
+        const res = await getMe();
+        if (!alive) return;
+        setCurrentUser(res.user);
+      } catch {
+        if (!alive) return;
+        setCurrentUser(null);
+      } finally {
+        if (!alive) return;
+        setAuthChecked(true);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [preview]);
 
   useEffect(() => {
     let alive = true;
@@ -353,8 +486,7 @@ export function HeaderAnnouncement({
         qs.set("size", "1000");
         qs.set("sort", "sortOrder:asc");
 
-        const siteId =
-          typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
+        const siteId = typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
 
         if (siteId) qs.set("siteId", siteId);
 
@@ -402,6 +534,8 @@ export function HeaderAnnouncement({
     setOpenMegaIndex(null);
     setCategoryOpen(false);
     setNotificationOpen(false);
+    setOrderOpen(false);
+    setAccountOpen(false);
   };
 
   useEffect(() => {
@@ -429,8 +563,21 @@ export function HeaderAnnouncement({
   }, []);
 
   const openAuth = (mode: AuthMode) => {
+    closeAll();
     setAuthMode(mode);
     setAuthOpen(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // no-op
+    } finally {
+      setCurrentUser(null);
+      setAccountOpen(false);
+      setAuthOpen(false);
+    }
   };
 
   const shouldRenderNav = items.length > 0;
@@ -508,63 +655,97 @@ export function HeaderAnnouncement({
             </div>
 
             <div className={cls.rightZone}>
-              <button
-                className={`${cls.actionBtn} ${cls.accountBtn}`}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openAuth("login");
-                }}
-                aria-haspopup="dialog"
-                aria-expanded={authOpen}
-              >
-                <span className={cls.actionIcon}>
-                  <i className="bi bi-person" />
-                </span>
-                <span className={cls.actionText}>
-                  <span>{isAuthed ? "Hello" : "Login"}</span>
-                  <strong>{isAuthed ? "Your account" : "Account"}</strong>
-                </span>
-                <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
-              </button>
+              <div className={cls.accountWrap}>
+                <button
+                  className={`${cls.actionBtn} ${cls.accountBtn}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-              {preview ? (
-                <a
-                  href="#"
-                  className={cls.actionBtn}
-                  aria-label="Store locations"
-                  onClick={onBlockClick}
+                    if (preview) return;
+
+                    if (!isLoggedIn) {
+                      openAuth("login");
+                      return;
+                    }
+
+                    setNotificationOpen(false);
+                    setOrderOpen(false);
+                    setCategoryOpen(false);
+                    setOpenMegaIndex(null);
+                    setAuthOpen(false);
+                    setAccountOpen((v) => !v);
+                  }}
+                  aria-haspopup={isLoggedIn ? "menu" : "dialog"}
+                  aria-expanded={isLoggedIn ? accountOpen : authOpen}
                 >
                   <span className={cls.actionIcon}>
-                    <i className="bi bi-shop" />
+                    <i className="bi bi-person" />
                   </span>
                   <span className={cls.actionText}>
-                    <span>Store</span>
-                    <strong>Locations</strong>
+                    <span>{isLoggedIn ? `Hello, ${displayName}` : authChecked ? "Login" : "Loading..."}</span>
+                    <strong>{isLoggedIn ? displayRole : "Account"}</strong>
                   </span>
-                  {badgeStoreLocator > 0 ? (
-                    <span className={cls.miniBadge}>{badgeStoreLocator}</span>
-                  ) : null}
-                </a>
-              ) : (
-                <Link
-                  href={"/stores" as Route}
-                  className={cls.actionBtn}
-                  aria-label="Store locations"
-                >
-                  <span className={cls.actionIcon}>
-                    <i className="bi bi-shop" />
-                  </span>
-                  <span className={cls.actionText}>
-                    <span>Store</span>
-                    <strong>Locations</strong>
-                  </span>
-                  {badgeStoreLocator > 0 ? (
-                    <span className={cls.miniBadge}>{badgeStoreLocator}</span>
-                  ) : null}
-                </Link>
-              )}
+                  <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
+                </button>
+
+                {isLoggedIn && accountOpen ? (
+                  <div
+                    className={cls.accountDropdown}
+                    role="menu"
+                    aria-label="Account menu"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className={cls.accountDropdownHead}>
+                      <div className={cls.accountDflex}>
+                        <strong>{displayName}</strong>
+                        <small>{displayRole}</small>
+                      </div>
+                      <span>{currentUser?.email}</span>
+                    </div>
+
+                    <div className={cls.accountDropdownBody}>
+                      {preview ? (
+                        <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
+                          <i className="bi bi-person-circle" />
+                          <span>My account</span>
+                        </a>
+                      ) : (
+                        <Link
+                          href={"/account" as Route}
+                          className={cls.accountDropdownLink}
+                          onClick={() => setAccountOpen(false)}
+                        >
+                          <i className="bi bi-person-circle" />
+                          <span>My account</span>
+                        </Link>
+                      )}
+
+                      {preview ? (
+                        <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
+                          <i className="bi bi-receipt" />
+                          <span>My orders</span>
+                        </a>
+                      ) : (
+                        <Link
+                          href={"/account/orders" as Route}
+                          className={cls.accountDropdownLink}
+                          onClick={() => setAccountOpen(false)}
+                        >
+                          <i className="bi bi-receipt" />
+                          <span>My orders</span>
+                        </Link>
+                      )}
+
+                      <button type="button" className={cls.accountDropdownLogout} onClick={handleLogout}>
+                        <i className="bi bi-box-arrow-right" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
 
               <div className={cls.notificationWrap}>
                 <button
@@ -581,6 +762,8 @@ export function HeaderAnnouncement({
                     }
                     e.preventDefault();
                     e.stopPropagation();
+                    setAccountOpen(false);
+                    setOrderOpen(false);
                     setNotificationOpen((v) => !v);
                   }}
                 >
@@ -604,27 +787,38 @@ export function HeaderAnnouncement({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className={cls.notificationHead}>
-                      <strong>Notifications</strong>
+                      <div className={cls.notificationHeadLeft}>
+                        <div className={cls.notificationHeadIcon}>
+                          <i className="bi bi-bell" />
+                        </div>
+
+                        <div className={cls.notificationHeadText}>
+                          <strong>Notifications</strong>
+                          <span>
+                            You have <b>{unreadNotificationCount}</b> unread updates
+                          </span>
+                        </div>
+                      </div>
+
                       <button
                         type="button"
                         className={cls.notificationRefresh}
                         aria-label="Refresh notifications"
+                        title="Refresh notifications"
                       >
                         <i className="bi bi-arrow-clockwise" />
                       </button>
                     </div>
 
                     <div className={cls.notificationTabs}>
-                      <button
-                        type="button"
-                        className={`${cls.notificationTab} ${cls.notificationTabActive}`}
-                      >
-                        All
-                        <span>{notifications.length}</span>
+                      <button type="button" className={`${cls.notificationTab} ${cls.notificationTabActive}`}>
+                        <span>All</span>
+                        <b>{notifications.length}</b>
                       </button>
+
                       <button type="button" className={cls.notificationTab}>
-                        Unread
-                        <span>{unreadNotificationCount}</span>
+                        <span>Unread</span>
+                        <b>{unreadNotificationCount}</b>
                       </button>
                     </div>
 
@@ -634,9 +828,7 @@ export function HeaderAnnouncement({
                           <a
                             key={item.id}
                             href="#"
-                            className={`${cls.notificationItem} ${
-                              item.unread ? cls.notificationUnread : ""
-                            }`}
+                            className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
                             onClick={onBlockClick}
                           >
                             <span className={cls.notificationThumb}>
@@ -653,9 +845,7 @@ export function HeaderAnnouncement({
                               <span className={cls.notificationMessage}>{item.message}</span>
 
                               <span className={cls.notificationMeta}>
-                                {item.tag ? (
-                                  <span className={cls.notificationTag}>{item.tag}</span>
-                                ) : null}
+                                {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
                                 <span className={cls.notificationTime}>{item.time}</span>
                               </span>
                             </span>
@@ -664,9 +854,7 @@ export function HeaderAnnouncement({
                           <Link
                             key={item.id}
                             href={(item.href || notificationHref || "/notifications") as Route}
-                            className={`${cls.notificationItem} ${
-                              item.unread ? cls.notificationUnread : ""
-                            }`}
+                            className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
                             onClick={() => setNotificationOpen(false)}
                           >
                             <span className={cls.notificationThumb}>
@@ -683,9 +871,7 @@ export function HeaderAnnouncement({
                               <span className={cls.notificationMessage}>{item.message}</span>
 
                               <span className={cls.notificationMeta}>
-                                {item.tag ? (
-                                  <span className={cls.notificationTag}>{item.tag}</span>
-                                ) : null}
+                                {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
                                 <span className={cls.notificationTime}>{item.time}</span>
                               </span>
                             </span>
@@ -700,11 +886,7 @@ export function HeaderAnnouncement({
                       </button>
 
                       {preview ? (
-                        <a
-                          href="#"
-                          className={cls.notificationFooterBtn}
-                          onClick={onBlockClick}
-                        >
+                        <a href="#" className={cls.notificationFooterBtn} onClick={onBlockClick}>
                           Go to notification center
                         </a>
                       ) : (
@@ -721,15 +903,145 @@ export function HeaderAnnouncement({
                 )}
               </div>
 
-              <button
-                className={cls.cartBtn}
-                type="button"
-                onClick={onBlockClick}
-                aria-label="Cart"
-              >
-                <i className="bi bi-bag" />
-                <span className={cls.badge}>{badgeCart}</span>
-              </button>
+              <div className={cls.orderWrap}>
+                <button
+                  className={cls.cartBtn}
+                  type="button"
+                  aria-label="Cart"
+                  aria-haspopup="dialog"
+                  aria-expanded={orderOpen}
+                  onClick={(e) => {
+                    if (preview) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setAccountOpen(false);
+                    setNotificationOpen(false);
+                    setOrderOpen((v) => !v);
+                  }}
+                >
+                  <i className="bi bi-bag" />
+                  <span className={cls.badge}>{badgeCart}</span>
+                </button>
+
+                {orderOpen && (
+                  <div
+                    className={cls.orderDropdown}
+                    role="dialog"
+                    aria-label="My Orders popup"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className={cls.orderHead}>
+                      <span className={cls.orderHeadIcon}>
+                        <i className="bi bi-receipt" />
+                      </span>
+                      <span className={cls.orderHeadTitle}>My Orders</span>
+                    </div>
+                    <div className={cls.orderList}>
+                      {orderPreviewItems.map((item) =>
+                        preview ? (
+                          <a key={item.id} href="#" className={cls.orderItem} onClick={onBlockClick}>
+                            <div className={cls.orderContent}>
+                              <div className={cls.orderTopRow}>
+                                <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
+                                <span className={cls.orderDate}>{item.placedAt}</span>
+                              </div>
+                              <span className={cls.orderBottomRow}>
+                                <span
+                                  className={`${cls.orderDelivery} ${
+                                    item.deliveryTone === "success"
+                                      ? cls.orderDeliverySuccess
+                                      : item.deliveryTone === "warning"
+                                        ? cls.orderDeliveryWarning
+                                        : cls.orderDeliveryMuted
+                                  }`}
+                                >
+                                  {item.deliveryText}
+                                </span>
+
+                                <span className={cls.orderRating}>
+                                  <span className={cls.orderRatingLabel}>You Rated</span>
+                                  <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
+                                </span>
+                              </span>
+                            </div>
+
+                            <span className={cls.orderThumb}>
+                              <Image
+                                src={item.image || "/assets/images/logo.jpg"}
+                                alt={item.orderNumber}
+                                fill
+                                className={cls.orderThumbImg}
+                              />
+                            </span>
+                          </a>
+                        ) : (
+                          <Link
+                            key={item.id}
+                            href={(item.href || orderHref || "/account/orders") as Route}
+                            className={cls.orderItem}
+                            onClick={() => setOrderOpen(false)}
+                          >
+                            <span className={cls.orderContent}>
+                              <div className={cls.orderTopRow}>
+                                <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
+                                <span className={cls.orderDate}>{item.placedAt}</span>
+                              </div>
+
+                              <span className={cls.orderBottomRow}>
+                                <span
+                                  className={`${cls.orderDelivery} ${
+                                    item.deliveryTone === "success"
+                                      ? cls.orderDeliverySuccess
+                                      : item.deliveryTone === "warning"
+                                        ? cls.orderDeliveryWarning
+                                        : cls.orderDeliveryMuted
+                                  }`}
+                                >
+                                  {item.deliveryText}
+                                </span>
+
+                                <span className={cls.orderRating}>
+                                  <span className={cls.orderRatingLabel}>You Rated</span>
+                                  <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
+                                </span>
+                              </span>
+                            </span>
+
+                            <span className={cls.orderThumb}>
+                              <Image
+                                src={item.image || "/assets/images/logo.jpg"}
+                                alt={item.orderNumber}
+                                fill
+                                className={cls.orderThumbImg}
+                              />
+                            </span>
+                          </Link>
+                        ),
+                      )}
+                    </div>
+
+                    <div className={cls.orderFooter}>
+                      {preview ? (
+                        <a href="#" className={cls.orderFooterBtn} onClick={onBlockClick}>
+                          Xem tất cả
+                        </a>
+                      ) : (
+                        <Link
+                          href={(orderHref || "/account/orders") as Route}
+                          className={cls.orderFooterBtn}
+                          onClick={() => setOrderOpen(false)}
+                        >
+                          Xem tất cả
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -775,11 +1087,7 @@ export function HeaderAnnouncement({
                         <i className="bi bi-chevron-right" />
                       </a>
                     ) : (
-                      <Link
-                        key={idx}
-                        href={(cat.href || "/") as Route}
-                        className={cls.categoryItem}
-                      >
+                      <Link key={idx} href={(cat.href || "/") as Route} className={cls.categoryItem}>
                         <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
                         <span className={cls.categoryItemText}>{cat.label}</span>
                         <i className="bi bi-chevron-right" />
@@ -875,8 +1183,11 @@ export function HeaderAnnouncement({
         mode={authMode}
         onModeChange={setAuthMode}
         onClose={() => setAuthOpen(false)}
-        onLogin={onLogin}
-        onRegister={onRegister}
+        onSuccess={({ user }) => {
+          setCurrentUser(user);
+          setAuthOpen(false);
+          setAccountOpen(false);
+        }}
       />
     </header>
   );

@@ -477,3 +477,5 @@ Hiện tại tôi muốn độ design và ghi vào TopbarUtility.tsx hãy giúp 
 Hiện tại design Ui đã có thể topbar như này đã đạt web seo cho web bán hàng có gọi là xuất sắc chưa á. Bạn hãy kiểm tra lại giúp tôi nhé rất cảm ơn
 
 tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé
+
+Hiện tại tôi đang sử dụng next 16 module và HeaderAnnouncement là file mẫu dùng làm templates để tạo pages Bạn có thể từ HeaderAnnouncement.tsx bạn hãy tạo design Ui mới là HeaderCentered.tsx cấu trúc giống nhau nhé

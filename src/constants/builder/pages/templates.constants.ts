@@ -25,7 +25,7 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     "TopbarTicker",
     "TopbarUtility",
   ]),
-    tpl("tpl-header", "Header", [
+  tpl("tpl-header", "Header", [
     "HeaderAnnouncement",
     "HeaderCentered",
     "Classic",
