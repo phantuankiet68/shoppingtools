@@ -74,10 +74,8 @@ export type HeaderCenteredProps = {
   menuSetKey?: string;
   menuSiteIdKey?: string;
   isAuthed?: boolean;
-
   cartItems?: CartPopupItem[];
   cartHref?: string;
-
   orders?: OrderPopupItem[];
   orderHref?: string;
 };
@@ -127,6 +125,14 @@ function toIcon(raw?: string | null): string {
     .replace(/^bi\s+/i, "")
     .replace(/^bi\s+bi-/i, "bi-")
     .replace(/^bi\s+bi\s+/i, "");
+}
+
+function formatMoney(v: number): string {
+  try {
+    return new Intl.NumberFormat("vi-VN").format(v);
+  } catch {
+    return String(v);
+  }
 }
 
 function buildTreeFromItems(rows: ApiLayoutItem[]): ApiTreeNode[] {
@@ -237,7 +243,13 @@ function treeToNavItems(tree: ApiTreeNode[]): NavItem[] {
 function renderStars(rating = 0) {
   return Array.from({ length: 5 }, (_, idx) => {
     const filled = idx < Math.max(0, Math.min(5, rating));
-    return <i key={idx} className={`bi ${filled ? "bi-star-fill" : "bi-star"} ${cls.orderStar}`} aria-hidden="true" />;
+    return (
+      <i
+        key={idx}
+        className={`bi ${filled ? "bi-star-fill" : "bi-star"} ${cls.orderStar}`}
+        aria-hidden="true"
+      />
+    );
   });
 }
 
@@ -260,7 +272,7 @@ const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
     id: "1",
     title: "New product available",
     message: "Laneige Lip Sleeping Mask has just arrived.",
-    time: "20 min ago",
+    time: "20s",
     href: "/products/laneige-lip-sleeping-mask",
     unread: true,
     thumbnail: "/assets/images/logo.jpg",
@@ -270,7 +282,7 @@ const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
     id: "2",
     title: "Flash sale started",
     message: "Up to 40% off on skincare products today.",
-    time: "1 hour ago",
+    time: "1h",
     href: "/sale",
     unread: true,
     thumbnail: "/assets/images/logo.jpg",
@@ -280,21 +292,39 @@ const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
     id: "3",
     title: "Back in stock",
     message: "CeraVe Foaming Cleanser is available again.",
-    time: "3 hours ago",
+    time: "3h",
     href: "/products/cerave-foaming-cleanser",
     unread: false,
     thumbnail: "/assets/images/logo.jpg",
     tag: "Stock",
+  },
+  {
+    id: "4",
+    title: "Order update",
+    message: "Your recent order is being prepared for shipping.",
+    time: "Today",
+    href: "/account/orders",
+    unread: false,
+    thumbnail: "/assets/images/logo.jpg",
+    tag: "Order",
   },
 ];
 
 const DEFAULT_CART_ITEMS: CartPopupItem[] = [
   {
     id: "1",
-    name: "Dán nút phím Surface Laptop 3 & 4 ...",
+    name: "Dán nút phím Surface Laptop 3 & 4",
     price: 39000,
     qty: 2,
     href: "/products/surface-keycap",
+    image: "/assets/images/logo.jpg",
+  },
+  {
+    id: "2",
+    name: "Lip Sleeping Mask Mini",
+    price: 129000,
+    qty: 1,
+    href: "/products/lip-sleeping-mask",
     image: "/assets/images/logo.jpg",
   },
 ];
@@ -353,11 +383,12 @@ export function HeaderCentered({
   const [menuLoaded, setMenuLoaded] = useState(false);
 
   const [query, setQuery] = useState("");
-  const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [orderOpen, setOrderOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
@@ -374,22 +405,36 @@ export function HeaderCentered({
     return apiNav;
   }, [navItems, apiNav]);
 
-  const unreadNotificationCount = useMemo(() => notifications.filter((x) => x.unread).length, [notifications]);
+  const unreadNotificationCount = useMemo(
+    () => notifications.filter((x) => x.unread).length,
+    [notifications],
+  );
 
-  const orderPreviewItems = useMemo(() => orders.slice(0, 6), [orders]);
+  const orderPreviewItems = useMemo(() => orders.slice(0, 3), [orders]);
+  const cartPreviewItems = useMemo(() => cartItems.slice(0, 4), [cartItems]);
+
+  const cartTotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  }, [cartItems]);
 
   const isLoggedIn = preview ? !!isAuthed : !!currentUser;
 
   const displayName = useMemo(() => {
-    if (!currentUser) return "Your account";
+    if (!currentUser) return "Guest";
     if (currentUser.name && currentUser.name.trim()) return currentUser.name.trim();
     if (currentUser.email) return currentUser.email.split("@")[0];
-    return "Your account";
+    return "Guest";
   }, [currentUser]);
 
-  const displayRole = useMemo(() => {
-    return currentUser?.role || "USER";
-  }, [currentUser]);
+  const displayRole = useMemo(() => currentUser?.role || "Member", [currentUser]);
+
+  const initials = useMemo(() => {
+    const name = displayName.trim();
+    if (!name) return "G";
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+    return `${parts[0][0] || ""}${parts[parts.length - 1][0] || ""}`.toUpperCase();
+  }, [displayName]);
 
   const onBlockClick = (e: React.SyntheticEvent) => {
     if (!preview) return;
@@ -437,7 +482,8 @@ export function HeaderCentered({
         qs.set("size", "1000");
         qs.set("sort", "sortOrder:asc");
 
-        const siteId = typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
+        const siteId =
+          typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
 
         if (siteId) qs.set("siteId", siteId);
 
@@ -482,10 +528,10 @@ export function HeaderCentered({
   }, [menuApiUrl, menuSetKey, menuSiteIdKey]);
 
   const closeAll = () => {
-    setOpenMegaIndex(null);
     setCategoryOpen(false);
+    setOpenMegaIndex(null);
     setNotificationOpen(false);
-    setOrderOpen(false);
+    setCartOpen(false);
     setAccountOpen(false);
   };
 
@@ -495,11 +541,13 @@ export function HeaderCentered({
       if (!target) return;
       if (rootRef.current && rootRef.current.contains(target)) return;
       closeAll();
+      setMobileNavOpen(false);
     };
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         closeAll();
+        setMobileNavOpen(false);
         setAuthOpen(false);
       }
     };
@@ -523,7 +571,7 @@ export function HeaderCentered({
     try {
       await logoutUser();
     } catch {
-      // no-op
+      // noop
     } finally {
       setCurrentUser(null);
       setAccountOpen(false);
@@ -533,36 +581,48 @@ export function HeaderCentered({
 
   const shouldRenderNav = items.length > 0;
 
+  const openPanel = (panel: "notifications" | "cart" | "account" | "categories") => {
+    setNotificationOpen(panel === "notifications" ? !notificationOpen : false);
+    setCartOpen(panel === "cart" ? !cartOpen : false);
+    setAccountOpen(panel === "account" ? !accountOpen : false);
+    setCategoryOpen(panel === "categories" ? !categoryOpen : false);
+    if (panel !== "categories") {
+      setOpenMegaIndex(null);
+    }
+  };
+
   return (
     <header className={cls.header} ref={rootRef}>
+      <div className={cls.backdrop} />
+
       <div className={cls.container}>
-        <div className={cls.topRow}>
-          <div className={cls.brandCol}>
+        <div className={cls.topbar}>
+          <div className={cls.brandArea}>
             {preview ? (
-              <a className={cls.logo} href="#" aria-label={brandName} onClick={onBlockClick}>
-                <span className={cls.logoBadge}>
+              <a className={cls.brand} href="#" aria-label={brandName} onClick={onBlockClick}>
+                <span className={cls.brandLogo}>
                   <Image
                     src={safeLogo}
                     alt={logoAlt}
                     fill
-                    className={cls.logoImg}
+                    className={cls.brandLogoImg}
                     onError={() => setSafeLogo("/assets/images/logo.jpg")}
                   />
                 </span>
 
-                <span className={cls.logoText}>
-                  <span className={cls.logoName}>{brandName}</span>
-                  <span className={cls.logoSub}>{brandSub}</span>
+                <span className={cls.brandText}>
+                  <span className={cls.brandName}>{brandName}</span>
+                  <span className={cls.brandSub}>{brandSub}</span>
                 </span>
               </a>
             ) : (
-              <Link className={cls.logo} href={brandHref as Route} aria-label={brandName}>
-                <span className={cls.logoBadge}>
+              <Link className={cls.brand} href={brandHref as Route} aria-label={brandName}>
+                <span className={cls.brandLogo}>
                   <Image
                     src={safeLogo}
                     alt={logoAlt}
                     fill
-                    className={cls.logoImg}
+                    className={cls.brandLogoImg}
                     onError={() => {
                       const fallback = "/assets/images/logo.jpg";
                       if (safeLogo !== fallback) setSafeLogo(fallback);
@@ -570,15 +630,15 @@ export function HeaderCentered({
                   />
                 </span>
 
-                <span className={cls.logoText}>
-                  <span className={cls.logoName}>{brandName}</span>
-                  <span className={cls.logoSub}>{brandSub}</span>
+                <span className={cls.brandText}>
+                  <span className={cls.brandName}>{brandName}</span>
+                  <span className={cls.brandSub}>{brandSub}</span>
                 </span>
               </Link>
             )}
           </div>
 
-          <div className={cls.searchCol}>
+          <div className={cls.searchArea}>
             <form
               className={cls.search}
               onSubmit={(e) => {
@@ -587,435 +647,562 @@ export function HeaderCentered({
                 onSearchSubmit?.(query);
               }}
             >
-              <span className={cls.searchIcon}>
+              <div className={cls.searchLead}>
                 <i className="bi bi-search" />
-              </span>
+              </div>
 
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 type="text"
                 placeholder={searchPlaceholder}
+                aria-label="Search"
               />
 
-              <button type="submit" aria-label="Search" className={cls.searchBtn}>
-                <i className="bi bi-search" />
-              </button>
+              <div className={cls.searchQuick}>
+                <span>Trending</span>
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className={cls.searchSubmit}
+                >
+                  <i className="bi bi-arrow-up-right" />
+                </button>
+              </div>
             </form>
           </div>
 
-          <div className={cls.actionCol}>
-            <div className={cls.accountWrap}>
-              <button
-                className={`${cls.actionBtn} ${cls.userBtn}`}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+          <div className={cls.toolsArea}>
+            <button
+              type="button"
+              className={cls.toolBtn}
+              aria-label="Notifications"
+              aria-haspopup="dialog"
+              aria-expanded={notificationOpen}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (preview) return;
+                openPanel("notifications");
+              }}
+            >
+              <span className={cls.toolIcon}>
+                <i className="bi bi-bell" />
+              </span>
+              {unreadNotificationCount > 0 ? (
+                <span className={cls.toolBadge}>{unreadNotificationCount}</span>
+              ) : null}
+            </button>
 
-                  if (preview) return;
+            <button
+              type="button"
+              className={cls.toolBtn}
+              aria-label="Cart"
+              aria-haspopup="dialog"
+              aria-expanded={cartOpen}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (preview) return;
+                openPanel("cart");
+              }}
+            >
+              <span className={cls.toolIcon}>
+                <i className="bi bi-bag" />
+              </span>
+              <span className={cls.toolBadgeAlt}>{badgeCart}</span>
+            </button>
 
-                  if (!isLoggedIn) {
-                    openAuth("login");
-                    return;
-                  }
+            <button
+              type="button"
+              className={cls.profileBtn}
+              aria-haspopup={isLoggedIn ? "menu" : "dialog"}
+              aria-expanded={isLoggedIn ? accountOpen : authOpen}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
 
-                  setNotificationOpen(false);
-                  setOrderOpen(false);
-                  setCategoryOpen(false);
-                  setOpenMegaIndex(null);
-                  setAuthOpen(false);
-                  setAccountOpen((v) => !v);
-                }}
-                aria-haspopup={isLoggedIn ? "menu" : "dialog"}
-                aria-expanded={isLoggedIn ? accountOpen : authOpen}
+                if (preview) return;
+
+                if (!isLoggedIn) {
+                  openAuth("login");
+                  return;
+                }
+
+                openPanel("account");
+              }}
+            >
+              <span className={cls.profileAvatar}>
+                {currentUser?.image ? (
+                  <Image
+                    src={currentUser.image}
+                    alt={displayName}
+                    fill
+                    className={cls.profileAvatarImg}
+                  />
+                ) : (
+                  <span>{initials}</span>
+                )}
+              </span>
+
+              <span className={cls.profileMeta}>
+                <strong>{isLoggedIn ? displayName : authChecked ? "Sign in" : "Loading..."}</strong>
+                <small>{isLoggedIn ? displayRole : "Your account"}</small>
+              </span>
+
+              <i className={`bi bi-chevron-down ${cls.profileCaret}`} />
+            </button>
+
+            <button
+              type="button"
+              className={cls.mobileToggle}
+              aria-label="Toggle menu"
+              aria-expanded={mobileNavOpen}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setMobileNavOpen((v) => !v);
+                closeAll();
+              }}
+            >
+              <i className={`bi ${mobileNavOpen ? "bi-x-lg" : "bi-list"}`} />
+            </button>
+
+            {notificationOpen && (
+              <div
+                className={cls.panelDropdownNoti}
+                role="dialog"
+                aria-label="Notifications panel"
+                onClick={(e) => e.stopPropagation()}
               >
-                <span className={cls.actionIcon}>
-                  <i className="bi bi-person" />
-                </span>
-
-                <span className={cls.actionText}>
-                  <span>{isLoggedIn ? `Hello, ${displayName}` : authChecked ? "Login" : "Loading..."}</span>
-                  <strong>{isLoggedIn ? displayRole : "USER"}</strong>
-                </span>
-
-                <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
-              </button>
-
-              {isLoggedIn && accountOpen ? (
-                <div
-                  className={cls.accountDropdown}
-                  role="menu"
-                  aria-label="Account menu"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className={cls.accountDropdownHead}>
-                    <div className={cls.accountDflex}>
-                      <strong>{displayName}</strong>
-                      <small>{displayRole}</small>
+                <div className={cls.panelHead}>
+                  <div className={cls.panelInfo}>
+                    <div className={cls.panelIcon}>
+                      <i className="bi bi-bell"></i>
                     </div>
-                    <span>{currentUser?.email}</span>
+
+                    <div className={cls.panelText}>
+                      <strong>Notifications</strong>
+                      <span>{unreadNotificationCount} unread updates</span>
+                    </div>
                   </div>
 
-                  <div className={cls.accountDropdownBody}>
-                    {preview ? (
-                      <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
-                        <i className="bi bi-person-circle" />
-                        <span>My account</span>
-                      </a>
-                    ) : (
-                      <Link
-                        href={"/account" as Route}
-                        className={cls.accountDropdownLink}
-                        onClick={() => setAccountOpen(false)}
-                      >
-                        <i className="bi bi-person-circle" />
-                        <span>My account</span>
-                      </Link>
-                    )}
-
-                    {preview ? (
-                      <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
-                        <i className="bi bi-receipt" />
-                        <span>My orders</span>
-                      </a>
-                    ) : (
-                      <Link
-                        href={"/account/orders" as Route}
-                        className={cls.accountDropdownLink}
-                        onClick={() => setAccountOpen(false)}
-                      >
-                        <i className="bi bi-receipt" />
-                        <span>My orders</span>
-                      </Link>
-                    )}
-
-                    <button type="button" className={cls.accountDropdownLogout} onClick={handleLogout}>
-                      <i className="bi bi-box-arrow-right" />
-                      <span>Logout</span>
+                  <div className={cls.panelActions}>
+                    <button type="button" className={cls.panelRefresh}>
+                      <i className="bi bi-arrow-clockwise"></i>
                     </button>
                   </div>
                 </div>
-              ) : null}
-            </div>
 
-            <div className={cls.notificationWrap}>
-              <button
-                className={cls.actionBtn}
-                type="button"
-                aria-label="Notifications"
-                aria-haspopup="dialog"
-                aria-expanded={notificationOpen}
-                onClick={(e) => {
-                  if (preview) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                  }
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setAccountOpen(false);
-                  setOrderOpen(false);
-                  setNotificationOpen((v) => !v);
-                }}
-              >
-                <span className={cls.actionIcon}>
-                  <i className="bi bi-bell" />
-                </span>
+                <div className={cls.notificationList}>
+                  {notifications.map((item) =>
+                    preview ? (
+                      <a
+                        key={item.id}
+                        href="#"
+                        className={`${cls.notificationCard} ${
+                          item.unread ? cls.notificationCardUnread : ""
+                        }`}
+                        onClick={onBlockClick}
+                      >
+                        <span className={cls.notificationThumb}>
+                          <Image
+                            src={item.thumbnail || "/assets/images/logo.jpg"}
+                            alt={item.title}
+                            fill
+                            className={cls.notificationThumbImg}
+                          />
+                        </span>
 
-                <span className={cls.actionText}>
-                  <span>Updates</span>
-                  <strong>Notifications</strong>
-                </span>
-
-                {unreadNotificationCount > 0 ? <span className={cls.miniBadge}>{unreadNotificationCount}</span> : null}
-              </button>
-
-              {notificationOpen && (
-                <div
-                  className={cls.notificationDropdown}
-                  role="dialog"
-                  aria-label="Notifications popup"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className={cls.notificationHead}>
-                    <strong>Notifications</strong>
-                    <span>{unreadNotificationCount} unread</span>
-                  </div>
-
-                  <div className={cls.notificationList}>
-                    {notifications.map((item) =>
-                      preview ? (
-                        <a
-                          key={item.id}
-                          href="#"
-                          className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
-                          onClick={onBlockClick}
-                        >
-                          <span className={cls.notificationThumb}>
-                            <Image
-                              src={item.thumbnail || "/assets/images/logo.jpg"}
-                              alt={item.title}
-                              fill
-                              className={cls.notificationThumbImg}
-                            />
+                        <span className={cls.notificationBody}>
+                          <span className={cls.notificationTop}>
+                            <strong>{item.title}</strong>
+                            {item.tag ? <span className={cls.notificationPill}>{item.time}</span> : null}
                           </span>
-
-                          <span className={cls.notificationBody}>
-                            <span className={cls.notificationTitle}>{item.title}</span>
-                            <span className={cls.notificationMessage}>{item.message}</span>
-                            <span className={cls.notificationMeta}>
-                              {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
-                              <span className={cls.notificationTime}>{item.time}</span>
-                            </span>
-                          </span>
-                        </a>
-                      ) : (
-                        <Link
-                          key={item.id}
-                          href={(item.href || notificationHref || "/notifications") as Route}
-                          className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
-                          onClick={() => setNotificationOpen(false)}
-                        >
-                          <span className={cls.notificationThumb}>
-                            <Image
-                              src={item.thumbnail || "/assets/images/logo.jpg"}
-                              alt={item.title}
-                              fill
-                              className={cls.notificationThumbImg}
-                            />
-                          </span>
-
-                          <span className={cls.notificationBody}>
-                            <span className={cls.notificationTitle}>{item.title}</span>
-                            <span className={cls.notificationMessage}>{item.message}</span>
-                            <span className={cls.notificationMeta}>
-                              {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
-                              <span className={cls.notificationTime}>{item.time}</span>
-                            </span>
-                          </span>
-                        </Link>
-                      ),
-                    )}
-                  </div>
-
-                  <div className={cls.notificationFooter}>
-                    {preview ? (
-                      <a href="#" className={cls.notificationFooterBtn} onClick={onBlockClick}>
-                        Go to notification center
+                          <span className={cls.notificationMessage}>{item.message}</span>
+                        </span>
                       </a>
                     ) : (
                       <Link
-                        href={(notificationHref || "/notifications") as Route}
-                        className={cls.notificationFooterBtn}
+                        key={item.id}
+                        href={(item.href || notificationHref || "/notifications") as Route}
+                        className={`${cls.notificationCard} ${
+                          item.unread ? cls.notificationCardUnread : ""
+                        }`}
                         onClick={() => setNotificationOpen(false)}
                       >
-                        Go to notification center
+                        <span className={cls.notificationThumb}>
+                          <Image
+                            src={item.thumbnail || "/assets/images/logo.jpg"}
+                            alt={item.title}
+                            fill
+                            className={cls.notificationThumbImg}
+                          />
+                        </span>
+
+                        <span className={cls.notificationBody}>
+                          <span className={cls.notificationTop}>
+                            <strong>{item.title}</strong>
+                            {item.tag ? <span className={cls.notificationPill}>{item.time}</span> : null}
+                          </span>
+                          <span className={cls.notificationMessage}>{item.message}</span>
+                        </span>
+                      </Link>
+                    ),
+                  )}
+                </div>
+
+                <div className={cls.panelFooter}>
+                  {preview ? (
+                    <a href="#" className={cls.panelPrimary} onClick={onBlockClick}>
+                      Open notification center
+                    </a>
+                  ) : (
+                    <Link
+                      href={(notificationHref || "/notifications") as Route}
+                      className={cls.panelPrimary}
+                      onClick={() => setNotificationOpen(false)}
+                    >
+                      Open notification center
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {cartOpen && (
+              <div
+                className={cls.panelDropdown}
+                role="dialog"
+                aria-label="Cart panel"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={cls.panelHead}>
+                  <div className={cls.panelHeadContent}>
+                    <div className={cls.panelHeadIcon}>
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path
+                          d="M3 5h2l1.2 6.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.5L20 7H7"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <circle cx="10" cy="18" r="1.6" fill="currentColor" />
+                        <circle cx="17" cy="18" r="1.6" fill="currentColor" />
+                      </svg>
+                    </div>
+
+                    <div className={cls.panelHeadText}>
+                      <strong>Shopping Cart</strong>
+                      <span>
+                        You have <b>{cartItems.length}</b> item{cartItems.length > 1 ? "s" : ""} in your cart
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={cls.panelPriceBox}>
+                    <small>Total</small>
+                    <span className={cls.panelPrice}>{formatMoney(cartTotal)}đ</span>
+                  </div>
+                </div>
+
+                <div className={cls.cartList}>
+                  {cartPreviewItems.map((item) =>
+                    preview ? (
+                      <a key={item.id} href="#" className={cls.cartCard} onClick={onBlockClick}>
+                        <span className={cls.cartThumb}>
+                          <Image
+                            src={item.image || "/assets/images/logo.jpg"}
+                            alt={item.name}
+                            fill
+                            className={cls.cartThumbImg}
+                          />
+                        </span>
+
+                        <span className={cls.cartBody}>
+                          <strong>{item.name}</strong>
+                          <small>
+                            {item.qty} × {formatMoney(item.price)}đ
+                          </small>
+                        </span>
+                      </a>
+                    ) : (
+                      <Link
+                        key={item.id}
+                        href={(item.href || cartHref || "/cart") as Route}
+                        className={cls.cartCard}
+                        onClick={() => setCartOpen(false)}
+                      >
+                        <span className={cls.cartThumb}>
+                          <Image
+                            src={item.image || "/assets/images/logo.jpg"}
+                            alt={item.name}
+                            fill
+                            className={cls.cartThumbImg}
+                          />
+                        </span>
+
+                        <span className={cls.cartBody}>
+                          <strong>{item.name}</strong>
+                          <small>
+                            {item.qty} × {formatMoney(item.price)}đ
+                          </small>
+                        </span>
+                      </Link>
+                    ),
+                  )}
+                </div>
+
+                <div className={cls.panelFooterGrid}>
+                  {preview ? (
+                    <a href="#" className={cls.panelSecondary} onClick={onBlockClick}>
+                      View cart
+                    </a>
+                  ) : (
+                    <Link
+                      href={(cartHref || "/cart") as Route}
+                      className={cls.panelSecondary}
+                      onClick={() => setCartOpen(false)}
+                    >
+                      View cart
+                    </Link>
+                  )}
+
+                  {preview ? (
+                    <a href="#" className={cls.panelPrimary} onClick={onBlockClick}>
+                      Checkout
+                    </a>
+                  ) : (
+                    <Link
+                      href={(cartHref || "/cart") as Route}
+                      className={cls.panelPrimary}
+                      onClick={() => setCartOpen(false)}
+                    >
+                      Checkout
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {isLoggedIn && accountOpen ? (
+              <div
+                className={cls.profileDropdown}
+                role="menu"
+                aria-label="Account menu"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={cls.profileCard}>
+                  <span className={cls.profileCardAvatar}>
+                    {currentUser?.image ? (
+                      <Image
+                        src={currentUser.image}
+                        alt={displayName}
+                        fill
+                        className={cls.profileCardAvatarImg}
+                      />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
+                  </span>
+
+                  <div className={cls.profileCardBody}>
+                    <strong>{displayName}</strong>
+                    <small>{currentUser?.email}</small>
+                    <span>{displayRole}</span>
+                  </div>
+                </div>
+
+                <div className={cls.profileLinks}>
+                  {preview ? (
+                    <a href="#" className={cls.profileLink} onClick={onBlockClick}>
+                      <i className="bi bi-person-circle" />
+                      <span>My account</span>
+                    </a>
+                  ) : (
+                    <Link
+                      href={"/account" as Route}
+                      className={cls.profileLink}
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <i className="bi bi-person-circle" />
+                      <span>My account</span>
+                    </Link>
+                  )}
+
+                  {preview ? (
+                    <a href="#" className={cls.profileLink} onClick={onBlockClick}>
+                      <i className="bi bi-clock-history" />
+                      <span>Recent orders</span>
+                    </a>
+                  ) : (
+                    <Link
+                      href={(orderHref || "/account/orders") as Route}
+                      className={cls.profileLink}
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <i className="bi bi-clock-history" />
+                      <span>Recent orders</span>
+                    </Link>
+                  )}
+
+                  {preview ? (
+                    <a href="#" className={cls.profileLink} onClick={onBlockClick}>
+                      <i className="bi bi-heart" />
+                      <span>Wishlist</span>
+                    </a>
+                  ) : (
+                    <Link
+                      href={"/wishlist" as Route}
+                      className={cls.profileLink}
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <i className="bi bi-heart" />
+                      <span>Wishlist</span>
+                    </Link>
+                  )}
+                </div>
+
+                <div className={cls.profileOrders}>
+                  <div className={cls.profileOrdersHead}>
+                    <strong>Recent orders</strong>
+                    {preview ? (
+                      <a href="#" onClick={onBlockClick}>
+                        View all
+                      </a>
+                    ) : (
+                      <Link
+                        href={(orderHref || "/account/orders") as Route}
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        View all
                       </Link>
                     )}
                   </div>
-                </div>
-              )}
-            </div>
 
-            <div className={cls.orderWrap}>
-              <button
-                className={cls.cartBtn}
-                type="button"
-                aria-label="Cart"
-                aria-haspopup="dialog"
-                aria-expanded={orderOpen}
-                onClick={(e) => {
-                  if (preview) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                  }
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setAccountOpen(false);
-                  setNotificationOpen(false);
-                  setOrderOpen((v) => !v);
-                }}
-              >
-                <i className="bi bi-bag" />
-                <span className={cls.badge}>{badgeCart}</span>
-              </button>
-
-              {orderOpen && (
-                <div
-                  className={cls.orderDropdown}
-                  role="dialog"
-                  aria-label="My Orders popup"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className={cls.orderHead}>
-                    <span className={cls.orderHeadIcon}>
-                      <i className="bi bi-receipt" />
-                    </span>
-                    <span className={cls.orderHeadTitle}>My Orders</span>
-                  </div>
-
-                  <div className={cls.orderList}>
+                  <div className={cls.profileOrderList}>
                     {orderPreviewItems.map((item) =>
                       preview ? (
-                        <a key={item.id} href="#" className={cls.orderItem} onClick={onBlockClick}>
-                          <div className={cls.orderContent}>
-                            <div className={cls.orderTopRow}>
-                              <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
-                              <span className={cls.orderDate}>{item.placedAt}</span>
-                            </div>
-
-                            <span className={cls.orderBottomRow}>
-                              <span
-                                className={`${cls.orderDelivery} ${
-                                  item.deliveryTone === "success"
-                                    ? cls.orderDeliverySuccess
-                                    : item.deliveryTone === "warning"
-                                      ? cls.orderDeliveryWarning
-                                      : cls.orderDeliveryMuted
-                                }`}
-                              >
-                                {item.deliveryText}
-                              </span>
-
-                              <span className={cls.orderRating}>
-                                <span className={cls.orderRatingLabel}>You Rated</span>
-                                <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
-                              </span>
-                            </span>
+                        <a key={item.id} href="#" className={cls.profileOrderCard} onClick={onBlockClick}>
+                          <div className={cls.profileOrderMeta}>
+                            <strong>{item.orderNumber}</strong>
+                            <small>{item.placedAt}</small>
                           </div>
-
-                          <span className={cls.orderThumb}>
-                            <Image
-                              src={item.image || "/assets/images/logo.jpg"}
-                              alt={item.orderNumber}
-                              fill
-                              className={cls.orderThumbImg}
-                            />
-                          </span>
+                          <div className={cls.profileOrderFoot}>
+                            <span
+                              className={`${cls.orderTone} ${
+                                item.deliveryTone === "success"
+                                  ? cls.orderToneSuccess
+                                  : item.deliveryTone === "warning"
+                                    ? cls.orderToneWarning
+                                    : cls.orderToneMuted
+                              }`}
+                            >
+                              {item.deliveryText}
+                            </span>
+                            <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
+                          </div>
                         </a>
                       ) : (
                         <Link
                           key={item.id}
                           href={(item.href || orderHref || "/account/orders") as Route}
-                          className={cls.orderItem}
-                          onClick={() => setOrderOpen(false)}
+                          className={cls.profileOrderCard}
+                          onClick={() => setAccountOpen(false)}
                         >
-                          <span className={cls.orderContent}>
-                            <div className={cls.orderTopRow}>
-                              <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
-                              <span className={cls.orderDate}>{item.placedAt}</span>
-                            </div>
-
-                            <span className={cls.orderBottomRow}>
-                              <span
-                                className={`${cls.orderDelivery} ${
-                                  item.deliveryTone === "success"
-                                    ? cls.orderDeliverySuccess
-                                    : item.deliveryTone === "warning"
-                                      ? cls.orderDeliveryWarning
-                                      : cls.orderDeliveryMuted
-                                }`}
-                              >
-                                {item.deliveryText}
-                              </span>
-
-                              <span className={cls.orderRating}>
-                                <span className={cls.orderRatingLabel}>You Rated</span>
-                                <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
-                              </span>
+                          <div className={cls.profileOrderMeta}>
+                            <strong>{item.orderNumber}</strong>
+                            <small>{item.placedAt}</small>
+                          </div>
+                          <div className={cls.profileOrderFoot}>
+                            <span
+                              className={`${cls.orderTone} ${
+                                item.deliveryTone === "success"
+                                  ? cls.orderToneSuccess
+                                  : item.deliveryTone === "warning"
+                                    ? cls.orderToneWarning
+                                    : cls.orderToneMuted
+                              }`}
+                            >
+                              {item.deliveryText}
                             </span>
-                          </span>
-
-                          <span className={cls.orderThumb}>
-                            <Image
-                              src={item.image || "/assets/images/logo.jpg"}
-                              alt={item.orderNumber}
-                              fill
-                              className={cls.orderThumbImg}
-                            />
-                          </span>
+                            <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
+                          </div>
                         </Link>
                       ),
                     )}
                   </div>
-
-                  <div className={cls.orderFooter}>
-                    {preview ? (
-                      <a href="#" className={cls.orderFooterBtn} onClick={onBlockClick}>
-                        Xem tất cả
-                      </a>
-                    ) : (
-                      <Link
-                        href={(orderHref || "/account/orders") as Route}
-                        className={cls.orderFooterBtn}
-                        onClick={() => setOrderOpen(false)}
-                      >
-                        Xem tất cả
-                      </Link>
-                    )}
-                  </div>
                 </div>
-              )}
-            </div>
+
+                <button type="button" className={cls.logoutBtn} onClick={handleLogout}>
+                  <i className="bi bi-box-arrow-right" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
 
-        <div className={cls.bottomRow}>
-          <div
-            className={`${cls.categoryNav} ${categoryOpen ? cls.categoryNavOpen : ""}`}
-            tabIndex={0}
-            role="button"
-            aria-haspopup="true"
-            aria-expanded={categoryOpen}
-            onMouseEnter={() => !preview && setCategoryOpen(true)}
-            onMouseLeave={() => !preview && setCategoryOpen(false)}
-            onClick={(e) => {
-              if (preview) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-              setCategoryOpen((v) => !v);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setCategoryOpen((v) => !v);
-              }
-              if (e.key === "Escape") setCategoryOpen(false);
-            }}
-          >
-            <div className={cls.categoryTrigger}>
-              <span className={cls.categoryTriggerLeft}>
-                <i className="bi bi-grid-3x3-gap" />
-                <span>Product Categories</span>
+        <div className={`${cls.navbar} ${mobileNavOpen ? cls.navbarOpen : ""}`}>
+          <div className={cls.navLeft}>
+            <div
+              className={`${cls.categoryTrigger} ${categoryOpen ? cls.categoryTriggerOpen : ""}`}
+              tabIndex={0}
+              role="button"
+              aria-haspopup="true"
+              aria-expanded={categoryOpen}
+              onMouseEnter={() => !preview && setCategoryOpen(true)}
+              onMouseLeave={() => !preview && setCategoryOpen(false)}
+              onClick={(e) => {
+                if (preview) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                openPanel("categories");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openPanel("categories");
+                }
+                if (e.key === "Escape") setCategoryOpen(false);
+              }}
+            >
+              <span className={cls.categoryTriggerInner}>
+                <i className="bi bi-grid-3x3-gap-fill" />
+                <span>Categories</span>
               </span>
-              <i className={`bi bi-chevron-down ${cls.categoryTriggerCaret}`} />
-            </div>
 
-            <div className={cls.categoryDropdown}>
-              <div className={cls.categoryPanel}>
-                {categoryItems.map((cat, idx) =>
-                  preview ? (
-                    <a key={idx} href="#" className={cls.categoryItem} onClick={onBlockClick}>
-                      <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                      <span className={cls.categoryItemText}>{cat.label}</span>
-                      <i className="bi bi-chevron-right" />
-                    </a>
-                  ) : (
-                    <Link key={idx} href={(cat.href || "/") as Route} className={cls.categoryItem}>
-                      <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                      <span className={cls.categoryItemText}>{cat.label}</span>
-                      <i className="bi bi-chevron-right" />
-                    </Link>
-                  ),
-                )}
+              {badgeStoreLocator > 0 ? (
+                <span className={cls.categoryMiniBadge}>{badgeStoreLocator}</span>
+              ) : null}
+
+              <i className={`bi bi-chevron-down ${cls.categoryCaret}`} />
+
+              <div className={cls.categoryDropdown}>
+                <div className={cls.categoryDropdownInner}>
+                  {categoryItems.map((cat, idx) =>
+                    preview ? (
+                      <a key={idx} href="#" className={cls.categoryLink} onClick={onBlockClick}>
+                        <span className={cls.categoryEmoji}>{cat.emoji || "•"}</span>
+                        <span>{cat.label}</span>
+                        <i className="bi bi-arrow-up-right" />
+                      </a>
+                    ) : (
+                      <Link key={idx} href={(cat.href || "/") as Route} className={cls.categoryLink}>
+                        <span className={cls.categoryEmoji}>{cat.emoji || "•"}</span>
+                        <span>{cat.label}</span>
+                        <i className="bi bi-arrow-up-right" />
+                      </Link>
+                    ),
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          <nav className={cls.nav} aria-label="Primary navigation">
+          <nav className={cls.navCenter} aria-label="Primary navigation">
             {shouldRenderNav &&
               items.map((it, idx) => {
                 const iconCls = `bi ${it.icon}`;
@@ -1038,7 +1225,7 @@ export function HeaderCentered({
                 return (
                   <div
                     key={idx}
-                    className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.open : ""}`}
+                    className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.navItemOpen : ""}`}
                     tabIndex={0}
                     role="button"
                     aria-haspopup="true"
@@ -1062,27 +1249,27 @@ export function HeaderCentered({
                   >
                     <i className={iconCls} />
                     <span>{it.label}</span>
-                    <i className={`bi bi-chevron-down ${cls.navCaret}`} />
+                    <i className={`bi bi-chevron-down ${cls.navChevron}`} />
 
-                    <div className={cls.mega} role="menu" aria-label={`${it.label} menu`}>
-                      <div className={cls.megaGrid}>
+                    <div className={cls.megaMenu} role="menu" aria-label={`${it.label} menu`}>
+                      <div className={cls.megaMenuInner}>
                         {it.columns.map((col, cIdx) => (
-                          <div className={cls.megaCol} key={cIdx}>
-                            {col.title ? <div className={cls.megaTitle}>{col.title}</div> : null}
-
-                            {col.items.map((link, lIdx) =>
-                              preview ? (
-                                <a key={lIdx} href="#" onClick={onBlockClick}>
-                                  <span>{link.label}</span>
-                                  <i className="bi bi-arrow-right-short" />
-                                </a>
-                              ) : (
-                                <Link key={lIdx} href={(link.href || "/") as Route}>
-                                  <span>{link.label}</span>
-                                  <i className="bi bi-arrow-right-short" />
-                                </Link>
-                              ),
-                            )}
+                          <div className={cls.megaColumn} key={cIdx}>
+                            <div className={cls.megaColumnLinks}>
+                              {col.items.map((link, lIdx) =>
+                                preview ? (
+                                  <a key={lIdx} href="#" className={cls.megaLink} onClick={onBlockClick}>
+                                    <span>{link.label}</span>
+                                    <i className="bi bi-arrow-right-short" />
+                                  </a>
+                                ) : (
+                                  <Link key={lIdx} href={(link.href || "/") as Route} className={cls.megaLink}>
+                                    <span>{link.label}</span>
+                                    <i className="bi bi-arrow-right-short" />
+                                  </Link>
+                                ),
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1093,16 +1280,32 @@ export function HeaderCentered({
 
             {!shouldRenderNav && menuLoaded ? (
               preview ? (
-                <a href="#" className={`${cls.navItem} ${cls.navItemActive}`} onClick={onBlockClick}>
+                <a href="#" className={cls.navItem} onClick={onBlockClick}>
+                  <i className="bi bi-house" />
                   <span>Home</span>
                 </a>
               ) : (
-                <Link href={"/" as Route} className={`${cls.navItem} ${cls.navItemActive}`}>
+                <Link href={"/" as Route} className={cls.navItem}>
+                  <i className="bi bi-house" />
                   <span>Home</span>
                 </Link>
               )
             ) : null}
           </nav>
+
+          <div className={cls.navRight}>
+            {preview ? (
+              <a href="#" className={cls.navHighlight} onClick={onBlockClick}>
+                <i className="bi bi-lightning-charge-fill" />
+                <span>Today Deals</span>
+              </a>
+            ) : (
+              <Link href={"/sale" as Route} className={cls.navHighlight}>
+                <i className="bi bi-lightning-charge-fill" />
+                <span>Today Deals</span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
