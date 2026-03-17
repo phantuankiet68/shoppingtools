@@ -2,51 +2,50 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import type { Route } from "next";
+import Link, { type LinkProps } from "next/link";
 import cls from "@/styles/templates/sections/Header/HeaderUtility.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 import HeaderAuthModal from "@/components/admin/shared/popup/header/HeaderAuthModal";
 import { getMe, logoutUser } from "@/store/auth/auth-client";
 
-export type UtilityBadge = {
+type Href = LinkProps["href"];
+type AuthMode = "login" | "register";
+type UnknownRecord = Record<string, unknown>;
+
+export type UtilityMegaItem = {
   label: string;
-  tone?: "default" | "primary" | "success" | "warning" | "danger";
+  href: string;
+  note?: string;
 };
 
 export type UtilityMegaColumn = {
   title: string;
-  items: { label: string; href: string; note?: string }[];
+  items: UtilityMegaItem[];
 };
 
-export type UtilityNavItem =
-  | {
-      type: "link";
-      label: string;
-      href: string;
-      active?: boolean;
-      badge?: string;
-    }
-  | {
-      type: "mega";
-      label: string;
-      active?: boolean;
-      badge?: string;
-      columns: UtilityMegaColumn[];
-    };
+export type UtilityNavLinkItem = {
+  type: "link";
+  label: string;
+  href: string;
+  active?: boolean;
+  badge?: string;
+};
+
+export type UtilityNavMegaItem = {
+  type: "mega";
+  label: string;
+  active?: boolean;
+  badge?: string;
+  columns: UtilityMegaColumn[];
+};
+
+export type UtilityNavItem = UtilityNavLinkItem | UtilityNavMegaItem;
 
 export type UtilityQuickAction = {
   label: string;
   href: string;
   icon?: string;
   badge?: string;
-};
-
-export type UtilityAnnouncement = {
-  id: string;
-  label: string;
-  href?: string;
-  emphasis?: boolean;
 };
 
 export type UtilityFeature = {
@@ -65,22 +64,17 @@ export type HeaderUtilityProps = {
   searchButtonText?: string;
   searchCapsuleText?: string;
   spotlightTitle?: string;
-  spotlightText?: string;
   spotlightHref?: string;
-  announcementLabel?: string;
-  announcements?: UtilityAnnouncement[];
   navItems?: UtilityNavItem[];
   quickActions?: UtilityQuickAction[];
   utilityFeatures?: UtilityFeature[];
   menuApiUrl?: string;
   menuSetKey?: string;
   menuSiteIdKey?: string;
-  onSearchSubmit?: (q: string) => void;
+  onSearchSubmit?: (query: string) => void;
   preview?: boolean;
   isAuthed?: boolean;
 };
-
-type AuthMode = "login" | "register";
 
 type ApiLayoutItem = {
   id: string;
@@ -100,7 +94,12 @@ type ApiTreeNode = {
   icon?: string;
   path: string | null;
   parentKey: string | null;
-  children?: ApiTreeNode[];
+  children: ApiTreeNode[];
+};
+
+type ApiMenuResponse = {
+  tree?: ApiTreeNode[];
+  items?: ApiLayoutItem[];
 };
 
 type CurrentUser = {
@@ -112,175 +111,263 @@ type CurrentUser = {
   name?: string | null;
 };
 
-function normalizePath(p?: string | null): string {
-  const s = String(p || "").trim();
-  if (!s) return "/";
-  return s.startsWith("/") ? s : `/${s}`;
-}
-
-function toSlug(input?: string | null): string {
-  return String(input || "")
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "");
-}
-
-function buildTreeFromItems(rows: ApiLayoutItem[]): ApiTreeNode[] {
-  const visibleRows = (rows || []).filter((r) => !!r.visible);
-
-  const map = new Map<string, ApiTreeNode>();
-  visibleRows.forEach((r) => {
-    map.set(r.id, {
-      key: r.id,
-      title: r.title,
-      path: r.path,
-      parentKey: r.parentId,
-      children: [],
-    });
-  });
-
-  const roots: ApiTreeNode[] = [];
-  visibleRows.forEach((r) => {
-    const node = map.get(r.id)!;
-    if (r.parentId && map.has(r.parentId)) {
-      map.get(r.parentId)!.children!.push(node);
-    } else {
-      roots.push(node);
-    }
-  });
-
-  const sortMap: Record<string, number> = {};
-  rows.forEach((r) => {
-    sortMap[r.id] = r.sortOrder;
-  });
-
-  const sortRec = (arr?: ApiTreeNode[]) => {
-    if (!arr) return;
-    arr.sort((a, b) => {
-      const sa = sortMap[a.key] ?? 0;
-      const sb = sortMap[b.key] ?? 0;
-      if (sa !== sb) return sa - sb;
-      return a.title.localeCompare(b.title);
-    });
-    arr.forEach((n) => sortRec(n.children));
-  };
-
-  sortRec(roots);
-  return roots;
-}
-
-function treeToNavItems(tree: ApiTreeNode[]): UtilityNavItem[] {
-  const out: UtilityNavItem[] = [];
-
-  for (const n of tree || []) {
-    const children = n.children || [];
-
-    if (!children.length) {
-      out.push({
-        type: "link",
-        label: n.title,
-        href: normalizePath(n.path),
-      });
-      continue;
-    }
-
-    const columns: UtilityMegaColumn[] = children
-      .map((c) => {
-        const grand = c.children || [];
-        const colItems = grand
-          .filter((g) => !!g?.title && !!g?.path)
-          .map((g) => ({
-            label: g.title,
-            href: normalizePath(g.path),
-          }));
-
-        if (!colItems.length && c.path) {
-          return {
-            title: c.title,
-            items: [{ label: c.title, href: normalizePath(c.path) }],
-          };
-        }
-
-        return { title: c.title, items: colItems };
-      })
-      .filter((col) => col.title && col.items.length);
-
-    if (!columns.length) {
-      out.push({
-        type: "link",
-        label: n.title,
-        href: normalizePath(n.path),
-      });
-      continue;
-    }
-
-    out.push({
-      type: "mega",
-      label: n.title,
-      columns,
-    });
-  }
-
-  return out;
-}
-
 const DEFAULT_NAV_ITEMS: UtilityNavItem[] = [
-  { type: "link", label: "Trang chủ", href: "/", active: true },
-  { type: "link", label: "Sản phẩm mới", href: "/new-arrivals", badge: "New" },
+  { type: "link", label: "Home", href: "/", active: true },
+  { type: "link", label: "New Arrivals", href: "/new-arrivals", badge: "New" },
   { type: "link", label: "Flash Sale", href: "/sale", badge: "Hot" },
   {
     type: "mega",
-    label: "Danh mục",
+    label: "Categories",
     columns: [
       {
-        title: "Chăm sóc cá nhân",
+        title: "Personal Care",
         items: [
-          { label: "Dưỡng da", href: "/beauty/skincare", note: "Best seller" },
-          { label: "Trang điểm", href: "/beauty/makeup" },
-          { label: "Chăm sóc tóc", href: "/beauty/haircare" },
+          { label: "Skincare", href: "/beauty/skincare", note: "Best seller" },
+          { label: "Makeup", href: "/beauty/makeup" },
+          { label: "Haircare", href: "/beauty/haircare" },
         ],
       },
       {
-        title: "Thiết bị & phụ kiện",
+        title: "Devices & Accessories",
         items: [
-          { label: "Điện thoại", href: "/tech/phones" },
-          { label: "Phụ kiện", href: "/tech/accessories" },
-          { label: "Gia dụng", href: "/home-living" },
+          { label: "Phones", href: "/tech/phones" },
+          { label: "Accessories", href: "/tech/accessories" },
+          { label: "Home Living", href: "/home-living" },
         ],
       },
       {
-        title: "Gia đình",
+        title: "Family",
         items: [
-          { label: "Mẹ & bé", href: "/mom-baby" },
-          { label: "Nhà bếp", href: "/home-kitchen" },
-          { label: "Quà tặng", href: "/gifts" },
+          { label: "Mom & Baby", href: "/mom-baby" },
+          { label: "Kitchen", href: "/home-kitchen" },
+          { label: "Gifts", href: "/gifts" },
         ],
       },
     ],
   },
-  { type: "link", label: "Thương hiệu", href: "/brands" },
-  { type: "link", label: "Xu hướng", href: "/trending" },
-  { type: "link", label: "Hỗ trợ", href: "/support" },
+  { type: "link", label: "Brands", href: "/brands" },
+  { type: "link", label: "Trending", href: "/trending" },
+  { type: "link", label: "Support", href: "/support" },
 ];
 
 const DEFAULT_QUICK_ACTIONS: UtilityQuickAction[] = [
-  { label: "Yêu thích", href: "/wishlist", icon: "bi-heart" },
-  { label: "Theo dõi đơn", href: "/account/orders", icon: "bi-box-seam" },
-  { label: "Cửa hàng", href: "/shops", icon: "bi-shop", badge: "24/7" },
-];
-
-const DEFAULT_ANNOUNCEMENTS: UtilityAnnouncement[] = [
-  { id: "1", label: "Miễn phí vận chuyển cho đơn từ 499K", href: "/shipping-policy", emphasis: true },
-  { id: "2", label: "Hoàn xu cho thành viên thân thiết", href: "/membership" },
-  { id: "3", label: "Bộ sưu tập hè đã lên kệ", href: "/summer-collection" },
+  { label: "Wishlist", href: "/wishlist", icon: "bi-heart" },
+  { label: "Track Order", href: "/account/orders", icon: "bi-box-seam" },
+  { label: "Stores", href: "/shops", icon: "bi-shop", badge: "24/7" },
 ];
 
 const DEFAULT_FEATURES: UtilityFeature[] = [
-  { label: "Giao nhanh", value: "2H nội thành" },
-  { label: "Bảo đảm", value: "Đổi trả 15 ngày" },
-  { label: "Hỗ trợ", value: "Live chat 24/7" },
+  { label: "Fast Delivery", value: "2h in city" },
+  { label: "Guarantee", value: "15-day returns" },
+  { label: "Support", value: "24/7 live chat" },
 ];
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
+}
+
+function normalizePath(path?: string | null): string {
+  const value = String(path ?? "").trim();
+  if (!value) return "/";
+  return value.startsWith("/") ? value : `/${value}`;
+}
+
+function toStringOrUndefined(value: unknown): string | undefined {
+  return isString(value) && value.trim() ? value : undefined;
+}
+
+function toBoolean(value: unknown): boolean {
+  return isBoolean(value) ? value : false;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+}
+
+function buildTreeFromItems(rows: ApiLayoutItem[]): ApiTreeNode[] {
+  const visibleRows = rows.filter((row) => row.visible);
+  const nodeMap = new Map<string, ApiTreeNode>();
+
+  for (const row of visibleRows) {
+    nodeMap.set(row.id, {
+      key: row.id,
+      title: row.title,
+      icon: row.icon ?? undefined,
+      path: row.path,
+      parentKey: row.parentId,
+      children: [],
+    });
+  }
+
+  const roots: ApiTreeNode[] = [];
+
+  for (const row of visibleRows) {
+    const node = nodeMap.get(row.id);
+    if (!node) continue;
+
+    if (row.parentId && nodeMap.has(row.parentId)) {
+      nodeMap.get(row.parentId)?.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  const sortOrderMap = new Map(rows.map((row) => [row.id, row.sortOrder] as const));
+
+  const sortRecursive = (nodes: ApiTreeNode[]): void => {
+    nodes.sort((a, b) => {
+      const aOrder = sortOrderMap.get(a.key) ?? 0;
+      const bOrder = sortOrderMap.get(b.key) ?? 0;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return a.title.localeCompare(b.title);
+    });
+
+    for (const node of nodes) {
+      sortRecursive(node.children);
+    }
+  };
+
+  sortRecursive(roots);
+  return roots;
+}
+
+function treeToNavItems(tree: ApiTreeNode[]): UtilityNavItem[] {
+  const navItems: UtilityNavItem[] = [];
+
+  for (const node of tree) {
+    if (node.children.length === 0) {
+      navItems.push({
+        type: "link",
+        label: node.title,
+        href: normalizePath(node.path),
+      });
+      continue;
+    }
+
+    const columns: UtilityMegaColumn[] = node.children
+      .map((child) => {
+        const items: UtilityMegaItem[] = child.children
+          .filter((grandChild) => grandChild.title && grandChild.path)
+          .map((grandChild) => ({
+            label: grandChild.title,
+            href: normalizePath(grandChild.path),
+          }));
+
+        if (items.length === 0 && child.path) {
+          return {
+            title: child.title,
+            items: [{ label: child.title, href: normalizePath(child.path) }],
+          };
+        }
+
+        return {
+          title: child.title,
+          items,
+        };
+      })
+      .filter((column) => column.title && column.items.length > 0);
+
+    if (columns.length === 0) {
+      navItems.push({
+        type: "link",
+        label: node.title,
+        href: normalizePath(node.path),
+      });
+      continue;
+    }
+
+    navItems.push({
+      type: "mega",
+      label: node.title,
+      columns,
+    });
+  }
+
+  return navItems;
+}
+
+function parseNavItems(raw?: string): UtilityNavItem[] | undefined {
+  if (!raw) return undefined;
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return undefined;
+
+    const cleaned: UtilityNavItem[] = [];
+
+    for (const item of parsed) {
+      if (!isRecord(item)) continue;
+
+      if (item.type === "link" && isString(item.label) && isString(item.href)) {
+        cleaned.push({
+          type: "link",
+          label: item.label,
+          href: item.href,
+          active: toBoolean(item.active),
+          badge: toStringOrUndefined(item.badge),
+        });
+        continue;
+      }
+
+      if (item.type === "mega" && isString(item.label) && Array.isArray(item.columns)) {
+        const columns: UtilityMegaColumn[] = item.columns
+          .map((column): UtilityMegaColumn | null => {
+            if (!isRecord(column) || !isString(column.title) || !Array.isArray(column.items)) {
+              return null;
+            }
+
+            const items: UtilityMegaItem[] = column.items
+              .map((entry): UtilityMegaItem | null => {
+                if (!isRecord(entry)) return null;
+                if (!isString(entry.label) || !isString(entry.href)) return null;
+
+                return {
+                  label: entry.label,
+                  href: entry.href,
+                  note: toStringOrUndefined(entry.note),
+                };
+              })
+              .filter((entry): entry is UtilityMegaItem => entry !== null);
+
+            if (items.length === 0) return null;
+
+            return {
+              title: column.title,
+              items,
+            };
+          })
+          .filter((column): column is UtilityMegaColumn => column !== null);
+
+        if (columns.length > 0) {
+          cleaned.push({
+            type: "mega",
+            label: item.label,
+            columns,
+            active: toBoolean(item.active),
+            badge: toStringOrUndefined(item.badge),
+          });
+        }
+      }
+    }
+
+    return cleaned.length > 0 ? cleaned : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export function HeaderUtility({
   brandHref = "/",
@@ -289,14 +376,11 @@ export function HeaderUtility({
   logoSrc = "/assets/images/logo.jpg",
   logoAlt = "Tuan Kiet Store",
   logoText = "TK",
-  searchPlaceholder = "Tìm kiếm sản phẩm, bộ sưu tập hoặc thương hiệu",
-  searchButtonText = "Tìm ngay",
+  searchPlaceholder = "Search for products, collections, or brands",
+  searchButtonText = "Search",
   searchCapsuleText = "AI Search",
-  spotlightTitle = "Bộ sưu tập mùa mới",
-  spotlightText = "Nâng cấp trải nghiệm mua sắm với giao diện premium cho retail 2026.",
+  spotlightTitle = "New Season Collection",
   spotlightHref = "/collections/new-season",
-  announcementLabel = "Tin mới",
-  announcements = DEFAULT_ANNOUNCEMENTS,
   navItems,
   quickActions = DEFAULT_QUICK_ACTIONS,
   utilityFeatures = DEFAULT_FEATURES,
@@ -309,51 +393,55 @@ export function HeaderUtility({
 }: HeaderUtilityProps) {
   const rootRef = useRef<HTMLElement | null>(null);
 
-  const [safeLogo, setSafeLogo] = useState(logoSrc || "/assets/images/logo.jpg");
-  const [query, setQuery] = useState("");
+  const [safeLogo, setSafeLogo] = useState<string>(logoSrc || "/assets/images/logo.jpg");
+  const [query, setQuery] = useState<string>("");
   const [apiNav, setApiNav] = useState<UtilityNavItem[]>([]);
-  const [menuLoaded, setMenuLoaded] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [menuLoaded, setMenuLoaded] = useState<boolean>(false);
+  const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const [accountOpen, setAccountOpen] = useState<boolean>(false);
   const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
-  const [authOpen, setAuthOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   useEffect(() => {
     setSafeLogo(logoSrc || "/assets/images/logo.jpg");
   }, [logoSrc]);
 
-  const items = useMemo(() => {
+  const items = useMemo<UtilityNavItem[]>(() => {
     if (navItems && navItems.length > 0) return navItems;
     if (apiNav.length > 0) return apiNav;
     return DEFAULT_NAV_ITEMS;
   }, [navItems, apiNav]);
 
-  const isLoggedIn = preview ? !!isAuthed : !!currentUser;
+  const isLoggedIn = preview ? Boolean(isAuthed) : Boolean(currentUser);
 
-  const displayName = useMemo(() => {
-    if (!currentUser) return "Đăng nhập";
+  const displayName = useMemo<string>(() => {
+    if (!currentUser) return "Sign In";
     if (currentUser.name && currentUser.name.trim()) return currentUser.name.trim();
     if (currentUser.email) return currentUser.email.split("@")[0];
-    return "Đăng nhập";
+    return "Sign In";
   }, [currentUser]);
 
-  const displayRole = useMemo(() => currentUser?.role || "Khách hàng", [currentUser]);
+  const displayRole = useMemo<string>(() => currentUser?.role || "Customer", [currentUser]);
 
-  const initials = useMemo(() => {
+  const initials = useMemo<string>(() => {
     const name = displayName.trim();
     if (!name) return "U";
+
     const parts = name.split(/\s+/).filter(Boolean);
     if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
-    return `${parts[0][0] || ""}${parts[parts.length - 1][0] || ""}`.toUpperCase();
+
+    const first = parts[0]?.[0] ?? "";
+    const last = parts[parts.length - 1]?.[0] ?? "";
+    return `${first}${last}`.toUpperCase();
   }, [displayName]);
 
-  const onBlockClick = (e: React.SyntheticEvent) => {
+  const onBlockClick = (event: React.SyntheticEvent): void => {
     if (!preview) return;
-    e.preventDefault();
-    e.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   useEffect(() => {
@@ -362,93 +450,104 @@ export function HeaderUtility({
       return;
     }
 
-    let alive = true;
+    let cancelled = false;
 
-    (async () => {
+    async function loadCurrentUser(): Promise<void> {
       try {
-        const res = await getMe();
-        if (!alive) return;
-        setCurrentUser(res.user);
+        const response = await getMe();
+        if (!cancelled) {
+          setCurrentUser(response.user);
+        }
       } catch {
-        if (!alive) return;
-        setCurrentUser(null);
+        if (!cancelled) {
+          setCurrentUser(null);
+        }
       } finally {
-        if (!alive) return;
-        setAuthChecked(true);
+        if (!cancelled) {
+          setAuthChecked(true);
+        }
       }
-    })();
+    }
+
+    void loadCurrentUser();
 
     return () => {
-      alive = false;
+      cancelled = true;
     };
   }, [preview]);
 
   useEffect(() => {
-    let alive = true;
+    const controller = new AbortController();
 
-    (async () => {
+    async function loadMenu(): Promise<void> {
       try {
-        const qs = new URLSearchParams();
-        qs.set("setKey", menuSetKey || "home");
-        qs.set("tree", "1");
-        qs.set("includeHidden", "0");
-        qs.set("page", "1");
-        qs.set("size", "1000");
-        qs.set("sort", "sortOrder:asc");
+        const params = new URLSearchParams({
+          setKey: menuSetKey || "home",
+          tree: "1",
+          includeHidden: "0",
+          page: "1",
+          size: "1000",
+          sort: "sortOrder:asc",
+        });
 
-        const siteId = typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
-        if (siteId) qs.set("siteId", siteId);
+        const siteId = typeof window !== "undefined" ? window.localStorage.getItem(menuSiteIdKey) : null;
+        if (siteId) {
+          params.set("siteId", siteId);
+        }
 
-        const res = await fetch(`${menuApiUrl}?${qs.toString()}`, {
+        const response = await fetch(`${menuApiUrl}?${params.toString()}`, {
           cache: "no-store",
           credentials: "include",
+          signal: controller.signal,
           headers: {
             "x-site-domain": typeof window !== "undefined" ? window.location.host : "",
           },
         });
 
-        if (!res.ok) throw new Error("Failed to load utility header menu");
-
-        const data = (await res.json()) as {
-          tree?: ApiTreeNode[];
-          items?: ApiLayoutItem[];
-        };
-
-        let tree: ApiTreeNode[] = [];
-
-        if (Array.isArray(data.tree) && data.tree.length) {
-          tree = data.tree;
-        } else if (Array.isArray(data.items) && data.items.length) {
-          tree = buildTreeFromItems(data.items);
+        if (!response.ok) {
+          throw new Error("Failed to load utility header menu");
         }
 
-        if (!alive) return;
+        const data: ApiMenuResponse = await response.json();
+
+        const tree = Array.isArray(data.tree) && data.tree.length > 0
+          ? data.tree
+          : Array.isArray(data.items) && data.items.length > 0
+            ? buildTreeFromItems(data.items)
+            : [];
+
         setApiNav(treeToNavItems(tree));
         setMenuLoaded(true);
-      } catch {
-        if (!alive) return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
         setApiNav([]);
         setMenuLoaded(true);
       }
-    })();
+    }
+
+    void loadMenu();
 
     return () => {
-      alive = false;
+      controller.abort();
     };
   }, [menuApiUrl, menuSetKey, menuSiteIdKey]);
 
   useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
+    const onDocClick = (event: MouseEvent): void => {
+      const target = event.target as HTMLElement | null;
       if (!target) return;
       if (rootRef.current && rootRef.current.contains(target)) return;
+
       setOpenMegaIndex(null);
       setAccountOpen(false);
       setMobileOpen(false);
     };
 
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
         setOpenMegaIndex(null);
         setAccountOpen(false);
         setMobileOpen(false);
@@ -457,25 +556,25 @@ export function HeaderUtility({
     };
 
     document.addEventListener("click", onDocClick);
-    document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKeyDown);
 
     return () => {
       document.removeEventListener("click", onDocClick);
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onKeyDown);
     };
   }, []);
 
-  const openAuth = (mode: AuthMode) => {
+  const openAuth = (mode: AuthMode): void => {
     setAuthMode(mode);
     setAuthOpen(true);
     setAccountOpen(false);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     try {
       await logoutUser();
     } catch {
-      // noop
+      // ignore logout error and still clear client state
     } finally {
       setCurrentUser(null);
       setAccountOpen(false);
@@ -483,13 +582,18 @@ export function HeaderUtility({
     }
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
     if (preview) return;
     onSearchSubmit?.(query);
   };
 
-  const renderLink = (href: string, className: string, children: React.ReactNode, key?: string) => {
+  const renderLink = (
+    href: string,
+    className: string,
+    children: React.ReactNode,
+    key?: string,
+  ): React.ReactNode => {
     if (preview) {
       return (
         <a key={key} href="#" className={className} onClick={onBlockClick}>
@@ -498,14 +602,16 @@ export function HeaderUtility({
       );
     }
 
+    const normalizedHref: Href = normalizePath(href);
+
     return (
-      <Link key={key} href={(href || "/") as Route} className={className}>
+      <Link key={key} href={normalizedHref} className={className}>
         {children}
       </Link>
     );
   };
 
-  const renderNavItem = (item: UtilityNavItem, idx: number, mobile = false) => {
+  const renderNavItem = (item: UtilityNavItem, idx: number, mobile = false): React.ReactNode => {
     if (item.type === "link") {
       const className = mobile
         ? `${cls.mobileNavItem} ${item.active ? cls.mobileNavItemActive : ""}`
@@ -528,18 +634,18 @@ export function HeaderUtility({
           <button
             type="button"
             className={cls.mobileMegaToggle}
-            onClick={() => setOpenMegaIndex((cur) => (cur === idx ? null : idx))}
+            onClick={() => setOpenMegaIndex((current) => (current === idx ? null : idx))}
           >
             <span>{item.label}</span>
             <i className={`bi ${openMegaIndex === idx ? "bi-dash" : "bi-plus"}`} />
           </button>
 
           <div className={`${cls.mobileMegaBody} ${openMegaIndex === idx ? cls.mobileMegaBodyOpen : ""}`}>
-            {item.columns.map((col, cIdx) => (
-              <div key={cIdx} className={cls.mobileMegaColumn}>
-                <div className={cls.mobileMegaTitle}>{col.title}</div>
+            {item.columns.map((column, columnIndex) => (
+              <div key={columnIndex} className={cls.mobileMegaColumn}>
+                <div className={cls.mobileMegaTitle}>{column.title}</div>
                 <div className={cls.mobileMegaLinks}>
-                  {col.items.map((link, lIdx) =>
+                  {column.items.map((link, linkIndex) =>
                     renderLink(
                       link.href,
                       cls.mobileSubLink,
@@ -547,7 +653,7 @@ export function HeaderUtility({
                         <span>{link.label}</span>
                         {link.note ? <small>{link.note}</small> : null}
                       </>,
-                      `ml-${idx}-${cIdx}-${lIdx}`,
+                      `ml-${idx}-${columnIndex}-${linkIndex}`,
                     ),
                   )}
                 </div>
@@ -564,50 +670,70 @@ export function HeaderUtility({
       <div
         key={`d-${idx}`}
         className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.navItemOpen : ""} ${item.active ? cls.navItemActive : ""}`}
-        onMouseEnter={() => !preview && setOpenMegaIndex(idx)}
-        onMouseLeave={() => !preview && setOpenMegaIndex(null)}
-        onClick={(e) => {
-          if (preview) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-          setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-          }
-          if (e.key === "Escape") setOpenMegaIndex(null);
+        onMouseEnter={() => {
+          if (!preview) setOpenMegaIndex(idx);
         }}
         tabIndex={0}
         role="button"
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <span>{item.label}</span>
-        <span className={cls.navMeta}>
-          {item.badge ? <em className={cls.navBadge}>{item.badge}</em> : null}
-          <i className={`bi bi-chevron-down ${cls.navCaret}`} />
-        </span>
+        <button
+          type="button"
+          className={cls.navMegaTrigger}
+          onClick={(event) => {
+            if (preview) {
+              event.preventDefault();
+              event.stopPropagation();
+              return;
+            }
+            setOpenMegaIndex((current) => (current === idx ? null : idx));
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setOpenMegaIndex((current) => (current === idx ? null : idx));
+            }
+            if (event.key === "Escape") {
+              setOpenMegaIndex(null);
+            }
+          }}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+        >
+          <span>{item.label}</span>
+          <span className={cls.navMeta}>
+            {item.badge ? <em className={cls.navBadge}>{item.badge}</em> : null}
+            <i className={`bi bi-chevron-down ${cls.navCaret}`} />
+          </span>
+        </button>
 
-        <div className={cls.megaMenu} role="menu" aria-label={`${item.label} menu`}>
+        <div
+          className={cls.megaMenu}
+          role="menu"
+          aria-label={`${item.label} menu`}
+          onMouseEnter={() => {
+            if (!preview) setOpenMegaIndex(idx);
+          }}
+          onMouseLeave={() => {
+            if (!preview) setOpenMegaIndex(null);
+          }}
+        >
           <div className={cls.megaMenuInner}>
             <div className={cls.megaMenuHero}>
-              <span className={cls.megaHeroBadge}>Explore</span>
-              <strong>{item.label}</strong>
-              <p>
-                Thiết kế menu chuyên nghiệp cho nền tảng bán hàng đa danh mục, dễ mở rộng và tối ưu trải nghiệm điều
-                hướng.
-              </p>
+              <div className="d-flex ju-space-between">
+                <span className={cls.megaHeroBadge}>Explore</span>
+                <strong>{item.label}</strong>
+              </div>
+              <p>Professional navigation design for modern commerce platforms.</p>
             </div>
 
             <div className={cls.megaGrid}>
-              {item.columns.map((col, cIdx) => (
-                <div key={cIdx} className={cls.megaCol}>
-                  <div className={cls.megaTitle}>{col.title}</div>
+              {item.columns.map((column, columnIndex) => (
+                <div key={columnIndex} className={cls.megaCol}>
+                  <div className={cls.megaColTitle}>{column.title}</div>
                   <div className={cls.megaLinks}>
-                    {col.items.map((link, lIdx) =>
+                    {column.items.map((link, linkIndex) =>
                       renderLink(
                         link.href,
                         cls.megaLink,
@@ -615,7 +741,7 @@ export function HeaderUtility({
                           <span>{link.label}</span>
                           {link.note ? <small>{link.note}</small> : null}
                         </>,
-                        `d-${idx}-${cIdx}-${lIdx}`,
+                        `d-${idx}-${columnIndex}-${linkIndex}`,
                       ),
                     )}
                   </div>
@@ -658,7 +784,7 @@ export function HeaderUtility({
                 </span>
               </a>
             ) : (
-              <Link href={brandHref as Route} className={cls.brand}>
+              <Link href={(brandHref || "/") as Href} className={cls.brand}>
                 <span className={cls.logoShell}>
                   <span className={cls.logoGlow} />
                   <span className={cls.logoFrame}>
@@ -697,7 +823,7 @@ export function HeaderUtility({
             <form className={cls.searchForm} onSubmit={handleSearch}>
               <div className={cls.searchTopline}>
                 <span className={cls.searchCapsule}>{searchCapsuleText}</span>
-                <span className={cls.searchToplineText}>Tìm nhanh hơn với giao diện bán hàng thế hệ mới</span>
+                <span className={cls.searchToplineText}>Search faster with a next-generation commerce interface</span>
               </div>
 
               <div className={cls.searchShell}>
@@ -707,7 +833,7 @@ export function HeaderUtility({
 
                 <input
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(event) => setQuery(event.target.value)}
                   type="text"
                   className={cls.searchInput}
                   placeholder={searchPlaceholder}
@@ -728,7 +854,7 @@ export function HeaderUtility({
               <nav className={cls.nav} aria-label="Primary navigation">
                 {items.map((item, idx) => renderNavItem(item, idx))}
                 {!items.length && menuLoaded
-                  ? renderLink("/", `${cls.navItem} ${cls.navItemActive}`, <span>Trang chủ</span>, "home-fallback")
+                  ? renderLink("/", `${cls.navItem} ${cls.navItemActive}`, <span>Home</span>, "home-fallback")
                   : null}
               </nav>
             </div>
@@ -739,9 +865,10 @@ export function HeaderUtility({
               spotlightHref || "/",
               cls.spotlightCard,
               <>
-                <span className={cls.spotlightBadge}>Curated</span>
-                <strong>{spotlightTitle}</strong>
-                <small>{spotlightText}</small>
+                <div className="d-flex align-items gap-2">
+                  <span className={cls.spotlightBadge}>Curated</span>
+                  <strong>{spotlightTitle}</strong>
+                </div>
               </>,
               "spotlight",
             )}
@@ -751,9 +878,9 @@ export function HeaderUtility({
               className={cls.accountBtn}
               aria-haspopup={isLoggedIn ? "menu" : "dialog"}
               aria-expanded={isLoggedIn ? accountOpen : authOpen}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
 
                 if (preview) return;
 
@@ -762,7 +889,7 @@ export function HeaderUtility({
                   return;
                 }
 
-                setAccountOpen((cur) => !cur);
+                setAccountOpen((current) => !current);
               }}
             >
               <span className={cls.accountAvatar}>
@@ -774,8 +901,8 @@ export function HeaderUtility({
               </span>
 
               <span className={cls.accountInfo}>
-                <strong>{isLoggedIn ? displayName : authChecked ? "Đăng nhập" : "Đang tải..."}</strong>
-                <small>{isLoggedIn ? displayRole : "Mở hồ sơ khách hàng"}</small>
+                <strong>{isLoggedIn ? displayName : authChecked ? "Sign In" : "Loading..."}</strong>
+                <small>{isLoggedIn ? displayRole : "Open customer profile"}</small>
               </span>
 
               <span className={cls.accountArrow}>
@@ -788,10 +915,10 @@ export function HeaderUtility({
               className={cls.mobileToggle}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setMobileOpen((cur) => !cur);
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setMobileOpen((current) => !current);
                 setAccountOpen(false);
                 setOpenMegaIndex(null);
               }}
@@ -804,7 +931,7 @@ export function HeaderUtility({
                 className={cls.accountDropdown}
                 role="menu"
                 aria-label="Account menu"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
               >
                 <div className={cls.accountCard}>
                   <span className={cls.accountCardAvatar}>
@@ -823,14 +950,14 @@ export function HeaderUtility({
                 </div>
 
                 <div className={cls.accountLinks}>
-                  {renderLink("/account", cls.accountLink, <span>Hồ sơ của tôi</span>, "acc-1")}
-                  {renderLink("/account/orders", cls.accountLink, <span>Đơn hàng</span>, "acc-2")}
-                  {renderLink("/wishlist", cls.accountLink, <span>Danh sách yêu thích</span>, "acc-3")}
+                  {renderLink("/account", cls.accountLink, <span>My Profile</span>, "acc-1")}
+                  {renderLink("/account/orders", cls.accountLink, <span>Orders</span>, "acc-2")}
+                  {renderLink("/wishlist", cls.accountLink, <span>Wishlist</span>, "acc-3")}
                 </div>
 
-                <button type="button" className={cls.logoutBtn} onClick={handleLogout}>
+                <button type="button" className={cls.logoutBtn} onClick={() => void handleLogout()}>
                   <i className="bi bi-box-arrow-right" />
-                  <span>Đăng xuất</span>
+                  <span>Sign Out</span>
                 </button>
               </div>
             ) : null}
@@ -845,14 +972,14 @@ export function HeaderUtility({
               <i className="bi bi-search" />
               <input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(event) => setQuery(event.target.value)}
                 type="text"
                 placeholder={searchPlaceholder}
                 className={cls.mobileSearchInput}
                 aria-label="Search"
               />
               <button type="submit" className={cls.mobileSearchBtn}>
-                {searchButtonText}
+                <span>{searchButtonText}</span>
               </button>
             </div>
           </form>
@@ -880,7 +1007,7 @@ export function HeaderUtility({
         mode={authMode}
         onModeChange={setAuthMode}
         onClose={() => setAuthOpen(false)}
-        onSuccess={({ user }) => {
+        onSuccess={({ user }: { user: CurrentUser }) => {
           setCurrentUser(user);
           setAuthOpen(false);
           setAccountOpen(false);
@@ -890,62 +1017,7 @@ export function HeaderUtility({
   );
 }
 
-function parseNavItems(raw?: string): UtilityNavItem[] | undefined {
-  if (!raw) return undefined;
-
-  try {
-    const val = JSON.parse(raw);
-    if (!Array.isArray(val)) return undefined;
-
-    const cleaned: UtilityNavItem[] = [];
-
-    for (const it of val) {
-      if (it?.type === "link" && it?.label && it?.href) {
-        cleaned.push({
-          type: "link",
-          label: String(it.label),
-          href: String(it.href),
-          active: !!it.active,
-          badge: it.badge ? String(it.badge) : undefined,
-        });
-        continue;
-      }
-
-      if (it?.type === "mega" && it?.label && Array.isArray(it?.columns)) {
-        const cols: UtilityMegaColumn[] = it.columns
-          .filter(Boolean)
-          .map((c: any) => ({
-            title: String(c?.title ?? ""),
-            items: Array.isArray(c?.items)
-              ? c.items
-                  .filter(Boolean)
-                  .map((x: any) => ({
-                    label: String(x?.label ?? ""),
-                    href: String(x?.href ?? ""),
-                    note: x?.note ? String(x.note) : undefined,
-                  }))
-                  .filter((x: any) => x.label && x.href)
-              : [],
-          }))
-          .filter((c: UtilityMegaColumn) => c.title && c.items.length);
-
-        if (cols.length) {
-          cleaned.push({
-            type: "mega",
-            label: String(it.label),
-            columns: cols,
-            active: !!it.active,
-            badge: it.badge ? String(it.badge) : undefined,
-          });
-        }
-      }
-    }
-
-    return cleaned.length ? cleaned : undefined;
-  } catch {
-    return undefined;
-  }
-}
+type HeaderUtilityRegistryProps = Record<string, unknown>;
 
 export const SHOP_HEADER_UTILITY: RegItem = {
   kind: "HeaderUtility",
@@ -957,13 +1029,11 @@ export const SHOP_HEADER_UTILITY: RegItem = {
     logoSrc: "/assets/images/logo.jpg",
     logoAlt: "Tuan Kiet Store",
     logoText: "TK",
-    searchPlaceholder: "Tìm kiếm sản phẩm, bộ sưu tập hoặc thương hiệu",
-    searchButtonText: "Tìm ngay",
+    searchPlaceholder: "Search for products, collections, or brands",
+    searchButtonText: "Search",
     searchCapsuleText: "AI Search",
-    spotlightTitle: "Bộ sưu tập mùa mới",
-    spotlightText: "Nâng cấp trải nghiệm mua sắm với giao diện premium cho retail 2026.",
+    spotlightTitle: "New Season Collection",
     spotlightHref: "/collections/new-season",
-    announcementLabel: "Tin mới",
     navItems: "[]",
     menuApiUrl: "/api/admin/builder/menus/header-menu",
     menuSetKey: "home",
@@ -981,9 +1051,7 @@ export const SHOP_HEADER_UTILITY: RegItem = {
     { key: "searchButtonText", label: "Search Button Text", kind: "text" },
     { key: "searchCapsuleText", label: "Search Capsule Text", kind: "text" },
     { key: "spotlightTitle", label: "Spotlight Title", kind: "text" },
-    { key: "spotlightText", label: "Spotlight Text", kind: "textarea", rows: 4 },
     { key: "spotlightHref", label: "Spotlight Href", kind: "text" },
-    { key: "announcementLabel", label: "Announcement Label", kind: "text" },
     { key: "menuApiUrl", label: "Menu API URL", kind: "text" },
     { key: "menuSetKey", label: "Menu setKey", kind: "text" },
     { key: "menuSiteIdKey", label: "LocalStorage siteId key", kind: "text" },
@@ -991,31 +1059,31 @@ export const SHOP_HEADER_UTILITY: RegItem = {
     { key: "navItems", label: "Nav Items (JSON, preview)", kind: "textarea", rows: 10 },
   ],
   render: (props) => {
-    const p = props as Record<string, any>;
-    const navItems = parseNavItems(p.navItems);
+    const p = props as HeaderUtilityRegistryProps;
+    const parsedNavItems = parseNavItems(toStringOrUndefined(p.navItems));
 
     return (
       <div aria-label="Shop Header Utility">
         <HeaderUtility
-          brandHref={p.brandHref}
-          brandName={p.brandName}
-          brandSub={p.brandSub}
-          logoSrc={p.logoSrc}
-          logoAlt={p.logoAlt}
-          logoText={p.logoText}
-          searchPlaceholder={p.searchPlaceholder}
-          searchButtonText={p.searchButtonText}
-          searchCapsuleText={p.searchCapsuleText}
-          spotlightTitle={p.spotlightTitle}
-          spotlightText={p.spotlightText}
-          spotlightHref={p.spotlightHref}
-          announcementLabel={p.announcementLabel}
-          preview={p.preview}
-          navItems={navItems}
-          menuApiUrl={p.menuApiUrl || "/api/admin/builder/menus/header-menu"}
-          menuSetKey={p.menuSetKey || "home"}
-          menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
-          isAuthed={Number(p.isAuthed) === 1}
+          brandHref={toStringOrUndefined(p.brandHref) ?? "/"}
+          brandName={toStringOrUndefined(p.brandName) ?? "Tuan Kiet Store"}
+          brandSub={toStringOrUndefined(p.brandSub) ?? "Modern commerce experience"}
+          logoSrc={toStringOrUndefined(p.logoSrc) ?? "/assets/images/logo.jpg"}
+          logoAlt={toStringOrUndefined(p.logoAlt) ?? "Tuan Kiet Store"}
+          logoText={toStringOrUndefined(p.logoText) ?? "TK"}
+          searchPlaceholder={
+            toStringOrUndefined(p.searchPlaceholder) ?? "Search for products, collections, or brands"
+          }
+          searchButtonText={toStringOrUndefined(p.searchButtonText) ?? "Search"}
+          searchCapsuleText={toStringOrUndefined(p.searchCapsuleText) ?? "AI Search"}
+          spotlightTitle={toStringOrUndefined(p.spotlightTitle) ?? "New Season Collection"}
+          spotlightHref={toStringOrUndefined(p.spotlightHref) ?? "/collections/new-season"}
+          preview={Boolean(p.preview)}
+          navItems={parsedNavItems}
+          menuApiUrl={toStringOrUndefined(p.menuApiUrl) ?? "/api/admin/builder/menus/header-menu"}
+          menuSetKey={toStringOrUndefined(p.menuSetKey) ?? "home"}
+          menuSiteIdKey={toStringOrUndefined(p.menuSiteIdKey) ?? "builder_site_id"}
+          isAuthed={toNumber(p.isAuthed) === 1}
         />
       </div>
     );
