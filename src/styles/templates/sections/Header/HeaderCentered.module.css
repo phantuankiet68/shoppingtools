@@ -54,8 +54,7 @@
   border-radius: 6px;
   overflow: hidden;
   flex: 0 0 auto;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 248, 252, 0.98));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 248, 252, 0.98));
   border: 1px solid rgba(223, 231, 242, 0.95);
   box-shadow:
     0 12px 28px rgba(16, 24, 40, 0.08),
@@ -390,7 +389,6 @@
   border-bottom: 10px solid #fff;
 }
 
-
 .panelDropdownNoti {
   background: var(--bg-header);
   border: var(--bd-header);
@@ -542,8 +540,7 @@
 }
 
 .notificationCardUnread {
-  background:
-    linear-gradient(180deg, rgba(58, 210, 112, 0.08), rgba(58, 210, 112, 0.03));
+  background: linear-gradient(180deg, rgba(58, 210, 112, 0.08), rgba(58, 210, 112, 0.03));
 }
 
 .notificationThumb {
@@ -580,10 +577,10 @@
 }
 
 .notificationTop small {
-    color: #8aa0b6;
-    white-space: nowrap;
-    font-size: 12px;
-    font-weight: 500;
+  color: #8aa0b6;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .notificationMessage {
@@ -648,14 +645,14 @@
 }
 
 .cartBody strong {
-    color: #223449;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  color: #223449;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .cartBody small {
@@ -668,13 +665,43 @@
 .profileDropdown {
   width: 420px;
   padding: 14px;
+  position: absolute;
+  top: calc(100% + 20px);
+  right: -16px;
+  background: #ffffff;
+  border: var(--bd-header);
+  border-radius: 6px;
+  z-index: 95;
+}
+
+.profileDropdown::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  right: 28px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-top: 1px solid #dfe7ef;
+  border-left: 1px solid #dfe7ef;
+  transform: rotate(45deg);
+  border-top-left-radius: 4px;
+  z-index: 1;
+}
+
+.profileDropdown::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  pointer-events: none;
 }
 
 .profileCard {
   display: flex;
   gap: 14px;
   padding: 14px;
-  border-radius: 22px;
+  border-radius: 6px;
   background:
     radial-gradient(circle at top left, rgba(57, 196, 106, 0.14), transparent 38%),
     linear-gradient(180deg, #fbfefc 0%, #f5faf7 100%);
@@ -683,9 +710,9 @@
 
 .profileCardAvatar {
   position: relative;
-  width: 58px;
-  height: 58px;
-  border-radius: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
   overflow: hidden;
   flex: 0 0 auto;
   background: linear-gradient(135deg, #3bd06e 0%, #1ea955 100%);
@@ -703,7 +730,6 @@
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
 .profileCardBody strong {
@@ -741,24 +767,25 @@
 }
 
 .profileLink {
-  min-height: 84px;
-  padding: 12px 10px;
+  min-height: 74px;
+  padding: 8px 10px;
   border-radius: 18px;
   background: #f7fafd;
   text-decoration: none;
-  color: #2a4159;
+  color: var(--muted);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   text-align: center;
   transition:
     background 0.18s ease,
     color 0.18s ease,
     transform 0.16s ease;
+  border: var(--bd-header);
 }
 
 .profileLink:hover {
@@ -774,7 +801,7 @@
 .profileOrders {
   margin-top: 14px;
   padding: 14px;
-  border-radius: 22px;
+  border-radius: 6px;
   background: #fbfcfe;
   border: 1px solid #edf2f7;
 }
@@ -1020,7 +1047,7 @@
   align-items: center;
   gap: 10px;
   font-size: 13px;
- font-weight: 500;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -1084,7 +1111,6 @@
   border-radius: 16px;
   pointer-events: none;
 }
-
 
 .categoryTriggerOpen .categoryDropdown,
 .categoryTrigger:hover .categoryDropdown,
@@ -1176,7 +1202,7 @@
 }
 
 .megaColumn {
-  padding:  8px;
+  padding: 8px;
   border-radius: 6px;
   background: #fbfcfe;
   border: 1px solid #edf2f7;
@@ -1206,7 +1232,10 @@
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
-  transition: background .18s, color .18s, transform .16s;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    transform 0.16s;
   display: flex;
 }
 .megaLink:hover {

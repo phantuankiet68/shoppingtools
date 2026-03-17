@@ -479,3 +479,5 @@ Hiện tại design Ui đã có thể topbar như này đã đạt web seo cho w
 tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé
 
 Hiện tại tôi đang sử dụng next 16 module và HeaderAnnouncement là file mẫu dùng làm templates để tạo pages Bạn có thể từ HeaderAnnouncement.tsx bạn hãy tạo design Ui mới là HeaderCentered.tsx cấu trúc giống nhau nhé
+
+hiện tại tôi đang sử dụng next 16 và css module tôi thấy design đã quá lỗi thoi không tương thích với header mode 2026 với nền tảng da dạng và nhiều sắc thái mới mẽ mang được tính chuyên nghiệp cho lĩnh vực bán hàng và web site. tôi muốn bạn độ lại Ui nhưng cấu trúc file vẫn giữ như cũ nhé. Hãy giúp tôi chỉnh sửa và ghi lại toàn bộ file nhé rất cảm ơn bạn. Do đây là giao diện web bán hàng ấy chứ

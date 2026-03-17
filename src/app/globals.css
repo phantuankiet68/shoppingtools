@@ -171,3 +171,28 @@ a:visited {
   font-size: 16px !important;
   text-decoration: none !important;
 }
+
+.d-flex {
+  display: flex;
+}
+
+.align-items {
+  align-items: center;
+}
+
+.gap-5 {
+  align-items: center;
+}
+
+.gap-10 {
+  align-items: center;
+}
+.ju-space-between {
+  justify-content: space-between;
+}
+
+.center {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}

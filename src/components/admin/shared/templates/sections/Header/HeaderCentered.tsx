@@ -243,13 +243,7 @@ function treeToNavItems(tree: ApiTreeNode[]): NavItem[] {
 function renderStars(rating = 0) {
   return Array.from({ length: 5 }, (_, idx) => {
     const filled = idx < Math.max(0, Math.min(5, rating));
-    return (
-      <i
-        key={idx}
-        className={`bi ${filled ? "bi-star-fill" : "bi-star"} ${cls.orderStar}`}
-        aria-hidden="true"
-      />
-    );
+    return <i key={idx} className={`bi ${filled ? "bi-star-fill" : "bi-star"} ${cls.orderStar}`} aria-hidden="true" />;
   });
 }
 
@@ -405,10 +399,7 @@ export function HeaderCentered({
     return apiNav;
   }, [navItems, apiNav]);
 
-  const unreadNotificationCount = useMemo(
-    () => notifications.filter((x) => x.unread).length,
-    [notifications],
-  );
+  const unreadNotificationCount = useMemo(() => notifications.filter((x) => x.unread).length, [notifications]);
 
   const orderPreviewItems = useMemo(() => orders.slice(0, 3), [orders]);
   const cartPreviewItems = useMemo(() => cartItems.slice(0, 4), [cartItems]);
@@ -482,8 +473,7 @@ export function HeaderCentered({
         qs.set("size", "1000");
         qs.set("sort", "sortOrder:asc");
 
-        const siteId =
-          typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
+        const siteId = typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
 
         if (siteId) qs.set("siteId", siteId);
 
@@ -661,11 +651,7 @@ export function HeaderCentered({
 
               <div className={cls.searchQuick}>
                 <span>Trending</span>
-                <button
-                  type="submit"
-                  aria-label="Search"
-                  className={cls.searchSubmit}
-                >
+                <button type="submit" aria-label="Search" className={cls.searchSubmit}>
                   <i className="bi bi-arrow-up-right" />
                 </button>
               </div>
@@ -689,9 +675,7 @@ export function HeaderCentered({
               <span className={cls.toolIcon}>
                 <i className="bi bi-bell" />
               </span>
-              {unreadNotificationCount > 0 ? (
-                <span className={cls.toolBadge}>{unreadNotificationCount}</span>
-              ) : null}
+              {unreadNotificationCount > 0 ? <span className={cls.toolBadge}>{unreadNotificationCount}</span> : null}
             </button>
 
             <button
@@ -734,12 +718,7 @@ export function HeaderCentered({
             >
               <span className={cls.profileAvatar}>
                 {currentUser?.image ? (
-                  <Image
-                    src={currentUser.image}
-                    alt={displayName}
-                    fill
-                    className={cls.profileAvatarImg}
-                  />
+                  <Image src={currentUser.image} alt={displayName} fill className={cls.profileAvatarImg} />
                 ) : (
                   <span>{initials}</span>
                 )}
@@ -800,9 +779,7 @@ export function HeaderCentered({
                       <a
                         key={item.id}
                         href="#"
-                        className={`${cls.notificationCard} ${
-                          item.unread ? cls.notificationCardUnread : ""
-                        }`}
+                        className={`${cls.notificationCard} ${item.unread ? cls.notificationCardUnread : ""}`}
                         onClick={onBlockClick}
                       >
                         <span className={cls.notificationThumb}>
@@ -826,9 +803,7 @@ export function HeaderCentered({
                       <Link
                         key={item.id}
                         href={(item.href || notificationHref || "/notifications") as Route}
-                        className={`${cls.notificationCard} ${
-                          item.unread ? cls.notificationCardUnread : ""
-                        }`}
+                        className={`${cls.notificationCard} ${item.unread ? cls.notificationCardUnread : ""}`}
                         onClick={() => setNotificationOpen(false)}
                       >
                         <span className={cls.notificationThumb}>
@@ -996,21 +971,18 @@ export function HeaderCentered({
                 <div className={cls.profileCard}>
                   <span className={cls.profileCardAvatar}>
                     {currentUser?.image ? (
-                      <Image
-                        src={currentUser.image}
-                        alt={displayName}
-                        fill
-                        className={cls.profileCardAvatarImg}
-                      />
+                      <Image src={currentUser.image} alt={displayName} fill className={cls.profileCardAvatarImg} />
                     ) : (
                       <span>{initials}</span>
                     )}
                   </span>
 
                   <div className={cls.profileCardBody}>
-                    <strong>{displayName}</strong>
+                    <div className="d-flex gap-5 ju-space-between">
+                      <strong>{displayName}</strong>
+                      <span>{displayRole}</span>
+                    </div>
                     <small>{currentUser?.email}</small>
-                    <span>{displayRole}</span>
                   </div>
                 </div>
 
@@ -1021,11 +993,7 @@ export function HeaderCentered({
                       <span>My account</span>
                     </a>
                   ) : (
-                    <Link
-                      href={"/account" as Route}
-                      className={cls.profileLink}
-                      onClick={() => setAccountOpen(false)}
-                    >
+                    <Link href={"/account" as Route} className={cls.profileLink} onClick={() => setAccountOpen(false)}>
                       <i className="bi bi-person-circle" />
                       <span>My account</span>
                     </Link>
@@ -1053,11 +1021,7 @@ export function HeaderCentered({
                       <span>Wishlist</span>
                     </a>
                   ) : (
-                    <Link
-                      href={"/wishlist" as Route}
-                      className={cls.profileLink}
-                      onClick={() => setAccountOpen(false)}
-                    >
+                    <Link href={"/wishlist" as Route} className={cls.profileLink} onClick={() => setAccountOpen(false)}>
                       <i className="bi bi-heart" />
                       <span>Wishlist</span>
                     </Link>
@@ -1072,10 +1036,7 @@ export function HeaderCentered({
                         View all
                       </a>
                     ) : (
-                      <Link
-                        href={(orderHref || "/account/orders") as Route}
-                        onClick={() => setAccountOpen(false)}
-                      >
+                      <Link href={(orderHref || "/account/orders") as Route} onClick={() => setAccountOpen(false)}>
                         View all
                       </Link>
                     )}
@@ -1174,9 +1135,7 @@ export function HeaderCentered({
                 <span>Categories</span>
               </span>
 
-              {badgeStoreLocator > 0 ? (
-                <span className={cls.categoryMiniBadge}>{badgeStoreLocator}</span>
-              ) : null}
+              {badgeStoreLocator > 0 ? <span className={cls.categoryMiniBadge}>{badgeStoreLocator}</span> : null}
 
               <i className={`bi bi-chevron-down ${cls.categoryCaret}`} />
 

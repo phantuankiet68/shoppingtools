@@ -16,6 +16,9 @@ import { SHOP_TOPBAR_UTILITY } from "@/components/admin/shared/templates/section
 // ===== Web page Header  =====
 import { SHOP_HEADER_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Header/HeaderAnnouncement";
 import { SHOP_HEADER_CENTERED } from "@/components/admin/shared/templates/sections/Header/HeaderCentered";
+import { SHOP_HEADER_CLASSIC } from "@/components/admin/shared/templates/sections/Header/HeaderClassic";
+import { SHOP_HEADER_COMPACT } from "@/components/admin/shared/templates/sections/Header/HeaderCompact";
+import { SHOP_HEADER_DASHBOARD } from "@/components/admin/shared/templates/sections/Header/HeaderDashboard";
 
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
@@ -48,6 +51,9 @@ export const REGISTRY_HOME: RegItem[] = [
   // ===== Web page Header  =====
   SHOP_HEADER_ANNOUNCEMENT,
   SHOP_HEADER_CENTERED,
+  SHOP_HEADER_CLASSIC,
+  SHOP_HEADER_COMPACT,
+  SHOP_HEADER_DASHBOARD,
 
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,
