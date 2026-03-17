@@ -19,6 +19,11 @@ import { SHOP_HEADER_CENTERED } from "@/components/admin/shared/templates/sectio
 import { SHOP_HEADER_CLASSIC } from "@/components/admin/shared/templates/sections/Header/HeaderClassic";
 import { SHOP_HEADER_COMPACT } from "@/components/admin/shared/templates/sections/Header/HeaderCompact";
 import { SHOP_HEADER_DASHBOARD } from "@/components/admin/shared/templates/sections/Header/HeaderDashboard";
+import { SHOP_HEADER_MINIMAL } from "@/components/admin/shared/templates/sections/Header/HeaderMinimal";
+import { SHOP_HEADER_REGION } from "@/components/admin/shared/templates/sections/Header/HeaderRegion";
+import { SHOP_HEADER_SPLIT } from "@/components/admin/shared/templates/sections/Header/HeaderSplit";
+import { SHOP_HEADER_TICKER } from "@/components/admin/shared/templates/sections/Header/HeaderTicker";
+import { SHOP_HEADER_UTILITY } from "@/components/admin/shared/templates/sections/Header/HeaderUtility";
 
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
@@ -54,6 +59,11 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_HEADER_CLASSIC,
   SHOP_HEADER_COMPACT,
   SHOP_HEADER_DASHBOARD,
+  SHOP_HEADER_MINIMAL,
+  SHOP_HEADER_REGION,
+  SHOP_HEADER_SPLIT,
+  SHOP_HEADER_TICKER,
+  SHOP_HEADER_UTILITY,
 
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,
