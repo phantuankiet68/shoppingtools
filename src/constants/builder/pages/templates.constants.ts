@@ -41,7 +41,7 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     "HeroAnnouncement",
     "HeroCentered",
     "HeroClassic",
-    "BestSeller1",
+    "HeroCompact",
     "Brand1",
     "Makeup1",
     "Skincare1",

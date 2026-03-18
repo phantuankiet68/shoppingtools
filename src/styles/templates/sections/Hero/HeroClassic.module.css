@@ -1,7 +1,7 @@
 .hero {
   width: 100%;
   padding: 16px 0 8px;
-  background: #f5f5f7;
+    background: #f5f5f7;
 }
 
 .shell {
@@ -123,7 +123,7 @@
 
 .mainGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 248px;
+  grid-template-columns: minmax(0, 1fr) 260px;
   gap: 14px;
   align-items: start;
 }
@@ -166,6 +166,7 @@
   align-items: center;
   height: 100%;
   padding: 30px 32px 52px;
+  min-height: 439px;
 }
 
 .heroCopy {
@@ -198,10 +199,9 @@
 .heroHeadline {
   margin: 0;
   color: #2f52b7;
-  font-size: clamp(28px, 3vw, 48px);
+  font-size: 35px;
   line-height: 1.02;
   font-weight: 900;
-  letter-spacing: -0.03em;
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
 }
 
@@ -217,9 +217,9 @@
   padding: 0 18px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.92);
-  color: #111827;
-  font-size: 18px;
-  font-weight: 900;
+  color: #47546e;
+  font-size: 15px;
+  font-weight: 600;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
 
@@ -474,7 +474,7 @@
 .dealTitle {
   margin-top: 8px;
   color: #fff;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.05;
   font-weight: 900;
   letter-spacing: -0.02em;
@@ -514,11 +514,10 @@
   background: #fff;
   border: 1px solid #ebeef4;
   border-radius: 12px;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
 }
 
 .accountCard {
-  padding: 14px;
+  padding: 24px;
 }
 
 .accountTop {
@@ -597,7 +596,7 @@
 }
 
 .serviceCard {
-  padding: 14px;
+  padding: 24px;
 }
 
 .serviceCardHead {
@@ -661,10 +660,10 @@
 
 .serviceItemLabel,
 .quickFeatureLabel {
-  color: #253245;
-  font-size: 12px;
+  color: #4b607f;
+  font-size: 13px;
   line-height: 1.4;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .quickFeatureCard {
@@ -711,7 +710,7 @@
 .paymentSub {
   margin-top: 5px;
   color: #737b89;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -732,7 +731,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #334155;
+  color: rgb(75, 96, 127);;
   font-size: 11px;
   font-weight: 800;
 }

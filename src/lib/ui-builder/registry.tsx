@@ -29,6 +29,7 @@ import { SHOP_HEADER_UTILITY } from "@/components/admin/shared/templates/section
 import { SHOP_HERO_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Hero/HeroAnnouncement";
 import { SHOP_HERO_CENTERED } from "@/components/admin/shared/templates/sections/Hero/HeroCentered";
 import { SHOP_HERO_CLASSIC } from "@/components/admin/shared/templates/sections/Hero/HeroClassic";
+import { SHOP_HERO_COMPACT } from "@/components/admin/shared/templates/sections/Hero/HeroCompact";
 
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
@@ -73,6 +74,7 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_HERO_ANNOUNCEMENT,
   SHOP_HERO_CENTERED,
   SHOP_HERO_CLASSIC,
+  SHOP_HERO_COMPACT,
 
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,

@@ -1,0 +1,60 @@
+.hero{width:100%;padding:16px 0 8px;background:radial-gradient(circle at top left,rgba(255,229,237,.42),transparent 22%),linear-gradient(180deg,#fff9fb 0%,#fff 100%)}
+.shell{width:100%;max-width:1280px;margin:0 auto;display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px}
+
+/* sidebar */
+.sidebarPanel{border-radius:22px;border:1px solid #f3e4ea;background:#fff;overflow:hidden}
+.sidebarHead{padding:12px 16px;background:#fff1f6;font-weight:700;color:#a56b82}
+.categoryList{list-style:none;margin:0;padding:10px 0}
+.categoryLink{display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;color:#6b5c66;text-decoration:none}
+.categoryLink:hover{background:#fff5f8;color:#d27797}
+.categoryMeta{background:#fff1f5;border-radius:999px;padding:2px 6px;font-size:11px}
+
+/* content */
+.contentCol{display:flex;flex-direction:column;gap:12px}
+
+/* ticker */
+.tickerWrap{overflow:hidden;border-radius:18px;border:1px solid #f3e5ea;background:#fff}
+.tickerTrack{display:flex;gap:24px;white-space:nowrap;animation:tickerMove 20s linear infinite}
+@keyframes tickerMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tickerItem{display:inline-flex;align-items:center;padding:10px 14px;text-decoration:none;color:#7a6672}
+.tickerIcon{margin-right:6px;color:#d27797}
+.tickerValue{margin-left:6px;font-weight:700;color:#c96e8f}
+
+/* main grid */
+.mainGrid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px}
+.heroMain{position:relative;border-radius:24px;overflow:hidden;background:#fff}
+.sliderViewport{overflow:hidden;height:360px}
+.sliderRail{display:flex;height:100%;transition:.5s}
+.slide{position:relative;width:100%}
+.slideMedia{position:absolute;inset:0}
+.slideImage{object-fit:cover}
+
+.arrowBtn{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:54px;background:#fff;border-radius:12px;border:none}
+.arrowPrev{left:10px}
+.arrowNext{right:10px}
+
+.heroDots{position:absolute;bottom:10px;width:100%;display:flex;justify-content:center;gap:6px}
+.heroDot{width:8px;height:8px;border-radius:50%;background:#fff}
+.heroDotActive{width:22px;border-radius:999px;background:#e69ab3}
+
+/* cards */
+.cardGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{display:grid;grid-template-columns:1fr 80px;padding:10px;border-radius:16px;text-decoration:none}
+.cardToneRose{background:#ffe5ed}
+.cardTonePeach{background:#fff0e7}
+.cardTonePearl{background:#f9f7fa}
+.cardTitle{font-weight:700;font-size:14px}
+.cardSub{font-size:12px;color:#8f808a}
+.cardMedia{position:relative;height:70px;border-radius:12px;overflow:hidden}
+.cardImage{object-fit:cover}
+
+/* side */
+.sidePanel{display:flex}
+.chipPanel{border-radius:22px;border:1px solid #f3e4ea;background:#fff;padding:14px}
+.chipPanelTitle{font-weight:700;color:#7a6672;margin-bottom:10px}
+.chipGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.chipItem{display:flex;flex-direction:column;align-items:center;padding:10px;border-radius:12px;background:#fff6f9;text-decoration:none}
+.chipIcon{color:#d27797;margin-bottom:4px}
+.chipLabel{font-size:12px}
+
+@media(max-width:991px){.shell{grid-template-columns:1fr}.mainGrid{grid-template-columns:1fr}.cardGrid{grid-template-columns:1fr}.tickerTrack{animation-duration:30s}}

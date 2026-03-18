@@ -74,31 +74,31 @@ export type HeroClassicProps = {
 /* ================= Defaults ================= */
 const DEFAULT_SLIDES: HeroClassicSlide[] = [
   {
-    headline: "Đại kiện nội thất\nVận chuyển ưu đãi",
-    sub: "Hero layout mới theo kiểu marketplace: khối giữa là 1 ảnh lớn, bên dưới là 2 banner nhỏ giống bố cục trong ảnh mẫu.",
-    ctaLabel: "Mua ngay",
+    headline: "Furniture Mega Sale\nDiscounted Shipping",
+    sub: "New marketplace-style hero layout: the center block features one large image, with two smaller banners below, matching the sample layout.",
+    ctaLabel: "Shop Now",
     ctaHref: "/promotions",
-    chips: ["Ưu đãi mới", "Giao nhanh", "Giá tốt"],
+    chips: ["New Deals", "Fast Delivery", "Best Price"],
     imageSrc: "/assets/images/product.jpg",
     imageSrcList: ["/assets/images/product.jpg", "/assets/images/product.jpg", "/assets/images/product.jpg"],
     bg: "linear-gradient(135deg, #7cc7ff 0%, #8dd7ff 28%, #c6ecff 62%, #f3fbff 100%)",
   },
   {
-    headline: "Mega Sale\nDeal mỗi ngày",
-    sub: "Khối ảnh chính nổi bật, 2 card nhỏ phía dưới để đẩy chiến dịch phụ hoặc nhóm ngành hàng hot.",
-    ctaLabel: "Xem deal",
+    headline: "Mega Sale\nDeals Every Day",
+    sub: "A highlighted main image, with two smaller cards below to promote side campaigns or trending product categories.",
+    ctaLabel: "View Deals",
     ctaHref: "/deals",
-    chips: ["Flash sale", "Best seller", "Voucher"],
+    chips: ["Flash Sale", "Best Seller", "Voucher"],
     imageSrc: "/assets/images/product.jpg",
     imageSrcList: ["/assets/images/product.jpg", "/assets/images/product.jpg", "/assets/images/product.jpg"],
     bg: "linear-gradient(135deg, #8cc8ff 0%, #72b8ff 38%, #a8dbff 68%, #f5fbff 100%)",
   },
   {
-    headline: "Mua sắm\nchuẩn marketplace",
-    sub: "Bố cục ưu tiên chuyển đổi với sidebar danh mục, 1 visual lớn trung tâm và cụm thông tin hỗ trợ ở cột phải.",
-    ctaLabel: "Khám phá",
+    headline: "Shopping\nMarketplace Style",
+    sub: "A conversion-focused layout with a category sidebar, one large center visual, and a support information cluster in the right column.",
+    ctaLabel: "Explore",
     ctaHref: "/shop",
-    chips: ["Hot trend", "Trusted shop", "Fast checkout"],
+    chips: ["Hot Trend", "Trusted Shop", "Fast Checkout"],
     imageSrc: "/assets/images/product.jpg",
     imageSrcList: ["/assets/images/product.jpg", "/assets/images/product.jpg", "/assets/images/product.jpg"],
     bg: "linear-gradient(135deg, #89c4ff 0%, #7fd0ff 35%, #bee8ff 72%, #f7fcff 100%)",
@@ -108,25 +108,25 @@ const DEFAULT_SLIDES: HeroClassicSlide[] = [
 const DEFAULT_PROMOS: HeroClassicPromo[] = [
   {
     icon: "bi-book",
-    title: "Sách hay giá tốt",
-    sub: "Ưu đãi nổi bật cho nhóm sách bán chạy và quà tặng.",
-    off: "Deal sách",
+    title: "Great Books at Great Prices",
+    sub: "Featured offers on bestselling books and gifts.",
+    off: "Book Deals",
     href: "/deals/books",
     imageSrc: "/assets/images/product.jpg",
   },
   {
     icon: "bi-house-door",
-    title: "Gia dụng lên sàn",
-    sub: "Bộ sưu tập đồ gia dụng, nội thất và tiện ích trong nhà.",
-    off: "Nhà cửa hot",
+    title: "Home Essentials Online",
+    sub: "A collection of home appliances, furniture, and daily living essentials.",
+    off: "Trending Home",
     href: "/deals/home",
     imageSrc: "/assets/images/product.jpg",
   },
   {
     icon: "bi-phone",
-    title: "Công nghệ mỗi ngày",
-    sub: "Thiết bị điện tử và phụ kiện đang được săn nhiều.",
-    off: "Tech picks",
+    title: "Daily Tech Picks",
+    sub: "Electronics and accessories that shoppers are loving right now.",
+    off: "Tech Picks",
     href: "/deals/tech",
     imageSrc: "/assets/images/product.jpg",
   },
@@ -136,22 +136,22 @@ const DEFAULT_RIGHT_BANNERS: HeroClassicBanner[] = [
   {
     variant: "top",
     badge: "WELCOME",
-    title: "Hi - chào mừng bạn",
-    sub: "Đăng nhập để theo dõi đơn hàng và lưu sản phẩm yêu thích.",
+    title: "Hi - welcome",
+    sub: "Sign in to track your orders and save your favorite products.",
     icon: "bi-person-circle",
   },
   {
     variant: "bot",
     badge: "PAYMENT",
-    title: "Thanh toán quốc tế",
-    sub: "Nhiều phương thức thanh toán linh hoạt và an toàn.",
+    title: "International Payments",
+    sub: "Multiple flexible and secure payment methods available.",
     icon: "bi-credit-card",
   },
   {
     variant: "bot",
     badge: "SUPPORT",
-    title: "Dịch vụ toàn diện",
-    sub: "Hỗ trợ trước và sau bán hàng nhanh chóng.",
+    title: "Complete Service",
+    sub: "Fast support before and after purchase.",
     icon: "bi-headset",
   },
 ];
@@ -369,18 +369,18 @@ export function HeroClassic({
 
   const featureItems = useMemo(
     () => [
-      { icon: "bi-chat-dots", label: "Tin nhắn" },
-      { icon: "bi-box-seam", label: "Đơn hàng" },
-      { icon: "bi-heart", label: "Yêu thích" },
+      { icon: "bi-chat-dots", label: "Messages" },
+      { icon: "bi-box-seam", label: "Orders" },
+      { icon: "bi-heart", label: "Favorites" },
     ],
     [],
   );
 
   const supportItems = useMemo(
     () => [
-      { icon: "bi-patch-check", label: "Đảm bảo chính hãng" },
-      { icon: "bi-truck", label: "Giao nhanh" },
-      { icon: "bi-arrow-repeat", label: "Đổi trả dễ dàng" },
+      { icon: "bi-patch-check", label: "Authentic Guarantee" },
+      { icon: "bi-truck", label: "Fast Delivery" },
+      { icon: "bi-arrow-repeat", label: "Easy Returns" },
     ],
     [],
   );
@@ -412,8 +412,8 @@ export function HeroClassic({
                   <div className={cls.categoryEmptyIcon}>
                     <i className="bi bi-grid-3x3-gap" />
                   </div>
-                  <div className={cls.categoryEmptyTitle}>Chưa có danh mục</div>
-                  <div className={cls.categoryEmptySub}>Danh mục sẽ hiển thị khi API trả dữ liệu.</div>
+                  <div className={cls.categoryEmptyTitle}>No categories yet</div>
+                  <div className={cls.categoryEmptySub}>Categories will appear when the API returns data.</div>
                 </li>
               ) : (
                 (categories ?? []).slice(0, 12).map((category) => {
@@ -465,7 +465,7 @@ export function HeroClassic({
                   <div className={cls.heroContent}>
                     <div className={cls.heroCopy}>
                       <div className={cls.heroBadgeRow}>
-                        <span className={cls.heroBadge}>Ưu đãi toàn cầu</span>
+                        <span className={cls.heroBadge}>Global Offers</span>
                       </div>
 
                       <h2 className={cls.heroHeadline}>
@@ -477,7 +477,7 @@ export function HeroClassic({
                         ))}
                       </h2>
 
-                      <div className={cls.heroBigSub}>3-7 ngày có thể giao tới</div>
+                      <div className={cls.heroBigSub}>Delivery may arrive within 3-7 days</div>
                       <p className={cls.heroSub}>{currentSlide?.sub}</p>
 
                       {!!currentSlide?.chips?.length && (
@@ -603,21 +603,21 @@ export function HeroClassic({
                   <div className={cls.accountActions}>
                     {preview ? (
                       <button type="button" className={cls.joinBtn} onClick={handlePreviewBlockClick}>
-                        Đăng ký
+                        Sign Up
                       </button>
                     ) : (
                       <Link href={"/register" as Route} className={cls.joinBtn}>
-                        Đăng ký
+                        Sign Up
                       </Link>
                     )}
 
                     {preview ? (
                       <button type="button" className={cls.signInBtn} onClick={handlePreviewBlockClick}>
-                        Đăng nhập
+                        Sign In
                       </button>
                     ) : (
                       <Link href={"/login" as Route} className={cls.signInBtn}>
-                        Đăng nhập
+                        Sign In
                       </Link>
                     )}
                   </div>
@@ -626,7 +626,7 @@ export function HeroClassic({
 
               <div className={cls.serviceCard}>
                 <div className={cls.serviceCardHead}>
-                  <div className={cls.serviceCardTitle}>Toàn cầu nổi bật</div>
+                  <div className={cls.serviceCardTitle}>Global Highlights</div>
                 </div>
 
                 <div className={cls.serviceList}>
@@ -640,23 +640,8 @@ export function HeroClassic({
                   ))}
                 </div>
               </div>
-
-              <div className={cls.quickFeatureCard}>
-                <div className={cls.quickFeatureTitle}>Tiện ích nhanh</div>
-                <div className={cls.quickFeatureGrid}>
-                  {featureItems.map((item) => (
-                    <div key={item.label} className={cls.quickFeatureItem}>
-                      <span className={cls.quickFeatureIcon}>
-                        <i className={`bi ${item.icon}`} />
-                      </span>
-                      <span className={cls.quickFeatureLabel}>{item.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className={cls.paymentCard}>
-                <div className={cls.paymentTitle}>{visibleBotBanners[0]?.title || "Quốc tế chi trả"}</div>
+                <div className={cls.paymentTitle}>{visibleBotBanners[0]?.title || "International Payments"}</div>
                 <div className={cls.paymentSub}>{visibleBotBanners[0]?.sub}</div>
                 <div className={cls.paymentLogos}>
                   {intlPaymentItems.map((item) => (
