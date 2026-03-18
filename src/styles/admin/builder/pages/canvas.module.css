@@ -42,7 +42,7 @@
     background 0.25s ease;
   height: 93vh;
   overflow: auto;
-  max-width: 1360px;
+  max-width: 100%;
 }
 
 /* Rulers — sáng, mảnh */

@@ -1,7 +1,7 @@
 .builderGrid {
   display: grid;
   gap: 12px;
-  grid-template-columns: 330px 1fr;
+  grid-template-columns: 260px 1fr;
   align-items: start;
 }
 

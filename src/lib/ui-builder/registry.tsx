@@ -25,6 +25,11 @@ import { SHOP_HEADER_SPLIT } from "@/components/admin/shared/templates/sections/
 import { SHOP_HEADER_TICKER } from "@/components/admin/shared/templates/sections/Header/HeaderTicker";
 import { SHOP_HEADER_UTILITY } from "@/components/admin/shared/templates/sections/Header/HeaderUtility";
 
+// ===== Web page Hero  =====
+import { SHOP_HERO_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Hero/HeroAnnouncement";
+import { SHOP_HERO_CENTERED } from "@/components/admin/shared/templates/sections/Hero/HeroCentered";
+import { SHOP_HERO_CLASSIC } from "@/components/admin/shared/templates/sections/Hero/HeroClassic";
+
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
 import { SHOP_HEADER_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/header/header1";
@@ -64,6 +69,10 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_HEADER_SPLIT,
   SHOP_HEADER_TICKER,
   SHOP_HEADER_UTILITY,
+  // ===== Web page Hero  =====
+  SHOP_HERO_ANNOUNCEMENT,
+  SHOP_HERO_CENTERED,
+  SHOP_HERO_CLASSIC,
 
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,

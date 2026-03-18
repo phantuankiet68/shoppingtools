@@ -13,9 +13,10 @@ type ApiCategory = {
   parentId: string | null;
   name: string;
   slug: string;
-  icon: string | null;
-  sort: number;
-  isActive: boolean;
+  icon?: string | null;
+  sortOrder?: number;
+  sort?: number;
+  isActive?: boolean;
   count: number;
 };
 
@@ -52,8 +53,7 @@ export type RightBanner = {
   title: string;
   sub: string;
   imageSrc?: string;
-  /** ✅ NEW: nếu không có imageSrc thì dùng icon */
-  icon?: string; // bootstrap icon name, e.g. "bi-share", "bi-ticket-perforated", "bi-truck"
+  icon?: string;
 };
 
 export type Hero1Props = {
@@ -74,73 +74,96 @@ export type Hero1Props = {
 /* ================= Defaults ================= */
 const DEFAULT_SLIDES: SlideItem[] = [
   {
-    headline: "GLOW UP TODAY\nSKINCARE AT HOME",
-    sub: "Authentic products • Fast delivery • Support 24/7",
-    ctaLabel: "SHOP NOW",
+    headline: "Glow Up Today\nSkincare At Home",
+    sub: "Authentic products • Fast delivery • Personalized support for your daily beauty routine",
+    ctaLabel: "Shop Now",
     ctaHref: "/shop",
     chips: ["Cleanser", "Serum", "Moisturizer"],
     imageSrc: "/assets/images/product.jpg",
+    bg: "linear-gradient(135deg, #7c2d12 0%, #ea580c 25%, #fb923c 55%, #7292f4 100%)",
   },
   {
-    headline: "BEAUTY DEALS\nUP TO 50% OFF",
-    sub: "Limited-time offers • Best prices every week",
-    ctaLabel: "VIEW OFFERS",
+    headline: "Beauty Deals\nUp To 50% Off",
+    sub: "Weekly flash deals from trusted brands with premium product curation",
+    ctaLabel: "View Offers",
     ctaHref: "/promotions",
-    bg: "linear-gradient(135deg, #06dc35ff, #9ffbd5ff 55%, #b6f0efff)",
+    chips: ["Flash Sale", "Top Rated", "Exclusive"],
     imageSrc: "/assets/images/product.jpg",
+    bg: "linear-gradient(135deg, #6697ff 0%, #1e293b 18%, #0ea5a4 58%, #7dd3fc 100%)",
   },
   {
-    headline: "AUTHENTIC BRANDS\n100% GUARANTEED",
-    sub: "Easy returns • Genuine products • Trusted stores",
-    ctaLabel: "EXPLORE BRANDS",
+    headline: "Authentic Brands\n100% Guaranteed",
+    sub: "Easy returns • Genuine products • Elevated shopping experience for modern beauty stores",
+    ctaLabel: "Explore Brands",
     ctaHref: "/brands",
-    bg: "linear-gradient(135deg, #9bd7f5, #8ec6fb 55%, #b6d1fd)",
+    chips: ["Official", "Trusted", "Best Seller"],
     imageSrc: "/assets/images/product.jpg",
+    bg: "linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), linear-gradient(135deg, #f97316, #f472b6)",
   },
 ];
 
 const DEFAULT_PROMOS: PromoItem[] = [
-  { icon: "bi-droplet", title: "SKINCARE", sub: "Save up to 30%", off: "-30%", href: "/skincare" },
-  { icon: "bi-bag-heart", title: "MAKEUP", sub: "Buy 2 get 1", off: "HOT", href: "/makeup" },
-  { icon: "bi-brightness-high", title: "SUNSCREEN", sub: "Up to 40% off", off: "-40%", href: "/sunscreen" },
+  { icon: "bi-droplet", title: "Skincare", sub: "Save up to 30%", off: "-30%", href: "/skincare" },
+  { icon: "bi-bag-heart", title: "Makeup", sub: "Buy 2 get 1", off: "Hot", href: "/makeup" },
+  { icon: "bi-brightness-high", title: "Sunscreen", sub: "Up to 40% off", off: "-40%", href: "/sunscreen" },
 ];
 
-/**
- * ✅ UPDATED: 3 RIGHT cards: Share / Voucher / Free ship
- * - Không dùng imageSrc -> sẽ render icon
- */
 const DEFAULT_RIGHT: RightBanner[] = [
   {
     variant: "top",
     badge: "SHARE & EARN",
-    title: "SHARE TO GET POINTS",
-    sub: "Invite friends and receive rewards",
+    title: "Share To Get Points",
+    sub: "Invite friends and receive loyalty rewards instantly",
     icon: "bi-share",
   },
   {
     variant: "bot",
     badge: "VOUCHER",
-    title: "DAILY DISCOUNT CODES",
-    sub: "Collect vouchers before checkout",
+    title: "Daily Discount Codes",
+    sub: "Collect and apply special codes before checkout",
     icon: "bi-ticket-perforated",
   },
   {
     variant: "bot",
     badge: "FREE SHIP",
-    title: "FREE SHIPPING",
-    sub: "Orders from 299k • Fast delivery",
+    title: "Free Shipping",
+    sub: "Orders from 299k with fast delivery nationwide",
     icon: "bi-truck",
   },
 ];
 
 /* ================= Helpers ================= */
-function safeJson<T>(raw?: string): T | undefined {
-  if (!raw) return undefined;
+function safeJson<T>(raw: unknown): T | undefined {
+  if (typeof raw !== "string" || !raw.trim()) return undefined;
   try {
     return JSON.parse(raw) as T;
   } catch {
     return undefined;
   }
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asBoolean(value: unknown, fallback = false): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const v = value.trim().toLowerCase();
+    if (v === "true" || v === "1" || v === "yes") return true;
+    if (v === "false" || v === "0" || v === "no") return false;
+  }
+  if (typeof value === "number") return value !== 0;
+  return fallback;
+}
+
+function asNumber(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  return fallback;
 }
 
 function normalizeBasePath(p: string) {
@@ -151,26 +174,42 @@ function normalizeBasePath(p: string) {
 }
 
 function ensureBiIcon(icon?: string | null) {
-  if (!icon) return "bi-tag";
+  if (!icon) return "bi-grid";
   return icon.startsWith("bi-") ? icon : `bi-${icon}`;
+}
+
+function getCategorySort(c: ApiCategory) {
+  if (typeof c.sortOrder === "number") return c.sortOrder;
+  if (typeof c.sort === "number") return c.sort;
+  return 0;
+}
+
+function headlineToLines(headline: string) {
+  return headline.split("\n").filter(Boolean);
+}
+
+function formatCount(count: number) {
+  if (!Number.isFinite(count)) return "0";
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
+  return `${count}`;
 }
 
 /* ================= Component ================= */
 export function Hero1({
   siteId = "sitea01",
-  categoryApiPath = "/api/admin/commerce/categories/sidebar-category",
+  categoryApiPath = "/api/v1/categories",
   categoryBasePath = "/category",
   activeOnly = true,
   onlyRootCategories = true,
-
   slides,
   promos,
   rightBanners,
-
   autoMs = 4500,
   preview = false,
 }: Hero1Props) {
   const [cats, setCats] = useState<ApiCategory[] | null>(null);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     if (preview) return;
@@ -186,7 +225,11 @@ export function Hero1({
           `&active=${activeOnly ? "1" : "0"}` +
           `&basePath=${encodeURIComponent(bp)}`;
 
-        const res = await fetch(url, { cache: "no-store", signal: controller.signal });
+        const res = await fetch(url, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
         if (!res.ok) {
           console.error("[Hero1] load categories failed:", res.status, await res.text());
           setCats([]);
@@ -194,15 +237,17 @@ export function Hero1({
         }
 
         const data = (await res.json()) as SidebarCategoryResponse;
-
         const items = Array.isArray(data.items) ? data.items : [];
+
         const filtered = onlyRootCategories ? items.filter((x) => x.parentId === null) : items;
 
-        const sorted = filtered.slice().sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || a.name.localeCompare(b.name));
+        const sorted = filtered
+          .slice()
+          .sort((a, b) => getCategorySort(a) - getCategorySort(b) || a.name.localeCompare(b.name));
 
         setCats(sorted);
-      } catch (err: any) {
-        if (err?.name === "AbortError") return;
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") return;
         console.error("[Hero1] load categories error:", err);
         setCats([]);
       }
@@ -216,21 +261,19 @@ export function Hero1({
   const rbs = useMemo(() => rightBanners ?? DEFAULT_RIGHT, [rightBanners]);
 
   const total = sds.length;
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     if (paused) return;
     if (total <= 1) return;
 
-    const t = window.setInterval(
+    const timer = window.setInterval(
       () => {
         setIndex((cur) => (cur + 1) % total);
       },
-      Math.max(1200, autoMs),
+      Math.max(1800, autoMs),
     );
 
-    return () => window.clearInterval(t);
+    return () => window.clearInterval(timer);
   }, [paused, autoMs, total]);
 
   const goTo = (i: number) => {
@@ -247,47 +290,91 @@ export function Hero1({
     e.stopPropagation();
   };
 
-  const sliderStyle = useMemo(() => ({ transform: `translateX(-${index * 100}%)` }) as React.CSSProperties, [index]);
+  const sliderStyle = useMemo(
+    () =>
+      ({
+        transform: `translate3d(-${index * 100}%, 0, 0)`,
+      }) as React.CSSProperties,
+    [index],
+  );
 
   const bp = normalizeBasePath(categoryBasePath);
+  const currentSlide = sds[index] ?? sds[0];
+  const currentSlideLines = headlineToLines(currentSlide?.headline || "");
 
   return (
-    <section className={cls.hero}>
-      {/* LEFT: categories */}
+    <section className={cls.hero} aria-label="Commerce hero">
+      {/* LEFT SIDEBAR */}
       <aside className={cls.cat} aria-label="Product Categories">
         <div className={cls.catHeader}>
-          <i className="bi bi-list" />
-          Product Categories
+          <div className={cls.catHeaderIcon}>
+            <i className="bi bi-grid-1x2" />
+          </div>
+
+          <div className={cls.catHeaderText}>
+            <div className={cls.catEyebrow}>Collections</div>
+            <div className={cls.catTitle}>Product Categories</div>
+          </div>
         </div>
 
-        <ul className={cls.catList}>
-          {(cats ?? []).length === 0 ? (
-            <li>
-              <span style={{ opacity: 0.7, fontSize: 12 }}>No categories</span>
-            </li>
-          ) : (
-            (cats ?? []).map((c) =>
-              preview ? (
-                <li key={c.id}>
-                  <a href="#" onClick={onBlockClick}>
-                    <i className={`bi ${ensureBiIcon(c.icon)}`} />
-                    {c.name}
-                  </a>
-                </li>
-              ) : (
-                <li key={c.id}>
-                  <Link href={`${bp}/${c.slug}` as Route}>
-                    <i className={`bi ${ensureBiIcon(c.icon)}`} />
-                    {c.name}
-                  </Link>
-                </li>
-              ),
-            )
-          )}
-        </ul>
+        <div className={cls.catBody}>
+          <ul className={cls.catList}>
+            {(cats ?? []).length === 0 ? (
+              <li className={cls.catEmpty}>
+                <div className={cls.catEmptyIcon}>
+                  <i className="bi bi-inboxes" />
+                </div>
+                <div className={cls.catEmptyTitle}>No categories</div>
+                <div className={cls.catEmptySub}>Danh mục sẽ hiển thị khi API có dữ liệu.</div>
+              </li>
+            ) : (
+              (cats ?? []).map((c, idx) => {
+                const content = (
+                  <>
+                    <span className={cls.catItemLeft}>
+                      <span className={cls.catItemIcon}>
+                        <i className={`bi ${ensureBiIcon(c.icon)}`} />
+                      </span>
+                      <span className={cls.catItemText}>
+                        <span className={cls.catItemName}>{c.name}</span>
+                        <span className={cls.catItemMeta}>Featured collection</span>
+                      </span>
+                    </span>
+
+                    <span className={cls.catItemRight}>
+                      <span className={cls.catCount}>{formatCount(c.count)}</span>
+                      <i className={`bi bi-arrow-up-right ${cls.catArrow}`} />
+                    </span>
+                  </>
+                );
+
+                return preview ? (
+                  <li key={c.id} className={cls.catItem}>
+                    <a
+                      href="#"
+                      onClick={onBlockClick}
+                      className={`${cls.catLink} ${idx === 0 ? cls.catLinkActive : ""}`}
+                    >
+                      {content}
+                    </a>
+                  </li>
+                ) : (
+                  <li key={c.id} className={cls.catItem}>
+                    <Link
+                      href={`${bp}/${c.slug}` as Route}
+                      className={`${cls.catLink} ${idx === 0 ? cls.catLinkActive : ""}`}
+                    >
+                      {content}
+                    </Link>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+        </div>
       </aside>
 
-      {/* CENTER: slider + promos */}
+      {/* CENTER */}
       <div className={cls.center}>
         <div
           className={cls.slider}
@@ -297,153 +384,250 @@ export function Hero1({
           onBlurCapture={() => setPaused(false)}
           aria-label="Hero slider"
         >
-          {/* arrows */}
+          <div className={cls.sliderViewport}>
+            <div className={cls.sliderRail} style={sliderStyle}>
+              {sds.map((s, i) => {
+                const lines = headlineToLines(s.headline);
+                const slideBg = s.bg;
+
+                return (
+                  <article
+                    key={`${i}-${s.ctaHref}-${s.headline}`}
+                    className={cls.slide}
+                    style={{ background: slideBg }}
+                    aria-hidden={i !== index}
+                  >
+                    <div className={cls.slideGlow} />
+                    <div className={cls.slideNoise} />
+
+                    <div className={cls.slideInner}>
+                      <div className={cls.copy}>
+                        <div className={cls.kickerRow}>
+                          <span className={cls.kickerBadge}>Modern</span>
+                          <span className={cls.kickerLine} />
+                          <span className={cls.kickerText}>Curated beauty experience</span>
+                        </div>
+
+                        <div className={cls.headline}>
+                          {lines.map((line, idx) => (
+                            <React.Fragment key={idx}>
+                              <span className={cls.headlineLine}>{line}</span>
+                              {idx < lines.length - 1 && <br />}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                        {!!s.chips?.length && (
+                          <div className={cls.heroChips}>
+                            {s.chips.map((chip) => (
+                              <span key={chip} className={cls.heroChip}>
+                                {chip}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className={cls.ctaRow}>
+                          {preview ? (
+                            <button className={cls.cta} type="button" onClick={onBlockClick}>
+                              <span>{s.ctaLabel}</span>
+                              <i className="bi bi-arrow-right" />
+                            </button>
+                          ) : (
+                            <Link
+                              className={cls.cta}
+                              href={(s.ctaHref || "/") as Route}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span>{s.ctaLabel}</span>
+                              <i className="bi bi-arrow-right" />
+                            </Link>
+                          )}
+
+                          <div className={cls.ctaGhost}>
+                            <div className={cls.ctaGhostTitle}>Trusted by stores</div>
+                            <div className={cls.ctaGhostSub}>Fast order flow • better conversion</div>
+                          </div>
+                        </div>
+
+                        <div className={cls.metrics}>
+                          <div className={cls.metric}>
+                            <div className={cls.metricValue}>24/7</div>
+                            <div className={cls.metricLabel}>Support</div>
+                          </div>
+                          <div className={cls.metric}>
+                            <div className={cls.metricValue}>100%</div>
+                            <div className={cls.metricLabel}>Authentic</div>
+                          </div>
+                          <div className={cls.metric}>
+                            <div className={cls.metricValue}>48H</div>
+                            <div className={cls.metricLabel}>Delivery</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={cls.art} aria-hidden="true">
+                        <div className={cls.visualShell}>
+                          <div className={cls.visualOrbA} />
+                          <div className={cls.visualOrbB} />
+                          <div className={cls.visualCard}>
+                            {s.imageSrc ? (
+                              <div className={cls.visualImageWrap}>
+                                <Image
+                                  src={s.imageSrc}
+                                  alt=""
+                                  fill
+                                  sizes="(max-width: 1024px) 100vw, 45vw"
+                                  className={cls.visualImage}
+                                />
+                              </div>
+                            ) : (
+                              <div className={cls.visualFallback}>
+                                <div className={cls.visualFallbackIcon}>
+                                  <i className="bi bi-stars" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className={cls.floatCardA}>
+                            <span className={cls.floatCardLabel}>Premium</span>
+                            <strong>Best seller</strong>
+                          </div>
+
+                          <div className={cls.floatCardB}>
+                            <i className="bi bi-patch-check-fill" />
+                            <span>Verified products</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+
           <button className={`${cls.arrow} ${cls.prev}`} aria-label="Previous slide" type="button" onClick={prev}>
             <i className="bi bi-chevron-left" />
           </button>
+
           <button className={`${cls.arrow} ${cls.next}`} aria-label="Next slide" type="button" onClick={next}>
             <i className="bi bi-chevron-right" />
           </button>
 
-          {/* slides */}
-          <div className={cls.slides} style={sliderStyle}>
-            {sds.map((s, i) => {
-              const slideBg = i === 0 ? undefined : s.bg;
-              const lines = s.headline.split("\n");
-              return (
-                <div
-                  key={`${i}-${s.ctaHref}-${s.headline}`}
-                  className={cls.slide}
-                  style={slideBg ? ({ background: slideBg } as React.CSSProperties) : undefined}
-                  aria-hidden={i !== index}
-                >
-                  <div>
-                    <div className={cls.headline}>
-                      {lines.map((line, idx) => (
-                        <React.Fragment key={idx}>
-                          {line}
-                          {idx < lines.length - 1 && <br />}
-                        </React.Fragment>
-                      ))}
-                    </div>
+          <div className={cls.bottomBar}>
+            <div className={cls.progressInfo}>
+              <span className={cls.progressCurrent}>{String(index + 1).padStart(2, "0")}</span>
+              <span className={cls.progressDivider}>/</span>
+              <span className={cls.progressTotal}>{String(total).padStart(2, "0")}</span>
+            </div>
 
-                    <div className={cls.sub}>{s.sub}</div>
+            <div className={cls.dots} aria-label="Slider dots">
+              {Array.from({ length: total }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`${cls.dot} ${i === index ? cls.dotActive : ""}`}
+                  aria-label={`Go to slide ${i + 1}`}
+                  onClick={() => goTo(i)}
+                />
+              ))}
+            </div>
 
-                    {preview ? (
-                      <button className={cls.cta} type="button" onClick={onBlockClick}>
-                        {s.ctaLabel} <i className="bi bi-arrow-right" />
-                      </button>
-                    ) : (
-                      <Link className={cls.cta} href={(s.ctaHref || "/") as Route} onClick={(e) => e.stopPropagation()}>
-                        {s.ctaLabel} <i className="bi bi-arrow-right" />
-                      </Link>
-                    )}
-                  </div>
-
-                  <div className={cls.art} aria-hidden="true">
-                    {s.imageSrc ? (
-                      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                        <Image
-                          src={s.imageSrc}
-                          alt=""
-                          fill
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          style={{ objectFit: "contain" }}
-                        />
-                      </div>
-                    ) : (
-                      !!s.chips?.length && (
-                        <div className={cls.mini}>
-                          {s.chips.map((chip) => (
-                            <span key={chip} className={cls.chip}>
-                              {chip}
-                            </span>
-                          ))}
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* dots */}
-          <div className={cls.dots} aria-label="Slider dots">
-            {Array.from({ length: total }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                className={`${cls.dot} ${i === index ? cls.dotActive : ""}`}
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={() => goTo(i)}
-              />
-            ))}
+            <div className={cls.trustStrip}>
+              <span className={cls.trustItem}>
+                <i className="bi bi-shield-check" />
+                Secure checkout
+              </span>
+              <span className={cls.trustItem}>
+                <i className="bi bi-truck" />
+                Fast shipping
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* promos */}
         <div className={cls.promos} aria-label="Promo cards">
-          {prs.map((p) =>
-            preview ? (
+          {prs.map((p) => {
+            const promoContent = (
+              <>
+                <div className={cls.promoLeft}>
+                  <div className={cls.pIc}>
+                    <i className={`bi ${ensureBiIcon(p.icon)}`} />
+                  </div>
+                  <div className={cls.pText}>
+                    <div className={cls.pTitle}>{p.title}</div>
+                    <div className={cls.pSub}>{p.sub}</div>
+                  </div>
+                </div>
+
+                <div className={cls.promoRight}>
+                  <span className={cls.pOff}>{p.off}</span>
+                  <i className={`bi bi-arrow-up-right ${cls.pArrow}`} />
+                </div>
+              </>
+            );
+
+            return preview ? (
               <a key={p.href || p.title} className={cls.promo} href="#" onClick={onBlockClick}>
-                <div className={cls.pIc}>
-                  <i className={`bi ${p.icon}`} />
-                </div>
-                <div>
-                  <div className={cls.pTitle}>{p.title}</div>
-                  <div className={cls.pSub}>{p.sub}</div>
-                </div>
-                <div className={cls.pOff}>{p.off}</div>
+                {promoContent}
               </a>
             ) : (
               <Link key={p.href || p.title} className={cls.promo} href={(p.href || "/") as Route}>
-                <div className={cls.pIc}>
-                  <i className={`bi ${p.icon}`} />
-                </div>
-                <div>
-                  <div className={cls.pTitle}>{p.title}</div>
-                  <div className={cls.pSub}>{p.sub}</div>
-                </div>
-                <div className={cls.pOff}>{p.off}</div>
+                {promoContent}
               </Link>
-            ),
-          )}
+            );
+          })}
         </div>
       </div>
 
+      {/* RIGHT */}
       <aside className={cls.right} aria-label="Right banners">
         {rbs.map((b, i) => {
           const variantClass = i === 0 ? cls.rbTop : i === 1 ? cls.rbMid : cls.rbShip;
 
           return (
-            <div key={`${b.badge}-${i}-${b.title}`} className={`${cls.rb} ${variantClass}`}>
-              <span className={cls.rbBadge}>{b.badge}</span>
+            <article key={`${b.badge}-${i}-${b.title}`} className={`${cls.rb} ${variantClass}`}>
+              <div className={cls.rbGlow} />
+              <div className={cls.rbHead}>
+                <span className={cls.rbBadge}>{b.badge}</span>
+              </div>
+              <div className={cls.rbTitle}>{b.title}</div>
+              <div className={cls.rbBody}>
+                <div className={cls.rbText}>
+                  <div className={cls.rbSub}>{b.sub}</div>
+                </div>
 
-              <div className={cls.pad}>
-                <div className={cls.rbTitle}>{b.title}</div>
-                <div className={cls.rbSub}>{b.sub}</div>
+                <div className={cls.mockImg} aria-hidden="true">
+                  {b.imageSrc ? (
+                    <Image
+                      src={b.imageSrc}
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      className={cls.rbImage}
+                    />
+                  ) : (
+                    <div className={cls.rbIconWrap}>
+                      <i className={`bi ${ensureBiIcon(b.icon)} ${cls.rbIcon}`} />
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className={cls.mockImg} aria-hidden="true">
-                {b.imageSrc ? (
-                  <Image
-                    src={b.imageSrc}
-                    alt=""
-                    fill
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                    style={{ objectFit: "cover" }}
-                  />
-                ) : (
-                  <div className={cls.rbIconWrap}>
-                    <i className={`bi ${b.icon} ${cls.rbIcon}`} />
-                  </div>
-                )}
+              <div className={cls.rbFoot}>
+                <span className={cls.rbAction}>Learn more</span>
+                <i className="bi bi-arrow-right" />
               </div>
-            </div>
+            </article>
           );
         })}
       </aside>
+
+      {/* accessibility hidden text */}
+      <div className={cls.srOnly} aria-hidden="true">
+        {currentSlideLines.join(" ")}
+      </div>
     </section>
   );
 }
@@ -454,19 +638,13 @@ export const SHOP_HERO_GREEN_ONE: RegItem = {
   label: "Hero",
   defaults: {
     autoMs: 4500,
-
-    // API config (categories lấy từ API)
     siteId: "sitea01",
-    categoryApiPath: "/api/admin/commerce/categories/sidebar-category",
+    categoryApiPath: "/api/v1/categories",
     categoryBasePath: "/category",
     activeOnly: true,
     onlyRootCategories: true,
-
-    // Các phần khác vẫn editable bằng JSON như cũ
     slides: JSON.stringify(DEFAULT_SLIDES, null, 2),
     promos: JSON.stringify(DEFAULT_PROMOS, null, 2),
-
-    // ✅ RIGHT banners now 3 cards (share/voucher/free ship)
     rightBanners: JSON.stringify(DEFAULT_RIGHT, null, 2),
   },
   inspector: [
@@ -487,21 +665,23 @@ export const SHOP_HERO_GREEN_ONE: RegItem = {
     const promos = safeJson<PromoItem[]>(p.promos);
     const rightBanners = safeJson<RightBanner[]>(p.rightBanners);
 
-    const siteId = String(p.siteId || "").trim() || "sitea01";
-    const categoryApiPath = String(p.categoryApiPath || "").trim() || "/api/admin/commerce/categories/sidebar-category";
-    const categoryBasePath = String(p.categoryBasePath || "").trim() || "/category";
+    const siteId = asString(p.siteId, "sitea01").trim() || "sitea01";
+    const categoryApiPath = asString(p.categoryApiPath, "/api/v1/categories").trim() || "/api/v1/categories";
+    const categoryBasePath = asString(p.categoryBasePath, "/category").trim() || "/category";
 
-    const activeOnly = String(p.activeOnly ?? "true").toLowerCase() !== "false" && String(p.activeOnly ?? "1") !== "0";
-    const onlyRootCategories = String(p.onlyRootCategories ?? "true").toLowerCase() !== "false";
+    const activeOnly = asBoolean(p.activeOnly, true);
+    const onlyRootCategories = asBoolean(p.onlyRootCategories, true);
+    const preview = asBoolean(p.preview, false);
+    const autoMs = asNumber(p.autoMs, 4500);
 
     return (
       <div className="sectionContainer" aria-label="Shop Hero (Green One)">
         <Hero1
-          autoMs={Number(p.autoMs) || 4500}
+          autoMs={autoMs}
           slides={slides}
           promos={promos}
           rightBanners={rightBanners}
-          preview={p.preview}
+          preview={preview}
           siteId={siteId}
           categoryApiPath={categoryApiPath}
           categoryBasePath={categoryBasePath}

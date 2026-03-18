@@ -37,10 +37,10 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     "HeaderTicker",
     "HeaderUtility",
   ]),
-  tpl("tpl-shop-green-v2", "ShopGreen V2", [
-    "Topbar1",
-    "Header1",
-    "Hero1",
+  tpl("tpl-hero", "Hero", [
+    "HeroAnnouncement",
+    "HeroCentered",
+    "HeroClassic",
     "BestSeller1",
     "Brand1",
     "Makeup1",
