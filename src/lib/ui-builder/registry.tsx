@@ -30,6 +30,12 @@ import { SHOP_HERO_ANNOUNCEMENT } from "@/components/admin/shared/templates/sect
 import { SHOP_HERO_CENTERED } from "@/components/admin/shared/templates/sections/Hero/HeroCentered";
 import { SHOP_HERO_CLASSIC } from "@/components/admin/shared/templates/sections/Hero/HeroClassic";
 import { SHOP_HERO_COMPACT } from "@/components/admin/shared/templates/sections/Hero/HeroCompact";
+import { SHOP_HERO_DASHBOARD } from "@/components/admin/shared/templates/sections/Hero/HeroDashboard";
+import { SHOP_HERO_MINIMAL } from "@/components/admin/shared/templates/sections/Hero/HeroMinimal";
+import { SHOP_HERO_REGION } from "@/components/admin/shared/templates/sections/Hero/HeroRegion";
+import { SHOP_HERO_SPLIT } from "@/components/admin/shared/templates/sections/Hero/HeroSplit";
+import { SHOP_HERO_TICKER } from "@/components/admin/shared/templates/sections/Hero/HeroTicker";
+import { SHOP_HERO_UTILITY } from "@/components/admin/shared/templates/sections/Hero/HeroUtility";
 
 // ===== Web page Footer  =====
 import { SHOP_FOOTER_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Footer/FooterAnnouncement";
@@ -84,6 +90,12 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_HERO_CENTERED,
   SHOP_HERO_CLASSIC,
   SHOP_HERO_COMPACT,
+  SHOP_HERO_DASHBOARD,
+  SHOP_HERO_MINIMAL,
+  SHOP_HERO_REGION,
+  SHOP_HERO_SPLIT,
+  SHOP_HERO_TICKER,
+  SHOP_HERO_UTILITY,
 
   // ===== Web page Footer  =====
   SHOP_FOOTER_ANNOUNCEMENT,

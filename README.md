@@ -490,3 +490,5 @@ hiện tại SectionAnnouncement.tsx là templates mẫu. tôi đang sử dụng
 viết luôn cho bạn file HeroCentered.module.css đồng bộ với component này theo style ecommerce hiện đại, responsive, premium, đủ để dùng ngay.
 
 Hiện tại Ui HeroCentered đang màu rất tối bạn có thể độ lại css module có thể là design chuyên nghiệp và mang sắc thái ecommec cao cấp. hãy sử dụng màu nhạt giúp tôi nhé. Bạn hãy độ lại giúp tôi nhé và ghi lại toàn bộ file HeroCentered.module.css
+
+tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé Hiện tại tiếng việt hãy giúp tôi chuyển sang tiếng anh và ghi lại toàn bộ file HeroMinimal.tsx giúp tôi

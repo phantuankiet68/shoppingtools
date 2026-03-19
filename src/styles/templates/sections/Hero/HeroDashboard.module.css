@@ -18,6 +18,9 @@
 
 .sidebar {
   min-width: 0;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
 }
 
 .sidebarPanel {
@@ -83,7 +86,10 @@
   color: #625868;
   font-size: 13px;
   line-height: 1.35;
-  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .categoryLink:hover {
@@ -184,7 +190,10 @@
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .statCard:hover {
@@ -242,7 +251,7 @@
 .heroMain {
   position: relative;
   overflow: hidden;
-  min-height: 370px;
+  min-height: 320px;
   border-radius: 26px;
   border: 1px solid #f3dfe7;
   background: linear-gradient(135deg, #fff0f6 0%, #fff8fb 100%);
@@ -272,7 +281,7 @@
 .slide {
   position: relative;
   width: 100%;
-  min-height: 370px;
+  min-height: 320px;
   height: 100%;
 }
 
@@ -315,7 +324,9 @@
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(203, 152, 173, 0.18);
   backdrop-filter: blur(8px);
-  transition: background-color 0.18s ease, color 0.18s ease;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .arrowBtn:hover {
@@ -352,7 +363,9 @@
   background: rgba(255, 255, 255, 0.78);
   box-shadow: 0 4px 12px rgba(201, 148, 170, 0.18);
   cursor: pointer;
-  transition: width 0.18s ease, background-color 0.18s ease;
+  transition:
+    width 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .heroDotActive {
@@ -379,7 +392,9 @@
   align-items: center;
   text-decoration: none;
   box-shadow: 0 14px 28px rgba(220, 170, 189, 0.12);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .tileCard:hover {
@@ -512,7 +527,7 @@
 .shortcutGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 11px;
 }
 
 .shortcutCard {
@@ -528,7 +543,10 @@
   gap: 8px;
   text-align: center;
   text-decoration: none;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .shortcutCard:hover {

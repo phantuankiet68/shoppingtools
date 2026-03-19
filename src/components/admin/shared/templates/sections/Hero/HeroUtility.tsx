@@ -83,63 +83,63 @@ const DEFAULT_SLIDES: HeroUtilitySlide[] = [
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/new",
-    alt: "Utility hero banner 1",
-    title: "Góc mua sắm dịu dàng",
-    sub: "Một hero mang cảm giác tiện ích, sáng, mềm và dễ thao tác cho marketplace hiện đại.",
-    badge: "triều mến",
-    bg: "linear-gradient(135deg, #fff0f5 0%, #fff8fb 55%, #ffffff 100%)",
+    alt: "Modern premium shopping banner",
+    title: "Modern beauty, curated for daily ritual",
+    sub: "A cleaner hero direction for 2026 marketplaces with stronger hierarchy, richer trust cues, and faster product discovery.",
+    badge: "2026 edit",
+    bg: "linear-gradient(135deg, #f7f3ff 0%, #fff7fb 45%, #ffffff 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/gifts",
-    alt: "Utility hero banner 2",
-    title: "Quà xinh mỗi ngày",
-    sub: "Gợi ý quà tặng, decor và beauty theo phong cách mềm mại và tinh tế.",
-    badge: "daily pick",
-    bg: "linear-gradient(135deg, #fff4ee 0%, #fffaf7 55%, #ffffff 100%)",
+    alt: "Premium gift collection banner",
+    title: "Gift-led collections with elevated presentation",
+    sub: "Highlight seasonal gifting, soft luxury packaging, and premium bestsellers in a layout built to convert.",
+    badge: "gift focus",
+    bg: "linear-gradient(135deg, #fff6ef 0%, #fffaf7 48%, #ffffff 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/decor",
-    alt: "Utility hero banner 3",
-    title: "Decor và cảm hứng sống",
-    sub: "Tăng trải nghiệm mua sắm bằng bố cục rõ ràng, nhanh và giàu tính trực quan.",
-    badge: "soft mood",
-    bg: "linear-gradient(135deg, #f7f0ff 0%, #fcf8ff 55%, #ffffff 100%)",
+    alt: "Decor and lifestyle collection banner",
+    title: "Design-forward living starts with better browsing",
+    sub: "Blend utility, trust, and editorial polish for a storefront that feels current, credible, and commerce-ready.",
+    badge: "living now",
+    bg: "linear-gradient(135deg, #eef7ff 0%, #f7fbff 48%, #ffffff 100%)",
   },
 ];
 
 const DEFAULT_TOOLS: HeroUtilityTool[] = [
-  { label: "Mới về", href: "/collections/new", icon: "bi-bag-heart", sub: "New drops" },
-  { label: "Quà tặng", href: "/collections/gifts", icon: "bi-gift", sub: "Gift zone" },
-  { label: "Decor", href: "/collections/decor", icon: "bi-house-heart", sub: "Home mood" },
-  { label: "Beauty", href: "/collections/beauty", icon: "bi-stars", sub: "Best picks" },
-  { label: "Voucher", href: "/promotions", icon: "bi-ticket-perforated", sub: "Save more" },
-  { label: "Yêu thích", href: "/wishlist", icon: "bi-heart", sub: "Wishlist" },
+  { label: "New Arrivals", href: "/collections/new", icon: "bi-bag-heart", sub: "Fresh drops" },
+  { label: "Gift Studio", href: "/collections/gifts", icon: "bi-gift", sub: "Curated gifting" },
+  { label: "Home Decor", href: "/collections/decor", icon: "bi-house-heart", sub: "Interior mood" },
+  { label: "Beauty Edit", href: "/collections/beauty", icon: "bi-stars", sub: "Top selections" },
+  { label: "Offers", href: "/promotions", icon: "bi-ticket-perforated", sub: "Smart savings" },
+  { label: "Wishlist", href: "/wishlist", icon: "bi-heart", sub: "Saved favorites" },
 ];
 
 const DEFAULT_CARDS: HeroUtilityCard[] = [
   {
-    title: "Quà xinh",
-    sub: "Món nhỏ đáng yêu cho người bạn thương",
+    title: "Gift Sets",
+    sub: "Premium gifting with thoughtful presentation",
     href: "/collections/gifts",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-heart",
     tone: "rose",
   },
   {
-    title: "Decor nhẹ",
-    sub: "Trang trí mềm, sáng và thơ hơn",
+    title: "Home Styling",
+    sub: "Soft, modern accents for elevated spaces",
     href: "/collections/decor",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-house-heart",
     tone: "pearl",
   },
   {
-    title: "Beauty pick",
-    sub: "Những món được chọn nhiều trong tuần",
+    title: "Beauty Essentials",
+    sub: "Weekly bestsellers trusted by customers",
     href: "/collections/beauty",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-stars",
@@ -148,10 +148,10 @@ const DEFAULT_CARDS: HeroUtilityCard[] = [
 ];
 
 const DEFAULT_STATS: HeroUtilityStat[] = [
-  { label: "Bộ sưu tập mới", value: "128+", icon: "bi-stars", href: "/collections/new" },
-  { label: "Mã ưu đãi", value: "32", icon: "bi-ticket-perforated", href: "/promotions" },
-  { label: "Shop xinh", value: "240", icon: "bi-shop", href: "/shops" },
-  { label: "Đơn nổi bật", value: "96", icon: "bi-box-seam", href: "/orders" },
+  { label: "New collections", value: "128+", icon: "bi-stars", href: "/collections/new" },
+  { label: "Active offers", value: "32", icon: "bi-ticket-perforated", href: "/promotions" },
+  { label: "Trusted shops", value: "240", icon: "bi-shop", href: "/shops" },
+  { label: "Featured orders", value: "96", icon: "bi-box-seam", href: "/orders" },
 ];
 
 /* ================= Helpers ================= */
@@ -318,9 +318,12 @@ export function HeroUtility({
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
 
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current + 1) % totalSlides);
-    }, Math.max(2500, autoMs));
+    const intervalId = window.setInterval(
+      () => {
+        setActiveSlideIndex((current) => (current + 1) % totalSlides);
+      },
+      Math.max(2500, autoMs),
+    );
 
     return () => {
       window.clearInterval(intervalId);
@@ -347,45 +350,51 @@ export function HeroUtility({
   const cardItems = useMemo(() => cards.slice(0, 3), [cards]);
   const statItems = useMemo(() => stats.slice(0, 4), [stats]);
 
-  const renderNavTarget = (href: string, className: string, content: React.ReactNode) => {
+  const renderNavTarget = (href: string, className: string, content: React.ReactNode, ariaLabel?: string) => {
     if (preview) {
       return (
-        <a href="#" onClick={handlePreviewBlockClick} className={className}>
+        <a href="#" onClick={handlePreviewBlockClick} className={className} aria-label={ariaLabel}>
           {content}
         </a>
       );
     }
 
     return (
-      <Link href={(href || "/") as Route} className={className}>
+      <Link href={(href || "/") as Route} className={className} aria-label={ariaLabel}>
         {content}
       </Link>
     );
   };
 
   return (
-    <section className={cls.hero} aria-label="Hero Utility">
+    <section className={cls.hero} aria-label="Hero Utility promotional section">
       <div className={cls.shell}>
-        <aside className={cls.sidebar} aria-label="Danh mục sản phẩm">
+        <aside className={cls.sidebar} aria-label="Product categories">
           <div className={cls.sidebarPanel}>
             <div className={cls.sidebarHead}>
-              <span className={cls.sidebarTitle}>Danh mục</span>
+              <span className={cls.sidebarEyebrow}>Browse</span>
+              <h2 className={cls.sidebarTitle}>Categories</h2>
             </div>
 
             <ul className={cls.categoryList}>
               {categoryItems.length === 0 ? (
-                <li className={cls.categoryEmpty}>
-                  <div className={cls.categoryEmptyIcon}>
+                <li className={cls.categoryEmpty} aria-live="polite">
+                  <div className={cls.categoryEmptyIcon} aria-hidden="true">
                     <i className="bi bi-grid-3x3-gap" />
                   </div>
-                  <div className={cls.categoryEmptyTitle}>Chưa có danh mục</div>
-                  <div className={cls.categoryEmptySub}>Danh mục sẽ hiển thị khi API trả dữ liệu.</div>
+                  <div className={cls.categoryEmptyTitle}>No categories yet</div>
+                  <div className={cls.categoryEmptySub}>Categories will appear here once the API returns data.</div>
                 </li>
               ) : (
                 categoryItems.map((category) => {
                   const content = (
                     <>
-                      <span className={cls.categoryName}>{category.name}</span>
+                      <span className={cls.categoryLeft}>
+                        <span className={cls.categoryIcon} aria-hidden="true">
+                          <i className={`bi ${ensureBootstrapIcon(category.icon)}`} />
+                        </span>
+                        <span className={cls.categoryName}>{category.name}</span>
+                      </span>
                       <span className={cls.categoryMeta}>{formatCategoryCount(category.count)}</span>
                     </>
                   );
@@ -393,11 +402,20 @@ export function HeroUtility({
                   return (
                     <li key={category.id} className={cls.categoryItem}>
                       {preview ? (
-                        <a href="#" onClick={handlePreviewBlockClick} className={cls.categoryLink}>
+                        <a
+                          href="#"
+                          onClick={handlePreviewBlockClick}
+                          className={cls.categoryLink}
+                          aria-label={`Open ${category.name} category`}
+                        >
                           {content}
                         </a>
                       ) : (
-                        <Link href={`${normalizedBasePath}/${category.slug}` as Route} className={cls.categoryLink}>
+                        <Link
+                          href={`${normalizedBasePath}/${category.slug}` as Route}
+                          className={cls.categoryLink}
+                          aria-label={`Open ${category.name} category`}
+                        >
                           {content}
                         </Link>
                       )}
@@ -410,28 +428,6 @@ export function HeroUtility({
         </aside>
 
         <div className={cls.contentCol}>
-          <div className={cls.statsRow}>
-            {statItems.map((item, index) => {
-              const content = (
-                <>
-                  <span className={cls.statIcon}>
-                    <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
-                  </span>
-                  <div className={cls.statText}>
-                    <div className={cls.statValue}>{item.value}</div>
-                    <div className={cls.statLabel}>{item.label}</div>
-                  </div>
-                </>
-              );
-
-              return (
-                <React.Fragment key={`${item.href || item.label}-${index}`}>
-                  {renderNavTarget(item.href || "/", cls.statCard, content)}
-                </React.Fragment>
-              );
-            })}
-          </div>
-
           <div className={cls.mainGrid}>
             <div className={cls.heroBlock}>
               <div
@@ -442,17 +438,35 @@ export function HeroUtility({
                 onBlurCapture={() => setPaused(false)}
               >
                 <div className={cls.infoPanel}>
-                  <div className={cls.heroBadge}>{currentSlide?.badge || "triều mến"}</div>
-                  <h2 className={cls.heroTitle}>{currentSlide?.title || "Góc mua sắm dịu dàng"}</h2>
-                  <p className={cls.heroSub}>
-                    {currentSlide?.sub || "Thiết kế utility layout thiên về tiện ích, điều hướng nhanh và cảm giác mềm mại."}
-                  </p>
+                  <div className={cls.copySurface}>
+                    <div className={cls.heroBadge}>{currentSlide?.badge || "featured"}</div>
+                    <h1 className={cls.heroTitle}>
+                      {currentSlide?.title || "Modern beauty, curated for daily ritual"}
+                    </h1>
+                    <p className={cls.heroSub}>
+                      {currentSlide?.sub ||
+                        "A utility-focused hero layout built for quick navigation, stronger trust, and a clean premium browsing experience."}
+                    </p>
 
-                  <div className={cls.toolGrid}>
+                    <div className={cls.heroActions}>
+                      {renderNavTarget(
+                        currentSlide?.href || "/",
+                        cls.primaryCta,
+                        <>
+                          Shop now
+                          <i className="bi bi-arrow-up-right" aria-hidden="true" />
+                        </>,
+                        "Shop the featured collection",
+                      )}
+                      {renderNavTarget("/collections/new", cls.secondaryCta, <>New arrivals</>, "See new arrivals")}
+                    </div>
+                  </div>
+
+                  <div className={cls.toolGrid} aria-label="Quick shopping tools">
                     {toolItems.map((item, index) => {
                       const content = (
                         <>
-                          <span className={cls.toolIcon}>
+                          <span className={cls.toolIcon} aria-hidden="true">
                             <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
                           </span>
                           <span className={cls.toolMeta}>
@@ -464,7 +478,7 @@ export function HeroUtility({
 
                       return (
                         <React.Fragment key={`${item.href}-${index}`}>
-                          {renderNavTarget(item.href, cls.toolItem, content)}
+                          {renderNavTarget(item.href, cls.toolItem, content, `Open ${item.label}`)}
                         </React.Fragment>
                       );
                     })}
@@ -472,48 +486,68 @@ export function HeroUtility({
                 </div>
 
                 <div className={cls.visualPanel}>
-                  <div className={cls.sliderViewport}>
+                  <div className={cls.mediaFrame}>
                     <div
-                      className={cls.sliderRail}
-                      style={{ transform: `translate3d(-${activeSlideIndex * 100}%, 0, 0)` }}
+                      className={cls.sliderViewport}
+                      aria-roledescription="carousel"
+                      aria-label="Featured utility promotions"
                     >
-                      {slides.map((slide, index) => {
-                        const slideContent = (
-                          <article
-                            key={`${slide.href}-${index}`}
-                            className={cls.slide}
-                            aria-hidden={index !== activeSlideIndex}
-                            style={{ background: slide.bg || undefined }}
-                          >
-                            <div className={cls.slideGlow} />
-                            <div className={cls.slideMedia}>
-                              <Image
-                                src={slide.imageSrc}
-                                alt={slide.alt || "Hero utility banner"}
-                                fill
-                                sizes="(max-width: 1024px) 100vw, 34vw"
-                                className={cls.slideImage}
-                                priority={index === 0}
-                              />
-                            </div>
-                          </article>
-                        );
+                      <div
+                        className={cls.sliderRail}
+                        style={{ transform: `translate3d(-${activeSlideIndex * 100}%, 0, 0)` }}
+                      >
+                        {slides.map((slide, index) => {
+                          const slideContent = (
+                            <article
+                              key={`${slide.href}-${index}`}
+                              className={cls.slide}
+                              aria-hidden={index !== activeSlideIndex}
+                              aria-label={slide.title || `Slide ${index + 1}`}
+                              style={{ background: slide.bg || undefined }}
+                            >
+                              <div className={cls.slideAura} aria-hidden="true" />
+                              <div className={cls.slideMedia}>
+                                <Image
+                                  src={slide.imageSrc}
+                                  alt={slide.alt || slide.title || "Featured utility banner"}
+                                  fill
+                                  sizes="(max-width: 1024px) 100vw, 42vw"
+                                  className={cls.slideImage}
+                                  priority={index === 0}
+                                />
+                              </div>
+                            </article>
+                          );
 
-                        return preview ? (
-                          <a
-                            key={`${slide.href}-${index}`}
-                            href="#"
-                            onClick={handlePreviewBlockClick}
-                            className={cls.slideLink}
-                          >
-                            {slideContent}
-                          </a>
-                        ) : (
-                          <Link key={`${slide.href}-${index}`} href={(slide.href || "/") as Route} className={cls.slideLink}>
-                            {slideContent}
-                          </Link>
-                        );
-                      })}
+                          return preview ? (
+                            <a
+                              key={`${slide.href}-${index}`}
+                              href="#"
+                              onClick={handlePreviewBlockClick}
+                              className={cls.slideLink}
+                              aria-label={`Open ${slide.title || `slide ${index + 1}`}`}
+                            >
+                              {slideContent}
+                            </a>
+                          ) : (
+                            <Link
+                              key={`${slide.href}-${index}`}
+                              href={(slide.href || "/") as Route}
+                              className={cls.slideLink}
+                              aria-label={`Open ${slide.title || `slide ${index + 1}`}`}
+                            >
+                              {slideContent}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className={cls.previewMeta} aria-label="Featured shopping note">
+                      <span className={cls.previewTag}>Editor&apos;s pick</span>
+                      <p className={cls.previewText}>
+                        Built for premium commerce, faster discovery, and a cleaner 2026 visual rhythm.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -521,19 +555,19 @@ export function HeroUtility({
                 <button
                   type="button"
                   className={`${cls.arrowBtn} ${cls.arrowPrev}`}
-                  aria-label="Previous slide"
+                  aria-label="Show previous slide"
                   onClick={goToPreviousSlide}
                 >
-                  <i className="bi bi-chevron-left" />
+                  <i className="bi bi-arrow-left" aria-hidden="true" />
                 </button>
 
                 <button
                   type="button"
                   className={`${cls.arrowBtn} ${cls.arrowNext}`}
-                  aria-label="Next slide"
+                  aria-label="Show next slide"
                   onClick={goToNextSlide}
                 >
-                  <i className="bi bi-chevron-right" />
+                  <i className="bi bi-arrow-right" aria-hidden="true" />
                 </button>
 
                 <div className={cls.heroDots} role="tablist" aria-label="Slide navigation">
@@ -542,7 +576,8 @@ export function HeroUtility({
                       key={`${slide.href}-${index}`}
                       type="button"
                       className={`${cls.heroDot} ${index === activeSlideIndex ? cls.heroDotActive : ""}`}
-                      aria-label={`Go to slide ${index + 1}`}
+                      role="tab"
+                      aria-label={`Show ${slide.title || `slide ${index + 1}`}`}
                       aria-selected={index === activeSlideIndex}
                       onClick={() => goToSlide(index)}
                     />
@@ -550,12 +585,12 @@ export function HeroUtility({
                 </div>
               </div>
 
-              <div className={cls.cardGrid}>
+              <div className={cls.cardGrid} aria-label="Featured shopping cards">
                 {cardItems.map((card, index) => {
                   const content = (
                     <>
                       <div className={cls.cardCopy}>
-                        <span className={cls.cardIcon}>
+                        <span className={cls.cardIcon} aria-hidden="true">
                           <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
                         </span>
                         <div className={cls.cardTitle}>{card.title}</div>
@@ -566,13 +601,13 @@ export function HeroUtility({
                         {card.imageSrc ? (
                           <Image
                             src={card.imageSrc}
-                            alt=""
+                            alt={card.title}
                             fill
-                            sizes="(max-width: 1024px) 100vw, 14vw"
+                            sizes="(max-width: 1024px) 100vw, 16vw"
                             className={cls.cardImage}
                           />
                         ) : (
-                          <div className={cls.cardFallback}>
+                          <div className={cls.cardFallback} aria-hidden="true">
                             <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
                           </div>
                         )}
@@ -582,7 +617,12 @@ export function HeroUtility({
 
                   return (
                     <React.Fragment key={`${card.href}-${index}`}>
-                      {renderNavTarget(card.href, `${cls.card} ${resolveToneClass(card.tone)}`, content)}
+                      {renderNavTarget(
+                        card.href,
+                        `${cls.card} ${resolveToneClass(card.tone)}`,
+                        content,
+                        `Open ${card.title}`,
+                      )}
                     </React.Fragment>
                   );
                 })}

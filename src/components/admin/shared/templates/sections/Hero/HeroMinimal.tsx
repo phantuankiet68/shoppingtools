@@ -71,45 +71,45 @@ const DEFAULT_SLIDES: HeroMinimalSlide[] = [
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/new",
-    alt: "Minimal romantic banner",
-    bg: "linear-gradient(135deg, #fff0f5 0%, #fff7fa 50%, #ffffff 100%)",
+    alt: "Luxury skincare collection",
+    bg: "linear-gradient(135deg, #f8f2ef 0%, #f6f0ec 45%, #f9f7f5 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/gifts",
-    alt: "Minimal gift banner",
-    bg: "linear-gradient(135deg, #fff3ee 0%, #fff8f5 50%, #ffffff 100%)",
+    alt: "Elegant gift collection",
+    bg: "linear-gradient(135deg, #f4ece8 0%, #f8f5f3 50%, #fbf9f7 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/decor",
-    alt: "Minimal decor banner",
-    bg: "linear-gradient(135deg, #f7f1ff 0%, #fcf8ff 50%, #ffffff 100%)",
+    alt: "Premium beauty essentials",
+    bg: "linear-gradient(135deg, #efeae7 0%, #f8f5f2 55%, #fcfbfa 100%)",
   },
 ];
 
 const DEFAULT_CARDS: HeroMinimalCard[] = [
   {
-    title: "Quà xinh",
-    sub: "Chọn nhanh những món dịu dàng",
+    title: "Lovely Gifts",
+    sub: "Thoughtful selections curated for elegant moments",
     href: "/collections/gifts",
     imageSrc: "/assets/images/product.jpg",
     tone: "rose",
     icon: "bi-heart",
   },
   {
-    title: "Góc decor",
-    sub: "Nhẹ nhàng và tinh tế mỗi ngày",
+    title: "Decor Corner",
+    sub: "Refined pieces to elevate your daily atmosphere",
     href: "/collections/decor",
     imageSrc: "/assets/images/product.jpg",
     tone: "violet",
     icon: "bi-flower1",
   },
   {
-    title: "Beauty pick",
-    sub: "Các sản phẩm được yêu thích",
+    title: "Beauty Picks",
+    sub: "Best-selling essentials loved by returning customers",
     href: "/collections/beauty",
     imageSrc: "/assets/images/product.jpg",
     tone: "sand",
@@ -118,12 +118,12 @@ const DEFAULT_CARDS: HeroMinimalCard[] = [
 ];
 
 const DEFAULT_PILLS: HeroMinimalPill[] = [
-  { label: "Mới về", href: "/collections/new", icon: "bi-bag-heart" },
-  { label: "Quà tặng", href: "/collections/gifts", icon: "bi-gift" },
+  { label: "New Arrivals", href: "/collections/new", icon: "bi-bag-heart" },
+  { label: "Gift Ideas", href: "/collections/gifts", icon: "bi-gift" },
   { label: "Decor", href: "/collections/decor", icon: "bi-house-heart" },
-  { label: "Voucher", href: "/promotions", icon: "bi-ticket-perforated" },
-  { label: "Yêu thích", href: "/wishlist", icon: "bi-heart" },
-  { label: "Hỗ trợ", href: "/support", icon: "bi-chat-heart" },
+  { label: "Vouchers", href: "/promotions", icon: "bi-ticket-perforated" },
+  { label: "Wishlist", href: "/wishlist", icon: "bi-heart" },
+  { label: "Support", href: "/support", icon: "bi-chat-heart" },
 ];
 
 /* ================= Helpers ================= */
@@ -191,7 +191,7 @@ function formatCategoryCount(count: number): string {
   return `${count}`;
 }
 
-function resolveToneClass(tone?: HeroMinimalCard["tone"]): string {
+function resolveCardTone(tone?: HeroMinimalCard["tone"]): string {
   switch (tone) {
     case "pearl":
       return cls.cardTonePearl;
@@ -289,14 +289,20 @@ export function HeroMinimal({
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
 
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current + 1) % totalSlides);
-    }, Math.max(2500, autoMs));
+    const intervalId = window.setInterval(
+      () => {
+        setActiveSlideIndex((current) => (current + 1) % totalSlides);
+      },
+      Math.max(2500, autoMs),
+    );
 
-    return () => {
-      window.clearInterval(intervalId);
-    };
+    return () => window.clearInterval(intervalId);
   }, [paused, autoMs, totalSlides]);
+
+  const categoryItems = useMemo(() => (categories ?? []).slice(0, 7), [categories]);
+  const cardItems = useMemo(() => cards.slice(0, 3), [cards]);
+  const pillItems = useMemo(() => pills.slice(0, 6), [pills]);
+  const activeSlide = slides[activeSlideIndex] ?? DEFAULT_SLIDES[0];
 
   const handlePreviewBlockClick = (event: React.SyntheticEvent) => {
     if (!preview) return;
@@ -309,76 +315,78 @@ export function HeroMinimal({
     setActiveSlideIndex((targetIndex + totalSlides) % totalSlides);
   };
 
-  const goToPreviousSlide = () => goToSlide(activeSlideIndex - 1);
-  const goToNextSlide = () => goToSlide(activeSlideIndex + 1);
-
-  const categoryItems = useMemo(() => (categories ?? []).slice(0, 8), [categories]);
-  const cardItems = useMemo(() => cards.slice(0, 3), [cards]);
-  const pillItems = useMemo(() => pills.slice(0, 6), [pills]);
-
-  const renderNavTarget = (href: string, className: string, content: React.ReactNode) => {
+  const renderNavTarget = (href: string, className: string, content: React.ReactNode, ariaLabel?: string) => {
     if (preview) {
       return (
-        <a href="#" onClick={handlePreviewBlockClick} className={className}>
+        <a href="#" onClick={handlePreviewBlockClick} className={className} aria-label={ariaLabel}>
           {content}
         </a>
       );
     }
 
     return (
-      <Link href={(href || "/") as Route} className={className}>
+      <Link href={(href || "/") as Route} className={className} aria-label={ariaLabel}>
         {content}
       </Link>
     );
   };
 
   return (
-    <section className={cls.hero} aria-label="Hero Minimal">
-      <div className={cls.shell}>
-        <aside className={cls.sidebar} aria-label="Danh mục sản phẩm">
-          <div className={cls.sidebarPanel}>
-            <div className={cls.sidebarHead}>
-              <span className={cls.sidebarTitle}>Danh mục</span>
-            </div>
+    <section className={cls.hero} aria-label="Hero minimal premium section">
+      <div className={cls.frame}>
+        <aside className={cls.sidebar} aria-label="Product categories">
+          <div className={cls.cardGrid}>
+            {cardItems.map((card, index) => (
+              <React.Fragment key={`${card.href}-${index}`}>
+                {renderNavTarget(
+                  card.href,
+                  `${cls.card} ${resolveCardTone(card.tone)}`,
+                  <>
+                    <div className={cls.cardBody}>
+                      <div className={cls.cardHead}>
+                        <span className={cls.cardIcon}>
+                          <i className={`bi ${ensureBootstrapIcon(card.icon)}`} aria-hidden="true" />
+                        </span>
+                        <span className={cls.cardEyebrow}>Curated pick</span>
+                      </div>
 
-            <ul className={cls.categoryList}>
-              {categoryItems.length === 0 ? (
-                <li className={cls.categoryEmpty}>
-                  <div className={cls.categoryEmptyIcon}>
-                    <i className="bi bi-grid-3x3-gap" />
-                  </div>
-                  <div className={cls.categoryEmptyTitle}>Chưa có danh mục</div>
-                  <div className={cls.categoryEmptySub}>Danh mục sẽ hiển thị khi API trả dữ liệu.</div>
-                </li>
-              ) : (
-                categoryItems.map((category) => {
-                  const content = (
-                    <>
-                      <span className={cls.categoryName}>{category.name}</span>
-                      <span className={cls.categoryMeta}>{formatCategoryCount(category.count)}</span>
-                    </>
-                  );
+                      <div className={cls.cardCopy}>
+                        <h3 className={cls.cardTitle}>{card.title}</h3>
+                        {card.sub ? <p className={cls.cardSub}>{card.sub}</p> : null}
+                      </div>
 
-                  return (
-                    <li key={category.id} className={cls.categoryItem}>
-                      {preview ? (
-                        <a href="#" onClick={handlePreviewBlockClick} className={cls.categoryLink}>
-                          {content}
-                        </a>
+                      <div className={cls.cardFooter}>
+                        <span className={cls.cardCta}>
+                          Discover now
+                          <i className="bi bi-arrow-right" aria-hidden="true" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={cls.cardMedia}>
+                      {card.imageSrc ? (
+                        <Image
+                          src={card.imageSrc}
+                          alt={card.title}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 20vw"
+                          className={cls.cardImage}
+                        />
                       ) : (
-                        <Link href={`${normalizedBasePath}/${category.slug}` as Route} className={cls.categoryLink}>
-                          {content}
-                        </Link>
+                        <div className={cls.cardFallback}>
+                          <i className={`bi ${ensureBootstrapIcon(card.icon)}`} aria-hidden="true" />
+                        </div>
                       )}
-                    </li>
-                  );
-                })
-              )}
-            </ul>
+                      <div className={cls.cardMediaOverlay} />
+                    </div>
+                  </>,
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </aside>
 
-        <div className={cls.contentCol}>
+        <div className={cls.mainCol}>
           <div
             className={cls.heroMain}
             onMouseEnter={() => setPaused(true)}
@@ -387,29 +395,26 @@ export function HeroMinimal({
             onBlurCapture={() => setPaused(false)}
           >
             <div className={cls.sliderViewport}>
-              <div
-                className={cls.sliderRail}
-                style={{ transform: `translate3d(-${activeSlideIndex * 100}%, 0, 0)` }}
-              >
+              <div className={cls.sliderRail} style={{ transform: `translate3d(-${activeSlideIndex * 100}%, 0, 0)` }}>
                 {slides.map((slide, index) => {
-                  const slideContent = (
+                  const slideNode = (
                     <article
                       key={`${slide.href}-${index}`}
                       className={cls.slide}
                       aria-hidden={index !== activeSlideIndex}
                       style={{ background: slide.bg || undefined }}
                     >
-                      <div className={cls.slideGlow} />
                       <div className={cls.slideMedia}>
                         <Image
                           src={slide.imageSrc}
-                          alt={slide.alt || "Hero minimal banner"}
+                          alt={slide.alt || "Hero banner"}
                           fill
-                          sizes="(max-width: 1024px) 100vw, 64vw"
-                          className={cls.slideImage}
                           priority={index === 0}
+                          sizes="(max-width: 1024px) 100vw, 70vw"
+                          className={cls.slideImage}
                         />
                       </div>
+                      <div className={cls.slideOverlay} />
                     </article>
                   );
 
@@ -419,108 +424,124 @@ export function HeroMinimal({
                       href="#"
                       onClick={handlePreviewBlockClick}
                       className={cls.slideLink}
+                      aria-label={slide.alt || `Go to slide ${index + 1}`}
                     >
-                      {slideContent}
+                      {slideNode}
                     </a>
                   ) : (
-                    <Link key={`${slide.href}-${index}`} href={(slide.href || "/") as Route} className={cls.slideLink}>
-                      {slideContent}
+                    <Link
+                      key={`${slide.href}-${index}`}
+                      href={(slide.href || "/") as Route}
+                      className={cls.slideLink}
+                      aria-label={slide.alt || `Go to slide ${index + 1}`}
+                    >
+                      {slideNode}
                     </Link>
                   );
                 })}
               </div>
-            </div>
 
-            <button
-              type="button"
-              className={`${cls.arrowBtn} ${cls.arrowPrev}`}
-              aria-label="Previous slide"
-              onClick={goToPreviousSlide}
-            >
-              <i className="bi bi-chevron-left" />
-            </button>
+              <div className={cls.heroContent}>
+                <div className={cls.heroBadge}>Modern Beauty Edit</div>
+                <h1 className={cls.heroTitle}>A fresher, more premium storefront experience.</h1>
+                <p className={cls.heroText}>
+                  Minimal, elegant, and conversion-friendly — designed to make your hero section feel like a real brand.
+                </p>
 
-            <button
-              type="button"
-              className={`${cls.arrowBtn} ${cls.arrowNext}`}
-              aria-label="Next slide"
-              onClick={goToNextSlide}
-            >
-              <i className="bi bi-chevron-right" />
-            </button>
-
-            <div className={cls.heroDots} role="tablist" aria-label="Slide navigation">
-              {slides.map((slide, index) => (
-                <button
-                  key={`${slide.href}-${index}`}
-                  type="button"
-                  className={`${cls.heroDot} ${index === activeSlideIndex ? cls.heroDotActive : ""}`}
-                  aria-label={`Go to slide ${index + 1}`}
-                  aria-selected={index === activeSlideIndex}
-                  onClick={() => goToSlide(index)}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className={cls.bottomRow}>
-            <div className={cls.cardGrid}>
-              {cardItems.map((card, index) => {
-                const content = (
-                  <>
-                    <div className={cls.cardCopy}>
-                      <span className={cls.cardIcon}>
-                        <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
-                      </span>
-                      <div className={cls.cardTitle}>{card.title}</div>
-                      {card.sub ? <div className={cls.cardSub}>{card.sub}</div> : null}
-                    </div>
-
-                    <div className={cls.cardMedia}>
-                      {card.imageSrc ? (
-                        <Image
-                          src={card.imageSrc}
-                          alt=""
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 14vw"
-                          className={cls.cardImage}
-                        />
-                      ) : (
-                        <div className={cls.cardFallback}>
-                          <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
-                        </div>
-                      )}
-                    </div>
-                  </>
-                );
-
-                return (
-                  <React.Fragment key={`${card.href}-${index}`}>
-                    {renderNavTarget(card.href, `${cls.card} ${resolveToneClass(card.tone)}`, content)}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-
-            <div className={cls.pillPanel}>
-              <div className={cls.pillPanelTitle}>Lối tắt</div>
-              <div className={cls.pillGrid}>
-                {pillItems.map((pill, index) => {
-                  const content = (
+                <div className={cls.heroActions}>
+                  {renderNavTarget(
+                    activeSlide?.href || "/collections/new",
+                    cls.primaryAction,
                     <>
-                      <span className={cls.pillIcon}>
-                        <i className={`bi ${ensureBootstrapIcon(pill.icon)}`} />
-                      </span>
-                      <span className={cls.pillLabel}>{pill.label}</span>
-                    </>
-                  );
+                      Shop now <i className="bi bi-arrow-up-right" aria-hidden="true" />
+                    </>,
+                  )}
+                  {renderNavTarget(
+                    "/collections/all",
+                    cls.secondaryAction,
+                    <>
+                      Explore all <i className="bi bi-grid" aria-hidden="true" />
+                    </>,
+                  )}
+                </div>
 
-                  return (
-                    <React.Fragment key={`${pill.href}-${index}`}>
-                      {renderNavTarget(pill.href, cls.pill, content)}
-                    </React.Fragment>
-                  );
-                })}
+                <div className={cls.heroMeta}>
+                  <div className={cls.metaItem}>
+                    <span className={cls.metaValue}>03</span>
+                    <span className={cls.metaLabel}>Featured stories</span>
+                  </div>
+                  <div className={cls.metaDivider} />
+                  <div className={cls.metaItem}>
+                    <span className={cls.metaValue}>24h</span>
+                    <span className={cls.metaLabel}>Trend refresh</span>
+                  </div>
+                  <div className={cls.metaDivider} />
+                  <div className={cls.metaItem}>
+                    <span className={cls.metaValue}>Premium</span>
+                    <span className={cls.metaLabel}>Visual language</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={cls.controls}>
+                <button
+                  type="button"
+                  className={cls.arrowBtn}
+                  aria-label="Previous slide"
+                  onClick={() => goToSlide(activeSlideIndex - 1)}
+                >
+                  <i className="bi bi-arrow-left" aria-hidden="true" />
+                </button>
+
+                <div className={cls.heroDots} role="tablist" aria-label="Slide navigation">
+                  {slides.map((slide, index) => (
+                    <button
+                      key={`${slide.href}-${index}`}
+                      type="button"
+                      className={`${cls.heroDot} ${index === activeSlideIndex ? cls.heroDotActive : ""}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                      aria-selected={index === activeSlideIndex}
+                      onClick={() => goToSlide(index)}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className={cls.arrowBtn}
+                  aria-label="Next slide"
+                  onClick={() => goToSlide(activeSlideIndex + 1)}
+                >
+                  <i className="bi bi-arrow-right" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div className={cls.quickPanel}>
+              <div className={cls.quickPanelHead}>
+                <div>
+                  <div className={cls.quickLabel}>Quick access</div>
+                  <div className={cls.quickTitle}>Popular links</div>
+                </div>
+                <span className={cls.quickChip}>Hot</span>
+              </div>
+
+              <div className={cls.pillGrid}>
+                {pillItems.map((pill, index) => (
+                  <React.Fragment key={`${pill.href}-${index}`}>
+                    {renderNavTarget(
+                      pill.href,
+                      cls.pill,
+                      <>
+                        <span className={cls.pillIcon}>
+                          <i className={`bi ${ensureBootstrapIcon(pill.icon)}`} aria-hidden="true" />
+                        </span>
+                        <span className={cls.pillLabel}>{pill.label}</span>
+                        <i className={`bi bi-arrow-up-right ${cls.pillArrow}`} aria-hidden="true" />
+                      </>,
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
             </div>
           </div>
@@ -557,9 +578,9 @@ export const SHOP_HERO_MINIMAL: RegItem = {
     { key: "pills", label: "Pills (JSON)", kind: "textarea", rows: 10 },
   ],
   render: (props) => {
-    const slides = safeJsonParse<HeroMinimalSlide[]>(props.slides);
-    const cards = safeJsonParse<HeroMinimalCard[]>(props.cards);
-    const pills = safeJsonParse<HeroMinimalPill[]>(props.pills);
+    const slides = safeJsonParse<HeroMinimalSlide[]>(props.slides) ?? DEFAULT_SLIDES;
+    const cards = safeJsonParse<HeroMinimalCard[]>(props.cards) ?? DEFAULT_CARDS;
+    const pills = safeJsonParse<HeroMinimalPill[]>(props.pills) ?? DEFAULT_PILLS;
 
     const siteId = toStringValue(props.siteId, "sitea01").trim() || "sitea01";
     const categoryApiPath = toStringValue(props.categoryApiPath, "/api/v1/categories").trim() || "/api/v1/categories";

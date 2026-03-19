@@ -81,7 +81,7 @@ const DEFAULT_SLIDES: HeroClassicSlide[] = [
     chips: ["New Deals", "Fast Delivery", "Best Price"],
     imageSrc: "/assets/images/product.jpg",
     imageSrcList: ["/assets/images/product.jpg", "/assets/images/product.jpg", "/assets/images/product.jpg"],
-    bg: "linear-gradient(135deg, #7cc7ff 0%, #8dd7ff 28%, #c6ecff 62%, #f3fbff 100%)",
+    bg: "linear-gradient(135deg, rgb(214 223 255) 0%, rgb(251 219 255) 55%, rgb(255, 188, 198) 100%)",
   },
   {
     headline: "Mega Sale\nDeals Every Day",
@@ -91,7 +91,7 @@ const DEFAULT_SLIDES: HeroClassicSlide[] = [
     chips: ["Flash Sale", "Best Seller", "Voucher"],
     imageSrc: "/assets/images/product.jpg",
     imageSrcList: ["/assets/images/product.jpg", "/assets/images/product.jpg", "/assets/images/product.jpg"],
-    bg: "linear-gradient(135deg, #8cc8ff 0%, #72b8ff 38%, #a8dbff 68%, #f5fbff 100%)",
+    bg: "linear-gradient(135deg, rgb(140, 200, 255) 0%, rgb(173 214 255) 38%, rgb(168, 219, 255) 68%, rgb(245, 251, 255) 100%)",
   },
   {
     headline: "Shopping\nMarketplace Style",
@@ -101,7 +101,7 @@ const DEFAULT_SLIDES: HeroClassicSlide[] = [
     chips: ["Hot Trend", "Trusted Shop", "Fast Checkout"],
     imageSrc: "/assets/images/product.jpg",
     imageSrcList: ["/assets/images/product.jpg", "/assets/images/product.jpg", "/assets/images/product.jpg"],
-    bg: "linear-gradient(135deg, #89c4ff 0%, #7fd0ff 35%, #bee8ff 72%, #f7fcff 100%)",
+    bg: "linear-gradient(135deg, rgb(255 219 137) 0%, rgb(254 145 145) 35%, rgb(190, 232, 255) 72%, rgb(247, 252, 255) 100%)",
   },
 ];
 
@@ -385,17 +385,17 @@ export function HeroClassic({
     [],
   );
 
-  const renderNavTarget = (href: string, className: string, content: React.ReactNode) => {
+  const renderNavTarget = (key: React.Key, href: string, className: string, content: React.ReactNode) => {
     if (preview) {
       return (
-        <a href="#" onClick={handlePreviewBlockClick} className={className}>
+        <a key={key} href="#" onClick={handlePreviewBlockClick} className={className}>
           {content}
         </a>
       );
     }
 
     return (
-      <Link href={(href || "/") as Route} className={className}>
+      <Link key={key} href={(href || "/") as Route} className={className}>
         {content}
       </Link>
     );
@@ -482,8 +482,8 @@ export function HeroClassic({
 
                       {!!currentSlide?.chips?.length && (
                         <div className={cls.heroChips}>
-                          {currentSlide.chips.map((chip) => (
-                            <span key={chip} className={cls.heroChip}>
+                          {currentSlide.chips.map((chip, chipIndex) => (
+                            <span key={`${chip}-${chipIndex}`} className={cls.heroChip}>
                               {chip}
                             </span>
                           ))}
@@ -559,28 +559,26 @@ export function HeroClassic({
                       const promo = promos[index] ?? promos[0];
 
                       const content = (
-                        <>
-                          <div className={cls.dealCardInner}>
-                            <div className={cls.dealBody}>
-                              <div className={cls.dealBadge}>{promo?.off}</div>
-                              <div className={cls.dealTitle}>{promo?.title}</div>
-                              <div className={cls.dealSub}>{promo?.sub}</div>
-                            </div>
-
-                            <div className={cls.dealThumbWrap}>
-                              <Image
-                                src={slideImage}
-                                alt=""
-                                fill
-                                sizes="(max-width: 1024px) 100vw, 18vw"
-                                className={cls.dealImage}
-                              />
-                            </div>
+                        <div className={cls.dealCardInner}>
+                          <div className={cls.dealBody}>
+                            <div className={cls.dealBadge}>{promo?.off}</div>
+                            <div className={cls.dealTitle}>{promo?.title}</div>
+                            <div className={cls.dealSub}>{promo?.sub}</div>
                           </div>
-                        </>
+
+                          <div className={cls.dealThumbWrap}>
+                            <Image
+                              src={slideImage}
+                              alt=""
+                              fill
+                              sizes="(max-width: 1024px) 100vw, 18vw"
+                              className={cls.dealImage}
+                            />
+                          </div>
+                        </div>
                       );
 
-                      return renderNavTarget(promo?.href || "/", cls.dealCard, content);
+                      return renderNavTarget(promo?.href || `/${index}`, promo?.href || "/", cls.dealCard, content);
                     })}
                   </div>
                 </div>
@@ -640,6 +638,7 @@ export function HeroClassic({
                   ))}
                 </div>
               </div>
+
               <div className={cls.paymentCard}>
                 <div className={cls.paymentTitle}>{visibleBotBanners[0]?.title || "International Payments"}</div>
                 <div className={cls.paymentSub}>{visibleBotBanners[0]?.sub}</div>
@@ -690,9 +689,9 @@ export const SHOP_HERO_CLASSIC: RegItem = {
     { key: "rightBanners", label: "Right banners (JSON)", kind: "textarea", rows: 10 },
   ],
   render: (props) => {
-    const slides = safeJsonParse<HeroClassicSlide[]>(props.slides);
-    const promos = safeJsonParse<HeroClassicPromo[]>(props.promos);
-    const rightBanners = safeJsonParse<HeroClassicBanner[]>(props.rightBanners);
+    const slides = safeJsonParse<HeroClassicSlide[]>(props.slides) ?? DEFAULT_SLIDES;
+    const promos = safeJsonParse<HeroClassicPromo[]>(props.promos) ?? DEFAULT_PROMOS;
+    const rightBanners = safeJsonParse<HeroClassicBanner[]>(props.rightBanners) ?? DEFAULT_RIGHT_BANNERS;
 
     const siteId = toStringValue(props.siteId, "sitea01").trim() || "sitea01";
     const categoryApiPath = toStringValue(props.categoryApiPath, "/api/v1/categories").trim() || "/api/v1/categories";

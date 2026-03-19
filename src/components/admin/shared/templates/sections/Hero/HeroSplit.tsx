@@ -82,29 +82,29 @@ const DEFAULT_SLIDES: HeroSplitSlide[] = [
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/new",
-    alt: "Soft split hero banner",
-    title: "Bộ sưu tập dịu dàng",
-    sub: "Gợi ý những món quà, decor và beauty theo phong cách triều mến.",
-    badge: "triều mến",
+    alt: "Soft lifestyle collection showcase",
+    title: "A softer way to shop",
+    sub: "Discover curated gifts, decor, and beauty picks with a gentle premium feel.",
+    badge: "new season",
     bg: "linear-gradient(135deg, #fff0f5 0%, #fff8fb 55%, #ffffff 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/gifts",
-    alt: "Soft gift banner",
-    title: "Quà xinh mỗi ngày",
-    sub: "Chọn nhanh các món quà tinh tế dành cho những dịp đặc biệt.",
-    badge: "gift pick",
+    alt: "Gift collection showcase",
+    title: "Thoughtful gifts, every day",
+    sub: "Find refined gift ideas for birthdays, celebrations, and meaningful moments.",
+    badge: "gift edit",
     bg: "linear-gradient(135deg, #fff3ec 0%, #fff9f6 55%, #ffffff 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/decor",
-    alt: "Soft decor banner",
-    title: "Góc nhà mềm mại",
-    sub: "Làm mới không gian sống với những món decor sáng và ấm.",
+    alt: "Home decor collection showcase",
+    title: "Refresh your living space",
+    sub: "Light, warm, and elegant decor pieces to bring calm energy into your home.",
     badge: "decor mood",
     bg: "linear-gradient(135deg, #f7f0ff 0%, #fcf8ff 55%, #ffffff 100%)",
   },
@@ -112,24 +112,24 @@ const DEFAULT_SLIDES: HeroSplitSlide[] = [
 
 const DEFAULT_CARDS: HeroSplitCard[] = [
   {
-    title: "Quà xinh",
-    sub: "Món nhỏ đáng yêu cho người bạn thương",
+    title: "Gift Picks",
+    sub: "Small meaningful finds for someone special",
     href: "/collections/gifts",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-heart",
     tone: "rose",
   },
   {
-    title: "Decor nhẹ",
-    sub: "Trang trí mềm, sáng, thơ hơn mỗi ngày",
+    title: "Soft Decor",
+    sub: "Brighten your home with a calm and elevated look",
     href: "/collections/decor",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-house-heart",
     tone: "pearl",
   },
   {
-    title: "Beauty pick",
-    sub: "Những món được chọn nhiều trong tuần",
+    title: "Beauty Edit",
+    sub: "Weekly favorites chosen by customers",
     href: "/collections/beauty",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-stars",
@@ -138,18 +138,18 @@ const DEFAULT_CARDS: HeroSplitCard[] = [
 ];
 
 const DEFAULT_QUICK_LINKS: HeroSplitQuickLink[] = [
-  { label: "Mới về", href: "/collections/new", icon: "bi-bag-heart" },
-  { label: "Quà tặng", href: "/collections/gifts", icon: "bi-gift" },
+  { label: "New In", href: "/collections/new", icon: "bi-bag-heart" },
+  { label: "Gifts", href: "/collections/gifts", icon: "bi-gift" },
   { label: "Decor", href: "/collections/decor", icon: "bi-flower1" },
   { label: "Beauty", href: "/collections/beauty", icon: "bi-droplet-heart" },
-  { label: "Voucher", href: "/promotions", icon: "bi-ticket-perforated" },
-  { label: "Yêu thích", href: "/wishlist", icon: "bi-heart" },
+  { label: "Promotions", href: "/promotions", icon: "bi-ticket-perforated" },
+  { label: "Wishlist", href: "/wishlist", icon: "bi-heart" },
 ];
 
 const DEFAULT_STATS: HeroSplitStat[] = [
-  { label: "Bộ sưu tập mới", value: "128+", icon: "bi-stars", href: "/collections/new" },
-  { label: "Mã ưu đãi", value: "32", icon: "bi-ticket-perforated", href: "/promotions" },
-  { label: "Shop xinh", value: "240", icon: "bi-shop", href: "/shops" },
+  { label: "New collections", value: "128+", icon: "bi-stars", href: "/collections/new" },
+  { label: "Active offers", value: "32", icon: "bi-ticket-perforated", href: "/promotions" },
+  { label: "Trusted shops", value: "240", icon: "bi-shop", href: "/shops" },
 ];
 
 /* ================= Helpers ================= */
@@ -316,9 +316,12 @@ export function HeroSplit({
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
 
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current + 1) % totalSlides);
-    }, Math.max(2500, autoMs));
+    const intervalId = window.setInterval(
+      () => {
+        setActiveSlideIndex((current) => (current + 1) % totalSlides);
+      },
+      Math.max(2500, autoMs),
+    );
 
     return () => {
       window.clearInterval(intervalId);
@@ -345,45 +348,52 @@ export function HeroSplit({
   const quickItems = useMemo(() => quickLinks.slice(0, 6), [quickLinks]);
   const statItems = useMemo(() => stats.slice(0, 3), [stats]);
 
-  const renderNavTarget = (href: string, className: string, content: React.ReactNode) => {
+  const renderNavTarget = (href: string, className: string, content: React.ReactNode, ariaLabel?: string) => {
     if (preview) {
       return (
-        <a href="#" onClick={handlePreviewBlockClick} className={className}>
+        <a href="#" onClick={handlePreviewBlockClick} className={className} aria-label={ariaLabel}>
           {content}
         </a>
       );
     }
 
     return (
-      <Link href={(href || "/") as Route} className={className}>
+      <Link href={(href || "/") as Route} className={className} aria-label={ariaLabel}>
         {content}
       </Link>
     );
   };
 
   return (
-    <section className={cls.hero} aria-label="Hero Split">
+    <section className={cls.hero} aria-label="Hero Split promotional section">
       <div className={cls.shell}>
-        <aside className={cls.sidebar} aria-label="Danh mục sản phẩm">
+        <aside className={cls.sidebar} aria-label="Product categories">
           <div className={cls.sidebarPanel}>
             <div className={cls.sidebarHead}>
-              <span className={cls.sidebarTitle}>Danh mục</span>
+              <span className={cls.sidebarEyebrow}>browse</span>
+              <h2 className={cls.sidebarTitle}>Categories</h2>
             </div>
 
             <ul className={cls.categoryList}>
               {categoryItems.length === 0 ? (
-                <li className={cls.categoryEmpty}>
-                  <div className={cls.categoryEmptyIcon}>
+                <li className={cls.categoryEmpty} aria-live="polite">
+                  <div className={cls.categoryEmptyIcon} aria-hidden="true">
                     <i className="bi bi-grid-3x3-gap" />
                   </div>
-                  <div className={cls.categoryEmptyTitle}>Chưa có danh mục</div>
-                  <div className={cls.categoryEmptySub}>Danh mục sẽ hiển thị khi API trả dữ liệu.</div>
+                  <div className={cls.categoryEmptyTitle}>No categories yet</div>
+                  <div className={cls.categoryEmptySub}>Categories will appear here once the API returns data.</div>
                 </li>
               ) : (
                 categoryItems.map((category) => {
                   const content = (
                     <>
-                      <span className={cls.categoryName}>{category.name}</span>
+                      <span className={cls.categoryLeft}>
+                        <span className={cls.categoryDot} aria-hidden="true" />
+                        <span className={cls.categoryIcon} aria-hidden="true">
+                          <i className={`bi ${ensureBootstrapIcon(category.icon)}`} />
+                        </span>
+                        <span className={cls.categoryName}>{category.name}</span>
+                      </span>
                       <span className={cls.categoryMeta}>{formatCategoryCount(category.count)}</span>
                     </>
                   );
@@ -391,11 +401,20 @@ export function HeroSplit({
                   return (
                     <li key={category.id} className={cls.categoryItem}>
                       {preview ? (
-                        <a href="#" onClick={handlePreviewBlockClick} className={cls.categoryLink}>
+                        <a
+                          href="#"
+                          onClick={handlePreviewBlockClick}
+                          className={cls.categoryLink}
+                          aria-label={`Open ${category.name} category`}
+                        >
                           {content}
                         </a>
                       ) : (
-                        <Link href={`${normalizedBasePath}/${category.slug}` as Route} className={cls.categoryLink}>
+                        <Link
+                          href={`${normalizedBasePath}/${category.slug}` as Route}
+                          className={cls.categoryLink}
+                          aria-label={`Open ${category.name} category`}
+                        >
                           {content}
                         </Link>
                       )}
@@ -408,28 +427,6 @@ export function HeroSplit({
         </aside>
 
         <div className={cls.contentCol}>
-          <div className={cls.topStats}>
-            {statItems.map((item, index) => {
-              const content = (
-                <>
-                  <span className={cls.statIcon}>
-                    <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
-                  </span>
-                  <div className={cls.statText}>
-                    <div className={cls.statValue}>{item.value}</div>
-                    <div className={cls.statLabel}>{item.label}</div>
-                  </div>
-                </>
-              );
-
-              return (
-                <React.Fragment key={`${item.href || item.label}-${index}`}>
-                  {renderNavTarget(item.href || "/", cls.statCard, content)}
-                </React.Fragment>
-              );
-            })}
-          </div>
-
           <div className={cls.splitGrid}>
             <div className={cls.mainCol}>
               <div
@@ -441,34 +438,33 @@ export function HeroSplit({
               >
                 <div className={cls.heroPanel}>
                   <div className={cls.copyCol}>
-                    <div className={cls.heroBadge}>{currentSlide?.badge || "triều mến"}</div>
-                    <h2 className={cls.heroTitle}>{currentSlide?.title || "Bộ sưu tập dịu dàng"}</h2>
+                    <div className={cls.heroBadge}>{currentSlide?.badge || "featured"}</div>
+                    <h1 className={cls.heroTitle}>{currentSlide?.title || "A softer way to shop"}</h1>
                     <p className={cls.heroSub}>
-                      {currentSlide?.sub || "Thiết kế split layout với hình ảnh lớn và cột thông tin mềm mại."}
+                      {currentSlide?.sub || "A split hero layout with a large visual area and gentle premium styling."}
                     </p>
 
-                    <div className={cls.quickGrid}>
-                      {quickItems.map((item, index) => {
-                        const content = (
-                          <>
-                            <span className={cls.quickIcon}>
-                              <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
-                            </span>
-                            <span className={cls.quickLabel}>{item.label}</span>
-                          </>
-                        );
+                    <div className={cls.heroActions}>
+                      {renderNavTarget(
+                        currentSlide?.href || "/",
+                        cls.primaryCta,
+                        <>
+                          Shop now
+                          <i className="bi bi-arrow-right" aria-hidden="true" />
+                        </>,
+                        "Shop the featured collection",
+                      )}
 
-                        return (
-                          <React.Fragment key={`${item.href}-${index}`}>
-                            {renderNavTarget(item.href, cls.quickItem, content)}
-                          </React.Fragment>
-                        );
-                      })}
+                      {renderNavTarget("/collections/new", cls.secondaryCta, <>See new arrivals</>, "See new arrivals")}
                     </div>
                   </div>
 
                   <div className={cls.visualCol}>
-                    <div className={cls.sliderViewport}>
+                    <div
+                      className={cls.sliderViewport}
+                      aria-roledescription="carousel"
+                      aria-label="Featured promotions"
+                    >
                       <div
                         className={cls.sliderRail}
                         style={{ transform: `translate3d(-${activeSlideIndex * 100}%, 0, 0)` }}
@@ -479,13 +475,14 @@ export function HeroSplit({
                               key={`${slide.href}-${index}`}
                               className={cls.slide}
                               aria-hidden={index !== activeSlideIndex}
+                              aria-label={slide.title || `Slide ${index + 1}`}
                               style={{ background: slide.bg || undefined }}
                             >
-                              <div className={cls.slideGlow} />
+                              <div className={cls.slideGlow} aria-hidden="true" />
                               <div className={cls.slideMedia}>
                                 <Image
                                   src={slide.imageSrc}
-                                  alt={slide.alt || "Hero split banner"}
+                                  alt={slide.alt || slide.title || "Featured collection banner"}
                                   fill
                                   sizes="(max-width: 1024px) 100vw, 36vw"
                                   className={cls.slideImage}
@@ -501,58 +498,86 @@ export function HeroSplit({
                               href="#"
                               onClick={handlePreviewBlockClick}
                               className={cls.slideLink}
+                              aria-label={`Open ${slide.title || `slide ${index + 1}`}`}
                             >
                               {slideContent}
                             </a>
                           ) : (
-                            <Link key={`${slide.href}-${index}`} href={(slide.href || "/") as Route} className={cls.slideLink}>
+                            <Link
+                              key={`${slide.href}-${index}`}
+                              href={(slide.href || "/") as Route}
+                              className={cls.slideLink}
+                              aria-label={`Open ${slide.title || `slide ${index + 1}`}`}
+                            >
                               {slideContent}
                             </Link>
                           );
                         })}
                       </div>
                     </div>
+
+                    {totalSlides > 1 ? (
+                      <div className={cls.dotNav} role="tablist" aria-label="Choose featured slide">
+                        {slides.map((slide, index) => (
+                          <button
+                            key={`${slide.href}-dot-${index}`}
+                            type="button"
+                            className={`${cls.dotBtn} ${index === activeSlideIndex ? cls.dotBtnActive : ""}`}
+                            role="tab"
+                            aria-selected={index === activeSlideIndex}
+                            aria-label={`Show ${slide.title || `slide ${index + 1}`}`}
+                            onClick={() => goToSlide(index)}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
                 <button
                   type="button"
                   className={`${cls.arrowBtn} ${cls.arrowPrev}`}
-                  aria-label="Previous slide"
+                  aria-label="Show previous slide"
                   onClick={goToPreviousSlide}
                 >
-                  <i className="bi bi-chevron-left" />
+                  <i className="bi bi-chevron-left" aria-hidden="true" />
                 </button>
 
                 <button
                   type="button"
                   className={`${cls.arrowBtn} ${cls.arrowNext}`}
-                  aria-label="Next slide"
+                  aria-label="Show next slide"
                   onClick={goToNextSlide}
                 >
-                  <i className="bi bi-chevron-right" />
+                  <i className="bi bi-chevron-right" aria-hidden="true" />
                 </button>
 
-                <div className={cls.heroDots} role="tablist" aria-label="Slide navigation">
-                  {slides.map((slide, index) => (
-                    <button
-                      key={`${slide.href}-${index}`}
-                      type="button"
-                      className={`${cls.heroDot} ${index === activeSlideIndex ? cls.heroDotActive : ""}`}
-                      aria-label={`Go to slide ${index + 1}`}
-                      aria-selected={index === activeSlideIndex}
-                      onClick={() => goToSlide(index)}
-                    />
-                  ))}
+                <div className={cls.quickGrid} aria-label="Quick shopping links">
+                  {quickItems.map((item, index) => {
+                    const content = (
+                      <>
+                        <span className={cls.quickIcon} aria-hidden="true">
+                          <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
+                        </span>
+                        <span className={cls.quickLabel}>{item.label}</span>
+                      </>
+                    );
+
+                    return (
+                      <React.Fragment key={`${item.href}-${index}`}>
+                        {renderNavTarget(item.href, cls.quickItem, content, `Open ${item.label}`)}
+                      </React.Fragment>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className={cls.cardGrid}>
+              <div className={cls.cardGrid} aria-label="Featured collection cards">
                 {cardItems.map((card, index) => {
                   const content = (
                     <>
                       <div className={cls.cardCopy}>
-                        <span className={cls.cardIcon}>
+                        <span className={cls.cardIcon} aria-hidden="true">
                           <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
                         </span>
                         <div className={cls.cardTitle}>{card.title}</div>
@@ -563,13 +588,13 @@ export function HeroSplit({
                         {card.imageSrc ? (
                           <Image
                             src={card.imageSrc}
-                            alt=""
+                            alt={card.title}
                             fill
                             sizes="(max-width: 1024px) 100vw, 14vw"
                             className={cls.cardImage}
                           />
                         ) : (
-                          <div className={cls.cardFallback}>
+                          <div className={cls.cardFallback} aria-hidden="true">
                             <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
                           </div>
                         )}
@@ -579,23 +604,42 @@ export function HeroSplit({
 
                   return (
                     <React.Fragment key={`${card.href}-${index}`}>
-                      {renderNavTarget(card.href, `${cls.card} ${resolveToneClass(card.tone)}`, content)}
+                      {renderNavTarget(
+                        card.href,
+                        `${cls.card} ${resolveToneClass(card.tone)}`,
+                        content,
+                        `Open ${card.title}`,
+                      )}
                     </React.Fragment>
                   );
                 })}
               </div>
             </div>
 
-            <aside className={cls.sideCol} aria-label="Preview panel">
+            <aside className={cls.sideCol} aria-label="Featured highlight panel">
               <div className={cls.previewCard}>
                 <div className={cls.previewMedia}>
                   <Image
                     src={currentSlide?.mobileImageSrc || currentSlide?.imageSrc || "/assets/images/product.jpg"}
-                    alt=""
+                    alt={currentSlide?.title || "Featured collection preview"}
                     fill
                     sizes="(max-width: 1024px) 100vw, 18vw"
                     className={cls.previewImage}
                   />
+                </div>
+
+                <div className={cls.previewContent}>
+                  <div className={cls.previewBadge}>editor&apos;s note</div>
+                  <h3 className={cls.previewTitle}>Bring elegance into every detail</h3>
+                  <p className={cls.previewSub}>
+                    Use this space to highlight a featured product, a seasonal campaign, or a best-selling collection.
+                  </p>
+                  {renderNavTarget(
+                    "/collections/beauty",
+                    cls.previewCta,
+                    <>View collection</>,
+                    "View featured beauty collection",
+                  )}
                 </div>
               </div>
             </aside>

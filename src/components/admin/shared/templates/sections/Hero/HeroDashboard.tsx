@@ -99,43 +99,43 @@ const DEFAULT_SLIDES: HeroDashboardSlide[] = [
 ];
 
 const DEFAULT_STATS: HeroDashboardStat[] = [
-  { label: "Bộ sưu tập mới", value: "128+", icon: "bi-stars", href: "/collections/new" },
-  { label: "Mã ưu đãi xinh", value: "32", icon: "bi-ticket-perforated", href: "/promotions" },
-  { label: "Món quà nổi bật", value: "76", icon: "bi-gift", href: "/collections/gifts" },
-  { label: "Shop được yêu thích", value: "240", icon: "bi-heart", href: "/shops" },
+  { label: "New Collections", value: "128+", icon: "bi-stars", href: "/collections/new" },
+  { label: "Cute Promo Codes", value: "32", icon: "bi-ticket-perforated", href: "/promotions" },
+  { label: "Featured Gifts", value: "76", icon: "bi-gift", href: "/collections/gifts" },
+  { label: "Most Loved Shops", value: "240", icon: "bi-heart", href: "/shops" },
 ];
 
 const DEFAULT_SHORTCUTS: HeroDashboardShortcut[] = [
-  { label: "Mới về", href: "/collections/new", icon: "bi-bag-heart" },
-  { label: "Làm đẹp", href: "/collections/beauty", icon: "bi-droplet-heart" },
-  { label: "Quà tặng", href: "/collections/gifts", icon: "bi-gift" },
+  { label: "New Arrivals", href: "/collections/new", icon: "bi-bag-heart" },
+  { label: "Beauty", href: "/collections/beauty", icon: "bi-droplet-heart" },
+  { label: "Gift Ideas", href: "/collections/gifts", icon: "bi-gift" },
   { label: "Decor", href: "/collections/decor", icon: "bi-flower1" },
-  { label: "Voucher", href: "/promotions", icon: "bi-ticket-perforated" },
-  { label: "Yêu thích", href: "/wishlist", icon: "bi-heart" },
-  { label: "Đơn hàng", href: "/orders", icon: "bi-box-seam" },
-  { label: "Hỗ trợ", href: "/support", icon: "bi-chat-heart" },
+  { label: "Vouchers", href: "/promotions", icon: "bi-ticket-perforated" },
+  { label: "Wishlist", href: "/wishlist", icon: "bi-heart" },
+  { label: "Orders", href: "/orders", icon: "bi-box-seam" },
+  { label: "Support", href: "/support", icon: "bi-chat-heart" },
 ];
 
 const DEFAULT_TILES: HeroDashboardTile[] = [
   {
-    title: "Quà xinh mỗi ngày",
-    sub: "Gợi ý dịu dàng dành cho người bạn thương",
+    title: "Lovely Gifts Every Day",
+    sub: "Gentle picks for someone you care about",
     href: "/collections/gifts",
     imageSrc: "/assets/images/product.jpg",
     tone: "rose",
     icon: "bi-heart",
   },
   {
-    title: "Góc nhà mềm mại",
-    sub: "Decor theo phong cách sáng, thơ và ấm",
+    title: "Soft Home Corner",
+    sub: "Decor with a bright, poetic, and cozy style",
     href: "/collections/decor",
     imageSrc: "/assets/images/product.jpg",
     tone: "mint",
     icon: "bi-house-heart",
   },
   {
-    title: "Beauty đáng yêu",
-    sub: "Những món được chọn nhiều trong tuần",
+    title: "Charming Beauty",
+    sub: "Top-picked items customers loved this week",
     href: "/collections/beauty",
     imageSrc: "/assets/images/product.jpg",
     tone: "peach",
@@ -307,9 +307,12 @@ export function HeroDashboard({
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
 
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current + 1) % totalSlides);
-    }, Math.max(2500, autoMs));
+    const intervalId = window.setInterval(
+      () => {
+        setActiveSlideIndex((current) => (current + 1) % totalSlides);
+      },
+      Math.max(2500, autoMs),
+    );
 
     return () => {
       window.clearInterval(intervalId);
@@ -353,12 +356,12 @@ export function HeroDashboard({
   };
 
   return (
-    <section className={cls.hero} aria-label="Hero Dashboard">
+    <section className={cls.hero} aria-label="Hero Dashboard promotional section">
       <div className={cls.shell}>
-        <aside className={cls.sidebar} aria-label="Danh mục sản phẩm">
+        <aside className={cls.sidebar} aria-label="Product categories">
           <div className={cls.sidebarPanel}>
             <div className={cls.sidebarHead}>
-              <span className={cls.sidebarTitle}>Danh mục</span>
+              <span className={cls.sidebarTitle}>Categories</span>
               <span className={cls.sidebarHint}>soft pick</span>
             </div>
 
@@ -366,10 +369,10 @@ export function HeroDashboard({
               {categoryItems.length === 0 ? (
                 <li className={cls.categoryEmpty}>
                   <div className={cls.categoryEmptyIcon}>
-                    <i className="bi bi-grid-3x3-gap" />
+                    <i className="bi bi-grid-3x3-gap" aria-hidden="true" />
                   </div>
-                  <div className={cls.categoryEmptyTitle}>Chưa có danh mục</div>
-                  <div className={cls.categoryEmptySub}>Danh mục sẽ hiển thị khi API trả dữ liệu.</div>
+                  <div className={cls.categoryEmptyTitle}>No categories yet</div>
+                  <div className={cls.categoryEmptySub}>Categories will appear when the API returns data.</div>
                 </li>
               ) : (
                 categoryItems.map((category) => {
@@ -390,7 +393,11 @@ export function HeroDashboard({
                           {content}
                         </a>
                       ) : (
-                        <Link href={`${normalizedBasePath}/${category.slug}` as Route} className={cls.categoryLink}>
+                        <Link
+                          href={`${normalizedBasePath}/${category.slug}` as Route}
+                          className={cls.categoryLink}
+                          aria-label={`Browse category ${category.name}`}
+                        >
                           {content}
                         </Link>
                       )}
@@ -400,15 +407,26 @@ export function HeroDashboard({
               )}
             </ul>
           </div>
+          <div className={cls.sidePreviewCard} aria-label="Featured preview image">
+            <div className={cls.sidePreviewMedia}>
+              <Image
+                src={currentSlide?.mobileImageSrc || currentSlide?.imageSrc || "/assets/images/product.jpg"}
+                alt={currentSlide?.alt || "Featured promotional preview"}
+                fill
+                sizes="(max-width: 1024px) 100vw, 18vw"
+                className={cls.sidePreviewImage}
+              />
+            </div>
+          </div>
         </aside>
 
         <div className={cls.contentCol}>
-          <div className={cls.statsRow}>
+          <div className={cls.statsRow} aria-label="Highlighted shopping stats">
             {statItems.map((item, index) => {
               const content = (
                 <>
                   <span className={cls.statIcon}>
-                    <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
+                    <i className={`bi ${ensureBootstrapIcon(item.icon)}`} aria-hidden="true" />
                   </span>
                   <div className={cls.statText}>
                     <div className={cls.statValue}>{item.value}</div>
@@ -419,9 +437,7 @@ export function HeroDashboard({
 
               const href = item.href || "/";
               return (
-                <React.Fragment key={`${href}-${index}`}>
-                  {renderNavTarget(href, cls.statCard, content)}
-                </React.Fragment>
+                <React.Fragment key={`${href}-${index}`}>{renderNavTarget(href, cls.statCard, content)}</React.Fragment>
               );
             })}
           </div>
@@ -468,11 +484,17 @@ export function HeroDashboard({
                           href="#"
                           onClick={handlePreviewBlockClick}
                           className={cls.slideLink}
+                          aria-label={slide.alt || `Go to slide ${index + 1}`}
                         >
                           {slideContent}
                         </a>
                       ) : (
-                        <Link key={`${slide.href}-${index}`} href={(slide.href || "/") as Route} className={cls.slideLink}>
+                        <Link
+                          key={`${slide.href}-${index}`}
+                          href={(slide.href || "/") as Route}
+                          className={cls.slideLink}
+                          aria-label={slide.alt || `Go to slide ${index + 1}`}
+                        >
                           {slideContent}
                         </Link>
                       );
@@ -486,7 +508,7 @@ export function HeroDashboard({
                   aria-label="Previous slide"
                   onClick={goToPreviousSlide}
                 >
-                  <i className="bi bi-chevron-left" />
+                  <i className="bi bi-chevron-left" aria-hidden="true" />
                 </button>
 
                 <button
@@ -495,7 +517,7 @@ export function HeroDashboard({
                   aria-label="Next slide"
                   onClick={goToNextSlide}
                 >
-                  <i className="bi bi-chevron-right" />
+                  <i className="bi bi-chevron-right" aria-hidden="true" />
                 </button>
 
                 <div className={cls.heroDots} role="tablist" aria-label="Slide navigation">
@@ -518,7 +540,7 @@ export function HeroDashboard({
                     <>
                       <div className={cls.tileCopy}>
                         <span className={cls.tileIcon}>
-                          <i className={`bi ${ensureBootstrapIcon(tile.icon)}`} />
+                          <i className={`bi ${ensureBootstrapIcon(tile.icon)}`} aria-hidden="true" />
                         </span>
                         <div className={cls.tileTitle}>{tile.title}</div>
                         {tile.sub ? <div className={cls.tileSub}>{tile.sub}</div> : null}
@@ -528,14 +550,14 @@ export function HeroDashboard({
                         {tile.imageSrc ? (
                           <Image
                             src={tile.imageSrc}
-                            alt=""
+                            alt={tile.title}
                             fill
                             sizes="(max-width: 1024px) 100vw, 15vw"
                             className={cls.tileImage}
                           />
                         ) : (
                           <div className={cls.tileFallback}>
-                            <i className={`bi ${ensureBootstrapIcon(tile.icon)}`} />
+                            <i className={`bi ${ensureBootstrapIcon(tile.icon)}`} aria-hidden="true" />
                           </div>
                         )}
                       </div>
@@ -554,8 +576,8 @@ export function HeroDashboard({
             <aside className={cls.sidePanel} aria-label="Quick dashboard actions">
               <div className={cls.sidePanelMain}>
                 <div className={cls.sidePanelHead}>
-                  <div className={cls.sidePanelBadge}>triều mến</div>
-                  <div className={cls.sidePanelTitle}>Bảng điều hướng dịu dàng</div>
+                  <div className={cls.sidePanelBadge}>sweet flow</div>
+                  <div className={cls.sidePanelTitle}>A gentle navigation board</div>
                 </div>
 
                 <div className={cls.shortcutGrid}>
@@ -563,7 +585,7 @@ export function HeroDashboard({
                     const content = (
                       <>
                         <span className={cls.shortcutIcon}>
-                          <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
+                          <i className={`bi ${ensureBootstrapIcon(item.icon)}`} aria-hidden="true" />
                         </span>
                         <span className={cls.shortcutLabel}>{item.label}</span>
                       </>
@@ -575,18 +597,6 @@ export function HeroDashboard({
                       </React.Fragment>
                     );
                   })}
-                </div>
-              </div>
-
-              <div className={cls.sidePreviewCard}>
-                <div className={cls.sidePreviewMedia}>
-                  <Image
-                    src={currentSlide?.mobileImageSrc || currentSlide?.imageSrc || "/assets/images/product.jpg"}
-                    alt=""
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 18vw"
-                    className={cls.sidePreviewImage}
-                  />
                 </div>
               </div>
             </aside>
@@ -626,10 +636,10 @@ export const SHOP_HERO_DASHBOARD: RegItem = {
     { key: "tiles", label: "Tiles (JSON)", kind: "textarea", rows: 10 },
   ],
   render: (props) => {
-    const slides = safeJsonParse<HeroDashboardSlide[]>(props.slides);
-    const stats = safeJsonParse<HeroDashboardStat[]>(props.stats);
-    const shortcuts = safeJsonParse<HeroDashboardShortcut[]>(props.shortcuts);
-    const tiles = safeJsonParse<HeroDashboardTile[]>(props.tiles);
+    const slides = safeJsonParse<HeroDashboardSlide[]>(props.slides) ?? DEFAULT_SLIDES;
+    const stats = safeJsonParse<HeroDashboardStat[]>(props.stats) ?? DEFAULT_STATS;
+    const shortcuts = safeJsonParse<HeroDashboardShortcut[]>(props.shortcuts) ?? DEFAULT_SHORTCUTS;
+    const tiles = safeJsonParse<HeroDashboardTile[]>(props.tiles) ?? DEFAULT_TILES;
 
     const siteId = toStringValue(props.siteId, "sitea01").trim() || "sitea01";
     const categoryApiPath = toStringValue(props.categoryApiPath, "/api/v1/categories").trim() || "/api/v1/categories";

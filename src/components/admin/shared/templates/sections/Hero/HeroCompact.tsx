@@ -92,24 +92,24 @@ const DEFAULT_SLIDES: HeroCompactSlide[] = [
 
 const DEFAULT_MINI_CARDS: HeroCompactCard[] = [
   {
-    title: "Quà tặng dịu dàng",
-    sub: "Chọn nhanh các mẫu quà xinh",
+    title: "Soft Gift Picks",
+    sub: "Quick access to lovely gift ideas",
     href: "/collections/gifts",
     imageSrc: "/assets/images/product.jpg",
     tone: "rose",
     icon: "bi-heart",
   },
   {
-    title: "Góc decor mềm mại",
-    sub: "Nhà xinh theo phong cách yêu chiều",
+    title: "Gentle Decor Corner",
+    sub: "Create a charming home style",
     href: "/collections/decor",
     imageSrc: "/assets/images/product.jpg",
     tone: "violet",
     icon: "bi-stars",
   },
   {
-    title: "Beauty thanh lịch",
-    sub: "Sản phẩm được yêu thích mỗi ngày",
+    title: "Elegant Beauty",
+    sub: "Daily favorites loved by customers",
     href: "/collections/beauty",
     imageSrc: "/assets/images/product.jpg",
     tone: "peach",
@@ -118,12 +118,12 @@ const DEFAULT_MINI_CARDS: HeroCompactCard[] = [
 ];
 
 const DEFAULT_SIDE_ACTIONS: HeroCompactAction[] = [
-  { label: "Mới về", href: "/collections/new", icon: "bi-bag-heart" },
-  { label: "Quà tặng", href: "/collections/gifts", icon: "bi-gift" },
-  { label: "Trang trí", href: "/collections/decor", icon: "bi-flower1" },
-  { label: "Yêu thích", href: "/wishlist", icon: "bi-heart" },
-  { label: "Voucher", href: "/promotions", icon: "bi-ticket-perforated" },
-  { label: "Hỗ trợ", href: "/support", icon: "bi-chat-heart" },
+  { label: "New Arrivals", href: "/collections/new", icon: "bi-bag-heart" },
+  { label: "Gift Ideas", href: "/collections/gifts", icon: "bi-gift" },
+  { label: "Decor", href: "/collections/decor", icon: "bi-flower1" },
+  { label: "Wishlist", href: "/wishlist", icon: "bi-heart" },
+  { label: "Vouchers", href: "/promotions", icon: "bi-ticket-perforated" },
+  { label: "Support", href: "/support", icon: "bi-chat-heart" },
 ];
 
 /* ================= Helpers ================= */
@@ -289,9 +289,12 @@ export function HeroCompact({
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
 
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current + 1) % totalSlides);
-    }, Math.max(2500, autoMs));
+    const intervalId = window.setInterval(
+      () => {
+        setActiveSlideIndex((current) => (current + 1) % totalSlides);
+      },
+      Math.max(2500, autoMs),
+    );
 
     return () => {
       window.clearInterval(intervalId);
@@ -318,39 +321,39 @@ export function HeroCompact({
   const compactCards = useMemo(() => miniCards.slice(0, 3), [miniCards]);
   const compactActions = useMemo(() => sideActions.slice(0, 6), [sideActions]);
 
-  const renderNavTarget = (href: string, className: string, content: React.ReactNode) => {
+  const renderNavTarget = (key: React.Key, href: string, className: string, content: React.ReactNode) => {
     if (preview) {
       return (
-        <a href="#" onClick={handlePreviewBlockClick} className={className}>
+        <a key={key} href="#" onClick={handlePreviewBlockClick} className={className}>
           {content}
         </a>
       );
     }
 
     return (
-      <Link href={(href || "/") as Route} className={className}>
+      <Link key={key} href={(href || "/") as Route} className={className}>
         {content}
       </Link>
     );
   };
 
   return (
-    <section className={cls.hero} aria-label="Hero Compact">
+    <section className={cls.hero} aria-label="Hero Compact promotional section">
       <div className={cls.shell}>
-        <aside className={cls.sidebar} aria-label="Danh mục sản phẩm">
+        <aside className={cls.sidebar} aria-label="Product categories">
           <div className={cls.sidebarPanel}>
             <div className={cls.sidebarHead}>
-              <span className={cls.sidebarTitle}>Danh mục</span>
+              <span className={cls.sidebarTitle}>Categories</span>
             </div>
 
             <ul className={cls.categoryList}>
               {categoryItems.length === 0 ? (
                 <li className={cls.categoryEmpty}>
                   <div className={cls.categoryEmptyIcon}>
-                    <i className="bi bi-grid-3x3-gap" />
+                    <i className="bi bi-grid-3x3-gap" aria-hidden="true" />
                   </div>
-                  <div className={cls.categoryEmptyTitle}>Chưa có danh mục</div>
-                  <div className={cls.categoryEmptySub}>Danh mục sẽ hiển thị khi API trả dữ liệu.</div>
+                  <div className={cls.categoryEmptyTitle}>No categories yet</div>
+                  <div className={cls.categoryEmptySub}>Categories will appear when the API returns data.</div>
                 </li>
               ) : (
                 categoryItems.map((category) => {
@@ -368,7 +371,11 @@ export function HeroCompact({
                           {content}
                         </a>
                       ) : (
-                        <Link href={`${normalizedBasePath}/${category.slug}` as Route} className={cls.categoryLink}>
+                        <Link
+                          href={`${normalizedBasePath}/${category.slug}` as Route}
+                          className={cls.categoryLink}
+                          aria-label={`Browse category ${category.name}`}
+                        >
                           {content}
                         </Link>
                       )}
@@ -423,11 +430,17 @@ export function HeroCompact({
                           href="#"
                           onClick={handlePreviewBlockClick}
                           className={cls.slideLink}
+                          aria-label={slide.alt || `Go to slide ${index + 1}`}
                         >
                           {slideContent}
                         </a>
                       ) : (
-                        <Link key={`${slide.href}-${index}`} href={(slide.href || "/") as Route} className={cls.slideLink}>
+                        <Link
+                          key={`${slide.href}-${index}`}
+                          href={(slide.href || "/") as Route}
+                          className={cls.slideLink}
+                          aria-label={slide.alt || `Go to slide ${index + 1}`}
+                        >
                           {slideContent}
                         </Link>
                       );
@@ -441,7 +454,7 @@ export function HeroCompact({
                   aria-label="Previous slide"
                   onClick={goToPreviousSlide}
                 >
-                  <i className="bi bi-chevron-left" />
+                  <i className="bi bi-chevron-left" aria-hidden="true" />
                 </button>
 
                 <button
@@ -450,7 +463,7 @@ export function HeroCompact({
                   aria-label="Next slide"
                   onClick={goToNextSlide}
                 >
-                  <i className="bi bi-chevron-right" />
+                  <i className="bi bi-chevron-right" aria-hidden="true" />
                 </button>
 
                 <div className={cls.heroDots} role="tablist" aria-label="Slide navigation">
@@ -473,7 +486,7 @@ export function HeroCompact({
                     <>
                       <div className={cls.compactCardCopy}>
                         <span className={cls.compactCardIcon}>
-                          <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
+                          <i className={`bi ${ensureBootstrapIcon(card.icon)}`} aria-hidden="true" />
                         </span>
                         <div className={cls.compactCardTitle}>{card.title}</div>
                         {card.sub ? <div className={cls.compactCardSub}>{card.sub}</div> : null}
@@ -483,34 +496,35 @@ export function HeroCompact({
                         {card.imageSrc ? (
                           <Image
                             src={card.imageSrc}
-                            alt=""
+                            alt={card.title}
                             fill
                             sizes="(max-width: 1024px) 100vw, 14vw"
                             className={cls.compactCardImage}
                           />
                         ) : (
                           <div className={cls.compactCardFallback}>
-                            <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
+                            <i className={`bi ${ensureBootstrapIcon(card.icon)}`} aria-hidden="true" />
                           </div>
                         )}
                       </div>
                     </>
                   );
 
-                  return (
-                    <React.Fragment key={`${card.href}-${index}`}>
-                      {renderNavTarget(card.href, `${cls.compactCard} ${resolveCardToneClass(card.tone)}`, content)}
-                    </React.Fragment>
+                  return renderNavTarget(
+                    card.href || `${card.title}-${index}`,
+                    card.href,
+                    `${cls.compactCard} ${resolveCardToneClass(card.tone)}`,
+                    content,
                   );
                 })}
               </div>
             </div>
 
-            <aside className={cls.sidePanel} aria-label="Quick actions">
+            <aside className={cls.sidePanel} aria-label="Quick actions and featured promotion">
               <div className={cls.sidePanelMain}>
                 <div className={cls.sidePanelHead}>
-                  <div className={cls.sidePanelBadge}>triều mến</div>
-                  <div className={cls.sidePanelTitle}>Chạm nhẹ là thấy xinh</div>
+                  <div className={cls.sidePanelBadge}>sweet touch</div>
+                  <div className={cls.sidePanelTitle}>A gentle tap, a beautiful find</div>
                 </div>
 
                 <div className={cls.actionGrid}>
@@ -518,26 +532,27 @@ export function HeroCompact({
                     const content = (
                       <>
                         <span className={cls.actionIcon}>
-                          <i className={`bi ${ensureBootstrapIcon(action.icon)}`} />
+                          <i className={`bi ${ensureBootstrapIcon(action.icon)}`} aria-hidden="true" />
                         </span>
                         <span className={cls.actionLabel}>{action.label}</span>
                       </>
                     );
 
-                    return (
-                      <React.Fragment key={`${action.href}-${index}`}>
-                        {renderNavTarget(action.href, cls.actionCard, content)}
-                      </React.Fragment>
+                    return renderNavTarget(
+                      action.href || `${action.label}-${index}`,
+                      action.href,
+                      cls.actionCard,
+                      content,
                     );
                   })}
                 </div>
               </div>
 
-              <div className={cls.sideBottomCard}>
+              <div className={cls.sideBottomCard} aria-label="Featured visual">
                 <div className={cls.sideBottomMedia}>
                   <Image
                     src={currentSlide?.mobileImageSrc || currentSlide?.imageSrc || "/assets/images/product.jpg"}
-                    alt=""
+                    alt={currentSlide?.alt || "Featured promotional image"}
                     fill
                     sizes="(max-width: 1024px) 100vw, 18vw"
                     className={cls.sideBottomImage}
@@ -579,9 +594,9 @@ export const SHOP_HERO_COMPACT: RegItem = {
     { key: "sideActions", label: "Side actions (JSON)", kind: "textarea", rows: 10 },
   ],
   render: (props) => {
-    const slides = safeJsonParse<HeroCompactSlide[]>(props.slides);
-    const miniCards = safeJsonParse<HeroCompactCard[]>(props.miniCards);
-    const sideActions = safeJsonParse<HeroCompactAction[]>(props.sideActions);
+    const slides = safeJsonParse<HeroCompactSlide[]>(props.slides) ?? DEFAULT_SLIDES;
+    const miniCards = safeJsonParse<HeroCompactCard[]>(props.miniCards) ?? DEFAULT_MINI_CARDS;
+    const sideActions = safeJsonParse<HeroCompactAction[]>(props.sideActions) ?? DEFAULT_SIDE_ACTIONS;
 
     const siteId = toStringValue(props.siteId, "sitea01").trim() || "sitea01";
     const categoryApiPath = toStringValue(props.categoryApiPath, "/api/v1/categories").trim() || "/api/v1/categories";

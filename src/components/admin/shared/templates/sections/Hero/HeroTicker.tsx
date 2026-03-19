@@ -34,6 +34,9 @@ export type HeroTickerSlide = {
   mobileImageSrc?: string;
   href: string;
   alt?: string;
+  title?: string;
+  sub?: string;
+  badge?: string;
   bg?: string;
 };
 
@@ -79,54 +82,63 @@ const DEFAULT_SLIDES: HeroTickerSlide[] = [
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/new",
-    alt: "Soft ticker banner 1",
+    alt: "New arrivals collection banner",
+    title: "Fresh arrivals for a softer everyday style",
+    sub: "Explore curated picks in gifts, decor, and beauty with a clean premium look.",
+    badge: "new in",
     bg: "linear-gradient(135deg, #fff0f5 0%, #fff8fb 55%, #ffffff 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/gifts",
-    alt: "Soft ticker banner 2",
+    alt: "Gift ideas collection banner",
+    title: "Thoughtful gifts for meaningful moments",
+    sub: "Choose polished gift ideas for birthdays, celebrations, and heartfelt surprises.",
+    badge: "gift edit",
     bg: "linear-gradient(135deg, #fff3ec 0%, #fff9f6 55%, #ffffff 100%)",
   },
   {
     imageSrc: "/assets/images/product.jpg",
     mobileImageSrc: "/assets/images/product.jpg",
     href: "/collections/decor",
-    alt: "Soft ticker banner 3",
+    alt: "Home decor collection banner",
+    title: "Bring warmth and elegance to your space",
+    sub: "Shop bright, calm, and refined decor pieces designed for modern living.",
+    badge: "decor mood",
     bg: "linear-gradient(135deg, #f7f0ff 0%, #fcf8ff 55%, #ffffff 100%)",
   },
 ];
 
 const DEFAULT_CHIPS: HeroTickerChip[] = [
-  { label: "Mới về", href: "/collections/new", icon: "bi-bag-heart" },
-  { label: "Quà tặng", href: "/collections/gifts", icon: "bi-gift" },
+  { label: "New In", href: "/collections/new", icon: "bi-bag-heart" },
+  { label: "Gifts", href: "/collections/gifts", icon: "bi-gift" },
   { label: "Decor", href: "/collections/decor", icon: "bi-flower1" },
   { label: "Beauty", href: "/collections/beauty", icon: "bi-stars" },
-  { label: "Voucher", href: "/promotions", icon: "bi-ticket-perforated" },
-  { label: "Yêu thích", href: "/wishlist", icon: "bi-heart" },
+  { label: "Promotions", href: "/promotions", icon: "bi-ticket-perforated" },
+  { label: "Wishlist", href: "/wishlist", icon: "bi-heart" },
 ];
 
 const DEFAULT_CARDS: HeroTickerCard[] = [
   {
-    title: "Quà xinh mỗi ngày",
-    sub: "Gợi ý nhẹ nhàng cho người bạn thương",
+    title: "Daily Gift Picks",
+    sub: "Gentle suggestions for someone special",
     href: "/collections/gifts",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-heart",
     tone: "rose",
   },
   {
-    title: "Góc decor mềm mại",
-    sub: "Trang trí sáng, thơ và ấm áp hơn",
+    title: "Soft Decor Corner",
+    sub: "Create a brighter, warmer, and more elegant home",
     href: "/collections/decor",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-house-heart",
     tone: "pearl",
   },
   {
-    title: "Beauty đáng yêu",
-    sub: "Những món được chọn nhiều trong tuần",
+    title: "Beauty Favorites",
+    sub: "Customer-loved picks of the week",
     href: "/collections/beauty",
     imageSrc: "/assets/images/product.jpg",
     icon: "bi-stars",
@@ -135,11 +147,11 @@ const DEFAULT_CARDS: HeroTickerCard[] = [
 ];
 
 const DEFAULT_TICKER_ITEMS: HeroTickerTickerItem[] = [
-  { label: "Bộ sưu tập mới", value: "128+", href: "/collections/new", icon: "bi-stars" },
-  { label: "Mã ưu đãi xinh", value: "32", href: "/promotions", icon: "bi-ticket-perforated" },
-  { label: "Shop được yêu thích", value: "240", href: "/shops", icon: "bi-shop" },
-  { label: "Quà hot tuần này", value: "76", href: "/collections/gifts", icon: "bi-gift" },
-  { label: "Decor bán chạy", value: "54", href: "/collections/decor", icon: "bi-house-heart" },
+  { label: "New collections", value: "128+", href: "/collections/new", icon: "bi-stars" },
+  { label: "Active offers", value: "32", href: "/promotions", icon: "bi-ticket-perforated" },
+  { label: "Favorite shops", value: "240", href: "/shops", icon: "bi-shop" },
+  { label: "Trending gifts", value: "76", href: "/collections/gifts", icon: "bi-gift" },
+  { label: "Best-selling decor", value: "54", href: "/collections/decor", icon: "bi-house-heart" },
 ];
 
 /* ================= Helpers ================= */
@@ -306,9 +318,12 @@ export function HeroTicker({
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
 
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current + 1) % totalSlides);
-    }, Math.max(2500, autoMs));
+    const intervalId = window.setInterval(
+      () => {
+        setActiveSlideIndex((current) => (current + 1) % totalSlides);
+      },
+      Math.max(2500, autoMs),
+    );
 
     return () => {
       window.clearInterval(intervalId);
@@ -329,6 +344,7 @@ export function HeroTicker({
   const goToPreviousSlide = () => goToSlide(activeSlideIndex - 1);
   const goToNextSlide = () => goToSlide(activeSlideIndex + 1);
 
+  const currentSlide = slides[activeSlideIndex] ?? slides[0];
   const categoryItems = useMemo(() => (categories ?? []).slice(0, 8), [categories]);
   const chipItems = useMemo(() => chips.slice(0, 6), [chips]);
   const cardItems = useMemo(() => cards.slice(0, 3), [cards]);
@@ -337,45 +353,50 @@ export function HeroTicker({
     return [...base, ...base];
   }, [tickerItems]);
 
-  const renderNavTarget = (href: string, className: string, content: React.ReactNode) => {
+  const renderNavTarget = (href: string, className: string, content: React.ReactNode, ariaLabel?: string) => {
     if (preview) {
       return (
-        <a href="#" onClick={handlePreviewBlockClick} className={className}>
+        <a href="#" onClick={handlePreviewBlockClick} className={className} aria-label={ariaLabel}>
           {content}
         </a>
       );
     }
 
     return (
-      <Link href={(href || "/") as Route} className={className}>
+      <Link href={(href || "/") as Route} className={className} aria-label={ariaLabel}>
         {content}
       </Link>
     );
   };
 
   return (
-    <section className={cls.hero} aria-label="Hero Ticker">
+    <section className={cls.hero} aria-label="Hero Ticker promotional section">
       <div className={cls.shell}>
-        <aside className={cls.sidebar} aria-label="Danh mục sản phẩm">
+        <aside className={cls.sidebar} aria-label="Product categories">
           <div className={cls.sidebarPanel}>
             <div className={cls.sidebarHead}>
-              <span className={cls.sidebarTitle}>Danh mục</span>
+              <h2 className={cls.sidebarTitle}>Categories</h2>
             </div>
 
             <ul className={cls.categoryList}>
               {categoryItems.length === 0 ? (
-                <li className={cls.categoryEmpty}>
-                  <div className={cls.categoryEmptyIcon}>
+                <li className={cls.categoryEmpty} aria-live="polite">
+                  <div className={cls.categoryEmptyIcon} aria-hidden="true">
                     <i className="bi bi-grid-3x3-gap" />
                   </div>
-                  <div className={cls.categoryEmptyTitle}>Chưa có danh mục</div>
-                  <div className={cls.categoryEmptySub}>Danh mục sẽ hiển thị khi API trả dữ liệu.</div>
+                  <div className={cls.categoryEmptyTitle}>No categories yet</div>
+                  <div className={cls.categoryEmptySub}>Categories will appear here once the API returns data.</div>
                 </li>
               ) : (
                 categoryItems.map((category) => {
                   const content = (
                     <>
-                      <span className={cls.categoryName}>{category.name}</span>
+                      <span className={cls.categoryLeft}>
+                        <span className={cls.categoryIcon} aria-hidden="true">
+                          <i className={`bi ${ensureBootstrapIcon(category.icon)}`} />
+                        </span>
+                        <span className={cls.categoryName}>{category.name}</span>
+                      </span>
                       <span className={cls.categoryMeta}>{formatCategoryCount(category.count)}</span>
                     </>
                   );
@@ -383,11 +404,20 @@ export function HeroTicker({
                   return (
                     <li key={category.id} className={cls.categoryItem}>
                       {preview ? (
-                        <a href="#" onClick={handlePreviewBlockClick} className={cls.categoryLink}>
+                        <a
+                          href="#"
+                          onClick={handlePreviewBlockClick}
+                          className={cls.categoryLink}
+                          aria-label={`Open ${category.name} category`}
+                        >
                           {content}
                         </a>
                       ) : (
-                        <Link href={`${normalizedBasePath}/${category.slug}` as Route} className={cls.categoryLink}>
+                        <Link
+                          href={`${normalizedBasePath}/${category.slug}` as Route}
+                          className={cls.categoryLink}
+                          aria-label={`Open ${category.name} category`}
+                        >
                           {content}
                         </Link>
                       )}
@@ -400,12 +430,12 @@ export function HeroTicker({
         </aside>
 
         <div className={cls.contentCol}>
-          <div className={cls.tickerWrap} aria-label="Ticker highlights">
+          <div className={cls.tickerWrap} aria-label="Store highlights ticker">
             <div className={cls.tickerTrack}>
               {tickerRowItems.map((item, index) => {
                 const content = (
                   <span className={cls.tickerItemInner}>
-                    <span className={cls.tickerIcon}>
+                    <span className={cls.tickerIcon} aria-hidden="true">
                       <i className={`bi ${ensureBootstrapIcon(item.icon)}`} />
                     </span>
                     <span className={cls.tickerLabel}>{item.label}</span>
@@ -420,6 +450,7 @@ export function HeroTicker({
                       href="#"
                       onClick={handlePreviewBlockClick}
                       className={cls.tickerItem}
+                      aria-label={item.label}
                     >
                       {content}
                     </a>
@@ -427,7 +458,12 @@ export function HeroTicker({
                 }
 
                 return (
-                  <Link key={`${item.label}-${index}`} href={(item.href || "/") as Route} className={cls.tickerItem}>
+                  <Link
+                    key={`${item.label}-${index}`}
+                    href={(item.href || "/") as Route}
+                    className={cls.tickerItem}
+                    aria-label={item.label}
+                  >
                     {content}
                   </Link>
                 );
@@ -444,7 +480,30 @@ export function HeroTicker({
                 onFocusCapture={() => setPaused(true)}
                 onBlurCapture={() => setPaused(false)}
               >
-                <div className={cls.sliderViewport}>
+                <div className={cls.heroCopy}>
+                  <div className={cls.heroBadge}>{currentSlide?.badge || "featured"}</div>
+                  <h1 className={cls.heroTitle}>
+                    {currentSlide?.title || "Fresh arrivals for a softer everyday style"}
+                  </h1>
+                  <p className={cls.heroSub}>
+                    {currentSlide?.sub ||
+                      "A visually rich hero ticker layout with quick access, trust cues, and strong shopping intent."}
+                  </p>
+                  <div className={cls.heroActions}>
+                    {renderNavTarget(
+                      currentSlide?.href || "/",
+                      cls.primaryCta,
+                      <>
+                        Shop now
+                        <i className="bi bi-arrow-right" aria-hidden="true" />
+                      </>,
+                      "Shop the featured collection",
+                    )}
+                    {renderNavTarget("/collections/new", cls.secondaryCta, <>See new arrivals</>, "See new arrivals")}
+                  </div>
+                </div>
+
+                <div className={cls.sliderViewport} aria-roledescription="carousel" aria-label="Featured promotions">
                   <div
                     className={cls.sliderRail}
                     style={{ transform: `translate3d(-${activeSlideIndex * 100}%, 0, 0)` }}
@@ -455,13 +514,14 @@ export function HeroTicker({
                           key={`${slide.href}-${index}`}
                           className={cls.slide}
                           aria-hidden={index !== activeSlideIndex}
+                          aria-label={slide.title || `Slide ${index + 1}`}
                           style={{ background: slide.bg || undefined }}
                         >
-                          <div className={cls.slideGlow} />
+                          <div className={cls.slideGlow} aria-hidden="true" />
                           <div className={cls.slideMedia}>
                             <Image
                               src={slide.imageSrc}
-                              alt={slide.alt || "Hero ticker banner"}
+                              alt={slide.alt || slide.title || "Featured hero banner"}
                               fill
                               sizes="(max-width: 1024px) 100vw, 48vw"
                               className={cls.slideImage}
@@ -477,11 +537,17 @@ export function HeroTicker({
                           href="#"
                           onClick={handlePreviewBlockClick}
                           className={cls.slideLink}
+                          aria-label={`Open ${slide.title || `slide ${index + 1}`}`}
                         >
                           {slideContent}
                         </a>
                       ) : (
-                        <Link key={`${slide.href}-${index}`} href={(slide.href || "/") as Route} className={cls.slideLink}>
+                        <Link
+                          key={`${slide.href}-${index}`}
+                          href={(slide.href || "/") as Route}
+                          className={cls.slideLink}
+                          aria-label={`Open ${slide.title || `slide ${index + 1}`}`}
+                        >
                           {slideContent}
                         </Link>
                       );
@@ -492,19 +558,19 @@ export function HeroTicker({
                 <button
                   type="button"
                   className={`${cls.arrowBtn} ${cls.arrowPrev}`}
-                  aria-label="Previous slide"
+                  aria-label="Show previous slide"
                   onClick={goToPreviousSlide}
                 >
-                  <i className="bi bi-chevron-left" />
+                  <i className="bi bi-chevron-left" aria-hidden="true" />
                 </button>
 
                 <button
                   type="button"
                   className={`${cls.arrowBtn} ${cls.arrowNext}`}
-                  aria-label="Next slide"
+                  aria-label="Show next slide"
                   onClick={goToNextSlide}
                 >
-                  <i className="bi bi-chevron-right" />
+                  <i className="bi bi-chevron-right" aria-hidden="true" />
                 </button>
 
                 <div className={cls.heroDots} role="tablist" aria-label="Slide navigation">
@@ -513,7 +579,8 @@ export function HeroTicker({
                       key={`${slide.href}-${index}`}
                       type="button"
                       className={`${cls.heroDot} ${index === activeSlideIndex ? cls.heroDotActive : ""}`}
-                      aria-label={`Go to slide ${index + 1}`}
+                      role="tab"
+                      aria-label={`Show ${slide.title || `slide ${index + 1}`}`}
                       aria-selected={index === activeSlideIndex}
                       onClick={() => goToSlide(index)}
                     />
@@ -521,12 +588,12 @@ export function HeroTicker({
                 </div>
               </div>
 
-              <div className={cls.cardGrid}>
+              <div className={cls.cardGrid} aria-label="Featured shopping cards">
                 {cardItems.map((card, index) => {
                   const content = (
                     <>
                       <div className={cls.cardCopy}>
-                        <span className={cls.cardIcon}>
+                        <span className={cls.cardIcon} aria-hidden="true">
                           <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
                         </span>
                         <div className={cls.cardTitle}>{card.title}</div>
@@ -537,13 +604,13 @@ export function HeroTicker({
                         {card.imageSrc ? (
                           <Image
                             src={card.imageSrc}
-                            alt=""
+                            alt={card.title}
                             fill
                             sizes="(max-width: 1024px) 100vw, 14vw"
                             className={cls.cardImage}
                           />
                         ) : (
-                          <div className={cls.cardFallback}>
+                          <div className={cls.cardFallback} aria-hidden="true">
                             <i className={`bi ${ensureBootstrapIcon(card.icon)}`} />
                           </div>
                         )}
@@ -553,21 +620,26 @@ export function HeroTicker({
 
                   return (
                     <React.Fragment key={`${card.href}-${index}`}>
-                      {renderNavTarget(card.href, `${cls.card} ${resolveToneClass(card.tone)}`, content)}
+                      {renderNavTarget(
+                        card.href,
+                        `${cls.card} ${resolveToneClass(card.tone)}`,
+                        content,
+                        `Open ${card.title}`,
+                      )}
                     </React.Fragment>
                   );
                 })}
               </div>
             </div>
 
-            <aside className={cls.sidePanel} aria-label="Quick chips">
+            <aside className={cls.sidePanel} aria-label="Quick links">
               <div className={cls.chipPanel}>
-                <div className={cls.chipPanelTitle}>Lối tắt dịu dàng</div>
+                <h2 className={cls.chipPanelTitle}>Quick Links</h2>
                 <div className={cls.chipGrid}>
                   {chipItems.map((chip, index) => {
                     const content = (
                       <>
-                        <span className={cls.chipIcon}>
+                        <span className={cls.chipIcon} aria-hidden="true">
                           <i className={`bi ${ensureBootstrapIcon(chip.icon)}`} />
                         </span>
                         <span className={cls.chipLabel}>{chip.label}</span>
@@ -576,7 +648,7 @@ export function HeroTicker({
 
                     return (
                       <React.Fragment key={`${chip.href}-${index}`}>
-                        {renderNavTarget(chip.href, cls.chipItem, content)}
+                        {renderNavTarget(chip.href, cls.chipItem, content, `Open ${chip.label}`)}
                       </React.Fragment>
                     );
                   })}

@@ -304,9 +304,12 @@ export function HeroRegion({
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
 
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current + 1) % totalSlides);
-    }, Math.max(2500, autoMs));
+    const intervalId = window.setInterval(
+      () => {
+        setActiveSlideIndex((current) => (current + 1) % totalSlides);
+      },
+      Math.max(2500, autoMs),
+    );
 
     return () => {
       window.clearInterval(intervalId);
@@ -464,7 +467,11 @@ export function HeroRegion({
                           {slideContent}
                         </a>
                       ) : (
-                        <Link key={`${slide.href}-${index}`} href={(slide.href || "/") as Route} className={cls.slideLink}>
+                        <Link
+                          key={`${slide.href}-${index}`}
+                          href={(slide.href || "/") as Route}
+                          className={cls.slideLink}
+                        >
                           {slideContent}
                         </Link>
                       );
