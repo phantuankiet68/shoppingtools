@@ -318,55 +318,24 @@ export function FooterTicker({
 
       <div className={cls.main}>
         <div className={cls.container}>
-          <section className={cls.hero}>
-            <div className={cls.heroContent}>
+          <section className={cls.topBlock}>
+            <div className={cls.brandPanel}>
               <span className={cls.kicker}>Beauty Commerce Platform</span>
               <h2 className={cls.brandName}>{bd.name}</h2>
               <p className={cls.brandTag}>{bd.tag}</p>
 
               {bd.info?.length ? (
-                <div className={cls.infoRow}>
+                <div className={cls.infoGrid}>
                   {bd.info.map((item, i) => (
-                    <div key={i} className={cls.infoPill}>
+                    <div key={i} className={cls.infoCard}>
                       <span className={cls.infoLabel}>{item.label}</span>
                       <span className={cls.infoText}>{item.text}</span>
                     </div>
                   ))}
                 </div>
               ) : null}
-            </div>
 
-            <div className={cls.heroCard}>
-              <h3 className={cls.heroCardTitle}>{newsletterTitle}</h3>
-              <p className={cls.heroCardDesc}>{newsletterDesc}</p>
-
-              <form className={cls.form} onSubmit={onSubmit} noValidate>
-                <label className={cls.srOnly} htmlFor="footerTickerEmail">
-                  Email
-                </label>
-
-                <input
-                  id="footerTickerEmail"
-                  type="email"
-                  name="email"
-                  className={cls.input}
-                  placeholder={placeholderEmail}
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <button
-                  type="submit"
-                  className={cls.submit}
-                  aria-label={submitAriaLabel}
-                  onClick={preview ? onBlockClick : undefined}
-                >
-                  {submitLabel}
-                </button>
-              </form>
-
-              <div className={cls.socials} aria-label="Social links">
+              <div className={cls.socialRow} aria-label="Social links">
                 {scs.map((item, i) =>
                   preview ? (
                     <a key={i} href="#" className={cls.socialBtn} onClick={onBlockClick} aria-label={item.label}>
@@ -380,34 +349,68 @@ export function FooterTicker({
                 )}
               </div>
             </div>
+
+            <div className={cls.featurePanel}>
+              <div className={cls.newsCard}>
+                <div className={cls.newsHead}>
+                  <h3 className={cls.newsTitle}>{newsletterTitle}</h3>
+                  <p className={cls.newsDesc}>{newsletterDesc}</p>
+                </div>
+
+                <form className={cls.form} onSubmit={onSubmit} noValidate>
+                  <label className={cls.srOnly} htmlFor="footerTickerEmail">
+                    Email
+                  </label>
+
+                  <input
+                    id="footerTickerEmail"
+                    type="email"
+                    name="email"
+                    className={cls.input}
+                    placeholder={placeholderEmail}
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+
+                  <button
+                    type="submit"
+                    className={cls.submit}
+                    aria-label={submitAriaLabel}
+                    onClick={preview ? onBlockClick : undefined}
+                  >
+                    {submitLabel}
+                  </button>
+                </form>
+              </div>
+
+              <div className={cls.hotlineGrid}>
+                {hls.map((item, i) => {
+                  const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
+
+                  return preview ? (
+                    <a key={i} href="#" className={cls.hotlineCard} onClick={onBlockClick}>
+                      <span className={cls.hotlineLabel}>{item.label}</span>
+                      <span className={cls.hotlinePhone}>{item.phone}</span>
+                      {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                    </a>
+                  ) : (
+                    <a key={i} href={telHref} className={cls.hotlineCard}>
+                      <span className={cls.hotlineLabel}>{item.label}</span>
+                      <span className={cls.hotlinePhone}>{item.phone}</span>
+                      {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
           </section>
 
-          <section className={cls.grid}>
-            <div className={cls.left}>
+          <section className={cls.contentGrid}>
+            <div className={cls.leftBlock}>
               <div className={cls.linkColumns}>
                 <div className={cls.linkCol}>
                   <h3 className={cls.colTitle}>{supportTitle}</h3>
-
-                  <div className={cls.hotlines}>
-                    {hls.map((item, i) => {
-                      const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
-
-                      return preview ? (
-                        <a key={i} href="#" className={cls.hotline} onClick={onBlockClick}>
-                          <span className={cls.hotlineLabel}>{item.label}</span>
-                          <span className={cls.hotlinePhone}>{item.phone}</span>
-                          {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
-                        </a>
-                      ) : (
-                        <a key={i} href={telHref} className={cls.hotline}>
-                          <span className={cls.hotlineLabel}>{item.label}</span>
-                          <span className={cls.hotlinePhone}>{item.phone}</span>
-                          {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
-                        </a>
-                      );
-                    })}
-                  </div>
-
                   <div className={cls.linkList}>
                     {spls.map((item, i) => (
                       <div key={i} className={cls.linkRow}>
@@ -419,7 +422,6 @@ export function FooterTicker({
 
                 <div className={cls.linkCol}>
                   <h3 className={cls.colTitle}>{aboutTitle}</h3>
-
                   <div className={cls.linkList}>
                     {abls.map((item, i) => (
                       <div key={i} className={cls.linkRow}>
@@ -431,7 +433,6 @@ export function FooterTicker({
 
                 <div className={cls.linkCol}>
                   <h3 className={cls.colTitle}>{partnerTitle}</h3>
-
                   <div className={cls.linkList}>
                     {ptls.map((item, i) => (
                       <div key={i} className={cls.linkRow}>
@@ -443,7 +444,9 @@ export function FooterTicker({
               </div>
 
               <div className={cls.tagBlock}>
-                <h3 className={cls.colTitle}>{tagTitle}</h3>
+                <div className={cls.tagHead}>
+                  <h3 className={cls.colTitle}>{tagTitle}</h3>
+                </div>
 
                 <div className={cls.tagList}>
                   {tgs.map((item, i) =>
@@ -459,9 +462,29 @@ export function FooterTicker({
                   )}
                 </div>
               </div>
+
+              <div className={cls.logoSection}>
+                <div className={cls.logoHead}>
+                  <h3 className={cls.colTitle}>Hệ sinh thái thương hiệu</h3>
+                </div>
+
+                <div className={cls.logoGrid}>
+                  {blogs.map((item, i) =>
+                    preview ? (
+                      <a key={i} href="#" className={cls.logoItem} onClick={onBlockClick} aria-label={item.label}>
+                        <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
+                      </a>
+                    ) : (
+                      <a key={i} href={item.href} className={cls.logoItem} aria-label={item.label} rel="noreferrer">
+                        <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
+                      </a>
+                    ),
+                  )}
+                </div>
+              </div>
             </div>
 
-            <aside className={cls.right}>
+            <aside className={cls.rightBlock}>
               <div className={cls.sideCard}>
                 <div className={cls.sideHead}>
                   <h3 className={cls.sideTitle}>{paymentsTitle}</h3>
@@ -519,59 +542,26 @@ export function FooterTicker({
                   <h3 className={cls.sideTitle}>{certificationTitle}</h3>
                 </div>
 
-                <div className={cls.certCard}>
-                  <Image
-                    src={certificationImageSrc}
-                    alt={certificationTitle}
-                    width={180}
-                    height={68}
-                    className={cls.certImg}
-                  />
+                <div className={cls.certPanel}>
+                  <div className={cls.certMedia}>
+                    <Image
+                      src={certificationImageSrc}
+                      alt={certificationTitle}
+                      width={180}
+                      height={68}
+                      className={cls.certImg}
+                    />
+                  </div>
+
+                  <div className={cls.certContent}>
+                    <span className={cls.certTitle}>Báo cáo / xác thực Bộ Công Thương</span>
+                    <span className={cls.certSub}>
+                      Khu vực chừa sẵn cho chứng nhận doanh nghiệp, giúp footer chuyên nghiệp và tăng độ tin cậy.
+                    </span>
+                  </div>
                 </div>
               </div>
             </aside>
-          </section>
-
-          <section className={cls.logoSection}>
-            <div className={cls.logoTicker}>
-              <div className={cls.logoTrack}>
-                {blogs.map((item, i) =>
-                  preview ? (
-                    <a key={`a-${i}`} href="#" className={cls.logoItem} onClick={onBlockClick} aria-label={item.label}>
-                      <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
-                    </a>
-                  ) : (
-                    <a
-                      key={`a-${i}`}
-                      href={item.href}
-                      className={cls.logoItem}
-                      aria-label={item.label}
-                      rel="noreferrer"
-                    >
-                      <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
-                    </a>
-                  ),
-                )}
-
-                {blogs.map((item, i) =>
-                  preview ? (
-                    <a key={`b-${i}`} href="#" className={cls.logoItem} onClick={onBlockClick} aria-label={item.label}>
-                      <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
-                    </a>
-                  ) : (
-                    <a
-                      key={`b-${i}`}
-                      href={item.href}
-                      className={cls.logoItem}
-                      aria-label={item.label}
-                      rel="noreferrer"
-                    >
-                      <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
-                    </a>
-                  ),
-                )}
-              </div>
-            </div>
           </section>
 
           <section className={cls.bottom}>

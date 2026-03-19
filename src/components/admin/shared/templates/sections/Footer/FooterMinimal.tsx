@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/templates/shopGreen/footer/footerMinimal.module.css";
+import cls from "@/styles/templates/sections/Footer/FooterMinimal.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -50,7 +50,7 @@ export type FooterMinimalProps = {
   partnersTitle?: string;
   partners?: FooterMinimalPartnerItem[];
 
-  copyrightText?: string; // dùng {year}
+  copyrightText?: string;
   preview?: boolean;
 };
 
@@ -65,8 +65,8 @@ const DEFAULT_BRAND: FooterMinimalBrand = {
   ],
   cert: {
     imageSrc: "/images/bocongthuong.png",
-    title: "Verified business",
-    sub: "Registered with authorities",
+    title: "Bộ Công Thương",
+    sub: "Đã thông báo/đăng ký theo quy định",
   },
 };
 
@@ -88,6 +88,7 @@ const DEFAULT_SOCIALS: FooterMinimalSocialItem[] = [
   { label: "Facebook", href: "#", icon: "bi-facebook" },
   { label: "YouTube", href: "#", icon: "bi-youtube" },
   { label: "Instagram", href: "#", icon: "bi-instagram" },
+  { label: "TikTok", href: "#", icon: "bi-tiktok" },
 ];
 
 const DEFAULT_PARTNERS: FooterMinimalPartnerItem[] = [
@@ -134,7 +135,7 @@ export function FooterMinimal({
 
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [email, setEmail] = useState("");
-  const [toast, setToast] = useState<string>("");
+  const [toast, setToast] = useState("");
   const toastTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -173,7 +174,7 @@ export function FooterMinimal({
   const scrollRail = (dir: -1 | 1) => {
     const rail = railRef.current;
     if (!rail) return;
-    const step = Math.max(220, rail.clientWidth * 0.7);
+    const step = Math.max(220, rail.clientWidth * 0.72);
     rail.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
@@ -183,69 +184,84 @@ export function FooterMinimal({
 
   return (
     <footer className={cls.siteFooter} aria-label="Site footer">
-      <div className={cls.footerTop}>
-        <div className={cls.footerContainer}>
-          <div className={cls.footerIntro}>
-            <div className={cls.footerBrandHead}>
-              <div className={cls.footerLogoMark} aria-hidden="true">
-                <div className={cls.footerLogoDot} />
+      <div className={cls.shell}>
+        <div className={cls.mainGrid}>
+          <div className={cls.brandCard}>
+            <div className={cls.brandTop}>
+              <div className={cls.brandBadge}>Premium beauty</div>
+
+              <div className={cls.brandHead}>
+                <div className={cls.logoMark} aria-hidden="true">
+                  <span className={cls.logoDot} />
+                </div>
+
+                <div className={cls.brandMeta}>
+                  <h2 className={cls.brandName}>{bd.name}</h2>
+                  <p className={cls.brandTag}>{bd.tag}</p>
+                </div>
               </div>
 
-              <div className={cls.footerBrandMeta}>
-                <div className={cls.footerBrandName}>{bd.name}</div>
-                <div className={cls.footerBrandTag}>{bd.tag}</div>
+              <div className={cls.brandHighlights}>
+                <span className={cls.highlightPill}>Authentic products</span>
+                <span className={cls.highlightPill}>Thoughtful service</span>
+                <span className={cls.highlightPill}>Official distribution</span>
               </div>
             </div>
 
-            <div className={cls.footerNewsletter}>
-              <h3 className={cls.footerTitle}>{newsletterTitle}</h3>
-              <p className={cls.footerDesc}>{newsletterDesc}</p>
+            <div className={cls.infoList}>
+              {bd.info.map((item, i) => (
+                <div key={i} className={cls.infoRow}>
+                  <span className={cls.infoLabel}>{item.label}</span>
+                  <span className={cls.infoText}>{item.text}</span>
+                </div>
+              ))}
+            </div>
 
-              <form className={cls.footerForm} onSubmit={onSubmit} noValidate>
-                <label className={cls.srOnly} htmlFor="footerMinimalEmail">
-                  Your email
-                </label>
-
-                <input
-                  className={cls.footerInput}
-                  id="footerMinimalEmail"
-                  type="email"
-                  name="email"
-                  placeholder={placeholderEmail}
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <button
-                  className={cls.footerSubmit}
-                  type="submit"
-                  aria-label={submitAriaLabel}
-                  onClick={preview ? onBlockClick : undefined}
-                >
-                  <span>{submitLabel}</span>
-                  <i className={`bi bi-arrow-right ${cls.footerSubmitIcon}`} aria-hidden="true" />
-                </button>
-              </form>
+            <div className={cls.socialRow} aria-label="Social links">
+              {scs.map((s, i) =>
+                preview ? (
+                  <a
+                    key={i}
+                    className={cls.socialBtn}
+                    href="#"
+                    onClick={onBlockClick}
+                    aria-label={s.label}
+                  >
+                    <i className={`bi ${s.icon}`} aria-hidden="true" />
+                  </a>
+                ) : (
+                  <a
+                    key={i}
+                    className={cls.socialBtn}
+                    href={s.href}
+                    aria-label={s.label}
+                    rel="noreferrer"
+                  >
+                    <i className={`bi ${s.icon}`} aria-hidden="true" />
+                  </a>
+                ),
+              )}
             </div>
           </div>
 
-          <div className={cls.footerMainGrid}>
-            <div className={cls.footerBlock}>
-              <h3 className={cls.footerTitle}>{linksTitle}</h3>
+          <div className={cls.centerCol}>
+            <div className={cls.linksCard}>
+              <h3 className={cls.cardTitle}>{linksTitle}</h3>
 
-              <ul className={cls.footerLinkList}>
+              <ul className={cls.linkList}>
                 {lks.map((it, i) =>
                   preview ? (
                     <li key={i}>
-                      <a className={cls.footerLink} href="#" onClick={onBlockClick}>
-                        {it.label}
+                      <a className={cls.linkItem} href="#" onClick={onBlockClick}>
+                        <span>{it.label}</span>
+                        <i className="bi bi-arrow-up-right" aria-hidden="true" />
                       </a>
                     </li>
                   ) : (
                     <li key={i}>
-                      <Link className={cls.footerLink} href={(it.href || "/") as Route}>
-                        {it.label}
+                      <Link className={cls.linkItem} href={(it.href || "/") as Route}>
+                        <span>{it.label}</span>
+                        <i className="bi bi-arrow-up-right" aria-hidden="true" />
                       </Link>
                     </li>
                   ),
@@ -253,139 +269,195 @@ export function FooterMinimal({
               </ul>
             </div>
 
-            <div className={cls.footerBlock}>
-              <h3 className={cls.footerTitle}>{supportTitle}</h3>
+            <div className={cls.supportCard}>
+              <h3 className={cls.cardTitle}>{supportTitle}</h3>
 
-              <div className={cls.footerHotlines}>
+              <div className={cls.hotlineGrid}>
                 {hls.map((h, i) => {
                   const telHref = `tel:${h.phone.replace(/[^\d+]/g, "")}`;
 
                   return preview ? (
                     <a
                       key={i}
-                      className={cls.footerHotline}
+                      className={cls.hotlineCard}
                       href="#"
                       onClick={onBlockClick}
                       aria-label={`Call ${h.label} ${h.phone}`}
                     >
-                      <span className={cls.footerPhoneIcon} aria-hidden="true">
-                        <i className="bi bi-telephone-fill" />
+                      <span className={cls.hotlineIcon} aria-hidden="true">
+                        <i className="bi bi-headset" />
                       </span>
 
-                      <span className={cls.footerHotlineText}>
-                        <span className={cls.footerHotlineLabel}>{h.label}</span>
-                        <span className={cls.footerHotlineNumber}>{h.phone}</span>
+                      <span className={cls.hotlineMeta}>
+                        <span className={cls.hotlineLabel}>{h.label}</span>
+                        <span className={cls.hotlineNumber}>{h.phone}</span>
                       </span>
                     </a>
                   ) : (
-                    <a key={i} className={cls.footerHotline} href={telHref} aria-label={`Call ${h.label} ${h.phone}`}>
-                      <span className={cls.footerPhoneIcon} aria-hidden="true">
-                        <i className="bi bi-telephone-fill" />
+                    <a
+                      key={i}
+                      className={cls.hotlineCard}
+                      href={telHref}
+                      aria-label={`Call ${h.label} ${h.phone}`}
+                    >
+                      <span className={cls.hotlineIcon} aria-hidden="true">
+                        <i className="bi bi-headset" />
                       </span>
 
-                      <span className={cls.footerHotlineText}>
-                        <span className={cls.footerHotlineLabel}>{h.label}</span>
-                        <span className={cls.footerHotlineNumber}>{h.phone}</span>
+                      <span className={cls.hotlineMeta}>
+                        <span className={cls.hotlineLabel}>{h.label}</span>
+                        <span className={cls.hotlineNumber}>{h.phone}</span>
                       </span>
                     </a>
                   );
                 })}
               </div>
+            </div>
+          </div>
 
-              <div className={cls.footerSocial} aria-label="Social links">
-                {scs.map((s, i) =>
-                  preview ? (
-                    <a key={i} className={cls.footerSocialBtn} href="#" onClick={onBlockClick} aria-label={s.label}>
-                      <i className={`bi ${s.icon}`} aria-hidden="true" />
-                    </a>
-                  ) : (
-                    <a key={i} className={cls.footerSocialBtn} href={s.href} aria-label={s.label} rel="noreferrer">
-                      <i className={`bi ${s.icon}`} aria-hidden="true" />
-                    </a>
-                  ),
-                )}
-              </div>
+          <div className={cls.rightCol}>
+            <div className={cls.newsCard}>
+              <div className={cls.cardEyebrow}>Newsletter</div>
+              <h3 className={cls.newsTitle}>{newsletterTitle}</h3>
+              <p className={cls.newsDesc}>{newsletterDesc}</p>
+
+              <form className={cls.newsForm} onSubmit={onSubmit} noValidate>
+                <label className={cls.srOnly} htmlFor="footerMinimalEmail">
+                  Your email
+                </label>
+
+                <div className={cls.inputWrap}>
+                  <i className={`bi bi-envelope ${cls.inputIcon}`} aria-hidden="true" />
+                  <input
+                    className={cls.newsInput}
+                    id="footerMinimalEmail"
+                    type="email"
+                    name="email"
+                    placeholder={placeholderEmail}
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <button
+                  className={cls.newsSubmit}
+                  type="submit"
+                  aria-label={submitAriaLabel}
+                  onClick={preview ? onBlockClick : undefined}
+                >
+                  <span>{submitLabel}</span>
+                  <i className="bi bi-arrow-right" aria-hidden="true" />
+                </button>
+              </form>
             </div>
 
-            <div className={cls.footerBlock}>
-              <h3 className={cls.footerTitle}>Information</h3>
+            {bd.cert ? (
+              <div className={cls.certCard}>
+                <div className={cls.certHead}>
+                  <div className={cls.cardEyebrow}>Chứng nhận</div>
+                </div>
 
-              <ul className={cls.footerInfoList}>
-                {bd.info.map((x, i) => (
-                  <li key={i} className={cls.footerInfoItem}>
-                    <span className={cls.footerInfoLabel}>{x.label}</span>
-                    <span className={cls.footerInfoText}>{x.text}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {bd.cert ? (
-                <div className={cls.footerCert}>
-                  <div className={cls.footerCertImgWrap} aria-hidden="true">
+                <div className={cls.certBody}>
+                  <div className={cls.certImageWrap}>
                     <Image
                       src={bd.cert.imageSrc}
-                      alt="Certification"
-                      width={72}
-                      height={48}
-                      className={cls.footerCertImg}
+                      alt={bd.cert.title}
+                      width={90}
+                      height={60}
+                      className={cls.certImage}
                     />
                   </div>
 
-                  <div className={cls.footerCertText}>
-                    <div className={cls.footerCertTitle}>{bd.cert.title}</div>
-                    <div className={cls.footerCertSub}>{bd.cert.sub}</div>
+                  <div className={cls.certMeta}>
+                    <div className={cls.certTitle}>{bd.cert.title}</div>
+                    <div className={cls.certSub}>{bd.cert.sub}</div>
                   </div>
                 </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </div>
         </div>
-      </div>
 
-      <div className={cls.footerPartners} aria-label="Partner websites">
-        <div className={cls.footerContainer}>
-          <div className={cls.footerPartnersHead}>
-            <h3 className={cls.footerPartnersTitle}>{partnersTitle}</h3>
+        <div className={cls.partnerSection} aria-label="Partner websites">
+          <div className={cls.partnerHead}>
+            <div>
+              <div className={cls.cardEyebrow}>Partners</div>
+              <h3 className={cls.partnerTitle}>{partnersTitle}</h3>
+            </div>
 
-            <div className={cls.footerPartnersControls}>
-              <button className={cls.footerPartnerNav} type="button" aria-label="Previous" onClick={() => scrollRail(-1)}>
+            <div className={cls.partnerControls}>
+              <button
+                className={cls.partnerNav}
+                type="button"
+                aria-label="Previous"
+                onClick={() => scrollRail(-1)}
+              >
                 <i className="bi bi-arrow-left" />
               </button>
 
-              <button className={cls.footerPartnerNav} type="button" aria-label="Next" onClick={() => scrollRail(1)}>
+              <button
+                className={cls.partnerNav}
+                type="button"
+                aria-label="Next"
+                onClick={() => scrollRail(1)}
+              >
                 <i className="bi bi-arrow-right" />
               </button>
             </div>
           </div>
 
-          <div className={cls.footerPartnersRail} ref={railRef}>
+          <div className={cls.partnerRail} ref={railRef}>
             {pts.map((p, i) =>
               preview ? (
-                <a key={i} className={cls.footerPartnerCard} href="#" onClick={onBlockClick} aria-label={p.label}>
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
+                <a
+                  key={i}
+                  className={cls.partnerCard}
+                  href="#"
+                  onClick={onBlockClick}
+                  aria-label={p.label}
+                >
+                  <Image
+                    src={p.imageSrc}
+                    alt={p.label}
+                    width={180}
+                    height={70}
+                    className={cls.partnerImg}
+                  />
                 </a>
               ) : (
-                <a key={i} className={cls.footerPartnerCard} href={p.href} aria-label={p.label} rel="noreferrer">
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
+                <a
+                  key={i}
+                  className={cls.partnerCard}
+                  href={p.href}
+                  aria-label={p.label}
+                  rel="noreferrer"
+                >
+                  <Image
+                    src={p.imageSrc}
+                    alt={p.label}
+                    width={180}
+                    height={70}
+                    className={cls.partnerImg}
+                  />
                 </a>
               ),
             )}
           </div>
         </div>
-      </div>
 
-      <div className={cls.footerBottom}>
-        <div className={cls.footerContainerBottom}>
-          <div className={cls.footerCopy}>{copy}</div>
+        <div className={cls.footerBottom}>
+          <div className={cls.copyText}>{copy}</div>
 
-          <button className={cls.footerTopBtn} type="button" aria-label="Back to top" onClick={goTop}>
-            <i className="bi bi-arrow-up" /> Top
+          <button className={cls.topBtn} type="button" aria-label="Back to top" onClick={goTop}>
+            <i className="bi bi-arrow-up" />
+            <span>Top</span>
           </button>
         </div>
       </div>
 
       <div
-        className={`${cls.footerToast} ${toast ? cls.isShow : ""}`}
+        className={`${cls.toast} ${toast ? cls.isShow : ""}`}
         role="status"
         aria-live="polite"
         aria-atomic="true"
@@ -397,7 +469,7 @@ export function FooterMinimal({
 }
 
 /* ================= RegItem ================= */
-export const SHOP_FOOTER_GREEN_MINIMAL: RegItem = {
+export const SHOP_FOOTER_MINIMAL: RegItem = {
   kind: "FooterMinimal",
   label: "Footer Minimal",
   defaults: {

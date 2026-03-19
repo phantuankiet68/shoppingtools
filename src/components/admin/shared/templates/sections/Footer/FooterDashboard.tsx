@@ -14,17 +14,9 @@ export type FooterDashboardLinkItem = { label: string; href: string };
 
 export type FooterDashboardHotlineItem = { label: string; phone: string };
 
-export type FooterDashboardSocialItem = {
-  label: string;
-  href: string;
-  icon: string;
-};
+export type FooterDashboardSocialItem = { label: string; href: string; icon: string };
 
-export type FooterDashboardPartnerItem = {
-  label: string;
-  href: string;
-  imageSrc: string;
-};
+export type FooterDashboardPartnerItem = { label: string; href: string; imageSrc: string };
 
 export type FooterDashboardMetricItem = {
   label: string;
@@ -107,9 +99,9 @@ const DEFAULT_HOTLINES: FooterDashboardHotlineItem[] = [
 ];
 
 const DEFAULT_SOCIALS: FooterDashboardSocialItem[] = [
-  { label: "Facebook", href: "#", icon: "bi-facebook" },
+  { label: "LinkedIn", href: "#", icon: "bi-linkedin" },
   { label: "YouTube", href: "#", icon: "bi-youtube" },
-  { label: "Instagram", href: "#", icon: "bi-instagram" },
+  { label: "Twitter", href: "#", icon: "bi-twitter-x" },
 ];
 
 const DEFAULT_PARTNERS: FooterDashboardPartnerItem[] = [
@@ -141,6 +133,15 @@ function hrefTarget(href: string) {
   return href.startsWith("http") ? "_blank" : undefined;
 }
 
+function splitLinksToColumns(items: FooterDashboardLinkItem[]) {
+  const size = Math.ceil(items.length / 3) || 1;
+  return [
+    items.slice(0, size),
+    items.slice(size, size * 2),
+    items.slice(size * 2),
+  ].filter((group) => group.length > 0);
+}
+
 /* ================= Component ================= */
 export function FooterDashboard({
   brand,
@@ -148,12 +149,12 @@ export function FooterDashboard({
   metrics,
   linksTitle = "Quick links",
   links,
-  newsletterTitle = "Get weekly updates",
-  newsletterDesc = "Subscribe to receive beauty tips, new arrivals and selected offers.",
-  placeholderEmail = "Enter your email",
+  newsletterTitle = "Subscribe to our newsletter",
+  newsletterDesc = "Receive curated product stories, launches and selected offers.",
+  placeholderEmail = "E-mail",
   submitAriaLabel = "Subscribe",
   submitLabel = "Subscribe",
-  supportTitle = "Support center",
+  supportTitle = "Contact us",
   hotlines,
   socials,
   partnersTitle = "Trusted partners",
@@ -188,6 +189,8 @@ export function FooterDashboard({
   const copy = useMemo(() => {
     return copyrightText.replace("{year}", String(year));
   }, [copyrightText, year]);
+
+  const linkColumns = useMemo(() => splitLinksToColumns(lks), [lks]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -230,7 +233,6 @@ export function FooterDashboard({
   const scrollRail = (dir: -1 | 1) => {
     const rail = railRef.current;
     if (!rail) return;
-
     const step = Math.max(220, rail.clientWidth * 0.72);
     rail.scrollBy({ left: dir * step, behavior: "smooth" });
   };
@@ -241,294 +243,276 @@ export function FooterDashboard({
 
   return (
     <footer className={cls.siteFooter} aria-label="Site footer">
-      <div className={cls.footerTop}>
-        <div className={cls.footerContainer}>
-          <div className={cls.footerHero}>
-            <section className={cls.footerHeroMain} aria-label="Brand overview">
-              <div className={cls.footerBrandHead}>
-                <div className={cls.footerLogoMark} aria-hidden="true">
-                  <div className={cls.footerLogoDot} />
-                </div>
+      <div className={cls.footerShell}>
 
-                <div className={cls.footerBrandMeta}>
-                  <h2 className={cls.footerBrandName}>{bd.name}</h2>
-                  <p className={cls.footerBrandTag}>{bd.tag}</p>
-                </div>
-              </div>
-
-              <ul className={cls.footerInfoList}>
-                {bd.info.map((item, index) => (
-                  <li key={`${item.label}-${index}`} className={cls.footerInfoItem}>
-                    <span className={cls.footerInfoLabel}>{item.label}</span>
-                    <span className={cls.footerInfoText}>{item.text}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {bd.cert ? (
-                <div className={cls.footerCert}>
-                  <div className={cls.footerCertImgWrap} aria-hidden="true">
-                    <Image src={bd.cert.imageSrc} alt="" width={72} height={48} className={cls.footerCertImg} />
-                  </div>
-
-                  <div className={cls.footerCertText}>
-                    <div className={cls.footerCertTitle}>{bd.cert.title}</div>
-                    <div className={cls.footerCertSub}>{bd.cert.sub}</div>
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            <aside className={cls.footerMetricsCard} aria-label={metricsTitle}>
-              <div className={cls.footerPanelTitle}>{metricsTitle}</div>
-
-              <div className={cls.footerMetricsGrid}>
-                {mts.map((item, index) => (
-                  <article key={`${item.label}-${index}`} className={cls.footerMetricItem}>
-                    <div className={cls.footerMetricValue}>{item.value}</div>
-                    <div className={cls.footerMetricLabel}>{item.label}</div>
-                  </article>
-                ))}
-              </div>
-            </aside>
-          </div>
-
-          <div className={cls.footerGrid}>
-            <nav className={cls.footerPanel} aria-label={linksTitle}>
-              <h3 className={cls.footerPanelTitle}>{linksTitle}</h3>
-
-              <ul className={cls.footerLinkList}>
-                {lks.map((item, index) => {
-                  if (preview) {
-                    return (
-                      <li key={`${item.label}-${index}`}>
-                        <a className={cls.footerLink} href="#" onClick={onBlockClick}>
-                          {item.label}
-                        </a>
-                      </li>
-                    );
-                  }
-
-                  if (isExternalHref(item.href || "#")) {
-                    return (
-                      <li key={`${item.label}-${index}`}>
-                        <a
-                          className={cls.footerLink}
-                          href={item.href || "#"}
-                          rel="noreferrer"
-                          target={hrefTarget(item.href || "#")}
-                        >
-                          {item.label}
-                        </a>
-                      </li>
-                    );
-                  }
-
-                  return (
-                    <li key={`${item.label}-${index}`}>
-                      <Link className={cls.footerLink} href={(item.href || "/") as Route}>
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-
-            <section className={cls.footerPanel} aria-label={supportTitle}>
-              <h3 className={cls.footerPanelTitle}>{supportTitle}</h3>
-
-              <div className={cls.footerHotlines}>
-                {hls.map((item, index) => {
-                  const telHref = `tel:${normalizePhone(item.phone)}`;
-
-                  if (preview) {
-                    return (
-                      <a
-                        key={`${item.label}-${index}`}
-                        className={cls.footerHotline}
-                        href="#"
-                        onClick={onBlockClick}
-                        aria-label={`Call ${item.label} ${item.phone}`}
-                      >
-                        <span className={cls.footerPhoneIcon} aria-hidden="true">
-                          <i className="bi bi-telephone-fill" />
-                        </span>
-
-                        <span className={cls.footerHotlineText}>
-                          <span className={cls.footerHotlineLabel}>{item.label}</span>
-                          <span className={cls.footerHotlineNumber}>{item.phone}</span>
-                        </span>
-                      </a>
-                    );
-                  }
-
-                  return (
-                    <a
-                      key={`${item.label}-${index}`}
-                      className={cls.footerHotline}
-                      href={telHref}
-                      aria-label={`Call ${item.label} ${item.phone}`}
-                    >
-                      <span className={cls.footerPhoneIcon} aria-hidden="true">
-                        <i className="bi bi-telephone-fill" />
-                      </span>
-
-                      <span className={cls.footerHotlineText}>
-                        <span className={cls.footerHotlineLabel}>{item.label}</span>
-                        <span className={cls.footerHotlineNumber}>{item.phone}</span>
-                      </span>
-                    </a>
-                  );
-                })}
-              </div>
-
-              <div className={cls.footerSocial} aria-label="Social links">
-                {scs.map((item, index) => {
-                  if (preview) {
-                    return (
-                      <a
-                        key={`${item.label}-${index}`}
-                        className={cls.footerSocialBtn}
-                        href="#"
-                        onClick={onBlockClick}
-                        aria-label={item.label}
-                      >
-                        <i className={`bi ${item.icon}`} aria-hidden="true" />
-                      </a>
-                    );
-                  }
-
-                  return (
-                    <a
-                      key={`${item.label}-${index}`}
-                      className={cls.footerSocialBtn}
-                      href={item.href}
-                      aria-label={item.label}
-                      rel="noreferrer"
-                      target={hrefTarget(item.href)}
-                    >
-                      <i className={`bi ${item.icon}`} aria-hidden="true" />
-                    </a>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className={`${cls.footerPanel} ${cls.footerNewsletterPanel}`} aria-label={newsletterTitle}>
-              <h3 className={cls.footerPanelTitle}>{newsletterTitle}</h3>
-              <p className={cls.footerDesc}>{newsletterDesc}</p>
-
-              <form className={cls.footerForm} onSubmit={onSubmit} noValidate>
-                <label className={cls.srOnly} htmlFor="footerDashboardEmail">
-                  Your email
-                </label>
-
-                <input
-                  id="footerDashboardEmail"
-                  className={cls.footerInput}
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  placeholder={placeholderEmail}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <button
-                  className={cls.footerSubmit}
-                  type="submit"
-                  aria-label={submitAriaLabel}
-                  onClick={preview ? onBlockClick : undefined}
-                >
-                  <span>{submitLabel}</span>
-                  <i className={`bi bi-arrow-right ${cls.footerSubmitIcon}`} aria-hidden="true" />
-                </button>
-              </form>
-            </section>
-          </div>
+        <div className={cls.footerTop}>
+          <div className={cls.footerOrb} aria-hidden="true">
+          <button
+            type="button"
+            className={cls.footerOrbButton}
+            onClick={preview ? onBlockClick : goTop}
+            aria-label="Get started"
+          >
+            <span className={cls.footerOrbRingText}>GET STARTED</span>
+            <span className={cls.footerOrbArrow}>
+              <i className="bi bi-arrow-up-right" />
+            </span>
+          </button>
         </div>
-      </div>
+          <div className={cls.footerContainer}>
+            <div className={cls.footerBoard}>
+              <section className={cls.footerHero} aria-label="Brand overview">
+                <div className={cls.footerBrandBlock}>
+                  <div className={cls.footerBrandHead}>
+                    <div className={cls.footerLogoWordmark} aria-label={bd.name}>
+                      <span className={cls.footerLogoLead}>PL</span>
+                      <span className={cls.footerLogoLine} />
+                      <span className={cls.footerLogoTail}>ATFORM.</span>
+                    </div>
+                  </div>
 
-      <div className={cls.footerPartners} aria-label="Partner websites">
-        <div className={cls.footerContainer}>
-          <div className={cls.footerPartnersHead}>
-            <h3 className={cls.footerPartnersTitle}>{partnersTitle}</h3>
+                  <div className={cls.footerNavColumns} aria-label={linksTitle}>
+                    {linkColumns.map((group, columnIndex) => (
+                      <nav key={`col-${columnIndex}`} className={cls.footerNavColumn}>
+                        <h3 className={cls.footerPanelTitle}>
+                          {columnIndex === 0
+                            ? "Insights"
+                            : columnIndex === 1
+                              ? "Company"
+                              : "What we do"}
+                        </h3>
 
-            <div className={cls.footerPartnersControls}>
-              <button
-                className={cls.footerPartnerNav}
-                type="button"
-                aria-label="Previous partners"
-                onClick={() => scrollRail(-1)}
-              >
-                <i className="bi bi-arrow-left" />
-              </button>
+                        <ul className={cls.footerLinkList}>
+                          {group.map((item, index) => {
+                            if (preview) {
+                              return (
+                                <li key={`${item.label}-${index}`}>
+                                  <a className={cls.footerLink} href="#" onClick={onBlockClick}>
+                                    {item.label}
+                                  </a>
+                                </li>
+                              );
+                            }
 
-              <button
-                className={cls.footerPartnerNav}
-                type="button"
-                aria-label="Next partners"
-                onClick={() => scrollRail(1)}
-              >
-                <i className="bi bi-arrow-right" />
-              </button>
+                            if (isExternalHref(item.href || "#")) {
+                              return (
+                                <li key={`${item.label}-${index}`}>
+                                  <a
+                                    className={cls.footerLink}
+                                    href={item.href || "#"}
+                                    rel="noreferrer"
+                                    target={hrefTarget(item.href || "#")}
+                                  >
+                                    {item.label}
+                                  </a>
+                                </li>
+                              );
+                            }
+
+                            return (
+                              <li key={`${item.label}-${index}`}>
+                                <Link className={cls.footerLink} href={(item.href || "/") as Route}>
+                                  {item.label}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </nav>
+                    ))}
+                  </div>
+                  <div className={cls.footerContactList}>
+                      {hls.map((item, index) => {
+                        const telHref = `tel:${normalizePhone(item.phone)}`;
+
+                        if (preview) {
+                          return (
+                            <a
+                              key={`${item.label}-${index}`}
+                              className={cls.footerContactItem}
+                              href="#"
+                              onClick={onBlockClick}
+                              aria-label={`${item.label} ${item.phone}`}
+                            >
+                              <span className={cls.footerContactIcon} aria-hidden="true">
+                                <i className="bi bi-telephone" />
+                              </span>
+                              <span className={cls.footerContactText}>
+                                <span className={cls.footerContactLabel}>{item.label}</span>
+                                <span className={cls.footerContactValue}>{item.phone}</span>
+                              </span>
+                            </a>
+                          );
+                        }
+
+                        return (
+                          <a
+                            key={`${item.label}-${index}`}
+                            className={cls.footerContactItem}
+                            href={telHref}
+                            aria-label={`${item.label} ${item.phone}`}
+                          >
+                            <span className={cls.footerContactIcon} aria-hidden="true">
+                              <i className="bi bi-telephone" />
+                            </span>
+                            <span className={cls.footerContactText}>
+                              <span className={cls.footerContactLabel}>{item.label}</span>
+                              <span className={cls.footerContactValue}>{item.phone}</span>
+                            </span>
+                          </a>
+                        );
+                      })}
+
+                      <a
+                        className={cls.footerContactItem}
+                        href={preview ? "#" : "mailto:info@platform.com"}
+                        onClick={preview ? onBlockClick : undefined}
+                        aria-label="Email info@platform.com"
+                      >
+                        <span className={cls.footerContactIcon} aria-hidden="true">
+                          <i className="bi bi-envelope" />
+                        </span>
+                        <span className={cls.footerContactText}>
+                          <span className={cls.footerContactLabel}>E-mail</span>
+                          <span className={cls.footerContactValue}>info@platform.com</span>
+                        </span>
+                      </a>
+
+                      <a
+                        className={cls.footerContactItem}
+                        href={preview ? "#" : "/contact"}
+                        onClick={preview ? onBlockClick : undefined}
+                        aria-label="Schedule a meeting"
+                      >
+                        <span className={cls.footerContactIcon} aria-hidden="true">
+                          <i className="bi bi-people" />
+                        </span>
+                        <span className={cls.footerContactText}>
+                          <span className={cls.footerContactLabel}>Meeting</span>
+                          <span className={cls.footerContactValue}>Schedule a meeting</span>
+                        </span>
+                      </a>
+                    </div>
+                </div>
+
+                <aside className={cls.footerSidePanel}>
+                  <section className={cls.footerNewsletterPanel} aria-label={newsletterTitle}>
+                    <h3 className={cls.footerNewsletterTitle}>{newsletterTitle}</h3>
+                    <p className={cls.footerDesc}>{newsletterDesc}</p>
+
+                    <form className={cls.footerForm} onSubmit={onSubmit} noValidate>
+                      <label className={cls.srOnly} htmlFor="footerDashboardEmail">
+                        Your email
+                      </label>
+
+                      <div className={cls.footerInputWrap}>
+                        <input
+                          id="footerDashboardEmail"
+                          className={cls.footerInput}
+                          type="email"
+                          name="email"
+                          autoComplete="email"
+                          placeholder={placeholderEmail}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+
+                        <button
+                          className={cls.footerSubmit}
+                          type="submit"
+                          aria-label={submitAriaLabel}
+                          onClick={preview ? onBlockClick : undefined}
+                        >
+                          <span className={cls.srOnly}>{submitLabel}</span>
+                          <i className={`bi bi-arrow-up-right ${cls.footerSubmitIcon}`} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </form>
+                  </section>
+                   <div className={cls.footerMetaRow}>
+                    <div className={cls.footerSocial} aria-label="Social links">
+                      {scs.map((item, index) => {
+                        if (preview) {
+                          return (
+                            <a
+                              key={`${item.label}-${index}`}
+                              className={cls.footerSocialBtn}
+                              href="#"
+                              onClick={onBlockClick}
+                              aria-label={item.label}
+                            >
+                              <i className={`bi ${item.icon}`} aria-hidden="true" />
+                            </a>
+                          );
+                        }
+
+                        return (
+                          <a
+                            key={`${item.label}-${index}`}
+                            className={cls.footerSocialBtn}
+                            href={item.href}
+                            aria-label={item.label}
+                            rel="noreferrer"
+                            target={hrefTarget(item.href)}
+                          >
+                            <i className={`bi ${item.icon}`} aria-hidden="true" />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </aside>
+              </section>
+
+              <section className={cls.footerStatsStrip} aria-label={metricsTitle}>
+                <h3 className={cls.srOnly}>{metricsTitle}</h3>
+
+                <div className={cls.footerMetricsGrid}>
+                  {mts.map((item, index) => (
+                    <article key={`${item.label}-${index}`} className={cls.footerMetricItem}>
+                      <div className={cls.footerMetricValue}>{item.value}</div>
+                      <div className={cls.footerMetricLabel}>{item.label}</div>
+                    </article>
+                  ))}
+                </div>
+              </section>
             </div>
           </div>
-
-          <div className={cls.footerPartnersRail} ref={railRef}>
-            {pts.map((item, index) => {
-              if (preview) {
-                return (
-                  <a
-                    key={`${item.label}-${index}`}
-                    className={cls.footerPartnerCard}
-                    href="#"
-                    onClick={onBlockClick}
-                    aria-label={item.label}
-                  >
-                    <Image
-                      src={item.imageSrc}
-                      alt={item.label}
-                      width={180}
-                      height={70}
-                      className={cls.footerPartnerImg}
-                    />
-                  </a>
-                );
-              }
-
-              return (
-                <a
-                  key={`${item.label}-${index}`}
-                  className={cls.footerPartnerCard}
-                  href={item.href}
-                  aria-label={item.label}
-                  rel="noreferrer"
-                  target={hrefTarget(item.href)}
-                >
-                  <Image
-                    src={item.imageSrc}
-                    alt={item.label}
-                    width={180}
-                    height={70}
-                    className={cls.footerPartnerImg}
-                  />
-                </a>
-              );
-            })}
-          </div>
         </div>
-      </div>
 
-      <div className={cls.footerBottom}>
-        <div className={cls.footerContainerBottom}>
-          <div className={cls.footerCopy}>{copy}</div>
+        <div className={cls.footerBottom}>
+          <div className={cls.footerContainerBottom}>
+            <div className={cls.footerBottomLeft}>
+              <div className={cls.footerCopy}>{copy}</div>
+              <div className={cls.footerPolicyLinks}>
+                {preview ? (
+                  <>
+                    <a href="#" onClick={onBlockClick} className={cls.footerPolicyLink}>
+                      Terms and Conditions
+                    </a>
+                    <span className={cls.footerPolicyDot}>|</span>
+                    <a href="#" onClick={onBlockClick} className={cls.footerPolicyLink}>
+                      Privacy Policy
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <Link href={"/terms" as Route} className={cls.footerPolicyLink}>
+                      Terms and Conditions
+                    </Link>
+                    <span className={cls.footerPolicyDot}>|</span>
+                    <Link href={"/privacy" as Route} className={cls.footerPolicyLink}>
+                      Privacy Policy
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
 
-          <button className={cls.footerTopBtn} type="button" aria-label="Back to top" onClick={goTop}>
-            <i className="bi bi-arrow-up" aria-hidden="true" />
-            <span>Top</span>
-          </button>
+            <button className={cls.footerTopBtn} type="button" aria-label="Back to top" onClick={goTop}>
+              <i className="bi bi-arrow-up" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -557,13 +541,13 @@ export const SHOP_FOOTER_DASHBOARD: RegItem = {
     linksTitle: "Quick links",
     links: JSON.stringify(DEFAULT_LINKS, null, 2),
 
-    newsletterTitle: "Get weekly updates",
-    newsletterDesc: "Subscribe to receive beauty tips, new arrivals and selected offers.",
-    placeholderEmail: "Enter your email",
+    newsletterTitle: "Subscribe to our newsletter",
+    newsletterDesc: "Receive curated product stories, launches and selected offers.",
+    placeholderEmail: "E-mail",
     submitAriaLabel: "Subscribe",
     submitLabel: "Subscribe",
 
-    supportTitle: "Support center",
+    supportTitle: "Contact us",
     hotlines: JSON.stringify(DEFAULT_HOTLINES, null, 2),
     socials: JSON.stringify(DEFAULT_SOCIALS, null, 2),
 
@@ -612,12 +596,12 @@ export const SHOP_FOOTER_DASHBOARD: RegItem = {
           metrics={metrics}
           linksTitle={String(p.linksTitle || "Quick links")}
           links={links}
-          newsletterTitle={String(p.newsletterTitle || "Get weekly updates")}
+          newsletterTitle={String(p.newsletterTitle || "Subscribe to our newsletter")}
           newsletterDesc={String(p.newsletterDesc || "")}
-          placeholderEmail={String(p.placeholderEmail || "Enter your email")}
+          placeholderEmail={String(p.placeholderEmail || "E-mail")}
           submitAriaLabel={String(p.submitAriaLabel || "Subscribe")}
           submitLabel={String(p.submitLabel || "Subscribe")}
-          supportTitle={String(p.supportTitle || "Support center")}
+          supportTitle={String(p.supportTitle || "Contact us")}
           hotlines={hotlines}
           socials={socials}
           partnersTitle={String(p.partnersTitle || "Trusted partners")}
