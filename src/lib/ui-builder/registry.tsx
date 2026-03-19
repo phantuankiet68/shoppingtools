@@ -31,6 +31,15 @@ import { SHOP_HERO_CENTERED } from "@/components/admin/shared/templates/sections
 import { SHOP_HERO_CLASSIC } from "@/components/admin/shared/templates/sections/Hero/HeroClassic";
 import { SHOP_HERO_COMPACT } from "@/components/admin/shared/templates/sections/Hero/HeroCompact";
 
+// ===== Web page Footer  =====
+import { SHOP_FOOTER_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Footer/FooterAnnouncement";
+
+// ===== Web page Sidebar  =====
+import { SHOP_SIDEBAR_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Sidebar/SidebarAnnouncement";
+
+// ===== Web page Section  =====
+import { SHOP_SECTION_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Section/SectionAnnouncement";
+
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
 import { SHOP_HEADER_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/header/header1";
@@ -75,6 +84,15 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_HERO_CENTERED,
   SHOP_HERO_CLASSIC,
   SHOP_HERO_COMPACT,
+
+  // ===== Web page Footer  =====
+  SHOP_FOOTER_ANNOUNCEMENT,
+
+  // ===== Web page Sidebar  =====
+  SHOP_SIDEBAR_ANNOUNCEMENT,
+
+  // ===== Web page Section  =====
+  SHOP_SECTION_ANNOUNCEMENT,
 
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,

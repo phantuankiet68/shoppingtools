@@ -485,7 +485,7 @@ tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/
 
 Hiện tại tôi đang sử dụng next 16 module và HeaderAnnouncement là file mẫu dùng làm templates để tạo pages Bạn có thể từ HeaderAnnouncement.tsx bạn hãy tạo design Ui mới là HeaderCentered.tsx cấu trúc giống nhau nhé
 
-hiện tại HeroAnnouncement.tsx là templates mẫu. tôi đang sử dụng next 16 và css module tôi thấy design đã quá lỗi thời không tương thích với header mode 2026 với nền tảng da dạng và nhiều sắc thái mới mẽ mang được tính chuyên nghiệp cho lĩnh vực bán hàng và web site. tôi muốn bạn độ lại Ui nhưng cấu trúc file vẫn giữ như cũ nhé. Hãy giúp tôi chỉnh sửa và ghi lại toàn bộ file nhé rất cảm ơn bạn. Do đây là giao diện web bán hàng ấy chứ. và theo style khác hẳn với file cũ nhé hãy tạo file HeroCentered.tsx giúp tôi
+hiện tại SectionAnnouncement.tsx là templates mẫu. tôi đang sử dụng next 16 và css module tôi thấy design đã quá lỗi thời không tương thích với header mode 2026 với nền tảng da dạng và nhiều sắc thái mới mẽ mang được tính chuyên nghiệp cho lĩnh vực bán hàng và web site. tôi muốn bạn độ lại Ui nhưng cấu trúc file vẫn giữ như cũ nhé. Hãy giúp tôi chỉnh sửa và ghi lại toàn bộ file nhé rất cảm ơn bạn. Do đây là giao diện web bán hàng ấy chứ. và theo style khác hẳn với file cũ nhé hãy tạo file SectionUtility.tsx giúp tôi
 
 viết luôn cho bạn file HeroCentered.module.css đồng bộ với component này theo style ecommerce hiện đại, responsive, premium, đủ để dùng ngay.
 

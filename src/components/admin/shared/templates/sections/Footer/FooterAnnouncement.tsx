@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/templates/shopGreen/footer/footerAnnouncement.module.css";
+import cls from "@/styles/templates/sections/Footer/FooterAnnouncement.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -351,23 +351,11 @@ export function FooterAnnouncement({
               <div className={cls.socials} aria-label="Social links">
                 {scs.map((item, i) =>
                   preview ? (
-                    <a
-                      key={i}
-                      href="#"
-                      className={cls.socialBtn}
-                      onClick={onBlockClick}
-                      aria-label={item.label}
-                    >
+                    <a key={i} href="#" className={cls.socialBtn} onClick={onBlockClick} aria-label={item.label}>
                       <i className={`bi ${item.icon}`} aria-hidden="true" />
                     </a>
                   ) : (
-                    <a
-                      key={i}
-                      href={item.href}
-                      className={cls.socialBtn}
-                      aria-label={item.label}
-                      rel="noreferrer"
-                    >
+                    <a key={i} href={item.href} className={cls.socialBtn} aria-label={item.label} rel="noreferrer">
                       <i className={`bi ${item.icon}`} aria-hidden="true" />
                     </a>
                   ),
@@ -380,13 +368,7 @@ export function FooterAnnouncement({
                 <div className={cls.paymentList}>
                   {pays.map((item, i) => (
                     <div key={i} className={cls.paymentCard} title={item.label}>
-                      <Image
-                        src={item.imageSrc}
-                        alt={item.label}
-                        width={64}
-                        height={28}
-                        className={cls.paymentImg}
-                      />
+                      <Image src={item.imageSrc} alt={item.label} width={64} height={28} className={cls.paymentImg} />
                     </div>
                   ))}
                 </div>
@@ -434,23 +416,11 @@ export function FooterAnnouncement({
                   {sts.map((item, i) =>
                     preview ? (
                       <a key={i} href="#" className={cls.storeBtn} onClick={onBlockClick} aria-label={item.label}>
-                        <Image
-                          src={item.imageSrc}
-                          alt={item.label}
-                          width={140}
-                          height={42}
-                          className={cls.storeImg}
-                        />
+                        <Image src={item.imageSrc} alt={item.label} width={140} height={42} className={cls.storeImg} />
                       </a>
                     ) : (
                       <a key={i} href={item.href} className={cls.storeBtn} aria-label={item.label} rel="noreferrer">
-                        <Image
-                          src={item.imageSrc}
-                          alt={item.label}
-                          width={140}
-                          height={42}
-                          className={cls.storeImg}
-                        />
+                        <Image src={item.imageSrc} alt={item.label} width={140} height={42} className={cls.storeImg} />
                       </a>
                     ),
                   )}
@@ -520,12 +490,7 @@ export function FooterAnnouncement({
         <i className="bi bi-chevron-up" aria-hidden="true" />
       </button>
 
-      <div
-        className={`${cls.toast} ${toast ? cls.isShow : ""}`}
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
+      <div className={`${cls.toast} ${toast ? cls.isShow : ""}`} role="status" aria-live="polite" aria-atomic="true">
         {toast}
       </div>
     </footer>
@@ -533,7 +498,7 @@ export function FooterAnnouncement({
 }
 
 /* ================= RegItem ================= */
-export const SHOP_FOOTER_GREEN_ANNOUNCEMENT: RegItem = {
+export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
   kind: "FooterAnnouncement",
   label: "Footer Announcement",
   defaults: {
