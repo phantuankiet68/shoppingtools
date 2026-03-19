@@ -85,57 +85,58 @@ export type FooterAnnouncementProps = {
   certificationTitle?: string;
   certificationImageSrc?: string;
 
-  copyrightText?: string; // dùng {year}
+  copyrightText?: string;
   preview?: boolean;
 };
 
 /* ================= Defaults ================= */
 const DEFAULT_BRAND: FooterAnnouncementBrand = {
   name: "HASAKI.VN",
-  tag: "Mỹ phẩm chính hãng • Giao nhanh • Hỗ trợ tận tâm",
+  tag: "Authentic cosmetics • Fast delivery • Dedicated support",
   info: [
-    { label: "Địa chỉ", text: "Số 29/150 Giảng Võ, Phường Giảng Võ, Hà Nội" },
-    { label: "Điện thoại", text: "1800 6324" },
+    { label: "Head Office", text: "29/150 Giang Vo Street, Giang Vo Ward, Hanoi" },
+    { label: "Hotline", text: "1800 6324" },
     { label: "Email", text: "support@example.com" },
   ],
   cert: {
     imageSrc: "/images/bocongthuong.png",
-    title: "Đã thông báo Bộ Công Thương",
-    sub: "Doanh nghiệp đã được xác minh",
+    title: "Registered with the Ministry of Industry and Trade",
+    sub: "Verified business with transparent operations",
   },
 };
 
 const DEFAULT_SUPPORT_LINKS: FooterAnnouncementLinkItem[] = [
-  { label: "Các câu hỏi thường gặp", href: "/faq" },
-  { label: "Gửi yêu cầu hỗ trợ", href: "/support" },
-  { label: "Hướng dẫn đặt hàng", href: "/guide" },
-  { label: "Phương thức thanh toán", href: "/payment" },
-  { label: "Phương thức vận chuyển", href: "/shipping" },
-  { label: "Chính sách đổi trả", href: "/refund" },
+  { label: "Frequently Asked Questions", href: "/faq" },
+  { label: "Submit a Support Request", href: "/support" },
+  { label: "Ordering Guide", href: "/guide" },
+  { label: "Shipping Methods", href: "/shipping" },
 ];
 
 const DEFAULT_ABOUT_LINKS: FooterAnnouncementLinkItem[] = [
-  { label: "Giới thiệu", href: "/about" },
-  { label: "Chính sách bảo mật", href: "/privacy" },
-  { label: "Điều khoản sử dụng", href: "/terms" },
-  { label: "Cẩm nang", href: "/blog" },
-  { label: "Tuyển dụng", href: "/jobs" },
-  { label: "Liên hệ", href: "/contact" },
+  { label: "About Us", href: "/about" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms of Use", href: "/terms" },
+  { label: "Beauty Blog", href: "/blog" },
+  { label: "Careers", href: "/jobs" },
+  { label: "Contact", href: "/contact" },
+  { label: "Return Policy", href: "/refund" },
 ];
 
 const DEFAULT_PARTNER_LINKS: FooterAnnouncementLinkItem[] = [
-  { label: "Hasaki Clinic", href: "/clinic" },
   { label: "Dermahair", href: "/dermahair" },
+  { label: "Brand Partners", href: "/partners" },
+  { label: "Payment Methods", href: "/payment" },
 ];
 
 const DEFAULT_HOTLINES: FooterAnnouncementHotlineItem[] = [
-  { label: "Hotline", phone: "1800 6324", sub: "(Miễn phí, 08-22h kể cả T7, CN)" },
+  { label: "Hotline", phone: "1800 6324", sub: "Free of charge, 08:00 - 22:00 including weekends" },
 ];
 
 const DEFAULT_SOCIALS: FooterAnnouncementSocialItem[] = [
   { label: "Facebook", href: "#", icon: "bi-facebook" },
   { label: "Instagram", href: "#", icon: "bi-instagram" },
   { label: "TikTok", href: "#", icon: "bi-tiktok" },
+  { label: "YouTube", href: "#", icon: "bi-youtube" },
 ];
 
 const DEFAULT_PAYMENTS: FooterAnnouncementPaymentItem[] = [
@@ -157,21 +158,21 @@ const DEFAULT_BRAND_LOGOS: FooterAnnouncementBrandLogoItem[] = [
 ];
 
 const DEFAULT_TAGS: FooterAnnouncementTagItem[] = [
-  { label: "Kem Chống Nắng", href: "/tag/kem-chong-nang" },
-  { label: "Nước Tẩy Trang", href: "/tag/nuoc-tay-trang" },
-  { label: "Kem Dưỡng Ẩm", href: "/tag/kem-duong-am" },
-  { label: "Sữa Rửa Mặt", href: "/tag/sua-rua-mat" },
-  { label: "Bông Tẩy Trang", href: "/tag/bong-tay-trang" },
-  { label: "Mặt Nạ", href: "/tag/mat-na" },
-  { label: "LOREAL", href: "/brand/loreal" },
-  { label: "LA ROCHE POSAY", href: "/brand/la-roche-posay" },
-  { label: "Son", href: "/tag/son" },
+  { label: "Sunscreen", href: "/tag/sunscreen" },
+  { label: "Micellar Water", href: "/tag/micellar-water" },
+  { label: "Moisturizer", href: "/tag/moisturizer" },
+  { label: "Cleanser", href: "/tag/cleanser" },
+  { label: "Cotton Pads", href: "/tag/cotton-pads" },
+  { label: "Face Masks", href: "/tag/face-masks" },
+  { label: "L'Oreal", href: "/brand/loreal" },
+  { label: "La Roche-Posay", href: "/brand/la-roche-posay" },
+  { label: "Lipstick", href: "/tag/lipstick" },
   { label: "Obagi", href: "/brand/obagi" },
-  { label: "VASELINE", href: "/brand/vaseline" },
+  { label: "Vaseline", href: "/brand/vaseline" },
   { label: "Carslan", href: "/brand/carslan" },
-  { label: "cerave", href: "/brand/cerave" },
-  { label: "olay", href: "/brand/olay" },
-  { label: "toner klairs", href: "/tag/toner-klairs" },
+  { label: "CeraVe", href: "/brand/cerave" },
+  { label: "Olay", href: "/brand/olay" },
+  { label: "Klairs Toner", href: "/tag/klairs-toner" },
 ];
 
 /* ================= JSON Helpers ================= */
@@ -184,27 +185,32 @@ function safeJson<T>(raw?: unknown): T | undefined {
   }
 }
 
+function ensureBootstrapIcon(icon?: string | null): string {
+  if (!icon) return "bi-circle";
+  return icon.startsWith("bi-") ? icon : `bi-${icon}`;
+}
+
 /* ================= Component ================= */
 export function FooterAnnouncement({
   brand,
-  supportTitle = "HỖ TRỢ KHÁCH HÀNG",
+  supportTitle = "CUSTOMER SUPPORT",
   hotlines,
   supportLinks,
 
-  aboutTitle = "VỀ HASAKI.VN",
+  aboutTitle = "ABOUT HASAKI.VN",
   aboutLinks,
 
-  partnerTitle = "HỢP TÁC & LIÊN KẾT",
+  partnerTitle = "PARTNERSHIPS & AFFILIATES",
   partnerLinks,
 
-  newsletterTitle = "CẬP NHẬT THÔNG TIN KHUYẾN MÃI",
-  newsletterDesc = "Đăng ký email để nhận ưu đãi mới nhất từ cửa hàng.",
-  placeholderEmail = "Email của bạn",
-  submitLabel = "Đăng ký",
-  submitAriaLabel = "Đăng ký nhận tin",
+  newsletterTitle = "GET THE LATEST PROMOTIONS",
+  newsletterDesc = "Subscribe with your email to receive the latest offers, priority hot deals, and personalized product suggestions from our store.",
+  placeholderEmail = "Your email",
+  submitLabel = "Subscribe",
+  submitAriaLabel = "Subscribe to newsletter",
 
   socials,
-  paymentsTitle = "THANH TOÁN",
+  paymentsTitle = "PAYMENT METHODS",
   payments,
 
   qrImageSrc = "/images/qr-app.png",
@@ -212,13 +218,13 @@ export function FooterAnnouncement({
 
   brandLogos,
 
-  tagTitle = "TOP TÌM KIẾM",
+  tagTitle = "TOP SEARCHES",
   tags,
 
-  certificationTitle = "Được chứng nhận",
+  certificationTitle = "Certified",
   certificationImageSrc = "/images/bocongthuong.png",
 
-  copyrightText = "Bản quyền © {year} HASAKI.VN",
+  copyrightText = "Copyright © {year} HASAKI.VN",
   preview = false,
 }: FooterAnnouncementProps) {
   const bd = useMemo(() => brand ?? DEFAULT_BRAND, [brand]);
@@ -232,13 +238,12 @@ export function FooterAnnouncement({
   const blogs = useMemo(() => brandLogos ?? DEFAULT_BRAND_LOGOS, [brandLogos]);
   const tgs = useMemo(() => tags ?? DEFAULT_TAGS, [tags]);
 
-  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState("");
   const [toast, setToast] = useState("");
   const toastTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    setYear(new Date().getFullYear());
     return () => {
       if (toastTimer.current) window.clearTimeout(toastTimer.current);
     };
@@ -262,17 +267,17 @@ export function FooterAnnouncement({
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
 
     if (!ok) {
-      showToast("Vui lòng nhập email hợp lệ.");
+      showToast("Please enter a valid email address.");
       return;
     }
 
     setEmail("");
-    showToast("Đăng ký thành công!");
+    showToast("Subscription successful!");
   };
 
   const goTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const copy = useMemo(() => copyrightText.replace("{year}", String(year)), [copyrightText, year]);
+  const copy = useMemo(() => copyrightText.replace("{year}", String(currentYear)), [copyrightText, currentYear]);
 
   const renderNavLink = (item: FooterAnnouncementLinkItem, key: React.Key, className?: string) =>
     preview ? (
@@ -289,138 +294,162 @@ export function FooterAnnouncement({
     <footer className={cls.footer} aria-label="Footer announcement">
       <div className={cls.top}>
         <div className={cls.container}>
-          <div className={cls.grid}>
-            {/* Support */}
-            <div className={cls.col}>
-              <h3 className={cls.colTitle}>{supportTitle}</h3>
-
-              <div className={cls.hotlines}>
-                {hls.map((item, i) => {
-                  const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
-
-                  return preview ? (
-                    <a key={i} href="#" className={cls.hotline} onClick={onBlockClick}>
-                      <span className={cls.hotlineLabel}>{item.label}: </span>
-                      <span className={cls.hotlinePhone}>{item.phone}</span>
-                      {item.sub ? <span className={cls.hotlineSub}> {item.sub}</span> : null}
-                    </a>
-                  ) : (
-                    <a key={i} href={telHref} className={cls.hotline}>
-                      <span className={cls.hotlineLabel}>{item.label}: </span>
-                      <span className={cls.hotlinePhone}>{item.phone}</span>
-                      {item.sub ? <span className={cls.hotlineSub}> {item.sub}</span> : null}
-                    </a>
-                  );
-                })}
-              </div>
-
-              <div className={cls.linkList}>
-                {spls.map((item, i) => (
-                  <div key={i} className={cls.linkRow}>
-                    {renderNavLink(item, i, cls.linkItem)}
+          <div className={cls.brandHero}>
+            <div className={cls.brandPanel}>
+              <div className={cls.brandHead}>
+                <div className={cls.brandHeader}>
+                  <span className={cls.brandEyebrow}>Beauty commerce</span>
+                  <h2 className={cls.brandName}>{bd.name}</h2>
+                </div>
+                {bd.info?.length ? (
+                  <div className={cls.brandInfoList}>
+                    {bd.info.map((item, i) => (
+                      <div key={i} className={cls.brandInfoItem}>
+                        <span className={cls.brandInfoLabel}>{item.label}</span>
+                        <span className={cls.brandInfoText}>{item.text}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : null}
               </div>
-            </div>
+              <div className={cls.grid}>
+                <div className={cls.col}>
+                  <h3 className={cls.colTitle}>{supportTitle}</h3>
 
-            {/* About */}
-            <div className={cls.col}>
-              <h3 className={cls.colTitle}>{aboutTitle}</h3>
+                  <div className={cls.hotlines}>
+                    {hls.map((item, i) => {
+                      const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
 
-              <div className={cls.linkList}>
-                {abls.map((item, i) => (
-                  <div key={i} className={cls.linkRow}>
-                    {renderNavLink(item, i, cls.linkItem)}
+                      return preview ? (
+                        <a key={i} href="#" className={cls.hotline} onClick={onBlockClick}>
+                          <span className={cls.hotlineLabel}>{item.label}</span>
+                          <span className={cls.hotlinePhone}>{item.phone}</span>
+                          {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                        </a>
+                      ) : (
+                        <a key={i} href={telHref} className={cls.hotline}>
+                          <span className={cls.hotlineLabel}>{item.label}</span>
+                          <span className={cls.hotlinePhone}>{item.phone}</span>
+                          {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                        </a>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Partner + social + payments */}
-            <div className={cls.col}>
-              <h3 className={cls.colTitle}>{partnerTitle}</h3>
-
-              <div className={cls.linkList}>
-                {ptls.map((item, i) => (
-                  <div key={i} className={cls.linkRow}>
-                    {renderNavLink(item, i, cls.linkItem)}
+                  <div className={cls.linkList}>
+                    {spls.map((item, i) => (
+                      <div key={i} className={cls.linkRow}>
+                        {renderNavLink(item, i, cls.linkItem)}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
 
-              <div className={cls.socials} aria-label="Social links">
-                {scs.map((item, i) =>
-                  preview ? (
-                    <a key={i} href="#" className={cls.socialBtn} onClick={onBlockClick} aria-label={item.label}>
-                      <i className={`bi ${item.icon}`} aria-hidden="true" />
-                    </a>
-                  ) : (
-                    <a key={i} href={item.href} className={cls.socialBtn} aria-label={item.label} rel="noreferrer">
-                      <i className={`bi ${item.icon}`} aria-hidden="true" />
-                    </a>
-                  ),
-                )}
-              </div>
+                <div className={cls.col}>
+                  <h3 className={cls.colTitle}>{aboutTitle}</h3>
 
-              <div className={cls.paymentWrap}>
-                <div className={cls.paymentTitle}>{paymentsTitle}</div>
+                  <div className={cls.linkList}>
+                    {abls.map((item, i) => (
+                      <div key={i} className={cls.linkRow}>
+                        {renderNavLink(item, i, cls.linkItem)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <div className={cls.paymentList}>
-                  {pays.map((item, i) => (
-                    <div key={i} className={cls.paymentCard} title={item.label}>
-                      <Image src={item.imageSrc} alt={item.label} width={64} height={28} className={cls.paymentImg} />
+                <div className={cls.col}>
+                  <h3 className={cls.colTitle}>{partnerTitle}</h3>
+
+                  <div className={cls.linkList}>
+                    {ptls.map((item, i) => (
+                      <div key={i} className={cls.linkRow}>
+                        {renderNavLink(item, i, cls.linkItem)}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={cls.paymentWrap}>
+                    <div className={cls.paymentTitle}>{paymentsTitle}</div>
+
+                    <div className={cls.paymentList}>
+                      {pays.map((item, i) => (
+                        <div key={i} className={cls.paymentCard} title={item.label}>
+                          <Image
+                            src={item.imageSrc}
+                            alt={item.label}
+                            width={64}
+                            height={28}
+                            className={cls.paymentImg}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                <div className={`${cls.col} ${cls.colTrust}`}>
+                  <h3 className={cls.colTitle}>{certificationTitle}</h3>
+
+                  <div className={cls.certCard}>
+                    <Image
+                      src={certificationImageSrc}
+                      alt={certificationTitle}
+                      width={180}
+                      height={68}
+                      className={cls.certImg}
+                    />
+                    <div className={cls.certCopy}>
+                      <div className={cls.certName}>{bd.cert?.title || certificationTitle}</div>
+                      {bd.cert?.sub ? <div className={cls.certSub}>{bd.cert.sub}</div> : null}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Newsletter + app */}
-            <div className={`${cls.col} ${cls.colNewsletter}`}>
-              <h3 className={cls.colTitle}>{newsletterTitle}</h3>
+            <div className={cls.heroAside}>
+              <div className={cls.newsCard}>
+                <div className={cls.newsEyebrow}>Member perks</div>
+                <h3 className={cls.newsTitle}>{newsletterTitle}</h3>
+                <p className={cls.newsDesc}>{newsletterDesc}</p>
 
-              <p className={cls.newsDesc}>{newsletterDesc}</p>
+                <form className={cls.form} onSubmit={onSubmit} noValidate>
+                  <label className={cls.srOnly} htmlFor="footerAnnouncementEmail">
+                    Email
+                  </label>
 
-              <form className={cls.form} onSubmit={onSubmit} noValidate>
-                <label className={cls.srOnly} htmlFor="footerAnnouncementEmail">
-                  Email
-                </label>
+                  <input
+                    suppressHydrationWarning
+                    id="footerAnnouncementEmail"
+                    type="email"
+                    name="email"
+                    className={cls.input}
+                    placeholder={placeholderEmail}
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
 
-                <input
-                  id="footerAnnouncementEmail"
-                  type="email"
-                  name="email"
-                  className={cls.input}
-                  placeholder={placeholderEmail}
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                  <button
+                    suppressHydrationWarning
+                    type="submit"
+                    className={cls.submit}
+                    aria-label={submitAriaLabel}
+                    onClick={preview ? onBlockClick : undefined}
+                  >
+                    {submitLabel}
+                  </button>
+                </form>
 
-                <button
-                  type="submit"
-                  className={cls.submit}
-                  aria-label={submitAriaLabel}
-                  onClick={preview ? onBlockClick : undefined}
-                >
-                  {submitLabel}
-                </button>
-              </form>
-
-              <div className={cls.appRow}>
-                <div className={cls.qrCard}>
-                  <Image src={qrImageSrc} alt="QR App" width={112} height={112} className={cls.qrImg} />
-                </div>
-
-                <div className={cls.storeList}>
-                  {sts.map((item, i) =>
+                <div className={cls.socials} aria-label="Social links">
+                  {scs.map((item, i) =>
                     preview ? (
-                      <a key={i} href="#" className={cls.storeBtn} onClick={onBlockClick} aria-label={item.label}>
-                        <Image src={item.imageSrc} alt={item.label} width={140} height={42} className={cls.storeImg} />
+                      <a key={i} href="#" className={cls.socialBtn} onClick={onBlockClick} aria-label={item.label}>
+                        <i className={`bi ${ensureBootstrapIcon(item.icon)}`} aria-hidden="true" />
                       </a>
                     ) : (
-                      <a key={i} href={item.href} className={cls.storeBtn} aria-label={item.label} rel="noreferrer">
-                        <Image src={item.imageSrc} alt={item.label} width={140} height={42} className={cls.storeImg} />
+                      <a key={i} href={item.href} className={cls.socialBtn} aria-label={item.label} rel="noreferrer">
+                        <i className={`bi ${ensureBootstrapIcon(item.icon)}`} aria-hidden="true" />
                       </a>
                     ),
                   )}
@@ -428,66 +457,21 @@ export function FooterAnnouncement({
               </div>
             </div>
           </div>
-
-          {/* Brand logos rail */}
-          <div className={cls.logoRail}>
-            {blogs.map((item, i) =>
-              preview ? (
-                <a key={i} href="#" className={cls.logoItem} onClick={onBlockClick} aria-label={item.label}>
-                  <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
-                </a>
-              ) : (
-                <a key={i} href={item.href} className={cls.logoItem} aria-label={item.label} rel="noreferrer">
-                  <Image src={item.imageSrc} alt={item.label} width={120} height={56} className={cls.logoImg} />
-                </a>
-              ),
-            )}
-          </div>
         </div>
       </div>
 
-      <div className={cls.bottom}>
-        <div className={cls.container}>
-          <div className={cls.bottomGrid}>
-            <div className={cls.searchArea}>
-              <h3 className={cls.searchTitle}>{tagTitle}</h3>
-
-              <div className={cls.tagList}>
-                {tgs.map((item, i) =>
-                  preview ? (
-                    <a key={i} href="#" className={cls.tag} onClick={onBlockClick}>
-                      {item.label}
-                    </a>
-                  ) : (
-                    <Link key={i} href={(item.href || "/") as Route} className={cls.tag}>
-                      {item.label}
-                    </Link>
-                  ),
-                )}
-              </div>
-            </div>
-
-            <div className={cls.certArea}>
-              <div className={cls.certTitle}>{certificationTitle}</div>
-
-              <div className={cls.certCard}>
-                <Image
-                  src={certificationImageSrc}
-                  alt={certificationTitle}
-                  width={180}
-                  height={68}
-                  className={cls.certImg}
-                />
-              </div>
-
-              <div className={cls.copy}>{copy}</div>
-            </div>
-          </div>
+      <div className={cls.copyArea}>
+        <div className={cls.copySurface}>
+          <p>{copy}</p>
+          <p>
+            Thinh Long Group Joint Stock Company | Business Registration No.: 0106505314 issued by Hanoi Department of
+            Planning and Investment on 10/04/2014
+          </p>
         </div>
       </div>
 
-      <button className={cls.toTop} type="button" aria-label="Back to top" onClick={goTop}>
-        <i className="bi bi-chevron-up" aria-hidden="true" />
+      <button suppressHydrationWarning className={cls.toTop} type="button" aria-label="Back to top" onClick={goTop}>
+        <i className="bi bi-arrow-up" aria-hidden="true" />
       </button>
 
       <div className={`${cls.toast} ${toast ? cls.isShow : ""}`} role="status" aria-live="polite" aria-atomic="true">
@@ -504,24 +488,25 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
   defaults: {
     brand: JSON.stringify(DEFAULT_BRAND, null, 2),
 
-    supportTitle: "HỖ TRỢ KHÁCH HÀNG",
+    supportTitle: "CUSTOMER SUPPORT",
     hotlines: JSON.stringify(DEFAULT_HOTLINES, null, 2),
     supportLinks: JSON.stringify(DEFAULT_SUPPORT_LINKS, null, 2),
 
-    aboutTitle: "VỀ HASAKI.VN",
+    aboutTitle: "ABOUT HASAKI.VN",
     aboutLinks: JSON.stringify(DEFAULT_ABOUT_LINKS, null, 2),
 
-    partnerTitle: "HỢP TÁC & LIÊN KẾT",
+    partnerTitle: "PARTNERSHIPS & AFFILIATES",
     partnerLinks: JSON.stringify(DEFAULT_PARTNER_LINKS, null, 2),
 
-    newsletterTitle: "CẬP NHẬT THÔNG TIN KHUYẾN MÃI",
-    newsletterDesc: "Đăng ký email để nhận ưu đãi mới nhất từ cửa hàng.",
-    placeholderEmail: "Email của bạn",
-    submitLabel: "Đăng ký",
-    submitAriaLabel: "Đăng ký nhận tin",
+    newsletterTitle: "GET THE LATEST PROMOTIONS",
+    newsletterDesc:
+      "Subscribe with your email to receive the latest offers, priority hot deals, and personalized product suggestions from our store.",
+    placeholderEmail: "Your email",
+    submitLabel: "Subscribe",
+    submitAriaLabel: "Subscribe to newsletter",
 
     socials: JSON.stringify(DEFAULT_SOCIALS, null, 2),
-    paymentsTitle: "THANH TOÁN",
+    paymentsTitle: "PAYMENT METHODS",
     payments: JSON.stringify(DEFAULT_PAYMENTS, null, 2),
 
     qrImageSrc: "/images/qr-app.png",
@@ -529,13 +514,13 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
 
     brandLogos: JSON.stringify(DEFAULT_BRAND_LOGOS, null, 2),
 
-    tagTitle: "TOP TÌM KIẾM",
+    tagTitle: "TOP SEARCHES",
     tags: JSON.stringify(DEFAULT_TAGS, null, 2),
 
-    certificationTitle: "Được chứng nhận",
+    certificationTitle: "Certified",
     certificationImageSrc: "/images/bocongthuong.png",
 
-    copyrightText: "Bản quyền © {year} HASAKI.VN",
+    copyrightText: "Copyright © {year} HASAKI.VN",
   },
   inspector: [
     { key: "brand", label: "Brand (JSON)", kind: "textarea", rows: 10 },
@@ -551,7 +536,7 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
     { key: "partnerLinks", label: "Partner links (JSON)", kind: "textarea", rows: 8 },
 
     { key: "newsletterTitle", label: "Newsletter title", kind: "text" },
-    { key: "newsletterDesc", label: "Newsletter desc", kind: "text" },
+    { key: "newsletterDesc", label: "Newsletter description", kind: "text" },
     { key: "placeholderEmail", label: "Email placeholder", kind: "text" },
     { key: "submitLabel", label: "Submit label", kind: "text" },
     { key: "submitAriaLabel", label: "Submit aria label", kind: "text" },
@@ -589,29 +574,32 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
       <div className="sectionContainer" aria-label="Shop Footer Announcement">
         <FooterAnnouncement
           brand={brand}
-          supportTitle={String(p.supportTitle || "HỖ TRỢ KHÁCH HÀNG")}
+          supportTitle={String(p.supportTitle || "CUSTOMER SUPPORT")}
           hotlines={hotlines}
           supportLinks={supportLinks}
-          aboutTitle={String(p.aboutTitle || "VỀ HASAKI.VN")}
+          aboutTitle={String(p.aboutTitle || "ABOUT HASAKI.VN")}
           aboutLinks={aboutLinks}
-          partnerTitle={String(p.partnerTitle || "HỢP TÁC & LIÊN KẾT")}
+          partnerTitle={String(p.partnerTitle || "PARTNERSHIPS & AFFILIATES")}
           partnerLinks={partnerLinks}
-          newsletterTitle={String(p.newsletterTitle || "CẬP NHẬT THÔNG TIN KHUYẾN MÃI")}
-          newsletterDesc={String(p.newsletterDesc || "")}
-          placeholderEmail={String(p.placeholderEmail || "Email của bạn")}
-          submitLabel={String(p.submitLabel || "Đăng ký")}
-          submitAriaLabel={String(p.submitAriaLabel || "Đăng ký nhận tin")}
+          newsletterTitle={String(p.newsletterTitle || "GET THE LATEST PROMOTIONS")}
+          newsletterDesc={String(
+            p.newsletterDesc ||
+              "Subscribe with your email to receive the latest offers, priority hot deals, and personalized product suggestions from our store.",
+          )}
+          placeholderEmail={String(p.placeholderEmail || "Your email")}
+          submitLabel={String(p.submitLabel || "Subscribe")}
+          submitAriaLabel={String(p.submitAriaLabel || "Subscribe to newsletter")}
           socials={socials}
-          paymentsTitle={String(p.paymentsTitle || "THANH TOÁN")}
+          paymentsTitle={String(p.paymentsTitle || "PAYMENT METHODS")}
           payments={payments}
           qrImageSrc={String(p.qrImageSrc || "/images/qr-app.png")}
           stores={stores}
           brandLogos={brandLogos}
-          tagTitle={String(p.tagTitle || "TOP TÌM KIẾM")}
+          tagTitle={String(p.tagTitle || "TOP SEARCHES")}
           tags={tags}
-          certificationTitle={String(p.certificationTitle || "Được chứng nhận")}
+          certificationTitle={String(p.certificationTitle || "Certified")}
           certificationImageSrc={String(p.certificationImageSrc || "/images/bocongthuong.png")}
-          copyrightText={String(p.copyrightText || "Bản quyền © {year} HASAKI.VN")}
+          copyrightText={String(p.copyrightText || "Copyright © {year} HASAKI.VN")}
           preview={true}
         />
       </div>

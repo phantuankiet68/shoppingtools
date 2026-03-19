@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/templates/shopGreen/footer/footerCompact.module.css";
+import cls from "@/styles/templates/sections/Footer/FooterCompact.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -207,25 +207,6 @@ export function FooterCompact({
                   </li>
                 ))}
               </ul>
-
-              {bd.cert ? (
-                <div className={cls.footerCert}>
-                  <div className={cls.footerCertImgWrap} aria-hidden="true">
-                    <Image
-                      src={bd.cert.imageSrc}
-                      alt="Certification"
-                      width={72}
-                      height={48}
-                      className={cls.footerCertImg}
-                    />
-                  </div>
-
-                  <div className={cls.footerCertText}>
-                    <div className={cls.footerCertTitle}>{bd.cert.title}</div>
-                    <div className={cls.footerCertSub}>{bd.cert.sub}</div>
-                  </div>
-                </div>
-              ) : null}
             </div>
 
             {/* Links */}
@@ -342,44 +323,28 @@ export function FooterCompact({
         </div>
       </div>
 
-      {/* Partners */}
-      <div className={cls.footerPartners} aria-label="Partner websites">
-        <div className={cls.footerContainer}>
-          <div className={cls.footerPartnersHead}>
-            <h3 className={cls.footerPartnersTitle}>{partnersTitle}</h3>
-
-            <div className={cls.footerPartnersControls}>
-              <button className={cls.footerPartnerNav} type="button" aria-label="Previous" onClick={() => scrollRail(-1)}>
-                <i className="bi bi-arrow-left" />
-              </button>
-
-              <button className={cls.footerPartnerNav} type="button" aria-label="Next" onClick={() => scrollRail(1)}>
-                <i className="bi bi-arrow-right" />
-              </button>
-            </div>
-          </div>
-
-          <div className={cls.footerPartnersRail} ref={railRef}>
-            {pts.map((p, i) =>
-              preview ? (
-                <a key={i} className={cls.footerPartnerCard} href="#" onClick={onBlockClick} aria-label={p.label}>
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
-                </a>
-              ) : (
-                <a key={i} className={cls.footerPartnerCard} href={p.href} aria-label={p.label} rel="noreferrer">
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
-                </a>
-              ),
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Bottom */}
       <div className={cls.footerBottom}>
         <div className={cls.footerContainerBottom}>
           <div className={cls.footerCopy}>{copy}</div>
+          {bd.cert ? (
+            <div className={cls.footerCert}>
+              <div className={cls.footerCertImgWrap} aria-hidden="true">
+                <Image
+                  src={bd.cert.imageSrc}
+                  alt="Certification"
+                  width={72}
+                  height={48}
+                  className={cls.footerCertImg}
+                />
+              </div>
 
+              <div className={cls.footerCertText}>
+                <div className={cls.footerCertTitle}>{bd.cert.title}</div>
+                <div className={cls.footerCertSub}>{bd.cert.sub}</div>
+              </div>
+            </div>
+          ) : null}
           <button className={cls.footerTopBtn} type="button" aria-label="Back to top" onClick={goTop}>
             <i className="bi bi-arrow-up" /> Top
           </button>
@@ -400,7 +365,7 @@ export function FooterCompact({
 }
 
 /* ================= RegItem ================= */
-export const SHOP_FOOTER_GREEN_COMPACT: RegItem = {
+export const SHOP_FOOTER_COMPACT: RegItem = {
   kind: "FooterCompact",
   label: "Footer Compact",
   defaults: {

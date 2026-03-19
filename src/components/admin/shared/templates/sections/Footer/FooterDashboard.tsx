@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/templates/shopGreen/footer/footerDashboard.module.css";
+import cls from "@/styles/templates/sections/Footer/FooterDashboard.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -14,9 +14,17 @@ export type FooterDashboardLinkItem = { label: string; href: string };
 
 export type FooterDashboardHotlineItem = { label: string; phone: string };
 
-export type FooterDashboardSocialItem = { label: string; href: string; icon: string };
+export type FooterDashboardSocialItem = {
+  label: string;
+  href: string;
+  icon: string;
+};
 
-export type FooterDashboardPartnerItem = { label: string; href: string; imageSrc: string };
+export type FooterDashboardPartnerItem = {
+  label: string;
+  href: string;
+  imageSrc: string;
+};
 
 export type FooterDashboardMetricItem = {
   label: string;
@@ -58,7 +66,7 @@ export type FooterDashboardProps = {
   partnersTitle?: string;
   partners?: FooterDashboardPartnerItem[];
 
-  copyrightText?: string; // dùng {year}
+  copyrightText?: string;
   preview?: boolean;
 };
 
@@ -120,6 +128,19 @@ function safeJson<T>(raw?: string): T | undefined {
   }
 }
 
+/* ================= Helpers ================= */
+function normalizePhone(phone: string) {
+  return phone.replace(/[^\d+]/g, "");
+}
+
+function isExternalHref(href: string) {
+  return /^(https?:)?\/\//i.test(href) || href.startsWith("mailto:") || href.startsWith("tel:");
+}
+
+function hrefTarget(href: string) {
+  return href.startsWith("http") ? "_blank" : undefined;
+}
+
 /* ================= Component ================= */
 export function FooterDashboard({
   brand,
@@ -148,23 +169,36 @@ export function FooterDashboard({
   const pts = useMemo(() => partners ?? DEFAULT_PARTNERS, [partners]);
 
   const railRef = useRef<HTMLDivElement | null>(null);
+  const toastTimer = useRef<number | null>(null);
 
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [email, setEmail] = useState("");
-  const [toast, setToast] = useState<string>("");
-  const toastTimer = useRef<number | null>(null);
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
     setYear(new Date().getFullYear());
+
     return () => {
-      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+      if (toastTimer.current) {
+        window.clearTimeout(toastTimer.current);
+      }
     };
   }, []);
 
+  const copy = useMemo(() => {
+    return copyrightText.replace("{year}", String(year));
+  }, [copyrightText, year]);
+
   const showToast = (msg: string) => {
     setToast(msg);
-    if (toastTimer.current) window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(""), 2200);
+
+    if (toastTimer.current) {
+      window.clearTimeout(toastTimer.current);
+    }
+
+    toastTimer.current = window.setTimeout(() => {
+      setToast("");
+    }, 2200);
   };
 
   const onBlockClick = (e: React.SyntheticEvent) => {
@@ -173,12 +207,18 @@ export function FooterDashboard({
     e.stopPropagation();
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const val = email.trim();
-    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
 
-    if (!ok) {
+    if (preview) {
+      showToast("Preview mode only.");
+      return;
+    }
+
+    const value = email.trim();
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+
+    if (!isValid) {
       showToast("Please enter a valid email.");
       return;
     }
@@ -190,37 +230,37 @@ export function FooterDashboard({
   const scrollRail = (dir: -1 | 1) => {
     const rail = railRef.current;
     if (!rail) return;
-    const step = Math.max(220, rail.clientWidth * 0.7);
+
+    const step = Math.max(220, rail.clientWidth * 0.72);
     rail.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
-  const goTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
-  const copy = useMemo(() => copyrightText.replace("{year}", String(year)), [copyrightText, year]);
+  const goTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <footer className={cls.siteFooter} aria-label="Site footer">
       <div className={cls.footerTop}>
         <div className={cls.footerContainer}>
-          {/* Header / dashboard hero */}
           <div className={cls.footerHero}>
-            <div className={cls.footerHeroMain}>
+            <section className={cls.footerHeroMain} aria-label="Brand overview">
               <div className={cls.footerBrandHead}>
                 <div className={cls.footerLogoMark} aria-hidden="true">
                   <div className={cls.footerLogoDot} />
                 </div>
 
                 <div className={cls.footerBrandMeta}>
-                  <div className={cls.footerBrandName}>{bd.name}</div>
-                  <div className={cls.footerBrandTag}>{bd.tag}</div>
+                  <h2 className={cls.footerBrandName}>{bd.name}</h2>
+                  <p className={cls.footerBrandTag}>{bd.tag}</p>
                 </div>
               </div>
 
               <ul className={cls.footerInfoList}>
-                {bd.info.map((x, i) => (
-                  <li key={i} className={cls.footerInfoItem}>
-                    <span className={cls.footerInfoLabel}>{x.label}</span>
-                    <span className={cls.footerInfoText}>{x.text}</span>
+                {bd.info.map((item, index) => (
+                  <li key={`${item.label}-${index}`} className={cls.footerInfoItem}>
+                    <span className={cls.footerInfoLabel}>{item.label}</span>
+                    <span className={cls.footerInfoText}>{item.text}</span>
                   </li>
                 ))}
               </ul>
@@ -228,13 +268,7 @@ export function FooterDashboard({
               {bd.cert ? (
                 <div className={cls.footerCert}>
                   <div className={cls.footerCertImgWrap} aria-hidden="true">
-                    <Image
-                      src={bd.cert.imageSrc}
-                      alt="Certification"
-                      width={72}
-                      height={48}
-                      className={cls.footerCertImg}
-                    />
+                    <Image src={bd.cert.imageSrc} alt="" width={72} height={48} className={cls.footerCertImg} />
                   </div>
 
                   <div className={cls.footerCertText}>
@@ -243,79 +277,106 @@ export function FooterDashboard({
                   </div>
                 </div>
               ) : null}
-            </div>
+            </section>
 
-            <div className={cls.footerMetricsCard}>
+            <aside className={cls.footerMetricsCard} aria-label={metricsTitle}>
               <div className={cls.footerPanelTitle}>{metricsTitle}</div>
 
               <div className={cls.footerMetricsGrid}>
-                {mts.map((item, i) => (
-                  <div key={i} className={cls.footerMetricItem}>
+                {mts.map((item, index) => (
+                  <article key={`${item.label}-${index}`} className={cls.footerMetricItem}>
                     <div className={cls.footerMetricValue}>{item.value}</div>
                     <div className={cls.footerMetricLabel}>{item.label}</div>
-                  </div>
+                  </article>
                 ))}
               </div>
-            </div>
+            </aside>
           </div>
 
-          {/* Content grid */}
           <div className={cls.footerGrid}>
-            <nav className={cls.footerPanel} aria-label="Footer links">
+            <nav className={cls.footerPanel} aria-label={linksTitle}>
               <h3 className={cls.footerPanelTitle}>{linksTitle}</h3>
 
               <ul className={cls.footerLinkList}>
-                {lks.map((it, i) =>
-                  preview ? (
-                    <li key={i}>
-                      <a className={cls.footerLink} href="#" onClick={onBlockClick}>
-                        {it.label}
-                      </a>
-                    </li>
-                  ) : (
-                    <li key={i}>
-                      <Link className={cls.footerLink} href={(it.href || "/") as Route}>
-                        {it.label}
+                {lks.map((item, index) => {
+                  if (preview) {
+                    return (
+                      <li key={`${item.label}-${index}`}>
+                        <a className={cls.footerLink} href="#" onClick={onBlockClick}>
+                          {item.label}
+                        </a>
+                      </li>
+                    );
+                  }
+
+                  if (isExternalHref(item.href || "#")) {
+                    return (
+                      <li key={`${item.label}-${index}`}>
+                        <a
+                          className={cls.footerLink}
+                          href={item.href || "#"}
+                          rel="noreferrer"
+                          target={hrefTarget(item.href || "#")}
+                        >
+                          {item.label}
+                        </a>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li key={`${item.label}-${index}`}>
+                      <Link className={cls.footerLink} href={(item.href || "/") as Route}>
+                        {item.label}
                       </Link>
                     </li>
-                  ),
-                )}
+                  );
+                })}
               </ul>
             </nav>
 
-            <div className={cls.footerPanel}>
+            <section className={cls.footerPanel} aria-label={supportTitle}>
               <h3 className={cls.footerPanelTitle}>{supportTitle}</h3>
 
               <div className={cls.footerHotlines}>
-                {hls.map((h, i) => {
-                  const telHref = `tel:${h.phone.replace(/[^\d+]/g, "")}`;
+                {hls.map((item, index) => {
+                  const telHref = `tel:${normalizePhone(item.phone)}`;
 
-                  return preview ? (
+                  if (preview) {
+                    return (
+                      <a
+                        key={`${item.label}-${index}`}
+                        className={cls.footerHotline}
+                        href="#"
+                        onClick={onBlockClick}
+                        aria-label={`Call ${item.label} ${item.phone}`}
+                      >
+                        <span className={cls.footerPhoneIcon} aria-hidden="true">
+                          <i className="bi bi-telephone-fill" />
+                        </span>
+
+                        <span className={cls.footerHotlineText}>
+                          <span className={cls.footerHotlineLabel}>{item.label}</span>
+                          <span className={cls.footerHotlineNumber}>{item.phone}</span>
+                        </span>
+                      </a>
+                    );
+                  }
+
+                  return (
                     <a
-                      key={i}
+                      key={`${item.label}-${index}`}
                       className={cls.footerHotline}
-                      href="#"
-                      onClick={onBlockClick}
-                      aria-label={`Call ${h.label} ${h.phone}`}
+                      href={telHref}
+                      aria-label={`Call ${item.label} ${item.phone}`}
                     >
                       <span className={cls.footerPhoneIcon} aria-hidden="true">
                         <i className="bi bi-telephone-fill" />
                       </span>
 
                       <span className={cls.footerHotlineText}>
-                        <span className={cls.footerHotlineLabel}>{h.label}</span>
-                        <span className={cls.footerHotlineNumber}>{h.phone}</span>
-                      </span>
-                    </a>
-                  ) : (
-                    <a key={i} className={cls.footerHotline} href={telHref} aria-label={`Call ${h.label} ${h.phone}`}>
-                      <span className={cls.footerPhoneIcon} aria-hidden="true">
-                        <i className="bi bi-telephone-fill" />
-                      </span>
-
-                      <span className={cls.footerHotlineText}>
-                        <span className={cls.footerHotlineLabel}>{h.label}</span>
-                        <span className={cls.footerHotlineNumber}>{h.phone}</span>
+                        <span className={cls.footerHotlineLabel}>{item.label}</span>
+                        <span className={cls.footerHotlineNumber}>{item.phone}</span>
                       </span>
                     </a>
                   );
@@ -323,21 +384,38 @@ export function FooterDashboard({
               </div>
 
               <div className={cls.footerSocial} aria-label="Social links">
-                {scs.map((s, i) =>
-                  preview ? (
-                    <a key={i} className={cls.footerSocialBtn} href="#" onClick={onBlockClick} aria-label={s.label}>
-                      <i className={`bi ${s.icon}`} aria-hidden="true" />
-                    </a>
-                  ) : (
-                    <a key={i} className={cls.footerSocialBtn} href={s.href} aria-label={s.label} rel="noreferrer">
-                      <i className={`bi ${s.icon}`} aria-hidden="true" />
-                    </a>
-                  ),
-                )}
-              </div>
-            </div>
+                {scs.map((item, index) => {
+                  if (preview) {
+                    return (
+                      <a
+                        key={`${item.label}-${index}`}
+                        className={cls.footerSocialBtn}
+                        href="#"
+                        onClick={onBlockClick}
+                        aria-label={item.label}
+                      >
+                        <i className={`bi ${item.icon}`} aria-hidden="true" />
+                      </a>
+                    );
+                  }
 
-            <div className={`${cls.footerPanel} ${cls.footerNewsletterPanel}`}>
+                  return (
+                    <a
+                      key={`${item.label}-${index}`}
+                      className={cls.footerSocialBtn}
+                      href={item.href}
+                      aria-label={item.label}
+                      rel="noreferrer"
+                      target={hrefTarget(item.href)}
+                    >
+                      <i className={`bi ${item.icon}`} aria-hidden="true" />
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className={`${cls.footerPanel} ${cls.footerNewsletterPanel}`} aria-label={newsletterTitle}>
               <h3 className={cls.footerPanelTitle}>{newsletterTitle}</h3>
               <p className={cls.footerDesc}>{newsletterDesc}</p>
 
@@ -347,12 +425,12 @@ export function FooterDashboard({
                 </label>
 
                 <input
-                  className={cls.footerInput}
                   id="footerDashboardEmail"
+                  className={cls.footerInput}
                   type="email"
                   name="email"
-                  placeholder={placeholderEmail}
                   autoComplete="email"
+                  placeholder={placeholderEmail}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -367,56 +445,93 @@ export function FooterDashboard({
                   <i className={`bi bi-arrow-right ${cls.footerSubmitIcon}`} aria-hidden="true" />
                 </button>
               </form>
-            </div>
+            </section>
           </div>
         </div>
       </div>
 
-      {/* Partners */}
       <div className={cls.footerPartners} aria-label="Partner websites">
         <div className={cls.footerContainer}>
           <div className={cls.footerPartnersHead}>
             <h3 className={cls.footerPartnersTitle}>{partnersTitle}</h3>
 
             <div className={cls.footerPartnersControls}>
-              <button className={cls.footerPartnerNav} type="button" aria-label="Previous" onClick={() => scrollRail(-1)}>
+              <button
+                className={cls.footerPartnerNav}
+                type="button"
+                aria-label="Previous partners"
+                onClick={() => scrollRail(-1)}
+              >
                 <i className="bi bi-arrow-left" />
               </button>
 
-              <button className={cls.footerPartnerNav} type="button" aria-label="Next" onClick={() => scrollRail(1)}>
+              <button
+                className={cls.footerPartnerNav}
+                type="button"
+                aria-label="Next partners"
+                onClick={() => scrollRail(1)}
+              >
                 <i className="bi bi-arrow-right" />
               </button>
             </div>
           </div>
 
           <div className={cls.footerPartnersRail} ref={railRef}>
-            {pts.map((p, i) =>
-              preview ? (
-                <a key={i} className={cls.footerPartnerCard} href="#" onClick={onBlockClick} aria-label={p.label}>
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
+            {pts.map((item, index) => {
+              if (preview) {
+                return (
+                  <a
+                    key={`${item.label}-${index}`}
+                    className={cls.footerPartnerCard}
+                    href="#"
+                    onClick={onBlockClick}
+                    aria-label={item.label}
+                  >
+                    <Image
+                      src={item.imageSrc}
+                      alt={item.label}
+                      width={180}
+                      height={70}
+                      className={cls.footerPartnerImg}
+                    />
+                  </a>
+                );
+              }
+
+              return (
+                <a
+                  key={`${item.label}-${index}`}
+                  className={cls.footerPartnerCard}
+                  href={item.href}
+                  aria-label={item.label}
+                  rel="noreferrer"
+                  target={hrefTarget(item.href)}
+                >
+                  <Image
+                    src={item.imageSrc}
+                    alt={item.label}
+                    width={180}
+                    height={70}
+                    className={cls.footerPartnerImg}
+                  />
                 </a>
-              ) : (
-                <a key={i} className={cls.footerPartnerCard} href={p.href} aria-label={p.label} rel="noreferrer">
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
-                </a>
-              ),
-            )}
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Bottom */}
       <div className={cls.footerBottom}>
         <div className={cls.footerContainerBottom}>
           <div className={cls.footerCopy}>{copy}</div>
 
           <button className={cls.footerTopBtn} type="button" aria-label="Back to top" onClick={goTop}>
-            <i className="bi bi-arrow-up" /> Top
+            <i className="bi bi-arrow-up" aria-hidden="true" />
+            <span>Top</span>
           </button>
         </div>
       </div>
 
-      {/* Toast */}
       <div
         className={`${cls.footerToast} ${toast ? cls.isShow : ""}`}
         role="status"
@@ -430,7 +545,7 @@ export function FooterDashboard({
 }
 
 /* ================= RegItem ================= */
-export const SHOP_FOOTER_GREEN_DASHBOARD: RegItem = {
+export const SHOP_FOOTER_DASHBOARD: RegItem = {
   kind: "FooterDashboard",
   label: "Footer Dashboard",
   defaults: {

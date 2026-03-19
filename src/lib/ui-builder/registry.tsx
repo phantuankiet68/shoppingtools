@@ -39,6 +39,10 @@ import { SHOP_HERO_UTILITY } from "@/components/admin/shared/templates/sections/
 
 // ===== Web page Footer  =====
 import { SHOP_FOOTER_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Footer/FooterAnnouncement";
+import { SHOP_FOOTER_CENTERED } from "@/components/admin/shared/templates/sections/Footer/FooterCentered";
+import { SHOP_FOOTER_CLASSIC } from "@/components/admin/shared/templates/sections/Footer/FooterClassic";
+import { SHOP_FOOTER_COMPACT } from "@/components/admin/shared/templates/sections/Footer/FooterCompact";
+import { SHOP_FOOTER_DASHBOARD } from "@/components/admin/shared/templates/sections/Footer/FooterDashboard";
 
 // ===== Web page Sidebar  =====
 import { SHOP_SIDEBAR_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Sidebar/SidebarAnnouncement";
@@ -99,6 +103,10 @@ export const REGISTRY_HOME: RegItem[] = [
 
   // ===== Web page Footer  =====
   SHOP_FOOTER_ANNOUNCEMENT,
+  SHOP_FOOTER_CENTERED,
+  SHOP_FOOTER_CLASSIC,
+  SHOP_FOOTER_COMPACT,
+  SHOP_FOOTER_DASHBOARD,
 
   // ===== Web page Sidebar  =====
   SHOP_SIDEBAR_ANNOUNCEMENT,

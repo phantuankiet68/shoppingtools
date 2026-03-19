@@ -23,7 +23,6 @@
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(47, 122, 86, 0.08);
-  box-shadow: 0 18px 36px rgba(32, 68, 51, 0.06);
   display: grid;
   grid-template-columns: 1.15fr 0.8fr 0.9fr 1fr;
   gap: 18px;
@@ -113,7 +112,6 @@
 }
 
 .footerCert {
-  margin-top: 14px;
   padding: 10px 12px;
   border-radius: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fcf9 100%);
@@ -459,7 +457,7 @@
 
 .footerBottom {
   border-top: 1px solid rgba(47, 122, 86, 0.08);
-  padding: 16px 0 24px;
+  padding: 10px 0 13px;
 }
 
 .footerContainerBottom {

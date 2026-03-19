@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/templates/shopGreen/footer/footerCentered.module.css";
+import cls from "@/styles/templates/sections/Footer/FooterCentered.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -60,8 +60,7 @@ const DEFAULT_BRAND: FooterCenteredBrand = {
   tag: "Gentle beauty care • Authentic products • Always here for you",
   info: [
     { label: "Address", text: "Số 29/150 Giảng Võ, Phường Giảng Võ, Hà Nội" },
-    { label: "Phone", text: "024.3538 1818" },
-    { label: "Business ID", text: "0101251137" },
+    { label: "Phone: ", text: "024.3538 1818" },
   ],
   cert: {
     imageSrc: "/images/bocongthuong.png",
@@ -186,81 +185,27 @@ export function FooterCentered({
 
       <div className={cls.footerTop}>
         <div className={cls.footerContainer}>
-          {/* Brand */}
-          <div className={cls.footerBrandBlock}>
-            <div className={cls.footerLogoWrap}>
-              <div className={cls.footerLogoRing}>
-                <div className={cls.footerLogoDot} />
-              </div>
-            </div>
-
-            <div className={cls.footerBrandName}>{bd.name}</div>
-            <div className={cls.footerBrandTag}>{bd.tag}</div>
-
-            <ul className={cls.footerInfoList}>
-              {bd.info.map((x, i) => (
-                <li key={i} className={cls.footerInfoItem}>
-                  <span className={cls.footerInfoLabel}>{x.label}</span>
-                  <span className={cls.footerInfoText}>{x.text}</span>
-                </li>
-              ))}
-            </ul>
-
-            {bd.cert ? (
-              <div className={cls.footerCert}>
-                <div className={cls.footerCertImgWrap} aria-hidden="true">
-                  <Image
-                    src={bd.cert.imageSrc}
-                    alt="Certification"
-                    width={72}
-                    height={48}
-                    className={cls.footerCertImg}
-                  />
-                </div>
-
-                <div className={cls.footerCertText}>
-                  <div className={cls.footerCertTitle}>{bd.cert.title}</div>
-                  <div className={cls.footerCertSub}>{bd.cert.sub}</div>
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          {/* Newsletter */}
-          <div className={cls.footerNewsletter}>
-            <h3 className={cls.footerTitleCenter}>{newsletterTitle}</h3>
-            <p className={cls.footerDescCenter}>{newsletterDesc}</p>
-
-            <form className={cls.footerForm} onSubmit={onSubmit} noValidate>
-              <label className={cls.srOnly} htmlFor="footerCenteredEmail">
-                Your email
-              </label>
-
-              <input
-                className={cls.footerInput}
-                id="footerCenteredEmail"
-                type="email"
-                name="email"
-                placeholder={placeholderEmail}
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-
-              <button
-                className={cls.footerSubmit}
-                type="submit"
-                aria-label={submitAriaLabel}
-                onClick={preview ? onBlockClick : undefined}
-              >
-                <span>{submitLabel}</span>
-                <i className={`bi bi-arrow-right ${cls.footerSubmitIcon}`} aria-hidden="true" />
-              </button>
-            </form>
-          </div>
-
           {/* Middle content */}
           <div className={cls.footerMiddleGrid}>
+            <div className={cls.footerBrandBlock}>
+              <div className={cls.footerLogoWrap}>
+                <div className={cls.footerLogoRing}>
+                  <div className={cls.footerLogoDot} />
+                </div>
+              </div>
+
+              <div className={cls.footerBrandName}>{bd.name}</div>
+              <div className={cls.footerBrandTag}>{bd.tag}</div>
+
+              <ul className={cls.footerInfoList}>
+                {bd.info.map((x, i) => (
+                  <li key={i} className={cls.footerInfoItem}>
+                    <span className={cls.footerInfoLabel}>{x.label}</span>
+                    <span className={cls.footerInfoText}>{x.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
             {/* Links */}
             <nav className={cls.footerCard} aria-label="Footer links">
               <h3 className={cls.footerCardTitle}>{linksTitle}</h3>
@@ -309,12 +254,7 @@ export function FooterCentered({
                       </span>
                     </a>
                   ) : (
-                    <a
-                      key={i}
-                      className={cls.footerHotline}
-                      href={telHref}
-                      aria-label={`Call ${h.label} ${h.phone}`}
-                    >
+                    <a key={i} className={cls.footerHotline} href={telHref} aria-label={`Call ${h.label} ${h.phone}`}>
                       <span className={cls.footerPhoneIcon} aria-hidden="true">
                         <i className="bi bi-telephone-fill" />
                       </span>
@@ -342,39 +282,56 @@ export function FooterCentered({
                 )}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+            {/* Newsletter */}
+            <div className={cls.footerNewsletter}>
+              <h3 className={cls.footerTitleCenter}>{newsletterTitle}</h3>
+              <p className={cls.footerDescCenter}>{newsletterDesc}</p>
 
-      {/* Partners */}
-      <div className={cls.footerPartners} aria-label="Partner websites">
-        <div className={cls.footerContainer}>
-          <div className={cls.footerPartnersHead}>
-            <h3 className={cls.footerPartnersTitle}>{partnersTitle}</h3>
+              <form className={cls.footerForm} onSubmit={onSubmit} noValidate>
+                <label className={cls.srOnly} htmlFor="footerCenteredEmail">
+                  Your email
+                </label>
 
-            <div className={cls.footerPartnersControls}>
-              <button className={cls.footerPartnerNav} type="button" aria-label="Previous" onClick={() => scrollRail(-1)}>
-                <i className="bi bi-arrow-left" />
-              </button>
+                <input
+                  className={cls.footerInput}
+                  id="footerCenteredEmail"
+                  type="email"
+                  name="email"
+                  placeholder={placeholderEmail}
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
 
-              <button className={cls.footerPartnerNav} type="button" aria-label="Next" onClick={() => scrollRail(1)}>
-                <i className="bi bi-arrow-right" />
-              </button>
+                <button
+                  className={cls.footerSubmit}
+                  type="submit"
+                  aria-label={submitAriaLabel}
+                  onClick={preview ? onBlockClick : undefined}
+                >
+                  <span>{submitLabel}</span>
+                  <i className={`bi bi-arrow-right ${cls.footerSubmitIcon}`} aria-hidden="true" />
+                </button>
+              </form>
+              {bd.cert ? (
+                <div className={cls.footerCert}>
+                  <div className={cls.footerCertImgWrap} aria-hidden="true">
+                    <Image
+                      src={bd.cert.imageSrc}
+                      alt="Certification"
+                      width={72}
+                      height={48}
+                      className={cls.footerCertImg}
+                    />
+                  </div>
+
+                  <div className={cls.footerCertText}>
+                    <div className={cls.footerCertTitle}>{bd.cert.title}</div>
+                    <div className={cls.footerCertSub}>{bd.cert.sub}</div>
+                  </div>
+                </div>
+              ) : null}
             </div>
-          </div>
-
-          <div className={cls.footerPartnersRail} ref={railRef}>
-            {pts.map((p, i) =>
-              preview ? (
-                <a key={i} className={cls.footerPartnerCard} href="#" onClick={onBlockClick} aria-label={p.label}>
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
-                </a>
-              ) : (
-                <a key={i} className={cls.footerPartnerCard} href={p.href} aria-label={p.label} rel="noreferrer">
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
-                </a>
-              ),
-            )}
           </div>
         </div>
       </div>
@@ -404,7 +361,7 @@ export function FooterCentered({
 }
 
 /* ================= RegItem ================= */
-export const SHOP_FOOTER_GREEN_CENTERED: RegItem = {
+export const SHOP_FOOTER_CENTERED: RegItem = {
   kind: "FooterCentered",
   label: "Footer Centered",
   defaults: {

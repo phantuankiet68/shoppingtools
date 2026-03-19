@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import cls from "@/styles/templates/shopGreen/footer/footerClassic.module.css";
+import cls from "@/styles/templates/sections/Footer/FooterClassic.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
 /* ================= Types ================= */
@@ -61,7 +61,6 @@ const DEFAULT_BRAND: FooterClassicBrand = {
   info: [
     { label: "Address", text: "Số 29/150 Giảng Võ, Phường Giảng Võ, Hà Nội" },
     { label: "Phone", text: "024.3538 1818" },
-    { label: "Business ID", text: "0101251137" },
   ],
   cert: {
     imageSrc: "/images/bocongthuong.png",
@@ -347,39 +346,6 @@ export function FooterClassic({
         </div>
       </div>
 
-      {/* Partners */}
-      <div className={cls.footerPartners} aria-label="Partner websites">
-        <div className={cls.footerContainer}>
-          <div className={cls.footerPartnersHead}>
-            <h3 className={cls.footerPartnersTitle}>{partnersTitle}</h3>
-
-            <div className={cls.footerPartnersControls}>
-              <button className={cls.footerPartnerNav} type="button" aria-label="Previous" onClick={() => scrollRail(-1)}>
-                <i className="bi bi-arrow-left" />
-              </button>
-
-              <button className={cls.footerPartnerNav} type="button" aria-label="Next" onClick={() => scrollRail(1)}>
-                <i className="bi bi-arrow-right" />
-              </button>
-            </div>
-          </div>
-
-          <div className={cls.footerPartnersRail} ref={railRef}>
-            {pts.map((p, i) =>
-              preview ? (
-                <a key={i} className={cls.footerPartnerCard} href="#" onClick={onBlockClick} aria-label={p.label}>
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
-                </a>
-              ) : (
-                <a key={i} className={cls.footerPartnerCard} href={p.href} aria-label={p.label} rel="noreferrer">
-                  <Image src={p.imageSrc} alt={p.label} width={180} height={70} className={cls.footerPartnerImg} />
-                </a>
-              ),
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Bottom */}
       <div className={cls.footerBottom}>
         <div className={cls.footerContainerBottom}>
@@ -405,7 +371,7 @@ export function FooterClassic({
 }
 
 /* ================= RegItem ================= */
-export const SHOP_FOOTER_GREEN_CLASSIC: RegItem = {
+export const SHOP_FOOTER_CLASSIC: RegItem = {
   kind: "FooterClassic",
   label: "Footer Classic",
   defaults: {
