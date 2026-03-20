@@ -288,10 +288,10 @@ export function FooterUtility({
   return (
     <footer className={cls.footer} aria-label="Footer utility">
       <div className={cls.container}>
-        <section className={cls.topUtility}>
+        <section className={cls.topBand}>
           <div className={cls.brandPanel}>
             <div className={cls.brandHeader}>
-              <span className={cls.eyebrow}>Smart Commerce Footer</span>
+              <span className={cls.eyebrow}>Commerce Utility Footer</span>
               <h2 className={cls.brandName}>{bd.name}</h2>
               <p className={cls.brandTag}>{bd.tag}</p>
             </div>
@@ -322,119 +322,125 @@ export function FooterUtility({
             </div>
           </div>
 
-          <div className={cls.utilityStack}>
-            <div className={cls.utilityCard}>
-              <div className={cls.utilityHead}>
-                <h3 className={cls.utilityTitle}>{newsletterTitle}</h3>
-                <p className={cls.utilityDesc}>{newsletterDesc}</p>
-              </div>
-
-              <form className={cls.form} onSubmit={onSubmit} noValidate>
-                <label className={cls.srOnly} htmlFor="footerUtilityEmail">
-                  Email
-                </label>
-
-                <input
-                  id="footerUtilityEmail"
-                  type="email"
-                  name="email"
-                  className={cls.input}
-                  placeholder={placeholderEmail}
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <button
-                  type="submit"
-                  className={cls.submit}
-                  aria-label={submitAriaLabel}
-                  onClick={preview ? onBlockClick : undefined}
-                >
-                  {submitLabel}
-                </button>
-              </form>
+          <div className={cls.newsPanel}>
+            <div className={cls.newsHead}>
+              <h3 className={cls.newsTitle}>{newsletterTitle}</h3>
+              <p className={cls.newsDesc}>{newsletterDesc}</p>
             </div>
 
-            <div className={cls.utilityGrid}>
-              <div className={cls.miniCard}>
-                <div className={cls.miniTitle}>Hotline hỗ trợ</div>
-                <div className={cls.hotlineList}>
-                  {hls.map((item, i) => {
-                    const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
-                    return preview ? (
-                      <a key={i} href="#" className={cls.hotlineItem} onClick={onBlockClick}>
-                        <span className={cls.hotlineLabel}>{item.label}</span>
-                        <span className={cls.hotlinePhone}>{item.phone}</span>
-                        {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+            <form className={cls.form} onSubmit={onSubmit} noValidate>
+              <label className={cls.srOnly} htmlFor="footerUtilityEmail">
+                Email
+              </label>
+
+              <input
+                id="footerUtilityEmail"
+                type="email"
+                name="email"
+                className={cls.input}
+                placeholder={placeholderEmail}
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              <button
+                type="submit"
+                className={cls.submit}
+                aria-label={submitAriaLabel}
+                onClick={preview ? onBlockClick : undefined}
+              >
+                {submitLabel}
+              </button>
+            </form>
+          </div>
+
+          <div className={cls.quickGrid}>
+            <div className={cls.quickCard}>
+              <div className={cls.quickTitle}>Hotline hỗ trợ</div>
+              <div className={cls.hotlineList}>
+                {hls.map((item, i) => {
+                  const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
+                  return preview ? (
+                    <a key={i} href="#" className={cls.hotlineItem} onClick={onBlockClick}>
+                      <span className={cls.hotlineLabel}>{item.label}</span>
+                      <span className={cls.hotlinePhone}>{item.phone}</span>
+                      {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                    </a>
+                  ) : (
+                    <a key={i} href={telHref} className={cls.hotlineItem}>
+                      <span className={cls.hotlineLabel}>{item.label}</span>
+                      <span className={cls.hotlinePhone}>{item.phone}</span>
+                      {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={cls.quickCard}>
+              <div className={cls.quickTitle}>{paymentsTitle}</div>
+              <div className={cls.paymentList}>
+                {pays.map((item, i) => (
+                  <div key={i} className={cls.paymentCard} title={item.label}>
+                    <Image src={item.imageSrc} alt={item.label} width={64} height={28} className={cls.paymentImg} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={cls.quickCard}>
+              <div className={cls.quickTitle}>Tải ứng dụng</div>
+              <div className={cls.appRow}>
+                <div className={cls.qrCard}>
+                  <Image src={qrImageSrc} alt="QR App" width={96} height={96} className={cls.qrImg} />
+                </div>
+
+                <div className={cls.storeList}>
+                  {sts.map((item, i) =>
+                    preview ? (
+                      <a key={i} href="#" className={cls.storeBtn} onClick={onBlockClick} aria-label={item.label}>
+                        <Image
+                          src={item.imageSrc}
+                          alt={item.label}
+                          width={140}
+                          height={42}
+                          className={cls.storeImg}
+                        />
                       </a>
                     ) : (
-                      <a key={i} href={telHref} className={cls.hotlineItem}>
-                        <span className={cls.hotlineLabel}>{item.label}</span>
-                        <span className={cls.hotlinePhone}>{item.phone}</span>
-                        {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                      <a key={i} href={item.href} className={cls.storeBtn} aria-label={item.label} rel="noreferrer">
+                        <Image
+                          src={item.imageSrc}
+                          alt={item.label}
+                          width={140}
+                          height={42}
+                          className={cls.storeImg}
+                        />
                       </a>
-                    );
-                  })}
+                    ),
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className={cls.miniCard}>
-                <div className={cls.miniTitle}>{paymentsTitle}</div>
-                <div className={cls.paymentList}>
-                  {pays.map((item, i) => (
-                    <div key={i} className={cls.paymentCard} title={item.label}>
-                      <Image src={item.imageSrc} alt={item.label} width={64} height={28} className={cls.paymentImg} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className={cls.miniCard}>
-                <div className={cls.miniTitle}>Tải ứng dụng</div>
-                <div className={cls.appRow}>
-                  <div className={cls.qrCard}>
-                    <Image src={qrImageSrc} alt="QR App" width={104} height={104} className={cls.qrImg} />
-                  </div>
-
-                  <div className={cls.storeList}>
-                    {sts.map((item, i) =>
-                      preview ? (
-                        <a key={i} href="#" className={cls.storeBtn} onClick={onBlockClick} aria-label={item.label}>
-                          <Image
-                            src={item.imageSrc}
-                            alt={item.label}
-                            width={140}
-                            height={42}
-                            className={cls.storeImg}
-                          />
-                        </a>
-                      ) : (
-                        <a key={i} href={item.href} className={cls.storeBtn} aria-label={item.label} rel="noreferrer">
-                          <Image
-                            src={item.imageSrc}
-                            alt={item.label}
-                            width={140}
-                            height={42}
-                            className={cls.storeImg}
-                          />
-                        </a>
-                      ),
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className={cls.miniCard}>
-                <div className={cls.miniTitle}>{certificationTitle}</div>
+            <div className={cls.quickCard}>
+              <div className={cls.quickTitle}>{certificationTitle}</div>
+              <div className={cls.certWrap}>
                 <div className={cls.certCard}>
                   <Image
                     src={certificationImageSrc}
                     alt={certificationTitle}
-                    width={180}
-                    height={68}
+                    width={170}
+                    height={64}
                     className={cls.certImg}
                   />
+                </div>
+                <div className={cls.certNote}>
+                  <span className={cls.certNoteTitle}>Báo cáo / xác thực Bộ Công Thương</span>
+                  <span className={cls.certNoteSub}>
+                    Khu vực chừa sẵn cho chứng nhận doanh nghiệp và thông tin xác minh.
+                  </span>
                 </div>
               </div>
             </div>
@@ -442,38 +448,36 @@ export function FooterUtility({
         </section>
 
         <section className={cls.mainGrid}>
-          <div className={cls.linksWrap}>
-            <div className={cls.linkCard}>
-              <h3 className={cls.cardTitle}>{supportTitle}</h3>
-              <div className={cls.linkList}>
-                {spls.map((item, i) => (
-                  <div key={i} className={cls.linkRow}>
-                    {renderNavLink(item, i, cls.linkItem)}
-                  </div>
-                ))}
-              </div>
+          <div className={cls.linkCard}>
+            <h3 className={cls.cardTitle}>{supportTitle}</h3>
+            <div className={cls.linkList}>
+              {spls.map((item, i) => (
+                <div key={i} className={cls.linkRow}>
+                  {renderNavLink(item, i, cls.linkItem)}
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className={cls.linkCard}>
-              <h3 className={cls.cardTitle}>{aboutTitle}</h3>
-              <div className={cls.linkList}>
-                {abls.map((item, i) => (
-                  <div key={i} className={cls.linkRow}>
-                    {renderNavLink(item, i, cls.linkItem)}
-                  </div>
-                ))}
-              </div>
+          <div className={cls.linkCard}>
+            <h3 className={cls.cardTitle}>{aboutTitle}</h3>
+            <div className={cls.linkList}>
+              {abls.map((item, i) => (
+                <div key={i} className={cls.linkRow}>
+                  {renderNavLink(item, i, cls.linkItem)}
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className={cls.linkCard}>
-              <h3 className={cls.cardTitle}>{partnerTitle}</h3>
-              <div className={cls.linkList}>
-                {ptls.map((item, i) => (
-                  <div key={i} className={cls.linkRow}>
-                    {renderNavLink(item, i, cls.linkItem)}
-                  </div>
-                ))}
-              </div>
+          <div className={cls.linkCard}>
+            <h3 className={cls.cardTitle}>{partnerTitle}</h3>
+            <div className={cls.linkList}>
+              {ptls.map((item, i) => (
+                <div key={i} className={cls.linkRow}>
+                  {renderNavLink(item, i, cls.linkItem)}
+                </div>
+              ))}
             </div>
           </div>
         </section>

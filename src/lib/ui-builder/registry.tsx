@@ -43,6 +43,11 @@ import { SHOP_FOOTER_CENTERED } from "@/components/admin/shared/templates/sectio
 import { SHOP_FOOTER_CLASSIC } from "@/components/admin/shared/templates/sections/Footer/FooterClassic";
 import { SHOP_FOOTER_COMPACT } from "@/components/admin/shared/templates/sections/Footer/FooterCompact";
 import { SHOP_FOOTER_DASHBOARD } from "@/components/admin/shared/templates/sections/Footer/FooterDashboard";
+import { SHOP_FOOTER_MINIMAL } from "@/components/admin/shared/templates/sections/Footer/FooterMinimal";
+import { SHOP_FOOTER_REGION } from "@/components/admin/shared/templates/sections/Footer/FooterRegion";
+import { SHOP_FOOTER_SPLIT } from "@/components/admin/shared/templates/sections/Footer/FooterSplit";
+import { SHOP_FOOTER_TICKER } from "@/components/admin/shared/templates/sections/Footer/FooterTicker";
+import { SHOP_FOOTER_UTILITY } from "@/components/admin/shared/templates/sections/Footer/FooterUtility";
 
 // ===== Web page Sidebar  =====
 import { SHOP_SIDEBAR_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Sidebar/SidebarAnnouncement";
@@ -116,6 +121,11 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_FOOTER_CLASSIC,
   SHOP_FOOTER_COMPACT,
   SHOP_FOOTER_DASHBOARD,
+  SHOP_FOOTER_MINIMAL,
+  SHOP_FOOTER_REGION,
+  SHOP_FOOTER_SPLIT,
+  SHOP_FOOTER_TICKER,
+  SHOP_FOOTER_UTILITY,
 
   // ===== Web page Sidebar  =====
   SHOP_SIDEBAR_ANNOUNCEMENT,

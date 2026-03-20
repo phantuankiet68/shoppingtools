@@ -289,20 +289,19 @@ export function FooterSplit({
     <footer className={cls.footer} aria-label="Footer split">
       <div className={cls.shell}>
         <div className={cls.container}>
-          <section className={cls.heroCard}>
-            <div className={cls.heroMain}>
-              <div className={cls.badge}>Trusted Beauty Commerce</div>
-
-              <div className={cls.brandBlock}>
-                <h2 className={cls.brandName}>{bd.name}</h2>
-                <p className={cls.brandTag}>{bd.tag}</p>
-              </div>
+          {/* Top strip */}
+          <section className={cls.topIntro}>
+            <div className={cls.brandPanel}>
+              <div className={cls.brandEyebrow}>Trusted Beauty Platform</div>
+              <h2 className={cls.brandName}>{bd.name}</h2>
+              <p className={cls.brandTag}>{bd.tag}</p>
 
               {bd.info?.length ? (
-                <div className={cls.infoGrid}>
+                <div className={cls.infoList}>
                   {bd.info.map((item, i) => (
-                    <div key={i} className={cls.infoCard}>
+                    <div key={i} className={cls.infoItem}>
                       <span className={cls.infoLabel}>{item.label}</span>
+                      <span className={cls.infoDot}>•</span>
                       <span className={cls.infoText}>{item.text}</span>
                     </div>
                   ))}
@@ -310,83 +309,81 @@ export function FooterSplit({
               ) : null}
             </div>
 
-            <div className={cls.heroSide}>
-              <div className={cls.newsCard}>
+            <div className={cls.newsletterPanel}>
+              <div className={cls.newsHeader}>
                 <h3 className={cls.newsTitle}>{newsletterTitle}</h3>
                 <p className={cls.newsDesc}>{newsletterDesc}</p>
+              </div>
 
-                <form className={cls.form} onSubmit={onSubmit} noValidate>
-                  <label className={cls.srOnly} htmlFor="footerSplitEmail">
-                    Email
-                  </label>
+              <form className={cls.form} onSubmit={onSubmit} noValidate>
+                <label className={cls.srOnly} htmlFor="footerSplitEmail">
+                  Email
+                </label>
 
-                  <input
-                    id="footerSplitEmail"
-                    type="email"
-                    name="email"
-                    className={cls.input}
-                    placeholder={placeholderEmail}
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                <input
+                  id="footerSplitEmail"
+                  type="email"
+                  name="email"
+                  className={cls.input}
+                  placeholder={placeholderEmail}
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
 
-                  <button
-                    type="submit"
-                    className={cls.submit}
-                    aria-label={submitAriaLabel}
-                    onClick={preview ? onBlockClick : undefined}
-                  >
-                    {submitLabel}
-                  </button>
-                </form>
+                <button
+                  type="submit"
+                  className={cls.submit}
+                  aria-label={submitAriaLabel}
+                  onClick={preview ? onBlockClick : undefined}
+                >
+                  {submitLabel}
+                </button>
+              </form>
 
-                <div className={cls.newsMeta}>
-                  <div className={cls.socials} aria-label="Social links">
-                    {scs.map((item, i) =>
-                      preview ? (
-                        <a key={i} href="#" className={cls.socialBtn} onClick={onBlockClick} aria-label={item.label}>
-                          <i className={`bi ${item.icon}`} aria-hidden="true" />
-                        </a>
-                      ) : (
-                        <a key={i} href={item.href} className={cls.socialBtn} aria-label={item.label} rel="noreferrer">
-                          <i className={`bi ${item.icon}`} aria-hidden="true" />
-                        </a>
-                      ),
-                    )}
-                  </div>
+              <div className={cls.topMeta}>
+                <div className={cls.socials} aria-label="Social links">
+                  {scs.map((item, i) =>
+                    preview ? (
+                      <a key={i} href="#" className={cls.socialBtn} onClick={onBlockClick} aria-label={item.label}>
+                        <i className={`bi ${item.icon}`} aria-hidden="true" />
+                      </a>
+                    ) : (
+                      <a key={i} href={item.href} className={cls.socialBtn} aria-label={item.label} rel="noreferrer">
+                        <i className={`bi ${item.icon}`} aria-hidden="true" />
+                      </a>
+                    ),
+                  )}
+                </div>
 
-                  <div className={cls.hotlineStack}>
-                    {hls.map((item, i) => {
-                      const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
+                <div className={cls.hotlineWrap}>
+                  {hls.map((item, i) => {
+                    const telHref = `tel:${item.phone.replace(/[^\d+]/g, "")}`;
 
-                      return preview ? (
-                        <a key={i} href="#" className={cls.hotlineItem} onClick={onBlockClick}>
-                          <span className={cls.hotlineLabel}>{item.label}</span>
-                          <span className={cls.hotlinePhone}>{item.phone}</span>
-                          {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
-                        </a>
-                      ) : (
-                        <a key={i} href={telHref} className={cls.hotlineItem}>
-                          <span className={cls.hotlineLabel}>{item.label}</span>
-                          <span className={cls.hotlinePhone}>{item.phone}</span>
-                          {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
-                        </a>
-                      );
-                    })}
-                  </div>
+                    return preview ? (
+                      <a key={i} href="#" className={cls.hotlineCard} onClick={onBlockClick}>
+                        <span className={cls.hotlineLabel}>{item.label}</span>
+                        <span className={cls.hotlinePhone}>{item.phone}</span>
+                        {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                      </a>
+                    ) : (
+                      <a key={i} href={telHref} className={cls.hotlineCard}>
+                        <span className={cls.hotlineLabel}>{item.label}</span>
+                        <span className={cls.hotlinePhone}>{item.phone}</span>
+                        {item.sub ? <span className={cls.hotlineSub}>{item.sub}</span> : null}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             </div>
           </section>
 
-          <section className={cls.contentGrid}>
-            <div className={cls.navGrid}>
-              <div className={cls.columnCard}>
-                <div className={cls.cardHead}>
-                  <h3 className={cls.cardTitle}>{supportTitle}</h3>
-                </div>
-
+          {/* Main grid */}
+          <section className={cls.mainGrid}>
+            <div className={cls.linkColumns}>
+              <div className={cls.linkCard}>
+                <h3 className={cls.cardTitle}>{supportTitle}</h3>
                 <div className={cls.linkList}>
                   {spls.map((item, i) => (
                     <div key={i} className={cls.linkRow}>
@@ -396,11 +393,8 @@ export function FooterSplit({
                 </div>
               </div>
 
-              <div className={cls.columnCard}>
-                <div className={cls.cardHead}>
-                  <h3 className={cls.cardTitle}>{aboutTitle}</h3>
-                </div>
-
+              <div className={cls.linkCard}>
+                <h3 className={cls.cardTitle}>{aboutTitle}</h3>
                 <div className={cls.linkList}>
                   {abls.map((item, i) => (
                     <div key={i} className={cls.linkRow}>
@@ -410,11 +404,8 @@ export function FooterSplit({
                 </div>
               </div>
 
-              <div className={cls.columnCard}>
-                <div className={cls.cardHead}>
-                  <h3 className={cls.cardTitle}>{partnerTitle}</h3>
-                </div>
-
+              <div className={cls.linkCard}>
+                <h3 className={cls.cardTitle}>{partnerTitle}</h3>
                 <div className={cls.linkList}>
                   {ptls.map((item, i) => (
                     <div key={i} className={cls.linkRow}>
@@ -425,8 +416,8 @@ export function FooterSplit({
               </div>
             </div>
 
-            <aside className={cls.utilityCard}>
-              <div className={cls.utilitySection}>
+            <aside className={cls.sidePanel}>
+              <div className={cls.sideCard}>
                 <div className={cls.utilityTitle}>{paymentsTitle}</div>
                 <div className={cls.paymentList}>
                   {pays.map((item, i) => (
@@ -437,9 +428,9 @@ export function FooterSplit({
                 </div>
               </div>
 
-              <div className={cls.utilitySection}>
+              <div className={cls.sideCard}>
                 <div className={cls.utilityTitle}>Tải ứng dụng</div>
-                <div className={cls.appRow}>
+                <div className={cls.appBox}>
                   <div className={cls.qrCard}>
                     <Image src={qrImageSrc} alt="QR App" width={104} height={104} className={cls.qrImg} />
                   </div>
@@ -472,23 +463,36 @@ export function FooterSplit({
                 </div>
               </div>
 
-              <div className={cls.utilitySection}>
+              <div className={cls.sideCard}>
                 <div className={cls.utilityTitle}>{certificationTitle}</div>
-                <div className={cls.certCard}>
-                  <Image
-                    src={certificationImageSrc}
-                    alt={certificationTitle}
-                    width={180}
-                    height={68}
-                    className={cls.certImg}
-                  />
+                <div className={cls.complianceCard}>
+                  <div className={cls.complianceMedia}>
+                    <Image
+                      src={certificationImageSrc}
+                      alt={certificationTitle}
+                      width={160}
+                      height={60}
+                      className={cls.certImg}
+                    />
+                  </div>
+
+                  <div className={cls.complianceText}>
+                    <span className={cls.complianceTitle}>Báo cáo / xác thực Bộ Công Thương</span>
+                    <span className={cls.complianceSub}>
+                      Chừa sẵn khu vực hiển thị chứng nhận doanh nghiệp, tăng độ tin cậy cho footer.
+                    </span>
+                  </div>
                 </div>
               </div>
             </aside>
           </section>
 
+          {/* Brand logos */}
           <section className={cls.logoSection}>
-            <div className={cls.sectionTitle}>Hệ sinh thái thương hiệu</div>
+            <div className={cls.sectionHead}>
+              <h3 className={cls.sectionTitle}>Hệ sinh thái thương hiệu</h3>
+            </div>
+
             <div className={cls.logoRail}>
               {blogs.map((item, i) =>
                 preview ? (
@@ -504,8 +508,11 @@ export function FooterSplit({
             </div>
           </section>
 
+          {/* Tags */}
           <section className={cls.tagSection}>
-            <div className={cls.sectionTitle}>{tagTitle}</div>
+            <div className={cls.sectionHead}>
+              <h3 className={cls.sectionTitle}>{tagTitle}</h3>
+            </div>
 
             <div className={cls.tagList}>
               {tgs.map((item, i) =>
@@ -522,6 +529,7 @@ export function FooterSplit({
             </div>
           </section>
 
+          {/* Bottom */}
           <section className={cls.bottomBar}>
             <div className={cls.bottomLeft}>
               <span className={cls.copy}>{copy}</span>
@@ -549,7 +557,7 @@ export function FooterSplit({
       </div>
 
       <button className={cls.toTop} type="button" aria-label="Back to top" onClick={goTop}>
-        <i className="bi bi-arrow-up-right" aria-hidden="true" />
+        <i className="bi bi-arrow-up" aria-hidden="true" />
       </button>
 
       <div className={`${cls.toast} ${toast ? cls.isShow : ""}`} role="status" aria-live="polite" aria-atomic="true">
