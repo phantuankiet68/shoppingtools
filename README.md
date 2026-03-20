@@ -477,18 +477,4 @@ học thêm cloud + performance + AI integration
 
 Những thứ này sẽ giúp bạn không bị mắc kẹt ở mức junior.
 
-Hiện tại tôi muốn độ design và ghi vào TopbarUtility.tsx hãy giúp tôi độ lại tương tự cấu trúc nhưng khác với UI nhé. có thể một row và tiếp luôn file CSS module tương ứng
-
-Hiện tại design Ui đã có thể topbar như này đã đạt web seo cho web bán hàng có gọi là xuất sắc chưa á. Bạn hãy kiểm tra lại giúp tôi nhé rất cảm ơn
-
-tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé
-
-Hiện tại tôi đang sử dụng next 16 module và HeaderAnnouncement là file mẫu dùng làm templates để tạo pages Bạn có thể từ HeaderAnnouncement.tsx bạn hãy tạo design Ui mới là HeaderCentered.tsx cấu trúc giống nhau nhé
-
-hiện tại SectionAnnouncement.tsx là templates mẫu. tôi đang sử dụng next 16 và css module tôi thấy design đã quá lỗi thời không tương thích với header mode 2026 với nền tảng da dạng và nhiều sắc thái mới mẽ mang được tính chuyên nghiệp cho lĩnh vực bán hàng và web site. tôi muốn bạn độ lại Ui nhưng cấu trúc file vẫn giữ như cũ nhé. Hãy giúp tôi chỉnh sửa và ghi lại toàn bộ file nhé rất cảm ơn bạn. Do đây là giao diện web bán hàng ấy chứ. và theo style khác hẳn với file cũ nhé hãy tạo file SectionUtility.tsx giúp tôi
-
-viết luôn cho bạn file HeroCentered.module.css đồng bộ với component này theo style ecommerce hiện đại, responsive, premium, đủ để dùng ngay.
-
-Hiện tại Ui HeroCentered đang màu rất tối bạn có thể độ lại css module có thể là design chuyên nghiệp và mang sắc thái ecommec cao cấp. hãy sử dụng màu nhạt giúp tôi nhé. Bạn hãy độ lại giúp tôi nhé và ghi lại toàn bộ file HeroCentered.module.css
-
-tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé Hiện tại tiếng việt hãy giúp tôi chuyển sang tiếng anh và ghi lại toàn bộ file HeroMinimal.tsx giúp tôi
+Do SectionSalesSeven.tsx là file mẫu. tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé Hiện tại tiếng việt hãy giúp tôi chuyển sang tiếng anh và ghi lại toàn bộ file SectionSalesTen.tsx. Bạn có thể cải tiến design ui, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file giúp tôi nhé

@@ -34,6 +34,15 @@ function decimalOrNull(v: unknown) {
   return n;
 }
 
+function intOrNull(v: unknown) {
+  const raw = String(v ?? "").trim();
+  if (!raw) return null;
+
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return null;
+  return Math.trunc(n);
+}
+
 function parseImages(input: unknown) {
   const arr = Array.isArray(input) ? input : [];
 
@@ -100,7 +109,6 @@ function serializeProductForEdit(product: any) {
       : null,
 
     productType: String(product.productType ?? "PHYSICAL"),
-    vendor: product.vendor == null ? null : String(product.vendor),
     tags: Array.isArray(product.tags) ? product.tags.map((x: unknown) => String(x)) : [],
 
     status: String(product.status ?? "DRAFT"),
@@ -109,6 +117,11 @@ function serializeProductForEdit(product: any) {
 
     metaTitle: product.metaTitle == null ? null : String(product.metaTitle),
     metaDescription: product.metaDescription == null ? null : String(product.metaDescription),
+
+    price: safeScalar(product.price),
+    marketPrice: safeScalar(product.marketPrice),
+    savingPrice: safeScalar(product.savingPrice),
+    productQty: product.productQty == null ? 0 : Number(product.productQty),
 
     weight: safeScalar(product.weight),
     length: safeScalar(product.length),
@@ -159,17 +172,23 @@ async function findProductFull(id: string) {
       },
 
       productType: true,
-      vendor: true,
       tags: true,
       status: true,
       isVisible: true,
       publishedAt: true,
       metaTitle: true,
       metaDescription: true,
+
+      price: true,
+      marketPrice: true,
+      savingPrice: true,
+      productQty: true,
+
       weight: true,
       length: true,
       width: true,
       height: true,
+
       createdAt: true,
       updatedAt: true,
 
@@ -307,11 +326,6 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       data.productType = v;
     }
 
-    if (body.vendor !== undefined) {
-      const v = String(body.vendor ?? "").trim();
-      data.vendor = v || null;
-    }
-
     if (body.tags !== undefined) {
       if (!Array.isArray(body.tags)) {
         return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
@@ -347,6 +361,11 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       const v = String(body.metaDescription ?? "").trim();
       data.metaDescription = v || null;
     }
+
+    if (body.price !== undefined) data.price = decimalOrNull(body.price);
+    if (body.marketPrice !== undefined) data.marketPrice = decimalOrNull(body.marketPrice);
+    if (body.savingPrice !== undefined) data.savingPrice = decimalOrNull(body.savingPrice);
+    if (body.productQty !== undefined) data.productQty = intOrNull(body.productQty) ?? 0;
 
     if (body.weight !== undefined) data.weight = decimalOrNull(body.weight);
     if (body.length !== undefined) data.length = decimalOrNull(body.length);
@@ -408,17 +427,23 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
           },
 
           productType: true,
-          vendor: true,
           tags: true,
           status: true,
           isVisible: true,
           publishedAt: true,
           metaTitle: true,
           metaDescription: true,
+
+          price: true,
+          marketPrice: true,
+          savingPrice: true,
+          productQty: true,
+
           weight: true,
           length: true,
           width: true,
           height: true,
+
           createdAt: true,
           updatedAt: true,
 

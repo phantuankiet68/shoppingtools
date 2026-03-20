@@ -1,0 +1,613 @@
+.section {
+  position: relative;
+  padding: 32px 0;
+  overflow: hidden;
+}
+
+.shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.headerLeft {
+  max-width: 720px;
+}
+
+.kickerRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(16, 35, 30, 0.08);
+}
+
+.fireBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #ff7a00;
+}
+
+.kickerText {
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #36564b;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  color: #11231f;
+}
+
+.subtitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #5b6d66;
+}
+
+.subtitle strong {
+  color: #ff7a00;
+  font-weight: 800;
+}
+
+.subtitleDivider {
+  opacity: 0.45;
+}
+
+.note {
+  margin: 0;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #61726c;
+}
+
+.headerRight {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.countdownWrap {
+  padding: 14px 14px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(16, 35, 30, 0.08);
+  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.06);
+}
+
+.countdownPrefix {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #4f665e;
+}
+
+.countdown {
+  display: flex;
+  gap: 8px;
+}
+
+.countItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.countBox {
+  min-width: 48px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #1a342d 0%, #122822 100%);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 800;
+  text-align: center;
+}
+
+.countLabel {
+  font-size: 11px;
+  line-height: 1;
+  color: #61716b;
+  font-weight: 700;
+}
+
+.body {
+  position: relative;
+}
+
+.carouselFrame {
+  position: relative;
+}
+
+.track {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 340px));
+  justify-content: start;
+  gap: 18px;
+  padding: 0 38px;
+}
+
+.card {
+  min-width: 0;
+}
+
+.cardLink {
+  position: relative;
+  display: block;
+  height: 100%;
+  padding: 16px;
+  border-radius: 24px;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(16, 35, 30, 0.08);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.cardLink:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 122, 0, 0.18);
+  box-shadow: 0 18px 36px rgba(17, 24, 39, 0.1);
+}
+
+.cardTopMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.slideIndex {
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #6d7d78;
+}
+
+.floatingBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f3faf6;
+  border: 1px solid rgba(21, 131, 83, 0.12);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  color: #116b46;
+}
+
+.cardMain {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.visualWrap {
+  position: relative;
+  min-height: 190px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #fcfaf7 0%, #f3ede5 100%);
+  overflow: hidden;
+}
+
+.visualGlow {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 145, 0, 0.16) 0%, transparent 72%);
+  filter: blur(10px);
+}
+
+.imageWrap {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  z-index: 1;
+}
+
+.image {
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.08));
+  transition: transform 0.25s ease;
+}
+
+.cardLink:hover .image {
+  transform: scale(1.04);
+}
+
+.discountBlob {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff8b00 0%, #ff6d00 100%);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  box-shadow: 0 8px 16px rgba(255, 122, 0, 0.2);
+  z-index: 2;
+}
+
+.content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.titleBlock {
+  margin-bottom: 10px;
+}
+
+.brandText {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #6a7b75;
+}
+
+.productName {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: #12241f;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reviewRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.stars {
+  font-size: 12px;
+  line-height: 1;
+  color: #ff9800;
+  letter-spacing: 0.04em;
+}
+
+.ratingValue,
+.reviewCount {
+  font-size: 12px;
+  line-height: 1.3;
+  color: #687974;
+  font-weight: 600;
+}
+
+.priceBlock {
+  margin-bottom: 10px;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.currentPrice {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #ff6f00;
+}
+
+.oldPrice {
+  font-size: 14px;
+  line-height: 1.3;
+  color: #9ca9a4;
+  text-decoration: line-through;
+  font-weight: 600;
+}
+
+.savingsText {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: #1f7853;
+  font-weight: 700;
+}
+
+.bulletList {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.bulletItem {
+  position: relative;
+  padding-left: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #566862;
+  font-weight: 500;
+}
+
+.bulletItem::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #28a36b 0%, #128252 100%);
+}
+
+.bottomArea {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.progressWrap {
+  display: grid;
+  gap: 6px;
+}
+
+.progressBar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(16, 35, 30, 0.08);
+  overflow: hidden;
+}
+
+.progressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff8a00 0%, #1d9967 100%);
+}
+
+.progressText {
+  font-size: 12px;
+  line-height: 1.3;
+  color: #657670;
+  font-weight: 600;
+}
+
+.ctaRow {
+  display: flex;
+  align-items: center;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff8a00 0%, #ff6a00 100%);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  font-weight: 800;
+  box-shadow: 0 10px 18px rgba(255, 122, 0, 0.18);
+}
+
+.navButton {
+  position: absolute;
+  top: 42%;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1a342d;
+  font-size: 24px;
+  line-height: 1;
+  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.08);
+  cursor: pointer;
+  z-index: 3;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.navButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 14px 26px rgba(17, 24, 39, 0.12);
+}
+
+.navPrev {
+  left: -14px;
+}
+
+.navNext {
+  right: auto;
+  left: calc(100% - 28px);
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.14);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.dotActive {
+  width: 24px;
+  background: linear-gradient(90deg, #ff8a00 0%, #1c9967 100%);
+}
+
+.emptyState {
+  padding: 28px 18px;
+  border-radius: 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(16, 35, 30, 0.08);
+  font-size: 14px;
+  color: #5d6e68;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 1200px) {
+  .header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .headerRight {
+    justify-content: flex-start;
+  }
+
+  .track {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+  }
+
+  .navPrev,
+  .navNext {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .section {
+    padding: 24px 0;
+  }
+
+  .shell {
+    padding: 0 14px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .note {
+    font-size: 13px;
+  }
+
+  .countdownWrap {
+    width: 100%;
+  }
+
+  .countdown {
+    flex-wrap: wrap;
+  }
+
+  .track {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .cardMain {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .visualWrap {
+    min-height: 170px;
+  }
+
+  .imageWrap {
+    width: 145px;
+    height: 145px;
+  }
+
+  .productName {
+    font-size: 17px;
+  }
+
+  .currentPrice {
+    font-size: 22px;
+  }
+
+  .ctaPrimary {
+    width: 100%;
+  }
+}

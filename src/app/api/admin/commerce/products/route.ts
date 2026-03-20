@@ -22,6 +22,17 @@ function parseISODateOrNull(v: string | null | undefined) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+function parseNumberOrNull(v: unknown) {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseIntOrDefault(v: unknown, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.trunc(n) : fallback;
+}
+
 function slugify(input: string) {
   return input
     .toLowerCase()
@@ -90,7 +101,6 @@ type ProductSubmitPayload = {
   brand?: string;
 
   productType?: ProductType;
-  vendor?: string;
   tags?: string[];
 
   status?: ProductStatus;
@@ -102,6 +112,16 @@ type ProductSubmitPayload = {
 
   metaTitle?: string;
   metaDescription?: string;
+
+  price?: number | string | null;
+  marketPrice?: number | string | null;
+  savingPrice?: number | string | null;
+  productQty?: number | string | null;
+
+  weight?: number | string | null;
+  length?: number | string | null;
+  width?: number | string | null;
+  height?: number | string | null;
 
   media?: MediaItem[];
 };
@@ -145,7 +165,11 @@ export async function GET(req: Request) {
     const pageSize = clamp(toInt(url.searchParams.get("pageSize"), 50), 1, 200);
     const skip = (page - 1) * pageSize;
 
-    const where: Prisma.ProductWhereInput = { siteId };
+    const where: Prisma.ProductWhereInput = {
+      siteId,
+      deletedAt: null,
+    };
+
     const statusWhere = whereFromStatus(status);
     if (statusWhere) Object.assign(where, statusWhere);
 
@@ -168,15 +192,26 @@ export async function GET(req: Request) {
           shortDescription: true,
           description: true,
           productType: true,
-          vendor: true,
           tags: true,
           status: true,
           isVisible: true,
           publishedAt: true,
           metaTitle: true,
           metaDescription: true,
+
+          price: true,
+          marketPrice: true,
+          savingPrice: true,
+          productQty: true,
+
+          weight: true,
+          length: true,
+          width: true,
+          height: true,
+
           createdAt: true,
           updatedAt: true,
+
           category: {
             select: { id: true, name: true, slug: true },
           },
@@ -193,6 +228,13 @@ export async function GET(req: Request) {
 
     const items = rawItems.map((p) => ({
       ...p,
+      price: p.price?.toString() ?? null,
+      marketPrice: p.marketPrice?.toString() ?? null,
+      savingPrice: p.savingPrice?.toString() ?? null,
+      weight: p.weight?.toString() ?? null,
+      length: p.length?.toString() ?? null,
+      width: p.width?.toString() ?? null,
+      height: p.height?.toString() ?? null,
       images: p.images.map((img) => ({
         id: img.id,
         url: img.imageUrl,
@@ -289,8 +331,7 @@ export async function POST(req: NextRequest) {
           description: String(body.description ?? "").trim() || null,
 
           productType: (body.productType ?? "PHYSICAL") as ProductType,
-          vendor: String(body.vendor ?? "").trim() || null,
-          tags: body.tags ?? [],
+          tags: Array.isArray(body.tags) ? body.tags : [],
 
           status: (body.status ?? "DRAFT") as ProductStatus,
           isVisible: body.isVisible ?? true,
@@ -298,6 +339,16 @@ export async function POST(req: NextRequest) {
 
           metaTitle: String(body.metaTitle ?? "").trim() || null,
           metaDescription: String(body.metaDescription ?? "").trim() || null,
+
+          price: parseNumberOrNull(body.price),
+          marketPrice: parseNumberOrNull(body.marketPrice),
+          savingPrice: parseNumberOrNull(body.savingPrice),
+          productQty: parseIntOrDefault(body.productQty, 0),
+
+          weight: parseNumberOrNull(body.weight),
+          length: parseNumberOrNull(body.length),
+          width: parseNumberOrNull(body.width),
+          height: parseNumberOrNull(body.height),
         },
         select: {
           id: true,
@@ -315,7 +366,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      return tx.product.findUnique({
+      const fullProduct = await tx.product.findUnique({
         where: { id: product.id },
         include: {
           category: true,
@@ -325,6 +376,27 @@ export async function POST(req: NextRequest) {
           },
         },
       });
+
+      if (!fullProduct) {
+        throw new Error("Failed to load created product");
+      }
+
+      return {
+        ...fullProduct,
+        price: fullProduct.price?.toString() ?? null,
+        marketPrice: fullProduct.marketPrice?.toString() ?? null,
+        savingPrice: fullProduct.savingPrice?.toString() ?? null,
+        weight: fullProduct.weight?.toString() ?? null,
+        length: fullProduct.length?.toString() ?? null,
+        width: fullProduct.width?.toString() ?? null,
+        height: fullProduct.height?.toString() ?? null,
+        images: fullProduct.images.map((img) => ({
+          id: img.id,
+          url: img.imageUrl,
+          sort: img.sortOrder,
+          createdAt: img.createdAt,
+        })),
+      };
     });
 
     return NextResponse.json({ data: created }, { status: 201 });

@@ -22,13 +22,18 @@ model Product {
   shortDescription String?       @map("short_description")
   description      String?
   productType      ProductType   @default(PHYSICAL) @map("product_type")
-  vendor           String?
   tags             String[]      @default([])
   status           ProductStatus @default(DRAFT)
   isVisible        Boolean       @default(true) @map("is_visible")
   publishedAt      DateTime?     @map("published_at")
   metaTitle        String?       @map("meta_title")
   metaDescription  String?       @map("meta_description")
+
+  price            Decimal?      @db.Decimal(12, 2) @map("price")
+  marketPrice      Decimal?      @db.Decimal(12, 2) @map("market_price")
+  savingPrice      Decimal?      @db.Decimal(12, 2) @map("saving_price")
+  productQty       Int           @default(0) @map("product_qty")
+
   weight           Decimal?      @db.Decimal(12, 3)
   length           Decimal?      @db.Decimal(12, 3)
   width            Decimal?      @db.Decimal(12, 3)
@@ -36,11 +41,13 @@ model Product {
   createdAt        DateTime      @default(now()) @map("created_at")
   updatedAt        DateTime      @updatedAt @map("updated_at")
   deletedAt        DateTime?     @map("deleted_at")
+
   site             Site                  @relation(fields: [siteId], references: [id], onDelete: Cascade)
   category         ProductCategory       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   brand            ProductBrand?         @relation(fields: [brandId], references: [id], onDelete: SetNull)
   variants         ProductVariant[]
   images           ProductImage[]
+
   @@unique([siteId, slug])
   @@index([siteId])
   @@index([categoryId])

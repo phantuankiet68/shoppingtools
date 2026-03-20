@@ -49,7 +49,16 @@ import { SHOP_SIDEBAR_ANNOUNCEMENT } from "@/components/admin/shared/templates/s
 
 // ===== Web page Section  =====
 import { SHOP_SECTION_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Section/SectionAnnouncement";
-
+import { SHOP_SECTION_SALES } from "@/components/admin/shared/templates/sections/Section/SectionSales";
+import { SHOP_SECTION_SALES_ONE } from "@/components/admin/shared/templates/sections/Section/SectionSalesOne";
+import { SHOP_SECTION_SALES_TWO } from "@/components/admin/shared/templates/sections/Section/SectionSalesTwo";
+import { SHOP_SECTION_SALES_THREE } from "@/components/admin/shared/templates/sections/Section/SectionSalesThree";
+import { SHOP_SECTION_SALES_FOUR } from "@/components/admin/shared/templates/sections/Section/SectionSalesFour";
+import { SHOP_SECTION_SALES_FIVE } from "@/components/admin/shared/templates/sections/Section/SectionSalesFive";
+import { SHOP_SECTION_SALES_SIX } from "@/components/admin/shared/templates/sections/Section/SectionSalesSix";
+import { SHOP_SECTION_SALES_SEVEN } from "@/components/admin/shared/templates/sections/Section/SectionSalesSeven";
+import { SHOP_SECTION_SALES_EIGHT } from "@/components/admin/shared/templates/sections/Section/SectionSalesEight";
+import { SHOP_SECTION_SALES_NINE } from "@/components/admin/shared/templates/sections/Section/SectionSalesNine";
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
 import { SHOP_HEADER_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/header/header1";
@@ -113,6 +122,16 @@ export const REGISTRY_HOME: RegItem[] = [
 
   // ===== Web page Section  =====
   SHOP_SECTION_ANNOUNCEMENT,
+  SHOP_SECTION_SALES,
+  SHOP_SECTION_SALES_ONE,
+  SHOP_SECTION_SALES_TWO,
+  SHOP_SECTION_SALES_THREE,
+  SHOP_SECTION_SALES_FOUR,
+  SHOP_SECTION_SALES_FIVE,
+  SHOP_SECTION_SALES_SIX,
+  SHOP_SECTION_SALES_SEVEN,
+  SHOP_SECTION_SALES_EIGHT,
+  SHOP_SECTION_SALES_NINE,
 
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,

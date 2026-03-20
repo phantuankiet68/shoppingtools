@@ -41,7 +41,6 @@ type ProductFormState = {
   brandId: string;
 
   productType: ProductType;
-  vendor: string;
   tags: string[];
   tagsInput: string;
 
@@ -52,13 +51,10 @@ type ProductFormState = {
   shortDescription: string;
   description: string;
 
-  cost: string;
   price: string;
-  compareAtPrice: string;
-
-  sku: string;
-  barcode: string;
-  stockQty: string;
+  marketPrice: string;
+  savingPrice: string;
+  productQty: string;
 
   weight: string;
   length: string;
@@ -105,7 +101,7 @@ type Props = {
 
 type ApiResponse<T> = {
   items?: T[];
-  data?: T[];
+  data?: T[] | T;
   item?: T;
   categories?: T[];
   brands?: T[];
@@ -128,7 +124,6 @@ type ApiProductDetail = {
   brand?: { id?: string; name?: string } | null;
 
   productType?: ProductType;
-  vendor?: string | null;
   tags?: string[];
 
   status?: ProductStatus;
@@ -136,14 +131,10 @@ type ApiProductDetail = {
   isActive?: boolean;
   publishedAt?: string | null;
 
-  costCents?: number;
-  priceCents?: number;
-  compareAtPriceCents?: number;
-
-  sku?: string | null;
-  barcode?: string | null;
-  stockQty?: number;
-  stock?: number;
+  price?: number | string | null;
+  marketPrice?: number | string | null;
+  savingPrice?: number | string | null;
+  productQty?: number | string | null;
 
   weight?: number | string | null;
   length?: number | string | null;
@@ -175,7 +166,6 @@ const INITIAL_FORM: ProductFormState = {
   categoryId: "",
   brandId: "",
   productType: "PHYSICAL",
-  vendor: "",
   tags: [],
   tagsInput: "",
   status: "DRAFT",
@@ -183,12 +173,10 @@ const INITIAL_FORM: ProductFormState = {
   publishedAt: "",
   shortDescription: "",
   description: "",
-  cost: "0.00",
   price: "0.00",
-  compareAtPrice: "",
-  sku: "",
-  barcode: "",
-  stockQty: "0",
+  marketPrice: "",
+  savingPrice: "",
+  productQty: "0",
   weight: "",
   length: "",
   width: "",
@@ -210,6 +198,21 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
+function sanitizeDecimalInput(value: string) {
+  let next = value.replace(/[^\d.]/g, "");
+  const firstDot = next.indexOf(".");
+
+  if (firstDot !== -1) {
+    next = next.slice(0, firstDot + 1) + next.slice(firstDot + 1).replace(/\./g, "");
+  }
+
+  return next;
+}
+
+function sanitizeIntegerInput(value: string) {
+  return value.replace(/\D/g, "");
+}
+
 function safePickList<T>(j: unknown): T[] {
   const obj = j as ApiResponse<T>;
   if (Array.isArray(j)) return j as T[];
@@ -224,13 +227,22 @@ function safePickItem<T>(j: unknown): T | null {
   if (!j || typeof j !== "object") return null;
   const obj = j as ApiResponse<T> & T;
   if (obj.item && typeof obj.item === "object") return obj.item;
+  if (obj.data && !Array.isArray(obj.data) && typeof obj.data === "object") return obj.data as T;
   return obj as T;
 }
 
-function moneyFromCents(value?: number | null) {
-  const n = Number(value ?? 0);
-  if (!Number.isFinite(n)) return "0.00";
-  return (n / 100).toFixed(2);
+function moneyString(value?: number | string | null) {
+  if (value == null || value === "") return "";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "";
+  return n.toFixed(2);
+}
+
+function intString(value?: number | string | null, fallback = "0") {
+  if (value == null || value === "") return fallback;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return String(Math.trunc(n));
 }
 
 function normalizeMediaFromProduct(product: ApiProductDetail): MediaItem[] {
@@ -274,7 +286,6 @@ function toFormStateFromProduct(product: ApiProductDetail): ProductFormState {
     brandId: String(product.brandId ?? product.brand?.id ?? ""),
     productType:
       product.productType === "DIGITAL" || product.productType === "SERVICE" ? product.productType : "PHYSICAL",
-    vendor: String(product.vendor ?? ""),
     tags: Array.isArray(product.tags) ? product.tags.map((x) => String(x)) : [],
     tagsInput: "",
     status: resolvedStatus,
@@ -282,12 +293,10 @@ function toFormStateFromProduct(product: ApiProductDetail): ProductFormState {
     publishedAt: String(product.publishedAt ?? ""),
     shortDescription: String(product.shortDescription ?? ""),
     description: String(product.description ?? ""),
-    cost: moneyFromCents(product.costCents),
-    price: moneyFromCents(product.priceCents),
-    compareAtPrice: product.compareAtPriceCents == null ? "" : moneyFromCents(product.compareAtPriceCents),
-    sku: String(product.sku ?? ""),
-    barcode: String(product.barcode ?? ""),
-    stockQty: String(product.stockQty ?? product.stock ?? 0),
+    price: moneyString(product.price) || "0.00",
+    marketPrice: moneyString(product.marketPrice),
+    savingPrice: moneyString(product.savingPrice),
+    productQty: intString(product.productQty, "0"),
     weight: product.weight == null ? "" : String(product.weight),
     length: product.length == null ? "" : String(product.length),
     width: product.width == null ? "" : String(product.width),
@@ -608,6 +617,20 @@ export default function ProductForm({
     setForm((p) => ({ ...p, [key]: value }));
   }, []);
 
+  const handleDecimalFieldChange = useCallback(
+    (key: "price" | "marketPrice" | "savingPrice" | "weight" | "length" | "width" | "height", value: string) => {
+      setField(key, sanitizeDecimalInput(value));
+    },
+    [setField],
+  );
+
+  const handleIntegerFieldChange = useCallback(
+    (key: "productQty", value: string) => {
+      setField(key, sanitizeIntegerInput(value));
+    },
+    [setField],
+  );
+
   const handleNameChange = useCallback(
     (v: string) => {
       setField("name", v);
@@ -676,10 +699,8 @@ export default function ProductForm({
 - Please check warranty policy by category.
 `;
 
-      const cost = p.cost?.trim() ? p.cost : "0.00";
       const price = p.price?.trim() ? p.price : "0.00";
-      const sku = !hasVariants && !p.sku?.trim() ? `${slug.toUpperCase().replace(/-/g, "")}-001`.slice(0, 32) : p.sku;
-      const stockQty = p.stockQty?.trim() ? p.stockQty : "0";
+      const productQty = p.productQty?.trim() ? p.productQty : "0";
 
       const tagFromCategory = selectedCategory?.name ? selectedCategory.name : "";
       const tags = p.tags.length > 0 ? p.tags : tagFromCategory ? [tagFromCategory] : [];
@@ -692,14 +713,12 @@ export default function ProductForm({
         metaDescription,
         shortDescription,
         description,
-        cost,
         price,
-        sku,
-        stockQty,
+        productQty,
         tags,
       };
     });
-  }, [hasVariants, selectedCategory?.name]);
+  }, [selectedCategory?.name]);
 
   const onFilesSelected = useCallback(
     (files: FileList | null) => {
@@ -868,13 +887,16 @@ export default function ProductForm({
           categoryId: payload.categoryId || null,
           brandId: payload.brandId || null,
           productType: payload.productType,
-          vendor: payload.vendor.trim() || null,
           tags: payload.tags,
           status: payload.status,
           isVisible: payload.isVisible,
           publishedAt: payload.publishedAt || null,
           shortDescription: payload.shortDescription.trim() || null,
           description: payload.description.trim() || null,
+          price: payload.price.trim() || null,
+          marketPrice: payload.marketPrice.trim() || null,
+          savingPrice: payload.savingPrice.trim() || null,
+          productQty: payload.productQty.trim() || null,
           weight: payload.weight.trim() || null,
           length: payload.length.trim() || null,
           width: payload.width.trim() || null,
@@ -888,6 +910,7 @@ export default function ProductForm({
             thumbUrl: m.thumbUrl,
           })),
         };
+
         const endpoint = isEditing ? `/api/admin/commerce/products/${editingId}` : "/api/admin/commerce/products";
         const method = isEditing ? "PATCH" : "POST";
 
@@ -1275,16 +1298,6 @@ export default function ProductForm({
                     </div>
                   ) : null}
                 </div>
-
-                <div className={styles.field}>
-                  <label className={styles.label}>Vendor</label>
-                  <input
-                    className={styles.input}
-                    value={form.vendor}
-                    onChange={(e) => setField("vendor", e.target.value)}
-                    disabled={loadingProduct}
-                  />
-                </div>
               </div>
 
               <div className={styles.field} style={{ marginTop: 12 }}>
@@ -1349,6 +1362,102 @@ export default function ProductForm({
                     <option value="ACTIVE">Active</option>
                     <option value="ARCHIVED">Archived</option>
                   </select>
+                </div>
+              </div>
+
+              <div className={styles.grid2} style={{ marginTop: 12 }}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Price</label>
+                  <input
+                    className={styles.input}
+                    value={form.price}
+                    onChange={(e) => handleDecimalFieldChange("price", e.target.value)}
+                    inputMode="decimal"
+                    disabled={loadingProduct}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Market price</label>
+                  <input
+                    className={styles.input}
+                    value={form.marketPrice}
+                    onChange={(e) => handleDecimalFieldChange("marketPrice", e.target.value)}
+                    inputMode="decimal"
+                    disabled={loadingProduct}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Saving price</label>
+                  <input
+                    className={styles.input}
+                    value={form.savingPrice}
+                    onChange={(e) => handleDecimalFieldChange("savingPrice", e.target.value)}
+                    inputMode="decimal"
+                    disabled={loadingProduct}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Quantity</label>
+                  <input
+                    className={styles.input}
+                    value={form.productQty}
+                    onChange={(e) => handleIntegerFieldChange("productQty", e.target.value)}
+                    inputMode="numeric"
+                    disabled={loadingProduct}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.grid2} style={{ marginTop: 12 }}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Weight</label>
+                  <input
+                    className={styles.input}
+                    value={form.weight}
+                    onChange={(e) => handleDecimalFieldChange("weight", e.target.value)}
+                    inputMode="decimal"
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Length</label>
+                  <input
+                    className={styles.input}
+                    value={form.length}
+                    onChange={(e) => handleDecimalFieldChange("length", e.target.value)}
+                    inputMode="decimal"
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Width</label>
+                  <input
+                    className={styles.input}
+                    value={form.width}
+                    onChange={(e) => handleDecimalFieldChange("width", e.target.value)}
+                    inputMode="decimal"
+                    disabled={loadingProduct}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Height</label>
+                  <input
+                    className={styles.input}
+                    value={form.height}
+                    onChange={(e) => handleDecimalFieldChange("height", e.target.value)}
+                    inputMode="decimal"
+                    disabled={loadingProduct}
+                  />
                 </div>
               </div>
 

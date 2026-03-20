@@ -344,11 +344,9 @@
 
 /* Sections */
 .section {
-  padding: 10px;
   border-bottom: 1px solid #eef1f6;
   background: var(--bg-header);
   border: 8px;
-  margin-top: 10px;
 }
 
 .section:last-child {

@@ -1,0 +1,941 @@
+.section {
+  position: relative;
+  overflow: hidden;
+  padding: 32px 0;
+  background:
+    radial-gradient(circle at left top, rgba(14, 165, 233, 0.12), transparent 26%),
+    radial-gradient(circle at right bottom, rgba(168, 85, 247, 0.12), transparent 26%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 52%, #ffffff 100%);
+}
+
+.section::before,
+.section::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.section::before {
+  top: -70px;
+  left: -90px;
+  width: 240px;
+  height: 240px;
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.section::after {
+  right: -90px;
+  bottom: -90px;
+  width: 260px;
+  height: 260px;
+  background: rgba(168, 85, 247, 0.14);
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1400px);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.headerContent {
+  max-width: 880px;
+}
+
+.kickerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.eyebrow,
+.liveChip,
+.highlightBadge,
+.saleBadge,
+.newBadge,
+.categoryBadge,
+.brandPill,
+.tagPill,
+.spotlightBrand,
+.railBrand,
+.cardHint,
+.savingsText,
+.shippingText {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.eyebrow {
+  padding: 0 12px;
+  color: #0f3d6e;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.liveChip {
+  padding: 0 12px;
+  color: #5b21b6;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.headingRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 50px);
+  line-height: 1.04;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.highlightBadge {
+  padding: 0 14px;
+  color: #7c2d12;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(249, 115, 22, 0.14));
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+.note {
+  max-width: 760px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.72;
+  color: #475569;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.catalogCta,
+.primaryCta,
+.secondaryCta,
+.heroTitleLink,
+.heroImageLink,
+.railTitleLink,
+.railImageLink {
+  text-decoration: none;
+}
+
+.catalogCta,
+.primaryCta,
+.secondaryCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.catalogCta,
+.primaryCta {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+}
+
+.secondaryCta {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.catalogCta:hover,
+.primaryCta:hover,
+.secondaryCta:hover,
+.heroTitleLink:hover .heroTitle,
+.railTitleLink:hover .railTitle,
+.spotlightItem:hover,
+.railItem:hover {
+  transform: translateY(-1px);
+}
+
+.catalogCta:focus-visible,
+.primaryCta:focus-visible,
+.secondaryCta:focus-visible,
+.heroTitleLink:focus-visible,
+.heroImageLink:focus-visible,
+.railTitleLink:focus-visible,
+.railImageLink:focus-visible,
+.spotlightItem:focus-visible,
+.navButton:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.5fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.leftRail,
+.rightRail {
+  display: grid;
+  gap: 18px;
+}
+
+.countdownCard,
+.pickerCard,
+.railCard,
+.heroCard,
+.emptyState {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(14px);
+}
+
+.countdownCard,
+.pickerCard,
+.railCard {
+  padding: 18px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.cardHint {
+  padding: 0 12px;
+  color: #475569;
+  background: rgba(241, 245, 249, 0.9);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+}
+
+.countdownGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.countdownBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92px;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(255, 255, 255, 0.96));
+  border: 1px solid rgba(191, 219, 254, 0.75);
+  min-height: 53px;
+}
+
+.countdownValue {
+  font-size: 19px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.countdownLabel,
+.reviewCount,
+.progressText,
+.progressLabel,
+.railReviews {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.countdownLabel {
+  font-weight: 600;
+}
+
+.navRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #0f172a;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.navButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.12);
+}
+
+.spotlightList {
+  display: grid;
+  gap: 12px;
+}
+
+.spotlightItem {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 20px;
+  background: rgba(248, 250, 252, 0.76);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.spotlightItem:hover {
+  border-color: rgba(59, 130, 246, 0.28);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+}
+
+.spotlightItemActive {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.72), rgba(255, 255, 255, 0.98));
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 18px 34px rgba(59, 130, 246, 0.12);
+}
+
+.spotlightImageWrap,
+.railImageWrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.spotlightImageWrap {
+  width: 84px;
+  aspect-ratio: 1 / 1;
+}
+
+.spotlightImage,
+.heroImage,
+.railImage {
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.heroImageLink:hover .heroImage,
+.railImageLink:hover .railImage {
+  transform: scale(1.04);
+}
+
+.spotlightDiscount {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.spotlightContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.spotlightBrand,
+.railBrand {
+  justify-content: flex-start;
+  min-height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  color: #2563eb;
+}
+
+.spotlightName,
+.railTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  color: #0f172a;
+  line-height: 1.45;
+}
+
+.spotlightName {
+  -webkit-line-clamp: 2;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.spotlightMeta,
+.railMeta,
+.priceAssistRow,
+.priceLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.spotlightPrice,
+.railPrice {
+  font-size: 14px;
+  font-weight: 800;
+  color: red;
+}
+
+.spotlightRating {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.heroCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+  min-height: 720px;
+}
+
+.heroMedia {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.4) 44%, transparent 66%),
+    linear-gradient(180deg, rgba(219, 234, 254, 0.9) 0%, rgba(248, 250, 252, 0.76) 100%);
+  border-right: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.heroMediaTop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.saleBadge {
+  padding: 0 12px;
+  color: #991b1b;
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.newBadge {
+  padding: 0 12px;
+  color: #14532d;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+}
+
+.categoryBadge {
+  padding: 0 12px;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.mediaStats {
+  display: grid;
+  gap: 10px;
+}
+
+.mediaStatCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.mediaStatLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.mediaStatValue {
+  font-size: 15px;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.heroImageWrap {
+  position: relative;
+  flex: 1;
+  min-height: 440px;
+  border-radius: 30px;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.82)), #ffffff;
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 28px;
+}
+
+.heroMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.brandPill {
+  padding: 0 12px;
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.16);
+}
+
+.tagPill {
+  padding: 0 12px;
+  color: #334155;
+  background: rgba(241, 245, 249, 0.95);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  transition: color 0.2s ease;
+}
+
+.heroTitleLink:hover .heroTitle,
+.railTitleLink:hover .railTitle {
+  color: #1d4ed8;
+}
+
+.heroDescription {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.74;
+  color: #475569;
+}
+
+.reviewRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+}
+
+.stars {
+  color: #f59e0b;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+}
+
+.ratingValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.priceArea {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.96));
+  border: 1px solid rgba(226, 232, 240, 0.95);
+}
+
+.currentPrice {
+  font-size: clamp(30px, 3.2vw, 42px);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ff300e;
+}
+
+.originalPrice {
+  font-size: 16px;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.savingsText {
+  padding: 0 12px;
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+}
+
+.shippingText {
+  padding: 0 12px;
+  color: #0f3d6e;
+  background: rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.16);
+}
+
+.progressModule {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.progressMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.progressLabel {
+  font-weight: 700;
+  color: #334155;
+}
+
+.progressBar {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.95);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0ea5e9 0%, #2563eb 45%, #8b5cf6 100%);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.trustList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.trustItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.82);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.trustDot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+  box-shadow: 0 0 0 5px rgba(14, 165, 233, 0.12);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.railList {
+  display: grid;
+  gap: 14px;
+}
+
+.railItem {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 20px;
+  background: rgba(248, 250, 252, 0.72);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.railItem:hover {
+  border-color: rgba(59, 130, 246, 0.26);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.railImageWrap {
+  width: 96px;
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.railContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.railTitle {
+  -webkit-line-clamp: 2;
+  font-size: 14px;
+}
+
+.emptyState {
+  padding: 24px;
+  font-size: 15px;
+  color: #475569;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 1279px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .leftRail,
+  .rightRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .heroCard {
+    order: -1;
+  }
+
+  .rightRail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 991px) {
+  .section {
+    padding: 24px 0;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
+  }
+
+  .heroCard {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .heroMedia {
+    border-right: 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  }
+
+  .trustList {
+    grid-template-columns: 1fr;
+  }
+
+  .leftRail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .shell {
+    padding: 0 12px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .note {
+    font-size: 14px;
+  }
+
+  .headingRow,
+  .cardTop,
+  .heroMediaTop,
+  .progressMeta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .heroMedia,
+  .heroContent,
+  .countdownCard,
+  .pickerCard,
+  .railCard {
+    padding: 16px;
+  }
+
+  .heroImageWrap {
+    min-height: 300px;
+    border-radius: 22px;
+  }
+
+  .mediaStats {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .countdownGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .spotlightItem {
+    grid-template-columns: 72px minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .spotlightImageWrap {
+    width: 72px;
+  }
+
+  .railItem {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .railImageWrap {
+    width: 84px;
+  }
+
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .catalogCta,
+  .primaryCta,
+  .secondaryCta {
+    width: 100%;
+  }
+}
+
+@media (max-width: 479px) {
+  .section {
+    padding: 18px 0;
+  }
+
+  .leftRail,
+  .rightRail {
+    grid-template-columns: 1fr;
+  }
+
+  .countdownBox {
+    min-height: 78px;
+  }
+
+  .kickerRow,
+  .heroMetaRow,
+  .priceLine,
+  .priceAssistRow {
+    gap: 8px;
+  }
+}

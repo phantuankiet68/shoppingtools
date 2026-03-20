@@ -1,7 +1,7 @@
 .builderGrid {
   display: grid;
   gap: 12px;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 270px 1fr;
   align-items: start;
 }
 
@@ -248,7 +248,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 31%;
+  width: 27%;
 }
 
 .modalPanel {
