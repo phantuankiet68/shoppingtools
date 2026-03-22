@@ -478,6 +478,7 @@ model Customer {
   addresses       Address[]
   audienceMembers AudienceMember[]
   orders          Order[]
+  reviews         Review[]
 
   @@unique([siteId, email], map: "uq_customers_site_email")
   @@index([siteId, phone], map: "idx_customers_site_phone")
@@ -1394,6 +1395,7 @@ model Product {
   brand    ProductBrand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
   variants ProductVariant[]
   images   ProductImage[]
+  reviews  Review[]
 
   @@unique([siteId, slug])
   @@index([siteId])
@@ -1570,6 +1572,35 @@ model Profile {
   @@map("profiles")
 }
 
+// ==== part: Review.prisma ====
+model Review {
+  id         String  @id @default(cuid())
+  siteId     String  @map("site_id")
+  productId  String  @map("product_id")
+  customerId String? @map("customer_id")
+
+  authorName String  @map("author_name")
+  avatar     String?
+  rating     Int // 1 - 5
+  title      String?
+  content    String
+
+  verified Boolean @default(false)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  product  Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([productId], map: "idx_reviews_product")
+  @@index([siteId, createdAt], map: "idx_reviews_site_created_at")
+  @@map("reviews")
+}
+
 // ==== part: Site.prisma ====
 enum SiteStatus {
   DRAFT
@@ -1621,6 +1652,7 @@ model Site {
   purchaseOrderLines        PurchaseOrderLine[]
   purchaseOrderReceipts     PurchaseOrderReceipt[]
   purchaseOrderReceiptLines PurchaseOrderReceiptLine[]
+  reviews                   Review[]
 
   @@index([ownerUserId])
   @@index([status])

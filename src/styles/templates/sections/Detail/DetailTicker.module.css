@@ -1,0 +1,751 @@
+.footer {
+  position: relative;
+  background:
+    radial-gradient(circle at top left, rgba(74, 222, 128, 0.08), transparent 24%),
+    radial-gradient(circle at right top, rgba(45, 212, 191, 0.08), transparent 18%),
+    linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+  color: #e5e7eb;
+  overflow: hidden;
+}
+
+.ticker {
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tickerViewport {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  overflow: hidden;
+}
+
+.tickerTrack {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+  padding: 12px 0;
+  animation: tickerMove 32s linear infinite;
+}
+
+.tickerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tickerItem::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 999px;
+  background: #34d399;
+  margin-left: 14px;
+}
+
+@keyframes tickerMove {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.main {
+  position: relative;
+}
+
+.container {
+  width: min(1280px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 24px;
+}
+
+/* top */
+.topBlock {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.brandPanel,
+.newsCard,
+.linkCol,
+.tagBlock,
+.logoSection,
+.sideCard,
+.hotlineCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(10px);
+}
+
+.brandPanel,
+.newsCard,
+.linkCol,
+.tagBlock,
+.logoSection,
+.sideCard {
+  border-radius: 24px;
+}
+
+.brandPanel {
+  padding: 28px;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brandName {
+  margin: 14px 0 0;
+  color: #ffffff;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.04;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.brandTag {
+  margin: 12px 0 0;
+  max-width: 760px;
+  color: #cbd5e1;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.infoCard {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.infoLabel {
+  display: block;
+  color: #86efac;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.infoText {
+  color: #e2e8f0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.socialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.socialBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.socialBtn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.085);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.featurePanel {
+  display: grid;
+  gap: 14px;
+}
+
+.newsCard {
+  padding: 22px;
+}
+
+.newsHead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.newsTitle {
+  margin: 0;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.newsDesc {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.input {
+  width: 100%;
+  height: 50px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.055);
+  color: #ffffff;
+  padding: 0 16px;
+  outline: none;
+  font-size: 14px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.input::placeholder {
+  color: #94a3b8;
+}
+
+.input:focus {
+  border-color: rgba(52, 211, 153, 0.7);
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12);
+}
+
+.submit {
+  height: 50px;
+  border: 0;
+  border-radius: 14px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #34d399 0%, #14b8a6 100%);
+  color: #05131b;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.submit:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.hotlineGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.hotlineCard {
+  border-radius: 20px;
+  padding: 16px 18px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hotlineLabel {
+  color: #86efac;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hotlinePhone {
+  color: #ffffff;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.hotlineSub {
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* content */
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(310px, 0.7fr);
+  gap: 18px;
+}
+
+.leftBlock {
+  display: grid;
+  gap: 18px;
+}
+
+.linkColumns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.linkCol {
+  padding: 22px 18px;
+}
+
+.colTitle,
+.sideTitle {
+  margin: 0;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.linkList {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.linkRow {
+  min-width: 0;
+}
+
+.linkItem {
+  display: inline-flex;
+  align-items: center;
+  color: #dbe2ea;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.6;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.linkItem:hover {
+  color: #86efac;
+  transform: translateX(2px);
+}
+
+.tagBlock {
+  padding: 20px;
+}
+
+.tagHead,
+.logoHead,
+.sideHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #dbe2ea;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.tag:hover {
+  transform: translateY(-1px);
+  color: #86efac;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(134, 239, 172, 0.28);
+}
+
+.logoSection {
+  padding: 20px;
+}
+
+.logoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.logoItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 82px;
+  padding: 10px;
+  border-radius: 18px;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.logoItem:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.logoImg {
+  width: auto;
+  height: auto;
+  max-width: 85%;
+  object-fit: contain;
+}
+
+.rightBlock {
+  display: grid;
+  gap: 14px;
+}
+
+.sideCard {
+  padding: 20px;
+}
+
+.paymentList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.paymentCard {
+  min-width: 82px;
+  height: 46px;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.paymentImg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.appPanel {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.qrCard {
+  width: 112px;
+  height: 112px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.qrImg {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.storeList {
+  display: grid;
+  gap: 10px;
+}
+
+.storeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 48px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.storeImg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.certPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.certMedia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 86px;
+  padding: 10px;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.certImg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.certContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.certTitle {
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.certSub {
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* bottom */
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bottomLeft,
+.bottomRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.copy {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.miniCert {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.miniCertImg {
+  border-radius: 10px;
+  background: #ffffff;
+  object-fit: contain;
+}
+
+.miniCertContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.miniCertTitle {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.miniCertSub {
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* floating */
+.toTop {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #34d399 0%, #14b8a6 100%);
+  color: #04131a;
+  box-shadow: 0 10px 30px rgba(20, 184, 166, 0.25);
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.toTop:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 16px);
+  opacity: 0;
+  pointer-events: none;
+  min-width: 220px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 30;
+}
+
+.isShow {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+/* responsive */
+@media (max-width: 1100px) {
+  .topBlock,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoGrid,
+  .linkColumns,
+  .logoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .container {
+    width: min(100% - 24px, 1280px);
+    padding: 20px 0 18px;
+  }
+
+  .brandPanel,
+  .newsCard,
+  .linkCol,
+  .tagBlock,
+  .logoSection,
+  .sideCard {
+    border-radius: 20px;
+  }
+
+  .brandPanel,
+  .newsCard,
+  .linkCol,
+  .tagBlock,
+  .logoSection,
+  .sideCard {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .form,
+  .infoGrid,
+  .linkColumns,
+  .logoGrid,
+  .appPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bottomRight,
+  .miniCert {
+    width: 100%;
+  }
+
+  .toTop {
+    right: 14px;
+    bottom: 14px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .tickerTrack {
+    animation-duration: 24s;
+  }
+}

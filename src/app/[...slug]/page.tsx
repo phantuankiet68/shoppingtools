@@ -10,12 +10,25 @@ function ensureLeadingSlash(p: string) {
   return p.startsWith("/") ? p : `/${p}`;
 }
 
-export default async function PageByPath({ params }: { params: Promise<{ slug?: string[] }> }) {
+export default async function PageByPath({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
   const { slug } = await params;
 
-  // URL path => "/a/b"
-  const raw = (Array.isArray(slug) ? slug : []).join("/");
-  const path = ensureLeadingSlash(raw);
+  const segments = Array.isArray(slug) ? slug : [];
+
+  let path = ensureLeadingSlash(segments.join("/"));
+  let productSlug: string | null = null;
+
+  // map dynamic product detail path:
+  // /product-detail
+  // /product-detail/:slug
+  if (segments[0] === "product-detail") {
+    path = "/product-detail";
+    productSlug = segments[1] ?? null;
+  }
 
   const h = await headers();
   const hostHeader = h.get("x-site-domain") ?? h.get("host") ?? "";
@@ -25,7 +38,9 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
     where: { domain },
     select: { id: true },
   });
+
   if (!site) notFound();
+
   const where =
     path === "/"
       ? {
@@ -41,5 +56,12 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
 
   if (!page || page.status !== "PUBLISHED") notFound();
 
-  return <RenderBlocksPublic blocks={(page.blocks as any) ?? []} />;
+  return (
+    <RenderBlocksPublic
+      blocks={(page.blocks as any) ?? []}
+      productSlug={productSlug}
+      currentPath={path}
+      rawSegments={segments}
+    />
+  );
 }

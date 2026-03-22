@@ -64,6 +64,18 @@ import { SHOP_SECTION_SALES_SIX } from "@/components/admin/shared/templates/sect
 import { SHOP_SECTION_SALES_SEVEN } from "@/components/admin/shared/templates/sections/Section/SectionSalesSeven";
 import { SHOP_SECTION_SALES_EIGHT } from "@/components/admin/shared/templates/sections/Section/SectionSalesEight";
 import { SHOP_SECTION_SALES_NINE } from "@/components/admin/shared/templates/sections/Section/SectionSalesNine";
+import { SHOP_SECTION_SALES_TEN } from "@/components/admin/shared/templates/sections/Section/SectionSalesTen";
+// ===== Web page Detail  =====
+import { SHOP_DETAIL_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Detail/DetailAnnouncement";
+import { SHOP_DETAIL_CENTERED } from "@/components/admin/shared/templates/sections/Detail/DetailCentered";
+import { SHOP_DETAIL_CLASSIC } from "@/components/admin/shared/templates/sections/Detail/DetailClassic";
+// import { SHOP_DETAIL_COMPACT } from "@/components/admin/shared/templates/sections/Detail/DetailCompact";
+// import { SHOP_DETAIL_DASHBOARD } from "@/components/admin/shared/templates/sections/Detail/DetailDashboard";
+// import { SHOP_DETAIL_MINIMAL } from "@/components/admin/shared/templates/sections/Detail/DetailMinimal";
+// import { SHOP_DETAIL_REGION } from "@/components/admin/shared/templates/sections/Detail/DetailRegion";
+// import { SHOP_DETAIL_SPLIT } from "@/components/admin/shared/templates/sections/Detail/DetailSplit";
+// import { SHOP_DETAIL_TICKER } from "@/components/admin/shared/templates/sections/Detail/DetailTicker";
+// import { SHOP_DETAIL_UTILITY } from "@/components/admin/shared/templates/sections/Detail/DetailUtility";
 // ===== Web page greens  =====
 import { SHOP_TOPBAR_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/topbar/topbar1";
 import { SHOP_HEADER_GREEN_ONE } from "@/components/admin/shared/templates/shopGreen/header/header1";
@@ -142,7 +154,19 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_SECTION_SALES_SEVEN,
   SHOP_SECTION_SALES_EIGHT,
   SHOP_SECTION_SALES_NINE,
+  SHOP_SECTION_SALES_TEN,
 
+  // ===== Web page Detail  =====
+  SHOP_DETAIL_ANNOUNCEMENT,
+  SHOP_DETAIL_CENTERED,
+  SHOP_DETAIL_CLASSIC,
+  // SHOP_DETAIL_COMPACT,
+  // SHOP_DETAIL_DASHBOARD,
+  // SHOP_DETAIL_MINIMAL,
+  // SHOP_DETAIL_REGION,
+  // SHOP_DETAIL_SPLIT,
+  // SHOP_DETAIL_TICKER,
+  // SHOP_DETAIL_UTILITY,
   // ===== Web page greens  =====
   SHOP_TOPBAR_GREEN_ONE,
   SHOP_HEADER_GREEN_ONE,

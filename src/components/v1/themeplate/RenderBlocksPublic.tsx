@@ -12,7 +12,17 @@ const emptySlots: Slots = {
   slotAt: (() => null) as Slots["slotAt"],
 };
 
-export default function RenderBlocksPublic({ blocks }: { blocks: Block[] }) {
+export default function RenderBlocksPublic({
+  blocks,
+  productSlug,
+  currentPath,
+  rawSegments,
+}: {
+  blocks: Block[];
+  productSlug?: string | null;
+  currentPath?: string;
+  rawSegments?: string[];
+}) {
   return (
     <>
       {blocks.map((b, i) => {
@@ -22,7 +32,14 @@ export default function RenderBlocksPublic({ blocks }: { blocks: Block[] }) {
           return <div key={`${b.kind}-${i}`}>Unknown block: {b.kind}</div>;
         }
 
-        return <React.Fragment key={`${b.kind}-${i}`}>{reg.render(b.props ?? {}, emptySlots)}</React.Fragment>;
+        const enrichedProps = {
+          ...b.props,
+          productSlug,
+          currentPath,
+          rawSegments,
+        };
+
+        return <React.Fragment key={`${b.kind}-${i}`}>{reg.render(enrichedProps ?? {}, emptySlots)}</React.Fragment>;
       })}
     </>
   );
