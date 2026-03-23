@@ -209,8 +209,6 @@ type Ctx = {
   INTERNAL_PAGES: InternalPage[];
   loadFromServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
   saveToServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
-
-  // ✅ added
   findItem: (id: string, setKey?: MenuSetKey) => BuilderMenuItem | null;
   removeItemById: (id: string, setKey?: MenuSetKey) => [removed: BuilderMenuItem | null, nextRoot: BuilderMenuItem[]];
 };
@@ -394,9 +392,7 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
     async (setKey: MenuSetKey, siteId?: string) => {
       const treeToSave = menus[setKey] ?? [];
       const items = flattenBuilderToDb(treeToSave, setKey, INTERNAL_PAGES);
-
       await saveMenuTree({ setKey, siteId, items });
-
       loadedKey.current = `${setKey}|${siteId ?? ""}`;
     },
     [menus, INTERNAL_PAGES],

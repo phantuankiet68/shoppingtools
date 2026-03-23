@@ -27,7 +27,6 @@ export const API_ROUTES = {
     PAGE_DUPLICATE: (id: string) => `/api/admin/builder/pages/${id}/duplicate`,
     PAGE_PUBLISH: "/api/admin/builder/pages/publish",
     PAGE_UNPUBLISH: "/api/admin/builder/pages/unpublish",
-
     PAGE_SEO: (id: string) => `/api/admin/builder/pages/${id}/seo`,
     SITES: "/api/admin/builder/sites",
   },

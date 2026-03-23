@@ -3,7 +3,12 @@
 import React from "react";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 
-type Block = { kind: string; props: any };
+type Block = {
+  id?: string;
+  kind: string;
+  props: any;
+};
+
 type RegistryItem = (typeof REGISTRY)[number];
 type Slots = Parameters<RegistryItem["render"]>[1];
 
@@ -28,18 +33,22 @@ export default function RenderBlocksPublic({
       {blocks.map((b, i) => {
         const reg = REGISTRY.find((r) => r.kind === b.kind);
 
+        const blockId = b.id || b?.props?.id || `${b.kind}-${i}`;
+
         if (!reg) {
-          return <div key={`${b.kind}-${i}`}>Unknown block: {b.kind}</div>;
+          return <div key={blockId}>Unknown block: {b.kind}</div>;
         }
 
         const enrichedProps = {
           ...b.props,
+          blockId,
+          preview: false,
           productSlug,
           currentPath,
           rawSegments,
         };
 
-        return <React.Fragment key={`${b.kind}-${i}`}>{reg.render(enrichedProps ?? {}, emptySlots)}</React.Fragment>;
+        return <React.Fragment key={blockId}>{reg.render(enrichedProps ?? {}, emptySlots)}</React.Fragment>;
       })}
     </>
   );

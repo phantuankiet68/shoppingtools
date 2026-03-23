@@ -13,6 +13,9 @@ import { SHOP_TOPBAR_SPLIT } from "@/components/admin/shared/templates/sections/
 import { SHOP_TOPBAR_TICKER } from "@/components/admin/shared/templates/sections/Topbar/TopbarTicker";
 import { SHOP_TOPBAR_UTILITY } from "@/components/admin/shared/templates/sections/Topbar/TopbarUtility";
 
+// ===== Web page widget  =====
+import { SHOP_SOCIAL_WIDGET_ONE } from "@/components/admin/shared/templates/sections/Social/SocialWidgetOne";
+
 // ===== Web page Header  =====
 import { SHOP_HEADER_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Header/HeaderAnnouncement";
 import { SHOP_HEADER_CENTERED } from "@/components/admin/shared/templates/sections/Header/HeaderCentered";
@@ -104,6 +107,9 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_TOPBAR_SPLIT,
   SHOP_TOPBAR_TICKER,
   SHOP_TOPBAR_UTILITY,
+  // ===== Web page widget  =====
+  SHOP_SOCIAL_WIDGET_ONE,
+
   // ===== Web page Header  =====
   SHOP_HEADER_ANNOUNCEMENT,
   SHOP_HEADER_CENTERED,

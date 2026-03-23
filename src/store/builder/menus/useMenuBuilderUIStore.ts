@@ -37,22 +37,17 @@ export const useMenuBuilderUIStore = create<UIState>((set) => ({
   saving: false,
   loading: false,
   refreshing: false,
-
   notice: { open: false },
-
   sites: [],
   selectedSiteId: "",
   hideSiteSelect: false,
-
   setSaving: (v) => set({ saving: v }),
   setLoading: (v) => set({ loading: v }),
   setRefreshing: (v) => set({ refreshing: v }),
-
   setNotice: (v) =>
     set((s) => ({
       notice: typeof v === "function" ? v(s.notice) : v,
     })),
-
   setSites: (v) => set({ sites: v }),
   setSelectedSiteId: (v) => set({ selectedSiteId: v }),
   setHideSiteSelect: (v) => set({ hideSiteSelect: v }),

@@ -34,7 +34,7 @@
 .container {
   position: relative;
   z-index: 1;
-  max-width: 1440px;
+  width: 1366px;
   margin: 0 auto;
   padding: 0 24px 10px;
 }
@@ -169,8 +169,8 @@
 
 .logoShell {
   position: relative;
-     width: 50px;
-    height: 50px;
+  width: 50px;
+  height: 50px;
   flex-shrink: 0;
 }
 
@@ -274,7 +274,7 @@
 
 .searchCapsule {
   color: #dffff0;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   background: #82f7c51f;
   border: 1px solid #82f7c533;
@@ -362,7 +362,7 @@
     transform 0.2s ease,
     box-shadow 0.2s ease;
 
-   font-size: 13px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -370,7 +370,6 @@
   transform: translateY(-1px);
   box-shadow: 0 16px 34px rgba(60, 90, 255, 0.32);
 }
-
 
 .nav {
   display: flex;
@@ -1070,7 +1069,6 @@
     gap: 8px;
     padding: 10px 10px 10px 12px;
   }
-
 
   .accountZone {
     align-items: stretch;

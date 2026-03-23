@@ -137,25 +137,18 @@ export default function MenuBuilder() {
 
     try {
       setSaving(true);
-
       await saveToServer(currentSet, selectedSiteId);
-
       const triples = flattenTriples(activeMenu, INTERNAL_PAGES);
-
       if (triples.length > 0) {
         await syncPagesFromMenu({
           siteId: selectedSiteId,
           items: triples,
         });
-
         await reloadAll({ hard: false });
-
         modal.success(M.notice.seoSavedTitle, M.notice.seoSavedMsg);
         return;
       }
-
       await reloadAll({ hard: false });
-
       modal.success(M.notice.menuSavedTitle, M.notice.menuSavedMsg);
     } catch (e: unknown) {
       modal.error(M.notice.saveFailedTitle, (e as Error)?.message ?? M.error.unknown);

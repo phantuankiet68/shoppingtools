@@ -30,7 +30,7 @@
   grid-template-columns: auto minmax(420px, 1fr) auto;
   align-items: center;
   gap: 18px;
-  max-width: 1440px;
+  width: 1366px;
   margin: 0 auto;
   padding: 12px 16px;
   min-height: 78px;

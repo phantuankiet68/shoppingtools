@@ -16,8 +16,8 @@
   grid-template-columns: auto minmax(260px, 1fr) auto;
   align-items: center;
   gap: 18px;
-  padding: 0 18px;
-  width: 1200px;
+  padding: 0;
+  width: 1366px;
   margin: 0 auto;
 }
 

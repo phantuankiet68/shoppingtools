@@ -38,7 +38,7 @@
 .topStripInner,
 .mainHeaderInner,
 .navbarInner {
-  width: min(calc(100% - 32px), var(--tk-container));
+  width: 1366px;
   margin: 0 auto;
 }
 

@@ -12,18 +12,12 @@ type State = {
   saving: boolean;
   pathInput: string;
   copied: boolean;
-
-  // setters
   setDraft: (updater: DraftUpdater) => void;
   setSaving: (v: boolean) => void;
   setPathInput: (v: string) => void;
   setCopied: (v: boolean) => void;
-
-  // helpers
   initFromItem: (item: BuilderMenuItem, initialPath: string) => void;
   reset: () => void;
-
-  // schedule actions
   addScheduleRow: () => void;
   delScheduleRow: (idx: number) => void;
 };
@@ -70,13 +64,10 @@ export const useEditOffcanvasStore = create<State>((set, get) => ({
       copied: false,
     }),
 
-  // --- Schedule helpers ---
   addScheduleRow: () => {
     const d = get().draft;
     if (!d) return;
-
     const row: ScheduleRow = { when: "", url: "" };
-
     set({
       draft: {
         ...d,
@@ -88,10 +79,8 @@ export const useEditOffcanvasStore = create<State>((set, get) => ({
   delScheduleRow: (idx) => {
     const d = get().draft;
     if (!d) return;
-
     const next = [...(d.schedules || [])];
     next.splice(idx, 1);
-
     set({
       draft: {
         ...d,

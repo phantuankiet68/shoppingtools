@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import styles from "@/styles/admin/builder/menus/menu.module.css";
 
 import { useMenuStore } from "@/components/admin/builder/menus/state/useMenuStore";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import cls from "@/styles/templates/sections/Topbar/TopbarAnnouncement.module.css";
 import type { RegItem } from "@/lib/ui-builder/types";
 
@@ -10,6 +10,7 @@ export type AnnouncementItem = {
 };
 
 export type TopbarAnnouncementProps = {
+  blockId?: string;
   brandTitle?: string;
   branchLabel?: string;
   hotline?: string;
@@ -44,6 +45,7 @@ function usePrefersReducedMotion() {
 }
 
 export function TopbarAnnouncement({
+  blockId = "topbar-announcement",
   brandTitle = "Aurora Hub",
   branchLabel = "Chi nhánh Hồ Chí Minh",
   hotline = "0867105900",
@@ -66,7 +68,7 @@ export function TopbarAnnouncement({
   );
 
   const reducedMotion = usePrefersReducedMotion();
-  const menuId = useId();
+  const menuId = `${blockId}-utility-menu`;
   const timeoutRef = useRef<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const menuBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -146,7 +148,6 @@ export function TopbarAnnouncement({
       style={{ background }}
     >
       <div className={cls.inner}>
-        {/* LEFT */}
         <div className={cls.leftZone}>
           <div className={cls.brandWrap}>
             <div className={cls.brandIcon} aria-hidden="true">
@@ -176,7 +177,6 @@ export function TopbarAnnouncement({
           </button>
         </div>
 
-        {/* CENTER */}
         <div className={cls.centerZone}>
           <div className={cls.announcementTrack} aria-live={reducedMotion ? "off" : "polite"} aria-atomic="true">
             <span className={cls.labelPill}>{announcementLabel}</span>
@@ -195,7 +195,6 @@ export function TopbarAnnouncement({
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className={`${cls.rightZone} ${menuOpen ? cls.isOpen : ""}`}>
           <a
             href={telHref}
@@ -293,7 +292,6 @@ const BACKGROUND_PRESETS = [
   "linear-gradient(90deg, rgb(255 103 204), rgb(253 130 243))",
 ];
 
-/* ================ Registry ================ */
 export const SHOP_TOPBAR_ANNOUNCEMENT: RegItem = {
   kind: "TopbarAnnouncement",
   label: "Topbar Announcement",
@@ -340,6 +338,7 @@ export const SHOP_TOPBAR_ANNOUNCEMENT: RegItem = {
     return (
       <div aria-label="Shop Topbar Announcement">
         <TopbarAnnouncement
+          blockId={(p.blockId as string | undefined) || "topbar-announcement"}
           brandTitle={p.brandTitle as string | undefined}
           branchLabel={p.branchLabel as string | undefined}
           hotline={p.hotline as string | undefined}
@@ -347,7 +346,7 @@ export const SHOP_TOPBAR_ANNOUNCEMENT: RegItem = {
           announcementLabel={p.announcementLabel as string | undefined}
           announcementItems={items}
           background={background}
-          preview={true}
+          preview={Boolean(p.preview)}
         />
       </div>
     );

@@ -15,8 +15,8 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 16px;
-  padding: 0 18px;
-  width: 1200px;
+  padding: 0;
+  width: 1366px;
   margin: 0 auto;
 }
 

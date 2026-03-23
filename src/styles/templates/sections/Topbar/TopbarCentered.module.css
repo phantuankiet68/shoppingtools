@@ -16,10 +16,10 @@
 }
 
 .tcInner {
-  max-width: 1200px;
+  max-width: 1366px;
   margin: 0 auto;
   min-height: 58px;
-  padding: 8px 18px;
+  padding: 8px 0px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
