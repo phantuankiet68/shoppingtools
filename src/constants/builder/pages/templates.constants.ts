@@ -28,15 +28,15 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
 
   tpl("tpl-widget", "widget", [
     "SocialWidgetOne",
-    "TopbarCentered",
-    "TopbarClassic",
-    "TopbarCompact",
-    "TopbarDashboard",
-    "TopbarMinimal",
-    "TopbarRegion",
-    "TopbarSplit",
-    "TopbarTicker",
-    "TopbarUtility",
+    "SocialWidgetTwo",
+    "SocialWidgetThree",
+    "SocialWidgetFour",
+    "SocialWidgetFive",
+    "SocialWidgetSix",
+    "SocialWidgetSeven",
+    "SocialWidgetEight",
+    "SocialWidgetNine",
+    "SocialWidgetTen",
   ]),
 
   tpl("tpl-header", "Header", [
@@ -89,7 +89,6 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     "KidsCare1",
     "MenCare1",
     "Accessories1",
-    "Footer1",
   ]),
   tpl("tpl-section", "Section", [
     "SectionAnnouncement",

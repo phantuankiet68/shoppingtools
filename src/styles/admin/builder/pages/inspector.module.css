@@ -157,10 +157,10 @@
   border-radius: 10px;
   padding: 8px 10px;
   font-size: 13px;
-  min-width: 238px;
+  min-width: 190px;
 }
 .textarea {
-  min-width: 480px;
+  min-width: 470px;
   min-height: 250px;
   resize: vertical;
   outline: none;

@@ -1,6 +1,8 @@
 "use client";
+
 import React from "react";
 import { REGISTRY } from "@/lib/ui-builder/registry";
+import type { RegItem } from "@/lib/ui-builder/types";
 import styles from "@/styles/admin/builder/pages/navigators.module.css";
 
 import { useControlsPaletteStore } from "@/store/builder/pages/add/controlsPalette.store";
@@ -10,34 +12,77 @@ type Props = {
   search: string;
   setSearch: (v: string) => void;
   onDragStart: (kind: string) => (e: React.DragEvent) => void;
+  registry?: RegItem[];
+  templateGroup?: string | null;
 };
 
-export default function ControlsPalette({ search, setSearch, onDragStart }: Props) {
+type SpecialTemplateGroup = "Topbar" | "Header" | "Footer" | "Sidebar";
+
+function normalizeText(value?: string | null) {
+  return (value || "").trim().toLowerCase();
+}
+
+function getSpecialTemplateGroup(value?: string | null): SpecialTemplateGroup | null {
+  const normalized = normalizeText(value);
+
+  if (normalized === "topbar") return "Topbar";
+  if (normalized === "header") return "Header";
+  if (normalized === "footer") return "Footer";
+  if (normalized === "sidebar") return "Sidebar";
+
+  return null;
+}
+
+function isSpecialTemplateLabel(label?: string | null) {
+  const normalized = normalizeText(label);
+
+  return normalized === "topbar" || normalized === "header" || normalized === "footer" || normalized === "sidebar";
+}
+
+export default function ControlsPalette({ search, setSearch, onDragStart, registry, templateGroup }: Props) {
+  const sourceRegistry = React.useMemo(() => registry ?? REGISTRY, [registry]);
+
   const registryByKind = React.useMemo(() => {
-    const m = new Map<string, (typeof REGISTRY)[number]>();
-    for (const r of REGISTRY) m.set(r.kind, r);
+    const m = new Map<string, RegItem>();
+    for (const r of sourceRegistry) m.set(r.kind, r);
     return m;
-  }, []);
+  }, [sourceRegistry]);
 
   const q = search.trim().toLowerCase();
 
+  const specialTemplateGroup = React.useMemo(() => getSpecialTemplateGroup(templateGroup), [templateGroup]);
+
   const templatesFiltered = React.useMemo(() => {
-    return filterTemplates({
-      templates: TEMPLATES,
+    const baseTemplates = specialTemplateGroup
+      ? TEMPLATES.filter((tpl) => normalizeText(tpl.label) === normalizeText(specialTemplateGroup))
+      : TEMPLATES.filter((tpl) => !isSpecialTemplateLabel(tpl.label));
+
+    const raw = filterTemplates({
+      templates: baseTemplates,
       query: q,
       registryByKind,
     });
-  }, [q, registryByKind]);
 
-  const { openTpl, setOpenTpl, toggleTpl, expandAll, collapseAll } = useControlsPaletteStore(
-    TEMPLATES.map((t) => t.id),
-  );
+    return raw
+      .map((tpl) => ({
+        ...tpl,
+        children: tpl.children.filter((k) => registryByKind.has(k)),
+      }))
+      .filter((tpl) => tpl.children.length > 0);
+  }, [specialTemplateGroup, q, registryByKind]);
 
-  // auto-expand templates when searching
+  const templateIds = React.useMemo(() => templatesFiltered.map((t) => t.id), [templatesFiltered]);
+
+  const { openTpl, setOpenTpl, toggleTpl, expandAll, collapseAll } = useControlsPaletteStore(templateIds);
+
   React.useEffect(() => {
-    if (!q) return;
-    setOpenTpl(new Set(templatesFiltered.map((t) => t.id)));
-  }, [q, templatesFiltered, setOpenTpl]);
+    if (templatesFiltered.length > 0) {
+      setOpenTpl(new Set(templatesFiltered.map((t) => t.id)));
+      return;
+    }
+
+    setOpenTpl(new Set());
+  }, [templatesFiltered, setOpenTpl]);
 
   const onDragTemplate = React.useCallback(
     (tplId: string) => (e: React.DragEvent) => {
@@ -115,23 +160,20 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
                     {tpl.children.map((k: RegistryKind, i: number) => {
                       const reg = registryByKind.get(k);
                       const label = reg?.label ?? k;
-                      const missing = !reg;
 
                       return (
                         <li
                           key={`${tpl.id}:${k}:${i}`}
-                          className={`${styles.item} ${missing ? styles.itemMissing : ""}`}
-                          draggable={!missing}
-                          onDragStart={!missing ? onDragStart(k) : undefined}
-                          title={missing ? `Missing in REGISTRY: ${k}` : `Drag to canvas: ${label}`}
+                          className={styles.item}
+                          draggable
+                          onDragStart={onDragStart(k)}
+                          title={`Drag to canvas: ${label}`}
                           role="treeitem"
                           aria-selected={false}
                         >
                           <div className={styles.itemLeft}>
-                            <i className={`bi ${missing ? "bi-exclamation-triangle" : "bi-box"}`} />
-                            <span className={styles.itemLabel}>
-                              {label} {missing && <em className={styles.missTag}>(missing)</em>}
-                            </span>
+                            <i className="bi bi-box" />
+                            <span className={styles.itemLabel}>{label}</span>
                           </div>
                           <div className={styles.itemRight}>
                             <i className="bi bi-arrow-right-circle" />
@@ -139,15 +181,6 @@ export default function ControlsPalette({ search, setSearch, onDragStart }: Prop
                         </li>
                       );
                     })}
-
-                    {tpl.children.length === 0 && (
-                      <li className={styles.item}>
-                        <div className={styles.itemLeft}>
-                          <i className="bi bi-info-circle" />
-                          <span className={styles.itemLabel}>No matches</span>
-                        </div>
-                      </li>
-                    )}
                   </ul>
                 )}
               </li>

@@ -35,10 +35,19 @@ type SiteOption = {
   domain?: string;
 };
 
+function normalizeText(value?: string | null) {
+  return (value || "").trim().toUpperCase();
+}
+
 export default function UiBuilderAddPage() {
   const { locale: routeLocale } = useParams<RouteParams>();
   const sp = useSearchParams();
+
   const initialId = sp.get("id");
+  const templateGroup = sp.get("templateGroup");
+  const templateId = sp.get("templateId");
+  const templateName = sp.get("templateName");
+
   const [state, dispatch] = useUiBuilderAddStore(initialId);
 
   const sites = useSiteStore((siteState) => siteState.sites);
@@ -65,6 +74,8 @@ export default function UiBuilderAddPage() {
       if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
     };
   }, []);
+
+  console.log("templateGroup:", templateGroup);
 
   useEffect(() => {
     if (showEditorModal) {
@@ -99,6 +110,28 @@ export default function UiBuilderAddPage() {
       domain: site.domain,
     }));
   }, [sites]);
+
+  const filteredRegistry = useMemo(() => {
+    if (!templateGroup) return REGISTRY;
+
+    const groupKey = normalizeText(templateGroup);
+
+    return REGISTRY.filter((item) => {
+      const kind = normalizeText(item.kind);
+
+      if (kind.includes(groupKey)) return true;
+
+      if (templateId && kind.includes(normalizeText(templateId.replace(/^tpl-/, "")))) {
+        return true;
+      }
+
+      if (templateName && kind.includes(normalizeText(templateName))) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [templateGroup, templateId, templateName]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -151,7 +184,6 @@ export default function UiBuilderAddPage() {
         ogTitle: state.seo.ogTitle || state.title,
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.title]);
 
   const onDragStart = React.useCallback((kind: string) => {
@@ -174,8 +206,8 @@ export default function UiBuilderAddPage() {
         try {
           const raw = e.dataTransfer.getData("application/json");
           const payload = raw ? JSON.parse(raw) : null;
-          const templateId: string = (payload?.templateId || txt.replace("template:", "")).trim();
-          return buildDroppedTemplateBlocks(`template:${templateId}`, meta);
+          const draggedTemplateId: string = (payload?.templateId || txt.replace("template:", "")).trim();
+          return buildDroppedTemplateBlocks(`template:${draggedTemplateId}`, meta);
         } catch {
           return null;
         }
@@ -327,7 +359,6 @@ export default function UiBuilderAddPage() {
       setGuard(BUILDER_ADD_MESSAGES.NEED_SAVE_BEFORE_PUBLISH, 1800);
       return;
     }
-
     try {
       dispatch({ type: "setPublishing", publishing: true });
 
@@ -413,6 +444,8 @@ export default function UiBuilderAddPage() {
                 search={state.search}
                 setSearch={(v) => dispatch({ type: "setSearch", search: v })}
                 onDragStart={onDragStart}
+                registry={filteredRegistry}
+                templateGroup={templateGroup}
               />
             </aside>
 

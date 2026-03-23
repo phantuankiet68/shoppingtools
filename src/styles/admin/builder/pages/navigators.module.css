@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 10px 8px;
+  padding: 15px 8px;
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, #fff, #fbfbfe);
 }
@@ -64,13 +64,13 @@
 .searchIcon {
   position: absolute;
   left: 20px;
-  top: 64%;
+  top: 60%;
   transform: translateY(-50%);
   color: var(--muted-2);
 }
 .searchInput {
   width: 100%;
-  padding: 8px 12px 8px 36px;
+  padding: 14px 12px 14px 36px;
   border: var(--bd-header);
   border-radius: 10px;
   font-size: 13px;
@@ -139,10 +139,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 5px 10px;
+  padding: 10px 10px;
   font-size: 14px;
   border-radius: 8px;
   cursor: grab;
+  border: var(--bd-header);
+  margin-left: 10px;
   transition:
     background 0.12s ease,
     transform 0.12s ease;
@@ -220,9 +222,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 15px 0px;
   border-radius: 8px;
-  margin-top: 10px;
   cursor: pointer;
 }
 .tplHeader:hover {
@@ -260,9 +261,9 @@
   flex-direction: column;
   justify-content: space-between;
   margin: 0px 0 6px 11px;
-  padding: 0px 0 0 10px;
   list-style: none;
   display: flex;
+  gap: 15px;
 }
 /* templates.module.css (hoặc file hiện tại của bạn) */
 .templatesWrapper {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageList from "@/components/admin/builder/pages/list/PageList";
 import PageInspector from "@/components/admin/builder/pages/list/PageInspector";
@@ -9,13 +9,59 @@ import styles from "@/styles/admin/builder/pages/page/page.module.css";
 import type { PageRowWithSite } from "@/services/builder/pages/builderPages.service";
 import { useBuilderPagesStore } from "@/store/builder/pages/useBuilderPagesStore";
 import { PAGE_MESSAGES } from "@/features/builder/pages/messages";
+import { TEMPLATES } from "@/constants/builder/pages/templates.constants";
 
 type StatusFilter = "all" | "DRAFT" | "PUBLISHED";
 type SortKey = "updatedAt" | "createdAt" | "title";
 type SortDir = "asc" | "desc";
 type SiteFilter = "all" | string;
 
-export default function UiBuilderListPage() {
+type TemplateGroup = "Topbar" | "Header" | "Footer" | "Sidebar" | null;
+
+function normalizeText(value?: string | null) {
+  return (value || "").trim().toLowerCase();
+}
+
+function detectTemplateGroup(page?: PageRowWithSite | null): TemplateGroup {
+  if (!page) return null;
+
+  const title = normalizeText(page.title);
+  const slug = normalizeText(page.slug);
+  const path = normalizeText(page.path);
+
+  if (title === "topbar" || slug === "topbar" || path === "/topbar" || path.startsWith("/topbar/")) {
+    return "Topbar";
+  }
+
+  if (title === "header" || slug === "header" || path === "/header" || path.startsWith("/header/")) {
+    return "Header";
+  }
+
+  if (title === "footer" || slug === "footer" || path === "/footer" || path.startsWith("/footer/")) {
+    return "Footer";
+  }
+
+  if (title === "sidebar" || slug === "sidebar" || path === "/sidebar" || path.startsWith("/sidebar/")) {
+    return "Sidebar";
+  }
+
+  return null;
+}
+
+function getTemplateMetaByGroup(group: TemplateGroup) {
+  if (!group) return null;
+
+  const matched = TEMPLATES.find((tpl) => normalizeText(tpl.label) === normalizeText(group));
+
+  if (!matched) return null;
+
+  return {
+    id: matched.id,
+    name: matched.label,
+  };
+}
+
+export default function PageClient() {
   const router = useRouter();
   const sp = useSearchParams();
   const modal = useModal();
@@ -65,6 +111,7 @@ export default function UiBuilderListPage() {
     totalPages,
     active,
   } = store;
+
   useEffect(() => {
     const params = new URLSearchParams(sp.toString());
 
@@ -92,8 +139,21 @@ export default function UiBuilderListPage() {
     }
   }, [q, status, sortKey, sortDir, siteId, page, activeId, router, sp]);
 
-  const openEdit = (id: string) => {
-    router.push(`/admin/builder/pages/add?id=${encodeURIComponent(id)}`);
+  const openEdit = (pageRow: PageRowWithSite) => {
+    const params = new URLSearchParams({
+      id: pageRow.id,
+    });
+
+    const detectedGroup = detectTemplateGroup(pageRow);
+    const templateMeta = getTemplateMetaByGroup(detectedGroup);
+
+    if (detectedGroup && templateMeta) {
+      params.set("templateGroup", detectedGroup);
+      params.set("templateId", templateMeta.id);
+      params.set("templateName", templateMeta.name);
+    }
+
+    router.push(`/admin/builder/pages/add?${params.toString()}`);
   };
 
   function openPreview(p: PageRowWithSite) {
@@ -105,8 +165,8 @@ export default function UiBuilderListPage() {
     }
 
     const base = p.siteDomain ? `http://${p.siteDomain}` : "";
-    const path = p.path.startsWith("/") ? p.path : `/${p.path}`;
-    window.open(`${base}${path}`, "_blank");
+    const nextPath = p.path.startsWith("/") ? p.path : `/${p.path}`;
+    window.open(`${base}${nextPath}`, "_blank");
   }
 
   useEffect(() => {
@@ -178,6 +238,8 @@ export default function UiBuilderListPage() {
     }
   }
 
+  const activeTemplateGroup = useMemo(() => detectTemplateGroup(active), [active]);
+
   return (
     <div className={styles.wrap}>
       <div className={styles.grid}>
@@ -208,7 +270,7 @@ export default function UiBuilderListPage() {
 
         <PageInspector
           page={active}
-          onEdit={() => active && openEdit(active.id)}
+          onEdit={() => active && openEdit(active)}
           onPreview={() => active && openPreview(active)}
           onPublish={() => active && pubAction(active.id, "publish")}
           onUnpublish={() => active && pubAction(active.id, "unpublish")}
@@ -216,6 +278,10 @@ export default function UiBuilderListPage() {
           onDelete={() => active && del(active.id)}
         />
       </div>
+
+      {active && activeTemplateGroup ? (
+        <div style={{ display: "none" }} data-template-group={activeTemplateGroup} />
+      ) : null}
     </div>
   );
 }
