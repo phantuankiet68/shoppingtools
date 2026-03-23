@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  Prisma,
-  OrderStatus,
-  PaymentStatus,
-  FulfillmentStatus,
-} from "@prisma/client";
+import { Prisma, OrderStatus, PaymentStatus, FulfillmentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type AddOrderItemPayload = {
@@ -136,10 +131,7 @@ async function resolveSiteId(
     return { siteId: qpSiteId, domain: "", resolvedBy: "query.siteId" };
   }
 
-  const hostHeader =
-    req.headers.get("x-site-domain") ??
-    req.headers.get("host") ??
-    "";
+  const hostHeader = req.headers.get("x-site-domain") ?? req.headers.get("host") ?? "";
 
   const domain = hostHeader.split(":")[0].toLowerCase();
 
@@ -158,9 +150,7 @@ async function resolveSiteId(
     }
   }
 
-  const productId =
-    toNullableString(body.item?.productId) ??
-    toNullableString(body.productId);
+  const productId = toNullableString(body.item?.productId) ?? toNullableString(body.productId);
 
   if (productId) {
     try {
@@ -197,10 +187,7 @@ async function resolveSiteId(
   return { siteId: "", domain, resolvedBy: "none" };
 }
 
-async function recalculateOrderTotals(
-  tx: Prisma.TransactionClient,
-  orderId: string,
-) {
+async function recalculateOrderTotals(tx: Prisma.TransactionClient, orderId: string) {
   const items = await tx.orderItem.findMany({
     where: {
       orderId,
@@ -262,15 +249,11 @@ export async function POST(req: NextRequest) {
     console.log("POST /api/v1/order siteResolved =", siteResolved);
 
     if (!siteResolved.siteId) {
-      return jsonError(
-        "Thiếu siteId. Không resolve được từ body/header/query/domain/product.",
-        400,
-        {
-          debug: body,
-          domain: siteResolved.domain,
-          resolvedBy: siteResolved.resolvedBy,
-        },
-      );
+      return jsonError("Thiếu siteId. Không resolve được từ body/header/query/domain/product.", 400, {
+        debug: body,
+        domain: siteResolved.domain,
+        resolvedBy: siteResolved.resolvedBy,
+      });
     }
 
     const siteId = siteResolved.siteId;
@@ -460,7 +443,6 @@ export async function POST(req: NextRequest) {
         message: "Đã thêm sản phẩm vào order.",
         siteId,
         resolvedBy: siteResolved.resolvedBy,
-        data: result,
       },
       { status: 200 },
     );
