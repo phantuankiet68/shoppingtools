@@ -140,14 +140,14 @@ const DEFAULT_SOCIALS: FooterAnnouncementSocialItem[] = [
 ];
 
 const DEFAULT_PAYMENTS: FooterAnnouncementPaymentItem[] = [
-  { label: "Mastercard", imageSrc: "/images/pay-mastercard.png" },
-  { label: "ATM", imageSrc: "/images/pay-atm.png" },
-  { label: "Visa", imageSrc: "/images/pay-visa.png" },
+  { label: "Mastercard", imageSrc: "/assets/images/pay-mastercard.png" },
+  { label: "ATM", imageSrc: "/assets/images/pay-atm.png" },
+  { label: "Visa", imageSrc: "/assets/images/pay-visa.png" },
 ];
 
 const DEFAULT_STORES: FooterAnnouncementStoreItem[] = [
-  { label: "App Store", href: "#", imageSrc: "/images/app-store.png" },
-  { label: "Google Play", href: "#", imageSrc: "/images/google-play.png" },
+  { label: "App Store", href: "#", imageSrc: "/assets/images/app-store.png" },
+  { label: "Google Play", href: "#", imageSrc: "/assets/images/google-play.png" },
 ];
 
 const DEFAULT_BRAND_LOGOS: FooterAnnouncementBrandLogoItem[] = [
@@ -222,7 +222,7 @@ export function FooterAnnouncement({
   tags,
 
   certificationTitle = "Certified",
-  certificationImageSrc = "/images/bocongthuong.png",
+  certificationImageSrc = "/assets/images/bocongthuong.png",
 
   copyrightText = "Copyright © {year} HASAKI.VN",
   preview = false,
@@ -470,10 +470,6 @@ export function FooterAnnouncement({
         </div>
       </div>
 
-      <button suppressHydrationWarning className={cls.toTop} type="button" aria-label="Back to top" onClick={goTop}>
-        <i className="bi bi-arrow-up" aria-hidden="true" />
-      </button>
-
       <div className={`${cls.toast} ${toast ? cls.isShow : ""}`} role="status" aria-live="polite" aria-atomic="true">
         {toast}
       </div>
@@ -518,7 +514,7 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
     tags: JSON.stringify(DEFAULT_TAGS, null, 2),
 
     certificationTitle: "Certified",
-    certificationImageSrc: "/images/bocongthuong.png",
+    certificationImageSrc: "/assets/images/bocongthuong.png",
 
     copyrightText: "Copyright © {year} HASAKI.VN",
   },
@@ -598,7 +594,7 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
           tagTitle={String(p.tagTitle || "TOP SEARCHES")}
           tags={tags}
           certificationTitle={String(p.certificationTitle || "Certified")}
-          certificationImageSrc={String(p.certificationImageSrc || "/images/bocongthuong.png")}
+          certificationImageSrc={String(p.certificationImageSrc || "/assets/images/bocongthuong.png")}
           copyrightText={String(p.copyrightText || "Copyright © {year} HASAKI.VN")}
           preview={true}
         />

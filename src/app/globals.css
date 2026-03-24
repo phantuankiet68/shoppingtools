@@ -72,7 +72,7 @@ html {
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: "Poppins", sans-serif;
   overflow: auto;
@@ -195,4 +195,13 @@ a:visited {
   justify-content: center;
   align-items: center;
   text-align: center;
+}
+div[aria-label="Shop Header Announcement"] {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+div[aria-label="Shop Header Announcement"] > div {
+  position: relative;
 }

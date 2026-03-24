@@ -104,6 +104,7 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     "SectionSalesNine",
     "SectionSalesTen",
   ]),
+  tpl("tpl-product", "Product", ["ProductOne"]),
   tpl("tpl-detail", "Detail", [
     "DetailAnnouncement",
     "DetailCentered",

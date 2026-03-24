@@ -68,6 +68,10 @@ import { SHOP_SECTION_SALES_SEVEN } from "@/components/admin/shared/templates/se
 import { SHOP_SECTION_SALES_EIGHT } from "@/components/admin/shared/templates/sections/Section/SectionSalesEight";
 import { SHOP_SECTION_SALES_NINE } from "@/components/admin/shared/templates/sections/Section/SectionSalesNine";
 import { SHOP_SECTION_SALES_TEN } from "@/components/admin/shared/templates/sections/Section/SectionSalesTen";
+
+// ===== Web page Detail  =====
+import { SHOP_PRODUCT_ONE } from "@/components/admin/shared/templates/sections/Product/ProductOne";
+
 // ===== Web page Detail  =====
 import { SHOP_DETAIL_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Detail/DetailAnnouncement";
 import { SHOP_DETAIL_CENTERED } from "@/components/admin/shared/templates/sections/Detail/DetailCentered";
@@ -161,6 +165,9 @@ export const REGISTRY_HOME: RegItem[] = [
   SHOP_SECTION_SALES_EIGHT,
   SHOP_SECTION_SALES_NINE,
   SHOP_SECTION_SALES_TEN,
+
+  // ===== Web page Product  =====
+  SHOP_PRODUCT_ONE,
 
   // ===== Web page Detail  =====
   SHOP_DETAIL_ANNOUNCEMENT,

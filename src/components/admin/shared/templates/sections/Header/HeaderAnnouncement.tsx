@@ -74,10 +74,8 @@ export type HeaderAnnouncementProps = {
   menuSetKey?: string;
   menuSiteIdKey?: string;
   isAuthed?: boolean;
-
   cartItems?: CartPopupItem[];
   cartHref?: string;
-
   orders?: OrderPopupItem[];
   orderHref?: string;
 };
@@ -397,7 +395,9 @@ export function HeaderAnnouncement({
   orderHref = "/account/orders",
 }: HeaderAnnouncementProps) {
   const rootRef = useRef<HTMLElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
 
+  const [mounted, setMounted] = useState(false);
   const [safeLogo, setSafeLogo] = useState(logoSrc || "/assets/images/logo.jpg");
   const [apiNav, setApiNav] = useState<NavItem[]>([]);
   const [menuLoaded, setMenuLoaded] = useState(false);
@@ -411,9 +411,22 @@ export function HeaderAnnouncement({
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
+  const [isPinned, setIsPinned] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState(preview);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight);
+    }
+  }, [mounted]);
 
   useEffect(() => {
     setSafeLogo(logoSrc || "/assets/images/logo.jpg");
@@ -425,9 +438,10 @@ export function HeaderAnnouncement({
   }, [navItems, apiNav]);
 
   const unreadNotificationCount = useMemo(() => notifications.filter((x) => x.unread).length, [notifications]);
+
   const orderPreviewItems = useMemo(() => orders.slice(0, 6), [orders]);
 
-  const isLoggedIn = preview ? !!isAuthed : !!currentUser;
+  const isLoggedIn = preview ? !!isAuthed : authChecked && !!currentUser;
 
   const displayName = useMemo(() => {
     if (!currentUser) return "Your account";
@@ -436,9 +450,9 @@ export function HeaderAnnouncement({
     return "Your account";
   }, [currentUser]);
 
-  const displayRole = useMemo(() => {
-    return currentUser?.role || "Account";
-  }, [currentUser]);
+  const displayRole = useMemo(() => currentUser?.role || "Account", [currentUser]);
+
+  const shouldRenderNav = items.length > 0;
 
   const onBlockClick = (e: React.SyntheticEvent) => {
     if (!preview) return;
@@ -446,7 +460,34 @@ export function HeaderAnnouncement({
     e.stopPropagation();
   };
 
+  const closeAll = () => {
+    setOpenMegaIndex(null);
+    setCategoryOpen(false);
+    setNotificationOpen(false);
+    setOrderOpen(false);
+    setAccountOpen(false);
+  };
+
+  const openAuth = (mode: AuthMode) => {
+    closeAll();
+    setAuthMode(mode);
+    setAuthOpen(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // no-op
+    } finally {
+      setCurrentUser(null);
+      setAccountOpen(false);
+      setAuthOpen(false);
+    }
+  };
+
   useEffect(() => {
+    if (!mounted) return;
     if (preview) {
       setAuthChecked(true);
       return;
@@ -471,9 +512,11 @@ export function HeaderAnnouncement({
     return () => {
       alive = false;
     };
-  }, [preview]);
+  }, [mounted, preview]);
 
   useEffect(() => {
+    if (!mounted) return;
+
     let alive = true;
 
     (async () => {
@@ -486,15 +529,14 @@ export function HeaderAnnouncement({
         qs.set("size", "1000");
         qs.set("sort", "sortOrder:asc");
 
-        const siteId = typeof window !== "undefined" ? localStorage.getItem(menuSiteIdKey) : null;
-
+        const siteId = localStorage.getItem(menuSiteIdKey);
         if (siteId) qs.set("siteId", siteId);
 
         const res = await fetch(`${menuApiUrl}?${qs.toString()}`, {
           cache: "no-store",
           credentials: "include",
           headers: {
-            "x-site-domain": typeof window !== "undefined" ? window.location.host : "",
+            "x-site-domain": window.location.host,
           },
         });
 
@@ -513,10 +555,8 @@ export function HeaderAnnouncement({
           tree = buildTreeFromItems(data.items);
         }
 
-        const mapped = treeToNavItems(tree);
-
         if (!alive) return;
-        setApiNav(mapped);
+        setApiNav(treeToNavItems(tree));
         setMenuLoaded(true);
       } catch {
         if (!alive) return;
@@ -528,17 +568,27 @@ export function HeaderAnnouncement({
     return () => {
       alive = false;
     };
-  }, [menuApiUrl, menuSetKey, menuSiteIdKey]);
-
-  const closeAll = () => {
-    setOpenMegaIndex(null);
-    setCategoryOpen(false);
-    setNotificationOpen(false);
-    setOrderOpen(false);
-    setAccountOpen(false);
-  };
+  }, [mounted, menuApiUrl, menuSetKey, menuSiteIdKey]);
 
   useEffect(() => {
+    if (!mounted || preview) return;
+
+    const onScroll = () => {
+      const nextPinned = window.scrollY > 80;
+      setIsPinned((prev) => (prev === nextPinned ? prev : nextPinned));
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [mounted, preview]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
@@ -560,636 +610,741 @@ export function HeaderAnnouncement({
       document.removeEventListener("click", onDocClick);
       document.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [mounted]);
 
-  const openAuth = (mode: AuthMode) => {
-    closeAll();
-    setAuthMode(mode);
-    setAuthOpen(true);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch {
-      // no-op
-    } finally {
-      setCurrentUser(null);
-      setAccountOpen(false);
-      setAuthOpen(false);
+  const renderSearch = () => {
+    if (!mounted) {
+      return (
+        <div className={cls.search} aria-hidden="true">
+          <div className={cls.searchIcon}>
+            <i className="bi bi-search" />
+          </div>
+          <div
+            className={cls.searchSkeleton}
+            style={{
+              flex: 1,
+              minHeight: 44,
+            }}
+          />
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              flexShrink: 0,
+            }}
+          />
+        </div>
+      );
     }
+
+    return (
+      <form
+        className={cls.search}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (preview) return;
+          onSearchSubmit?.(query);
+        }}
+      >
+        <div className={cls.searchIcon}>
+          <i className="bi bi-search" />
+        </div>
+
+        <input
+          suppressHydrationWarning
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          type="text"
+          placeholder={searchPlaceholder}
+        />
+
+        <button suppressHydrationWarning type="submit" aria-label="Search">
+          <i className="bi bi-search" />
+        </button>
+      </form>
+    );
   };
 
-  const shouldRenderNav = items.length > 0;
+  const renderAccountButton = () => {
+    if (!mounted) {
+      return (
+        <div className={`${cls.actionBtn} ${cls.accountBtn}`} aria-hidden="true">
+          <span className={cls.actionIcon}>
+            <i className="bi bi-person" />
+          </span>
+          <span className={cls.actionText}>
+            <span>Account</span>
+            <strong>Loading...</strong>
+          </span>
+          <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
+        </div>
+      );
+    }
+
+    return (
+      <button
+        suppressHydrationWarning
+        className={`${cls.actionBtn} ${cls.accountBtn}`}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (preview) return;
+
+          if (!isLoggedIn) {
+            openAuth("login");
+            return;
+          }
+
+          setNotificationOpen(false);
+          setOrderOpen(false);
+          setCategoryOpen(false);
+          setOpenMegaIndex(null);
+          setAuthOpen(false);
+          setAccountOpen((v) => !v);
+        }}
+        aria-haspopup={isLoggedIn ? "menu" : "dialog"}
+        aria-expanded={isLoggedIn ? accountOpen : authOpen}
+      >
+        <span className={cls.actionIcon}>
+          <i className="bi bi-person" />
+        </span>
+        <span className={cls.actionText}>
+          <span>{isLoggedIn ? `Hello, ${displayName}` : authChecked ? "Login" : "Loading..."}</span>
+          <strong>{isLoggedIn ? displayRole : "Account"}</strong>
+        </span>
+        <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
+      </button>
+    );
+  };
+
+  const renderNotificationButton = () => {
+    if (!mounted) {
+      return (
+        <div className={cls.actionBtn} aria-hidden="true">
+          <span className={cls.actionIcon}>
+            <i className="bi bi-bell" />
+          </span>
+          <span className={cls.actionText}>
+            <span>Updates</span>
+            <strong>Notifications</strong>
+          </span>
+          {unreadNotificationCount > 0 ? <span className={cls.miniBadge}>{unreadNotificationCount}</span> : null}
+        </div>
+      );
+    }
+
+    return (
+      <button
+        suppressHydrationWarning
+        className={cls.actionBtn}
+        type="button"
+        aria-label="Notifications"
+        aria-haspopup="dialog"
+        aria-expanded={notificationOpen}
+        onClick={(e) => {
+          if (preview) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          setAccountOpen(false);
+          setOrderOpen(false);
+          setNotificationOpen((v) => !v);
+        }}
+      >
+        <span className={cls.actionIcon}>
+          <i className="bi bi-bell" />
+        </span>
+        <span className={cls.actionText}>
+          <span>Updates</span>
+          <strong>Notifications</strong>
+        </span>
+        {unreadNotificationCount > 0 ? <span className={cls.miniBadge}>{unreadNotificationCount}</span> : null}
+      </button>
+    );
+  };
+
+  const renderCartButton = () => {
+    if (!mounted) {
+      return (
+        <div className={cls.cartBtn} aria-hidden="true">
+          <i className="bi bi-bag" />
+          <span className={cls.badge}>{badgeCart}</span>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        suppressHydrationWarning
+        className={cls.cartBtn}
+        type="button"
+        aria-label="Cart"
+        aria-haspopup="dialog"
+        aria-expanded={orderOpen}
+        onClick={(e) => {
+          if (preview) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          setAccountOpen(false);
+          setNotificationOpen(false);
+          setOrderOpen((v) => !v);
+        }}
+      >
+        <i className="bi bi-bag" />
+        <span className={cls.badge}>{badgeCart}</span>
+      </button>
+    );
+  };
 
   return (
-    <header className={cls.header} ref={rootRef}>
-      <div className={cls.mainShell}>
-        <div className={cls.container}>
-          <div className={cls.mainRow}>
-            <div className={cls.leftZone}>
-              {preview ? (
-                <a className={cls.logo} href="#" aria-label={brandName} onClick={onBlockClick}>
-                  <span className={cls.logoBadge}>
-                    <Image
-                      src={safeLogo}
-                      alt={logoAlt}
-                      fill
-                      className={cls.logoImg}
-                      onError={() => setSafeLogo("/assets/images/logo.jpg")}
-                    />
-                  </span>
+    <div style={{ height: isPinned ? headerHeight : undefined }}>
+      <header
+        ref={(node) => {
+          headerRef.current = node;
+          rootRef.current = node;
+        }}
+        className={`${cls.header} ${isPinned ? cls.headerPinned : ""}`}
+        suppressHydrationWarning
+      >
+        <div className={cls.mainShell}>
+          <div className={cls.container}>
+            <div className={cls.mainRow}>
+              <div className={cls.leftZone}>
+                {preview ? (
+                  <a className={cls.logo} href="#" aria-label={brandName} onClick={onBlockClick}>
+                    <span className={cls.logoBadge}>
+                      <Image
+                        src={safeLogo}
+                        alt={logoAlt}
+                        fill
+                        sizes="64px"
+                        className={cls.logoImg}
+                        onError={() => setSafeLogo("/assets/images/logo.jpg")}
+                      />
+                    </span>
 
-                  <span className={cls.logoText}>
-                    <span className={cls.logoName}>{brandName}</span>
-                    <span className={cls.logoSub}>{brandSub}</span>
-                  </span>
-                </a>
-              ) : (
-                <Link className={cls.logo} href={brandHref as Route} aria-label={brandName}>
-                  <span className={cls.logoBadge}>
-                    <Image
-                      src={safeLogo}
-                      alt={logoAlt}
-                      fill
-                      className={cls.logoImg}
-                      onError={() => {
-                        const fallback = "/assets/images/logo.jpg";
-                        if (safeLogo !== fallback) setSafeLogo(fallback);
-                      }}
-                    />
-                  </span>
+                    <span className={cls.logoText}>
+                      <span className={cls.logoName}>{brandName}</span>
+                      <span className={cls.logoSub}>{brandSub}</span>
+                    </span>
+                  </a>
+                ) : (
+                  <Link className={cls.logo} href={brandHref as Route} aria-label={brandName}>
+                    <span className={cls.logoBadge}>
+                      <Image
+                        src={safeLogo}
+                        alt={logoAlt}
+                        fill
+                        sizes="64px"
+                        className={cls.logoImg}
+                        onError={() => {
+                          const fallback = "/assets/images/logo.jpg";
+                          setSafeLogo((prev) => (prev === fallback ? prev : fallback));
+                        }}
+                      />
+                    </span>
 
-                  <span className={cls.logoText}>
-                    <span className={cls.logoName}>{brandName}</span>
-                    <span className={cls.logoSub}>{brandSub}</span>
-                  </span>
-                </Link>
-              )}
-            </div>
+                    <span className={cls.logoText}>
+                      <span className={cls.logoName}>{brandName}</span>
+                      <span className={cls.logoSub}>{brandSub}</span>
+                    </span>
+                  </Link>
+                )}
+              </div>
 
-            <div className={cls.centerZone}>
-              <form
-                className={cls.search}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (preview) return;
-                  onSearchSubmit?.(query);
-                }}
-              >
-                <div className={cls.searchIcon}>
-                  <i className="bi bi-search" />
+              <div className={cls.centerZone}>{renderSearch()}</div>
+
+              <div className={cls.rightZone}>
+                <div className={cls.accountWrap}>
+                  {renderAccountButton()}
+
+                  {mounted && isLoggedIn && accountOpen ? (
+                    <div
+                      className={cls.accountDropdown}
+                      role="menu"
+                      aria-label="Account menu"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className={cls.accountDropdownHead}>
+                        <div className={cls.accountDflex}>
+                          <strong>{displayName}</strong>
+                          <small>{displayRole}</small>
+                        </div>
+                        <span>{currentUser?.email}</span>
+                      </div>
+
+                      <div className={cls.accountDropdownBody}>
+                        {preview ? (
+                          <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
+                            <i className="bi bi-person-circle" />
+                            <span>My account</span>
+                          </a>
+                        ) : (
+                          <Link
+                            href={"/account" as Route}
+                            className={cls.accountDropdownLink}
+                            onClick={() => setAccountOpen(false)}
+                          >
+                            <i className="bi bi-person-circle" />
+                            <span>My account</span>
+                          </Link>
+                        )}
+
+                        {preview ? (
+                          <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
+                            <i className="bi bi-receipt" />
+                            <span>My orders</span>
+                          </a>
+                        ) : (
+                          <Link
+                            href={"/account/orders" as Route}
+                            className={cls.accountDropdownLink}
+                            onClick={() => setAccountOpen(false)}
+                          >
+                            <i className="bi bi-receipt" />
+                            <span>My orders</span>
+                          </Link>
+                        )}
+
+                        <button
+                          suppressHydrationWarning
+                          type="button"
+                          className={cls.accountDropdownLogout}
+                          onClick={handleLogout}
+                        >
+                          <i className="bi bi-box-arrow-right" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  type="text"
-                  placeholder={searchPlaceholder}
-                />
+                <div className={cls.notificationWrap}>
+                  {renderNotificationButton()}
 
-                <button type="submit" aria-label="Search">
-                  <i className="bi bi-search" />
-                </button>
-              </form>
-            </div>
+                  {mounted && notificationOpen && (
+                    <div
+                      className={cls.notificationDropdown}
+                      role="dialog"
+                      aria-label="Notifications popup"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className={cls.notificationHead}>
+                        <div className={cls.notificationHeadLeft}>
+                          <div className={cls.notificationHeadIcon}>
+                            <i className="bi bi-bell" />
+                          </div>
 
-            <div className={cls.rightZone}>
-              <div className={cls.accountWrap}>
-                <button
-                  className={`${cls.actionBtn} ${cls.accountBtn}`}
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (preview) return;
-
-                    if (!isLoggedIn) {
-                      openAuth("login");
-                      return;
-                    }
-
-                    setNotificationOpen(false);
-                    setOrderOpen(false);
-                    setCategoryOpen(false);
-                    setOpenMegaIndex(null);
-                    setAuthOpen(false);
-                    setAccountOpen((v) => !v);
-                  }}
-                  aria-haspopup={isLoggedIn ? "menu" : "dialog"}
-                  aria-expanded={isLoggedIn ? accountOpen : authOpen}
-                >
-                  <span className={cls.actionIcon}>
-                    <i className="bi bi-person" />
-                  </span>
-                  <span className={cls.actionText}>
-                    <span>{isLoggedIn ? `Hello, ${displayName}` : authChecked ? "Login" : "Loading..."}</span>
-                    <strong>{isLoggedIn ? displayRole : "Account"}</strong>
-                  </span>
-                  <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
-                </button>
-
-                {isLoggedIn && accountOpen ? (
-                  <div
-                    className={cls.accountDropdown}
-                    role="menu"
-                    aria-label="Account menu"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className={cls.accountDropdownHead}>
-                      <div className={cls.accountDflex}>
-                        <strong>{displayName}</strong>
-                        <small>{displayRole}</small>
-                      </div>
-                      <span>{currentUser?.email}</span>
-                    </div>
-
-                    <div className={cls.accountDropdownBody}>
-                      {preview ? (
-                        <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
-                          <i className="bi bi-person-circle" />
-                          <span>My account</span>
-                        </a>
-                      ) : (
-                        <Link
-                          href={"/account" as Route}
-                          className={cls.accountDropdownLink}
-                          onClick={() => setAccountOpen(false)}
-                        >
-                          <i className="bi bi-person-circle" />
-                          <span>My account</span>
-                        </Link>
-                      )}
-
-                      {preview ? (
-                        <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
-                          <i className="bi bi-receipt" />
-                          <span>My orders</span>
-                        </a>
-                      ) : (
-                        <Link
-                          href={"/account/orders" as Route}
-                          className={cls.accountDropdownLink}
-                          onClick={() => setAccountOpen(false)}
-                        >
-                          <i className="bi bi-receipt" />
-                          <span>My orders</span>
-                        </Link>
-                      )}
-
-                      <button type="button" className={cls.accountDropdownLogout} onClick={handleLogout}>
-                        <i className="bi bi-box-arrow-right" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-
-              <div className={cls.notificationWrap}>
-                <button
-                  className={cls.actionBtn}
-                  type="button"
-                  aria-label="Notifications"
-                  aria-haspopup="dialog"
-                  aria-expanded={notificationOpen}
-                  onClick={(e) => {
-                    if (preview) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      return;
-                    }
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setAccountOpen(false);
-                    setOrderOpen(false);
-                    setNotificationOpen((v) => !v);
-                  }}
-                >
-                  <span className={cls.actionIcon}>
-                    <i className="bi bi-bell" />
-                  </span>
-                  <span className={cls.actionText}>
-                    <span>Updates</span>
-                    <strong>Notifications</strong>
-                  </span>
-                  {unreadNotificationCount > 0 ? (
-                    <span className={cls.miniBadge}>{unreadNotificationCount}</span>
-                  ) : null}
-                </button>
-
-                {notificationOpen && (
-                  <div
-                    className={cls.notificationDropdown}
-                    role="dialog"
-                    aria-label="Notifications popup"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className={cls.notificationHead}>
-                      <div className={cls.notificationHeadLeft}>
-                        <div className={cls.notificationHeadIcon}>
-                          <i className="bi bi-bell" />
-                        </div>
-
-                        <div className={cls.notificationHeadText}>
-                          <strong>Notifications</strong>
-                          <span>
-                            You have <b>{unreadNotificationCount}</b> unread updates
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        className={cls.notificationRefresh}
-                        aria-label="Refresh notifications"
-                        title="Refresh notifications"
-                      >
-                        <i className="bi bi-arrow-clockwise" />
-                      </button>
-                    </div>
-
-                    <div className={cls.notificationTabs}>
-                      <button type="button" className={`${cls.notificationTab} ${cls.notificationTabActive}`}>
-                        <span>All</span>
-                        <b>{notifications.length}</b>
-                      </button>
-
-                      <button type="button" className={cls.notificationTab}>
-                        <span>Unread</span>
-                        <b>{unreadNotificationCount}</b>
-                      </button>
-                    </div>
-
-                    <div className={cls.notificationList}>
-                      {notifications.map((item) =>
-                        preview ? (
-                          <a
-                            key={item.id}
-                            href="#"
-                            className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
-                            onClick={onBlockClick}
-                          >
-                            <span className={cls.notificationThumb}>
-                              <Image
-                                src={item.thumbnail || "/assets/images/logo.jpg"}
-                                alt={item.title}
-                                fill
-                                className={cls.notificationThumbImg}
-                              />
+                          <div className={cls.notificationHeadText}>
+                            <strong>Notifications</strong>
+                            <span>
+                              You have <b>{unreadNotificationCount}</b> unread updates
                             </span>
+                          </div>
+                        </div>
 
-                            <span className={cls.notificationBody}>
-                              <span className={cls.notificationTitle}>{item.title}</span>
-                              <span className={cls.notificationMessage}>{item.message}</span>
+                        <button
+                          suppressHydrationWarning
+                          type="button"
+                          className={cls.notificationRefresh}
+                          aria-label="Refresh notifications"
+                          title="Refresh notifications"
+                        >
+                          <i className="bi bi-arrow-clockwise" />
+                        </button>
+                      </div>
 
-                              <span className={cls.notificationMeta}>
-                                {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
-                                <span className={cls.notificationTime}>{item.time}</span>
+                      <div className={cls.notificationTabs}>
+                        <button
+                          suppressHydrationWarning
+                          type="button"
+                          className={`${cls.notificationTab} ${cls.notificationTabActive}`}
+                        >
+                          <span>All</span>
+                          <b>{notifications.length}</b>
+                        </button>
+
+                        <button suppressHydrationWarning type="button" className={cls.notificationTab}>
+                          <span>Unread</span>
+                          <b>{unreadNotificationCount}</b>
+                        </button>
+                      </div>
+
+                      <div className={cls.notificationList}>
+                        {notifications.map((item) =>
+                          preview ? (
+                            <a
+                              key={item.id}
+                              href="#"
+                              className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
+                              onClick={onBlockClick}
+                            >
+                              <span className={cls.notificationThumb}>
+                                <Image
+                                  src={item.thumbnail || "/assets/images/logo.jpg"}
+                                  alt={item.title}
+                                  fill
+                                  sizes="56px"
+                                  className={cls.notificationThumbImg}
+                                />
                               </span>
-                            </span>
+
+                              <span className={cls.notificationBody}>
+                                <span className={cls.notificationTitle}>{item.title}</span>
+                                <span className={cls.notificationMessage}>{item.message}</span>
+
+                                <span className={cls.notificationMeta}>
+                                  {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
+                                  <span className={cls.notificationTime}>{item.time}</span>
+                                </span>
+                              </span>
+                            </a>
+                          ) : (
+                            <Link
+                              key={item.id}
+                              href={(item.href || notificationHref || "/notifications") as Route}
+                              className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
+                              onClick={() => setNotificationOpen(false)}
+                            >
+                              <span className={cls.notificationThumb}>
+                                <Image
+                                  src={item.thumbnail || "/assets/images/logo.jpg"}
+                                  alt={item.title}
+                                  fill
+                                  sizes="56px"
+                                  className={cls.notificationThumbImg}
+                                />
+                              </span>
+
+                              <span className={cls.notificationBody}>
+                                <span className={cls.notificationTitle}>{item.title}</span>
+                                <span className={cls.notificationMessage}>{item.message}</span>
+
+                                <span className={cls.notificationMeta}>
+                                  {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
+                                  <span className={cls.notificationTime}>{item.time}</span>
+                                </span>
+                              </span>
+                            </Link>
+                          ),
+                        )}
+                      </div>
+
+                      <div className={cls.notificationFooter}>
+                        <button suppressHydrationWarning type="button" className={cls.notificationFooterLink}>
+                          Mark all as read
+                        </button>
+
+                        {preview ? (
+                          <a href="#" className={cls.notificationFooterBtn} onClick={onBlockClick}>
+                            Go to notification center
                           </a>
                         ) : (
                           <Link
-                            key={item.id}
-                            href={(item.href || notificationHref || "/notifications") as Route}
-                            className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
+                            href={(notificationHref || "/notifications") as Route}
+                            className={cls.notificationFooterBtn}
                             onClick={() => setNotificationOpen(false)}
                           >
-                            <span className={cls.notificationThumb}>
-                              <Image
-                                src={item.thumbnail || "/assets/images/logo.jpg"}
-                                alt={item.title}
-                                fill
-                                className={cls.notificationThumbImg}
-                              />
-                            </span>
-
-                            <span className={cls.notificationBody}>
-                              <span className={cls.notificationTitle}>{item.title}</span>
-                              <span className={cls.notificationMessage}>{item.message}</span>
-
-                              <span className={cls.notificationMeta}>
-                                {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
-                                <span className={cls.notificationTime}>{item.time}</span>
-                              </span>
-                            </span>
+                            Go to notification center
                           </Link>
-                        ),
-                      )}
+                        )}
+                      </div>
                     </div>
+                  )}
+                </div>
 
-                    <div className={cls.notificationFooter}>
-                      <button type="button" className={cls.notificationFooterLink}>
-                        Mark all as read
-                      </button>
+                <div className={cls.orderWrap}>
+                  {renderCartButton()}
 
-                      {preview ? (
-                        <a href="#" className={cls.notificationFooterBtn} onClick={onBlockClick}>
-                          Go to notification center
-                        </a>
-                      ) : (
-                        <Link
-                          href={(notificationHref || "/notifications") as Route}
-                          className={cls.notificationFooterBtn}
-                          onClick={() => setNotificationOpen(false)}
-                        >
-                          Go to notification center
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+                  {mounted && orderOpen && (
+                    <div
+                      className={cls.orderDropdown}
+                      role="dialog"
+                      aria-label="My Orders popup"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className={cls.orderHead}>
+                        <span className={cls.orderHeadIcon}>
+                          <i className="bi bi-receipt" />
+                        </span>
+                        <span className={cls.orderHeadTitle}>My Orders</span>
+                      </div>
 
-              <div className={cls.orderWrap}>
-                <button
-                  className={cls.cartBtn}
-                  type="button"
-                  aria-label="Cart"
-                  aria-haspopup="dialog"
-                  aria-expanded={orderOpen}
-                  onClick={(e) => {
-                    if (preview) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      return;
-                    }
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setAccountOpen(false);
-                    setNotificationOpen(false);
-                    setOrderOpen((v) => !v);
-                  }}
-                >
-                  <i className="bi bi-bag" />
-                  <span className={cls.badge}>{badgeCart}</span>
-                </button>
+                      <div className={cls.orderList}>
+                        {orderPreviewItems.map((item) =>
+                          preview ? (
+                            <a key={item.id} href="#" className={cls.orderItem} onClick={onBlockClick}>
+                              <div className={cls.orderContent}>
+                                <div className={cls.orderTopRow}>
+                                  <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
+                                  <span className={cls.orderDate}>{item.placedAt}</span>
+                                </div>
 
-                {orderOpen && (
-                  <div
-                    className={cls.orderDropdown}
-                    role="dialog"
-                    aria-label="My Orders popup"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className={cls.orderHead}>
-                      <span className={cls.orderHeadIcon}>
-                        <i className="bi bi-receipt" />
-                      </span>
-                      <span className={cls.orderHeadTitle}>My Orders</span>
-                    </div>
-                    <div className={cls.orderList}>
-                      {orderPreviewItems.map((item) =>
-                        preview ? (
-                          <a key={item.id} href="#" className={cls.orderItem} onClick={onBlockClick}>
-                            <div className={cls.orderContent}>
-                              <div className={cls.orderTopRow}>
-                                <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
-                                <span className={cls.orderDate}>{item.placedAt}</span>
-                              </div>
-                              <span className={cls.orderBottomRow}>
-                                <span
-                                  className={`${cls.orderDelivery} ${
-                                    item.deliveryTone === "success"
-                                      ? cls.orderDeliverySuccess
-                                      : item.deliveryTone === "warning"
-                                        ? cls.orderDeliveryWarning
-                                        : cls.orderDeliveryMuted
-                                  }`}
-                                >
-                                  {item.deliveryText}
+                                <span className={cls.orderBottomRow}>
+                                  <span
+                                    className={`${cls.orderDelivery} ${
+                                      item.deliveryTone === "success"
+                                        ? cls.orderDeliverySuccess
+                                        : item.deliveryTone === "warning"
+                                          ? cls.orderDeliveryWarning
+                                          : cls.orderDeliveryMuted
+                                    }`}
+                                  >
+                                    {item.deliveryText}
+                                  </span>
+
+                                  <span className={cls.orderRating}>
+                                    <span className={cls.orderRatingLabel}>You Rated</span>
+                                    <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
+                                  </span>
                                 </span>
+                              </div>
 
-                                <span className={cls.orderRating}>
-                                  <span className={cls.orderRatingLabel}>You Rated</span>
-                                  <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
+                              <span className={cls.orderThumb}>
+                                <Image
+                                  src={item.image || "/assets/images/logo.jpg"}
+                                  alt={item.orderNumber}
+                                  fill
+                                  sizes="72px"
+                                  className={cls.orderThumbImg}
+                                />
+                              </span>
+                            </a>
+                          ) : (
+                            <Link
+                              key={item.id}
+                              href={(item.href || orderHref || "/account/orders") as Route}
+                              className={cls.orderItem}
+                              onClick={() => setOrderOpen(false)}
+                            >
+                              <span className={cls.orderContent}>
+                                <div className={cls.orderTopRow}>
+                                  <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
+                                  <span className={cls.orderDate}>{item.placedAt}</span>
+                                </div>
+
+                                <span className={cls.orderBottomRow}>
+                                  <span
+                                    className={`${cls.orderDelivery} ${
+                                      item.deliveryTone === "success"
+                                        ? cls.orderDeliverySuccess
+                                        : item.deliveryTone === "warning"
+                                          ? cls.orderDeliveryWarning
+                                          : cls.orderDeliveryMuted
+                                    }`}
+                                  >
+                                    {item.deliveryText}
+                                  </span>
+
+                                  <span className={cls.orderRating}>
+                                    <span className={cls.orderRatingLabel}>You Rated</span>
+                                    <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
+                                  </span>
                                 </span>
                               </span>
-                            </div>
 
-                            <span className={cls.orderThumb}>
-                              <Image
-                                src={item.image || "/assets/images/logo.jpg"}
-                                alt={item.orderNumber}
-                                fill
-                                className={cls.orderThumbImg}
-                              />
-                            </span>
+                              <span className={cls.orderThumb}>
+                                <Image
+                                  src={item.image || "/assets/images/logo.jpg"}
+                                  alt={item.orderNumber}
+                                  fill
+                                  sizes="72px"
+                                  className={cls.orderThumbImg}
+                                />
+                              </span>
+                            </Link>
+                          ),
+                        )}
+                      </div>
+
+                      <div className={cls.orderFooter}>
+                        {preview ? (
+                          <a href="#" className={cls.orderFooterBtn} onClick={onBlockClick}>
+                            Xem tất cả
                           </a>
                         ) : (
                           <Link
-                            key={item.id}
-                            href={(item.href || orderHref || "/account/orders") as Route}
-                            className={cls.orderItem}
+                            href={(orderHref || "/account/orders") as Route}
+                            className={cls.orderFooterBtn}
                             onClick={() => setOrderOpen(false)}
                           >
-                            <span className={cls.orderContent}>
-                              <div className={cls.orderTopRow}>
-                                <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
-                                <span className={cls.orderDate}>{item.placedAt}</span>
-                              </div>
-
-                              <span className={cls.orderBottomRow}>
-                                <span
-                                  className={`${cls.orderDelivery} ${
-                                    item.deliveryTone === "success"
-                                      ? cls.orderDeliverySuccess
-                                      : item.deliveryTone === "warning"
-                                        ? cls.orderDeliveryWarning
-                                        : cls.orderDeliveryMuted
-                                  }`}
-                                >
-                                  {item.deliveryText}
-                                </span>
-
-                                <span className={cls.orderRating}>
-                                  <span className={cls.orderRatingLabel}>You Rated</span>
-                                  <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
-                                </span>
-                              </span>
-                            </span>
-
-                            <span className={cls.orderThumb}>
-                              <Image
-                                src={item.image || "/assets/images/logo.jpg"}
-                                alt={item.orderNumber}
-                                fill
-                                className={cls.orderThumbImg}
-                              />
-                            </span>
+                            Xem tất cả
                           </Link>
-                        ),
-                      )}
+                        )}
+                      </div>
                     </div>
-
-                    <div className={cls.orderFooter}>
-                      {preview ? (
-                        <a href="#" className={cls.orderFooterBtn} onClick={onBlockClick}>
-                          Xem tất cả
-                        </a>
-                      ) : (
-                        <Link
-                          href={(orderHref || "/account/orders") as Route}
-                          className={cls.orderFooterBtn}
-                          onClick={() => setOrderOpen(false)}
-                        >
-                          Xem tất cả
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className={cls.navWrap}>
-            <div
-              className={`${cls.categoryNav} ${categoryOpen ? cls.categoryNavOpen : ""}`}
-              tabIndex={0}
-              role="button"
-              aria-haspopup="true"
-              aria-expanded={categoryOpen}
-              onMouseEnter={() => !preview && setCategoryOpen(true)}
-              onMouseLeave={() => !preview && setCategoryOpen(false)}
-              onClick={(e) => {
-                if (preview) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-                setCategoryOpen((v) => !v);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setCategoryOpen((v) => !v);
-                }
-                if (e.key === "Escape") setCategoryOpen(false);
-              }}
-            >
-              <div className={cls.categoryTrigger}>
-                <span className={cls.categoryTriggerLeft}>
-                  <i className="bi bi-grid-3x3-gap" />
-                  <span>Product Categories</span>
-                </span>
-                <i className={`bi bi-chevron-down ${cls.categoryTriggerCaret}`} />
-              </div>
-
-              <div className={cls.categoryDropdown}>
-                <div className={cls.categoryPanel}>
-                  {categoryItems.map((cat, idx) =>
-                    preview ? (
-                      <a key={idx} href="#" className={cls.categoryItem} onClick={onBlockClick}>
-                        <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                        <span className={cls.categoryItemText}>{cat.label}</span>
-                        <i className="bi bi-chevron-right" />
-                      </a>
-                    ) : (
-                      <Link key={idx} href={(cat.href || "/") as Route} className={cls.categoryItem}>
-                        <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                        <span className={cls.categoryItemText}>{cat.label}</span>
-                        <i className="bi bi-chevron-right" />
-                      </Link>
-                    ),
                   )}
                 </div>
               </div>
             </div>
 
-            <nav className={cls.nav} aria-label="Primary navigation">
-              {shouldRenderNav &&
-                items.map((it, idx) => {
-                  const iconCls = `bi ${it.icon}`;
-                  const isOpen = openMegaIndex === idx;
-
-                  if (it.type !== "mega") {
-                    return preview ? (
-                      <a key={idx} className={cls.navItem} href="#" onClick={onBlockClick}>
-                        <i className={iconCls} />
-                        <span>{it.label}</span>
-                      </a>
-                    ) : (
-                      <Link key={idx} className={cls.navItem} href={(it.href || "/") as Route}>
-                        <i className={iconCls} />
-                        <span>{it.label}</span>
-                      </Link>
-                    );
+            <div className={cls.navWrap}>
+              <div
+                className={`${cls.categoryNav} ${categoryOpen ? cls.categoryNavOpen : ""}`}
+                tabIndex={0}
+                role="button"
+                aria-haspopup="true"
+                aria-expanded={categoryOpen}
+                onMouseEnter={() => !preview && mounted && setCategoryOpen(true)}
+                onMouseLeave={() => !preview && mounted && setCategoryOpen(false)}
+                onClick={(e) => {
+                  if (preview) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
                   }
+                  if (!mounted) return;
+                  setCategoryOpen((v) => !v);
+                }}
+                onKeyDown={(e) => {
+                  if (!mounted) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setCategoryOpen((v) => !v);
+                  }
+                  if (e.key === "Escape") setCategoryOpen(false);
+                }}
+              >
+                <div className={cls.categoryTrigger}>
+                  <span className={cls.categoryTriggerLeft}>
+                    <i className="bi bi-grid-3x3-gap" />
+                    <span>Product Categories</span>
+                  </span>
+                  <i className={`bi bi-chevron-down ${cls.categoryTriggerCaret}`} />
+                </div>
 
-                  return (
-                    <div
-                      key={idx}
-                      className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.open : ""}`}
-                      tabIndex={0}
-                      role="button"
-                      aria-haspopup="true"
-                      aria-expanded={isOpen}
-                      onMouseEnter={() => !preview && setOpenMegaIndex(idx)}
-                      onMouseLeave={() => !preview && setOpenMegaIndex(null)}
-                      onClick={(e) => {
-                        if (preview) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }
-                        setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
+                <div className={cls.categoryDropdown}>
+                  <div className={cls.categoryPanel}>
+                    {categoryItems.map((cat, idx) =>
+                      preview ? (
+                        <a key={idx} href="#" className={cls.categoryItem} onClick={onBlockClick}>
+                          <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
+                          <span className={cls.categoryItemText}>{cat.label}</span>
+                          <i className="bi bi-chevron-right" />
+                        </a>
+                      ) : (
+                        <Link key={idx} href={(cat.href || "/") as Route} className={cls.categoryItem}>
+                          <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
+                          <span className={cls.categoryItemText}>{cat.label}</span>
+                          <i className="bi bi-chevron-right" />
+                        </Link>
+                      ),
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <nav className={cls.nav} aria-label="Primary navigation">
+                {shouldRenderNav &&
+                  items.map((it, idx) => {
+                    const iconCls = `bi ${it.icon}`;
+                    const isOpen = openMegaIndex === idx;
+
+                    if (it.type !== "mega") {
+                      return preview ? (
+                        <a key={idx} className={cls.navItem} href="#" onClick={onBlockClick}>
+                          <i className={iconCls} />
+                          <span>{it.label}</span>
+                        </a>
+                      ) : (
+                        <Link key={idx} className={cls.navItem} href={(it.href || "/") as Route}>
+                          <i className={iconCls} />
+                          <span>{it.label}</span>
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.open : ""}`}
+                        tabIndex={0}
+                        role="button"
+                        aria-haspopup="true"
+                        aria-expanded={isOpen}
+                        onMouseEnter={() => !preview && mounted && setOpenMegaIndex(idx)}
+                        onMouseLeave={() => !preview && mounted && setOpenMegaIndex(null)}
+                        onClick={(e) => {
+                          if (preview) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return;
+                          }
+                          if (!mounted) return;
                           setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-                        }
-                        if (e.key === "Escape") setOpenMegaIndex(null);
-                      }}
-                    >
-                      <i className={iconCls} />
-                      <span>{it.label}</span>
-                      <i className={`bi bi-chevron-down ${cls.navCaret}`} />
+                        }}
+                        onKeyDown={(e) => {
+                          if (!mounted) return;
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setOpenMegaIndex((cur) => (cur === idx ? null : idx));
+                          }
+                          if (e.key === "Escape") setOpenMegaIndex(null);
+                        }}
+                      >
+                        <i className={iconCls} />
+                        <span>{it.label}</span>
+                        <i className={`bi bi-chevron-down ${cls.navCaret}`} />
 
-                      <div className={cls.mega} role="menu" aria-label={`${it.label} menu`}>
-                        <div className={cls.megaGrid}>
-                          {it.columns.map((col, cIdx) => (
-                            <div className={cls.megaCol} key={cIdx}>
-                              {col.items.map((link, lIdx) =>
-                                preview ? (
-                                  <a key={lIdx} href="#" onClick={onBlockClick}>
-                                    <span>{link.label}</span>
-                                    <i className="bi bi-arrow-right-short" />
-                                  </a>
-                                ) : (
-                                  <Link key={lIdx} href={(link.href || "/") as Route}>
-                                    <span>{link.label}</span>
-                                    <i className="bi bi-arrow-right-short" />
-                                  </Link>
-                                ),
-                              )}
+                        <div className={cls.mega} role="menu" aria-label={`${it.label} menu`}>
+                          <div className={cls.megaInner}>
+                            <div className={cls.megaGrid}>
+                              {it.columns.map((col, cIdx) => (
+                                <div className={cls.megaCol} key={cIdx}>
+                                  {col.title && <h4>{col.title}</h4>}
+
+                                  {col.items.map((link, lIdx) =>
+                                    preview ? (
+                                      <a key={lIdx} href="#" onClick={onBlockClick} className={cls.megaLink}>
+                                        <span className={cls.megaLabel}>{link.label}</span>
+                                        <i className={`bi bi-arrow-right-short ${cls.megaIcon}`} />
+                                      </a>
+                                    ) : (
+                                      <Link key={lIdx} href={(link.href || "/") as Route} className={cls.megaLink}>
+                                        <span className={cls.megaLabel}>{link.label}</span>
+                                        <i className={`bi bi-arrow-right-short ${cls.megaIcon}`} />
+                                      </Link>
+                                    ),
+                                  )}
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-              {!shouldRenderNav && menuLoaded ? null : null}
-            </nav>
+                {!shouldRenderNav && menuLoaded ? null : null}
+              </nav>
+            </div>
           </div>
         </div>
-      </div>
 
-      <HeaderAuthModal
-        open={authOpen}
-        mode={authMode}
-        onModeChange={setAuthMode}
-        onClose={() => setAuthOpen(false)}
-        onSuccess={({ user }) => {
-          setCurrentUser(user);
-          setAuthOpen(false);
-          setAccountOpen(false);
-        }}
-      />
-    </header>
+        <HeaderAuthModal
+          open={authOpen}
+          mode={authMode}
+          onModeChange={setAuthMode}
+          onClose={() => setAuthOpen(false)}
+          onSuccess={({ user }) => {
+            setCurrentUser(user);
+            setAuthChecked(true);
+            setAuthOpen(false);
+            setAccountOpen(false);
+          }}
+        />
+      </header>
+    </div>
   );
 }
 

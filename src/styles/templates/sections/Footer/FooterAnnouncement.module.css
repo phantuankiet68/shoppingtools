@@ -1,9 +1,5 @@
 .footer {
   position: relative;
-  background:
-    radial-gradient(circle at top left, rgba(255, 189, 214, 0.1), transparent 20%),
-    radial-gradient(circle at top right, rgba(193, 182, 255, 0.1), transparent 22%),
-    linear-gradient(180deg, #fcfbff 0%, #f7f5fb 100%);
   color: #2c2230;
 }
 
@@ -27,7 +23,7 @@
 }
 
 .container {
-  width: min(1320px, calc(100% - 32px));
+  width: 1366px;
   margin: 0 auto;
 }
 
@@ -55,8 +51,7 @@
   border-radius: 6px;
   padding: 14px;
   background:
-    radial-gradient(circle at top right, rgba(255, 199, 220, 0.18), transparent 26%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(251, 247, 253, 0.94) 100%);
+    radial-gradient(circle at 100% 0, #d7ffc72e, #00000000 26%), linear-gradient(135deg, #ffffffeb 0%, #f7fdf9f0 100%);
 }
 
 .brandPanel::after {
@@ -90,8 +85,8 @@
   min-height: 28px;
   padding: 0 12px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #fff1f7 0%, #fff8fb 100%);
-  color: #b76b93;
+  background: linear-gradient(90deg, #4ed595, #49b884);
+  color: #fff;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -134,7 +129,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #a47b92;
+  color: rgb(54, 129, 222);
 }
 
 .brandInfoText {
@@ -207,7 +202,7 @@
   padding: 0 20px;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #1d1b30 0%, #46324f 100%);
+  background: linear-gradient(90deg, #4ed595, #49b884);
   color: #fff;
   font-size: 14px;
   font-weight: 800;
@@ -239,9 +234,8 @@
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  border: 1px solid #eadfea;
-  background: linear-gradient(180deg, #fff8fb 0%, #ffffff 100%);
-  color: #bf7096;
+  background: linear-gradient(#f8fff9 0%, #58ff5a 100%);
+  border: 1px solid #e0eadf;
   text-decoration: none;
   transition:
     transform 0.18s ease,
@@ -458,10 +452,10 @@
 }
 
 .certName {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.35;
-  color: red;
+  color: #3681de;
 }
 
 .certSub {
@@ -586,36 +580,6 @@
   line-height: 1.5;
   font-weight: 800;
   color: #2b2130;
-}
-
-.toTop {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid #e5dce8;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #544557;
-  box-shadow: 0 16px 34px rgba(49, 38, 56, 0.14);
-  cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    color 0.18s ease,
-    background-color 0.18s ease;
-}
-
-.toTop:hover,
-.toTop:focus-visible {
-  transform: translateY(-2px);
-  color: #241a29;
-  background: #ffffff;
-  outline: none;
 }
 
 .toast {

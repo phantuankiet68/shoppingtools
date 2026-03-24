@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import RenderBlocksPublic from "@/components/v1/themeplate/RenderBlocksPublic";
+import type { Block } from "@/lib/builder/pages/types";
 
 export const dynamic = "force-dynamic";
 
@@ -114,13 +115,13 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
         }),
   ]);
 
-  const topbarBlocks = Array.isArray(topbarPage?.blocks) ? (topbarPage.blocks as any[]) : [];
-  const headerBlocks = Array.isArray(headerPage?.blocks) ? (headerPage.blocks as any[]) : [];
-  const pageBlocks = Array.isArray(page.blocks) ? (page.blocks as any[]) : [];
-  const footerBlocks = Array.isArray(footerPage?.blocks) ? (footerPage.blocks as any[]) : [];
-  const widgetBlocks = Array.isArray(widgetPage?.blocks) ? (widgetPage.blocks as any[]) : [];
+  const topbarBlocks = Array.isArray(topbarPage?.blocks) ? (topbarPage.blocks as Block[]) : [];
+  const headerBlocks = Array.isArray(headerPage?.blocks) ? (headerPage.blocks as Block[]) : [];
+  const pageBlocks = Array.isArray(page.blocks) ? (page.blocks as Block[]) : [];
+  const footerBlocks = Array.isArray(footerPage?.blocks) ? (footerPage.blocks as Block[]) : [];
+  const widgetBlocks = Array.isArray(widgetPage?.blocks) ? (widgetPage.blocks as Block[]) : [];
 
-  let mergedBlocks: any[] = [];
+  let mergedBlocks: Block[] = [];
 
   if (isTopbarPage) {
     mergedBlocks = pageBlocks;
@@ -135,6 +136,8 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
   }
 
   return (
-    <RenderBlocksPublic blocks={mergedBlocks} productSlug={productSlug} currentPath={path} rawSegments={segments} />
+    <div suppressHydrationWarning>
+      <RenderBlocksPublic blocks={mergedBlocks} productSlug={productSlug} currentPath={path} rawSegments={segments} />
+    </div>
   );
 }

@@ -77,6 +77,32 @@ function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
   };
 }
 
+function isAbortError(error: unknown) {
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return true;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: string }).name === "AbortError"
+  ) {
+    return true;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "ERR_CANCELED"
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDelete, initialSeo = null }: Props) {
   const modal = useModal();
   const hasPage = !!page?.id;
@@ -153,6 +179,7 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
     const controller = new AbortController();
     const pageId = page.id;
+    let disposed = false;
 
     (async () => {
       try {
@@ -162,6 +189,8 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
         });
 
         if (!r.ok) {
+          if (disposed || controller.signal.aborted) return;
+
           if (r.status === 404) {
             modal.error("Not found", "Trang không tồn tại");
           } else {
@@ -171,7 +200,8 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
         }
 
         const data = await r.json();
-        if (controller.signal.aborted) return;
+
+        if (disposed || controller.signal.aborted) return;
 
         if (data?.seo) {
           setSeo((prev) => ({
@@ -181,12 +211,20 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
         }
 
         lastLoadedPageIdRef.current = pageId;
-      } catch (e) {
-        console.error("Load SEO error:", e);
+      } catch (error) {
+        if (isAbortError(error) || controller.signal.aborted || disposed) {
+          return;
+        }
+
+        console.error("Load SEO error:", error);
+        modal.error("Error", "Load SEO failed");
       }
     })();
 
-    return () => controller.abort();
+    return () => {
+      disposed = true;
+      controller.abort("PageInspector effect cleanup");
+    };
   }, [page?.id, initialSeo, modal]);
 
   useEffect(() => {
@@ -429,6 +467,11 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                 <div className={styles.kvItem}>
                   <span className={styles.kvLabel}>Updated</span>
                   <span className={styles.kvValue}>{updatedText}</span>
+                </div>
+
+                <div className={styles.kvItem}>
+                  <span className={styles.kvLabel}>Path</span>
+                  <span className={styles.kvValue}>{pathPretty}</span>
                 </div>
               </div>
             </div>

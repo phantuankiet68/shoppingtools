@@ -4,7 +4,7 @@
   border: var(--bd-header);
   border-radius: 5px;
   padding: 10px;
-  height: 75vh;
+  height: 84vh;
   overflow: auto;
 }
 
@@ -146,7 +146,10 @@
   gap: 6px;
   padding: 6px 0;
 }
-
+.fieldUpload {
+  width: 100%;
+  min-width: 460px;
+}
 /* inputs */
 .input,
 .select,
@@ -160,7 +163,7 @@
   min-width: 190px;
 }
 .textarea {
-  min-width: 470px;
+  min-width: 460px;
   min-height: 250px;
   resize: vertical;
   outline: none;
@@ -404,7 +407,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  height: 57vh;
+  height: 66vh;
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: #85abf7 transparent;

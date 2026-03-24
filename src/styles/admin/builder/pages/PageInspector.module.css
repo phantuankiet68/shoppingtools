@@ -86,7 +86,7 @@
   border-radius: 6px;
   cursor: pointer;
   color: var(--color-save);
-  background: var(--bg-save);
+  background: var(--bg-primary);
   border: var(--bd-s-save);
   font-size: 13px;
   transition:
@@ -458,7 +458,6 @@
 }
 
 .primaryBtn {
-  background: #111827;
   color: #fff;
   padding: 10px 14px;
   border-radius: 10px;
@@ -559,7 +558,7 @@
   margin: 10px 0 0;
   padding: 12px;
   border-radius: 10px;
-  background: #111827;
+  background: #172350;
   color: #f9fafb;
   font-size: 12px;
   overflow-x: auto;
