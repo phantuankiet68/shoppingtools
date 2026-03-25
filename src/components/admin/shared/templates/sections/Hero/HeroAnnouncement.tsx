@@ -80,7 +80,7 @@ const DEFAULT_SLIDES: HeroSlide[] = [
     ctaHref: "/shop",
     chips: ["Cleanser", "Serum", "Moisturizer"],
     imageSrc: "/assets/images/product.jpg",
-    bg: "linear-gradient(135deg, #7c2d12 0%, #ea580c 25%, #fb923c 55%, #7292f4 100%)",
+    bg: "linear-gradient(135deg, rgb(102 208 255) 0%, rgb(85 198 149) 18%, rgb(14, 165, 164) 58%, rgb(125, 211, 252) 100%)",
   },
   {
     headline: "Beauty Deals\nUp To 50% Off",
@@ -98,7 +98,7 @@ const DEFAULT_SLIDES: HeroSlide[] = [
     ctaHref: "/brands",
     chips: ["Official", "Trusted", "Best Seller"],
     imageSrc: "/assets/images/product.jpg",
-    bg: "linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), linear-gradient(135deg, #f97316, #f472b6)",
+    bg: "linear-gradient(135deg, rgb(255 175 102) 0%, rgb(30 55 59) 18%, rgb(115 230 230) 58%, rgb(40 178 244) 100%)",
   },
 ];
 

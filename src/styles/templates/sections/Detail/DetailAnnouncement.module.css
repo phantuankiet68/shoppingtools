@@ -21,15 +21,13 @@
   --radius-sm: 10px;
 
   width: 100%;
-  padding: 36px 0 64px;
-  background:
-    radial-gradient(circle at top left, rgba(249, 115, 22, 0.05), transparent 18%),
-    linear-gradient(180deg, #f8fafc 0%, #f5f7fb 100%);
+  padding: 20px 0 20px;
+  background: var(--background);
   color: var(--text);
 }
 
 .shell {
-  width: min(1280px, calc(100% - 32px));
+  width: 1366px;
   margin: 0 auto;
 }
 
@@ -83,10 +81,9 @@
   gap: 8px;
   min-height: 46px;
   padding: 0 16px;
-  border: 1px solid var(--border);
+  border: var(--bd-header);
   background: rgba(255, 255, 255, 0.82);
   border-radius: 999px;
-  box-shadow: var(--shadow-sm);
 }
 
 .breadcrumbLink,
@@ -105,7 +102,7 @@
 }
 
 .breadcrumbCurrent {
-  color: #5071b9;
+  color: #50b998;
   font-weight: 600;
 }
 
@@ -126,7 +123,7 @@
 
 .mainGrid {
   display: grid;
- grid-template-columns: minmax(0, 1fr) minmax(520px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(520px, 1fr);
   gap: 15px;
   align-items: start;
 }
@@ -386,7 +383,7 @@
   font-size: 21px;
   line-height: 1;
   font-weight: 700;
-  color: var(--primary-strong);
+  color: #0cea37;
 }
 
 .originalPrice {
@@ -565,7 +562,11 @@
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
-  transition: transform .2s, box-shadow .2s, background .2s, border-color .2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    background 0.2s,
+    border-color 0.2s;
   display: inline-flex;
 }
 
@@ -576,8 +577,8 @@
 
 .primaryButton {
   color: #fff;
-  background: linear-gradient(180deg, #fb923c, #f97316);
-  box-shadow: 0 12px 24px rgba(249, 115, 22, 0.22);
+  background: linear-gradient(#3cfbb4, #1cd362);
+  box-shadow: 0 12px 24px #16f92e38;
 }
 
 .primaryButton strong {
@@ -681,7 +682,7 @@
   margin-top: 10px;
 }
 
-.reviewHeaderLeft{
+.reviewHeaderLeft {
   display: flex;
   gap: 15px;
 }
@@ -696,16 +697,16 @@
 }
 
 .shopStat span {
-     color: var(--muted);
-    font-size: 13px;
-    line-height: 1.4;
-    font-weight: 600;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
 }
 
 .shopStat strong {
   font-size: 14px;
   line-height: 1.2;
-  color: #e78842;
+  color: #42e76c;
   font-weight: 800;
 }
 
@@ -754,10 +755,10 @@
 }
 
 .panelKicker {
-    text-transform: uppercase;
-    color: var(--primary-strong);
-    font-size: 14px;
-    font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary-strong);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .panelTitle {
@@ -775,7 +776,7 @@
   display: grid;
   grid-template-columns: 160px minmax(0, 1fr);
   gap: 16px;
- padding: 12px 12px 20px 0;
+  padding: 12px 12px 20px 0;
   border-bottom: 1px solid var(--border);
 }
 

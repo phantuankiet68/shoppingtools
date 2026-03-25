@@ -47,6 +47,7 @@ export type FooterAnnouncementCert = {
 export type FooterAnnouncementBrand = {
   name: string;
   tag: string;
+  logoSrc?: string;
   info?: FooterAnnouncementInfoItem[];
   cert?: FooterAnnouncementCert;
 };
@@ -91,8 +92,9 @@ export type FooterAnnouncementProps = {
 
 /* ================= Defaults ================= */
 const DEFAULT_BRAND: FooterAnnouncementBrand = {
-  name: "HASAKI.VN",
-  tag: "Authentic cosmetics • Fast delivery • Dedicated support",
+  name: "Tuan Kiet Store",
+  tag: "Authentic cosmetics • Fast delivery",
+  logoSrc: "/assets/templates/pay-atm-02f6dcbf23244255.png",
   info: [
     { label: "Head Office", text: "29/150 Giang Vo Street, Giang Vo Ward, Hanoi" },
     { label: "Hotline", text: "1800 6324" },
@@ -141,7 +143,7 @@ const DEFAULT_SOCIALS: FooterAnnouncementSocialItem[] = [
 
 const DEFAULT_PAYMENTS: FooterAnnouncementPaymentItem[] = [
   { label: "Mastercard", imageSrc: "/assets/images/pay-mastercard.png" },
-  { label: "ATM", imageSrc: "/assets/images/pay-atm.png" },
+  { label: "ATM", imageSrc: "/assets/templates/pay-atm-02f6dcbf23244255.png" },
   { label: "Visa", imageSrc: "/assets/images/pay-visa.png" },
 ];
 
@@ -197,7 +199,7 @@ export function FooterAnnouncement({
   hotlines,
   supportLinks,
 
-  aboutTitle = "ABOUT HASAKI.VN",
+  aboutTitle = "ABOUT TUAN KIET STORE",
   aboutLinks,
 
   partnerTitle = "PARTNERSHIPS & AFFILIATES",
@@ -224,7 +226,7 @@ export function FooterAnnouncement({
   certificationTitle = "Certified",
   certificationImageSrc = "/assets/images/bocongthuong.png",
 
-  copyrightText = "Copyright © {year} HASAKI.VN",
+  copyrightText = "Copyright © {year} Tuan Kiet Store",
   preview = false,
 }: FooterAnnouncementProps) {
   const bd = useMemo(() => brand ?? DEFAULT_BRAND, [brand]);
@@ -298,9 +300,18 @@ export function FooterAnnouncement({
             <div className={cls.brandPanel}>
               <div className={cls.brandHead}>
                 <div className={cls.brandHeader}>
-                  <span className={cls.brandEyebrow}>Beauty commerce</span>
-                  <h2 className={cls.brandName}>{bd.name}</h2>
+                  {bd.logoSrc ? (
+                    <div className={cls.brandLogoCard}>
+                      <Image src={bd.logoSrc} alt={bd.name} width={44} height={44} className={cls.brandLogo} />
+                    </div>
+                  ) : null}
+
+                  <div className={cls.brandText}>
+                    <h2 className={cls.brandName}>{bd.name}</h2>
+                    {bd.tag ? <span className={cls.brandTag}>{bd.tag}</span> : null}
+                  </div>
                 </div>
+
                 {bd.info?.length ? (
                   <div className={cls.brandInfoList}>
                     {bd.info.map((item, i) => (
@@ -312,6 +323,7 @@ export function FooterAnnouncement({
                   </div>
                 ) : null}
               </div>
+
               <div className={cls.grid}>
                 <div className={cls.col}>
                   <h3 className={cls.colTitle}>{supportTitle}</h3>
@@ -379,7 +391,13 @@ export function FooterAnnouncement({
                             alt={item.label}
                             width={64}
                             height={28}
+                            sizes="64px"
                             className={cls.paymentImg}
+                            style={{
+                              width: "auto",
+                              height: "28px",
+                              maxWidth: "100%",
+                            }}
                           />
                         </div>
                       ))}
@@ -396,7 +414,13 @@ export function FooterAnnouncement({
                       alt={certificationTitle}
                       width={180}
                       height={68}
+                      sizes="180px"
                       className={cls.certImg}
+                      style={{
+                        width: "180px",
+                        height: "auto",
+                        maxWidth: "100%",
+                      }}
                     />
                     <div className={cls.certCopy}>
                       <div className={cls.certName}>{bd.cert?.title || certificationTitle}</div>
@@ -488,7 +512,7 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
     hotlines: JSON.stringify(DEFAULT_HOTLINES, null, 2),
     supportLinks: JSON.stringify(DEFAULT_SUPPORT_LINKS, null, 2),
 
-    aboutTitle: "ABOUT HASAKI.VN",
+    aboutTitle: "ABOUT TUAN KIET STORE",
     aboutLinks: JSON.stringify(DEFAULT_ABOUT_LINKS, null, 2),
 
     partnerTitle: "PARTNERSHIPS & AFFILIATES",
@@ -516,7 +540,7 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
     certificationTitle: "Certified",
     certificationImageSrc: "/assets/images/bocongthuong.png",
 
-    copyrightText: "Copyright © {year} HASAKI.VN",
+    copyrightText: "Copyright © {year} Tuan Kiet Store",
   },
   inspector: [
     { key: "brand", label: "Brand (JSON)", kind: "textarea", rows: 10 },
@@ -573,7 +597,7 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
           supportTitle={String(p.supportTitle || "CUSTOMER SUPPORT")}
           hotlines={hotlines}
           supportLinks={supportLinks}
-          aboutTitle={String(p.aboutTitle || "ABOUT HASAKI.VN")}
+          aboutTitle={String(p.aboutTitle || "ABOUT TUAN KIET STORE")}
           aboutLinks={aboutLinks}
           partnerTitle={String(p.partnerTitle || "PARTNERSHIPS & AFFILIATES")}
           partnerLinks={partnerLinks}
@@ -595,7 +619,7 @@ export const SHOP_FOOTER_ANNOUNCEMENT: RegItem = {
           tags={tags}
           certificationTitle={String(p.certificationTitle || "Certified")}
           certificationImageSrc={String(p.certificationImageSrc || "/assets/images/bocongthuong.png")}
-          copyrightText={String(p.copyrightText || "Copyright © {year} HASAKI.VN")}
+          copyrightText={String(p.copyrightText || "Copyright © {year} Tuan Kiet Store")}
           preview={true}
         />
       </div>

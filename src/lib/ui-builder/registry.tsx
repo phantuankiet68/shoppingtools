@@ -72,6 +72,18 @@ import { SHOP_SECTION_SALES_TEN } from "@/components/admin/shared/templates/sect
 // ===== Web page Detail  =====
 import { SHOP_PRODUCT_ONE } from "@/components/admin/shared/templates/sections/Product/ProductOne";
 
+// ===== Web page related products  =====
+import { SHOP_RELATED_PRODUCTS } from "@/components/admin/shared/templates/sections/RelatedProducts/RelatedProducts";
+
+// ===== Web page rPopular Product  =====
+import { SHOP_POPULAR_PRODUCT_ONE } from "@/components/admin/shared/templates/sections/PopularProduct/PopularProductOne";
+
+// ===== Web page Product New  =====
+import { SHOP_PRODUCT_NEW_ONE } from "@/components/admin/shared/templates/sections/ProductNew/ProductNewOne";
+
+// ===== Web page Product New  =====
+import { SHOP_HOT_PRODUCT_ONE } from "@/components/admin/shared/templates/sections/HotProduct/HotProductOne";
+
 // ===== Web page Detail  =====
 import { SHOP_DETAIL_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Detail/DetailAnnouncement";
 import { SHOP_DETAIL_CENTERED } from "@/components/admin/shared/templates/sections/Detail/DetailCentered";
@@ -151,6 +163,18 @@ export const REGISTRY_HOME: RegItem[] = [
 
   // ===== Web page Sidebar  =====
   SHOP_SIDEBAR_ANNOUNCEMENT,
+
+  // ===== Web related products  =====
+  SHOP_RELATED_PRODUCTS,
+
+  // ===== Web Popular Product  =====
+  SHOP_POPULAR_PRODUCT_ONE,
+
+  // ===== Web Product New  =====
+  SHOP_PRODUCT_NEW_ONE,
+
+  // ===== Web Product hot  =====
+  SHOP_HOT_PRODUCT_ONE,
 
   // ===== Web page Section  =====
   SHOP_SECTION_ANNOUNCEMENT,

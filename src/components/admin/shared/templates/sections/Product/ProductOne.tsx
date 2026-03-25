@@ -132,17 +132,6 @@ function formatCurrency(value: number, locale: string, currency: string) {
   }
 }
 
-function renderStars(rating = 5) {
-  return Array.from({ length: 5 }, (_, index) => {
-    const filled = index < Math.round(Math.max(0, Math.min(5, rating)));
-    return (
-      <span key={index} className={filled ? styles.starFilled : styles.starEmpty} aria-hidden="true">
-        ★
-      </span>
-    );
-  });
-}
-
 function parseBrandFilters(raw?: string): ProductOneBrandFilter[] | undefined {
   if (!raw) return undefined;
 
@@ -219,7 +208,7 @@ function getProductImage(product: ProductOneApiProduct) {
 }
 
 function getProductHref(product: ProductOneApiProduct) {
-  if (product.href) return product.href;
+  if (product.href && typeof product.href === "string") return product.href;
   if (product.slug) return `/product-detail/${product.slug}`;
   return "#";
 }
@@ -251,7 +240,6 @@ function includesSearch(product: ProductOneApiProduct, keyword: string) {
   if (!keyword.trim()) return true;
 
   const q = keyword.trim().toLowerCase();
-
   const haystacks = [
     product.name,
     product.slug ?? "",
@@ -295,6 +283,7 @@ function isProductInColor(product: ProductOneApiProduct, selected: string[]) {
 }
 
 export function ProductOne({
+  title = "Product List",
   apiUrl = "/api/v1/products/list",
   currency = "USD",
   locale = "en-US",
@@ -332,7 +321,11 @@ export function ProductOne({
   }, [defaultSort]);
 
   useEffect(() => {
-    let active = true;
+    setPage(1);
+  }, [searchTerm, selectedBrands, selectedColors, selectedPrices, onlyDiscounted, onlyInStock, sortValue]);
+
+  useEffect(() => {
+    const controller = new AbortController();
 
     async function loadProducts() {
       setLoading(true);
@@ -346,6 +339,7 @@ export function ProductOne({
         const response = await fetch(`${apiUrl}?${params.toString()}`, {
           method: "GET",
           cache: "no-store",
+          signal: controller.signal,
           headers: {
             "Content-Type": "application/json",
             "x-site-domain": typeof window !== "undefined" ? window.location.host : "",
@@ -358,28 +352,28 @@ export function ProductOne({
           throw new Error(data?.error || "Failed to load products.");
         }
 
-        if (!active) return;
-
         const nextItems = normalizeProducts(data.items);
         setProducts(nextItems);
         setTotalItems(Number(data.pagination?.total ?? nextItems.length ?? 0));
         setTotalPages(Math.max(1, Number(data.pagination?.totalPages ?? 1)));
       } catch (error) {
-        if (!active) return;
+        if ((error as Error)?.name === "AbortError") return;
+
         setProducts([]);
         setTotalItems(0);
         setTotalPages(1);
         setErrorText(error instanceof Error ? error.message : "Failed to load products.");
       } finally {
-        if (!active) return;
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadProducts();
 
     return () => {
-      active = false;
+      controller.abort();
     };
   }, [apiUrl, page, pageSize]);
 
@@ -395,20 +389,13 @@ export function ProductOne({
   }, [brandFilters, products]);
 
   const filteredProducts = useMemo(() => {
-    let result = [...products];
-
-    result = result.filter((product) => includesSearch(product, searchTerm));
-    result = result.filter((product) => isProductInBrand(product, selectedBrands));
-    result = result.filter((product) => isProductInPrice(product, priceFilters, selectedPrices));
-    result = result.filter((product) => isProductInColor(product, selectedColors));
-
-    if (onlyDiscounted) {
-      result = result.filter((product) => Number(product.discountPercent ?? 0) > 0);
-    }
-
-    if (onlyInStock) {
-      result = result.filter((product) => Number(product.productQty ?? 0) > 0);
-    }
+    const result = [...products]
+      .filter((product) => includesSearch(product, searchTerm))
+      .filter((product) => isProductInBrand(product, selectedBrands))
+      .filter((product) => isProductInPrice(product, priceFilters, selectedPrices))
+      .filter((product) => isProductInColor(product, selectedColors))
+      .filter((product) => (onlyDiscounted ? Number(product.discountPercent ?? 0) > 0 : true))
+      .filter((product) => (onlyInStock ? Number(product.productQty ?? 0) > 0 : true));
 
     switch (sortValue) {
       case "price-asc":
@@ -455,6 +442,7 @@ export function ProductOne({
     setSearchTerm("");
     setOnlyDiscounted(false);
     setOnlyInStock(false);
+    setPage(1);
   };
 
   const activeFilterCount =
@@ -507,6 +495,7 @@ export function ProductOne({
                   </svg>
                 </span>
                 <input
+                  suppressHydrationWarning
                   type="text"
                   value={searchTerm}
                   className={styles.searchInput}
@@ -523,13 +512,23 @@ export function ProductOne({
 
               <div className={styles.quickToggleList}>
                 <label className={styles.checkboxRow}>
-                  <input type="checkbox" checked={onlyDiscounted} onChange={() => setOnlyDiscounted((v) => !v)} />
+                  <input
+                    suppressHydrationWarning
+                    type="checkbox"
+                    checked={onlyDiscounted}
+                    onChange={() => setOnlyDiscounted((v) => !v)}
+                  />
                   <span className={styles.fakeCheckbox} aria-hidden="true" />
                   <span className={styles.checkboxLabel}>Only discounted items</span>
                 </label>
 
                 <label className={styles.checkboxRow}>
-                  <input type="checkbox" checked={onlyInStock} onChange={() => setOnlyInStock((v) => !v)} />
+                  <input
+                    suppressHydrationWarning
+                    type="checkbox"
+                    checked={onlyInStock}
+                    onChange={() => setOnlyInStock((v) => !v)}
+                  />
                   <span className={styles.fakeCheckbox} aria-hidden="true" />
                   <span className={styles.checkboxLabel}>Only in stock</span>
                 </label>
@@ -540,11 +539,13 @@ export function ProductOne({
               <div className={styles.filterBlockHead}>
                 <h3 className={styles.filterBlockTitle}>Pick color</h3>
               </div>
+
               <div className={styles.colorRow}>
                 {colorFilters.map((color) => {
                   const active = selectedColors.includes(color.value);
                   return (
                     <button
+                      suppressHydrationWarning
                       key={color.value}
                       type="button"
                       className={`${styles.colorSwatch} ${active ? styles.colorSwatchActive : ""}`}
@@ -566,6 +567,7 @@ export function ProductOne({
                     const found = colorFilters.find((color) => color.value === item);
                     return (
                       <button
+                        suppressHydrationWarning
                         key={item}
                         type="button"
                         className={styles.filterChip}
@@ -584,12 +586,14 @@ export function ProductOne({
               <div className={styles.filterBlockHead}>
                 <h3 className={styles.filterBlockTitle}>Brand</h3>
               </div>
+
               <div className={styles.filterList}>
                 {availableBrands.map((brand) => {
                   const checked = selectedBrands.includes(brand.value);
                   return (
                     <label key={brand.value} className={styles.checkboxRow}>
                       <input
+                        suppressHydrationWarning
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleSelection(brand.value, setSelectedBrands)}
@@ -606,12 +610,14 @@ export function ProductOne({
               <div className={styles.filterBlockHead}>
                 <h3 className={styles.filterBlockTitle}>Price range</h3>
               </div>
+
               <div className={styles.filterList}>
                 {priceFilters.map((price) => {
                   const checked = selectedPrices.includes(price.value);
                   return (
                     <label key={price.value} className={styles.checkboxRow}>
                       <input
+                        suppressHydrationWarning
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleSelection(price.value, setSelectedPrices)}
@@ -624,7 +630,7 @@ export function ProductOne({
               </div>
             </div>
 
-            <button type="button" className={styles.resetButton} onClick={resetFilters}>
+            <button suppressHydrationWarning type="button" className={styles.resetButton} onClick={resetFilters}>
               Clear all filters
             </button>
           </div>
@@ -635,7 +641,7 @@ export function ProductOne({
             <div className={styles.catalogToolbarMain}>
               <div className={styles.catalogMetaRow}>
                 <div className={styles.metaPill}>
-                  <span className={styles.metaPillLabel}>Catalog</span>
+                  <span className={styles.metaPillLabel}>{title}</span>
                   <span>{loading ? "Loading..." : `${filteredProducts.length} items`}</span>
                 </div>
 
@@ -650,12 +656,21 @@ export function ProductOne({
                   <span className={styles.metaPillLabel}>Layout</span>
                   <span>{layout === "grid" ? "Grid" : "List"}</span>
                 </div>
+
+                <div className={styles.metaPill}>
+                  <span className={styles.metaPillLabel}>Total</span>
+                  <span>{totalItems}</span>
+                </div>
               </div>
             </div>
 
             <div className={styles.catalogToolbarActions}>
               <label className={styles.sortWrap}>
-                <select value={sortValue} onChange={(e) => setSortValue(e.target.value as SortValue)}>
+                <select
+                  suppressHydrationWarning
+                  value={sortValue}
+                  onChange={(e) => setSortValue(e.target.value as SortValue)}
+                >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -666,6 +681,7 @@ export function ProductOne({
 
               <div className={styles.layoutSwitch} aria-label="Layout switch">
                 <button
+                  suppressHydrationWarning
                   type="button"
                   className={`${styles.layoutButton} ${layout === "list" ? styles.layoutButtonActive : ""}`}
                   aria-pressed={layout === "list"}
@@ -682,6 +698,7 @@ export function ProductOne({
                 </button>
 
                 <button
+                  suppressHydrationWarning
                   type="button"
                   className={`${styles.layoutButton} ${layout === "grid" ? styles.layoutButtonActive : ""}`}
                   aria-pressed={layout === "grid"}
@@ -760,6 +777,7 @@ export function ProductOne({
                             </div>
 
                             <button
+                              suppressHydrationWarning
                               type="button"
                               className={`${styles.wishlistButton} ${isWished ? styles.wishlistButtonActive : ""}`}
                               aria-label={
@@ -859,7 +877,7 @@ export function ProductOne({
                           </div>
 
                           <div className={styles.cardActions}>
-                            <button type="button" className={styles.cartButton}>
+                            <button suppressHydrationWarning type="button" className={styles.cartButton}>
                               <span className={styles.cartIcon} aria-hidden="true">
                                 <i className="bi bi-bag-plus" />
                               </span>
@@ -885,7 +903,12 @@ export function ProductOne({
                     </div>
                     <h2>No matching products</h2>
                     <p>{emptyText}</p>
-                    <button type="button" className={styles.resetButton} onClick={resetFilters}>
+                    <button
+                      suppressHydrationWarning
+                      type="button"
+                      className={styles.resetButton}
+                      onClick={resetFilters}
+                    >
                       Reset filters
                     </button>
                   </div>
@@ -895,6 +918,7 @@ export function ProductOne({
               <div className={styles.paginationWrap} aria-label="Product pagination">
                 <div className={styles.pagination}>
                   <button
+                    suppressHydrationWarning
                     type="button"
                     className={`${styles.paginationNav} ${styles.paginationArrow}`}
                     onClick={() => setPage((current) => Math.max(1, current - 1))}
@@ -925,6 +949,7 @@ export function ProductOne({
                             {showDots ? <span className={styles.paginationDots}>...</span> : null}
 
                             <button
+                              suppressHydrationWarning
                               type="button"
                               className={`${styles.paginationPage} ${
                                 page === pageNumber ? styles.paginationPageActive : ""
@@ -940,6 +965,7 @@ export function ProductOne({
                   </div>
 
                   <button
+                    suppressHydrationWarning
                     type="button"
                     className={`${styles.paginationNav} ${styles.paginationArrow}`}
                     onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
@@ -953,6 +979,7 @@ export function ProductOne({
                     <span className={styles.paginationGotoLabel}>Go to page</span>
 
                     <input
+                      suppressHydrationWarning
                       type="number"
                       min={1}
                       max={totalPages}
@@ -967,6 +994,7 @@ export function ProductOne({
                     />
 
                     <button
+                      suppressHydrationWarning
                       type="button"
                       className={styles.paginationGoButton}
                       onClick={() => setPage((current) => Math.min(Math.max(1, current), totalPages))}
@@ -980,6 +1008,7 @@ export function ProductOne({
           )}
         </div>
       </div>
+
       <section className={styles.seoSection} aria-labelledby="catalog-seo-title">
         <div className={styles.seoGrid}>
           <div className={styles.seoMain}>
@@ -1120,6 +1149,7 @@ export function ProductOne({
           </div>
         </div>
       </section>
+
       {!mounted ? null : <span className={styles.srOnly}>Interactive product catalog loaded.</span>}
     </section>
   );
@@ -1129,6 +1159,7 @@ export const SHOP_PRODUCT_ONE: RegItem = {
   kind: "ProductOne",
   label: "Product One",
   defaults: {
+    title: "Product List",
     apiUrl: "/api/v1/products/list",
     currency: "USD",
     locale: "en-US",
@@ -1140,6 +1171,7 @@ export const SHOP_PRODUCT_ONE: RegItem = {
     colorFilters: JSON.stringify(DEFAULT_COLORS, null, 2),
   },
   inspector: [
+    { key: "title", label: "Title", kind: "text" },
     { key: "apiUrl", label: "API URL", kind: "text" },
     { key: "currency", label: "Currency", kind: "text" },
     { key: "locale", label: "Locale", kind: "text" },
@@ -1156,11 +1188,11 @@ export const SHOP_PRODUCT_ONE: RegItem = {
     return (
       <div aria-label="Product One">
         <ProductOne
-          title={p.title}
+          title={p.title || "Product List"}
           apiUrl={p.apiUrl || "/api/v1/products/list"}
           currency={p.currency || "USD"}
           locale={p.locale || "en-US"}
-          emptyText={p.emptyText}
+          emptyText={p.emptyText || "No products match your current filters."}
           pageSize={Number(p.pageSize) > 0 ? Number(p.pageSize) : 12}
           defaultSort={
             p.defaultSort === "featured" ||
@@ -1170,9 +1202,9 @@ export const SHOP_PRODUCT_ONE: RegItem = {
               ? p.defaultSort
               : "price-asc"
           }
-          brandFilters={parseBrandFilters(p.brandFilters)}
-          priceFilters={parsePriceFilters(p.priceFilters)}
-          colorFilters={parseColorFilters(p.colorFilters)}
+          brandFilters={parseBrandFilters(p.brandFilters) ?? DEFAULT_BRANDS}
+          priceFilters={parsePriceFilters(p.priceFilters) ?? DEFAULT_PRICES}
+          colorFilters={parseColorFilters(p.colorFilters) ?? DEFAULT_COLORS}
         />
       </div>
     );

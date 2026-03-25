@@ -22,7 +22,7 @@
   gap: 10px;
   width: 1366px;
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 30px 0;
   color: var(--text);
   position: relative;
 }
@@ -46,7 +46,7 @@
   border-radius: 6px;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.72));
-  border: var(--bd-header);
+  border: 1px solid #adead6;
   backdrop-filter: blur(14px);
 }
 
@@ -826,10 +826,10 @@
 }
 
 .pTitle {
-  font-size: 0.98rem;
+  font-size: 14px;
   line-height: 1.2;
   font-weight: 900;
-  color: #12263a;
+  color: var(--muted);
   margin-bottom: 5px;
   text-transform: uppercase;
 }
@@ -899,15 +899,15 @@
 }
 
 .rbTop {
-  background: linear-gradient(135deg, #cfe8fb 0%, #9fd1f4 48%, #87c0eb 100%);
+  background: linear-gradient(135deg, #17c96424, #0ea5a414);
 }
 
 .rbMid {
-  background: linear-gradient(135deg, #ccf4df 0%, #95e3bf 48%, #7fd9c6 100%);
+  background: linear-gradient(135deg, #17c96424, #0ea5a414);
 }
 
 .rbShip {
-  background: linear-gradient(135deg, #f7e0b8 0%, #f3cf94 48%, #edc182 100%);
+  background: linear-gradient(135deg, #17c96424, #0ea5a414);
 }
 
 .rbHead,
@@ -944,7 +944,7 @@
 }
 
 .rbTitle {
-  color: #e87e68;
+  color: #ff6161e8;
   text-transform: uppercase;
   letter-spacing: -0.02em;
   margin: 5px 0 0;
@@ -968,7 +968,7 @@
   border-radius: 18px;
   overflow: hidden;
   justify-self: end;
-  background: rgba(255, 255, 255, 0.26);
+  background: #ffffffc7;
   border: 1px solid rgba(255, 255, 255, 0.32);
   display: grid;
   place-items: center;

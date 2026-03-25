@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 
 type Block = {
@@ -28,6 +28,16 @@ export default function RenderBlocksPublic({
   currentPath?: string;
   rawSegments?: string[];
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <>
       {blocks.map((b, i) => {
