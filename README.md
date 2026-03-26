@@ -477,12 +477,61 @@ học thêm cloud + performance + AI integration
 
 Những thứ này sẽ giúp bạn không bị mắc kẹt ở mức junior.
 
-hiện tại design chưa được đẹp và hoàn chỉnh tôi có cảm giác chưa có bố cục rõ ràng và minh bạch. Ui không phù hợp với phong cách mới mẽ và thêm phần list tôi muốn row có 4 col Bạn có thể cải tiến design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ nhé, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file giúp tôi nhé. Hãy tách ra ProductOne.tsx và ProductOne.module.css giống với ảnh giúp tôi có được không
+hiện tại design chưa được đẹp và hoàn chỉnh tôi có cảm giác chưa có bố cục rõ ràng và minh bạch. Ui không phù hợp với phong cách mới mẽ. Bạn có thể độ design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ nhé, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file giúp tôi nhé. Hãy tách ra HotProductOne.tsx và HotProductOne.module.css giống với ảnh giúp tôi có được không
+Đặc biệt cần phải có đoạn code bên dưới nhé
 
-Do PopularProductOne.tsx là file có cấu trúc mẫu cho templates. tôi muốn mức đanh giá UI: 8/10 Code structure: 8/10 SEO direct impact: 8/10 Accessibility: 8/10 Ecommerce conversion trust: 8/10 Bạn có thể chỉnh lại và ghi lại file giúp tôi nhé Hiện tại tiếng việt hãy giúp tôi chuyển sang tiếng anh và ghi lại toàn bộ file HotProductOne.tsx. Bạn có thể cải tiến design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ nhé, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file giúp tôi nhé. Hãy tách ra HotProductOne.tsx và HotProductOne.module.css giống với ảnh giúp tôi có được không
+/_ ================= RegItem ================= _/
+export const SHOP_HOT_PRODUCT_ONE: RegItem = {
+kind: "HotProductOne",
+label: "Hot Product One",
+defaults: {
+title: "Hot Products",
+viewAllText: "View all products",
+viewAllHref: "/products",
+apiUrl: PRODUCTS_API_URL,
+products: JSON.stringify([], null, 2),
+banner: JSON.stringify(DEFAULT_BANNER, null, 2),
+},
+inspector: [
+{ key: "title", label: "Title", kind: "text" },
+{ key: "viewAllText", label: "View all text", kind: "text" },
+{ key: "viewAllHref", label: "View all URL", kind: "text" },
+{ key: "apiUrl", label: "Products API URL", kind: "text" },
+{ key: "products", label: "Products override (JSON)", kind: "textarea", rows: 12 },
+{ key: "banner", label: "Banner (JSON)", kind: "textarea", rows: 10 },
+],
+render: (p) => {
+const products = safeJson<HotProductOneItem[]>(p.products);
+const banner = safeJson<HotProductOneBanner>(p.banner);
+
+    return (
+      <div className="sectionContainer" aria-label="Hot Product One">
+        <HotProductOne
+          title={String(p.title || "Hot Products")}
+          subtitle={String(
+            p.subtitle || "High-converting favorites curated for shoppers who value quality, trust, and fast delivery.",
+          )}
+          viewAllText={String(p.viewAllText || "View all products")}
+          viewAllHref={String(p.viewAllHref || "/products")}
+          apiUrl={String(p.apiUrl || PRODUCTS_API_URL)}
+          products={products}
+          banner={banner}
+          preview={true}
+        />
+      </div>
+    );
+
+},
+};
+
+export default HotProductOne;
+
+Do HeaderAnnouncement.tsx là file có cấu trúc mẫu templates dành để tạo block cho pages. Bạn có thể tạo AccountOne.tsx cải tiến design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ dựa vào cấu trúc mẫu HeaderAnnouncement, tôi đang sử dụng next 16 và css module và icon bootstrapt. Tôi muốn bạn ở cương bị cấp bật là serior front-end. Hãy tách ra AccountOne.tsx và AccountOne.module.css giống với ảnh giúp tôi có được không. Tôi đang tạo profile Acount dành cho customer bạn có thể tâoj giúp tôi được không
 
 Mục tiêu cải tiến
 Logo có background card
 Có shadow + bo góc
 Text cân đối hơn
 Nhìn “brand” hơn, không còn kiểu icon rời rạc
+
+bootstrapt icon

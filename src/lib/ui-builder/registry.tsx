@@ -84,6 +84,18 @@ import { SHOP_PRODUCT_NEW_ONE } from "@/components/admin/shared/templates/sectio
 // ===== Web page Product New  =====
 import { SHOP_HOT_PRODUCT_ONE } from "@/components/admin/shared/templates/sections/HotProduct/HotProductOne";
 
+// ===== Web page Product Suggested  =====
+import { SHOP_SUGGESTED_PRODUCT_ONE } from "@/components/admin/shared/templates/sections/SuggestProduct/SuggestProductOne";
+
+// ===== Web page Product Suggested  =====
+import { SHOP_HOT_NEW_ONE } from "@/components/admin/shared/templates/sections/HotNew/HotNewOne";
+
+// ===== Web page Product Suggested  =====
+import { SHOP_EVALUATE_ONE } from "@/components/admin/shared/templates/sections/Evaluate/EvaluateOne";
+
+// ===== Web page Account One  =====
+import { SHOP_ACCOUNT_ONE } from "@/components/admin/shared/templates/sections/Account/AccountOne";
+
 // ===== Web page Detail  =====
 import { SHOP_DETAIL_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Detail/DetailAnnouncement";
 import { SHOP_DETAIL_CENTERED } from "@/components/admin/shared/templates/sections/Detail/DetailCentered";
@@ -175,6 +187,18 @@ export const REGISTRY_HOME: RegItem[] = [
 
   // ===== Web Product hot  =====
   SHOP_HOT_PRODUCT_ONE,
+
+  // ===== Web Product Product  =====
+  SHOP_SUGGESTED_PRODUCT_ONE,
+
+  // ===== Web Hot New One  =====
+  SHOP_HOT_NEW_ONE,
+
+  // ===== Web EvaluateOne  =====
+  SHOP_EVALUATE_ONE,
+
+  // ===== Web Account One  =====
+  SHOP_ACCOUNT_ONE,
 
   // ===== Web page Section  =====
   SHOP_SECTION_ANNOUNCEMENT,

@@ -18,21 +18,6 @@ export type NavItem =
   | { type: "link"; label: string; href: string; icon: string }
   | { type: "mega"; label: string; icon: string; columns: MegaColumn[] };
 
-export type CategoryMenuItem = {
-  label: string;
-  href: string;
-  emoji?: string;
-};
-
-export type CartPopupItem = {
-  id: string;
-  name: string;
-  price: number;
-  qty: number;
-  image?: string;
-  href?: string;
-};
-
 export type ProductNotificationItem = {
   id: string;
   title: string;
@@ -63,10 +48,8 @@ export type HeaderAnnouncementProps = {
   logoAlt?: string;
   searchPlaceholder?: string;
   onSearchSubmit?: (q: string) => void;
-  badgeStoreLocator?: number;
   badgeCart?: number;
   navItems?: NavItem[];
-  categoryItems?: CategoryMenuItem[];
   notifications?: ProductNotificationItem[];
   notificationHref?: string;
   preview?: boolean;
@@ -74,13 +57,12 @@ export type HeaderAnnouncementProps = {
   menuSetKey?: string;
   menuSiteIdKey?: string;
   isAuthed?: boolean;
-  cartItems?: CartPopupItem[];
-  cartHref?: string;
   orders?: OrderPopupItem[];
   orderHref?: string;
 };
 
 type AuthMode = "login" | "register";
+type PopupKey = "notification" | "order" | "account" | null;
 
 type ApiLayoutItem = {
   id: string;
@@ -90,8 +72,6 @@ type ApiLayoutItem = {
   icon: string | null;
   sortOrder: number;
   visible: boolean;
-  locale: string;
-  setKey: string;
 };
 
 type ApiTreeNode = {
@@ -112,146 +92,48 @@ type CurrentUser = {
   name?: string | null;
 };
 
-function normalizePath(p?: string | null): string {
-  const s = String(p || "").trim();
-  if (!s) return "/";
-  return s.startsWith("/") ? s : `/${s}`;
-}
+type ProductSearchItem = {
+  id: string;
+  name: string;
+  slug: string;
+  shortDescription?: string | null;
+  productType?: string | null;
+  tags?: string[];
+  price?: string | null;
+  marketPrice?: string | null;
+  savingPrice?: string | null;
+  productQty?: number;
+  publishedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  brand?: {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl?: string | null;
+  } | null;
+  image?: {
+    id: string;
+    url: string;
+    sort?: number | null;
+  } | null;
+};
 
-function toIcon(raw?: string | null): string {
-  const s = String(raw || "").trim();
-  if (!s) return "bi-dot";
-  return s
-    .replace(/^bi\s+/i, "")
-    .replace(/^bi\s+bi-/i, "bi-")
-    .replace(/^bi\s+bi\s+/i, "");
-}
+type ProductSearchResponse = {
+  siteId?: string;
+  domain?: string;
+  keyword?: string;
+  items?: ProductSearchItem[];
+  total?: number;
+  error?: string;
+};
 
-function buildTreeFromItems(rows: ApiLayoutItem[]): ApiTreeNode[] {
-  const vis = (rows || []).filter((r) => !!r.visible);
-
-  const map = new Map<string, ApiTreeNode>();
-  vis.forEach((r) => {
-    map.set(r.id, {
-      key: r.id,
-      title: r.title,
-      icon: toIcon(r.icon),
-      path: r.path,
-      parentKey: r.parentId,
-      children: [],
-    });
-  });
-
-  const roots: ApiTreeNode[] = [];
-  vis.forEach((r) => {
-    const node = map.get(r.id)!;
-    if (r.parentId && map.has(r.parentId)) {
-      map.get(r.parentId)!.children!.push(node);
-    } else {
-      roots.push(node);
-    }
-  });
-
-  const sortMap: Record<string, number> = {};
-  (rows || []).forEach((r) => {
-    sortMap[r.id] = r.sortOrder;
-  });
-
-  const sortRec = (arr?: ApiTreeNode[]) => {
-    if (!arr) return;
-    arr.sort((a, b) => {
-      const sa = sortMap[a.key] ?? 0;
-      const sb = sortMap[b.key] ?? 0;
-      if (sa !== sb) return sa - sb;
-      return a.title.localeCompare(b.title);
-    });
-    arr.forEach((n) => sortRec(n.children));
-  };
-
-  sortRec(roots);
-  return roots;
-}
-
-function treeToNavItems(tree: ApiTreeNode[]): NavItem[] {
-  const out: NavItem[] = [];
-
-  for (const n of tree || []) {
-    const icon = toIcon(n.icon);
-    const children = n.children || [];
-
-    if (!children.length) {
-      out.push({
-        type: "link",
-        label: n.title,
-        href: normalizePath(n.path),
-        icon,
-      });
-      continue;
-    }
-
-    const columns: MegaColumn[] = children
-      .map((c) => {
-        const grand = c.children || [];
-
-        const colItems = grand
-          .filter((g) => !!g?.title && !!g?.path)
-          .map((g) => ({
-            label: g.title,
-            href: normalizePath(g.path),
-          }));
-
-        if (!colItems.length && c.path) {
-          return {
-            title: c.title,
-            items: [{ label: c.title, href: normalizePath(c.path) }],
-          };
-        }
-
-        return { title: c.title, items: colItems };
-      })
-      .filter((col) => col.title && col.items.length);
-
-    if (!columns.length) {
-      out.push({
-        type: "link",
-        label: n.title,
-        href: normalizePath(n.path),
-        icon,
-      });
-      continue;
-    }
-
-    out.push({
-      type: "mega",
-      label: n.title,
-      icon,
-      columns,
-    });
-  }
-
-  return out;
-}
-
-function renderStars(rating = 0) {
-  return Array.from({ length: 5 }, (_, idx) => {
-    const filled = idx < Math.max(0, Math.min(5, rating));
-    return <i key={idx} className={`bi ${filled ? "bi-star-fill" : "bi-star"} ${cls.orderStar}`} aria-hidden="true" />;
-  });
-}
-
-const DEFAULT_CATEGORY_ITEMS: CategoryMenuItem[] = [
-  { label: "New Arrivals", href: "/new-arrivals", emoji: "🆕" },
-  { label: "Best Sellers", href: "/best-sellers", emoji: "🔥" },
-  { label: "Promotions", href: "/sale", emoji: "🏷️" },
-  { label: "Accessories", href: "/accessories", emoji: "⌚" },
-  { label: "Personal Care", href: "/beauty", emoji: "💄" },
-  { label: "Health Care", href: "/health", emoji: "💊" },
-  { label: "Home Appliances", href: "/home-living", emoji: "🏠" },
-  { label: "Technology", href: "/tech", emoji: "📱" },
-  { label: "Sports & Outdoor", href: "/sports", emoji: "🏃" },
-  { label: "Mother & Baby", href: "/mom-baby", emoji: "🍼" },
-  { label: "Gifts", href: "/gifts", emoji: "🎁" },
-];
+const FALLBACK_IMAGE = "/assets/images/logo.jpg";
 
 const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
   {
@@ -261,7 +143,7 @@ const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
     time: "20 min ago",
     href: "/products/laneige-lip-sleeping-mask",
     unread: true,
-    thumbnail: "/assets/images/logo.jpg",
+    thumbnail: FALLBACK_IMAGE,
     tag: "New",
   },
   {
@@ -271,7 +153,7 @@ const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
     time: "1 hour ago",
     href: "/sale",
     unread: true,
-    thumbnail: "/assets/images/logo.jpg",
+    thumbnail: FALLBACK_IMAGE,
     tag: "Sale",
   },
   {
@@ -281,29 +163,8 @@ const DEFAULT_NOTIFICATIONS: ProductNotificationItem[] = [
     time: "3 hours ago",
     href: "/products/cerave-foaming-cleanser",
     unread: false,
-    thumbnail: "/assets/images/logo.jpg",
+    thumbnail: FALLBACK_IMAGE,
     tag: "Stock",
-  },
-  {
-    id: "4",
-    title: "Order update",
-    message: "Your recent order is being prepared for shipping.",
-    time: "Today",
-    href: "/account/orders",
-    unread: false,
-    thumbnail: "/assets/images/logo.jpg",
-    tag: "Order",
-  },
-];
-
-const DEFAULT_CART_ITEMS: CartPopupItem[] = [
-  {
-    id: "1",
-    name: "Dán nút phím Surface Laptop 3 & 4 ...",
-    price: 39000,
-    qty: 2,
-    href: "/products/surface-keycap",
-    image: "/assets/images/logo.jpg",
   },
 ];
 
@@ -315,7 +176,7 @@ const DEFAULT_ORDERS: OrderPopupItem[] = [
     deliveryText: "Estimated Delivery on 21 Dec",
     deliveryTone: "success",
     rating: 1,
-    image: "/assets/images/logo.jpg",
+    image: FALLBACK_IMAGE,
     href: "/account/orders/999012",
   },
   {
@@ -325,7 +186,7 @@ const DEFAULT_ORDERS: OrderPopupItem[] = [
     deliveryText: "Delivered on 16 Dec",
     deliveryTone: "warning",
     rating: 4,
-    image: "/assets/images/logo.jpg",
+    image: FALLBACK_IMAGE,
     href: "/account/orders/6660212",
   },
   {
@@ -335,40 +196,177 @@ const DEFAULT_ORDERS: OrderPopupItem[] = [
     deliveryText: "Delivered on 15 Dec",
     deliveryTone: "warning",
     rating: 4,
-    image: "/assets/images/logo.jpg",
+    image: FALLBACK_IMAGE,
     href: "/account/orders/551221",
   },
-  {
-    id: "4",
-    orderNumber: "#4445202",
-    placedAt: "12-Dec-2019, 3:00 PM",
-    deliveryText: "Delivered on 13 Dec",
-    deliveryTone: "warning",
-    rating: 4,
-    image: "/assets/images/logo.jpg",
-    href: "/account/orders/4445202",
-  },
-  {
-    id: "5",
-    orderNumber: "#4525253",
-    placedAt: "11-Dec-2019, 3:00 PM",
-    deliveryText: "Delivered on 11 Dec",
-    deliveryTone: "warning",
-    rating: 5,
-    image: "/assets/images/logo.jpg",
-    href: "/account/orders/4525253",
-  },
-  {
-    id: "6",
-    orderNumber: "#3355242",
-    placedAt: "08-Dec-2019, 3:00 PM",
-    deliveryText: "Delivered on 09 Dec",
-    deliveryTone: "warning",
-    rating: 4,
-    image: "/assets/images/logo.jpg",
-    href: "/account/orders/3355242",
-  },
 ];
+
+function normalizePath(path?: string | null): string {
+  const value = String(path || "").trim();
+  if (!value) return "/";
+  return value.startsWith("/") ? value : `/${value}`;
+}
+
+function normalizeIcon(raw?: string | null): string {
+  const value = String(raw || "").trim();
+  if (!value) return "bi-dot";
+  return value
+    .replace(/^bi\s+bi-/i, "bi-")
+    .replace(/^bi\s+/i, "")
+    .trim();
+}
+
+function buildTreeFromItems(rows: ApiLayoutItem[]): ApiTreeNode[] {
+  const visibleRows = rows.filter((row) => row.visible);
+  const nodeMap = new Map<string, ApiTreeNode>();
+  const orderMap = new Map<string, number>();
+
+  for (const row of visibleRows) {
+    nodeMap.set(row.id, {
+      key: row.id,
+      title: row.title,
+      icon: normalizeIcon(row.icon),
+      path: row.path,
+      parentKey: row.parentId,
+      children: [],
+    });
+    orderMap.set(row.id, row.sortOrder);
+  }
+
+  const roots: ApiTreeNode[] = [];
+
+  for (const row of visibleRows) {
+    const node = nodeMap.get(row.id);
+    if (!node) continue;
+
+    if (row.parentId && nodeMap.has(row.parentId)) {
+      nodeMap.get(row.parentId)?.children?.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  const sortTree = (nodes: ApiTreeNode[]) => {
+    nodes.sort((a, b) => {
+      const aOrder = orderMap.get(a.key) ?? 0;
+      const bOrder = orderMap.get(b.key) ?? 0;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return a.title.localeCompare(b.title);
+    });
+
+    nodes.forEach((node) => {
+      if (node.children?.length) sortTree(node.children);
+    });
+  };
+
+  sortTree(roots);
+  return roots;
+}
+
+function treeToNavItems(tree: ApiTreeNode[]): NavItem[] {
+  return tree.map((node) => {
+    const children = node.children ?? [];
+
+    if (!children.length) {
+      return {
+        type: "link",
+        label: node.title,
+        href: normalizePath(node.path),
+        icon: normalizeIcon(node.icon),
+      } satisfies NavItem;
+    }
+
+    const columns = children
+      .map((child) => {
+        const items = (child.children ?? [])
+          .filter((item) => item.title && item.path)
+          .map((item) => ({
+            label: item.title,
+            href: normalizePath(item.path),
+          }));
+
+        if (!items.length && child.path) {
+          return {
+            title: child.title,
+            items: [{ label: child.title, href: normalizePath(child.path) }],
+          };
+        }
+
+        return {
+          title: child.title,
+          items,
+        };
+      })
+      .filter((column) => column.title && column.items.length);
+
+    if (!columns.length) {
+      return {
+        type: "link",
+        label: node.title,
+        href: normalizePath(node.path),
+        icon: normalizeIcon(node.icon),
+      } satisfies NavItem;
+    }
+
+    return {
+      type: "mega",
+      label: node.title,
+      icon: normalizeIcon(node.icon),
+      columns,
+    } satisfies NavItem;
+  });
+}
+
+function renderStars(rating = 0) {
+  return Array.from({ length: 5 }, (_, index) => {
+    const filled = index < Math.max(0, Math.min(5, rating));
+    return (
+      <i key={index} className={`bi ${filled ? "bi-star-fill" : "bi-star"} ${cls.orderStar}`} aria-hidden="true" />
+    );
+  });
+}
+
+function buildProductHref(slug?: string | null) {
+  const clean = String(slug || "").trim();
+  if (!clean) return "/products";
+  return `/products/${clean}`;
+}
+
+function getSearchSiteId(storageKey: string) {
+  if (typeof window === "undefined") return "";
+  return String(window.localStorage.getItem(storageKey) ?? "").trim();
+}
+
+type SmartLinkProps = {
+  preview?: boolean;
+  href: string;
+  className?: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+};
+
+function SmartLink({ preview, href, className, onClick, children }: SmartLinkProps) {
+  if (preview) {
+    return (
+      <a
+        href="#"
+        className={className}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href as Route} className={className} onClick={onClick}>
+      {children}
+    </Link>
+  );
+}
 
 export function HeaderAnnouncement({
   brandHref = "/",
@@ -378,10 +376,8 @@ export function HeaderAnnouncement({
   logoAlt = "",
   searchPlaceholder = "What are you looking for today?",
   onSearchSubmit,
-  badgeStoreLocator = 2,
   badgeCart = 0,
   navItems,
-  categoryItems = DEFAULT_CATEGORY_ITEMS,
   notifications = DEFAULT_NOTIFICATIONS,
   notificationHref = "/notifications",
   preview = false,
@@ -389,8 +385,6 @@ export function HeaderAnnouncement({
   menuSetKey = "home",
   menuSiteIdKey = "builder_site_id",
   isAuthed = false,
-  cartItems = DEFAULT_CART_ITEMS,
-  cartHref = "/cart",
   orders = DEFAULT_ORDERS,
   orderHref = "/account/orders",
 }: HeaderAnnouncementProps) {
@@ -398,93 +392,61 @@ export function HeaderAnnouncement({
   const headerRef = useRef<HTMLElement | null>(null);
 
   const [mounted, setMounted] = useState(false);
-  const [safeLogo, setSafeLogo] = useState(logoSrc || "/assets/images/logo.jpg");
+  const [safeLogo, setSafeLogo] = useState(logoSrc || FALLBACK_IMAGE);
   const [apiNav, setApiNav] = useState<NavItem[]>([]);
-  const [menuLoaded, setMenuLoaded] = useState(false);
-
   const [query, setQuery] = useState("");
   const [openMegaIndex, setOpenMegaIndex] = useState<number | null>(null);
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const [orderOpen, setOrderOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
-
+  const [activePopup, setActivePopup] = useState<PopupKey>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [isPinned, setIsPinned] = useState(false);
-
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [authChecked, setAuthChecked] = useState(preview);
   const [headerHeight, setHeaderHeight] = useState(0);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [productResults, setProductResults] = useState<ProductSearchItem[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTouched, setSearchTouched] = useState(false);
 
-  useEffect(() => {
-    if (!mounted) return;
-    if (headerRef.current) {
-      setHeaderHeight(headerRef.current.offsetHeight);
-    }
-  }, [mounted]);
-
-  useEffect(() => {
-    setSafeLogo(logoSrc || "/assets/images/logo.jpg");
-  }, [logoSrc]);
-
-  const items = useMemo(() => {
-    if (navItems && navItems.length > 0) return navItems;
-    return apiNav;
-  }, [navItems, apiNav]);
-
-  const unreadNotificationCount = useMemo(() => notifications.filter((x) => x.unread).length, [notifications]);
-
+  const items = useMemo(() => (navItems?.length ? navItems : apiNav), [navItems, apiNav]);
+  const unreadNotificationCount = useMemo(() => notifications.filter((item) => item.unread).length, [notifications]);
   const orderPreviewItems = useMemo(() => orders.slice(0, 6), [orders]);
-
-  const isLoggedIn = preview ? !!isAuthed : authChecked && !!currentUser;
+  const isLoggedIn = preview ? Boolean(isAuthed) : authChecked && Boolean(currentUser);
+  const trimmedQuery = query.trim();
 
   const displayName = useMemo(() => {
     if (!currentUser) return "Your account";
-    if (currentUser.name && currentUser.name.trim()) return currentUser.name.trim();
+    if (currentUser.name?.trim()) return currentUser.name.trim();
     if (currentUser.email) return currentUser.email.split("@")[0];
     return "Your account";
   }, [currentUser]);
 
-  const displayRole = useMemo(() => currentUser?.role || "Account", [currentUser]);
-
-  const shouldRenderNav = items.length > 0;
-
-  const onBlockClick = (e: React.SyntheticEvent) => {
-    if (!preview) return;
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  const displayRole = currentUser?.role || "Account";
 
   const closeAll = () => {
     setOpenMegaIndex(null);
-    setCategoryOpen(false);
-    setNotificationOpen(false);
-    setOrderOpen(false);
-    setAccountOpen(false);
+    setActivePopup(null);
   };
 
-  const openAuth = (mode: AuthMode) => {
-    closeAll();
-    setAuthMode(mode);
-    setAuthOpen(true);
+  const closeSearchDropdown = () => {
+    setSearchOpen(false);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch {
-      // no-op
-    } finally {
-      setCurrentUser(null);
-      setAccountOpen(false);
-      setAuthOpen(false);
-    }
+  const togglePopup = (key: Exclude<PopupKey, null>) => {
+    setAuthOpen(false);
+    setOpenMegaIndex(null);
+    setSearchOpen(false);
+    setActivePopup((current) => (current === key ? null : key));
   };
+
+  useEffect(() => setMounted(true), []);
+  useEffect(() => setSafeLogo(logoSrc || FALLBACK_IMAGE), [logoSrc]);
+
+  useEffect(() => {
+    if (!mounted || !headerRef.current) return;
+    setHeaderHeight(headerRef.current.offsetHeight);
+  }, [mounted]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -497,15 +459,12 @@ export function HeaderAnnouncement({
 
     (async () => {
       try {
-        const res = await getMe();
-        if (!alive) return;
-        setCurrentUser(res.user);
+        const response = await getMe();
+        if (alive) setCurrentUser(response.user);
       } catch {
-        if (!alive) return;
-        setCurrentUser(null);
+        if (alive) setCurrentUser(null);
       } finally {
-        if (!alive) return;
-        setAuthChecked(true);
+        if (alive) setAuthChecked(true);
       }
     })();
 
@@ -521,47 +480,41 @@ export function HeaderAnnouncement({
 
     (async () => {
       try {
-        const qs = new URLSearchParams();
-        qs.set("setKey", menuSetKey || "home");
-        qs.set("tree", "1");
-        qs.set("includeHidden", "0");
-        qs.set("page", "1");
-        qs.set("size", "1000");
-        qs.set("sort", "sortOrder:asc");
-
-        const siteId = localStorage.getItem(menuSiteIdKey);
-        if (siteId) qs.set("siteId", siteId);
-
-        const res = await fetch(`${menuApiUrl}?${qs.toString()}`, {
-          cache: "no-store",
-          credentials: "include",
-          headers: {
-            "x-site-domain": window.location.host,
-          },
+        const params = new URLSearchParams({
+          setKey: menuSetKey || "home",
+          tree: "1",
+          includeHidden: "0",
+          page: "1",
+          size: "1000",
+          sort: "sortOrder:asc",
         });
 
-        if (!res.ok) throw new Error("Failed to load header menu");
+        const siteId = window.localStorage.getItem(menuSiteIdKey);
+        if (siteId) params.set("siteId", siteId);
 
-        const data = (await res.json()) as {
+        const response = await fetch(`${menuApiUrl}?${params.toString()}`, {
+          cache: "no-store",
+          credentials: "include",
+          headers: { "x-site-domain": window.location.host },
+        });
+
+        if (!response.ok) throw new Error("Failed to load menu");
+
+        const data = (await response.json()) as {
           tree?: ApiTreeNode[];
           items?: ApiLayoutItem[];
         };
 
-        let tree: ApiTreeNode[] = [];
+        const tree =
+          Array.isArray(data.tree) && data.tree.length
+            ? data.tree
+            : Array.isArray(data.items)
+              ? buildTreeFromItems(data.items)
+              : [];
 
-        if (Array.isArray(data.tree) && data.tree.length) {
-          tree = data.tree;
-        } else if (Array.isArray(data.items) && data.items.length) {
-          tree = buildTreeFromItems(data.items);
-        }
-
-        if (!alive) return;
-        setApiNav(treeToNavItems(tree));
-        setMenuLoaded(true);
+        if (alive) setApiNav(treeToNavItems(tree));
       } catch {
-        if (!alive) return;
-        setApiNav([]);
-        setMenuLoaded(true);
+        if (alive) setApiNav([]);
       }
     })();
 
@@ -580,229 +533,122 @@ export function HeaderAnnouncement({
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, [mounted, preview]);
 
   useEffect(() => {
     if (!mounted) return;
 
-    const onDocClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      if (rootRef.current && rootRef.current.contains(target)) return;
+    const onDocumentClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target || rootRef.current?.contains(target)) return;
       closeAll();
+      setAuthOpen(false);
+      closeSearchDropdown();
     };
 
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        closeAll();
-        setAuthOpen(false);
-      }
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      closeAll();
+      setAuthOpen(false);
+      closeSearchDropdown();
     };
 
-    document.addEventListener("click", onDocClick);
-    document.addEventListener("keydown", onKey);
+    document.addEventListener("click", onDocumentClick);
+    document.addEventListener("keydown", onEscape);
 
     return () => {
-      document.removeEventListener("click", onDocClick);
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("click", onDocumentClick);
+      document.removeEventListener("keydown", onEscape);
     };
   }, [mounted]);
 
-  const renderSearch = () => {
-    if (!mounted) {
-      return (
-        <div className={cls.search} aria-hidden="true">
-          <div className={cls.searchIcon}>
-            <i className="bi bi-search" />
-          </div>
-          <div
-            className={cls.searchSkeleton}
-            style={{
-              flex: 1,
-              minHeight: 44,
-            }}
-          />
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              flexShrink: 0,
-            }}
-          />
-        </div>
-      );
+  useEffect(() => {
+    if (!mounted || preview) return;
+
+    const keyword = trimmedQuery;
+    if (!keyword) {
+      setProductResults([]);
+      setSearchLoading(false);
+      setSearchOpen(false);
+      return;
     }
 
-    return (
-      <form
-        className={cls.search}
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (preview) return;
-          onSearchSubmit?.(query);
-        }}
-      >
-        <div className={cls.searchIcon}>
-          <i className="bi bi-search" />
-        </div>
+    let alive = true;
+    const controller = new AbortController();
 
-        <input
-          suppressHydrationWarning
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          type="text"
-          placeholder={searchPlaceholder}
-        />
+    const timer = window.setTimeout(async () => {
+      try {
+        setSearchLoading(true);
 
-        <button suppressHydrationWarning type="submit" aria-label="Search">
-          <i className="bi bi-search" />
-        </button>
-      </form>
-    );
+        const params = new URLSearchParams({
+          keyword,
+          limit: "8",
+        });
+
+        const siteId = getSearchSiteId(menuSiteIdKey);
+        if (siteId) params.set("siteId", siteId);
+
+        const response = await fetch(`/api/v1/products?${params.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal,
+          headers: {
+            "Content-Type": "application/json",
+            "x-site-domain": window.location.host,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to search products");
+        }
+
+        const data = (await response.json()) as ProductSearchResponse;
+        if (!alive) return;
+
+        setProductResults(Array.isArray(data.items) ? data.items : []);
+        setSearchOpen(true);
+      } catch {
+        if (!alive) return;
+        setProductResults([]);
+        setSearchOpen(true);
+      } finally {
+        if (alive) setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      alive = false;
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [mounted, preview, trimmedQuery, menuSiteIdKey]);
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } finally {
+      setCurrentUser(null);
+      setActivePopup(null);
+      setAuthOpen(false);
+    }
   };
 
-  const renderAccountButton = () => {
-    if (!mounted) {
-      return (
-        <div className={`${cls.actionBtn} ${cls.accountBtn}`} aria-hidden="true">
-          <span className={cls.actionIcon}>
-            <i className="bi bi-person" />
-          </span>
-          <span className={cls.actionText}>
-            <span>Account</span>
-            <strong>Loading...</strong>
-          </span>
-          <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
-        </div>
-      );
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const nextQuery = query.trim();
+    if (!nextQuery) {
+      setProductResults([]);
+      setSearchOpen(false);
+      return;
     }
 
-    return (
-      <button
-        suppressHydrationWarning
-        className={`${cls.actionBtn} ${cls.accountBtn}`}
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          if (preview) return;
-
-          if (!isLoggedIn) {
-            openAuth("login");
-            return;
-          }
-
-          setNotificationOpen(false);
-          setOrderOpen(false);
-          setCategoryOpen(false);
-          setOpenMegaIndex(null);
-          setAuthOpen(false);
-          setAccountOpen((v) => !v);
-        }}
-        aria-haspopup={isLoggedIn ? "menu" : "dialog"}
-        aria-expanded={isLoggedIn ? accountOpen : authOpen}
-      >
-        <span className={cls.actionIcon}>
-          <i className="bi bi-person" />
-        </span>
-        <span className={cls.actionText}>
-          <span>{isLoggedIn ? `Hello, ${displayName}` : authChecked ? "Login" : "Loading..."}</span>
-          <strong>{isLoggedIn ? displayRole : "Account"}</strong>
-        </span>
-        <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
-      </button>
-    );
-  };
-
-  const renderNotificationButton = () => {
-    if (!mounted) {
-      return (
-        <div className={cls.actionBtn} aria-hidden="true">
-          <span className={cls.actionIcon}>
-            <i className="bi bi-bell" />
-          </span>
-          <span className={cls.actionText}>
-            <span>Updates</span>
-            <strong>Notifications</strong>
-          </span>
-          {unreadNotificationCount > 0 ? <span className={cls.miniBadge}>{unreadNotificationCount}</span> : null}
-        </div>
-      );
+    if (!preview) {
+      onSearchSubmit?.(nextQuery);
     }
 
-    return (
-      <button
-        suppressHydrationWarning
-        className={cls.actionBtn}
-        type="button"
-        aria-label="Notifications"
-        aria-haspopup="dialog"
-        aria-expanded={notificationOpen}
-        onClick={(e) => {
-          if (preview) {
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-          }
-          e.preventDefault();
-          e.stopPropagation();
-          setAccountOpen(false);
-          setOrderOpen(false);
-          setNotificationOpen((v) => !v);
-        }}
-      >
-        <span className={cls.actionIcon}>
-          <i className="bi bi-bell" />
-        </span>
-        <span className={cls.actionText}>
-          <span>Updates</span>
-          <strong>Notifications</strong>
-        </span>
-        {unreadNotificationCount > 0 ? <span className={cls.miniBadge}>{unreadNotificationCount}</span> : null}
-      </button>
-    );
-  };
-
-  const renderCartButton = () => {
-    if (!mounted) {
-      return (
-        <div className={cls.cartBtn} aria-hidden="true">
-          <i className="bi bi-bag" />
-          <span className={cls.badge}>{badgeCart}</span>
-        </div>
-      );
-    }
-
-    return (
-      <button
-        suppressHydrationWarning
-        className={cls.cartBtn}
-        type="button"
-        aria-label="Cart"
-        aria-haspopup="dialog"
-        aria-expanded={orderOpen}
-        onClick={(e) => {
-          if (preview) {
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-          }
-          e.preventDefault();
-          e.stopPropagation();
-          setAccountOpen(false);
-          setNotificationOpen(false);
-          setOrderOpen((v) => !v);
-        }}
-      >
-        <i className="bi bi-bag" />
-        <span className={cls.badge}>{badgeCart}</span>
-      </button>
-    );
+    setSearchOpen(false);
   };
 
   return (
@@ -819,61 +665,167 @@ export function HeaderAnnouncement({
           <div className={cls.container}>
             <div className={cls.mainRow}>
               <div className={cls.leftZone}>
-                {preview ? (
-                  <a className={cls.logo} href="#" aria-label={brandName} onClick={onBlockClick}>
-                    <span className={cls.logoBadge}>
-                      <Image
-                        src={safeLogo}
-                        alt={logoAlt}
-                        fill
-                        sizes="64px"
-                        className={cls.logoImg}
-                        onError={() => setSafeLogo("/assets/images/logo.jpg")}
-                      />
-                    </span>
+                <SmartLink preview={preview} href={brandHref} className={cls.logo}>
+                  <span className={cls.logoBadge}>
+                    <Image
+                      src={safeLogo}
+                      alt={logoAlt}
+                      fill
+                      sizes="64px"
+                      className={cls.logoImg}
+                      onError={() => setSafeLogo(FALLBACK_IMAGE)}
+                    />
+                  </span>
 
-                    <span className={cls.logoText}>
-                      <span className={cls.logoName}>{brandName}</span>
-                      <span className={cls.logoSub}>{brandSub}</span>
-                    </span>
-                  </a>
-                ) : (
-                  <Link className={cls.logo} href={brandHref as Route} aria-label={brandName}>
-                    <span className={cls.logoBadge}>
-                      <Image
-                        src={safeLogo}
-                        alt={logoAlt}
-                        fill
-                        sizes="64px"
-                        className={cls.logoImg}
-                        onError={() => {
-                          const fallback = "/assets/images/logo.jpg";
-                          setSafeLogo((prev) => (prev === fallback ? prev : fallback));
-                        }}
-                      />
-                    </span>
-
-                    <span className={cls.logoText}>
-                      <span className={cls.logoName}>{brandName}</span>
-                      <span className={cls.logoSub}>{brandSub}</span>
-                    </span>
-                  </Link>
-                )}
+                  <span className={cls.logoText}>
+                    <span className={cls.logoName}>{brandName}</span>
+                    <span className={cls.logoSub}>{brandSub}</span>
+                  </span>
+                </SmartLink>
               </div>
 
-              <div className={cls.centerZone}>{renderSearch()}</div>
+              <div className={cls.centerZone}>
+                <form className={cls.search} onSubmit={handleSearchSubmit}>
+                  <div className={cls.searchBox}>
+                    <div className={cls.leftIcon}>
+                      <i className="bi bi-search" />
+                    </div>
+
+                    <input
+                      value={query}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        setSearchTouched(true);
+                      }}
+                      onFocus={() => {
+                        if (trimmedQuery) setSearchOpen(true);
+                      }}
+                      type="text"
+                      placeholder={searchPlaceholder || "Search product..."}
+                      autoComplete="off"
+                      suppressHydrationWarning
+                    />
+
+                    {!!query && (
+                      <button
+                        type="button"
+                        className={cls.clearBtn}
+                        onClick={() => {
+                          setQuery("");
+                          setProductResults([]);
+                          setSearchTouched(false);
+                          setSearchOpen(false);
+                        }}
+                        aria-label="Clear search"
+                      >
+                        <i className="bi bi-x" />
+                      </button>
+                    )}
+
+                    <button type="submit" className={cls.searchBtn} aria-label="Search">
+                      <i className="bi bi-search" />
+                      <span>Search</span>
+                    </button>
+                  </div>
+
+                  {searchTouched && trimmedQuery && (
+                    <div className={cls.searchDropdown} role="listbox" aria-label="Product search suggestions">
+                      {searchLoading ? (
+                        <div className={cls.searchState}>Đang tìm sản phẩm...</div>
+                      ) : productResults.length > 0 ? (
+                        <>
+                          <div className={cls.searchDropdownList}>
+                            {productResults.map((item) => (
+                              <SmartLink
+                                key={item.id}
+                                preview={preview}
+                                href={buildProductHref(item.slug)}
+                                className={cls.searchItem}
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  closeAll();
+                                }}
+                              >
+                                <span className={cls.searchItemThumb}>
+                                  <Image
+                                    src={item.image?.url || FALLBACK_IMAGE}
+                                    alt={item.name}
+                                    fill
+                                    sizes="56px"
+                                    className={cls.searchItemThumbImg}
+                                  />
+                                </span>
+
+                                <span className={cls.searchItemBody}>
+                                  <span className={cls.searchItemName}>{item.name}</span>
+
+                                  {!!item.shortDescription && (
+                                    <span className={cls.searchItemDesc}>{item.shortDescription}</span>
+                                  )}
+
+                                  <span className={cls.searchItemMeta}>
+                                    {item.brand?.name ? (
+                                      <span className={cls.searchItemBrand}>{item.brand.name}</span>
+                                    ) : null}
+
+                                    {item.category?.name ? (
+                                      <span className={cls.searchItemCategory}>{item.category.name}</span>
+                                    ) : null}
+
+                                    {item.price ? <strong className={cls.searchItemPrice}>{item.price}</strong> : null}
+                                  </span>
+                                </span>
+                              </SmartLink>
+                            ))}
+                          </div>
+
+                          <button type="submit" className={cls.searchViewAll} onClick={() => setSearchOpen(false)}>
+                            Xem tất cả kết quả cho “{trimmedQuery}”
+                          </button>
+                        </>
+                      ) : (
+                        <div className={cls.searchState}>Không tìm thấy sản phẩm phù hợp.</div>
+                      )}
+                    </div>
+                  )}
+                </form>
+              </div>
 
               <div className={cls.rightZone}>
                 <div className={cls.accountWrap}>
-                  {renderAccountButton()}
+                  <button
+                    className={`${cls.actionBtn} ${cls.accountBtn}`}
+                    type="button"
+                    suppressHydrationWarning
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
 
-                  {mounted && isLoggedIn && accountOpen ? (
-                    <div
-                      className={cls.accountDropdown}
-                      role="menu"
-                      aria-label="Account menu"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                      if (preview) return;
+                      if (!isLoggedIn) {
+                        closeAll();
+                        setAuthMode("login");
+                        setAuthOpen(true);
+                        return;
+                      }
+
+                      togglePopup("account");
+                    }}
+                    aria-haspopup={isLoggedIn ? "menu" : "dialog"}
+                    aria-expanded={isLoggedIn ? activePopup === "account" : authOpen}
+                  >
+                    <span className={cls.actionIcon}>
+                      <i className="bi bi-person" />
+                    </span>
+                    <span className={cls.actionText}>
+                      <span>{isLoggedIn ? `Hello, ${displayName}` : authChecked ? "Login" : "Loading..."}</span>
+                      <strong>{isLoggedIn ? displayRole : "Account"}</strong>
+                    </span>
+                    <i className={`bi bi-chevron-down ${cls.actionCaret}`} />
+                  </button>
+
+                  {mounted && isLoggedIn && activePopup === "account" && (
+                    <div className={cls.accountDropdown} role="menu" aria-label="Account menu">
                       <div className={cls.accountDropdownHead}>
                         <div className={cls.accountDflex}>
                           <strong>{displayName}</strong>
@@ -883,41 +835,18 @@ export function HeaderAnnouncement({
                       </div>
 
                       <div className={cls.accountDropdownBody}>
-                        {preview ? (
-                          <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
-                            <i className="bi bi-person-circle" />
-                            <span>My account</span>
-                          </a>
-                        ) : (
-                          <Link
-                            href={"/account" as Route}
-                            className={cls.accountDropdownLink}
-                            onClick={() => setAccountOpen(false)}
-                          >
-                            <i className="bi bi-person-circle" />
-                            <span>My account</span>
-                          </Link>
-                        )}
-
-                        {preview ? (
-                          <a href="#" className={cls.accountDropdownLink} onClick={onBlockClick}>
-                            <i className="bi bi-receipt" />
-                            <span>My orders</span>
-                          </a>
-                        ) : (
-                          <Link
-                            href={"/account/orders" as Route}
-                            className={cls.accountDropdownLink}
-                            onClick={() => setAccountOpen(false)}
-                          >
-                            <i className="bi bi-receipt" />
-                            <span>My orders</span>
-                          </Link>
-                        )}
-
+                        <SmartLink
+                          preview={preview}
+                          href="/account"
+                          className={cls.accountDropdownLink}
+                          onClick={closeAll}
+                        >
+                          <i className="bi bi-person-circle" />
+                          <span>My account</span>
+                        </SmartLink>
                         <button
-                          suppressHydrationWarning
                           type="button"
+                          suppressHydrationWarning
                           className={cls.accountDropdownLogout}
                           onClick={handleLogout}
                         >
@@ -926,25 +855,40 @@ export function HeaderAnnouncement({
                         </button>
                       </div>
                     </div>
-                  ) : null}
+                  )}
                 </div>
 
                 <div className={cls.notificationWrap}>
-                  {renderNotificationButton()}
+                  <button
+                    className={cls.actionBtn}
+                    type="button"
+                    aria-label="Notifications"
+                    aria-haspopup="dialog"
+                    aria-expanded={activePopup === "notification"}
+                    suppressHydrationWarning
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      if (!preview) togglePopup("notification");
+                    }}
+                  >
+                    <span className={cls.actionIcon}>
+                      <i className="bi bi-bell" />
+                    </span>
+                    <span className={cls.actionText}>
+                      <span>Updates</span>
+                      <strong>Notifications</strong>
+                    </span>
+                    {unreadNotificationCount > 0 && <span className={cls.miniBadge}>{unreadNotificationCount}</span>}
+                  </button>
 
-                  {mounted && notificationOpen && (
-                    <div
-                      className={cls.notificationDropdown}
-                      role="dialog"
-                      aria-label="Notifications popup"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                  {mounted && activePopup === "notification" && (
+                    <div className={cls.notificationDropdown} role="dialog" aria-label="Notifications popup">
                       <div className={cls.notificationHead}>
                         <div className={cls.notificationHeadLeft}>
                           <div className={cls.notificationHeadIcon}>
                             <i className="bi bi-bell" />
                           </div>
-
                           <div className={cls.notificationHeadText}>
                             <strong>Notifications</strong>
                             <span>
@@ -952,127 +896,76 @@ export function HeaderAnnouncement({
                             </span>
                           </div>
                         </div>
-
-                        <button
-                          suppressHydrationWarning
-                          type="button"
-                          className={cls.notificationRefresh}
-                          aria-label="Refresh notifications"
-                          title="Refresh notifications"
-                        >
-                          <i className="bi bi-arrow-clockwise" />
-                        </button>
-                      </div>
-
-                      <div className={cls.notificationTabs}>
-                        <button
-                          suppressHydrationWarning
-                          type="button"
-                          className={`${cls.notificationTab} ${cls.notificationTabActive}`}
-                        >
-                          <span>All</span>
-                          <b>{notifications.length}</b>
-                        </button>
-
-                        <button suppressHydrationWarning type="button" className={cls.notificationTab}>
-                          <span>Unread</span>
-                          <b>{unreadNotificationCount}</b>
-                        </button>
                       </div>
 
                       <div className={cls.notificationList}>
-                        {notifications.map((item) =>
-                          preview ? (
-                            <a
-                              key={item.id}
-                              href="#"
-                              className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
-                              onClick={onBlockClick}
-                            >
-                              <span className={cls.notificationThumb}>
-                                <Image
-                                  src={item.thumbnail || "/assets/images/logo.jpg"}
-                                  alt={item.title}
-                                  fill
-                                  sizes="56px"
-                                  className={cls.notificationThumbImg}
-                                />
-                              </span>
+                        {notifications.map((item) => (
+                          <SmartLink
+                            key={item.id}
+                            preview={preview}
+                            href={item.href || notificationHref}
+                            className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
+                            onClick={closeAll}
+                          >
+                            <span className={cls.notificationThumb}>
+                              <Image
+                                src={item.thumbnail || FALLBACK_IMAGE}
+                                alt={item.title}
+                                fill
+                                sizes="56px"
+                                className={cls.notificationThumbImg}
+                              />
+                            </span>
 
-                              <span className={cls.notificationBody}>
-                                <span className={cls.notificationTitle}>{item.title}</span>
-                                <span className={cls.notificationMessage}>{item.message}</span>
-
-                                <span className={cls.notificationMeta}>
-                                  {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
-                                  <span className={cls.notificationTime}>{item.time}</span>
-                                </span>
+                            <span className={cls.notificationBody}>
+                              <span className={cls.notificationTitle}>{item.title}</span>
+                              <span className={cls.notificationMessage}>{item.message}</span>
+                              <span className={cls.notificationMeta}>
+                                {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
+                                <span className={cls.notificationTime}>{item.time}</span>
                               </span>
-                            </a>
-                          ) : (
-                            <Link
-                              key={item.id}
-                              href={(item.href || notificationHref || "/notifications") as Route}
-                              className={`${cls.notificationItem} ${item.unread ? cls.notificationUnread : ""}`}
-                              onClick={() => setNotificationOpen(false)}
-                            >
-                              <span className={cls.notificationThumb}>
-                                <Image
-                                  src={item.thumbnail || "/assets/images/logo.jpg"}
-                                  alt={item.title}
-                                  fill
-                                  sizes="56px"
-                                  className={cls.notificationThumbImg}
-                                />
-                              </span>
-
-                              <span className={cls.notificationBody}>
-                                <span className={cls.notificationTitle}>{item.title}</span>
-                                <span className={cls.notificationMessage}>{item.message}</span>
-
-                                <span className={cls.notificationMeta}>
-                                  {item.tag ? <span className={cls.notificationTag}>{item.tag}</span> : null}
-                                  <span className={cls.notificationTime}>{item.time}</span>
-                                </span>
-                              </span>
-                            </Link>
-                          ),
-                        )}
+                            </span>
+                          </SmartLink>
+                        ))}
                       </div>
 
                       <div className={cls.notificationFooter}>
-                        <button suppressHydrationWarning type="button" className={cls.notificationFooterLink}>
+                        <button type="button" className={cls.notificationFooterLink} suppressHydrationWarning>
                           Mark all as read
                         </button>
-
-                        {preview ? (
-                          <a href="#" className={cls.notificationFooterBtn} onClick={onBlockClick}>
-                            Go to notification center
-                          </a>
-                        ) : (
-                          <Link
-                            href={(notificationHref || "/notifications") as Route}
-                            className={cls.notificationFooterBtn}
-                            onClick={() => setNotificationOpen(false)}
-                          >
-                            Go to notification center
-                          </Link>
-                        )}
+                        <SmartLink
+                          preview={preview}
+                          href={notificationHref}
+                          className={cls.notificationFooterBtn}
+                          onClick={closeAll}
+                        >
+                          Go to notification center
+                        </SmartLink>
                       </div>
                     </div>
                   )}
                 </div>
 
                 <div className={cls.orderWrap}>
-                  {renderCartButton()}
+                  <button
+                    className={cls.cartBtn}
+                    type="button"
+                    aria-label="Orders"
+                    aria-haspopup="dialog"
+                    aria-expanded={activePopup === "order"}
+                    suppressHydrationWarning
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      if (!preview) togglePopup("order");
+                    }}
+                  >
+                    <i className="bi bi-bag" />
+                    <span className={cls.badge}>{badgeCart}</span>
+                  </button>
 
-                  {mounted && orderOpen && (
-                    <div
-                      className={cls.orderDropdown}
-                      role="dialog"
-                      aria-label="My Orders popup"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                  {mounted && activePopup === "order" && (
+                    <div className={cls.orderDropdown} role="dialog" aria-label="My Orders popup">
                       <div className={cls.orderHead}>
                         <span className={cls.orderHeadIcon}>
                           <i className="bi bi-receipt" />
@@ -1081,106 +974,57 @@ export function HeaderAnnouncement({
                       </div>
 
                       <div className={cls.orderList}>
-                        {orderPreviewItems.map((item) =>
-                          preview ? (
-                            <a key={item.id} href="#" className={cls.orderItem} onClick={onBlockClick}>
-                              <div className={cls.orderContent}>
-                                <div className={cls.orderTopRow}>
-                                  <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
-                                  <span className={cls.orderDate}>{item.placedAt}</span>
-                                </div>
-
-                                <span className={cls.orderBottomRow}>
-                                  <span
-                                    className={`${cls.orderDelivery} ${
-                                      item.deliveryTone === "success"
-                                        ? cls.orderDeliverySuccess
-                                        : item.deliveryTone === "warning"
-                                          ? cls.orderDeliveryWarning
-                                          : cls.orderDeliveryMuted
-                                    }`}
-                                  >
-                                    {item.deliveryText}
-                                  </span>
-
-                                  <span className={cls.orderRating}>
-                                    <span className={cls.orderRatingLabel}>You Rated</span>
-                                    <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
-                                  </span>
-                                </span>
+                        {orderPreviewItems.map((item) => (
+                          <SmartLink
+                            key={item.id}
+                            preview={preview}
+                            href={item.href || orderHref}
+                            className={cls.orderItem}
+                            onClick={closeAll}
+                          >
+                            <span className={cls.orderContent}>
+                              <div className={cls.orderTopRow}>
+                                <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
+                                <span className={cls.orderDate}>{item.placedAt}</span>
                               </div>
 
-                              <span className={cls.orderThumb}>
-                                <Image
-                                  src={item.image || "/assets/images/logo.jpg"}
-                                  alt={item.orderNumber}
-                                  fill
-                                  sizes="72px"
-                                  className={cls.orderThumbImg}
-                                />
-                              </span>
-                            </a>
-                          ) : (
-                            <Link
-                              key={item.id}
-                              href={(item.href || orderHref || "/account/orders") as Route}
-                              className={cls.orderItem}
-                              onClick={() => setOrderOpen(false)}
-                            >
-                              <span className={cls.orderContent}>
-                                <div className={cls.orderTopRow}>
-                                  <span className={cls.orderNumber}>Order#: {item.orderNumber}</span>
-                                  <span className={cls.orderDate}>{item.placedAt}</span>
-                                </div>
+                              <span className={cls.orderBottomRow}>
+                                <span
+                                  className={`${cls.orderDelivery} ${
+                                    item.deliveryTone === "success"
+                                      ? cls.orderDeliverySuccess
+                                      : item.deliveryTone === "warning"
+                                        ? cls.orderDeliveryWarning
+                                        : cls.orderDeliveryMuted
+                                  }`}
+                                >
+                                  {item.deliveryText}
+                                </span>
 
-                                <span className={cls.orderBottomRow}>
-                                  <span
-                                    className={`${cls.orderDelivery} ${
-                                      item.deliveryTone === "success"
-                                        ? cls.orderDeliverySuccess
-                                        : item.deliveryTone === "warning"
-                                          ? cls.orderDeliveryWarning
-                                          : cls.orderDeliveryMuted
-                                    }`}
-                                  >
-                                    {item.deliveryText}
-                                  </span>
-
-                                  <span className={cls.orderRating}>
-                                    <span className={cls.orderRatingLabel}>You Rated</span>
-                                    <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
-                                  </span>
+                                <span className={cls.orderRating}>
+                                  <span className={cls.orderRatingLabel}>You Rated</span>
+                                  <span className={cls.orderStars}>{renderStars(item.rating || 0)}</span>
                                 </span>
                               </span>
+                            </span>
 
-                              <span className={cls.orderThumb}>
-                                <Image
-                                  src={item.image || "/assets/images/logo.jpg"}
-                                  alt={item.orderNumber}
-                                  fill
-                                  sizes="72px"
-                                  className={cls.orderThumbImg}
-                                />
-                              </span>
-                            </Link>
-                          ),
-                        )}
+                            <span className={cls.orderThumb}>
+                              <Image
+                                src={item.image || FALLBACK_IMAGE}
+                                alt={item.orderNumber}
+                                fill
+                                sizes="72px"
+                                className={cls.orderThumbImg}
+                              />
+                            </span>
+                          </SmartLink>
+                        ))}
                       </div>
 
                       <div className={cls.orderFooter}>
-                        {preview ? (
-                          <a href="#" className={cls.orderFooterBtn} onClick={onBlockClick}>
-                            Xem tất cả
-                          </a>
-                        ) : (
-                          <Link
-                            href={(orderHref || "/account/orders") as Route}
-                            className={cls.orderFooterBtn}
-                            onClick={() => setOrderOpen(false)}
-                          >
-                            Xem tất cả
-                          </Link>
-                        )}
+                        <SmartLink preview={preview} href={orderHref} className={cls.orderFooterBtn} onClick={closeAll}>
+                          Xem tất cả
+                        </SmartLink>
                       </div>
                     </div>
                   )}
@@ -1189,143 +1033,91 @@ export function HeaderAnnouncement({
             </div>
 
             <div className={cls.navWrap}>
-              <div
-                className={`${cls.categoryNav} ${categoryOpen ? cls.categoryNavOpen : ""}`}
-                tabIndex={0}
-                role="button"
-                aria-haspopup="true"
-                aria-expanded={categoryOpen}
-                onMouseEnter={() => !preview && mounted && setCategoryOpen(true)}
-                onMouseLeave={() => !preview && mounted && setCategoryOpen(false)}
-                onClick={(e) => {
-                  if (preview) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                  }
-                  if (!mounted) return;
-                  setCategoryOpen((v) => !v);
-                }}
-                onKeyDown={(e) => {
-                  if (!mounted) return;
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setCategoryOpen((v) => !v);
-                  }
-                  if (e.key === "Escape") setCategoryOpen(false);
-                }}
-              >
-                <div className={cls.categoryTrigger}>
+              <div className={cls.categoryNav}>
+                <SmartLink preview={preview} href="/best-sellers" className={cls.categoryTrigger}>
                   <span className={cls.categoryTriggerLeft}>
                     <i className="bi bi-grid-3x3-gap" />
-                    <span>Product Categories</span>
+                    <span>Best Sellers</span>
                   </span>
-                  <i className={`bi bi-chevron-down ${cls.categoryTriggerCaret}`} />
-                </div>
-
-                <div className={cls.categoryDropdown}>
-                  <div className={cls.categoryPanel}>
-                    {categoryItems.map((cat, idx) =>
-                      preview ? (
-                        <a key={idx} href="#" className={cls.categoryItem} onClick={onBlockClick}>
-                          <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                          <span className={cls.categoryItemText}>{cat.label}</span>
-                          <i className="bi bi-chevron-right" />
-                        </a>
-                      ) : (
-                        <Link key={idx} href={(cat.href || "/") as Route} className={cls.categoryItem}>
-                          <span className={cls.categoryItemIcon}>{cat.emoji || "•"}</span>
-                          <span className={cls.categoryItemText}>{cat.label}</span>
-                          <i className="bi bi-chevron-right" />
-                        </Link>
-                      ),
-                    )}
-                  </div>
-                </div>
+                  <i className={`bi bi-chevron-right ${cls.categoryTriggerCaret}`} />
+                </SmartLink>
               </div>
 
               <nav className={cls.nav} aria-label="Primary navigation">
-                {shouldRenderNav &&
-                  items.map((it, idx) => {
-                    const iconCls = `bi ${it.icon}`;
-                    const isOpen = openMegaIndex === idx;
+                {items.map((item, index) => {
+                  const iconClass = `bi ${item.icon}`;
+                  const isMegaOpen = openMegaIndex === index;
 
-                    if (it.type !== "mega") {
-                      return preview ? (
-                        <a key={idx} className={cls.navItem} href="#" onClick={onBlockClick}>
-                          <i className={iconCls} />
-                          <span>{it.label}</span>
-                        </a>
-                      ) : (
-                        <Link key={idx} className={cls.navItem} href={(it.href || "/") as Route}>
-                          <i className={iconCls} />
-                          <span>{it.label}</span>
-                        </Link>
-                      );
-                    }
-
+                  if (item.type === "link") {
                     return (
-                      <div
-                        key={idx}
-                        className={`${cls.navItem} ${cls.navItemMega} ${isOpen ? cls.open : ""}`}
-                        tabIndex={0}
-                        role="button"
-                        aria-haspopup="true"
-                        aria-expanded={isOpen}
-                        onMouseEnter={() => !preview && mounted && setOpenMegaIndex(idx)}
-                        onMouseLeave={() => !preview && mounted && setOpenMegaIndex(null)}
-                        onClick={(e) => {
-                          if (preview) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return;
-                          }
-                          if (!mounted) return;
-                          setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-                        }}
-                        onKeyDown={(e) => {
-                          if (!mounted) return;
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setOpenMegaIndex((cur) => (cur === idx ? null : idx));
-                          }
-                          if (e.key === "Escape") setOpenMegaIndex(null);
-                        }}
+                      <SmartLink
+                        key={`${item.label}-${item.href}`}
+                        preview={preview}
+                        href={item.href}
+                        className={cls.navItem}
                       >
-                        <i className={iconCls} />
-                        <span>{it.label}</span>
-                        <i className={`bi bi-chevron-down ${cls.navCaret}`} />
+                        <i className={iconClass} />
+                        <span>{item.label}</span>
+                      </SmartLink>
+                    );
+                  }
 
-                        <div className={cls.mega} role="menu" aria-label={`${it.label} menu`}>
-                          <div className={cls.megaInner}>
-                            <div className={cls.megaGrid}>
-                              {it.columns.map((col, cIdx) => (
-                                <div className={cls.megaCol} key={cIdx}>
-                                  {col.title && <h4>{col.title}</h4>}
+                  return (
+                    <div
+                      key={`${item.label}-${index}`}
+                      className={`${cls.navItem} ${cls.navItemMega} ${isMegaOpen ? cls.open : ""}`}
+                      tabIndex={0}
+                      role="button"
+                      aria-haspopup="true"
+                      aria-expanded={isMegaOpen}
+                      onMouseEnter={() => !preview && mounted && setOpenMegaIndex(index)}
+                      onMouseLeave={() => !preview && mounted && setOpenMegaIndex(null)}
+                      onClick={(event) => {
+                        if (preview) {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          return;
+                        }
+                        setOpenMegaIndex((current) => (current === index ? null : index));
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setOpenMegaIndex((current) => (current === index ? null : index));
+                        }
+                        if (event.key === "Escape") setOpenMegaIndex(null);
+                      }}
+                    >
+                      <i className={iconClass} />
+                      <span>{item.label}</span>
+                      <i className={`bi bi-chevron-down ${cls.navCaret}`} />
 
-                                  {col.items.map((link, lIdx) =>
-                                    preview ? (
-                                      <a key={lIdx} href="#" onClick={onBlockClick} className={cls.megaLink}>
-                                        <span className={cls.megaLabel}>{link.label}</span>
-                                        <i className={`bi bi-arrow-right-short ${cls.megaIcon}`} />
-                                      </a>
-                                    ) : (
-                                      <Link key={lIdx} href={(link.href || "/") as Route} className={cls.megaLink}>
-                                        <span className={cls.megaLabel}>{link.label}</span>
-                                        <i className={`bi bi-arrow-right-short ${cls.megaIcon}`} />
-                                      </Link>
-                                    ),
-                                  )}
-                                </div>
-                              ))}
-                            </div>
+                      <div className={cls.mega} role="menu" aria-label={`${item.label} menu`}>
+                        <div className={cls.megaInner}>
+                          <div className={cls.megaGrid}>
+                            {item.columns.map((column) => (
+                              <div className={cls.megaCol} key={column.title}>
+                                {column.title && <h4>{column.title}</h4>}
+
+                                {column.items.map((link) => (
+                                  <SmartLink
+                                    key={`${link.label}-${link.href}`}
+                                    preview={preview}
+                                    href={link.href}
+                                    className={cls.megaLink}
+                                  >
+                                    <span className={cls.megaLabel}>{link.label}</span>
+                                    <i className={`bi bi-arrow-right-short ${cls.megaIcon}`} />
+                                  </SmartLink>
+                                ))}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-
-                {!shouldRenderNav && menuLoaded ? null : null}
+                    </div>
+                  );
+                })}
               </nav>
             </div>
           </div>
@@ -1340,7 +1132,7 @@ export function HeaderAnnouncement({
             setCurrentUser(user);
             setAuthChecked(true);
             setAuthOpen(false);
-            setAccountOpen(false);
+            closeAll();
           }}
         />
       </header>
@@ -1352,45 +1144,45 @@ function parseNavItems(raw?: string): NavItem[] | undefined {
   if (!raw) return undefined;
 
   try {
-    const val = JSON.parse(raw);
-    if (!Array.isArray(val)) return undefined;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return undefined;
 
     const cleaned: NavItem[] = [];
 
-    for (const it of val) {
-      if (it?.type === "link" && it?.label && it?.href && it?.icon) {
+    for (const item of parsed) {
+      if (item?.type === "link" && item?.label && item?.href && item?.icon) {
         cleaned.push({
           type: "link",
-          label: String(it.label),
-          href: String(it.href),
-          icon: String(it.icon),
+          label: String(item.label),
+          href: String(item.href),
+          icon: String(item.icon),
         });
         continue;
       }
 
-      if (it?.type === "mega" && it?.label && it?.icon && Array.isArray(it?.columns)) {
-        const cols: MegaColumn[] = it.columns
+      if (item?.type === "mega" && item?.label && item?.icon && Array.isArray(item.columns)) {
+        const columns = item.columns
           .filter(Boolean)
-          .map((c: any) => ({
-            title: String(c?.title ?? ""),
-            items: Array.isArray(c?.items)
-              ? c.items
+          .map((column: any) => ({
+            title: String(column?.title ?? ""),
+            items: Array.isArray(column?.items)
+              ? column.items
                   .filter(Boolean)
-                  .map((x: any) => ({
-                    label: String(x?.label ?? ""),
-                    href: String(x?.href ?? ""),
+                  .map((entry: any) => ({
+                    label: String(entry?.label ?? ""),
+                    href: String(entry?.href ?? ""),
                   }))
-                  .filter((x: any) => x.label && x.href)
+                  .filter((entry: { label: string; href: string }) => entry.label && entry.href)
               : [],
           }))
-          .filter((c: MegaColumn) => c.title && c.items.length);
+          .filter((column: MegaColumn) => column.title && column.items.length);
 
-        if (cols.length) {
+        if (columns.length) {
           cleaned.push({
             type: "mega",
-            label: String(it.label),
-            icon: String(it.icon),
-            columns: cols,
+            label: String(item.label),
+            icon: String(item.icon),
+            columns,
           });
         }
       }
@@ -1409,10 +1201,9 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
     brandHref: "/",
     brandName: "Tuan Kiet Store",
     brandSub: "COSMETICS",
-    logoSrc: "/assets/images/logo.jpg",
+    logoSrc: FALLBACK_IMAGE,
     logoAlt: "Tuan Kiet Store",
     searchPlaceholder: "What are you looking for today?",
-    badgeStoreLocator: 2,
     badgeCart: 0,
     navItems: "[]",
     menuApiUrl: "/api/admin/builder/menus/header-menu",
@@ -1427,7 +1218,6 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
     { key: "logoSrc", label: "Logo Src", kind: "text" },
     { key: "logoAlt", label: "Logo Alt", kind: "text" },
     { key: "searchPlaceholder", label: "Search Placeholder", kind: "text" },
-    { key: "badgeStoreLocator", label: "Badge (Store)", kind: "number" },
     { key: "badgeCart", label: "Badge (Cart)", kind: "number" },
     { key: "menuApiUrl", label: "Menu API URL", kind: "text" },
     { key: "menuSetKey", label: "Menu setKey", kind: "text" },
@@ -1436,26 +1226,25 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
     { key: "navItems", label: "Nav Items (JSON, preview)", kind: "textarea", rows: 10 },
   ],
   render: (props) => {
-    const p = props as Record<string, any>;
-    const navItems = parseNavItems(p.navItems);
+    const data = props as Record<string, any>;
+    const navItems = parseNavItems(data.navItems);
 
     return (
       <div aria-label="Shop Header Announcement">
         <HeaderAnnouncement
-          brandHref={p.brandHref}
-          brandName={p.brandName}
-          brandSub={p.brandSub}
-          logoSrc={p.logoSrc}
-          logoAlt={p.logoAlt}
-          searchPlaceholder={p.searchPlaceholder}
-          badgeStoreLocator={p.badgeStoreLocator}
-          badgeCart={p.badgeCart}
-          preview={p.preview}
+          brandHref={data.brandHref}
+          brandName={data.brandName}
+          brandSub={data.brandSub}
+          logoSrc={data.logoSrc}
+          logoAlt={data.logoAlt}
+          searchPlaceholder={data.searchPlaceholder}
+          badgeCart={data.badgeCart}
+          preview={data.preview}
           navItems={navItems}
-          menuApiUrl={p.menuApiUrl || "/api/admin/builder/menus/header-menu"}
-          menuSetKey={p.menuSetKey || "home"}
-          menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
-          isAuthed={Number(p.isAuthed) === 1}
+          menuApiUrl={data.menuApiUrl || "/api/admin/builder/menus/header-menu"}
+          menuSetKey={data.menuSetKey || "home"}
+          menuSiteIdKey={data.menuSiteIdKey || "builder_site_id"}
+          isAuthed={Number(data.isAuthed) === 1}
         />
       </div>
     );

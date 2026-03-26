@@ -51,7 +51,7 @@ export type HotProductOneProps = {
 type ApiUnknownRecord = Record<string, unknown>;
 
 /* ================= Defaults ================= */
-const PRODUCTS_API_URL = "/api/v1/products/popular";
+const PRODUCTS_API_URL = "/api/v1/products/hot-product";
 
 const DEFAULT_BANNER: HotProductOneBanner = {
   eyebrow: "Curated Picks",
@@ -289,14 +289,6 @@ function renderStars(rating?: number): string {
   return `${"★".repeat(Math.max(0, Math.min(5, rounded)))}${"☆".repeat(Math.max(0, 5 - rounded))}`;
 }
 
-function getStockLevel(item: HotProductOneItem): number {
-  const stockText = (item.stockText || "").toLowerCase();
-  if (!stockText) return 85;
-  if (stockText.includes("out")) return 0;
-  if (stockText.includes("only")) return 24;
-  return 88;
-}
-
 /* ================= Component ================= */
 export function HotProductOne({
   title = "Hot Products",
@@ -317,6 +309,9 @@ export function HotProductOne({
     if (Array.isArray(products) && products.length > 0) return products.slice(0, 8);
     return remoteProducts.slice(0, 8);
   }, [products, remoteProducts]);
+
+  const featuredProduct = items[0];
+  const relatedProducts = items.slice(1, 5);
 
   const sectionHeadingId = `${regionId}-hot-products-heading`;
   const sectionDescId = `${regionId}-hot-products-description`;
@@ -368,26 +363,26 @@ export function HotProductOne({
     e.stopPropagation();
   };
 
-  const renderProductLink = (item: HotProductOneItem, children: React.ReactNode) =>
+  const renderProductLink = (item: HotProductOneItem, children: React.ReactNode, className?: string) =>
     preview ? (
-      <a href="#" onClick={onBlockClick} className={styles.productLink} aria-label={getProductAriaLabel(item)}>
+      <a href="#" onClick={onBlockClick} className={className} aria-label={getProductAriaLabel(item)}>
         {children}
       </a>
     ) : (
-      <Link href={(item.href || "/") as Route} className={styles.productLink} aria-label={getProductAriaLabel(item)}>
+      <Link href={(item.href || "/") as Route} className={className} aria-label={getProductAriaLabel(item)}>
         {children}
       </Link>
     );
 
   const renderBannerLink = (children: React.ReactNode) =>
     preview ? (
-      <a href="#" onClick={onBlockClick} className={styles.bannerLink} aria-label="Promotional collection banner">
+      <a href="#" onClick={onBlockClick} className={styles.promoCard} aria-label="Promotional collection banner">
         {children}
       </a>
     ) : (
       <Link
         href={(banner.href || "/collections") as Route}
-        className={styles.bannerLink}
+        className={styles.promoCard}
         aria-label="Promotional collection banner"
       >
         {children}
@@ -401,167 +396,239 @@ export function HotProductOne({
       aria-labelledby={sectionHeadingId}
       aria-describedby={sectionDescId}
     >
-      <div className={styles.shell}>
-        <div className={styles.topbar}>
-          <div className={styles.headingBlock}>
-            <span className={styles.eyebrow}>Best Sellers</span>
-            <h2 className={styles.title} id={sectionHeadingId}>
-              {title}
-            </h2>
-            <p className={styles.subtitle} id={sectionDescId}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerMain}>
+            <div className={styles.titleRow}>
+              <h2 id={sectionHeadingId} className={styles.title}>
+                {title}
+              </h2>
+              <span className={styles.kicker}>Editor&apos;s Choice</span>
+            </div>
+
+            <p id={sectionDescId} className={styles.subtitle}>
               {subtitle}
             </p>
           </div>
 
-          <div className={styles.topbarActions}>
-            <div className={styles.metrics} aria-label="Store trust highlights">
-              <span className={styles.metricItem}>Premium quality</span>
-              <span className={styles.metricDot} aria-hidden="true" />
-              <span className={styles.metricItem}>Verified reviews</span>
-              <span className={styles.metricDot} aria-hidden="true" />
-              <span className={styles.metricItem}>Fast shipping</span>
+          <div className={styles.headerAside}>
+            <div className={styles.headerStat}>
+              <span className={styles.headerStatValue}>{Math.max(items.length, 0)}</span>
+              <span className={styles.headerStatLabel}>sản phẩm nổi bật</span>
             </div>
 
-            {preview ? (
-              <a href="#" onClick={onBlockClick} className={styles.viewAll}>
-                {viewAllText}
-              </a>
-            ) : (
-              <Link href={(viewAllHref || "/products") as Route} className={styles.viewAll}>
+            {!preview ? (
+              <Link href={(viewAllHref || "/products") as Route} className={styles.headerLink}>
                 {viewAllText}
               </Link>
+            ) : (
+              <a href="#" onClick={onBlockClick} className={styles.headerLink}>
+                {viewAllText}
+              </a>
             )}
           </div>
-        </div>
+        </header>
 
-        <div className={styles.layout}>
-          <aside className={styles.bannerCol}>
-            {renderBannerLink(
-              <div className={styles.bannerCard}>
-                <div className={styles.bannerMedia}>
-                  <Image
-                    src={banner.imageSrc || DEFAULT_BANNER.imageSrc || "/images/placeholder-product.png"}
-                    alt={banner.title || "Promotional collection"}
-                    fill
-                    className={styles.bannerImage}
-                    sizes="(max-width: 991px) 100vw, 380px"
-                    priority
-                  />
-                </div>
+        <div className={styles.grid}>
+          <div className={styles.mainColumn}>
+            {featuredProduct ? (
+              renderProductLink(
+                featuredProduct,
+                <article className={styles.featureCard}>
+                  <div className={styles.featureVisual}>
+                    <div className={styles.featureBadgeRow}>
+                      {featuredProduct.badge ? (
+                        <span className={styles.featureBadge}>{featuredProduct.badge}</span>
+                      ) : null}
+                      {featuredProduct.isNew ? <span className={styles.featureGhostBadge}>New Arrival</span> : null}
+                    </div>
 
-                <div className={styles.bannerOverlay} />
+                    <div className={styles.featureImageWrap}>
+                      <Image
+                        src={featuredProduct.imageSrc}
+                        alt={featuredProduct.name}
+                        fill
+                        priority
+                        className={styles.featureImage}
+                        sizes="(max-width: 991px) 100vw, 42vw"
+                      />
+                    </div>
 
-                <div className={styles.bannerContent}>
-                  <span className={styles.bannerEyebrow}>{banner.eyebrow || DEFAULT_BANNER.eyebrow}</span>
-                  <h3 className={styles.bannerTitle}>{banner.title || DEFAULT_BANNER.title}</h3>
-                  <p className={styles.bannerSubtitle}>{banner.subtitle || DEFAULT_BANNER.subtitle}</p>
-
-                  <div className={styles.bannerFooter}>
-                    <span className={styles.bannerCta}>{banner.ctaText || DEFAULT_BANNER.ctaText}</span>
-                    <span className={styles.bannerArrow} aria-hidden="true">
-                      ↗
-                    </span>
+                    <div className={styles.featureTags}>
+                      {featuredProduct.brand ? <span className={styles.tagChip}>{featuredProduct.brand}</span> : null}
+                      {featuredProduct.tag ? <span className={styles.tagChip}>{featuredProduct.tag}</span> : null}
+                      {featuredProduct.stockText ? (
+                        <span className={`${styles.tagChip} ${styles.tagChipSoft}`}>{featuredProduct.stockText}</span>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </div>,
-            )}
-          </aside>
 
-          <div className={styles.productsCol}>
-            {loading && items.length === 0 ? (
-              <div className={styles.emptyState} role="status" aria-live="polite">
-                Loading products...
-              </div>
-            ) : items.length === 0 ? (
-              <div className={styles.emptyState} role="status" aria-live="polite">
-                No products available right now.
-              </div>
+                  <div className={styles.featureContent}>
+                    <div className={styles.featureMetaRow}>
+                      <span className={styles.eyebrow}>Featured Product</span>
+                      {getDiscountPercent(featuredProduct) > 0 ? (
+                        <span className={styles.discountPill}>-{getDiscountPercent(featuredProduct)}%</span>
+                      ) : null}
+                    </div>
+
+                    <h3 className={styles.featureTitle}>{featuredProduct.name}</h3>
+
+                    <div className={styles.featureInfo}>
+                      {typeof featuredProduct.rating === "number" ? (
+                        <div className={styles.ratingWrap}>
+                          <span className={styles.stars} aria-hidden="true">
+                            {renderStars(featuredProduct.rating)}
+                          </span>
+                          <span className={styles.ratingText}>
+                            {featuredProduct.rating.toFixed(1)}
+                            {typeof featuredProduct.reviewCount === "number"
+                              ? ` (${featuredProduct.reviewCount} reviews)`
+                              : ""}
+                          </span>
+                        </div>
+                      ) : null}
+
+                      {featuredProduct.soldText ? (
+                        <span className={styles.infoText}>{featuredProduct.soldText}</span>
+                      ) : null}
+                      {featuredProduct.shippingNote ? (
+                        <span className={styles.infoText}>{featuredProduct.shippingNote}</span>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.priceRow}>
+                      {typeof featuredProduct.price === "number" ? (
+                        <span className={styles.currentPrice}>{formatPrice(featuredProduct.price)}</span>
+                      ) : null}
+
+                      {typeof featuredProduct.originalPrice === "number" ? (
+                        <span className={styles.oldPrice}>{formatPrice(featuredProduct.originalPrice)}</span>
+                      ) : null}
+                    </div>
+
+                    <p className={styles.featureDescription}>
+                      Thiết kế hiện đại, bố cục rõ ràng và cảm giác premium hơn cho nhóm sản phẩm chủ lực. Phù hợp để
+                      đẩy CTR vào sản phẩm đang cần ưu tiên.
+                    </p>
+
+                    <div className={styles.actionRow}>
+                      <span className={styles.primaryButton}>Xem chi tiết</span>
+                      <span className={styles.secondaryButton}>So sánh nhanh</span>
+                    </div>
+
+                    <div className={styles.featureFootnote}>
+                      <span className={styles.liveDot} aria-hidden="true" />
+                      <span>Được quan tâm nhiều trong 24 giờ gần đây</span>
+                    </div>
+                  </div>
+                </article>,
+                styles.cardLink,
+              )
             ) : (
-              <div className={styles.grid} role="list">
-                {items.map((item, index) => {
-                  const discount = getDiscountPercent(item);
-                  const stockLevel = getStockLevel(item);
+              <div className={styles.emptyState}>No featured product available.</div>
+            )}
+            {banner?.imageSrc || banner?.title
+              ? renderBannerLink(
+                  <>
+                    <div className={styles.promoContent}>
+                      {banner.eyebrow ? <span className={styles.promoEyebrow}>{banner.eyebrow}</span> : null}
+                      <h4 className={styles.promoTitle}>{banner.title || "Premium Collection"}</h4>
+                      {banner.subtitle ? <p className={styles.promoSubtitle}>{banner.subtitle}</p> : null}
+                      <span className={styles.promoAction}>{banner.ctaText || "Shop now"}</span>
+                    </div>
 
-                  return (
-                    <article className={styles.card} key={item.id ?? index} role="listitem">
+                    {banner.imageSrc ? (
+                      <div className={styles.promoMedia}>
+                        <Image
+                          src={banner.imageSrc}
+                          alt={banner.title || "Promotional banner"}
+                          fill
+                          className={styles.promoImage}
+                          sizes="(max-width: 991px) 100vw, 24vw"
+                        />
+                      </div>
+                    ) : null}
+                  </>,
+                )
+              : null}
+          </div>
+
+          <aside className={styles.sideColumn}>
+            <div className={styles.relatedPanel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <p className={styles.panelEyebrow}>Recommendation</p>
+                  <h3 className={styles.panelTitle}>Sản phẩm liên quan</h3>
+                </div>
+                <span className={styles.panelCount}>{relatedProducts.length} đề xuất</span>
+              </div>
+
+              {loading && items.length === 0 ? (
+                <div className={styles.emptyState} role="status" aria-live="polite">
+                  Loading products...
+                </div>
+              ) : relatedProducts.length === 0 ? (
+                <div className={styles.emptyState} role="status" aria-live="polite">
+                  No related products available right now.
+                </div>
+              ) : (
+                <div className={styles.relatedList}>
+                  {relatedProducts.map((item, index) => (
+                    <article className={styles.relatedCard} key={item.id ?? index}>
                       {renderProductLink(
                         item,
-                        <>
-                          <div className={styles.cardMedia}>
-                            <div className={styles.imageWrap}>
-                              <Image
-                                src={item.imageSrc}
-                                alt={item.name}
-                                fill
-                                className={styles.productImage}
-                                sizes="(max-width: 767px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                                priority={index < 4}
-                              />
-                            </div>
-
-                            <div className={styles.quickMeta}>
-                              {item.brand ? <span className={styles.brand}>{item.brand}</span> : null}
-                              {item.tag ? <span className={styles.shipNote}>{item.tag}</span> : null}
-                            </div>
+                        <div className={styles.relatedLinkInner}>
+                          <div className={styles.relatedThumb}>
+                            <Image
+                              src={item.imageSrc}
+                              alt={item.name}
+                              fill
+                              className={styles.relatedImage}
+                              sizes="88px"
+                            />
                           </div>
 
-                          <div className={styles.cardBody}>
-                            <div className={styles.contentTop}>
-                              <h3 className={styles.productName}>{item.name}</h3>
-
-                              {(typeof item.rating === "number" || typeof item.reviewCount === "number") && (
-                                <div className={styles.reviewRow} aria-label="Product rating and reviews">
-                                  {typeof item.rating === "number" ? (
-                                    <>
-                                      <span className={styles.stars} aria-hidden="true">
-                                        {renderStars(item.rating)}
-                                      </span>
-                                      <span className={styles.ratingValue}>{item.rating.toFixed(1)}</span>
-                                    </>
-                                  ) : null}
-
-                                  {typeof item.reviewCount === "number" ? (
-                                    <span className={styles.reviewCount}>
-                                      {formatCompactCount(item.reviewCount)} reviews
-                                    </span>
-                                  ) : null}
-                                </div>
-                              )}
+                          <div className={styles.relatedContent}>
+                            <div className={styles.relatedTop}>
+                              {item.badge ? <span className={styles.relatedBadge}>{item.badge}</span> : null}
                             </div>
 
-                            <div className={styles.priceBlock}>
+                            <h4 className={styles.relatedName}>{item.name}</h4>
+
+                            <div className={styles.relatedMeta}>
+                              {item.brand ? <span>{item.brand}</span> : null}
+                              {item.soldText ? <span>{item.soldText}</span> : null}
+                            </div>
+
+                            <div className={styles.relatedPriceRow}>
                               {typeof item.price === "number" ? (
-                                <span className={styles.currentPrice}>{formatPrice(item.price)}</span>
+                                <span className={styles.relatedPrice}>{formatPrice(item.price)}</span>
                               ) : null}
 
                               {typeof item.originalPrice === "number" ? (
-                                <span className={styles.originalPrice}>{formatPrice(item.originalPrice)}</span>
+                                <span className={styles.relatedOldPrice}>{formatPrice(item.originalPrice)}</span>
                               ) : null}
                             </div>
-
-                            <div className={styles.stockArea}>
-                              <div className={styles.stockRow}>
-                                <span className={styles.stockText}>{item.stockText || "In stock"}</span>
-                                <span className={styles.stockPercent}>{stockLevel}%</span>
-                              </div>
-                              <div className={styles.stockTrack} aria-hidden="true">
-                                <span className={styles.stockFill} style={{ width: `${stockLevel}%` }} />
-                              </div>
-                            </div>
-
-                            <div className={styles.ctaRow}>
-                              <span className={styles.ctaPrimary}>View details</span>
-                              <span className={styles.ctaSecondary}>Trusted product</span>
-                            </div>
                           </div>
-                        </>,
+                        </div>,
+                        styles.relatedLink,
                       )}
                     </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+
+              {!preview ? (
+                <Link href={(viewAllHref || "/products") as Route} className={styles.viewAllButton}>
+                  {viewAllText}
+                </Link>
+              ) : (
+                <a href="#" onClick={onBlockClick} className={styles.viewAllButton}>
+                  {viewAllText}
+                </a>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
     </section>
@@ -574,7 +641,6 @@ export const SHOP_HOT_PRODUCT_ONE: RegItem = {
   label: "Hot Product One",
   defaults: {
     title: "Hot Products",
-    subtitle: "High-converting favorites curated for shoppers who value quality, trust, and fast delivery.",
     viewAllText: "View all products",
     viewAllHref: "/products",
     apiUrl: PRODUCTS_API_URL,
@@ -583,7 +649,6 @@ export const SHOP_HOT_PRODUCT_ONE: RegItem = {
   },
   inspector: [
     { key: "title", label: "Title", kind: "text" },
-    { key: "subtitle", label: "Subtitle", kind: "textarea", rows: 3 },
     { key: "viewAllText", label: "View all text", kind: "text" },
     { key: "viewAllHref", label: "View all URL", kind: "text" },
     { key: "apiUrl", label: "Products API URL", kind: "text" },

@@ -99,60 +99,6 @@
   text-transform: uppercase;
 }
 
-.search {
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  align-items: center;
-  width: 100%;
-  height: 45px;
-  background: rgba(255, 255, 255, 0.92);
-  border: var(--bd-header);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.searchIcon {
-  display: grid;
-  place-items: center;
-  font-size: 16px;
-  color: #94a3b8;
-}
-
-.search input {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  padding: 0 12px 0 0;
-  font-size: 13px;
-  color: #0f172a;
-}
-
-.search input::placeholder {
-  color: #94a3b8;
-}
-
-.search button {
-  margin-right: 5px;
-  padding: 6px 10px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #58b186 0%, #47cd64 100%);
-  color: #fff;
-  font-weight: 500;
-  font-size: 13px;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.search button:hover {
-  transform: translateY(-1px);
-}
-
 .rightZone {
   display: flex;
   align-items: center;
@@ -167,7 +113,7 @@
   align-items: center;
   gap: 12px;
   padding: 0 14px;
-  border: var(--bd-header);
+  border: 1px solid #adead6;
   border-radius: 6px;
   background: #ffffff;
   color: #0f172a;
@@ -195,7 +141,7 @@
   border-radius: 6px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #17c96424, #0ea5a414);
   color: #334155;
   font-size: 16px;
   flex: 0 0 36px;
@@ -1857,7 +1803,7 @@
   border-radius: 6px;
   background: #fff;
   box-shadow: 0 18px 50px #bababa1f;
-  border: var(--bd-header);
+  border: 1px solid #adead6;
   z-index: 40;
 }
 
@@ -1874,7 +1820,7 @@
 
 .accountDropdown::before {
   top: -10px;
-  border-bottom: 10px solid #cfd9ea;
+  border-bottom: 10px solid #adead6;
 }
 
 .accountDropdown::after {
@@ -1896,7 +1842,7 @@
 }
 
 .accountDropdownBody .accountDropdownLink {
-  border: var(--bd-header);
+  border: 1px solid #adead6;
   font-size: 13px;
 }
 
@@ -1906,13 +1852,13 @@
   gap: 4px;
   padding-bottom: 12px;
   margin-bottom: 12px;
-  border-bottom: var(--bd-header);
+  border-bottom: 1px solid #adead6;
 }
 
 .accountDropdownHead strong {
   font-size: 15px;
   line-height: 1.4;
-  color: #737f77;
+  color: #2cbda1;
 }
 
 .accountDropdownHead span {
@@ -1941,7 +1887,7 @@
   gap: 10px;
   width: 100%;
   min-height: 42px;
-  padding: 10px 12px;
+  padding: 13px 12px;
   border-radius: 12px;
   background: transparent;
   border: 0;
@@ -1953,12 +1899,12 @@
 
 .accountDropdownLink:hover,
 .accountDropdownLogout:hover {
-  background: rgba(148, 202, 252, 0.425);
+  background: linear-gradient(135deg, #17c96424, #0ea5a414);
 }
 
 .accountDropdownLogout {
   text-align: left;
-  border: var(--bd-header);
+  border: 1px solid #adead6;
   font-size: 13px;
 }
 
@@ -2118,4 +2064,234 @@
   background: #ffffff;
   color: #2d5e8f;
   border-color: #c6d9ef;
+}
+.centerZone {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.search {
+  width: 100%;
+  max-width: 720px;
+  position: relative;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid #adead6;
+  padding: 4px;
+}
+
+.leftIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f8b5f;
+  background: linear-gradient(135deg, #17c96429, #0ea5a41a);
+  flex-shrink: 0;
+}
+
+.searchBox input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.searchBox input::placeholder {
+  color: #94a3b8;
+}
+
+.clearBtn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  outline: none;
+  border-radius: 999px;
+  color: #ff1313;
+  background: linear-gradient(135deg, #ff000029, #a50e0e1a);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+  transition: 0.2s ease;
+  font-size: 18px;
+}
+
+.clearBtn:hover {
+  background: #16a34a;
+}
+
+.searchBtn {
+  height: 36px;
+  border: none;
+  outline: none;
+  border-radius: 999px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #049a45b3, #0ea584a1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: 0.2s ease;
+}
+
+.searchBtn:hover {
+  background: #16a34a;
+}
+
+.searchDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #ffffff;
+  border: 1px solid #adead6;
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.searchDropdownList {
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.searchDropdownList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.searchDropdownList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.searchDropdownList::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.searchState {
+  padding: 18px 16px;
+  font-size: 14px;
+  color: #64748b;
+  text-align: center;
+}
+
+.searchItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.searchItem:hover {
+  background: #f8fafc;
+}
+
+.searchItemThumb {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f5f9;
+  border: 1px solid #e5e7eb;
+}
+
+.searchItemThumbImg {
+  object-fit: cover;
+}
+
+.searchItemBody {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchItemName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.searchItemDesc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+  margin-bottom: 6px;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.searchItemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.searchItemBrand,
+.searchItemCategory {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.searchItemPrice {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.searchViewAll {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #f1f5f9;
+  background: #fff;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2cbda1;
+  transition: background 0.2s ease;
+}
+
+.searchViewAll:hover {
+  background: #f8fafc;
 }

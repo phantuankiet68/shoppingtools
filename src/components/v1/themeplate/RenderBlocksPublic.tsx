@@ -42,7 +42,6 @@ export default function RenderBlocksPublic({
     <>
       {blocks.map((b, i) => {
         const reg = REGISTRY.find((r) => r.kind === b.kind);
-
         const blockId = b.id || b?.props?.id || `${b.kind}-${i}`;
 
         if (!reg) {

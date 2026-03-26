@@ -75,8 +75,6 @@ export default function UiBuilderAddPage() {
     };
   }, []);
 
-  console.log("templateGroup:", templateGroup);
-
   useEffect(() => {
     if (showEditorModal) {
       document.body.style.overflow = "hidden";
@@ -93,6 +91,17 @@ export default function UiBuilderAddPage() {
     () => normalizeSlugAndPath(state.slug, state.title),
     [state.slug, state.title],
   );
+
+  const effectivePath = useMemo(() => {
+    const rawSlug = (state.slug || "").trim().toLowerCase();
+    const rawTitle = (state.title || "").trim().toLowerCase();
+
+    if (derivedPath === "/" || rawSlug === "" || rawSlug === "home" || rawTitle === "home") {
+      return "/";
+    }
+
+    return ensureLeadingSlash(derivedPath);
+  }, [derivedPath, state.slug, state.title]);
 
   const active = useMemo(
     () => state.blocks.find((b) => b.id === state.activeId) || null,
@@ -184,7 +193,7 @@ export default function UiBuilderAddPage() {
         ogTitle: state.seo.ogTitle || state.title,
       },
     });
-  }, [state.title]);
+  }, [state.title, state.seo.metaTitle, state.seo.ogTitle, dispatch]);
 
   const onDragStart = React.useCallback((kind: string) => {
     return (e: React.DragEvent) => {
@@ -359,6 +368,7 @@ export default function UiBuilderAddPage() {
       setGuard(BUILDER_ADD_MESSAGES.NEED_SAVE_BEFORE_PUBLISH, 1800);
       return;
     }
+
     try {
       dispatch({ type: "setPublishing", publishing: true });
 
@@ -371,9 +381,8 @@ export default function UiBuilderAddPage() {
         throw new Error(rs.error || BUILDER_ADD_MESSAGES.PUBLISH_ERROR_FALLBACK);
       }
 
-      const safePath = ensureLeadingSlash(derivedPath);
       const siteOrigin = originFromDomain(selectedSite?.domain);
-      const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
+      const url = siteOrigin ? `${siteOrigin}${effectivePath}` : effectivePath;
 
       window.open(url, "_blank");
     } catch (e: unknown) {
@@ -381,14 +390,13 @@ export default function UiBuilderAddPage() {
     } finally {
       dispatch({ type: "setPublishing", publishing: false });
     }
-  }, [dispatch, selectedSiteId, selectedSite, state.pageId, derivedPath, setGuard]);
+  }, [dispatch, selectedSiteId, selectedSite, state.pageId, effectivePath, setGuard]);
 
   const openPreview = React.useCallback(() => {
-    const safePath = ensureLeadingSlash(derivedPath);
     const siteOrigin = originFromDomain(selectedSite?.domain);
-    const url = siteOrigin ? `${siteOrigin}${safePath}` : safePath;
+    const url = siteOrigin ? `${siteOrigin}${effectivePath}` : effectivePath;
     window.open(url, "_blank");
-  }, [derivedPath, selectedSite]);
+  }, [effectivePath, selectedSite]);
 
   const handleRefresh = React.useCallback(() => {
     window.location.href = "/admin/builder/pages";
@@ -523,7 +531,7 @@ export default function UiBuilderAddPage() {
               <DesignHeader
                 title={state.title}
                 setTitle={(v) => dispatch({ type: "setTitle", title: v })}
-                path={derivedPath}
+                path={effectivePath}
                 saving={state.saving}
                 saved={!state.saving}
                 publishing={state.publishing}
@@ -545,7 +553,7 @@ export default function UiBuilderAddPage() {
         </div>
       )}
 
-      {sitesLoading && <div className="small text-secondary mt-2">Đang tải site...</div>}
+      {sitesLoading && <div className="small text-secondary mt-2">Đang tải site.</div>}
       {sitesErr && <div className="small text-danger mt-2">{sitesErr}</div>}
     </div>
   );

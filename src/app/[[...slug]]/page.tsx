@@ -6,15 +6,26 @@ import type { Block } from "@/lib/builder/pages/types";
 
 export const dynamic = "force-dynamic";
 
-function ensureLeadingSlash(p: string) {
-  if (!p) return "/";
-  return p.startsWith("/") ? p : `/${p}`;
+function normalizePath(input?: string | null) {
+  if (!input) return "/";
+
+  let value = input.trim().toLowerCase();
+
+  if (!value.startsWith("/")) {
+    value = `/${value}`;
+  }
+
+  if (value.length > 1 && value.endsWith("/")) {
+    value = value.slice(0, -1);
+  }
+
+  return value || "/";
 }
 
 function isSamePath(value: string | null | undefined, ...candidates: string[]) {
   if (!value) return false;
-  const current = ensureLeadingSlash(value).toLowerCase();
-  return candidates.some((item) => ensureLeadingSlash(item).toLowerCase() === current);
+  const current = normalizePath(value);
+  return candidates.some((item) => normalizePath(item) === current);
 }
 
 export default async function PageByPath({ params }: { params: Promise<{ slug?: string[] }> }) {
@@ -22,7 +33,7 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
 
   const segments = Array.isArray(slug) ? slug : [];
 
-  let path = ensureLeadingSlash(segments.join("/"));
+  let path = normalizePath(segments.join("/"));
   let productSlug: string | null = null;
 
   if (segments[0] === "product-detail") {
@@ -34,38 +45,55 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
   const hostHeader = h.get("x-site-domain") ?? h.get("host") ?? "";
   const domain = hostHeader.split(":")[0].toLowerCase();
 
+  if (!domain) {
+    notFound();
+  }
+
   const site = await prisma.site.findUnique({
     where: { domain },
     select: { id: true },
   });
 
-  if (!site) notFound();
+  if (!site) {
+    notFound();
+  }
 
-  const pageWhere =
+  const page =
     path === "/"
-      ? {
-          siteId: site.id,
-          OR: [{ path: "/" }, { path: "home" }, { path: "/home" }],
-        }
-      : {
-          siteId: site.id,
-          path,
-        };
+      ? await prisma.page.findFirst({
+          where: {
+            siteId: site.id,
+            status: "PUBLISHED",
+            OR: [{ path: "/" }],
+          },
+          select: {
+            id: true,
+            title: true,
+            path: true,
+            status: true,
+            blocks: true,
+          },
+        })
+      : await prisma.page.findFirst({
+          where: {
+            siteId: site.id,
+            status: "PUBLISHED",
+            OR: [{ path }, { path: path.replace(/^\//, "") }],
+          },
+          select: {
+            id: true,
+            title: true,
+            path: true,
+            status: true,
+            blocks: true,
+          },
+        });
 
-  const page = await prisma.page.findFirst({
-    where: pageWhere,
-    select: {
-      id: true,
-      title: true,
-      path: true,
-      status: true,
-      blocks: true,
-    },
-  });
+  if (!page) {
+    notFound();
+  }
 
-  if (!page || page.status !== "PUBLISHED") notFound();
-
-  const currentPath = ensureLeadingSlash(page.path || path);
+  const currentPath = normalizePath(page.path || path);
 
   const isTopbarPage = isSamePath(currentPath, "/topbar", "topbar");
   const isHeaderPage = isSamePath(currentPath, "/header", "header");
@@ -83,6 +111,7 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
           },
           select: { blocks: true },
         }),
+
     isHeaderPage
       ? Promise.resolve(null)
       : prisma.page.findFirst({
@@ -93,6 +122,7 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
           },
           select: { blocks: true },
         }),
+
     isFooterPage
       ? Promise.resolve(null)
       : prisma.page.findFirst({
@@ -103,6 +133,7 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
           },
           select: { blocks: true },
         }),
+
     isWidgetPage
       ? Promise.resolve(null)
       : prisma.page.findFirst({
@@ -116,9 +147,13 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
   ]);
 
   const topbarBlocks = Array.isArray(topbarPage?.blocks) ? (topbarPage.blocks as Block[]) : [];
+
   const headerBlocks = Array.isArray(headerPage?.blocks) ? (headerPage.blocks as Block[]) : [];
+
   const pageBlocks = Array.isArray(page.blocks) ? (page.blocks as Block[]) : [];
+
   const footerBlocks = Array.isArray(footerPage?.blocks) ? (footerPage.blocks as Block[]) : [];
+
   const widgetBlocks = Array.isArray(widgetPage?.blocks) ? (widgetPage.blocks as Block[]) : [];
 
   let mergedBlocks: Block[] = [];
