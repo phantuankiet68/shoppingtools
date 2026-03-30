@@ -96,6 +96,18 @@ import { SHOP_EVALUATE_ONE } from "@/components/admin/shared/templates/sections/
 // ===== Web page Account One  =====
 import { SHOP_ACCOUNT_ONE } from "@/components/admin/shared/templates/sections/Account/AccountOne";
 
+// ===== Web page Profile One  =====
+import { SHOP_PROFILE_ONE } from "@/components/admin/shared/templates/sections/Profile/ProfileOne";
+
+// ===== Web Security One  =====
+import { SHOP_NOTIFICATION_ONE } from "@/components/admin/shared/templates/sections/Notification/NotificationOne";
+
+// ===== Web page Voucher One  =====
+import { SHOP_VOUCHER_ONE } from "@/components/admin/shared/templates/sections/Voucher/VoucherOne";
+
+// ===== Web Security One  =====
+import { SHOP_SECURITY_ONE } from "@/components/admin/shared/templates/sections/Security/SecurityOne";
+
 // ===== Web page Detail  =====
 import { SHOP_DETAIL_ANNOUNCEMENT } from "@/components/admin/shared/templates/sections/Detail/DetailAnnouncement";
 import { SHOP_DETAIL_CENTERED } from "@/components/admin/shared/templates/sections/Detail/DetailCentered";
@@ -199,6 +211,18 @@ export const REGISTRY_HOME: RegItem[] = [
 
   // ===== Web Account One  =====
   SHOP_ACCOUNT_ONE,
+
+  // ===== Web Profile One  =====
+  SHOP_PROFILE_ONE,
+
+  // ===== Web Notification  =====
+  SHOP_NOTIFICATION_ONE,
+
+  // ===== Web Voucher One  =====
+  SHOP_VOUCHER_ONE,
+
+  // ===== Web Security One  =====
+  SHOP_SECURITY_ONE,
 
   // ===== Web page Section  =====
   SHOP_SECTION_ANNOUNCEMENT,

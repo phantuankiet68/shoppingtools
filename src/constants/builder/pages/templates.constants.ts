@@ -113,6 +113,10 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
   tpl("tpl-hot-new", "Hot New", ["HotNewOne"]),
   tpl("tpl-evaluate", "Evaluate", ["EvaluateOne"]),
   tpl("tpl-account", "Account", ["AccountOne"]),
+  tpl("tpl-profile", "Profile", ["ProfileOne"]),
+  tpl("tpl-notification", "Notification", ["NotificationOne"]),
+  tpl("tpl-voucher", "Voucher", ["VoucherOne"]),
+  tpl("tpl-security", "Security", ["SecurityOne"]),
   tpl("tpl-detail", "Detail", [
     "DetailAnnouncement",
     "DetailCentered",

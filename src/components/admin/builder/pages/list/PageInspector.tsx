@@ -41,21 +41,55 @@ function hasMeaningfulSeo(seo?: Partial<SEO> | null) {
   );
 }
 
-function ensureLeadingSlash(p?: string | null) {
-  if (!p) return "/";
-  const s = p.trim();
-  return s.startsWith("/") ? s : `/${s}`;
+function normalizePath(raw?: string | null) {
+  const s = (raw || "").trim();
+  if (!s || s === "/") return "/";
+
+  const parts = s
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return parts.length ? `/${parts.join("/")}` : "/";
 }
 
 function normalizeSlug(raw?: string | null) {
   const s = (raw || "").trim();
-  if (!s || s === "/") return "/";
-  return s.replace(/^\/+/, "").replace(/\/+$/, "");
+  if (!s || s === "/") return "";
+
+  const parts = s
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return parts[parts.length - 1] || "";
+}
+
+function getLastSlugSegment(raw?: string | null) {
+  return normalizeSlug(raw);
 }
 
 function buildPathFromSlug(slug: string) {
   const cleaned = normalizeSlug(slug);
-  return cleaned === "/" ? "/" : `/${cleaned}`;
+  return cleaned ? `/${cleaned}` : "/";
+}
+
+function replaceLastPathSegment(path: string, slug: string) {
+  const normalizedPath = normalizePath(path);
+  const parts = normalizedPath.split("/").filter(Boolean);
+  const cleanedSlug = normalizeSlug(slug);
+
+  if (!cleanedSlug) {
+    if (parts.length <= 1) return "/";
+    return `/${parts.slice(0, -1).join("/")}`;
+  }
+
+  if (parts.length === 0) {
+    return `/${cleanedSlug}`;
+  }
+
+  parts[parts.length - 1] = cleanedSlug;
+  return `/${parts.join("/")}`;
 }
 
 function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
@@ -129,11 +163,11 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
   const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
   const loadSites = useSiteStore((state) => state.loadSites);
 
-  const selectedSite = useMemo(() => {
-    return sites.find((site) => site.id === selectedSiteId) ?? null;
-  }, [sites, selectedSiteId]);
+  const syncSelectedSite = useMemo(() => {
+    return sites.find((site) => site.id === syncForm.siteId) ?? null;
+  }, [sites, syncForm.siteId]);
 
-  const pathPretty = useMemo(() => ensureLeadingSlash(page?.path || "/"), [page?.path]);
+  const pathPretty = useMemo(() => normalizePath(page?.path || "/"), [page?.path]);
 
   const dateTimeFormatter = useMemo(() => {
     return new Intl.DateTimeFormat(undefined, {
@@ -249,8 +283,8 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
     setSyncForm({
       siteId: fallbackSiteId,
       title: page?.title || "",
-      slug: normalizeSlug(page?.slug || page?.path || ""),
-      path: ensureLeadingSlash(page?.path || buildPathFromSlug(page?.slug || "")),
+      slug: getLastSlugSegment(page?.slug || page?.path || ""),
+      path: normalizePath(page?.path || buildPathFromSlug(page?.slug || "")),
     });
 
     setSyncOpen(true);
@@ -263,20 +297,30 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
   const handleSyncFormChange = useCallback((field: keyof SyncForm, value: string) => {
     setSyncForm((prev) => {
-      const next = { ...prev, [field]: value };
+      const next = { ...prev };
 
       if (field === "siteId") {
         next.siteId = value;
+        return next;
+      }
+
+      if (field === "title") {
+        next.title = value;
+        return next;
       }
 
       if (field === "slug") {
         const slug = normalizeSlug(value);
         next.slug = slug;
-        next.path = buildPathFromSlug(slug);
+        next.path = replaceLastPathSegment(prev.path, slug);
+        return next;
       }
 
       if (field === "path") {
-        next.path = ensureLeadingSlash(value);
+        const path = normalizePath(value);
+        next.path = path;
+        next.slug = getLastSlugSegment(path);
+        return next;
       }
 
       return next;
@@ -337,8 +381,9 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
     try {
       const siteId = syncForm.siteId.trim();
       const title = syncForm.title.trim();
-      const slug = normalizeSlug(syncForm.slug);
-      const path = ensureLeadingSlash(syncForm.path);
+      const manualSlug = normalizeSlug(syncForm.slug);
+      const path = syncForm.path.trim() ? normalizePath(syncForm.path) : buildPathFromSlug(manualSlug);
+      const slug = getLastSlugSegment(path) || manualSlug;
 
       if (!siteId) {
         modal.error("Thiếu site", "Vui lòng chọn site.");
@@ -381,6 +426,12 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
       modal.success("Success", "Đã sync page từ menu thành công.");
       setSyncOpen(false);
+      setSyncForm((prev) => ({
+        ...prev,
+        title,
+        slug,
+        path,
+      }));
     } catch (e: unknown) {
       modal.error("Error", (e as Error)?.message || "Sync page error");
     } finally {
@@ -726,9 +777,10 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                   ))}
                 </select>
 
-                {selectedSite && syncForm.siteId ? (
+                {syncSelectedSite && syncForm.siteId ? (
                   <div className={styles.helper}>
-                    Selected: {selectedSite.name || "(no name)"} {selectedSite.domain ? `- ${selectedSite.domain}` : ""}
+                    Selected: {syncSelectedSite.name || "(no name)"}{" "}
+                    {syncSelectedSite.domain ? `- ${syncSelectedSite.domain}` : ""}
                   </div>
                 ) : null}
 
@@ -752,8 +804,11 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                   className={styles.input}
                   value={syncForm.slug}
                   onChange={(e) => handleSyncFormChange("slug", e.target.value)}
-                  placeholder="about-us"
+                  placeholder="profile"
                 />
+                <div className={styles.helper}>
+                  Slug chỉ lấy segment cuối. Ví dụ path /account/profile thì slug là profile.
+                </div>
               </div>
 
               <div className={styles.field}>
@@ -762,7 +817,7 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                   className={styles.input}
                   value={syncForm.path}
                   onChange={(e) => handleSyncFormChange("path", e.target.value)}
-                  placeholder="/about-us"
+                  placeholder="/account/profile"
                 />
               </div>
 
@@ -770,16 +825,16 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                 Khi bấm <strong>Create & Sync</strong>, component sẽ gọi:
                 <pre className={styles.codeBlock}>
                   {`POST ${API_ROUTES.ADMIN_BUILDER_PAGE_SYNC}
-{
-  "siteId": "${syncForm.siteId || "your-site-id"}",
-  "items": [
-    {
-      "title": "${syncForm.title || "Your title"}",
-      "slug": "${syncForm.slug || "your-slug"}",
-      "path": "${syncForm.path || "/your-path"}"
-    }
-  ]
-}`}
+                    {
+                      "siteId": "${syncForm.siteId || "your-site-id"}",
+                      "items": [
+                        {
+                          "title": "${syncForm.title || "Your title"}",
+                          "slug": "${syncForm.slug || "profile"}",
+                          "path": "${syncForm.path || "/account/profile"}"
+                        }
+                      ]
+                    }`}
                 </pre>
               </div>
             </div>

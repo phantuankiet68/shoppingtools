@@ -4,7 +4,7 @@
   width: 100%;
   background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 10px 30px #64766a0a;
 }
 
 .topBar {
@@ -353,7 +353,7 @@
   padding: 5px 10px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.88);
-  border: var(--bd-header);
+  border: 1px solid #adead6;
 }
 
 .nav::-webkit-scrollbar {

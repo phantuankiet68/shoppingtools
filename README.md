@@ -526,7 +526,7 @@ const banner = safeJson<HotProductOneBanner>(p.banner);
 
 export default HotProductOne;
 
-Do HeaderAnnouncement.tsx là file có cấu trúc mẫu templates dành để tạo block cho pages. Bạn có thể tạo AccountOne.tsx cải tiến design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ dựa vào cấu trúc mẫu HeaderAnnouncement, tôi đang sử dụng next 16 và css module và icon bootstrapt. Tôi muốn bạn ở cương bị cấp bật là serior front-end. Hãy tách ra AccountOne.tsx và AccountOne.module.css giống với ảnh giúp tôi có được không. Tôi đang tạo profile Acount dành cho customer bạn có thể tâoj giúp tôi được không
+Do ProfileOne.tsx là file có cấu trúc mẫu templates dành để tạo block cho pages. Bạn có thể tạo SecurityOne.tsx cải tiến design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ dựa vào cấu trúc mẫu HeaderAnnouncement, tôi đang sử dụng next 16 và css module và icon bootstrapt. Tôi muốn bạn ở cương bị cấp bật là serior front-end. Hãy tách ra SecurityOne.tsx và SecurityOne.module.css giống với ảnh giúp tôi có được không. Tôi đang tạo profile Acount dành cho customer bạn có thể tâoj giúp tôi được không
 
 Mục tiêu cải tiến
 Logo có background card
@@ -535,3 +535,6 @@ Text cân đối hơn
 Nhìn “brand” hơn, không còn kiểu icon rời rạc
 
 bootstrapt icon
+
+Bạn hhãy kiểm tra và xóa nhưng phần dư thừa và tiêu tôn ttài nguyên trong file code và hãy xóa các ddữ liệu đang sset value ở dạng tĩnh thay thế lấy data từ api/v1/account/profile. Với lại tôi muốn xóa các card Preferences, Security, Quick summary thay thế cho form nhập dữ liệu address
+ và ghi lại toàn bộ file giúp ttôi nhé
