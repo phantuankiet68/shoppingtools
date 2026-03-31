@@ -1,0 +1,108 @@
+enum ThemeMode {
+  light
+  dark
+  auto
+}
+
+enum FontSize {
+  sm
+  md
+  lg
+}
+
+enum Density {
+  comfortable
+  compact
+}
+
+enum Currency {
+  VND
+  USD
+}
+
+enum Language {
+  vi
+  en
+  ja
+}
+
+enum Timezone {
+  Asia_Ho_Chi_Minh
+  UTC
+  Asia_Tokyo
+  Europe_London
+  America_Los_Angeles
+}
+
+enum WebsiteType {
+  landing
+  blog
+  company
+  ecommerce
+  booking
+  news
+  lms
+  directory
+}
+
+enum AdminPreset {
+  minimal_admin
+  content_admin
+  commerce_admin
+  booking_admin
+}
+
+enum LocaleOption {
+  vi
+  en
+  ja
+}
+
+enum SortOption {
+  newest
+  oldest
+  name_asc
+  name_desc
+}
+
+model Setting {
+  id                  String      @id @default(cuid())
+  ownerUserId         String      @unique
+
+  siteName            String      @db.VarChar(191)
+  language            Language    @default(vi)
+  timezone            Timezone    @default(Asia_Ho_Chi_Minh)
+  currency            Currency    @default(VND)
+
+  theme               ThemeMode   @default(auto)
+  accent              String      @default("#6f42c1") @db.VarChar(20)
+  fontSize            FontSize    @default(md)
+  radius              Int         @default(18)
+  density             Density     @default(comfortable)
+
+  websiteType         WebsiteType @default(landing)
+  adminPreset         AdminPreset @default(minimal_admin)
+  defaultLocale       LocaleOption @default(vi)
+  enabledLocales      Json
+  enableMultilingual  Boolean     @default(false)
+
+  pageSize            Int         @default(20)
+  defaultSort         SortOption  @default(newest)
+  showSku             Boolean     @default(true)
+  showBarcode         Boolean     @default(false)
+
+  dataModules         Json
+  integrations        Json
+  security            Json
+  advanced            Json
+
+  autoSave            Boolean     @default(true)
+  confirmBeforeDelete Boolean     @default(true)
+  autoRefresh         Boolean     @default(false)
+  notifyOnChange      Boolean     @default(true)
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([ownerUserId])
+}

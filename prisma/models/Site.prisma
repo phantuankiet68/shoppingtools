@@ -9,6 +9,8 @@ model Site {
   name                    String
   domain                  String                  @unique
   ownerUserId             String                  @map("owner_user_id")
+   createdByUserId        String?                 @map("created_by_user_id")
+  workspaceId             String?                 @map("workspace_id")
   status                  SiteStatus              @default(DRAFT)
   isPublic                Boolean                 @default(false) @map("is_public")
   publishedAt             DateTime?               @map("published_at")
@@ -43,7 +45,12 @@ model Site {
   storageIntegration      StorageIntegration?
   storageLogs             StorageLog[]
 
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+   createdBy User? @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
   @@index([ownerUserId])
+  @@index([workspaceId])
   @@index([status])
   @@index([isPublic])
   @@index([publishedAt])

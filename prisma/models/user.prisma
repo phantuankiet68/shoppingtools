@@ -1,7 +1,7 @@
-enum UserRole {
-  USER
-  SUB_USER
+enum SystemRole {
+  SUPER_ADMIN
   ADMIN
+  CUSTOMER
 }
 
 enum UserStatus {
@@ -13,7 +13,7 @@ model User {
   id              String     @id @default(cuid())
   email           String     @unique
   passwordHash    String     @map("password_hash")
-  role            UserRole   @default(USER)
+  systemRole      SystemRole @default(CUSTOMER)
   status          UserStatus @default(ACTIVE)
   emailVerifiedAt DateTime?  @map("email_verified_at")
   lastLoginAt     DateTime?  @map("last_login_at")
@@ -24,31 +24,33 @@ model User {
   passwordResets  PasswordResetToken[]
   emailVerifs     EmailVerificationToken[]
   loginAttempts   LoginAttempt[]
-  auditActorLogs  AuditLog[] @relation("AuditActor")
-  auditTargetLogs AuditLog[] @relation("AuditTarget")
+  auditActorLogs  AuditLog[]          @relation("AuditActor")
+  auditTargetLogs AuditLog[]          @relation("AuditTarget")
   twoFactor       UserTwoFactor?
   backupCodes     UserBackupCode[]
   devices         UserDevice[]
   image           String?
-  profile         Profile?   @relation("UserProfile")
-  ownedSites      Site[]     @relation("SiteOwner")
+  profile         Profile?            @relation("UserProfile")
+  memberships     WorkspaceMember[]
+  ownedWorkspaces Workspace[]         @relation("WorkspaceOwner")
   conversationMembers ConversationMember[]
   sentMessages        Message[]
   friendRequestsSent     FriendRequest[] @relation("FriendRequestFrom")
   friendRequestsReceived FriendRequest[] @relation("FriendRequestTo")
-  blocksSent     Block[] @relation("UserBlocksSent")
-  blocksReceived Block[] @relation("UserBlocksReceived")
+  blocksSent     Block[]              @relation("UserBlocksSent")
+  blocksReceived Block[]              @relation("UserBlocksReceived")
   emailTemplates EmailTemplate[]
   emails         Email[]
   calendarsOwned        Calendar[]      @relation("CalendarOwner")
   calendarEventsCreated CalendarEvent[] @relation("CalendarEventCreator")
   calendarEventsForUser CalendarEvent[] @relation("CalendarEventUser")
+  createdSites         Site[]           @relation("SiteCreator")
+  ownedSites Site[] @relation("SiteOwner")
 
-  @@index([role])
+  @@index([systemRole])
   @@index([status])
   @@map("users")
 }
-
 
 model UserSession {
   id                    String   @id @default(cuid())
@@ -66,6 +68,7 @@ model UserSession {
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rotatedFromSession    UserSession? @relation("SessionRotation", fields: [rotatedFromSessionId], references: [id])
   rotatedToSessions     UserSession[] @relation("SessionRotation")
+
   @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
@@ -80,6 +83,7 @@ model PasswordResetToken {
   usedAt    DateTime? @map("used_at")
   createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([expiresAt])
   @@map("password_reset_tokens")
@@ -93,6 +97,7 @@ model EmailVerificationToken {
   usedAt    DateTime? @map("used_at")
   createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([expiresAt])
   @@index([tokenHash])
@@ -108,6 +113,7 @@ model LoginAttempt {
   success   Boolean
   createdAt DateTime @default(now()) @map("created_at")
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   @@index([ipAddress, createdAt])
   @@index([email, createdAt])
   @@index([userId, createdAt])
@@ -125,6 +131,7 @@ model AuditLog {
   createdAt    DateTime @default(now()) @map("created_at")
   actorUser    User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
   targetUser   User? @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
   @@index([actorUserId, createdAt])
   @@index([action, createdAt])
   @@map("audit_logs")
@@ -139,6 +146,7 @@ model UserTwoFactor {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
   user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("user_two_factor")
 }
 
@@ -149,6 +157,7 @@ model UserBackupCode {
   usedAt    DateTime? @map("used_at")
   createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@unique([userId, codeHash])
   @@map("user_backup_codes")
@@ -169,11 +178,13 @@ model UserDevice {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([userId, trusted])
   @@index([lastSeenAt])
   @@map("user_devices")
 }
+
 model Block {
   id        String   @id @default(cuid())
   blockerId String   @map("blocker_id")

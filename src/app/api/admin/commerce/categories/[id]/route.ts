@@ -265,22 +265,89 @@ export async function DELETE(req: Request, ctx: Ctx) {
     const siteId = getSiteIdFromUrl(req);
     if (!siteId) return jsonError("siteId is required", 400);
 
-    // prevent deleting category that has children
-    const childrenCount = await prisma.productCategory.count({
-      where: { siteId, parentId: categoryId },
-    });
-    if (childrenCount > 0) return jsonError("Cannot delete: category has children", 409);
-
-    const r = await prisma.productCategory.deleteMany({
+    const root = await prisma.productCategory.findFirst({
       where: { id: categoryId, siteId },
+      select: { id: true },
     });
 
-    if (r.count === 0) return jsonError("Not found", 404);
+    if (!root) return jsonError("Not found", 404);
 
-    return NextResponse.json({ ok: true });
+    const allRows = await prisma.productCategory.findMany({
+      where: { siteId },
+      select: {
+        id: true,
+        parentId: true,
+        _count: { select: { products: true } },
+      },
+    });
+
+    const childrenMap = new Map<string | null, string[]>();
+    for (const row of allRows) {
+      const key = row.parentId ?? null;
+      const current = childrenMap.get(key) ?? [];
+      current.push(row.id);
+      childrenMap.set(key, current);
+    }
+
+    const idsToDelete: string[] = [];
+    const stack = [categoryId];
+
+    while (stack.length > 0) {
+      const currentId = stack.pop();
+      if (!currentId) continue;
+
+      idsToDelete.push(currentId);
+
+      const childIds = childrenMap.get(currentId) ?? [];
+      for (const childId of childIds) {
+        stack.push(childId);
+      }
+    }
+
+    const rowsToDelete = allRows.filter((row) => idsToDelete.includes(row.id));
+    const hasProducts = rowsToDelete.some((row) => Number(row._count.products ?? 0) > 0);
+
+    if (hasProducts) {
+      return jsonError("Cannot delete: one or more categories in this tree still contain products", 409);
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const depthMap = new Map<string, number>();
+
+      const getDepth = (id: string): number => {
+        if (depthMap.has(id)) return depthMap.get(id)!;
+
+        const row = allRows.find((item) => item.id === id);
+        if (!row || !row.parentId) {
+          depthMap.set(id, 0);
+          return 0;
+        }
+
+        const depth = getDepth(row.parentId) + 1;
+        depthMap.set(id, depth);
+        return depth;
+      };
+
+      const orderedIds = [...idsToDelete].sort((a, b) => getDepth(b) - getDepth(a));
+
+      for (const id of orderedIds) {
+        await tx.productCategory.deleteMany({
+          where: { id, siteId },
+        });
+      }
+    });
+
+    return NextResponse.json({
+      ok: true,
+      deletedIds: idsToDelete,
+    });
   } catch (e: unknown) {
     const pe = asPrismaError(e);
-    if ((pe.message || "").toLowerCase().includes("unauth")) return jsonError("Unauthorized", 401);
+
+    if ((pe.message || "").toLowerCase().includes("unauth")) {
+      return jsonError("Unauthorized", 401);
+    }
+
     return jsonError(pe.message || "Server error", 500);
   }
 }

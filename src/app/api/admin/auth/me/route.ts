@@ -1,62 +1,52 @@
-import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
-import { hashToken } from "@/lib/session";
+import { getSessionUser, pickCurrentMembership } from "@/lib/auth/auth-workspace";
 
-function toRoleLabel(role: string) {
-  return role === "ADMIN" ? "Admin" : "User";
+function toSystemRoleLabel(role: string) {
+  switch (role) {
+    case "SUPER_ADMIN":
+      return "Super Admin";
+    case "ADMIN":
+      return "Admin";
+    case "CUSTOMER":
+      return "Customer";
+    default:
+      return role;
+  }
 }
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const rawToken = cookieStore.get("admin_session")?.value ?? null;
+export async function GET(req: Request) {
+  const user = await getSessionUser();
 
-  if (!rawToken) {
+  if (!user) {
     return Response.json({ user: null }, { status: 401 });
   }
 
-  const tokenHash = hashToken(rawToken);
-
-  const session = await prisma.userSession.findFirst({
-    where: {
-      refreshTokenHash: tokenHash,
-      revokedAt: null,
-      expiresAt: { gt: new Date() },
-    },
-    select: {
-      id: true,
-      user: {
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          status: true,
-          image: true, // ✅ lấy image thật từ DB
-        },
-      },
-    },
-  });
-
-  // chỉ cho ADMIN + ACTIVE
-  if (!session?.user || session.user.role !== "ADMIN" || session.user.status !== "ACTIVE") {
-    return Response.json({ user: null }, { status: 401 });
-  }
-
-  const displayName = session.user.email.includes("@") ? session.user.email.split("@")[0] : session.user.email;
-
-  // update lastSeenAt (best-effort)
-  await prisma.userSession
-    .update({
-      where: { id: session.id },
-      data: { lastSeenAt: new Date() },
-    })
-    .catch(() => {});
+  const { searchParams } = new URL(req.url);
+  const requestedWorkspaceId = searchParams.get("workspaceId");
+  const currentMembership = pickCurrentMembership(user, requestedWorkspaceId);
+  const displayName = user.email.includes("@") ? user.email.split("@")[0] : user.email;
 
   return Response.json({
     user: {
+      id: user.id,
       name: displayName,
-      role: toRoleLabel(session.user.role),
-      email: session.user.email,
-      image: session.user.image ?? null, // ✅ trả về image
+      email: user.email,
+      image: user.image,
+      systemRole: user.systemRole,
+      roleLabel: toSystemRoleLabel(user.systemRole),
     },
+    currentWorkspace: currentMembership
+      ? {
+          id: currentMembership.workspaceId,
+          name: currentMembership.workspaceName,
+          slug: currentMembership.workspaceSlug,
+          role: currentMembership.role,
+        }
+      : null,
+    memberships: user.memberships.map((membership) => ({
+      workspaceId: membership.workspaceId,
+      workspaceName: membership.workspaceName,
+      workspaceSlug: membership.workspaceSlug,
+      role: membership.role,
+    })),
   });
 }

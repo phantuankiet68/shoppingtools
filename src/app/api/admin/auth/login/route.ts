@@ -2,23 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 import { newSessionToken, hashToken } from "@/lib/session";
+import { signAdminAccessToken, signAdminRefreshToken } from "@/lib/auth/jwt";
 
 function getClientIp(req: NextRequest) {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? null;
 }
 
 const ADMIN_SESSION_DAYS = 1;
-
 const MAX_FAILS_WINDOW = 5;
 const WINDOW_MINUTES = 15;
-const LOCK_MINUTES = 15;
 
 function genericFail() {
   return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
 }
 
 function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function POST(req: NextRequest) {
@@ -44,6 +43,7 @@ export async function POST(req: NextRequest) {
 
   const now = new Date();
   const windowStart = new Date(now.getTime() - WINDOW_MINUTES * 60 * 1000);
+
   const recentFails = await prisma.loginAttempt.count({
     where: {
       email,
@@ -69,15 +69,26 @@ export async function POST(req: NextRequest) {
         },
       })
       .catch(() => {});
+
     await sleep(150);
     return genericFail();
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      passwordHash: true,
+      systemRole: true,
+      status: true,
+    },
+  });
 
-  const isEligible = !!user && user.role === "ADMIN" && user.status === "ACTIVE";
+  const isEligible =
+    !!user && (user.systemRole === "ADMIN" || user.systemRole === "SUPER_ADMIN") && user.status === "ACTIVE";
 
-  const ok = isEligible ? await verifyPassword(password, user!.passwordHash) : false;
+  const ok = isEligible ? await verifyPassword(password, user.passwordHash) : false;
 
   await prisma.loginAttempt
     .create({
@@ -91,7 +102,7 @@ export async function POST(req: NextRequest) {
     })
     .catch(() => {});
 
-  if (!ok) {
+  if (!ok || !user) {
     await prisma.auditLog
       .create({
         data: {
@@ -102,10 +113,10 @@ export async function POST(req: NextRequest) {
           metaJson: {
             email,
             reason: !user
-              ? "no_user_or_ineligible"
+              ? "no_user"
               : user.status !== "ACTIVE"
                 ? "suspended"
-                : user.role !== "ADMIN"
+                : user.systemRole !== "ADMIN" && user.systemRole !== "SUPER_ADMIN"
                   ? "not_admin"
                   : "bad_password",
           },
@@ -117,27 +128,42 @@ export async function POST(req: NextRequest) {
     return genericFail();
   }
 
-  const token = newSessionToken();
-  const tokenHash = hashToken(token);
-  const expiresAt = new Date(Date.now() + ADMIN_SESSION_DAYS * 24 * 60 * 60 * 1000);
+  const safeUser = user;
+  const sessionToken = newSessionToken();
+  const tokenHash = hashToken(sessionToken);
+  const sessionExpiresAt = new Date(Date.now() + ADMIN_SESSION_DAYS * 24 * 60 * 60 * 1000);
+
+  const accessToken = await signAdminAccessToken({
+    userId: safeUser.id,
+    email: safeUser.email,
+    systemRole: safeUser.systemRole,
+    status: safeUser.status,
+  });
+
+  const refreshToken = await signAdminRefreshToken({
+    userId: safeUser.id,
+    email: safeUser.email,
+    systemRole: safeUser.systemRole,
+    status: safeUser.status,
+  });
 
   await prisma.$transaction([
     prisma.userSession.updateMany({
-      where: { userId: user!.id, revokedAt: null },
+      where: { userId: safeUser.id, revokedAt: null },
       data: { revokedAt: new Date() },
     }),
     prisma.userSession.create({
       data: {
-        userId: user!.id,
+        userId: safeUser.id,
         refreshTokenHash: tokenHash,
-        expiresAt,
+        expiresAt: sessionExpiresAt,
         ipAddress: ip,
         userAgent,
       },
     }),
     prisma.auditLog.create({
       data: {
-        actorUserId: user!.id,
+        actorUserId: safeUser.id,
         action: "ADMIN_LOGIN_SUCCESS",
         ipAddress: ip,
         userAgent,
@@ -146,14 +172,33 @@ export async function POST(req: NextRequest) {
     }),
   ]);
 
-  const res = NextResponse.json({ ok: true });
+  const res = NextResponse.json({
+    ok: true,
+    redirectTo: safeUser.systemRole === "ADMIN" ? "/admin" : "/admin",
+  });
 
-  res.cookies.set("admin_session", token, {
+  const cookieBase = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
-    expires: expiresAt,
+  };
+
+  // Session DB cũ - vẫn giữ để revoke/audit
+  res.cookies.set("admin_session", sessionToken, {
+    ...cookieBase,
+    expires: sessionExpiresAt,
+  });
+
+  // JWT cho middleware
+  res.cookies.set("admin_access_token", accessToken, {
+    ...cookieBase,
+    maxAge: 60 * 15,
+  });
+
+  res.cookies.set("admin_refresh_token", refreshToken, {
+    ...cookieBase,
+    maxAge: 60 * 60 * 24 * 7,
   });
 
   return res;

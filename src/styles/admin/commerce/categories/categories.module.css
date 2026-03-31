@@ -49,7 +49,7 @@
 }
 
 .body {
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 280px 1fr;
   min-height: calc(92vh);
   display: grid;
 }
@@ -886,8 +886,8 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 300;
+  font-size: 13px;
+  font-weight: 400;
   line-height: 1;
   border: var(--bd-header);
   background: var(--bg-header);
@@ -1000,8 +1000,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 10px;
-  padding-bottom: 16px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
   border-bottom: 1px solid #eef2f7;
 }
 
@@ -1252,4 +1252,119 @@
   outline: none;
   width: 100%;
   font-size: 13px;
+}
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.treeNode {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.treeItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border: 1px solid #d9e1ec;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.treeItem:hover {
+  border-color: #bfd0ee;
+  background: #fcfdff;
+}
+
+.treeItemActive {
+  border-color: #8fb2ff;
+  box-shadow: 0 0 0 2px rgba(99, 142, 255, 0.12);
+  background: #f8fbff;
+}
+
+.treeToggleSlot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.treeCaret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #7da2f8;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.treeCaret:hover {
+  background: rgba(125, 162, 248, 0.12);
+}
+
+.treeCaretPlaceholder {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.treeMain {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.treeGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.treeName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeCount {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #79a7ff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.treeChildren {
+  margin-left: var(--tree-indent, 3px);
+  padding-left: 14px;
+  border-left: 1px solid #e3eaf5;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }

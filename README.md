@@ -537,4 +537,5 @@ Nhìn “brand” hơn, không còn kiểu icon rời rạc
 bootstrapt icon
 
 Bạn hhãy kiểm tra và xóa nhưng phần dư thừa và tiêu tôn ttài nguyên trong file code và hãy xóa các ddữ liệu đang sset value ở dạng tĩnh thay thế lấy data từ api/v1/account/profile. Với lại tôi muốn xóa các card Preferences, Security, Quick summary thay thế cho form nhập dữ liệu address
- và ghi lại toàn bộ file giúp ttôi nhé
+và ghi lại toàn bộ file giúp ttôi nhé
+s

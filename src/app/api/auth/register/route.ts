@@ -44,19 +44,17 @@ export async function POST(req: Request) {
       data: {
         email,
         passwordHash,
-        role: "USER",
+        systemRole: "CUSTOMER",
         status: "ACTIVE",
       },
       select: {
         id: true,
         email: true,
-        role: true,
+        systemRole: true,
         status: true,
         createdAt: true,
       },
     });
-
-    // Nếu sau này bạn có Profile model chuẩn, có thể create profile tại đây bằng `name`
 
     const meta = getRequestMeta(req);
     const session = await createUserSession({
@@ -74,6 +72,7 @@ export async function POST(req: Request) {
         userAgent: meta.userAgent,
         metaJson: {
           email,
+          name,
         },
       },
     });

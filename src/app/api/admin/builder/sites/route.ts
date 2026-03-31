@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { cookies } from "next/headers";
-import { hashToken } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { assertWorkspaceRole, pickCurrentMembership, requireSessionUser } from "@/lib/auth/auth-workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +18,7 @@ const CreateSchema = z.object({
     .min(2)
     .max(100)
     .transform((s) => s.trim()),
+  workspaceId: z.string().min(1).optional(),
 });
 
 async function nextSiteId(prefix = "sitea") {
@@ -32,11 +32,11 @@ async function nextSiteId(prefix = "sitea") {
   let max = 0;
   const re = new RegExp(`^${prefix}(\\d{2})$`, "i");
 
-  for (const r of rows) {
-    const m = r.id.match(re);
-    if (!m) continue;
-    const n = Number(m[1]);
-    if (Number.isFinite(n) && n > max) max = n;
+  for (const row of rows) {
+    const match = row.id.match(re);
+    if (!match) continue;
+    const value = Number(match[1]);
+    if (Number.isFinite(value) && value > max) max = value;
   }
 
   const next = max + 1;
@@ -44,46 +44,71 @@ async function nextSiteId(prefix = "sitea") {
   return `${prefix}${suffix}`.toLowerCase();
 }
 
-async function requireAdminUser() {
-  const cookieStore = await cookies();
-  const rawToken = cookieStore.get("admin_session")?.value ?? null;
-  if (!rawToken) return null;
-
-  const tokenHash = hashToken(rawToken);
-
-  const session = await prisma.userSession.findFirst({
-    where: {
-      refreshTokenHash: tokenHash,
-      revokedAt: null,
-      expiresAt: { gt: new Date() },
-    },
-    select: {
-      user: { select: { id: true, role: true, status: true } },
-    },
-  });
-
-  if (!session?.user) return null;
-  if (session.user.role !== "ADMIN" || session.user.status !== "ACTIVE") return null;
-
-  return session.user;
+function isMissingWorkspaceColumn(error: unknown): boolean {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  return message.includes("workspace_id") || message.includes("workspaceid");
 }
 
-export async function GET() {
-  const items = await prisma.site.findMany({
-    where: { deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-  return NextResponse.json(items);
+export async function GET(req: Request) {
+  try {
+    const user = await requireSessionUser();
+    const { searchParams } = new URL(req.url);
+    const requestedWorkspaceId = searchParams.get("workspaceId");
+    const membership = pickCurrentMembership(user, requestedWorkspaceId);
+
+    if (!membership) {
+      return NextResponse.json({ error: "No workspace access." }, { status: 403 });
+    }
+
+    const items = await prisma.site.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { workspaceId: membership.workspaceId },
+          {
+            workspaceId: null,
+            ownerUserId: user.id,
+          },
+        ],
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return NextResponse.json({
+      workspace: {
+        id: membership.workspaceId,
+        name: membership.workspaceName,
+        slug: membership.workspaceSlug,
+        role: membership.role,
+      },
+      items,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return NextResponse.json({ error: "Failed to fetch sites." }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
-  const admin = await requireAdminUser();
-  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await req.json().catch(() => ({}));
-  const parsed = CreateSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-
   try {
+    const user = await requireSessionUser();
+    const body = await req.json().catch(() => ({}));
+    const parsed = CreateSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    }
+
+    const membership = pickCurrentMembership(user, parsed.data.workspaceId ?? null);
+    if (!membership) {
+      return NextResponse.json({ error: "No workspace access." }, { status: 403 });
+    }
+
+    assertWorkspaceRole(membership.role, ["OWNER", "ADMIN"]);
+
     const id = await nextSiteId("sitea");
 
     const created = await prisma.site.create({
@@ -91,16 +116,36 @@ export async function POST(req: Request) {
         id,
         domain: parsed.data.domain,
         name: parsed.data.name,
-        owner: { connect: { id: admin.id } },
+        owner: { connect: { id: user.id } },
+        createdBy: { connect: { id: user.id } },
+        workspace: { connect: { id: membership.workspaceId } },
       },
     });
 
     return NextResponse.json(created, { status: 201 });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? String(e.message) : "";
-    if (msg.toLowerCase().includes("unique") || msg.toLowerCase().includes("constraint")) {
-      return NextResponse.json({ error: "Domain already exists." }, { status: 409 });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "UNAUTHORIZED") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      if (error.message === "FORBIDDEN") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      const message = error.message.toLowerCase();
+      if (message.includes("unique") || message.includes("constraint")) {
+        return NextResponse.json({ error: "Domain already exists." }, { status: 409 });
+      }
+
+      if (isMissingWorkspaceColumn(error)) {
+        return NextResponse.json(
+          { error: "Database migration for workspace_id has not been applied yet." },
+          { status: 500 },
+        );
+      }
     }
+
     return NextResponse.json({ error: "Failed to create site." }, { status: 500 });
   }
 }

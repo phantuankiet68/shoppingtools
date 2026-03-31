@@ -1352,17 +1352,13 @@ model Page {
   status      PageStatus @default(DRAFT)
   publishedAt DateTime?  @map("published_at")
   blocks      Json?
-
-  // giữ seoTitle/seoDesc nếu đang dùng ở nơi khác (optional)
-  seoTitle String? @map("seo_title")
-  seoDesc  String? @map("seo_desc")
-
-  seo PageSEO? // 1-1 relation
-
-  sortOrder Int       @default(0) @map("sort_order")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  seoTitle    String?    @map("seo_title")
+  seoDesc     String?    @map("seo_desc")
+  seo         PageSEO?
+  sortOrder   Int        @default(0) @map("sort_order")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
 
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
@@ -1376,28 +1372,23 @@ model Page {
 }
 
 model PageSEO {
-  id     String @id @default(cuid())
-  pageId String @unique @map("page_id")
-
-  metaTitle       String? @map("meta_title")
-  metaDescription String? @map("meta_description")
-  keywords        String? @map("keywords")
-  canonicalUrl    String? @map("canonical_url")
-  noindex         Boolean @default(false) @map("noindex")
-  nofollow        Boolean @default(false) @map("nofollow")
-
-  ogTitle       String? @map("og_title")
-  ogDescription String? @map("og_description")
-  ogImage       String? @map("og_image")
-  twitterCard   String? @map("twitter_card") // hoặc enum nếu muốn strict
-
-  sitemapChangefreq String? @map("sitemap_changefreq")
-  sitemapPriority   Float?  @map("sitemap_priority")
-
-  structuredData String? @map("structured_data") @db.Text
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(cuid())
+  pageId            String   @unique @map("page_id")
+  metaTitle         String?  @map("meta_title")
+  metaDescription   String?  @map("meta_description")
+  keywords          String?  @map("keywords")
+  canonicalUrl      String?  @map("canonical_url")
+  noindex           Boolean  @default(false) @map("noindex")
+  nofollow          Boolean  @default(false) @map("nofollow")
+  ogTitle           String?  @map("og_title")
+  ogDescription     String?  @map("og_description")
+  ogImage           String?  @map("og_image")
+  twitterCard       String?  @map("twitter_card")
+  sitemapChangefreq String?  @map("sitemap_changefreq")
+  sitemapPriority   Float?   @map("sitemap_priority")
+  structuredData    String?  @map("structured_data") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
@@ -1660,6 +1651,116 @@ model Review {
   @@map("reviews")
 }
 
+// ==== part: Setting.prisma ====
+enum ThemeMode {
+  light
+  dark
+  auto
+}
+
+enum FontSize {
+  sm
+  md
+  lg
+}
+
+enum Density {
+  comfortable
+  compact
+}
+
+enum Currency {
+  VND
+  USD
+}
+
+enum Language {
+  vi
+  en
+  ja
+}
+
+enum Timezone {
+  Asia_Ho_Chi_Minh
+  UTC
+  Asia_Tokyo
+  Europe_London
+  America_Los_Angeles
+}
+
+enum WebsiteType {
+  landing
+  blog
+  company
+  ecommerce
+  booking
+  news
+  lms
+  directory
+}
+
+enum AdminPreset {
+  minimal_admin
+  content_admin
+  commerce_admin
+  booking_admin
+}
+
+enum LocaleOption {
+  vi
+  en
+  ja
+}
+
+enum SortOption {
+  newest
+  oldest
+  name_asc
+  name_desc
+}
+
+model Setting {
+  id          String @id @default(cuid())
+  ownerUserId String @unique
+
+  siteName String   @db.VarChar(191)
+  language Language @default(vi)
+  timezone Timezone @default(Asia_Ho_Chi_Minh)
+  currency Currency @default(VND)
+
+  theme    ThemeMode @default(auto)
+  accent   String    @default("#6f42c1") @db.VarChar(20)
+  fontSize FontSize  @default(md)
+  radius   Int       @default(18)
+  density  Density   @default(comfortable)
+
+  websiteType        WebsiteType  @default(landing)
+  adminPreset        AdminPreset  @default(minimal_admin)
+  defaultLocale      LocaleOption @default(vi)
+  enabledLocales     Json
+  enableMultilingual Boolean      @default(false)
+
+  pageSize    Int        @default(20)
+  defaultSort SortOption @default(newest)
+  showSku     Boolean    @default(true)
+  showBarcode Boolean    @default(false)
+
+  dataModules  Json
+  integrations Json
+  security     Json
+  advanced     Json
+
+  autoSave            Boolean @default(true)
+  confirmBeforeDelete Boolean @default(true)
+  autoRefresh         Boolean @default(false)
+  notifyOnChange      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerUserId])
+}
+
 // ==== part: Site.prisma ====
 enum SiteStatus {
   DRAFT
@@ -1672,6 +1773,8 @@ model Site {
   name                    String
   domain                  String                  @unique
   ownerUserId             String                  @map("owner_user_id")
+  createdByUserId         String?                 @map("created_by_user_id")
+  workspaceId             String?                 @map("workspace_id")
   status                  SiteStatus              @default(DRAFT)
   isPublic                Boolean                 @default(false) @map("is_public")
   publishedAt             DateTime?               @map("published_at")
@@ -1703,8 +1806,12 @@ model Site {
   productVariants         ProductVariant[]
   productCategories       ProductCategory[]
 
-  storageIntegration        StorageIntegration?
-  storageLogs               StorageLog[]
+  storageIntegration StorageIntegration?
+  storageLogs        StorageLog[]
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdBy                 User?                      @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
   stockLevels               StockLevel[]
   stockMovements            StockMovement[]
   purchaseOrders            PurchaseOrder[]
@@ -1714,6 +1821,7 @@ model Site {
   reviews                   Review[]
 
   @@index([ownerUserId])
+  @@index([workspaceId])
   @@index([status])
   @@index([isPublic])
   @@index([publishedAt])
@@ -1927,11 +2035,55 @@ model Transaction {
   @@index([categoryId])
 }
 
-// ==== part: user.prisma ====
-enum UserRole {
-  USER
-  SUB_USER
+// ==== part: Workspace.prisma ====
+enum WorkspaceRole {
+  OWNER
   ADMIN
+  EDITOR
+  VIEWER
+}
+
+model Workspace {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  ownerUserId  String   @map("owner_user_id")
+  logo         String?
+  primaryColor String?  @map("primary_color")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  owner   User              @relation("WorkspaceOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  members WorkspaceMember[]
+  sites   Site[]
+
+  @@index([ownerUserId])
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String        @map("workspace_id")
+  userId      String        @map("user_id")
+  role        WorkspaceRole
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([workspaceId, role])
+  @@map("workspace_members")
+}
+
+// ==== part: user.prisma ====
+enum SystemRole {
+  SUPER_ADMIN
+  ADMIN
+  CUSTOMER
 }
 
 enum UserStatus {
@@ -1943,7 +2095,7 @@ model User {
   id              String     @id @default(cuid())
   email           String     @unique
   passwordHash    String     @map("password_hash")
-  role            UserRole   @default(USER)
+  systemRole      SystemRole @default(CUSTOMER)
   status          UserStatus @default(ACTIVE)
   emailVerifiedAt DateTime?  @map("email_verified_at")
   lastLoginAt     DateTime?  @map("last_login_at")
@@ -1961,7 +2113,8 @@ model User {
   devices                UserDevice[]
   image                  String?
   profile                Profile?                 @relation("UserProfile")
-  ownedSites             Site[]                   @relation("SiteOwner")
+  memberships            WorkspaceMember[]
+  ownedWorkspaces        Workspace[]              @relation("WorkspaceOwner")
   conversationMembers    ConversationMember[]
   sentMessages           Message[]
   friendRequestsSent     FriendRequest[]          @relation("FriendRequestFrom")
@@ -1973,6 +2126,8 @@ model User {
   calendarsOwned         Calendar[]               @relation("CalendarOwner")
   calendarEventsCreated  CalendarEvent[]          @relation("CalendarEventCreator")
   calendarEventsForUser  CalendarEvent[]          @relation("CalendarEventUser")
+  createdSites           Site[]                   @relation("SiteCreator")
+  ownedSites             Site[]                   @relation("SiteOwner")
   automationRules        AutomationRule[]
   customers              Customer[]
   files                  File[]
@@ -1983,7 +2138,7 @@ model User {
   categories             Category[]
   transactions           Transaction[]
 
-  @@index([role])
+  @@index([systemRole])
   @@index([status])
   @@map("users")
 }
