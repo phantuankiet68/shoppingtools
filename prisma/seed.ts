@@ -1,6 +1,6 @@
 import { prisma } from "../src/lib/prisma";
 import { hashPassword } from "../src/lib/password";
-import { UserRole, UserStatus } from "@prisma/client";
+import { SystemRole, UserStatus } from "@prisma/client";
 
 async function main() {
   const email = "admin@example.com";
@@ -9,12 +9,12 @@ async function main() {
   await prisma.user.upsert({
     where: { email },
     update: {
-      role: UserRole.ADMIN,
+      systemRole: SystemRole.ADMIN,
       status: UserStatus.ACTIVE,
     },
     create: {
       email,
-      role: UserRole.ADMIN,
+      systemRole: SystemRole.ADMIN,
       status: UserStatus.ACTIVE,
       passwordHash,
     },
