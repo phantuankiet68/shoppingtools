@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAccessToken } from "@/lib/auth/jwt";
 
-const ADMIN_LOGIN = "/admin/login";
-const ADMIN_HOME = "/admin";
+const LOGIN_PATH = "/admin/login";
+const PLATFORM_HOME = "/platform";
+const TENANT_HOME = "/tenant";
 const ACCESS_TOKEN_COOKIE = "admin_access_token";
-
-const ADMIN_ALLOWED_PREFIXES = ["/admin", "/admin/profile", "/admin/account", "/admin/settings"];
-
-function isAllowedAdminPath(pathname: string): boolean {
-  return ADMIN_ALLOWED_PREFIXES.some((prefix) => {
-    return pathname === prefix || pathname.startsWith(`${prefix}/`);
-  });
-}
 
 function clearAuthCookie(res: NextResponse) {
   res.cookies.set(ACCESS_TOKEN_COOKIE, "", {
@@ -30,7 +23,7 @@ function redirectToLogin(
     preserveNext?: boolean;
   },
 ) {
-  const url = new URL(ADMIN_LOGIN, req.url);
+  const url = new URL(LOGIN_PATH, req.url);
 
   if (options?.preserveNext) {
     const nextPath = req.nextUrl.pathname + req.nextUrl.search;
@@ -46,52 +39,58 @@ function redirectToLogin(
   return res;
 }
 
-function redirectToAdminHome(req: NextRequest) {
-  return NextResponse.redirect(new URL(ADMIN_HOME, req.url));
+function redirectToHomeByRole(req: NextRequest, role: string) {
+  if (role === "SUPER_ADMIN") {
+    return NextResponse.redirect(new URL(PLATFORM_HOME, req.url));
+  }
+
+  if (role === "ADMIN") {
+    return NextResponse.redirect(new URL(TENANT_HOME, req.url));
+  }
+
+  return NextResponse.redirect(new URL(LOGIN_PATH, req.url));
 }
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
 
-  /**
-   * 1) Route login admin
-   * Nếu đã có token hợp lệ và đúng quyền thì không cho quay lại login nữa.
-   */
-  if (pathname === ADMIN_LOGIN) {
+  const isLoginPage = pathname === LOGIN_PATH;
+  const isPlatformRoute = pathname === "/platform" || pathname.startsWith("/platform/");
+  const isTenantRoute = pathname === "/tenant" || pathname.startsWith("/tenant/");
+
+  // Login page
+  if (isLoginPage) {
     if (!token) {
       return NextResponse.next();
     }
 
     const payload = await verifyAdminAccessToken(token);
 
-    if (!payload) {
-      return redirectToLogin(req, { clearCookie: true });
-    }
-
-    if (payload.status !== "ACTIVE") {
+    if (!payload || payload.status !== "ACTIVE") {
       return redirectToLogin(req, { clearCookie: true });
     }
 
     if (payload.systemRole === "SUPER_ADMIN" || payload.systemRole === "ADMIN") {
-      return redirectToAdminHome(req);
+      return redirectToHomeByRole(req, payload.systemRole);
     }
 
     return redirectToLogin(req, { clearCookie: true });
   }
 
-  /**
-   * 2) Các route /admin khác bắt buộc phải có token
-   */
+  // Chỉ bảo vệ platform và tenant
+  if (!isPlatformRoute && !isTenantRoute) {
+    return NextResponse.next();
+  }
+
+  // Không có token
   if (!token) {
     return redirectToLogin(req, { preserveNext: true });
   }
 
   const payload = await verifyAdminAccessToken(token);
 
-  /**
-   * 3) Token không hợp lệ => xóa cookie và đá về login
-   */
+  // Token lỗi
   if (!payload) {
     return redirectToLogin(req, {
       clearCookie: true,
@@ -99,44 +98,37 @@ export async function middleware(req: NextRequest) {
     });
   }
 
-  /**
-   * 4) User bị khóa thì không cho vào admin
-   */
+  // User bị khóa
   if (payload.status !== "ACTIVE") {
     return redirectToLogin(req, { clearCookie: true });
   }
 
-  /**
-   * 5) CUSTOMER không được vào admin
-   */
+  // CUSTOMER không được vào backoffice
   if (payload.systemRole === "CUSTOMER") {
     return redirectToLogin(req, { clearCookie: true });
   }
 
-  /**
-   * 6) SUPER_ADMIN có toàn quyền
-   */
-  if (payload.systemRole === "SUPER_ADMIN") {
-    return NextResponse.next();
-  }
-
-  /**
-   * 7) ADMIN (sub_admin) chỉ được vào các route cho phép
-   */
-  if (payload.systemRole === "ADMIN") {
-    if (!isAllowedAdminPath(pathname)) {
-      return redirectToAdminHome(req);
+  // Chỉ SUPER_ADMIN được vào platform
+  if (isPlatformRoute) {
+    if (payload.systemRole !== "SUPER_ADMIN") {
+      return redirectToHomeByRole(req, payload.systemRole);
     }
 
     return NextResponse.next();
   }
 
-  /**
-   * 8) Fallback an toàn
-   */
-  return redirectToLogin(req, { clearCookie: true });
+  // Chỉ ADMIN được vào tenant
+  if (isTenantRoute) {
+    if (payload.systemRole !== "ADMIN") {
+      return redirectToHomeByRole(req, payload.systemRole);
+    }
+
+    return NextResponse.next();
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*"],
+  matcher: ["/admin/login", "/platform/:path*", "/tenant/:path*"],
 };

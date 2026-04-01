@@ -539,3 +539,233 @@ bootstrapt icon
 Bạn hhãy kiểm tra và xóa nhưng phần dư thừa và tiêu tôn ttài nguyên trong file code và hãy xóa các ddữ liệu đang sset value ở dạng tĩnh thay thế lấy data từ api/v1/account/profile. Với lại tôi muốn xóa các card Preferences, Security, Quick summary thay thế cho form nhập dữ liệu address
 và ghi lại toàn bộ file giúp ttôi nhé
 s
+
+Hệ thống gồm 3 cấp:
+
+1. Platform (ADMIN)
+   Quản lý toàn bộ hệ thống
+   Tạo và quản lý tài khoản SUB_ADMIN
+   Quản lý template
+   Quản lý system settings
+   Có thể giám sát tất cả site
+2. Tenant (SUB_ADMIN)
+   Là khách hàng của platform
+   Có thể:
+   tạo website (site)
+   cấu hình domain
+   sử dụng template
+   thiết kế pages (builder)
+   quản lý:
+   products
+   orders
+   customers
+   media
+   integrations
+
+👉 Mỗi SUB_ADMIN là một tenant độc lập
+
+3. End User (CUSTOMER)
+   Là khách của từng website (site)
+   Chỉ tương tác với:
+   frontend website
+   giỏ hàng
+   checkout
+   order tracking
+   chat / booking
+
+👉 CUSTOMER thuộc về SITE, không thuộc platform
+
+src/app
+admin/
+login/
+page.tsx
+
+platform/
+layout.tsx
+page.tsx
+sub-admins/
+page.tsx
+[id]/
+page.tsx
+templates/
+page.tsx
+[templateId]/
+page.tsx
+settings/
+page.tsx
+system/
+page.tsx
+
+tenant/
+layout.tsx
+page.tsx
+sites/
+page.tsx
+create/
+page.tsx
+[siteId]/
+layout.tsx
+page.tsx
+builder/
+page.tsx
+pages/
+page.tsx
+[pageId]/
+page.tsx
+menus/
+page.tsx
+domains/
+page.tsx
+media/
+page.tsx
+products/
+page.tsx
+[productId]/
+page.tsx
+categories/
+page.tsx
+inventory/
+page.tsx
+orders/
+page.tsx
+[orderId]/
+page.tsx
+customers/
+page.tsx
+integrations/
+page.tsx
+settings/
+page.tsx
+publish/
+page.tsx
+theme/
+page.tsx
+
+store/
+[siteId]/
+layout.tsx
+page.tsx
+[[...slug]]/
+page.tsx
+products/
+page.tsx
+[slug]/
+page.tsx
+cart/
+page.tsx
+checkout/
+page.tsx
+orders/
+page.tsx
+account/
+page.tsx
+///API
+src/app/api
+auth/
+admin/
+login/
+route.ts
+logout/
+route.ts
+sub-admin/
+login/
+route.ts
+logout/
+route.ts
+customer/
+login/
+route.ts
+register/
+route.ts
+logout/
+route.ts
+
+platform/
+users/
+route.ts
+[id]/
+route.ts
+sub-admins/
+route.ts
+[id]/
+route.ts
+templates/
+route.ts
+[templateId]/
+route.ts
+template-files/
+route.ts
+settings/
+route.ts
+system/
+route.ts
+
+tenant/
+sites/
+route.ts
+[siteId]/
+route.ts
+builder/
+route.ts
+pages/
+route.ts
+[pageId]/
+route.ts
+menus/
+route.ts
+domains/
+route.ts
+media/
+route.ts
+products/
+route.ts
+[productId]/
+route.ts
+categories/
+route.ts
+inventory/
+route.ts
+orders/
+route.ts
+[orderId]/
+route.ts
+customers/
+route.ts
+integrations/
+route.ts
+settings/
+route.ts
+publish/
+route.ts
+theme/
+route.ts
+upload/
+route.ts
+
+store/
+[siteId]/
+pages/
+[...slug]/
+route.ts
+products/
+route.ts
+[slug]/
+route.ts
+cart/
+route.ts
+checkout/
+route.ts
+orders/
+route.ts
+customer/
+profile/
+route.ts
+auth/
+login/
+route.ts
+register/
+route.ts
+logout/
+route.ts
+
+Nhưng không thiếu pemission để chặn một số quyền của admin và một số cái như được tạo bao nhiêu menu tạo được bao nhiêu page những cái cần có bao nhiêu dữ liệu để tiện kiểm soát vì tôi cho họ thuê template và lưu lượng để tạo web mà

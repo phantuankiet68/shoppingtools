@@ -1,0 +1,27 @@
+model Review {
+  id         String  @id @default(cuid())
+  siteId     String  @map("site_id")
+  productId  String  @map("product_id")
+  customerId String? @map("customer_id")
+
+  authorName String  @map("author_name")
+  avatar     String?
+  rating     Int // 1 - 5
+  title      String?
+  content    String
+
+  verified Boolean @default(false)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  product  Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([productId], map: "idx_reviews_product")
+  @@index([siteId, createdAt], map: "idx_reviews_site_created_at")
+  @@map("reviews")
+}

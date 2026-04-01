@@ -23,7 +23,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body className="antialiased">
-        {" "}
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
