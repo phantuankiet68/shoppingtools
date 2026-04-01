@@ -8,6 +8,7 @@ model Site {
   id                      String                  @id @default(cuid())
   name                    String
   domain                  String                  @unique
+  type                    WebsiteType             @default(ecommerce)
   ownerUserId             String                  @map("owner_user_id")
   createdByUserId         String?                 @map("created_by_user_id")
   workspaceId             String?                 @map("workspace_id")
@@ -61,5 +62,6 @@ model Site {
   @@index([status])
   @@index([isPublic])
   @@index([publishedAt])
+  @@index([type])
   @@map("sites")
 }

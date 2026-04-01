@@ -18,8 +18,25 @@ model MenuItem {
   setKey    MenuSetKey @default(home)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  rolePermissions MenuRolePermission[]
 
   @@index([parentId])
   @@index([siteId, setKey, sortOrder])
   @@index([title])
+}
+
+model MenuRolePermission {
+  id         String     @id @default(cuid())
+  menuId      String
+  menu        MenuItem   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  systemRole  SystemRole
+  enabled     Boolean    @default(true)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([menuId, systemRole])
+  @@index([systemRole, enabled])
+  @@index([menuId])
 }

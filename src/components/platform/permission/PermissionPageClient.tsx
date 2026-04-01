@@ -77,6 +77,7 @@ export function PermissionPageClient() {
   const [workspaceSlugDraft, setWorkspaceSlugDraft] = useState("");
   const [workspaceSaving, setWorkspaceSaving] = useState(false);
   const [workspaceSaveError, setWorkspaceSaveError] = useState("");
+  const [sites, setSites] = useState<{ id: string; type: string }[]>([]);
 
   function handleStartEditWorkspace() {
     setWorkspaceNameDraft(selectedStaff?.workspaceName || workspacePermission?.workspace?.name || "");
@@ -351,55 +352,80 @@ export function PermissionPageClient() {
     setSelectedStaffId(newTenant.id);
     setCreateTenantModalOpen(false);
   }
+  useEffect(() => {
+    async function fetchSites() {
+      if (!selectedStaff?.workspaceId) {
+        setSites([]);
+        return;
+      }
+
+      const res = await fetch(`/api/platform/permission/workspaces/${selectedStaff.workspaceId}/sites`, {
+        cache: "no-store",
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setSites(data);
+    }
+
+    fetchSites();
+  }, [selectedStaff?.workspaceId]);
 
   return (
     <div className={styles.page}>
-      <div className={styles.tenantToolbar}>
-        <div className={styles.tenantToolbarLeft}>
-          <div className={styles.tenantSearchBox}>
-            <i className={`bi bi-search ${styles.tenantSearchIcon}`} />
-            <input
-              type="text"
-              placeholder="Search tenant by name or email"
-              className={styles.tenantSearchInput}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className={styles.tenantToolbarRight}>
-          <div className={styles.tenantFilterGroup}>
-            <span className={styles.tenantFilterIcon}>
-              <i className="bi bi-funnel" />
-            </span>
-
-            <select
-              className={styles.tenantFilterSelect}
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-            >
-              <option value="all">All Tiers</option>
-              <option value="teacher">Basic</option>
-              <option value="moderator">Pro</option>
-              <option value="manager">Enterprise</option>
-            </select>
-          </div>
-
-          <button className={styles.tenantCreateButton} type="button" onClick={() => setCreateTenantModalOpen(true)}>
-            <i className="bi bi-plus-lg" />
-            <span>Create Tenant Access</span>
-          </button>
-        </div>
-      </div>
       <div className={styles.contentGrid}>
-        <TenantList
-          staff={filteredStaff}
-          loading={loading}
-          error={error}
-          selectedStaffId={selectedStaffId}
-          onSelect={setSelectedStaffId}
-        />
+        <div>
+          <div className={styles.tenantToolbar}>
+            <div className={styles.tenantToolbarLeft}>
+              <div className={styles.tenantSearchBox}>
+                <i className={`bi bi-search ${styles.tenantSearchIcon}`} />
+                <input
+                  type="text"
+                  placeholder="Search tenant by name or email"
+                  className={styles.tenantSearchInput}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.tenantToolbarRight}>
+              <div className={styles.tenantFilterGroup}>
+                <span className={styles.tenantFilterIcon}>
+                  <i className="bi bi-funnel" />
+                </span>
+
+                <select
+                  className={styles.tenantFilterSelect}
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
+                  <option value="all">All Tiers</option>
+                  <option value="teacher">Basic</option>
+                  <option value="moderator">Pro</option>
+                  <option value="manager">Enterprise</option>
+                </select>
+              </div>
+
+              <button
+                className={styles.tenantCreateButton}
+                type="button"
+                onClick={() => setCreateTenantModalOpen(true)}
+              >
+                <i className="bi bi-plus-lg" />
+                <span>Create Tenant</span>
+              </button>
+            </div>
+          </div>
+          <TenantList
+            staff={filteredStaff}
+            loading={loading}
+            error={error}
+            selectedStaffId={selectedStaffId}
+            onSelect={setSelectedStaffId}
+          />
+        </div>
 
         <section className={styles.detailCard}>
           {!selectedStaff || !accessProfile ? (
@@ -407,82 +433,172 @@ export function PermissionPageClient() {
           ) : (
             <>
               <PlanSummary staff={selectedStaff} profile={accessProfile} />
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  marginTop: 16,
-                  marginBottom: 16,
-                  flexWrap: "wrap",
-                }}
-              >
-                <div>
-                  <h3 className={styles.sectionTitle}>Tenant Workspace Setup</h3>
-                  <p className={styles.sectionDescription}>
-                    Manage workspace assignment and usage limits for this tenant.
-                  </p>
-                </div>
-
-                {!selectedStaff.workspaceId ? (
-                  <button type="button" className={styles.inviteButton} onClick={() => setWorkspaceModalOpen(true)}>
-                    <i className="bi bi-building-add" />
-                    Create Workspace
-                  </button>
-                ) : (
-                  <button type="button" className={styles.editButton} onClick={handleStartEditWorkspace}>
-                    <i className="bi bi-pencil-square" />
-                    Edit Workspace
-                  </button>
-                )}
-              </div>
-
-              <div
-                style={{
-                  marginBottom: 25,
-                  padding: "14px 16px",
-                  borderRadius: 8,
-                  border: "1px solid #dbeafe",
-                  background: selectedStaff.workspaceId
-                    ? "linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 255, 0.92))"
-                    : "#eff6ff",
-                }}
-              >
-                {!selectedStaff.workspaceId ? (
+              <div className={styles.tabCard}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 25,
+                    padding: "14px 16px",
+                    borderRadius: 8,
+                    border: "1px solid #dbeafe",
+                    background: selectedStaff.workspaceId
+                      ? "linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 255, 0.92))"
+                      : "#eff6ff",
+                  }}
+                >
                   <div
                     style={{
-                      color: "#1e3a8a",
-                      fontSize: 14,
-                      lineHeight: 1.5,
+                      display: "flex",
+                      justifyContent: "end",
+                      alignItems: "center",
+                      gap: 12,
+                      marginTop: 16,
+                      marginBottom: 16,
+                      flexWrap: "wrap",
                     }}
                   >
-                    This user does not have a workspace yet. Create one first so you can apply real limits, plans, and
-                    permissions.
+                    {!selectedStaff.workspaceId ? (
+                      <button type="button" className={styles.inviteButton} onClick={() => setWorkspaceModalOpen(true)}>
+                        <i className="bi bi-building-add" />
+                        Create Workspace
+                      </button>
+                    ) : (
+                      <button type="button" className={styles.editButton} onClick={handleStartEditWorkspace}>
+                        <i className="bi bi-pencil-square" />
+                        Edit Workspace
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "grid",
-                      gap: 8,
-                    }}
-                  >
-                    {isEditingWorkspace ? (
-                      <div
-                        style={{
-                          display: "grid",
-                          gap: 12,
-                        }}
-                      >
+                  {!selectedStaff.workspaceId ? (
+                    <div
+                      style={{
+                        color: "#1e3a8a",
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      This user does not have a workspace yet. Create one first so you can apply real limits, plans, and
+                      permissions.
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                      }}
+                    >
+                      {isEditingWorkspace ? (
                         <div
                           style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                            display: "flex",
                             gap: 12,
                           }}
                         >
-                          <div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 12,
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  color: "#64748b",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                Workspace Name
+                              </div>
+                              <input
+                                className={styles.searchInput}
+                                value={workspaceNameDraft}
+                                onChange={(e) => setWorkspaceNameDraft(e.target.value)}
+                                placeholder="Workspace name"
+                              />
+                            </div>
+
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  color: "#64748b",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                Slug
+                              </div>
+                              <input
+                                className={styles.searchInput}
+                                value={workspaceSlugDraft}
+                                onChange={(e) => setWorkspaceSlugDraft(e.target.value)}
+                                placeholder="workspace-slug"
+                              />
+                            </div>
+
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  color: "#64748b",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                Workspace ID
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: 14,
+                                  color: "#64748b",
+                                  fontWeight: 400,
+                                  wordBreak: "break-all",
+                                  minHeight: 40,
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                {selectedStaff.workspaceId || workspacePermission?.workspace?.id || "—"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {workspaceSaveError ? <div className={styles.emptyState}>{workspaceSaveError}</div> : null}
+
+                          <div className={styles.profileActions}>
+                            <button
+                              type="button"
+                              className={styles.secondaryButton}
+                              onClick={handleCancelEditWorkspace}
+                              disabled={workspaceSaving}
+                            >
+                              Cancel
+                            </button>
+
+                            <button
+                              type="button"
+                              className={styles.editButton}
+                              onClick={handleSaveWorkspaceInfo}
+                              disabled={workspaceSaving}
+                            >
+                              {workspaceSaving ? "Saving..." : "Save Workspace"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            width: "100%",
+                            gap: 30,
+                          }}
+                        >
+                          <div
+                            style={{
+                              padding: 12,
+                            }}
+                          >
                             <div
                               style={{
                                 fontSize: 12,
@@ -492,15 +608,22 @@ export function PermissionPageClient() {
                             >
                               Workspace Name
                             </div>
-                            <input
-                              className={styles.searchInput}
-                              value={workspaceNameDraft}
-                              onChange={(e) => setWorkspaceNameDraft(e.target.value)}
-                              placeholder="Workspace name"
-                            />
+                            <div
+                              style={{
+                                fontSize: 14,
+                                color: "#64748b",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {selectedStaff.workspaceName || workspacePermission?.workspace?.name || "—"}
+                            </div>
                           </div>
 
-                          <div>
+                          <div
+                            style={{
+                              padding: 12,
+                            }}
+                          >
                             <div
                               style={{
                                 fontSize: 12,
@@ -510,15 +633,22 @@ export function PermissionPageClient() {
                             >
                               Slug
                             </div>
-                            <input
-                              className={styles.searchInput}
-                              value={workspaceSlugDraft}
-                              onChange={(e) => setWorkspaceSlugDraft(e.target.value)}
-                              placeholder="workspace-slug"
-                            />
+                            <div
+                              style={{
+                                fontSize: 14,
+                                color: "#64748b",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {selectedStaff.workspaceSlug || workspacePermission?.workspace?.slug || "—"}
+                            </div>
                           </div>
 
-                          <div>
+                          <div
+                            style={{
+                              padding: 12,
+                            }}
+                          >
                             <div
                               style={{
                                 fontSize: 12,
@@ -532,129 +662,34 @@ export function PermissionPageClient() {
                               style={{
                                 fontSize: 14,
                                 color: "#64748b",
-                                fontWeight: 400,
-                                wordBreak: "break-all",
-                                minHeight: 40,
-                                display: "flex",
-                                alignItems: "center",
+                                fontWeight: 500,
                               }}
                             >
                               {selectedStaff.workspaceId || workspacePermission?.workspace?.id || "—"}
                             </div>
                           </div>
                         </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-                        {workspaceSaveError ? <div className={styles.emptyState}>{workspaceSaveError}</div> : null}
+                {permissionError ? <div className={styles.emptyState}>{permissionError}</div> : null}
 
-                        <div className={styles.profileActions}>
-                          <button
-                            type="button"
-                            className={styles.secondaryButton}
-                            onClick={handleCancelEditWorkspace}
-                            disabled={workspaceSaving}
-                          >
-                            Cancel
-                          </button>
-
-                          <button
-                            type="button"
-                            className={styles.editButton}
-                            onClick={handleSaveWorkspaceInfo}
-                            disabled={workspaceSaving}
-                          >
-                            {workspaceSaving ? "Saving..." : "Save Workspace"}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                          gap: 12,
-                        }}
-                      >
-                        <div>
-                          <div
-                            style={{
-                              fontSize: 12,
-                              color: "#64748b",
-                              marginBottom: 4,
-                            }}
-                          >
-                            Workspace Name
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 14,
-                              color: "#64748b",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {selectedStaff.workspaceName || workspacePermission?.workspace?.name || "—"}
-                          </div>
-                        </div>
-
-                        <div>
-                          <div
-                            style={{
-                              fontSize: 12,
-                              color: "#64748b",
-                              marginBottom: 4,
-                            }}
-                          >
-                            Slug
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 14,
-                              color: "#64748b",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {selectedStaff.workspaceSlug || workspacePermission?.workspace?.slug || "—"}
-                          </div>
-                        </div>
-
-                        <div>
-                          <div
-                            style={{
-                              fontSize: 12,
-                              color: "#64748b",
-                              marginBottom: 4,
-                            }}
-                          >
-                            Workspace ID
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 14,
-                              color: "#64748b",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {selectedStaff.workspaceId || workspacePermission?.workspace?.id || "—"}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <UsageLimits
+                  items={usageItems}
+                  editable={Boolean(selectedStaff.workspaceId)}
+                  loading={permissionLoading}
+                  onSave={handleSaveUsageLimits}
+                />
+                <DomainAccessSection
+                  workspaceId={selectedStaff?.workspaceId ?? null}
+                  selectedStaffId={selectedStaff?.id}
+                />
+                <WebsiteTypesSection items={accessProfile.websiteTypes} sites={sites} />
+                <MenuAccessSection items={accessProfile.menuAccess} />
+                <TemplatesSection items={accessProfile.templates} />
               </div>
-
-              {permissionError ? <div className={styles.emptyState}>{permissionError}</div> : null}
-
-              <UsageLimits
-                items={usageItems}
-                editable={Boolean(selectedStaff.workspaceId)}
-                loading={permissionLoading}
-                onSave={handleSaveUsageLimits}
-              />
-
-              <WebsiteTypesSection items={accessProfile.websiteTypes} />
-              <MenuAccessSection items={accessProfile.menuAccess} />
-              <DomainAccessSection profile={accessProfile} />
-              <TemplatesSection items={accessProfile.templates} />
             </>
           )}
         </section>

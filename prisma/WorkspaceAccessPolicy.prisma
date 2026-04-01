@@ -1,30 +1,29 @@
-
 model WorkspaceAccessPolicy {
-  id                   String   @id @default(cuid())
-  workspaceId          String   @unique @map("workspace_id")
+  id          String @id @default(cuid())
+  workspaceId String @unique @map("workspace_id")
 
-  planCode             String   @default("BASIC") @map("plan_code")
+  planCode String @default("BASIC") @map("plan_code")
 
-  maxSites             Int      @default(1) @map("max_sites")
-  maxPages             Int      @default(10) @map("max_pages")
-  maxMenus             Int      @default(3) @map("max_menus")
-  maxProductCategories Int      @default(20) @map("max_product_categories")
-  maxProducts          Int      @default(100) @map("max_products")
-  maxCustomDomains     Int      @default(1) @map("max_custom_domains")
+  maxSites             Int @default(1) @map("max_sites")
+  maxPages             Int @default(10) @map("max_pages")
+  maxMenus             Int @default(3) @map("max_menus")
+  maxProductCategories Int @default(20) @map("max_product_categories")
+  maxProducts          Int @default(100) @map("max_products")
+  maxCustomDomains     Int @default(1) @map("max_custom_domains")
 
-  allowBlog            Boolean  @default(true)
-  allowEcommerce       Boolean  @default(false)
-  allowBooking         Boolean  @default(false)
-  allowNews            Boolean  @default(false)
-  allowLms             Boolean  @default(false)
-  allowDirectory       Boolean  @default(false)
+  allowBlog      Boolean @default(true)
+  allowEcommerce Boolean @default(false)
+  allowBooking   Boolean @default(false)
+  allowNews      Boolean @default(false)
+  allowLms       Boolean @default(false)
+  allowDirectory Boolean @default(false)
 
-  hiddenMenuKeys       String[] @default([])
+  hiddenMenuKeys String[] @default([])
 
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@map("workspace_access_policies")
 }

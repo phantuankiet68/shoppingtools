@@ -1,9 +1,31 @@
+"use client";
+
+import { useMemo } from "react";
 import styles from "@/styles/platform/permission.module.css";
 import { TenantAccessProfile } from "./types";
 
-type Props = { items: TenantAccessProfile["websiteTypes"] };
+type SiteItem = {
+  id: string;
+  type: string;
+};
 
-export function WebsiteTypesSection({ items }: Props) {
+type Props = {
+  items: TenantAccessProfile["websiteTypes"];
+  sites?: SiteItem[]; // 👈 thêm sites
+};
+
+function toLabel(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function WebsiteTypesSection({ items, sites = [] }: Props) {
+  // map để check nhanh
+  const siteTypeMap = useMemo(() => {
+    const map = new Set<string>();
+    sites.forEach((s) => map.add(s.type));
+    return map;
+  }, [sites]);
+
   return (
     <div className={styles.permissionSection}>
       <div className={styles.sectionHeader}>
@@ -13,13 +35,38 @@ export function WebsiteTypesSection({ items }: Props) {
         </div>
       </div>
 
-      <div className={styles.infoGrid}>
-        {items.map((item) => (
-          <div key={item.type} className={styles.infoItem}>
-            <span className={styles.infoLabel}>{item.type}</span>
-            <span className={styles.infoValue}>{item.enabled ? "Enabled" : "Disabled"}</span>
-          </div>
-        ))}
+      <div className={styles.websiteTypeGrid}>
+        {items.map((item) => {
+          const hasSite = siteTypeMap.has(item.type);
+
+          return (
+            <div key={item.type} className={styles.websiteTypeCard}>
+              <div className={styles.websiteTypeHeader}>
+                <span className={styles.websiteTypeName}>{toLabel(item.type)}</span>
+
+                <span
+                  className={`${styles.websiteTypeStatus} ${
+                    item.enabled ? styles.websiteTypeEnabled : styles.websiteTypeDisabled
+                  }`}
+                >
+                  {item.enabled ? "Enabled" : "Disabled"}
+                </span>
+              </div>
+
+              {/* 👇 indicator ở cuối card */}
+              <div className={styles.websiteTypeFooter}>
+                {hasSite ? (
+                  <div className={styles.websiteTypeActiveDot}>
+                    <span className={styles.dot} />
+                    In use
+                  </div>
+                ) : (
+                  <div className={styles.websiteTypeInactiveDot}>Not used</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

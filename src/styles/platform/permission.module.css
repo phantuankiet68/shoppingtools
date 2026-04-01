@@ -1,7 +1,7 @@
 .page {
   height: 93vh;
   background: #f5f7fb;
-  padding: 15px;
+  padding: 8px;
   color: #111827;
   overflow: auto;
 }
@@ -101,8 +101,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
-  padding: 15px 20px;
+  padding: 15px;
   margin-bottom: 15px;
   border: var(--bd-header);
   border-radius: 8px;
@@ -117,9 +118,8 @@
 .tenantToolbarRight {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 /* SEARCH */
@@ -223,7 +223,7 @@
 
 .contentGrid {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 367px minmax(0, 1fr);
   gap: 15px;
   align-items: start;
 }
@@ -236,10 +236,11 @@
 }
 .sidebarCard {
   padding: 18px;
+  height: 74.5vh;
 }
 
 .detailCard {
-  padding: 24px;
+  padding: 15px;
 }
 
 .cardHeader,
@@ -294,9 +295,9 @@
 
 .staffRow {
   width: 100%;
-  border: 1px solid transparent;
+  border: var(--bd-header);
   background: #f8fafc;
-  border-radius: 16px;
+  border-radius: 8px;
   display: grid;
   grid-template-columns: 1fr 100px;
   align-items: center;
@@ -312,7 +313,7 @@
 }
 
 .staffRowActive {
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  background: var(--bg-primary);
   color: #ffffff;
 }
 
@@ -342,14 +343,13 @@
 }
 
 .avatarLarge {
-  width: 59px;
-  height: 59px;
+  width: 53px;
+  height: 53px;
   font-size: 22px;
 }
 
 .staffName {
   font-size: 14px;
-  font-weight: 600;
   color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
@@ -368,8 +368,10 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 22px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   flex-wrap: wrap;
+  border-bottom: var(--bd-header);
 }
 
 .profileMain {
@@ -391,7 +393,7 @@
 
 .profileName {
   margin: 0;
-  font-size: 23px;
+  font-size: 18px;
   line-height: 1.38;
   font-weight: 800;
   color: #c6070a;
@@ -575,6 +577,7 @@
 .permissionSection {
   border-top: 1px solid #edf2f7;
   padding-top: 24px;
+  margin-top: 24px;
 }
 
 .sectionDescription {
@@ -872,4 +875,251 @@
   .profileActions button {
     width: 100%;
   }
+}
+.sitePermissionTable {
+  width: 100%;
+  border: 1px solid #dbe4ff;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.sitePermissionHead {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1.5fr 1.5fr;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e5edff;
+  background: #f8fbff;
+}
+
+.sitePermissionHead span {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5b73ff;
+}
+
+.sitePermissionBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.sitePermissionRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1.5fr 1.5fr;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #eef2ff;
+}
+
+.sitePermissionRow:last-child {
+  border-bottom: none;
+}
+
+.sitePermissionSite {
+  min-width: 0;
+}
+
+.sitePermissionSiteInfo {
+  display: grid;
+  gap: 4px;
+}
+
+.sitePermissionSiteName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #334e73;
+  line-height: 1.4;
+}
+
+.sitePermissionSiteVisibility {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.sitePermissionCellCenter {
+  display: flex;
+  align-items: center;
+}
+
+.sitePermissionBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #f1f5f9;
+  white-space: nowrap;
+}
+
+.sitePermissionDomain {
+  font-size: 16px;
+  color: #334155;
+  word-break: break-word;
+}
+
+.sitePermissionActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sitePermissionEditButton,
+.sitePermissionDeleteButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid #93c5fd;
+  background: #ffffff;
+  color: #60a5fa;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sitePermissionEditButton:hover,
+.sitePermissionDeleteButton:hover {
+  background: #f8fbff;
+  border-color: #60a5fa;
+}
+
+.sitePermissionEditButton i,
+.sitePermissionDeleteButton i {
+  font-size: 14px;
+}
+
+/* Status variants */
+.sitePermissionStatusACTIVE {
+  background: #dcfce7;
+  color: #22c55e;
+}
+
+.sitePermissionStatusINACTIVE {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.sitePermissionStatusPENDING {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .sitePermissionHead,
+  .sitePermissionRow {
+    grid-template-columns: 1.6fr 1fr 1fr 1.2fr 1.4fr;
+    padding: 16px 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sitePermissionHead {
+    display: none;
+  }
+
+  .sitePermissionRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .sitePermissionCellCenter,
+  .sitePermissionActions {
+    justify-content: flex-start;
+  }
+
+  .sitePermissionActions {
+    margin-top: 4px;
+  }
+}
+.tabCard {
+  height: 79vh;
+  overflow: auto;
+}
+.websiteTypeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.websiteTypeCard {
+  border: 1px solid #e5edff;
+  border-radius: 16px;
+  padding: 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+}
+
+.websiteTypeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.websiteTypeName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.websiteTypeStatus {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.websiteTypeEnabled {
+  background: #dcfce7;
+  color: #22c55e;
+}
+
+.websiteTypeDisabled {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.websiteTypeFooter {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.websiteTypeActiveDot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.websiteTypeInactiveDot {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
 }

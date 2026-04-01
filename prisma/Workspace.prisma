@@ -15,9 +15,10 @@ model Workspace {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  owner   User              @relation("WorkspaceOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
-  members WorkspaceMember[]
-  sites   Site[]
+  owner        User                   @relation("WorkspaceOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  members      WorkspaceMember[]
+  sites        Site[]
+  accessPolicy WorkspaceAccessPolicy?
 
   @@index([ownerUserId])
   @@map("workspaces")

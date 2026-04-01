@@ -11,23 +11,7 @@ const ALL_WEBSITE_TYPES: WebsiteType[] = [
   "directory",
 ];
 
-const ALL_MENUS: { key: MenuKey; label: string }[] = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "pages", label: "Pages" },
-  { key: "posts", label: "Posts" },
-  { key: "products", label: "Products" },
-  { key: "categories", label: "Product Categories" },
-  { key: "orders", label: "Orders" },
-  { key: "customers", label: "Customers" },
-  { key: "bookings", label: "Bookings" },
-  { key: "courses", label: "Courses" },
-  { key: "students", label: "Students" },
-  { key: "media", label: "Media Library" },
-  { key: "templates", label: "Templates" },
-  { key: "domain", label: "Domain" },
-  { key: "analytics", label: "Analytics" },
-  { key: "settings", label: "Settings" },
-];
+const ALL_MENUS: { key: MenuKey; label: string }[] = [];
 
 function buildWebsiteTypes(enabled: WebsiteType[]) {
   return ALL_WEBSITE_TYPES.map((type) => ({ type, enabled: enabled.includes(type) }));
@@ -60,43 +44,7 @@ export function getAccessProfile(staff: StaffMember): TenantAccessProfile {
           ? ["landing", "blog", "company", "ecommerce", "booking"]
           : ["landing", "blog", "company"],
     ),
-    menuAccess: buildMenus(
-      isEnterprise
-        ? [
-            "dashboard",
-            "pages",
-            "posts",
-            "products",
-            "categories",
-            "orders",
-            "customers",
-            "bookings",
-            "courses",
-            "students",
-            "media",
-            "templates",
-            "domain",
-            "analytics",
-            "settings",
-          ]
-        : isPro
-          ? [
-              "dashboard",
-              "pages",
-              "posts",
-              "products",
-              "categories",
-              "orders",
-              "customers",
-              "bookings",
-              "media",
-              "templates",
-              "domain",
-              "analytics",
-              "settings",
-            ]
-          : ["dashboard", "pages", "posts", "media", "templates", "domain", "settings"],
-    ),
+    menuAccess: buildMenus(isEnterprise ? [] : isPro ? [] : []),
     usage: [
       {
         key: "pages",
