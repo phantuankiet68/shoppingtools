@@ -1,27 +1,34 @@
-enum MenuSetKey {
-  home
-  v1
+enum MenuArea {
+  PLATFORM
+  ADMIN
+  SITE
 }
 
+
 model MenuItem {
-  id        String     @id @default(cuid())
-  siteId    String
-  site      Site       @relation(fields: [siteId], references: [id], onUpdate: Cascade)
-  parentId  String?    @db.VarChar(191)
-  parent    MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
-  children  MenuItem[] @relation("MenuItemToSelf")
-  title     String     @db.VarChar(191)
-  path      String?    @db.VarChar(255)
-  icon      String?    @db.VarChar(100)
-  sortOrder Int        @default(0)
-  visible   Boolean    @default(true)
-  setKey    MenuSetKey @default(home)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id          String               @id @default(cuid())
+  siteId      String
+  site        Site                 @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+
+  parentId    String?              @db.VarChar(191)
+  parent      MenuItem?            @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  children    MenuItem[]           @relation("MenuItemToSelf")
+
+  title       String               @db.VarChar(191)
+  path        String?              @db.VarChar(255)
+  icon        String?              @db.VarChar(100)
+  sortOrder   Int                  @default(0)
+  visible     Boolean              @default(true)
+
+  area        MenuArea
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
   rolePermissions MenuRolePermission[]
 
   @@index([parentId])
-  @@index([siteId, setKey, sortOrder])
+  @@index([siteId, area, sortOrder])
+  @@index([siteId, area, visible])
   @@index([title])
 }
 

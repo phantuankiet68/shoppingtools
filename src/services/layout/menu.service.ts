@@ -1,5 +1,5 @@
 // services/admin/menu.service.ts
-export type Locale = "en";
+import type { MenuArea, SystemRole } from "@/generated/prisma";
 
 export type ApiMenuItem = {
   id: string;
@@ -9,20 +9,73 @@ export type ApiMenuItem = {
   icon: string | null;
   sortOrder: number;
   visible: boolean;
-  locale: Locale;
-  setKey?: "home" | "v1" | string;
+  area: MenuArea;
+};
+
+export type ApiMenuTreeNode = {
+  key: string;
+  title: string;
+  icon: string;
+  path: string | null;
+  parentKey: string | null;
+  children?: ApiMenuTreeNode[];
+};
+
+export type LayoutMenuResponse = {
+  area: MenuArea | null;
+  systemRole: SystemRole;
+  items: ApiMenuItem[];
+};
+
+export type LayoutMenuTreeResponse = {
+  area: MenuArea | null;
+  systemRole: SystemRole;
+  tree: ApiMenuTreeNode[];
 };
 
 export const adminMenuService = {
-  async layoutMenu(setKey = "v1") {
+  async layoutMenu(options?: { area?: MenuArea; includeHidden?: boolean }) {
     const params = new URLSearchParams();
-    params.set("page", "1");
-    params.set("size", "1000");
-    params.set("sort", "sortOrder:asc");
-    params.set("setKey", setKey);
 
-    const res = await fetch(`/api/admin/builder/menus/layout?${params.toString()}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to load menu");
-    return (await res.json()) as { siteId?: string; items?: ApiMenuItem[] };
+    if (options?.area) {
+      params.set("area", options.area);
+    }
+
+    if (options?.includeHidden) {
+      params.set("includeHidden", "1");
+    }
+
+    const res = await fetch(`/api/admin/builder/menus/layout?${params.toString()}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to load menu");
+    }
+
+    return (await res.json()) as LayoutMenuResponse;
+  },
+
+  async layoutMenuTree(options?: { area?: MenuArea; includeHidden?: boolean }) {
+    const params = new URLSearchParams();
+    params.set("tree", "1");
+
+    if (options?.area) {
+      params.set("area", options.area);
+    }
+
+    if (options?.includeHidden) {
+      params.set("includeHidden", "1");
+    }
+
+    const res = await fetch(`/api/admin/menus/layout?${params.toString()}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to load menu tree");
+    }
+
+    return (await res.json()) as LayoutMenuTreeResponse;
   },
 };

@@ -5,7 +5,6 @@ import styles from "@/styles/platform/permission.module.css";
 import { CreateTenantAccessModal } from "./CreateTenantAccessModal";
 import { DomainAccessSection } from "./DomainAccessSection";
 import { getAccessProfile } from "./mock-data";
-import { MenuAccessSection } from "./MenuAccessSection";
 import { PlanSummary } from "./PlanSummary";
 import { TenantList } from "./TenantList";
 import { TemplatesSection } from "./TemplatesSection";
@@ -687,7 +686,6 @@ export function PermissionPageClient() {
                   selectedStaffId={selectedStaff?.id}
                 />
                 <WebsiteTypesSection items={accessProfile.websiteTypes} sites={sites} />
-                <MenuAccessSection items={accessProfile.menuAccess} />
                 <TemplatesSection items={accessProfile.templates} />
               </div>
             </>

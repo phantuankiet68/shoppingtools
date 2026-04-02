@@ -16,6 +16,17 @@ import styles from "@/styles/admin/profile/messages.module.css";
 
 npm run prisma:migrate -- --name add_profile
 
+btn delete
+
+border: var(--bd-s-delete);
+background: var(--bg-delete);
+color: var(--color-delete);
+
+btn create
+border: var(--bd-add);
+background: var(--bg-add);
+color: var(--color-add);
+
 npm run prisma:merge
 npm run prisma:validate
 npm run prisma:migrate -- --name add_profile
@@ -477,7 +488,7 @@ học thêm cloud + performance + AI integration
 
 Những thứ này sẽ giúp bạn không bị mắc kẹt ở mức junior.
 
-hiện tại design chưa được đẹp và hoàn chỉnh tôi có cảm giác chưa có bố cục rõ ràng và minh bạch. Ui không phù hợp với phong cách mới mẽ. Bạn có thể độ design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ nhé, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file giúp tôi nhé. Hãy tách ra HotProductOne.tsx và HotProductOne.module.css giống với ảnh giúp tôi có được không
+hiện tại design chưa được đẹp và hoàn chỉnh tôi có cảm giác chưa có bố cục rõ ràng và minh bạch. Ui không phù hợp với phong cách mới mẽ. Bạn có thể độ design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ nhé, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file. Hãy giữ sự chuyên nghiệp nhưng giảm whitespace + tăng mật độ thông tin (information density) kiểu admin tool.
 Đặc biệt cần phải có đoạn code bên dưới nhé
 
 /_ ================= RegItem ================= _/

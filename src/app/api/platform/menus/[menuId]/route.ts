@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SystemRole } from "@prisma/client";
+import { SystemRole } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 
 type Context = {
@@ -12,10 +12,7 @@ type UpdateRolePermissionPayload = {
 };
 
 function parseSystemRole(value: unknown): SystemRole | null {
-  if (value === "SUPER_ADMIN") return "SUPER_ADMIN";
-  if (value === "ADMIN") return "ADMIN";
-  if (value === "CUSTOMER") return "CUSTOMER";
-  return null;
+  return Object.values(SystemRole).includes(value as SystemRole) ? (value as SystemRole) : null;
 }
 
 export async function PUT(req: NextRequest, { params }: Context) {

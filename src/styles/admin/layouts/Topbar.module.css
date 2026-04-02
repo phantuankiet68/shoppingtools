@@ -3,9 +3,7 @@
   top: 0;
   z-index: 40;
   padding: 7px 16px;
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.05), transparent 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88));
+  background: #ffffff;
   backdrop-filter: blur(16px);
   border-bottom: var(--bd-header);
 }

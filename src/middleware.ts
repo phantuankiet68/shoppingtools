@@ -3,7 +3,7 @@ import { verifyAdminAccessToken } from "@/lib/auth/jwt";
 
 const LOGIN_PATH = "/admin/login";
 const PLATFORM_HOME = "/platform";
-const TENANT_HOME = "/tenant";
+const ADMIN_HOME = "/admin";
 const ACCESS_TOKEN_COOKIE = "admin_access_token";
 
 function clearAuthCookie(res: NextResponse) {
@@ -45,7 +45,7 @@ function redirectToHomeByRole(req: NextRequest, role: string) {
   }
 
   if (role === "ADMIN") {
-    return NextResponse.redirect(new URL(TENANT_HOME, req.url));
+    return NextResponse.redirect(new URL(ADMIN_HOME, req.url));
   }
 
   return NextResponse.redirect(new URL(LOGIN_PATH, req.url));
@@ -57,7 +57,7 @@ export async function middleware(req: NextRequest) {
 
   const isLoginPage = pathname === LOGIN_PATH;
   const isPlatformRoute = pathname === "/platform" || pathname.startsWith("/platform/");
-  const isTenantRoute = pathname === "/tenant" || pathname.startsWith("/tenant/");
+  const isTenantRoute = pathname === "/admin" || pathname.startsWith("/admin/");
 
   // Login page
   if (isLoginPage) {

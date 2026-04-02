@@ -50,12 +50,12 @@
   --bg-pro: linear-gradient(135deg, #8daaff, #d2e5ff);
   --bg-add: #24ff9a1f;
   --color-add: #2ecb96;
-  --bd-add: #00ff8970;
+  --bd-add: 1px solid #00ff8970;
   --bg-save: #4d99fb1f;
   --bd-save: #58a7ff70;
   --bd-s-save: 1px solid #44aaef69;
   --color-save: #5ab1ff;
-  --color-title: #6d8bff;
+  --color-title: #1d4ed8;
   --bd-s-delete: 1px solid #ef444440;
   --bg-delete: #ef44441a;
   --color-delete: #b91c1c;
@@ -65,6 +65,7 @@
   --color-blue: #7ea9ff;
   --border-color: #3b82f6b3;
   --box-shadow: 0 0 0 4px #3b82f626;
+  --bg-switch: linear-gradient(135deg, #25eb77, #3be5f6);
 }
 
 html {
