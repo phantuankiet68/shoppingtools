@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
-import styles from "@/styles/admin/layouts/LayoutA.module.css";
 import { usePathname, useRouter } from "next/navigation";
+import styles from "@/styles/admin/layouts/LayoutA.module.css";
 import { useAdminTitle } from "@/components/admin/AdminTitleContext";
 import { useRipple } from "@/utils/layout/ripple";
 import { useAdminLayoutStore } from "@/store/layout/layouta/index";
@@ -12,7 +12,11 @@ import Topbar from "@/components/admin/shared/layout/layoutA/Topbar";
 
 const ADD_PAGE_REGEX = /^\/(en)\/v1\/pages\/add(?:\/.*)?$/;
 
-export default function LayoutA({ children }: { children: ReactNode }) {
+type Props = {
+  children: ReactNode;
+};
+
+export default function LayoutA({ children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const { meta } = useAdminTitle();
@@ -20,72 +24,67 @@ export default function LayoutA({ children }: { children: ReactNode }) {
   const navRef = useRef<HTMLDivElement>(null);
   useRipple(navRef);
 
-  const {
-    sidebarOpen,
-    collapsed,
-    setCollapsed,
-    setSidebarOpen,
+  // selector nhỏ để giảm rerender không cần thiết
+  const sidebarOpen = useAdminLayoutStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useAdminLayoutStore((s) => s.setSidebarOpen);
+  const setCollapsed = useAdminLayoutStore((s) => s.setCollapsed);
+  const loadMe = useAdminLayoutStore((s) => s.loadMe);
+  const loadMenu = useAdminLayoutStore((s) => s.loadMenu);
+  const syncActiveByPathname = useAdminLayoutStore((s) => s.syncActiveByPathname);
+  const setUserMenuOpen = useAdminLayoutStore((s) => s.setUserMenuOpen);
+  const setNotiOpen = useAdminLayoutStore((s) => s.setNotiOpen);
+  const logout = useAdminLayoutStore((s) => s.logout);
 
-    loadMe,
-    loadMenu,
-    syncActiveByPathname,
-
-    setUserMenuOpen,
-    setNotiOpen,
-
-    logout,
-  } = useAdminLayoutStore();
-
-  // load initial data
+  // load initial data một lần khi mount
   useEffect(() => {
-    loadMe();
-    loadMenu();
+    void loadMe();
+    void loadMenu();
   }, [loadMe, loadMenu]);
 
-  // close dropdowns on outside click / ESC
+  // chỉ xử lý ESC ở level layout
+  // outside click cho dropdown đã để Topbar tự quản lý bằng ref
   useEffect(() => {
-    function onDocMouseDown(e: MouseEvent) {
-      const target = e.target as Node;
-      // components tự check ref; store chỉ đóng trạng thái
-      setUserMenuOpen(false);
-      setNotiOpen(false);
-    }
     function onEsc(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       setUserMenuOpen(false);
       setNotiOpen(false);
     }
-    document.addEventListener("mousedown", onDocMouseDown);
+
     document.addEventListener("keydown", onEsc);
+
     return () => {
-      document.removeEventListener("mousedown", onDocMouseDown);
       document.removeEventListener("keydown", onEsc);
     };
   }, [setNotiOpen, setUserMenuOpen]);
 
-  // sync active menu by route
+  // đồng bộ active menu theo route
   useEffect(() => {
     if (!pathname) return;
     syncActiveByPathname(pathname);
   }, [pathname, syncActiveByPathname]);
 
-  // collapse rules
+  // rule collapse theo route đặc biệt
   useEffect(() => {
-    const isBuilderAdd = pathname?.startsWith("/admin/builder/page/add");
-    const matchesRegex = ADD_PAGE_REGEX.test(pathname || "");
+    if (!pathname) return;
+
+    const isBuilderAdd = pathname.startsWith("/admin/builder/page/add");
+    const matchesRegex = ADD_PAGE_REGEX.test(pathname);
     const shouldCollapse = isBuilderAdd || matchesRegex;
 
     setCollapsed(shouldCollapse);
+
     if (shouldCollapse) {
-      // giống behavior cũ
       setSidebarOpen(false);
     }
   }, [pathname, setCollapsed, setSidebarOpen]);
 
   const handleLogout = async () => {
-    await logout();
-    router.replace("/admin/login");
-    router.refresh();
+    try {
+      await logout();
+    } finally {
+      router.replace("/admin/login");
+      router.refresh();
+    }
   };
 
   return (

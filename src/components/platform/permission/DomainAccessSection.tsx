@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/platform/permission.module.css";
 
+type SiteType = "landing" | "blog" | "company" | "ecommerce" | "booking" | "news" | "lms" | "directory";
+
+type SiteStatus = "DRAFT" | "ACTIVE" | "SUSPENDED";
+
 type SiteItem = {
   id: string;
   name: string;
   domain: string;
-  type: "landing" | "blog" | "company" | "ecommerce" | "booking" | "news" | "lms" | "directory";
-  status: "DRAFT" | "ACTIVE" | "SUSPENDED";
+  type: SiteType;
+  status: SiteStatus;
   isPublic: boolean;
   publishedAt?: string | null;
   ownerUserId?: string;
@@ -18,38 +22,53 @@ type SiteItem = {
   updatedAt?: string;
 };
 
+type WorkspaceAccessPolicy = {
+  allowBlog: boolean;
+  allowEcommerce: boolean;
+  allowBooking: boolean;
+  allowNews: boolean;
+  allowLms: boolean;
+  allowDirectory: boolean;
+};
+
+type WorkspaceResponse = {
+  id: string;
+  accessPolicy?: WorkspaceAccessPolicy | null;
+};
+
 type Props = {
   workspaceId?: string | null;
   selectedStaffId?: string;
 };
 
-const WEBSITE_TYPE_OPTIONS: Array<SiteItem["type"]> = [
-  "landing",
-  "blog",
-  "company",
-  "ecommerce",
-  "booking",
-  "news",
-  "lms",
-  "directory",
-];
-
-const SITE_STATUS_OPTIONS: Array<SiteItem["status"]> = ["DRAFT", "ACTIVE", "SUSPENDED"];
+const SITE_STATUS_OPTIONS: SiteStatus[] = ["DRAFT", "ACTIVE", "SUSPENDED"];
 
 function toLabel(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function getStatusClass(status: SiteItem["status"]) {
-  if (status === "ACTIVE") return styles.badgeSuccess;
-  if (status === "DRAFT") return styles.badgeWarning;
-  return styles.badgeDanger;
+function getDefaultAllowedType(policy: WorkspaceAccessPolicy | null): SiteType {
+  const allowedTypes: SiteType[] = [
+    "landing",
+    "company",
+    ...(policy?.allowBlog ? ["blog" as const] : []),
+    ...(policy?.allowEcommerce ? ["ecommerce" as const] : []),
+    ...(policy?.allowBooking ? ["booking" as const] : []),
+    ...(policy?.allowNews ? ["news" as const] : []),
+    ...(policy?.allowLms ? ["lms" as const] : []),
+    ...(policy?.allowDirectory ? ["directory" as const] : []),
+  ];
+
+  return allowedTypes[0] ?? "company";
 }
 
 export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
   const [sites, setSites] = useState<SiteItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [policy, setPolicy] = useState<WorkspaceAccessPolicy | null>(null);
+  const [policyLoading, setPolicyLoading] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -59,8 +78,8 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
 
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
-  const [type, setType] = useState<SiteItem["type"]>("company");
-  const [status, setStatus] = useState<SiteItem["status"]>("DRAFT");
+  const [type, setType] = useState<SiteType>("company");
+  const [status, setStatus] = useState<SiteStatus>("DRAFT");
   const [isPublic, setIsPublic] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -71,6 +90,60 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
       draft: sites.filter((site) => site.status === "DRAFT").length,
     };
   }, [sites]);
+
+  const allowedTypes = useMemo<SiteType[]>(() => {
+    return [
+      "landing",
+      "company",
+      ...(policy?.allowBlog ? ["blog" as const] : []),
+      ...(policy?.allowEcommerce ? ["ecommerce" as const] : []),
+      ...(policy?.allowBooking ? ["booking" as const] : []),
+      ...(policy?.allowNews ? ["news" as const] : []),
+      ...(policy?.allowLms ? ["lms" as const] : []),
+      ...(policy?.allowDirectory ? ["directory" as const] : []),
+    ];
+  }, [policy]);
+
+  useEffect(() => {
+    if (!allowedTypes.length) return;
+
+    if (!allowedTypes.includes(type)) {
+      setType(getDefaultAllowedType(policy));
+    }
+  }, [allowedTypes, type, policy]);
+
+  async function fetchWorkspacePolicy() {
+    if (!workspaceId) {
+      setPolicy(null);
+      return;
+    }
+
+    try {
+      setPolicyLoading(true);
+
+      const response = await fetch(`/api/platform/permission/workspaces/${workspaceId}`, {
+        cache: "no-store",
+      });
+
+      let data: WorkspaceResponse | { message?: string } | null = null;
+      const contentType = response.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      }
+
+      if (!response.ok) {
+        throw new Error((data as { message?: string } | null)?.message || "Failed to load workspace");
+      }
+
+      setPolicy((data as WorkspaceResponse)?.accessPolicy ?? null);
+    } catch (err) {
+      console.error(err);
+      setPolicy(null);
+    } finally {
+      setPolicyLoading(false);
+    }
+  }
 
   async function fetchSites() {
     if (!workspaceId) {
@@ -109,13 +182,14 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
   }
 
   useEffect(() => {
+    fetchWorkspacePolicy();
     fetchSites();
   }, [workspaceId]);
 
   function resetForm() {
     setName("");
     setDomain("");
-    setType("company");
+    setType(getDefaultAllowedType(policy));
     setStatus("DRAFT");
     setIsPublic(false);
     setFormError("");
@@ -130,7 +204,7 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
     setSelectedSite(site);
     setName(site.name);
     setDomain(site.domain);
-    setType(site.type);
+    setType(allowedTypes.includes(site.type) ? site.type : getDefaultAllowedType(policy));
     setStatus(site.status);
     setIsPublic(site.isPublic);
     setFormError("");
@@ -168,23 +242,30 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
       return;
     }
 
+    if (!allowedTypes.includes(type)) {
+      setFormError(`Workspace is not allowed to create ${type} sites.`);
+      return;
+    }
+
     try {
       setSubmitting(true);
       setFormError("");
+
+      const payload = {
+        name: name.trim(),
+        domain: domain.trim(),
+        type,
+        status,
+        isPublic,
+        createdByUserId: selectedStaffId ?? null,
+      };
 
       const response = await fetch(`/api/platform/permission/workspaces/${workspaceId}/sites`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: name.trim(),
-          domain: domain.trim(),
-          type,
-          status,
-          isPublic,
-          createdByUserId: selectedStaffId ?? null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       let data: SiteItem | { message?: string } | null = null;
@@ -223,6 +304,11 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
 
     if (!domain.trim()) {
       setFormError("Domain is required.");
+      return;
+    }
+
+    if (!allowedTypes.includes(type)) {
+      setFormError(`Workspace is not allowed to update to ${type} site type.`);
       return;
     }
 
@@ -303,7 +389,12 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
             <p className={styles.sectionDescription}>Create and edit sites assigned to this workspace.</p>
           </div>
 
-          <button type="button" className={styles.inviteButton} onClick={openCreateModal} disabled={!workspaceId}>
+          <button
+            type="button"
+            className={styles.inviteButton}
+            onClick={openCreateModal}
+            disabled={!workspaceId || policyLoading}
+          >
             <i className="bi bi-plus-lg" />
             Create Site
           </button>
@@ -424,9 +515,10 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                   <select
                     className={styles.filterSelect}
                     value={type}
-                    onChange={(e) => setType(e.target.value as SiteItem["type"])}
+                    onChange={(e) => setType(e.target.value as SiteType)}
+                    disabled={!allowedTypes.length}
                   >
-                    {WEBSITE_TYPE_OPTIONS.map((item) => (
+                    {allowedTypes.map((item) => (
                       <option key={item} value={item}>
                         {toLabel(item)}
                       </option>
@@ -439,7 +531,7 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                   <select
                     className={styles.filterSelect}
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as SiteItem["status"])}
+                    onChange={(e) => setStatus(e.target.value as SiteStatus)}
                   >
                     {SITE_STATUS_OPTIONS.map((item) => (
                       <option key={item} value={item}>
@@ -469,7 +561,7 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                   Cancel
                 </button>
 
-                <button type="submit" className={styles.inviteButton} disabled={submitting}>
+                <button type="submit" className={styles.inviteButton} disabled={submitting || !allowedTypes.length}>
                   {submitting ? "Creating..." : "Create Site"}
                 </button>
               </div>
@@ -521,9 +613,10 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                   <select
                     className={styles.filterSelect}
                     value={type}
-                    onChange={(e) => setType(e.target.value as SiteItem["type"])}
+                    onChange={(e) => setType(e.target.value as SiteType)}
+                    disabled={!allowedTypes.length}
                   >
-                    {WEBSITE_TYPE_OPTIONS.map((item) => (
+                    {allowedTypes.map((item) => (
                       <option key={item} value={item}>
                         {toLabel(item)}
                       </option>
@@ -536,7 +629,7 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                   <select
                     className={styles.filterSelect}
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as SiteItem["status"])}
+                    onChange={(e) => setStatus(e.target.value as SiteStatus)}
                   >
                     {SITE_STATUS_OPTIONS.map((item) => (
                       <option key={item} value={item}>
@@ -561,7 +654,7 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                   Cancel
                 </button>
 
-                <button type="submit" className={styles.editButton} disabled={submitting}>
+                <button type="submit" className={styles.editButton} disabled={submitting || !allowedTypes.length}>
                   {submitting ? "Saving..." : "Save Site"}
                 </button>
               </div>

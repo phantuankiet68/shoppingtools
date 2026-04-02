@@ -2,30 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashToken } from "@/lib/session";
 
-export async function POST(req: NextRequest) {
-  const rawToken = req.cookies.get("admin_session")?.value ?? null;
+const ACCESS_TOKEN_COOKIE = "admin_access_token";
+const SESSION_COOKIE = "admin_session";
 
-  if (rawToken) {
-    const tokenHash = hashToken(rawToken);
-
-    await prisma.userSession
-      .updateMany({
-        where: { refreshTokenHash: tokenHash, revokedAt: null },
-        data: { revokedAt: new Date() },
-      })
-      .catch(() => {});
-  }
-
-  const res = NextResponse.json({ ok: true });
-
-  // xóa cookie chắc chắn
-  res.cookies.set("admin_session", "", {
+function expireCookie(res: NextResponse, name: string) {
+  res.cookies.set(name, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 0,
   });
+}
+
+export async function POST(req: NextRequest) {
+  const rawSession = req.cookies.get(SESSION_COOKIE)?.value ?? null;
+
+  if (rawSession) {
+    const tokenHash = hashToken(rawSession);
+
+    await prisma.userSession
+      .updateMany({
+        where: {
+          refreshTokenHash: tokenHash,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      })
+      .catch(() => {});
+  }
+
+  const res = NextResponse.json({ ok: true });
+
+  expireCookie(res, SESSION_COOKIE);
+  expireCookie(res, ACCESS_TOKEN_COOKIE);
 
   return res;
 }

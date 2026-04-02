@@ -2,7 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  padding: 7px 16px;
+  padding: 10px 16px;
   background: #ffffff;
   backdrop-filter: blur(16px);
   border-bottom: var(--bd-header);
@@ -153,8 +153,8 @@
 }
 
 .functionKey {
-  height: 50px;
-  min-width: 89px;
+  height: 58px;
+  min-width: 110px;
   border: var(--bd-header);
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   border-radius: 6px;
@@ -184,7 +184,7 @@
 }
 
 .functionKeyLabel {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--muted);
   line-height: 1;
@@ -616,4 +616,21 @@
   .userDropdown {
     width: min(92vw, 360px);
   }
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.notiWrap,
+.userMenu {
+  position: relative;
+  z-index: 1001;
+}
+
+.dropdownCard,
+.userDropdown {
+  z-index: 1100;
+  pointer-events: auto;
 }

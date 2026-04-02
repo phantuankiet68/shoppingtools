@@ -1,102 +1,178 @@
-import crypto from "crypto";
-import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { AUTH_COOKIE_NAME, SESSION_EXPIRES_IN_MS, SESSION_EXPIRES_IN_SECONDS } from "./constants";
+import { verifyAdminAccessToken } from "@/lib/auth/jwt";
+import { SystemRole } from "@prisma/client";
 
-function sha256(value: string) {
-  return crypto.createHash("sha256").update(value).digest("hex");
+const ACCESS_TOKEN_COOKIE = "admin_access_token";
+const SESSION_COOKIE = "admin_session";
+
+function hashSessionToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
 }
 
-export function generateSessionToken() {
-  return crypto.randomBytes(32).toString("hex");
+function getRoleLabel(role: SystemRole): string {
+  switch (role) {
+    case "SUPER_ADMIN":
+      return "Super Admin";
+    case "ADMIN":
+      return "Admin";
+    case "CUSTOMER":
+      return "Customer";
+    default:
+      return role;
+  }
 }
 
-export async function createUserSession(params: {
-  userId: string;
-  ipAddress?: string | null;
-  userAgent?: string | null;
-}) {
-  const token = generateSessionToken();
-  const refreshTokenHash = sha256(token);
-  const expiresAt = new Date(Date.now() + SESSION_EXPIRES_IN_MS);
+export type AdminSessionUser = {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+  systemRole: SystemRole;
+  status: "ACTIVE" | "SUSPENDED";
+  emailVerifiedAt: Date | null;
+  lastLoginAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  roleLabel: string;
+  profile: unknown | null;
+};
 
-  await prisma.userSession.create({
-    data: {
-      userId: params.userId,
-      refreshTokenHash,
-      expiresAt,
-      ipAddress: params.ipAddress ?? null,
-      userAgent: params.userAgent ?? null,
-      lastSeenAt: new Date(),
-    },
-  });
+export type AdminCurrentWorkspace = {
+  id: string;
+  name: string;
+  slug: string;
+  role: string;
+} | null;
 
-  return {
-    token,
-    expiresAt,
-  };
-}
+export type AdminMembership = {
+  workspaceId: string;
+  workspaceName: string;
+  workspaceSlug: string;
+  role: string;
+};
 
-export function setSessionCookie(response: NextResponse, token: string, expiresAt: Date) {
-  response.cookies.set({
-    name: AUTH_COOKIE_NAME,
-    value: token,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: expiresAt,
-    maxAge: SESSION_EXPIRES_IN_SECONDS,
-  });
-}
+export type AdminSession = {
+  user: AdminSessionUser;
+  currentWorkspace: AdminCurrentWorkspace;
+  memberships: AdminMembership[];
+} | null;
 
-export function clearSessionCookie(response: NextResponse) {
-  response.cookies.set({
-    name: AUTH_COOKIE_NAME,
-    value: "",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(0),
-    maxAge: 0,
-  });
-}
+export async function getCurrentSession(): Promise<AdminSession> {
+  try {
+    const cookieStore = await cookies();
 
-export async function getCurrentSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+    const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
+    const rawSessionToken = cookieStore.get(SESSION_COOKIE)?.value ?? null;
 
-  if (!token) return null;
+    if (!accessToken || !rawSessionToken) {
+      return null;
+    }
 
-  const refreshTokenHash = sha256(token);
+    const payload = await verifyAdminAccessToken(accessToken);
 
-  const session = await prisma.userSession.findUnique({
-    where: { refreshTokenHash },
-    include: {
-      user: true,
-    },
-  });
+    if (!payload || payload.status !== "ACTIVE" || payload.systemRole !== "ADMIN") {
+      return null;
+    }
 
-  if (!session) return null;
-  if (session.revokedAt) return null;
-  if (session.expiresAt.getTime() <= Date.now()) return null;
-  if (session.user.status !== "ACTIVE") return null;
+    const refreshTokenHash = hashSessionToken(rawSessionToken);
+    const now = new Date();
 
-  return session;
-}
+    const dbSession = await prisma.userSession.findFirst({
+      where: {
+        userId: payload.sub,
+        refreshTokenHash,
+        revokedAt: null,
+        expiresAt: { gt: now },
+      },
+      select: {
+        userId: true,
+      },
+    });
 
-export async function revokeSessionByToken(token: string) {
-  const refreshTokenHash = sha256(token);
+    if (!dbSession?.userId) {
+      return null;
+    }
 
-  await prisma.userSession.updateMany({
-    where: {
-      refreshTokenHash,
-      revokedAt: null,
-    },
-    data: {
-      revokedAt: new Date(),
-    },
-  });
+    const user = await prisma.user.findUnique({
+      where: {
+        id: dbSession.userId,
+        systemRole: "ADMIN",
+      },
+      select: {
+        id: true,
+        email: true,
+        image: true,
+        systemRole: true,
+        status: true,
+        emailVerifiedAt: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+        profile: true,
+        memberships: {
+          orderBy: {
+            createdAt: "asc",
+          },
+          select: {
+            role: true,
+            workspace: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user || user.systemRole !== "ADMIN") {
+      return null;
+    }
+
+    const memberships: AdminMembership[] = user.memberships.map((membership) => ({
+      workspaceId: membership.workspace.id,
+      workspaceName: membership.workspace.name,
+      workspaceSlug: membership.workspace.slug,
+      role: membership.role,
+    }));
+
+    const currentWorkspace: AdminCurrentWorkspace =
+      memberships.length > 0
+        ? {
+            id: memberships[0].workspaceId,
+            name: memberships[0].workspaceName,
+            slug: memberships[0].workspaceSlug,
+            role: memberships[0].role,
+          }
+        : null;
+
+    return {
+      user: {
+        id: user.id,
+        name:
+          user.profile && typeof user.profile === "object" && "name" in user.profile
+            ? ((user.profile as { name?: string | null }).name ?? null)
+            : null,
+        email: user.email,
+        image: user.image ?? null,
+        systemRole: user.systemRole,
+        status: user.status,
+        emailVerifiedAt: user.emailVerifiedAt ?? null,
+        lastLoginAt: user.lastLoginAt ?? null,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        roleLabel: getRoleLabel(user.systemRole),
+        profile: user.profile ?? null,
+      },
+      currentWorkspace,
+      memberships,
+    };
+  } catch (error) {
+    console.error("getCurrentSession error:", error);
+    return null;
+  }
 }
