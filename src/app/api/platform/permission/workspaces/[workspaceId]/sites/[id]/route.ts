@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { WebsiteType } from "@prisma/client";
+import { WebsiteType } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
-
 type Context = {
   params: Promise<{ workspaceId: string; id: string }>;
 };

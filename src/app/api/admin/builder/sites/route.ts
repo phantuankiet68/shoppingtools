@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { assertWorkspaceRole, pickCurrentMembership, requireSessionUser } from "@/lib/auth/auth-workspace";
+import { getCurrentSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -49,52 +49,53 @@ function isMissingWorkspaceColumn(error: unknown): boolean {
   return message.includes("workspace_id") || message.includes("workspaceid");
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const user = await requireSessionUser();
-    const { searchParams } = new URL(req.url);
-    const requestedWorkspaceId = searchParams.get("workspaceId");
-    const membership = pickCurrentMembership(user, requestedWorkspaceId);
+    const session = await getCurrentSession();
 
-    if (!membership) {
-      return NextResponse.json({ error: "No workspace access." }, { status: 403 });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const workspaceId = session.currentWorkspace?.id ?? null;
+
+    if (!workspaceId) {
+      return NextResponse.json({ error: "No workspace selected." }, { status: 400 });
     }
 
     const items = await prisma.site.findMany({
       where: {
         deletedAt: null,
-        OR: [
-          { workspaceId: membership.workspaceId },
-          {
-            workspaceId: null,
-            ownerUserId: user.id,
-          },
-        ],
+        workspaceId,
+        ownerUserId: userId,
       },
       orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        domain: true,
+        name: true,
+      },
     });
 
     return NextResponse.json({
-      workspace: {
-        id: membership.workspaceId,
-        name: membership.workspaceName,
-        slug: membership.workspaceSlug,
-        role: membership.role,
-      },
+      currentWorkspace: session.currentWorkspace,
       items,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    console.error("GET /api/admin/builder/sites error:", error);
     return NextResponse.json({ error: "Failed to fetch sites." }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const user = await requireSessionUser();
+    const session = await getCurrentSession();
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json().catch(() => ({}));
     const parsed = CreateSchema.safeParse(body);
 
@@ -102,12 +103,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const membership = pickCurrentMembership(user, parsed.data.workspaceId ?? null);
-    if (!membership) {
-      return NextResponse.json({ error: "No workspace access." }, { status: 403 });
+    const workspaceId = parsed.data.workspaceId ?? session.currentWorkspace?.id ?? null;
+
+    if (!workspaceId) {
+      return NextResponse.json({ error: "No workspace selected." }, { status: 400 });
     }
 
-    assertWorkspaceRole(membership.role, ["OWNER", "ADMIN"]);
+    const duplicate = await prisma.site.findFirst({
+      where: {
+        domain: parsed.data.domain,
+      },
+      select: { id: true },
+    });
+
+    if (duplicate) {
+      return NextResponse.json({ error: "Domain already exists." }, { status: 409 });
+    }
 
     const id = await nextSiteId("sitea");
 
@@ -116,24 +127,17 @@ export async function POST(req: Request) {
         id,
         domain: parsed.data.domain,
         name: parsed.data.name,
-        owner: { connect: { id: user.id } },
-        createdBy: { connect: { id: user.id } },
-        workspace: { connect: { id: membership.workspaceId } },
+        owner: { connect: { id: session.user.id } },
+        createdBy: { connect: { id: session.user.id } },
+        workspace: { connect: { id: workspaceId } },
       },
     });
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message === "UNAUTHORIZED") {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-
-      if (error.message === "FORBIDDEN") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-
       const message = error.message.toLowerCase();
+
       if (message.includes("unique") || message.includes("constraint")) {
         return NextResponse.json({ error: "Domain already exists." }, { status: 409 });
       }

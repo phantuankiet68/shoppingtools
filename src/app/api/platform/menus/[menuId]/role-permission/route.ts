@@ -75,7 +75,7 @@ export async function PUT(req: NextRequest, { params }: Context) {
 
     return NextResponse.json(permission, { status: 200 });
   } catch (error) {
-    console.error("[PUT /api/platform/permission/menus/[menuId]/role-permission]", error);
+    console.error("[PUT /api/platform/menus/[menuId]/role-permission]", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

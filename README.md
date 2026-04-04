@@ -7,6 +7,15 @@ linear-gradient(90deg, rgba(109, 40, 217, 0.06), #ec48990a), #ffffff8c
 //Back yellow beautifull
 linear-gradient(#fff7edfa, #fffffff0)
 
+
+Email	Password
+superadmin@example.com
+phantuankiet@123
+admin1@example.com
+admin@123
+admin2@example.com
+	123456
+
 Chạy xem dữ liệu
 npm run prisma:studio
 

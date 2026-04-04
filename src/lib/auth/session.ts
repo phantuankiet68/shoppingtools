@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminAccessToken } from "@/lib/auth/jwt";
-import { SystemRole } from "@prisma/client";
+import { SystemRole } from "@/generated/prisma";
 
 const ACCESS_TOKEN_COOKIE = "admin_access_token";
 const SESSION_COOKIE = "admin_session";

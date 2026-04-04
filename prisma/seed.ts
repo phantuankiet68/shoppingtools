@@ -1,6 +1,6 @@
 import { prisma } from "../src/lib/prisma";
 import { hashPassword } from "../src/lib/password";
-import { SystemRole, UserStatus } from "@prisma/client";
+import { SystemRole, UserStatus } from "../src/generated/prisma/client";
 
 async function main() {
   const email = "admin@example.com";

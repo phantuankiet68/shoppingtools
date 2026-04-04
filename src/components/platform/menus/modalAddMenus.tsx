@@ -1,22 +1,30 @@
 "use client";
 
-import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/platform/modalAddMenus.module.css";
 
-type MenuArea = "PLATFORM" | "ADMIN" | "SITE";
+export type MenuArea = "PLATFORM" | "ADMIN" | "SITE";
 
-type ParentOption = {
+export type ParentOption = {
   id: string;
   title: string;
   path: string | null;
   area?: MenuArea;
 };
 
-type Props = {
+export type SiteOption = {
+  id: string;
+  name: string;
+  domain: string;
+  status?: string;
+  isPublic?: boolean;
+};
+
+type ModalAddMenusProps = {
   open: boolean;
   onClose: () => void;
   onCreated?: () => void | Promise<void>;
-  siteIdOptions?: string[];
+  siteOptions?: SiteOption[];
   parentOptions?: ParentOption[];
   defaultSiteId?: string;
   defaultArea?: MenuArea;
@@ -33,59 +41,208 @@ type FormState = {
   area: MenuArea;
 };
 
+type SiteOptionsResponse = {
+  ok?: boolean;
+  data?: SiteOption[];
+  message?: string;
+};
+
+type CreateMenuResponse = {
+  ok?: boolean;
+  message?: string;
+};
+
 const MENU_AREA_OPTIONS: Array<{ value: MenuArea; label: string }> = [
   { value: "PLATFORM", label: "Platform" },
   { value: "ADMIN", label: "Admin" },
   { value: "SITE", label: "Site" },
 ];
 
-const createInitialForm = (defaultSiteId = "sitea01", defaultArea: MenuArea = "ADMIN"): FormState => ({
-  siteId: defaultSiteId,
-  parentId: "",
-  title: "",
-  path: "",
-  icon: "",
-  sortOrder: "0",
-  visible: true,
-  area: defaultArea,
-});
+const EMPTY_SITE_OPTIONS: SiteOption[] = [];
+const EMPTY_PARENT_OPTIONS: ParentOption[] = [];
+
+function createInitialForm(defaultSiteId = "", defaultArea: MenuArea = "ADMIN"): FormState {
+  return {
+    siteId: defaultSiteId,
+    parentId: "",
+    title: "",
+    path: "",
+    icon: "",
+    sortOrder: "0",
+    visible: true,
+    area: defaultArea,
+  };
+}
 
 function normalizeOptionalString(value: string): string | null {
   const normalized = value.trim();
   return normalized ? normalized : null;
 }
 
+function slugifyTitle(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function buildPathFromTitle(area: MenuArea, title: string): string {
+  const slug = slugifyTitle(title);
+  if (!slug) return "";
+
+  switch (area) {
+    case "ADMIN":
+      return `/admin/${slug}`;
+    case "PLATFORM":
+      return `/platform/${slug}`;
+    case "SITE":
+      return `/${slug}`;
+    default:
+      return `/admin/${slug}`;
+  }
+}
+
+function safeParseInteger(value: string): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
+}
+
 export function ModalAddMenus({
   open,
   onClose,
   onCreated,
-  siteIdOptions = [],
-  parentOptions = [],
+  siteOptions,
+  parentOptions,
   defaultSiteId = "",
   defaultArea = "ADMIN",
-}: Props) {
+}: ModalAddMenusProps) {
+  const externalSiteOptions = siteOptions ?? EMPTY_SITE_OPTIONS;
+  const availableParentOptions = parentOptions ?? EMPTY_PARENT_OPTIONS;
+
   const [form, setForm] = useState<FormState>(() => createInitialForm(defaultSiteId, defaultArea));
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [loadingSites, setLoadingSites] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [fetchedSiteOptions, setFetchedSiteOptions] = useState<SiteOption[]>([]);
+
+  const didUserEditPathRef = useRef(false);
+
+  const effectiveSiteOptions = useMemo<SiteOption[]>(() => {
+    return externalSiteOptions.length > 0 ? externalSiteOptions : fetchedSiteOptions;
+  }, [externalSiteOptions, fetchedSiteOptions]);
+
+  const filteredParentOptions = useMemo<ParentOption[]>(() => {
+    return availableParentOptions.filter((parent) => !parent.area || parent.area === form.area);
+  }, [availableParentOptions, form.area]);
+
+  const canSubmit = useMemo(() => {
+    return Boolean(form.siteId.trim()) && Boolean(form.title.trim()) && !submitting && !loadingSites;
+  }, [form.siteId, form.title, submitting, loadingSites]);
 
   useEffect(() => {
     if (!open) return;
 
-    setForm(createInitialForm(defaultSiteId, defaultArea));
-    setError("");
+    didUserEditPathRef.current = false;
+    setErrorMessage("");
     setSubmitting(false);
+    setForm(createInitialForm(defaultSiteId, defaultArea));
   }, [open, defaultSiteId, defaultArea]);
 
-  const filteredParentOptions = useMemo(() => {
-    return parentOptions.filter((parent) => !parent.area || parent.area === form.area);
-  }, [parentOptions, form.area]);
+  useEffect(() => {
+    if (!open) return;
+    if (externalSiteOptions.length > 0) return;
 
-  const canSubmit = useMemo(() => {
-    return Boolean(form.siteId.trim()) && Boolean(form.title.trim()) && !submitting;
-  }, [form.siteId, form.title, submitting]);
+    const controller = new AbortController();
 
-  function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    async function fetchSites() {
+      try {
+        setLoadingSites(true);
+        setErrorMessage("");
+
+        const response = await fetch("/api/platform/sites/options", {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        const data = (await response.json().catch(() => null)) as SiteOptionsResponse | null;
+
+        if (!response.ok) {
+          throw new Error(data?.message || "Failed to load sites");
+        }
+
+        const nextSites = Array.isArray(data?.data) ? data.data : [];
+        setFetchedSiteOptions(nextSites);
+
+        setForm((prev) => {
+          if (prev.siteId.trim()) return prev;
+          if (defaultSiteId.trim()) return prev;
+          if (nextSites.length === 0) return prev;
+
+          return {
+            ...prev,
+            siteId: nextSites[0].id,
+          };
+        });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error(error);
+        setErrorMessage(error instanceof Error ? error.message : "Failed to load sites");
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingSites(false);
+        }
+      }
+    }
+
+    fetchSites();
+
+    return () => {
+      controller.abort();
+    };
+  }, [open, externalSiteOptions, defaultSiteId]);
+
+  function updateFormField<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
+
+  function handleTitleChange(value: string) {
+    setForm((prev) => {
+      const nextPath = didUserEditPathRef.current ? prev.path : buildPathFromTitle(prev.area, value);
+
+      return {
+        ...prev,
+        title: value,
+        path: nextPath,
+      };
+    });
+  }
+
+  function handleAreaChange(nextArea: MenuArea) {
+    setForm((prev) => {
+      const nextPath = didUserEditPathRef.current ? prev.path : buildPathFromTitle(nextArea, prev.title);
+
+      return {
+        ...prev,
+        area: nextArea,
+        parentId: "",
+        path: nextPath,
+      };
+    });
+  }
+
+  function handlePathChange(value: string) {
+    didUserEditPathRef.current = true;
+    updateFormField("path", value);
   }
 
   function handleClose() {
@@ -101,31 +258,37 @@ export function ModalAddMenus({
     event.preventDefault();
 
     if (!canSubmit) {
-      setError("Site ID and menu title are required.");
+      setErrorMessage("Site và title là bắt buộc.");
       return;
     }
 
     try {
       setSubmitting(true);
-      setError("");
+      setErrorMessage("");
 
       const response = await fetch("/api/platform/menus/add", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
         body: JSON.stringify({
           siteId: form.siteId.trim(),
           parentId: normalizeOptionalString(form.parentId),
           title: form.title.trim(),
           path: normalizeOptionalString(form.path),
           icon: normalizeOptionalString(form.icon),
-          sortOrder: Number(form.sortOrder || 0),
+          sortOrder: safeParseInteger(form.sortOrder),
           visible: form.visible,
           area: form.area,
         }),
       });
 
       const contentType = response.headers.get("content-type") || "";
-      const data: { message?: string } | null = contentType.includes("application/json") ? await response.json() : null;
+      const data =
+        contentType.includes("application/json")
+          ? ((await response.json()) as CreateMenuResponse)
+          : null;
 
       if (!response.ok) {
         throw new Error(data?.message || "Failed to create menu");
@@ -133,9 +296,9 @@ export function ModalAddMenus({
 
       await onCreated?.();
       onClose();
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Failed to create menu");
+    } catch (error) {
+      console.error(error);
+      setErrorMessage(error instanceof Error ? error.message : "Failed to create menu");
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +325,7 @@ export function ModalAddMenus({
               </h2>
             </div>
             <p id="add-menu-description" className={styles.description}>
-              Create a new menu item and choose the appropriate <strong>MenuArea</strong>.
+              Tạo menu mới và tự sinh path theo <strong>MenuArea</strong>.
             </p>
           </div>
 
@@ -181,31 +344,31 @@ export function ModalAddMenus({
           <div className={styles.grid}>
             <label className={styles.field}>
               <span className={styles.label}>
-                Site ID <em>*</em>
+                Site <em>*</em>
               </span>
-              {siteIdOptions.length > 0 ? (
+              {effectiveSiteOptions.length > 0 ? (
                 <select
                   value={form.siteId}
-                  onChange={(event) => updateField("siteId", event.target.value)}
+                  onChange={(event) => updateFormField("siteId", event.target.value)}
                   className={styles.control}
                   required
-                  disabled={submitting}
+                  disabled={submitting || loadingSites}
                 >
                   <option value="">Select site</option>
-                  {siteIdOptions.map((siteId) => (
-                    <option key={siteId} value={siteId}>
-                      {siteId}
+                  {effectiveSiteOptions.map((site) => (
+                    <option key={site.id} value={site.id}>
+                      {site.name} ({site.domain})
                     </option>
                   ))}
                 </select>
               ) : (
                 <input
                   value={form.siteId}
-                  onChange={(event) => updateField("siteId", event.target.value)}
+                  onChange={(event) => updateFormField("siteId", event.target.value)}
                   className={styles.control}
                   placeholder="Enter siteId"
                   required
-                  disabled={submitting}
+                  disabled={submitting || loadingSites}
                 />
               )}
             </label>
@@ -214,14 +377,7 @@ export function ModalAddMenus({
               <span className={styles.label}>Menu Area</span>
               <select
                 value={form.area}
-                onChange={(event) => {
-                  const nextArea = event.target.value as MenuArea;
-                  setForm((prev) => ({
-                    ...prev,
-                    area: nextArea,
-                    parentId: "",
-                  }));
-                }}
+                onChange={(event) => handleAreaChange(event.target.value as MenuArea)}
                 className={styles.control}
                 disabled={submitting}
               >
@@ -237,7 +393,7 @@ export function ModalAddMenus({
               <span className={styles.label}>Parent menu</span>
               <select
                 value={form.parentId}
-                onChange={(event) => updateField("parentId", event.target.value)}
+                onChange={(event) => updateFormField("parentId", event.target.value)}
                 className={styles.control}
                 disabled={submitting}
               >
@@ -257,7 +413,7 @@ export function ModalAddMenus({
               </span>
               <input
                 value={form.title}
-                onChange={(event) => updateField("title", event.target.value)}
+                onChange={(event) => handleTitleChange(event.target.value)}
                 className={styles.control}
                 placeholder="Example: Dashboard"
                 required
@@ -269,7 +425,7 @@ export function ModalAddMenus({
               <span className={styles.label}>Path</span>
               <input
                 value={form.path}
-                onChange={(event) => updateField("path", event.target.value)}
+                onChange={(event) => handlePathChange(event.target.value)}
                 className={styles.control}
                 placeholder="/admin/dashboard"
                 disabled={submitting}
@@ -280,7 +436,7 @@ export function ModalAddMenus({
               <span className={styles.label}>Bootstrap icon</span>
               <input
                 value={form.icon}
-                onChange={(event) => updateField("icon", event.target.value)}
+                onChange={(event) => updateFormField("icon", event.target.value)}
                 className={styles.control}
                 placeholder="bi bi-grid"
                 disabled={submitting}
@@ -294,7 +450,7 @@ export function ModalAddMenus({
                 min={0}
                 step={1}
                 value={form.sortOrder}
-                onChange={(event) => updateField("sortOrder", event.target.value)}
+                onChange={(event) => updateFormField("sortOrder", event.target.value)}
                 className={styles.control}
                 placeholder="0"
                 disabled={submitting}
@@ -308,11 +464,16 @@ export function ModalAddMenus({
               <strong className={styles.metaValue}>{form.area}</strong>
             </div>
 
+            <div className={styles.metaBox}>
+              <span className={styles.metaLabel}>Preview path</span>
+              <strong className={styles.metaValue}>{form.path || "-"}</strong>
+            </div>
+
             <label className={styles.visibilityToggle}>
               <input
                 type="checkbox"
                 checked={form.visible}
-                onChange={(event) => updateField("visible", event.target.checked)}
+                onChange={(event) => updateFormField("visible", event.target.checked)}
                 disabled={submitting}
               />
               <span className={styles.visibilityTrack}>
@@ -322,7 +483,8 @@ export function ModalAddMenus({
             </label>
           </div>
 
-          {error ? <div className={styles.errorBox}>{error}</div> : null}
+          {loadingSites ? <div className={styles.infoBox}>Loading sites...</div> : null}
+          {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
 
           <div className={styles.footer}>
             <button type="button" className={styles.secondaryButton} onClick={handleClose} disabled={submitting}>

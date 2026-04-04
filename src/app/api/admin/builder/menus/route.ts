@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma, MenuSetKey } from "@prisma/client";
+import { Prisma, MenuArea } from "@/generated/prisma";
 
 export const runtime = "nodejs";
 
@@ -48,8 +48,8 @@ async function resolveSiteId(req: Request, maybeSiteId?: string | null) {
   return first.id;
 }
 
-function isMenuSetKey(v: string | null): v is MenuSetKey {
-  return v === "home" || v === "v1";
+function isMenuArea(v: any): v is MenuArea {
+  return v === "PLATFORM" || v === "ADMIN" || v === "SITE";
 }
 
 export async function GET(req: Request) {
@@ -60,8 +60,8 @@ export async function GET(req: Request) {
     const size = coerceInt(url.searchParams.get("size"), 20, 1, 200);
     const q = url.searchParams.get("q") ?? undefined;
 
-    const setKeyParam = url.searchParams.get("setKey");
-    const setKey: MenuSetKey = isMenuSetKey(setKeyParam) ? setKeyParam : "home";
+    const areaParam = url.searchParams.get("area");
+    const area: MenuArea = isMenuArea(areaParam) ? areaParam : "SITE";
 
     const siteIdParam = url.searchParams.get("siteId");
     const siteId = await resolveSiteId(req, siteIdParam);
@@ -75,7 +75,7 @@ export async function GET(req: Request) {
 
     const where: Prisma.MenuItemWhereInput = {
       siteId,
-      setKey,
+      area,
       ...(parentId ? { parentId } : {}),
       ...(q ? { OR: [{ title: ci(q) }, { path: ci(q) }, { icon: ci(q) }] } : {}),
     };
@@ -108,7 +108,7 @@ export async function GET(req: Request) {
       page,
       pageSize: size,
       pageCount: Math.max(1, Math.ceil(total / size)),
-      setKey,
+      area,
       siteId,
     });
   } catch (e) {
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
       sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
       visible: Boolean(body.visible ?? true),
       parent: body.parentId ? { connect: { id: String(body.parentId) } } : undefined,
-      setKey: (body.setKey as MenuSetKey) ?? "home",
+      area: isMenuArea(body.area) ? body.area : "SITE",
     };
 
     if (!data.title) {

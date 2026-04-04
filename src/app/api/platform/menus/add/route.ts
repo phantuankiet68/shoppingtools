@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
+import { Prisma, MenuArea, SystemRole } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hasRole } from "@/lib/auth/roles";
 import { getUserFromRequest } from "@/lib/auth/getUser";
-import { MenuArea, SystemRole } from "@/generated/prisma";
 
 type CreateMenuPayload = {
   siteId?: string;
@@ -17,7 +16,58 @@ type CreateMenuPayload = {
 };
 
 function parseArea(value: unknown): MenuArea {
-  return Object.values(MenuArea).includes(value as MenuArea) ? (value as MenuArea) : MenuArea.ADMIN;
+  return Object.values(MenuArea).includes(value as MenuArea)
+    ? (value as MenuArea)
+    : MenuArea.ADMIN;
+}
+
+function slugifyTitle(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function buildMenuPath(area: MenuArea, title: string): string | null {
+  const slug = slugifyTitle(title);
+  if (!slug) return null;
+
+  switch (area) {
+    case MenuArea.ADMIN:
+      return `/admin/${slug}`;
+    case MenuArea.PLATFORM:
+      return `/platform/${slug}`;
+    case MenuArea.SITE:
+      return `/${slug}`;
+    default:
+      return `/admin/${slug}`;
+  }
+}
+
+function normalizePath(input: string | null | undefined, area: MenuArea, title: string): string | null {
+  const raw = input?.trim() ?? "";
+  if (!raw) {
+    return buildMenuPath(area, title);
+  }
+
+  const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
+
+  if (area === MenuArea.ADMIN && !withSlash.startsWith("/admin/")) {
+    const slug = slugifyTitle(withSlash.replace(/^\/+/, ""));
+    return slug ? `/admin/${slug}` : buildMenuPath(area, title);
+  }
+
+  if (area === MenuArea.PLATFORM && !withSlash.startsWith("/platform/")) {
+    const slug = slugifyTitle(withSlash.replace(/^\/+/, ""));
+    return slug ? `/platform/${slug}` : buildMenuPath(area, title);
+  }
+
+  return withSlash;
 }
 
 export async function POST(req: NextRequest) {
@@ -29,7 +79,6 @@ export async function POST(req: NextRequest) {
     }
 
     const body = (await req.json()) as CreateMenuPayload;
-
     const { siteId, parentId, title, path, icon, sortOrder, visible } = body;
     const area = parseArea(body.area);
 
@@ -52,10 +101,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "sortOrder must be an integer" }, { status: 400 });
     }
 
-    // Check site exists before create to avoid FK error MenuItem_siteId_fkey
     const site = await prisma.site.findUnique({
       where: { id: nextSiteId },
-      select: { id: true },
+      select: { id: true, name: true, domain: true },
     });
 
     if (!site) {
@@ -74,7 +122,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "Parent menu not found" }, { status: 404 });
       }
 
-      if (parent.siteId !== nextSiteId) {
+      if (parent.siteId !== site.id) {
         return NextResponse.json({ message: "Parent menu must belong to same site" }, { status: 400 });
       }
 
@@ -83,13 +131,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const normalizedPath = normalizePath(path, area, nextTitle);
+
     const menu = await prisma.$transaction(async (tx) => {
       const created = await tx.menuItem.create({
         data: {
-          siteId: nextSiteId,
+          siteId: site.id,
           parentId: nextParentId,
           title: nextTitle,
-          path: path?.trim() ? path.trim() : null,
+          path: normalizedPath,
           icon: icon?.trim() ? icon.trim() : null,
           sortOrder: typeof sortOrder === "number" ? sortOrder : 0,
           visible: visible ?? true,
@@ -128,7 +178,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 },
     );
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("CREATE_MENU_ERROR", err);
 
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -151,6 +201,10 @@ export async function POST(req: NextRequest) {
         },
         { status: 400 },
       );
+    }
+
+    if (err instanceof Error) {
+      return NextResponse.json({ message: err.message }, { status: 500 });
     }
 
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });

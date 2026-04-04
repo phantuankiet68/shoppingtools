@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma, WebsiteType } from "@prisma/client";
+import { WebsiteType } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 
 type Context = {
   params: Promise<{ workspaceId: string }>;
 };
 
+type SiteStatus = "DRAFT" | "ACTIVE" | "SUSPENDED";
+
 type CreateSitePayload = {
   name?: string;
   domain?: string;
   type?: WebsiteType;
-  status?: "DRAFT" | "ACTIVE" | "SUSPENDED";
+  status?: SiteStatus;
   isPublic?: boolean;
   createdByUserId?: string | null;
 };
@@ -51,6 +53,21 @@ function isAllowedWebsiteType(
   }
 }
 
+const siteSelect = {
+  id: true,
+  name: true,
+  domain: true,
+  type: true,
+  status: true,
+  isPublic: true,
+  publishedAt: true,
+  ownerUserId: true,
+  createdByUserId: true,
+  workspaceId: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 export async function GET(_: NextRequest, { params }: Context) {
   try {
     const { workspaceId } = await params;
@@ -72,24 +89,11 @@ export async function GET(_: NextRequest, { params }: Context) {
       orderBy: {
         createdAt: "desc",
       },
-      select: {
-        id: true,
-        name: true,
-        domain: true,
-        type: true,
-        status: true,
-        isPublic: true,
-        publishedAt: true,
-        ownerUserId: true,
-        createdByUserId: true,
-        workspaceId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: siteSelect,
     });
 
     return NextResponse.json(sites, { status: 200 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("[GET /api/platform/permission/workspaces/[workspaceId]/sites]", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
@@ -103,7 +107,7 @@ export async function POST(req: NextRequest, { params }: Context) {
     const name = String(body.name ?? "").trim();
     const domain = normalizeDomain(String(body.domain ?? ""));
     const type = body.type;
-    const status = body.status ?? "DRAFT";
+    const status: SiteStatus = body.status ?? "DRAFT";
     const isPublic = Boolean(body.isPublic);
     const createdByUserId = body.createdByUserId ? String(body.createdByUserId).trim() : null;
 
@@ -136,7 +140,24 @@ export async function POST(req: NextRequest, { params }: Context) {
     }
 
     if (!isAllowedWebsiteType(type, workspace.accessPolicy)) {
-      return NextResponse.json({ message: `Workspace is not allowed to create ${type} sites` }, { status: 403 });
+      return NextResponse.json(
+        { message: `Workspace is not allowed to create ${type} sites` },
+        { status: 403 },
+      );
+    }
+
+    const existingDomain = await prisma.site.findFirst({
+      where: {
+        domain,
+      },
+      select: {
+        id: true,
+        deletedAt: true,
+      },
+    });
+
+    if (existingDomain) {
+      return NextResponse.json({ message: "Domain already exists" }, { status: 409 });
     }
 
     const createdSite = await prisma.site.create({
@@ -150,28 +171,21 @@ export async function POST(req: NextRequest, { params }: Context) {
         ownerUserId: workspace.ownerUserId,
         createdByUserId,
       },
-      select: {
-        id: true,
-        name: true,
-        domain: true,
-        type: true,
-        status: true,
-        isPublic: true,
-        publishedAt: true,
-        ownerUserId: true,
-        createdByUserId: true,
-        workspaceId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: siteSelect,
     });
 
     return NextResponse.json(createdSite, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("[POST /api/platform/permission/workspaces/[workspaceId]/sites]", error);
 
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const prismaError = error as { code?: string };
+
+    if (prismaError?.code === "P2002") {
       return NextResponse.json({ message: "Domain already exists" }, { status: 409 });
+    }
+
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
