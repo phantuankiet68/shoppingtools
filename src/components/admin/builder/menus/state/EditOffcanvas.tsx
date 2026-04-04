@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import styles from "@/styles/admin/builder/menus/offcanvasBackdrop.module.css";
 import {
   useMenuStore,
@@ -16,26 +16,34 @@ type Props = {
   onClose: () => void;
 };
 
-function toLocalInputValue(v: string) {
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toISOString().slice(0, 16);
+function toLocalInputValue(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 16);
 }
 
 function uniqBy<T>(arr: T[], getKey: (t: T) => string) {
   const seen = new Set<string>();
   const out: T[] = [];
-  for (const it of arr) {
-    const k = getKey(it);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(it);
+
+  for (const item of arr) {
+    const key = getKey(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
   }
+
   return out;
 }
 
 export default function EditOffcanvas({ item, onClose }: Props) {
-  const { activeMenu, setActiveMenu, buildHref, currentSet, INTERNAL_PAGES } = useMenuStore();
+  const {
+    activeMenu,
+    setActiveMenu,
+    buildHref,
+    currentSet,
+    INTERNAL_PAGES,
+  } = useMenuStore();
 
   const {
     draft,
@@ -51,57 +59,66 @@ export default function EditOffcanvas({ item, onClose }: Props) {
     delScheduleRow,
   } = useEditOffcanvasStore();
 
-  // Nếu draft chưa init thì dùng item
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const safeDraft = draft ?? item;
 
   const pagesById = useMemo(() => {
-    const m = new Map<string, InternalPage>();
-    (INTERNAL_PAGES || []).forEach((p) => m.set(p.id, p));
-    return m;
+    const map = new Map<string, InternalPage>();
+    (INTERNAL_PAGES || []).forEach((page) => {
+      map.set(page.id, page);
+    });
+    return map;
   }, [INTERNAL_PAGES]);
 
   const pagesForSet = useMemo(() => {
     const pages = INTERNAL_PAGES || [];
+
     const filtered =
       currentSet === "v1"
-        ? pages.filter((p: InternalPage) => (p.path || "").startsWith("/v1"))
-        : pages.filter((p: InternalPage) => !(p.path || "").startsWith("/v1"));
+        ? pages.filter((page) => (page.path || "").startsWith("/v1"))
+        : pages.filter((page) => !(page.path || "").startsWith("/v1"));
 
-    return uniqBy(filtered, (p) => `${p.id}__${p.path || ""}`);
+    return uniqBy(filtered, (page) => `${page.id}__${page.path || ""}`);
   }, [currentSet, INTERNAL_PAGES]);
 
-  function resolvePathForPatch(it: BuilderMenuItem): string | null {
-    if (it.linkType === "external") {
-      const url = (it.externalUrl ?? "").trim();
-      const raw = typeof it.rawPath === "string" ? it.rawPath.trim() : "";
-      return url || raw || null;
-    }
+  const resolvePathForPatch = useCallback(
+    (menuItem: BuilderMenuItem): string | null => {
+      if (menuItem.linkType === "external") {
+        const url = (menuItem.externalUrl ?? "").trim();
+        const raw = typeof menuItem.rawPath === "string" ? menuItem.rawPath.trim() : "";
+        return url || raw || null;
+      }
 
-    if (it.linkType === "internal") {
-      const page = it.internalPageId ? pagesById.get(it.internalPageId) : undefined;
-      const raw = typeof it.rawPath === "string" ? it.rawPath.trim() : "";
-      return page?.path ?? (raw || null);
-    }
+      if (menuItem.linkType === "internal") {
+        const page = menuItem.internalPageId ? pagesById.get(menuItem.internalPageId) : undefined;
+        const raw = typeof menuItem.rawPath === "string" ? menuItem.rawPath.trim() : "";
+        return (page?.path ?? raw) || null;
+      }
 
-    return null;
-  }
+      return null;
+    },
+    [pagesById],
+  );
 
-  // init store state khi item đổi
   useEffect(() => {
     initFromItem(item, resolvePathForPatch(item) ?? "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item]);
+  }, [item, initFromItem, resolvePathForPatch]);
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
     };
+
     window.addEventListener("keydown", onKeyDown);
 
     const html = document.documentElement;
     const body = document.body;
     const prevHtmlOverflow = html.style.overflow;
     const prevBodyOverflow = body.style.overflow;
+
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
 
@@ -112,43 +129,116 @@ export default function EditOffcanvas({ item, onClose }: Props) {
     };
   }, [onClose]);
 
-  function updateItem(next: BuilderMenuItem) {
-    const walk = (arr: BuilderMenuItem[]): BuilderMenuItem[] =>
-      arr.map((it) => {
-        if (it.id === next.id) return next;
-        if (it.children?.length) return { ...it, children: walk(it.children) };
-        return it;
-      });
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
 
-    setActiveMenu(walk(activeMenu || []));
-  }
+  useEffect(() => {
+    if (safeDraft.linkType !== "internal") return;
+
+    const currentInternalPageId = safeDraft.internalPageId || "";
+    const isValidCurrentPage = currentInternalPageId
+      ? pagesForSet.some((page) => page.id === currentInternalPageId)
+      : false;
+
+    if (isValidCurrentPage) return;
+
+    const fallbackPageId = pagesForSet[0]?.id;
+    if (!fallbackPageId) return;
+
+    const fallbackPage = pagesById.get(fallbackPageId);
+    const fallbackPath = fallbackPage?.path ?? safeDraft.rawPath ?? "";
+
+    setDraft({
+      ...safeDraft,
+      internalPageId: fallbackPageId,
+      rawPath: fallbackPath,
+    });
+
+    setPathInput(fallbackPath);
+  }, [
+    safeDraft,
+    safeDraft.linkType,
+    safeDraft.internalPageId,
+    safeDraft.rawPath,
+    pagesForSet,
+    pagesById,
+    setDraft,
+    setPathInput,
+  ]);
+
+  const updateItem = useCallback(
+    (nextItem: BuilderMenuItem) => {
+      const walk = (items: BuilderMenuItem[]): BuilderMenuItem[] => {
+        let changed = false;
+
+        const result = items.map((menuItem) => {
+          if (menuItem.id === nextItem.id) {
+            changed = true;
+            return nextItem;
+          }
+
+          if (menuItem.children?.length) {
+            const nextChildren = walk(menuItem.children);
+            if (nextChildren !== menuItem.children) {
+              changed = true;
+              return { ...menuItem, children: nextChildren };
+            }
+          }
+
+          return menuItem;
+        });
+
+        return changed ? result : items;
+      };
+
+      setActiveMenu(walk(activeMenu || []));
+    },
+    [activeMenu, setActiveMenu],
+  );
 
   const hrefPreview = useMemo(() => {
     const now = new Date();
-    const manual = (pathInput ?? "").trim();
+    const manualPath = (pathInput ?? "").trim();
 
-    if (safeDraft.linkType === "external") return manual || safeDraft.externalUrl || "";
-    if (safeDraft.linkType === "internal") {
-      if (manual) return manual;
-      const p = safeDraft.internalPageId ? pagesById.get(safeDraft.internalPageId) : undefined;
-      return p?.path ?? (typeof safeDraft.rawPath === "string" ? safeDraft.rawPath : "") ?? "";
+    if (safeDraft.linkType === "external") {
+      return manualPath || safeDraft.externalUrl || "";
     }
+
+    if (safeDraft.linkType === "internal") {
+      if (manualPath) return manualPath;
+
+      const page = safeDraft.internalPageId ? pagesById.get(safeDraft.internalPageId) : undefined;
+      return page?.path ?? (typeof safeDraft.rawPath === "string" ? safeDraft.rawPath : "") ?? "";
+    }
+
     return buildHref(safeDraft, now);
   }, [safeDraft, pathInput, buildHref, pagesById]);
 
-  async function save() {
+  const iconPreview = useMemo(() => {
+    return (safeDraft.icon || "").trim() ? `bi ${safeDraft.icon}` : "bi bi-link-45deg";
+  }, [safeDraft.icon]);
+
+  const handleSave = useCallback(async () => {
     try {
       setSaving(true);
 
-      const manual = (pathInput ?? "").trim();
-      const computed = resolvePathForPatch(safeDraft);
+      const manualPath = (pathInput ?? "").trim();
+      const computedPath = resolvePathForPatch(safeDraft);
 
-      const finalPath = safeDraft.linkType === "scheduled" ? null : manual || computed || null;
+      const finalPath =
+        safeDraft.linkType === "scheduled" ? null : manualPath || computedPath || null;
 
       const nextDraft: BuilderMenuItem = {
         ...safeDraft,
-        ...(safeDraft.linkType === "external" && manual ? { externalUrl: manual } : {}),
-        ...(manual ? { rawPath: manual } : {}),
+        ...(safeDraft.linkType === "external" && manualPath
+          ? { externalUrl: manualPath }
+          : {}),
+        ...(manualPath ? { rawPath: manualPath } : {}),
       };
 
       updateItem(nextDraft);
@@ -157,50 +247,90 @@ export default function EditOffcanvas({ item, onClose }: Props) {
         title: nextDraft.title,
         icon: nextDraft.icon ?? null,
         path: finalPath,
-        visible: true, // giữ đúng logic cũ của bạn
+        visible: true,
       });
-    } catch (e: unknown) {
-      alert("Unable to update the database: " + ((e as Error)?.message || "Unknown error"));
+
+      onClose();
+    } catch (error: unknown) {
+      alert(
+        "Cannot update data. " +
+          ((error as Error)?.message || "An unknown error occurred."),
+      );
     } finally {
       setSaving(false);
-      onClose();
     }
-  }
+  }, [pathInput, resolvePathForPatch, safeDraft, updateItem, setSaving, onClose]);
 
-  async function copyPreview() {
+  const handleCopyPreview = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(hrefPreview || "");
       setCopied(true);
-      setTimeout(() => setCopied(false), 900);
-    } catch {}
-  }
 
-  const iconPreview = (safeDraft.icon || "").trim() ? `bi ${safeDraft.icon}` : "bi bi-link-45deg";
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
 
-  // đảm bảo internalPageId hợp lệ theo set
-  useEffect(() => {
-    if (safeDraft.linkType !== "internal") return;
-    const current = safeDraft.internalPageId || "";
-    if (current && pagesForSet.some((p) => p.id === current)) return;
+      copyTimerRef.current = setTimeout(() => {
+        setCopied(false);
+      }, 900);
+    } catch {
+      // no-op
+    }
+  }, [hrefPreview, setCopied]);
 
-    const fallback = pagesForSet[0]?.id;
-    if (!fallback) return;
+  const handleLinkTypeChange = useCallback(
+    (value: BuilderMenuItem["linkType"]) => {
+      setDraft((prevDraft) => {
+        const baseDraft = prevDraft ?? safeDraft;
+        const nextDraft = { ...baseDraft, linkType: value } as BuilderMenuItem;
 
-    const p = pagesById.get(fallback);
-    setDraft({ ...safeDraft, internalPageId: fallback, rawPath: p?.path ?? safeDraft.rawPath });
-    if (p?.path) setPathInput(p.path);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [safeDraft.linkType, pagesForSet]);
+        if (value === "external") {
+          const manualPath = (pathInput ?? "").trim();
+          if (!manualPath && nextDraft.externalUrl) {
+            setPathInput(nextDraft.externalUrl);
+          }
+          if (nextDraft.externalUrl) {
+            nextDraft.rawPath = nextDraft.externalUrl;
+          }
+        }
+
+        if (value === "internal") {
+          const pageId = nextDraft.internalPageId || pagesForSet[0]?.id;
+          const page = pageId ? pagesById.get(pageId) : undefined;
+
+          if (pageId) {
+            nextDraft.internalPageId = pageId;
+          }
+
+          if (page?.path) {
+            nextDraft.rawPath = page.path;
+            setPathInput(page.path);
+          }
+        }
+
+        return nextDraft;
+      });
+    },
+    [setDraft, safeDraft, pathInput, setPathInput, pagesForSet, pagesById],
+  );
 
   return (
     <div
       className={styles.offcanvasBackdrop}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
       }}
       role="presentation"
     >
-      <div className={styles.offcanvas} onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        className={styles.offcanvas}
+        onMouseDown={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit menu item"
+      >
         <div className={styles.ocHeader}>
           <div className={styles.ocHeaderLeft}>
             <div className={styles.ocIcon} aria-hidden>
@@ -209,21 +339,26 @@ export default function EditOffcanvas({ item, onClose }: Props) {
             <div>
               <div className={styles.ocTitle}>Edit menu item</div>
               <div className={styles.ocSub}>
-                Set: <b>{currentSet}</b> • ID: <code>{String(safeDraft.id)}</code>
+                Menu set: <b>{currentSet}</b> • ID: <code>{String(safeDraft.id)}</code>
               </div>
             </div>
           </div>
 
-          <button className={styles.ocClose} onClick={onClose} type="button" aria-label="Close" disabled={saving}>
+          <button
+            className={styles.ocClose}
+            onClick={onClose}
+            type="button"
+            aria-label="Close"
+            disabled={saving}
+          >
             <i className="bi bi-x-lg" />
           </button>
         </div>
 
         <div className={styles.ocBody}>
-          {/* Basics */}
           <section className={styles.panel}>
             <div className={styles.panelTitle}>
-              <i className="bi bi-card-text" /> Basics
+              <i className="bi bi-card-text" /> Basic information
             </div>
 
             <div className={styles.grid2}>
@@ -232,7 +367,9 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                 <input
                   className={styles.formControl}
                   value={safeDraft.title}
-                  onChange={(e) => setDraft({ ...safeDraft, title: e.target.value })}
+                  onChange={(event) =>
+                    setDraft({ ...safeDraft, title: event.target.value })
+                  }
                 />
               </div>
 
@@ -241,27 +378,33 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                   <label className={styles.formLabel}>Icon</label>
                   <div className={styles.smallHelp}>
                     <i className="bi bi-box-arrow-up-right" />{" "}
-                    <a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener noreferrer">
+                    <a
+                      href="https://icons.getbootstrap.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Bootstrap Icons
                     </a>
                   </div>
                 </div>
+
                 <div className={styles.inputGroup}>
                   <span className={styles.inputGroupText}>
                     <i className={iconPreview} />
                   </span>
                   <input
                     className={styles.formControl}
-                    placeholder="vd: bi-house-door, bi-bag"
+                    placeholder="Example: bi-house-door, bi-bag"
                     value={safeDraft.icon || ""}
-                    onChange={(e) => setDraft({ ...safeDraft, icon: e.target.value })}
+                    onChange={(event) =>
+                      setDraft({ ...safeDraft, icon: event.target.value })
+                    }
                   />
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Link settings */}
           <section className={styles.panel}>
             <div className={styles.panelTitle}>
               <i className="bi bi-link-45deg" /> Link settings
@@ -269,35 +412,17 @@ export default function EditOffcanvas({ item, onClose }: Props) {
 
             <div className={styles.grid2}>
               <div>
-                <label className={styles.formLabel}>Link Strategy</label>
+                <label className={styles.formLabel}>Link type</label>
                 <select
                   className={styles.formSelect}
                   value={safeDraft.linkType}
-                  onChange={(e) => {
-                    const lt = e.target.value as BuilderMenuItem["linkType"];
-                    setDraft(() => {
-                      const next = { ...safeDraft, linkType: lt } as BuilderMenuItem;
-
-                      if (lt === "external") {
-                        const manual = (pathInput ?? "").trim();
-                        if (!manual && next.externalUrl) setPathInput(next.externalUrl);
-                        if (next.externalUrl) next.rawPath = next.externalUrl;
-                      } else if (lt === "internal") {
-                        const pid = next.internalPageId || pagesForSet[0]?.id;
-                        const p = pid ? pagesById.get(pid) : undefined;
-                        if (pid) next.internalPageId = pid;
-                        if (p?.path) {
-                          setPathInput(p.path);
-                          next.rawPath = p.path;
-                        }
-                      }
-                      return next;
-                    });
-                  }}
+                  onChange={(event) =>
+                    handleLinkTypeChange(event.target.value as BuilderMenuItem["linkType"])
+                  }
                 >
-                  <option value="external">External URL</option>
-                  <option value="internal">Internal Page</option>
-                  <option value="scheduled">Scheduled Links</option>
+                  <option value="external">External link</option>
+                  <option value="internal">Internal page</option>
+                  <option value="scheduled">Scheduled link</option>
                 </select>
               </div>
 
@@ -308,12 +433,14 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                     className={styles.formControl}
                     placeholder="https://example.com"
                     value={safeDraft.externalUrl || ""}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setDraft({ ...safeDraft, externalUrl: v });
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setDraft({ ...safeDraft, externalUrl: value });
 
-                      const current = (pathInput ?? "").trim();
-                      if (!current || current === resolvePathForPatch(safeDraft)) setPathInput(v);
+                      const currentPath = (pathInput ?? "").trim();
+                      if (!currentPath || currentPath === resolvePathForPatch(safeDraft)) {
+                        setPathInput(value);
+                      }
                     }}
                   />
 
@@ -321,7 +448,9 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                     <input
                       type="checkbox"
                       checked={!!safeDraft.newTab}
-                      onChange={(e) => setDraft({ ...safeDraft, newTab: e.target.checked })}
+                      onChange={(event) =>
+                        setDraft({ ...safeDraft, newTab: event.target.checked })
+                      }
                     />
                     <span>Open in new tab</span>
                   </label>
@@ -334,16 +463,24 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                   <select
                     className={styles.formSelect}
                     value={safeDraft.internalPageId || pagesForSet[0]?.id || ""}
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      const p = pagesById.get(id);
-                      setDraft({ ...safeDraft, internalPageId: id, rawPath: p?.path ?? safeDraft.rawPath });
-                      if (p?.path) setPathInput(p.path);
+                    onChange={(event) => {
+                      const id = event.target.value;
+                      const page = pagesById.get(id);
+
+                      setDraft({
+                        ...safeDraft,
+                        internalPageId: id,
+                        rawPath: page?.path ?? safeDraft.rawPath,
+                      });
+
+                      if (page?.path) {
+                        setPathInput(page.path);
+                      }
                     }}
                   >
-                    {pagesForSet.map((p) => (
-                      <option key={`${p.id}__${p.path || ""}`} value={p.id}>
-                        {p.label} ({p.path})
+                    {pagesForSet.map((page) => (
+                      <option key={`${page.id}__${page.path || ""}`} value={page.id}>
+                        {page.label} ({page.path})
                       </option>
                     ))}
                   </select>
@@ -355,16 +492,19 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                   <div className={styles.rowBetween}>
                     <div>
                       <label className={styles.formLabel} style={{ marginBottom: 0 }}>
-                        Timeline
+                        Schedule points
                       </label>
-                      <div className={styles.smallHelp}>Add milestones to switch URL at specific times.</div>
+                      <div className={styles.smallHelp}>
+                        Add schedule points to automatically switch URLs based on the configured time.
+                      </div>
                     </div>
+
                     <button
                       className={`${styles.btn} ${styles.btnOutlineLight}`}
                       onClick={addScheduleRow}
                       type="button"
                     >
-                      <i className="bi bi-plus-lg" /> Add milestone
+                      <i className="bi bi-plus-lg" /> Add point
                     </button>
                   </div>
 
@@ -372,44 +512,56 @@ export default function EditOffcanvas({ item, onClose }: Props) {
                     <div className={styles.emptyBox}>
                       <i className="bi bi-calendar2-week" />
                       <div>
-                        <div className={styles.emptyTitle}>No milestones yet</div>
-                        <div className={styles.smallHelp}>Click “Add milestone” to create scheduled links.</div>
+                        <div className={styles.emptyTitle}>No schedule points yet</div>
+                        <div className={styles.smallHelp}>
+                          Choose “Add point” to configure scheduled links.
+                        </div>
                       </div>
                     </div>
                   ) : (
                     <div className={styles.scheduleList}>
-                      {(safeDraft.schedules || []).map((s, i) => (
-                        <div key={`${safeDraft.id}-schedule-${i}`} className={styles.scheduleRow}>
-                          <div className={styles.scheduleIdx}>{i + 1}</div>
+                      {(safeDraft.schedules || []).map((schedule, index) => (
+                        <div
+                          key={`${safeDraft.id}-schedule-${index}`}
+                          className={styles.scheduleRow}
+                        >
+                          <div className={styles.scheduleIdx}>{index + 1}</div>
 
                           <input
                             type="datetime-local"
                             className={styles.formControl}
-                            value={s.when ? toLocalInputValue(s.when) : ""}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              const next = [...(safeDraft.schedules || [])];
-                              next[i] = { ...next[i], when: v };
-                              setDraft({ ...safeDraft, schedules: next });
+                            value={schedule.when ? toLocalInputValue(schedule.when) : ""}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              const nextSchedules = [...(safeDraft.schedules || [])];
+                              nextSchedules[index] = {
+                                ...nextSchedules[index],
+                                when: value,
+                              };
+                              setDraft({ ...safeDraft, schedules: nextSchedules });
                             }}
                           />
+
                           <input
                             className={styles.formControl}
                             placeholder="https://..."
-                            value={s.url}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              const next = [...(safeDraft.schedules || [])];
-                              next[i] = { ...next[i], url: v };
-                              setDraft({ ...safeDraft, schedules: next });
+                            value={schedule.url}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              const nextSchedules = [...(safeDraft.schedules || [])];
+                              nextSchedules[index] = {
+                                ...nextSchedules[index],
+                                url: value,
+                              };
+                              setDraft({ ...safeDraft, schedules: nextSchedules });
                             }}
                           />
 
                           <button
                             className={styles.btnIconDanger}
-                            onClick={() => delScheduleRow(i)}
+                            onClick={() => delScheduleRow(index)}
                             type="button"
-                            title="Remove"
+                            title="Delete"
                           >
                             <i className="bi bi-trash3" />
                           </button>
@@ -422,27 +574,28 @@ export default function EditOffcanvas({ item, onClose }: Props) {
             </div>
           </section>
 
-          {/* Path & preview */}
           <section className={styles.panel}>
             <div className={styles.panelTitle}>
-              <i className="bi bi-signpost-2" /> Path & preview
+              <i className="bi bi-signpost-2" /> Path and preview
             </div>
 
             <div>
-              <label className={styles.formLabel}>Path saved to DB</label>
+              <label className={styles.formLabel}>Path saved to database</label>
               <input
                 className={styles.formControl}
                 placeholder={
-                  safeDraft.linkType === "scheduled" ? "(Scheduled path will not be saved.)" : "/path hoặc https://..."
+                  safeDraft.linkType === "scheduled"
+                    ? "(Scheduled links will not save a fixed path.)"
+                    : "/path or https://..."
                 }
                 value={pathInput}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setPathInput(v);
-                  setDraft({ ...safeDraft, rawPath: v });
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setPathInput(value);
+                  setDraft({ ...safeDraft, rawPath: value });
                 }}
               />
-              <div className={styles.smallHelp}>• Blank = auto-compute.</div>
+              <div className={styles.smallHelp}>Leave empty = system will calculate it automatically.</div>
             </div>
 
             <div className={styles.previewBox}>
@@ -457,11 +610,12 @@ export default function EditOffcanvas({ item, onClose }: Props) {
 
               <button
                 className={`${styles.btn} ${styles.btnOutlineSecondary}`}
-                onClick={copyPreview}
+                onClick={handleCopyPreview}
                 type="button"
                 disabled={!hrefPreview}
               >
-                <i className={copied ? "bi bi-check2" : "bi bi-clipboard"} /> {copied ? "Copied" : "Copy"}
+                <i className={copied ? "bi bi-check2" : "bi bi-clipboard"} />{" "}
+                {copied ? "Copied" : "Copy"}
               </button>
             </div>
           </section>
@@ -477,14 +631,19 @@ export default function EditOffcanvas({ item, onClose }: Props) {
             <i className="bi bi-x-circle" /> Close
           </button>
 
-          <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={save} disabled={saving} type="button">
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={handleSave}
+            disabled={saving}
+            type="button"
+          >
             {saving ? (
               <>
                 <span className={styles.spinner} aria-hidden /> Saving...
               </>
             ) : (
               <>
-                <i className="bi bi-save" /> Save
+                <i className="bi bi-save" /> Save changes
               </>
             )}
           </button>

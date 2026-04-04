@@ -23,23 +23,37 @@ type TabKey = "home" | "dashboard";
 export default function AllowedBlocks() {
   const modal = useModal();
 
-  const { TEMPLATE_ALLOWED, templateKey, activeMenu, setActiveMenu, INTERNAL_PAGES, siteKind, currentSet } =
-    useMenuStore();
+  const {
+    TEMPLATE_ALLOWED,
+    templateKey,
+    activeMenu,
+    setActiveMenu,
+    INTERNAL_PAGES,
+    siteKind,
+    currentSet,
+  } = useMenuStore();
 
   const { addByName, onDragStart } = useAllowedBlocksStore();
 
   const tpl = TEMPLATE_ALLOWED[templateKey];
   const forcedTab: TabKey = forcedTabFromSet(currentSet);
 
-  const internalPages = useMemo(() => INTERNAL_PAGES || [], [INTERNAL_PAGES]);
-  const menu = useMemo(() => activeMenu || [], [activeMenu]);
-
   const baseNames = useMemo(() => pickBaseNames(tpl, forcedTab), [tpl, forcedTab]);
 
-  const existingPages = useMemo(() => buildExistingPagesSet(internalPages), [internalPages]);
-  const existingTitles = useMemo(() => buildExistingTitlesSet(menu), [menu]);
+  const existingPages = useMemo(
+    () => buildExistingPagesSet(INTERNAL_PAGES || []),
+    [INTERNAL_PAGES],
+  );
 
-  const suggestSource = useMemo(() => getSuggestBySite(siteKind), [siteKind]);
+  const existingTitles = useMemo(
+    () => buildExistingTitlesSet(activeMenu || []),
+    [activeMenu],
+  );
+
+  const suggestSource = useMemo(
+    () => getSuggestBySite(siteKind),
+    [siteKind],
+  );
 
   const filteredSuggest = useMemo(
     () =>
@@ -57,17 +71,23 @@ export default function AllowedBlocks() {
       try {
         addByName({
           name,
-          activeMenu: menu,
+          activeMenu: activeMenu || [],
           setActiveMenu,
-          internalPages,
+          internalPages: INTERNAL_PAGES || [],
         });
 
-        modal.success("Success", `Added “${name}” successfully.`);
+        modal.success(
+          "Block added successfully",
+          `Block "${name}" has been added to the menu.`,
+        );
       } catch (e: unknown) {
-        modal.error("Add block failed", (e as Error)?.message || "Không thể thêm block.");
+        modal.error(
+          "Cannot add block",
+          (e as Error)?.message || "An error occurred while adding the block.",
+        );
       }
     },
-    [addByName, menu, setActiveMenu, internalPages, modal],
+    [addByName, activeMenu, setActiveMenu, INTERNAL_PAGES, modal],
   );
 
   return (
@@ -79,7 +99,9 @@ export default function AllowedBlocks() {
               <div
                 className={`${styles.blockCard} ${styles.appCard}`}
                 draggable
-                onDragStart={(e) => onDragStart(e, { name, internalPages })}
+                onDragStart={(e) =>
+                  onDragStart(e, { name, internalPages: INTERNAL_PAGES || [] })
+                }
                 onClick={() => handleAddName(name)}
                 title={M.allowedBlocks.baseBlockTooltip}
                 role="button"
@@ -106,10 +128,11 @@ export default function AllowedBlocks() {
         <section
           className={styles.blocksGridRight}
           aria-label={M.allowedBlocks.suggestionsAria}
-          style={{ display: "grid", gap: 6 }}
         >
           {Object.keys(filteredSuggest).length === 0 ? (
-            <div className={styles.smallHelp}>{M.allowedBlocks.noMoreSuggestions}</div>
+            <div className={styles.smallHelp}>
+              {M.allowedBlocks.noMoreSuggestions}
+            </div>
           ) : (
             Object.entries(filteredSuggest).map(([group, items]) => (
               <div key={group} style={{ marginBottom: 10 }}>
@@ -130,7 +153,12 @@ export default function AllowedBlocks() {
                       type="button"
                       key={name}
                       onClick={() => handleAddName(name)}
-                      onDragStart={(e) => onDragStart(e, { name, internalPages })}
+                      onDragStart={(e) =>
+                        onDragStart(e, {
+                          name,
+                          internalPages: INTERNAL_PAGES || [],
+                        })
+                      }
                       draggable
                       className={styles.btn}
                       style={{
@@ -142,7 +170,10 @@ export default function AllowedBlocks() {
                       }}
                       title={M.allowedBlocks.suggestChipTooltip}
                     >
-                      <i className="bi bi-plus-lg" style={{ marginRight: 6 }} />
+                      <i
+                        className="bi bi-plus-lg"
+                        style={{ marginRight: 6 }}
+                      />
                       {name}
                     </button>
                   ))}

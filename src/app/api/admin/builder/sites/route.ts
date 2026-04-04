@@ -75,6 +75,7 @@ export async function GET() {
         id: true,
         domain: true,
         name: true,
+        type: true
       },
     });
 

@@ -1,11 +1,45 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ECOMMERCE_INTERNAL_PAGES, ECOMMERCE_HEADER_FULL, ECOMMERCE_ADMIN_FULL } from "@/constants/ecommerce.menu";
-import { fetchMenuItems, saveMenuTree, type DbMenuItem } from "@/services/builder/menus/menuItems.service";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  BLOG_HEADER_BASIC,
+  BOOKING_HEADER_BASIC,
+  COMPANY_HEADER_BASIC,
+  DIRECTORY_HEADER_BASIC,
+  ECOMMERCE_HEADER_FULL,
+  INTERNAL_PAGE_SETS,
+  LMS_HEADER_BASIC,
+  NEWS_HEADER_BASIC,
+  LANDING_HEADER_BASIC,
+  TEMPLATE_ALLOWED_BY_SITE,
+} from "@/constants/ecommerce.menu";
+import {
+  fetchMenuItems,
+  saveMenuTree,
+  type DbMenuItem,
+} from "@/services/builder/menus/menuItems.service";
 
 export type MenuSetKey = "home" | "v1";
-export type SiteKind = "ecommerce";
+
+export type SiteKind =
+  | "landing"
+  | "blog"
+  | "company"
+  | "ecommerce"
+  | "booking"
+  | "news"
+  | "lms"
+  | "directory";
+
 export type TemplateKey = "header" | "sidebar" | "mega" | "drawer";
 
 export type InternalPage = {
@@ -36,28 +70,81 @@ export type BuilderMenuItem = {
 };
 
 type DbTreeNode = DbMenuItem & { children: DbTreeNode[] };
+type MenuState = { home: BuilderMenuItem[]; v1: BuilderMenuItem[] };
+
+const LS_KEY = "menu_builder_v2_dualsets";
+
+export const ECOM_CATEGORY_PRESETS = {
+  level1: ["Fashion", "Electronics", "Home Appliances", "Books"],
+  level2ByL1: {
+    Fashion: ["Shirt", "Jeans", "Shoes", "Accessories"],
+    Electronics: ["TV", "Phone", "Laptop", "Headphones"],
+    "Home Appliances": ["Air Fryer", "Rice Cooker", "Air Purifier", "Vacuum Cleaner"],
+    Books: ["New Books", "Business", "Skills", "Children"],
+  },
+} as const;
+
+type Ctx = {
+  siteKind: SiteKind;
+  setSiteKind: (k: SiteKind) => void;
+  templateKey: TemplateKey;
+  setTemplateKey: (k: TemplateKey) => void;
+  menus: MenuState;
+  setMenus: React.Dispatch<React.SetStateAction<MenuState>>;
+  currentSet: MenuSetKey;
+  setCurrentSet: (k: MenuSetKey) => void;
+  activeMenu: BuilderMenuItem[];
+  setActiveMenu: (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) => void;
+  addBlankItem: () => void;
+  buildHref: (it: BuilderMenuItem, now: Date) => string;
+  TEMPLATE_ALLOWED: TemplateAllowed;
+  INTERNAL_PAGES: InternalPage[];
+  loadFromServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
+  saveToServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
+  generateMenusBySiteKind: (kind: SiteKind) => void;
+  findItem: (id: string, setKey?: MenuSetKey) => BuilderMenuItem | null;
+  removeItemById: (id: string, setKey?: MenuSetKey) => [removed: BuilderMenuItem | null, nextRoot: BuilderMenuItem[]];
+};
+
+const MenuCtx = createContext<Ctx | null>(null);
+
+function uid() {
+  return Math.random().toString(36).slice(2, 9);
+}
+
+function normalizePath(value?: string | null): string | null {
+  if (!value) return null;
+  let result = value.trim();
+  result = result.split("#")[0].split("?")[0];
+  if (result.length > 1 && result.endsWith("/")) result = result.slice(0, -1);
+  return result;
+}
+
+function normalizeLabel(value?: string | null): string {
+  return (value ?? "").trim().toLowerCase();
+}
 
 function buildTree(rows: DbMenuItem[]): DbTreeNode[] {
   const byId = new Map<string, DbTreeNode>();
   const roots: DbTreeNode[] = [];
-  const sorted = rows.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
 
-  for (const r of sorted) byId.set(r.id, { ...r, children: [] });
+  const sorted = rows
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
+
+  for (const row of sorted) {
+    byId.set(row.id, { ...row, children: [] });
+  }
 
   for (const node of byId.values()) {
-    if (node.parentId && byId.has(node.parentId)) byId.get(node.parentId)!.children.push(node);
-    else roots.push(node);
+    if (node.parentId && byId.has(node.parentId)) {
+      byId.get(node.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
   }
 
   return roots;
-}
-
-function normalizePath(p?: string | null): string | null {
-  if (!p) return null;
-  let s = p.trim();
-  s = s.split("#")[0].split("?")[0];
-  if (s.length > 1 && s.endsWith("/")) s = s.slice(0, -1);
-  return s;
 }
 
 function inferLinkFromPath(
@@ -69,47 +156,75 @@ function inferLinkFromPath(
   internalPageId?: string;
   rawPath?: string | null;
 } {
-  const raw = path ?? null;
-  const norm = normalizePath(path);
-  if (!norm) return { linkType: "internal", rawPath: raw };
+  const rawPath = path ?? null;
+  const normalizedPath = normalizePath(path);
 
-  const isExternal = /^https?:\/\//i.test(norm);
-  if (isExternal) return { linkType: "external", externalUrl: raw ?? undefined, rawPath: raw };
+  if (!normalizedPath) {
+    return { linkType: "internal", rawPath };
+  }
 
-  const pageId = internalPages.find((p) => normalizePath(p.path) === norm)?.id;
-  if (pageId) return { linkType: "internal", internalPageId: pageId, rawPath: raw };
+  if (/^https?:\/\//i.test(normalizedPath)) {
+    return {
+      linkType: "external",
+      externalUrl: rawPath ?? undefined,
+      rawPath,
+    };
+  }
 
-  return { linkType: "internal", internalPageId: undefined, rawPath: raw };
+  const internalPageId = internalPages.find((page) => normalizePath(page.path) === normalizedPath)?.id;
+
+  if (internalPageId) {
+    return {
+      linkType: "internal",
+      internalPageId,
+      rawPath,
+    };
+  }
+
+  return {
+    linkType: "internal",
+    internalPageId: undefined,
+    rawPath,
+  };
 }
 
 function mapDbTreeToBuilder(nodes: DbTreeNode[], internalPages: InternalPage[]): BuilderMenuItem[] {
-  const walk = (n: DbTreeNode): BuilderMenuItem => {
-    const inferred = inferLinkFromPath(n.path, internalPages);
+  const walk = (node: DbTreeNode): BuilderMenuItem => {
+    const inferred = inferLinkFromPath(node.path, internalPages);
+
     return {
-      id: n.id,
-      title: n.title,
-      icon: n.icon ?? undefined,
+      id: node.id,
+      title: node.title,
+      icon: node.icon ?? undefined,
+      visible: node.visible ?? true,
       linkType: inferred.linkType,
       externalUrl: inferred.externalUrl,
       internalPageId: inferred.internalPageId,
-      rawPath: inferred.rawPath ?? n.path ?? null,
+      rawPath: inferred.rawPath ?? node.path ?? null,
       schedules: [],
-      children: (n.children ?? []).map(walk),
+      children: (node.children ?? []).map(walk),
     };
   };
+
   return nodes.map(walk);
 }
 
 function resolvePathFromBuilder(item: BuilderMenuItem, internalPages: InternalPage[]): string | null {
-  const raw = typeof item.rawPath === "string" ? item.rawPath.trim() : "";
-  if (raw) return normalizePath(raw);
+  const rawPath = typeof item.rawPath === "string" ? item.rawPath.trim() : "";
 
-  if (item.linkType === "external") return item.externalUrl?.trim() || null;
+  if (rawPath) return normalizePath(rawPath);
+
+  if (item.linkType === "external") {
+    return item.externalUrl?.trim() || null;
+  }
 
   if (item.linkType === "internal") {
-    const p = item.internalPageId ? internalPages.find((x) => x.id === item.internalPageId) : undefined;
-    return p?.path ? normalizePath(p.path) : null;
+    const page = item.internalPageId
+      ? internalPages.find((candidate) => candidate.id === item.internalPageId)
+      : undefined;
+    return page?.path ? normalizePath(page.path) : null;
   }
+
   return null;
 }
 
@@ -127,7 +242,7 @@ function flattenBuilderToDb(
   visible: boolean;
   setKey: MenuSetKey;
 }> {
-  const out: Array<{
+  const output: Array<{
     id: string;
     parentId: string | null;
     title: string;
@@ -139,81 +254,107 @@ function flattenBuilderToDb(
   }> = [];
 
   const walk = (nodes: BuilderMenuItem[], parentId: string | null) => {
-    nodes.forEach((n, idx) => {
-      out.push({
-        id: n.id,
+    nodes.forEach((node, index) => {
+      output.push({
+        id: node.id,
         parentId,
-        title: n.title,
-        path: resolvePathFromBuilder(n, internalPages),
-        icon: n.icon ?? null,
-        sortOrder: idx + 1,
-        visible: true,
+        title: node.title,
+        path: resolvePathFromBuilder(node, internalPages),
+        icon: node.icon ?? null,
+        sortOrder: index + 1,
+        visible: node.visible ?? true,
         setKey,
       });
-      if (n.children?.length) walk(n.children, n.id);
+
+      if (node.children?.length) {
+        walk(node.children, node.id);
+      }
     });
   };
 
   walk(tree, null);
-  return out;
+  return output;
 }
 
-const LS_KEY = "menu_builder_v2_dualsets";
-
-export const ECOM_CATEGORY_PRESETS = {
-  level1: ["Fashion", "Electronics", "Home Appliances", "Books"],
-  level2ByL1: {
-    Fashion: ["Shirt", "Jeans", "Shoes", "Accessories"],
-    Electronics: ["TV", "Phone", "Laptop", "Headphones"],
-    "Home Appliances": ["Air Fryer", "Rice Cooker", "Air Purifier", "Vacuum Cleaner"],
-    Books: ["New Books", "Business", "Skills", "Children"],
-  },
-};
-
-const INTERNAL_PAGE_SETS: Record<SiteKind, InternalPage[]> = {
-  ecommerce: ECOMMERCE_INTERNAL_PAGES,
-};
-
-const TEMPLATE_ALLOWED_BY_SITE: Record<SiteKind, TemplateAllowed> = {
-  ecommerce: {
-    header: {
-      home: [...ECOMMERCE_HEADER_FULL],
-      dashboard: [...ECOMMERCE_ADMIN_FULL],
-    },
-  },
-};
-
-function uid() {
-  return Math.random().toString(36).slice(2, 9);
+function createInternalMenuItem(page: InternalPage): BuilderMenuItem {
+  return {
+    id: uid(),
+    title: page.label,
+    icon: "",
+    visible: true,
+    linkType: "internal",
+    externalUrl: "",
+    newTab: false,
+    internalPageId: page.id,
+    rawPath: page.path,
+    schedules: [],
+    children: [],
+  };
 }
 
-type MenuState = { home: BuilderMenuItem[]; v1: BuilderMenuItem[] };
+function buildMenuFromLabels(labels: readonly string[], pages: InternalPage[]): BuilderMenuItem[] {
+  return labels
+    .map((label) => {
+      const match = pages.find((page) => {
+        if (normalizeLabel(page.label) === normalizeLabel(label)) return true;
+        if (page.labelVi && normalizeLabel(page.labelVi) === normalizeLabel(label)) return true;
+        if (page.aliases?.some((alias) => normalizeLabel(alias) === normalizeLabel(label))) return true;
+        return false;
+      });
 
-type Ctx = {
-  siteKind: SiteKind;
-  setSiteKind: (k: SiteKind) => void;
-  templateKey: TemplateKey;
-  setTemplateKey: (k: TemplateKey) => void;
+      return match ? createInternalMenuItem(match) : null;
+    })
+    .filter((item): item is BuilderMenuItem => item !== null);
+}
 
-  menus: MenuState;
-  setMenus: React.Dispatch<React.SetStateAction<MenuState>>;
-  currentSet: MenuSetKey;
-  setCurrentSet: (k: MenuSetKey) => void;
+function buildDefaultMenusBySiteKind(kind: SiteKind): MenuState {
+  const pages = INTERNAL_PAGE_SETS[kind] ?? [];
 
-  activeMenu: BuilderMenuItem[];
-  setActiveMenu: (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) => void;
-
-  addBlankItem: () => void;
-  buildHref: (it: BuilderMenuItem, now: Date) => string;
-  TEMPLATE_ALLOWED: TemplateAllowed;
-  INTERNAL_PAGES: InternalPage[];
-  loadFromServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
-  saveToServer: (setKey: MenuSetKey, siteId?: string) => Promise<void>;
-  findItem: (id: string, setKey?: MenuSetKey) => BuilderMenuItem | null;
-  removeItemById: (id: string, setKey?: MenuSetKey) => [removed: BuilderMenuItem | null, nextRoot: BuilderMenuItem[]];
-};
-
-const MenuCtx = createContext<Ctx | null>(null);
+  switch (kind) {
+    case "landing":
+      return {
+        home: buildMenuFromLabels(LANDING_HEADER_BASIC, pages),
+        v1: [],
+      };
+    case "blog":
+      return {
+        home: buildMenuFromLabels(BLOG_HEADER_BASIC, pages),
+        v1: [],
+      };
+    case "company":
+      return {
+        home: buildMenuFromLabels(COMPANY_HEADER_BASIC, pages),
+        v1: [],
+      };
+    case "ecommerce":
+      return {
+        home: buildMenuFromLabels(ECOMMERCE_HEADER_FULL, pages),
+        v1: [],
+      };
+    case "booking":
+      return {
+        home: buildMenuFromLabels(BOOKING_HEADER_BASIC, pages),
+        v1: [],
+      };
+    case "news":
+      return {
+        home: buildMenuFromLabels(NEWS_HEADER_BASIC, pages),
+        v1: [],
+      };
+    case "lms":
+      return {
+        home: buildMenuFromLabels(LMS_HEADER_BASIC, pages),
+        v1: [],
+      };
+    case "directory":
+      return {
+        home: buildMenuFromLabels(DIRECTORY_HEADER_BASIC, pages),
+        v1: [],
+      };
+    default:
+      return { home: [], v1: [] };
+  }
+}
 
 export function MenuStoreProvider({ children }: { children: ReactNode }) {
   const [siteKind, setSiteKind] = useState<SiteKind>("ecommerce");
@@ -221,100 +362,125 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   const [menus, setMenus] = useState<MenuState>({ home: [], v1: [] });
   const [currentSet, setCurrentSet] = useState<MenuSetKey>("home");
 
-  const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind], [siteKind]);
-  const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind], [siteKind]);
+  const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind] ?? [], [siteKind]);
+  const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind] ?? {}, [siteKind]);
 
-  const inflight = useRef<AbortController | null>(null);
-  const inflightKey = useRef<string>("");
-  const loadedKey = useRef<string>("");
+  const inflightRef = useRef<AbortController | null>(null);
+  const inflightKeyRef = useRef("");
+  const loadedKeyRef = useRef("");
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(LS_KEY);
+      const raw = window.localStorage.getItem(LS_KEY);
       if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") setMenus(parsed);
-    } catch {}
+
+      const parsed = JSON.parse(raw) as Partial<MenuState> | null;
+      if (!parsed || typeof parsed !== "object") return;
+
+      setMenus({
+        home: Array.isArray(parsed.home) ? parsed.home : [],
+        v1: Array.isArray(parsed.v1) ? parsed.v1 : [],
+      });
+    } catch {
+      // ignore invalid localStorage
+    }
   }, []);
 
   useEffect(() => {
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       try {
-        localStorage.setItem(LS_KEY, JSON.stringify(menus));
-      } catch {}
-    }, 250);
+        window.localStorage.setItem(LS_KEY, JSON.stringify(menus));
+      } catch {
+        // ignore storage write errors
+      }
+    }, 200);
 
-    return () => window.clearTimeout(t);
+    return () => window.clearTimeout(timer);
   }, [menus]);
 
   useEffect(() => {
     return () => {
-      inflight.current?.abort();
-      inflight.current = null;
+      inflightRef.current?.abort();
+      inflightRef.current = null;
     };
   }, []);
 
-  const activeMenu = menus[currentSet] ?? [];
+  const activeMenu = useMemo(() => menus[currentSet] ?? [], [menus, currentSet]);
 
-  const setActiveMenu = (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) =>
-    setMenus((m) => ({
-      ...m,
-      [currentSet]: typeof next === "function" ? next(m[currentSet]) : next,
-    }));
+  const setActiveMenu = useCallback(
+    (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) => {
+      setMenus((prev) => ({
+        ...prev,
+        [currentSet]: typeof next === "function" ? next(prev[currentSet] ?? []) : next,
+      }));
+    },
+    [currentSet],
+  );
 
-  function addBlankItem() {
+  const addBlankItem = useCallback(() => {
     const item: BuilderMenuItem = {
       id: uid(),
       title: "New Item",
       icon: "",
+      visible: true,
       linkType: "internal",
       externalUrl: "",
       newTab: false,
-      internalPageId: "home",
-      rawPath: "/",
+      internalPageId: INTERNAL_PAGES[0]?.id ?? null,
+      rawPath: INTERNAL_PAGES[0]?.path ?? "/",
       schedules: [],
       children: [],
     };
 
-    setActiveMenu([...(activeMenu || []), item]);
-  }
+    setActiveMenu((prev) => [...prev, item]);
+  }, [INTERNAL_PAGES, setActiveMenu]);
 
-  function buildHref(it: BuilderMenuItem, now: Date): string {
-    if (it.linkType === "scheduled") {
-      const schedules = it.schedules || [];
-      const pick = schedules
-        .map((s) => ({ when: new Date(s.when), url: s.url }))
-        .filter((s) => !isNaN(s.when.getTime()) && s.when <= now && !!s.url)
-        .sort((a, b) => b.when.getTime() - a.when.getTime())[0];
+  const buildHref = useCallback(
+    (item: BuilderMenuItem, now: Date): string => {
+      if (item.linkType === "scheduled") {
+        const chosen = (item.schedules ?? [])
+          .map((schedule) => ({ when: new Date(schedule.when), url: schedule.url }))
+          .filter((schedule) => !Number.isNaN(schedule.when.getTime()) && schedule.when <= now && !!schedule.url)
+          .sort((a, b) => b.when.getTime() - a.when.getTime())[0];
 
-      return pick?.url || "";
-    }
+        return chosen?.url || "";
+      }
 
-    if (it.linkType === "external") {
-      const raw = typeof it.rawPath === "string" ? it.rawPath.trim() : "";
-      return it.externalUrl?.trim() || raw || "";
-    }
+      if (item.linkType === "external") {
+        const rawPath = typeof item.rawPath === "string" ? item.rawPath.trim() : "";
+        return item.externalUrl?.trim() || rawPath || "";
+      }
 
-    if (it.linkType === "internal") {
-      const raw = typeof it.rawPath === "string" ? it.rawPath.trim() : "";
-      if (raw) return raw;
-      const p = it.internalPageId ? INTERNAL_PAGES.find((x) => x.id === it.internalPageId) : undefined;
-      return p?.path ?? "";
-    }
+      if (item.linkType === "internal") {
+        const rawPath = typeof item.rawPath === "string" ? item.rawPath.trim() : "";
+        if (rawPath) return rawPath;
 
-    return "";
-  }
+        const page = item.internalPageId
+          ? INTERNAL_PAGES.find((candidate) => candidate.id === item.internalPageId)
+          : undefined;
 
-  // ✅ added: findItem
+        return page?.path ?? "";
+      }
+
+      return "";
+    },
+    [INTERNAL_PAGES],
+  );
+
+  const generateMenusBySiteKind = useCallback((kind: SiteKind) => {
+    setMenus(buildDefaultMenusBySiteKind(kind));
+    setCurrentSet("home");
+  }, []);
+
   const findItem = useCallback(
     (id: string, setKey?: MenuSetKey): BuilderMenuItem | null => {
       const root = menus[setKey ?? currentSet] ?? [];
 
       const walk = (nodes: BuilderMenuItem[]): BuilderMenuItem | null => {
-        for (const n of nodes) {
-          if (n.id === id) return n;
-          const hit = n.children?.length ? walk(n.children) : null;
-          if (hit) return hit;
+        for (const node of nodes) {
+          if (node.id === id) return node;
+          const found = node.children?.length ? walk(node.children) : null;
+          if (found) return found;
         }
         return null;
       };
@@ -324,42 +490,44 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
     [menus, currentSet],
   );
 
-  // ✅ added: removeItemById
   const removeItemById = useCallback(
     (id: string, setKey?: MenuSetKey): [BuilderMenuItem | null, BuilderMenuItem[]] => {
       const root = menus[setKey ?? currentSet] ?? [];
       let removed: BuilderMenuItem | null = null;
 
       const removeWalk = (nodes: BuilderMenuItem[]): BuilderMenuItem[] => {
-        const out: BuilderMenuItem[] = [];
-        for (const n of nodes) {
-          if (n.id === id) {
-            removed = n;
+        const nextNodes: BuilderMenuItem[] = [];
+
+        for (const node of nodes) {
+          if (node.id === id) {
+            removed = node;
             continue;
           }
-          const nextChildren = n.children?.length ? removeWalk(n.children) : (n.children ?? []);
-          out.push({ ...n, children: nextChildren });
+
+          const nextChildren = node.children?.length ? removeWalk(node.children) : (node.children ?? []);
+          nextNodes.push({ ...node, children: nextChildren });
         }
-        return out;
+
+        return nextNodes;
       };
 
-      const nextRoot = removeWalk(root);
-      return [removed, nextRoot];
+      return [removed, removeWalk(root)];
     },
     [menus, currentSet],
   );
 
   const loadFromServer = useCallback(
     async (setKey: MenuSetKey, siteId?: string) => {
-      const reqKey = `${setKey}|${siteId ?? ""}`;
+      const requestKey = `${setKey}|${siteId ?? ""}|${siteKind}`;
 
-      if (inflight.current && inflightKey.current === reqKey) return;
-      if (!inflight.current && loadedKey.current === reqKey) return;
-      if (inflight.current) inflight.current.abort();
+      if (inflightRef.current && inflightKeyRef.current === requestKey) return;
+      if (!inflightRef.current && loadedKeyRef.current === requestKey) return;
 
-      const ac = new AbortController();
-      inflight.current = ac;
-      inflightKey.current = reqKey;
+      inflightRef.current?.abort();
+
+      const controller = new AbortController();
+      inflightRef.current = controller;
+      inflightKeyRef.current = requestKey;
 
       try {
         const rows = await fetchMenuItems({
@@ -367,69 +535,91 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
           siteId,
           page: 1,
           size: 1000,
-          signal: ac.signal,
+          signal: controller.signal,
         });
 
         const treeDb = buildTree(rows);
         const builderTree = mapDbTreeToBuilder(treeDb, INTERNAL_PAGES);
 
-        setMenus((m) => ({ ...m, [setKey]: builderTree }));
-        loadedKey.current = reqKey;
-      } catch (err: unknown) {
-        if ((err as Error)?.name === "AbortError") return;
-        throw err;
+        setMenus((prev) => ({
+          ...prev,
+          [setKey]: builderTree,
+        }));
+
+        loadedKeyRef.current = requestKey;
+      } catch (error: unknown) {
+        if ((error as Error)?.name === "AbortError") return;
+        throw error;
       } finally {
-        if (inflight.current === ac) {
-          inflight.current = null;
-          inflightKey.current = "";
+        if (inflightRef.current === controller) {
+          inflightRef.current = null;
+          inflightKeyRef.current = "";
         }
       }
     },
-    [INTERNAL_PAGES],
+    [INTERNAL_PAGES, siteKind],
   );
 
   const saveToServer = useCallback(
     async (setKey: MenuSetKey, siteId?: string) => {
       const treeToSave = menus[setKey] ?? [];
       const items = flattenBuilderToDb(treeToSave, setKey, INTERNAL_PAGES);
+
       await saveMenuTree({ setKey, siteId, items });
-      loadedKey.current = `${setKey}|${siteId ?? ""}`;
+
+      loadedKeyRef.current = `${setKey}|${siteId ?? ""}|${siteKind}`;
     },
-    [menus, INTERNAL_PAGES],
+    [menus, INTERNAL_PAGES, siteKind],
   );
 
-  return (
-    <MenuCtx.Provider
-      value={{
-        siteKind,
-        setSiteKind,
-        templateKey,
-        setTemplateKey,
-        menus,
-        setMenus,
-        currentSet,
-        setCurrentSet,
-        activeMenu,
-        setActiveMenu,
-        addBlankItem,
-        buildHref,
-        loadFromServer,
-        saveToServer,
-        TEMPLATE_ALLOWED,
-        INTERNAL_PAGES,
-
-        // ✅ expose
-        findItem,
-        removeItemById,
-      }}
-    >
-      {children}
-    </MenuCtx.Provider>
+  const value = useMemo<Ctx>(
+    () => ({
+      siteKind,
+      setSiteKind,
+      templateKey,
+      setTemplateKey,
+      menus,
+      setMenus,
+      currentSet,
+      setCurrentSet,
+      activeMenu,
+      setActiveMenu,
+      addBlankItem,
+      buildHref,
+      TEMPLATE_ALLOWED,
+      INTERNAL_PAGES,
+      loadFromServer,
+      saveToServer,
+      generateMenusBySiteKind,
+      findItem,
+      removeItemById,
+    }),
+    [
+      siteKind,
+      templateKey,
+      menus,
+      currentSet,
+      activeMenu,
+      setActiveMenu,
+      addBlankItem,
+      buildHref,
+      TEMPLATE_ALLOWED,
+      INTERNAL_PAGES,
+      loadFromServer,
+      saveToServer,
+      generateMenusBySiteKind,
+      findItem,
+      removeItemById,
+    ],
   );
+
+  return <MenuCtx.Provider value={value}>{children}</MenuCtx.Provider>;
 }
 
 export function useMenuStore() {
-  const ctx = useContext(MenuCtx);
-  if (!ctx) throw new Error("useMenuStore must be used inside <MenuStoreProvider>");
-  return ctx;
+  const context = useContext(MenuCtx);
+  if (!context) {
+    throw new Error("useMenuStore must be used inside <MenuStoreProvider>");
+  }
+  return context;
 }

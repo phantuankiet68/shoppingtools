@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/admin/builder/menus/menu.module.css";
 
-import { useMenuStore, type MenuSetKey, type SiteKind } from "@/components/admin/builder/menus/state/useMenuStore";
+import {
+  useMenuStore,
+  type SiteKind,
+} from "@/components/admin/builder/menus/state/useMenuStore";
 import AllowedBlocks from "@/components/admin/builder/menus/state/AllowedBlocks";
 import MenuStructure from "@/components/admin/builder/menus/state/MenuStructure";
 import { flattenTriples } from "@/lib/menu/deriveTitleSlugPath";
@@ -14,10 +17,30 @@ import { MENU_MESSAGES as M } from "@/features/builder/menus/messages";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import { useModal } from "@/components/admin/shared/common/modal";
 
+const SITE_KIND_OPTIONS: { value: SiteKind; label: string }[] = [
+  { value: "landing", label: "Landing" },
+  { value: "blog", label: "Blog" },
+  { value: "company", label: "Company" },
+  { value: "ecommerce", label: "eCommerce" },
+  { value: "booking", label: "Booking" },
+  { value: "news", label: "News" },
+  { value: "lms", label: "LMS" },
+  { value: "directory", label: "Directory" },
+];
+
+type SiteItem = {
+  id: string;
+  name: string;
+  domain: string;
+  localeDefault?: "en";
+  type?: SiteKind;
+};
+
 export default function MenuBuilder() {
   const router = useRouter();
   const modal = useModal();
   const [q, setQ] = useState("");
+  const latestLoadId = useRef(0);
 
   const {
     currentSet,
@@ -30,6 +53,7 @@ export default function MenuBuilder() {
     setSiteKind,
     INTERNAL_PAGES,
     addBlankItem,
+    generateMenusBySiteKind,
   } = useMenuStore();
 
   const {
@@ -38,52 +62,49 @@ export default function MenuBuilder() {
     refreshing,
     sites,
     selectedSiteId,
-    hideSiteSelect,
     setSaving,
     setLoading,
     setRefreshing,
     setSites,
     setSelectedSiteId,
-    setHideSiteSelect,
   } = useMenuBuilderUIStore();
 
-  const ioJson = useMemo(() => JSON.stringify(activeMenu, null, 2), [activeMenu]);
+  const hideSiteSelect = currentSet === "v1";
 
-  const reloadAll = useCallback(
-    async ({ hard = false }: { hard?: boolean } = {}) => {
-      if (!selectedSiteId) return;
-
-      try {
-        setRefreshing(true);
-        await loadFromServer(currentSet, selectedSiteId);
-        router.refresh();
-
-        if (hard) {
-          setTimeout(() => window.location.reload(), 150);
-        }
-      } finally {
-        setRefreshing(false);
-      }
-    },
-    [selectedSiteId, setRefreshing, loadFromServer, currentSet, router],
+  const selectedSite = useMemo(
+    () => (sites as SiteItem[]).find((s) => s.id === selectedSiteId),
+    [sites, selectedSiteId],
   );
 
+  const reloadAll = useCallback(async () => {
+    if (!selectedSiteId) return;
+
+    try {
+      setRefreshing(true);
+      await loadFromServer(currentSet, selectedSiteId);
+    } catch (e) {
+      modal.error("Cannot refresh data", (e as Error)?.message ?? M.error.unknown);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [selectedSiteId, setRefreshing, loadFromServer, currentSet, modal]);
+
   useEffect(() => {
-    let cancelled = false;
+    let active = true;
 
     (async () => {
       try {
-        const list = await fetchSites();
-        if (cancelled) return;
+        const list = (await fetchSites()) as SiteItem[];
+        if (!active) return;
         setSites(list);
       } catch (e) {
         console.error("fetchSites failed:", e);
-        if (!cancelled) setSites([]);
+        if (active) setSites([]);
       }
     })();
 
     return () => {
-      cancelled = true;
+      active = false;
     };
   }, [setSites]);
 
@@ -104,61 +125,76 @@ export default function MenuBuilder() {
   }, [selectedSiteId]);
 
   useEffect(() => {
-    setHideSiteSelect(currentSet === "v1");
-  }, [currentSet, setHideSiteSelect]);
-
-  useEffect(() => {
     if (!selectedSiteId) return;
 
-    let cancelled = false;
+    const loadId = ++latestLoadId.current;
 
     (async () => {
       try {
         setLoading(true);
         await loadFromServer(currentSet, selectedSiteId);
+
+        if (loadId !== latestLoadId.current) return;
       } catch (e) {
+        if (loadId !== latestLoadId.current) return;
         console.error("loadFromServer failed:", e);
-        modal.error("Load failed", (e as Error)?.message ?? M.error.unknown);
+        modal.error("Cannot load data", (e as Error)?.message ?? M.error.unknown);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (loadId === latestLoadId.current) {
+          setLoading(false);
+        }
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [currentSet, selectedSiteId, loadFromServer, setLoading, modal]);
+
+  useEffect(() => {
+    if (!selectedSite?.type) return;
+    setSiteKind(selectedSite.type);
+  }, [selectedSiteId, selectedSite?.type, setSiteKind]);
 
   const handleSaveAll = useCallback(async () => {
     if (!selectedSiteId) {
-      modal.error("Missing site", "Please select a site first.");
+      modal.error("No website selected", "Please select a website before saving.");
       return;
     }
 
     try {
       setSaving(true);
+
       await saveToServer(currentSet, selectedSiteId);
+
       const triples = flattenTriples(activeMenu, INTERNAL_PAGES);
       if (triples.length > 0) {
         await syncPagesFromMenu({
           siteId: selectedSiteId,
           items: triples,
         });
-        await reloadAll({ hard: false });
-        modal.success(M.notice.seoSavedTitle, M.notice.seoSavedMsg);
-        return;
       }
-      await reloadAll({ hard: false });
-      modal.success(M.notice.menuSavedTitle, M.notice.menuSavedMsg);
+
+      await reloadAll();
+
+      modal.success(
+        triples.length > 0 ? M.notice.seoSavedTitle : M.notice.menuSavedTitle,
+        triples.length > 0 ? M.notice.seoSavedMsg : M.notice.menuSavedMsg,
+      );
     } catch (e: unknown) {
       modal.error(M.notice.saveFailedTitle, (e as Error)?.message ?? M.error.unknown);
     } finally {
       setSaving(false);
     }
-  }, [selectedSiteId, setSaving, saveToServer, currentSet, activeMenu, INTERNAL_PAGES, reloadAll, modal]);
+  }, [
+    selectedSiteId,
+    setSaving,
+    saveToServer,
+    currentSet,
+    activeMenu,
+    INTERNAL_PAGES,
+    reloadAll,
+    modal,
+  ]);
 
   const importJSONFromPrompt = useCallback(() => {
-    const text = prompt(M.prompt.pasteJson);
+    const text = prompt("Please paste the menu JSON data below.");
     if (!text) return;
 
     try {
@@ -168,19 +204,31 @@ export default function MenuBuilder() {
       }
 
       setActiveMenu(data);
-
-      modal.success(M.notice.importSuccessTitle, M.notice.importSuccessMsg);
-      router.refresh();
+      modal.success("Import successful", "Menu structure has been updated.");
     } catch (e: unknown) {
-      modal.error(M.notice.importErrorTitle, (e as Error)?.message ?? M.error.unknown);
+      modal.error("Cannot import data", (e as Error)?.message ?? M.error.unknown);
     }
-  }, [setActiveMenu, modal, router]);
+  }, [setActiveMenu, modal]);
+
+  const handleAutoCreateMenu = useCallback(() => {
+    const ok = window.confirm(
+      `The system will regenerate the default menu for "${siteKind}" and overwrite current data. Do you want to continue?`,
+    );
+    if (!ok) return;
+
+    generateMenusBySiteKind(siteKind);
+    setCurrentSet("home");
+
+    modal.success(
+      "Auto menu creation successful",
+      `Default menu structure has been created for "${siteKind}" site type.`,
+    );
+  }, [siteKind, generateMenusBySiteKind, setCurrentSet, modal]);
 
   const pageFunctionKeys = useMemo(
     () => ({
       F5: () => addBlankItem(),
       F8: () => importJSONFromPrompt(),
-      F9: () => "",
       F10: () => {
         void handleSaveAll();
       },
@@ -204,9 +252,10 @@ export default function MenuBuilder() {
                 aria-label={M.aria.chooseSite}
               >
                 {!sites.length ? <option value="">{M.misc.noSites}</option> : null}
-                {sites.map((s) => (
+                {(sites as SiteItem[]).map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} — {s.domain} ({s.localeDefault})
+                    {s.name} — {s.domain}
+                    {s.localeDefault ? ` (${s.localeDefault})` : ""}
                   </option>
                 ))}
               </select>
@@ -221,27 +270,22 @@ export default function MenuBuilder() {
               onChange={(e) => setSiteKind(e.target.value as SiteKind)}
               aria-label={M.aria.siteKind}
             >
-              <option value="ecommerce">eCommerce</option>
+              {SITE_KIND_OPTIONS.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
             </select>
-          </div>
 
-          <div className={styles.inline}>
-            <i className="bi bi-diagram-3" />
-            <select
-              className={`${styles.formSelectSm} ${styles.selectStyled}`}
-              value={currentSet}
-              onChange={(e) => {
-                const setKey = e.target.value as MenuSetKey;
-                setCurrentSet(setKey);
-                if (selectedSiteId) {
-                  localStorage.setItem(`ui.menu.currentSet.${selectedSiteId}`, setKey);
-                }
-              }}
-              aria-label={M.aria.selectMenuSet}
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnOutlineSecondary}`}
+              style={{ marginLeft: 6 }}
+              onClick={handleAutoCreateMenu}
+              title="Generate default menu by site type"
             >
-              <option value="home">Menu Home</option>
-              <option value="v1">Menu admin</option>
-            </select>
+              <i className="bi bi-magic" /> Auto generate
+            </button>
           </div>
         </div>
 
@@ -261,8 +305,8 @@ export default function MenuBuilder() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Tìm tiêu đề hoặc đường dẫn…"
-              aria-label="Tìm trong menu"
+              placeholder="Search by title or path..."
+              aria-label="Search in menu"
               className={styles.searchInput}
             />
           </div>
@@ -271,22 +315,22 @@ export default function MenuBuilder() {
             <button
               className={`${styles.btn} ${styles.btnOutlineSecondary}`}
               onClick={() => setQ("")}
-              title="Xoá từ khoá"
+              title="Clear search filter"
               type="button"
             >
-              <i className="bi bi-x-circle" /> Clear
+              <i className="bi bi-x-circle" /> Clear filter
             </button>
           ) : null}
 
           {saving ? (
             <span className={styles.smallHelp} aria-live="polite">
-              Đang lưu...
+              Saving data...
             </span>
           ) : null}
 
           {loading || refreshing ? (
             <span className={styles.smallHelp} aria-live="polite">
-              {loading ? "Đang tải..." : "Đang làm mới..."}
+              {loading ? "Loading data..." : "Syncing data..."}
             </span>
           ) : null}
         </div>
@@ -299,14 +343,6 @@ export default function MenuBuilder() {
 
         <div className={styles.rightCol}>
           <MenuStructure q={q} setQ={setQ} />
-          <textarea
-            className={`${styles.formControl} ${styles.mt}`}
-            style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, width: 0 }}
-            rows={6}
-            placeholder={M.misc.exportImportPlaceholder}
-            value={ioJson}
-            readOnly
-          />
         </div>
       </div>
     </div>
