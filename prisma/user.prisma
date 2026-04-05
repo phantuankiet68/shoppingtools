@@ -39,7 +39,6 @@ model User {
   friendRequestsReceived FriendRequest[]          @relation("FriendRequestTo")
   blocksSent             Block[]                  @relation("UserBlocksSent")
   blocksReceived         Block[]                  @relation("UserBlocksReceived")
-  emailTemplates         EmailTemplate[]
   emails                 Email[]
   calendarsOwned         Calendar[]               @relation("CalendarOwner")
   calendarEventsCreated  CalendarEvent[]          @relation("CalendarEventCreator")
@@ -55,6 +54,7 @@ model User {
   merchants              Merchant[]
   categories             Category[]
   transactions           Transaction[]
+  systemCredentials      SystemCredential[]
 
   @@index([systemRole])
   @@index([status])

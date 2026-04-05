@@ -1,37 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma, PageStatus } from "@prisma/client";
+
+type SortKey = "updatedAt" | "createdAt" | "title";
+type SortDir = "asc" | "desc";
+type PageStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
+const PAGE_STATUSES: PageStatus[] = ["DRAFT", "PUBLISHED", "ARCHIVED"];
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
 
     const q = (searchParams.get("q") || "").trim();
-    const offset = Math.max(0, Number(searchParams.get("offset") || 0));
-    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") || 8)));
-    const statusParam = searchParams.get("status");
-    const sortKeyParam = (searchParams.get("sort") as "updatedAt" | "createdAt" | "title") || "updatedAt";
-    const sortDirParam = (searchParams.get("dir") as "asc" | "desc") || "desc";
-    const siteId = searchParams.get("siteId") || undefined;
+    const offsetRaw = Number(searchParams.get("offset") || 0);
+    const limitRaw = Number(searchParams.get("limit") || 8);
 
-    const ci = (v: string) =>
-      ({
-        contains: v,
-        mode: Prisma.QueryMode.insensitive,
-      }) as const;
+    const offset = Number.isFinite(offsetRaw) ? Math.max(0, offsetRaw) : 0;
+    const limit = Number.isFinite(limitRaw)
+      ? Math.min(100, Math.max(1, limitRaw))
+      : 8;
 
-    const where: Prisma.PageWhereInput = {
-      ...(siteId && siteId !== "all" ? { siteId } : {}),
-      ...(statusParam && statusParam !== "all" ? { status: statusParam as PageStatus } : {}),
-      ...(q
-        ? {
-            OR: [{ title: ci(q) }, { slug: ci(q) }, { path: ci(q) }],
-          }
-        : {}),
+    const statusParam = (searchParams.get("status") || "").trim();
+    const siteId = (searchParams.get("siteId") || "").trim() || undefined;
+
+    const rawSort = (searchParams.get("sort") || "updatedAt").trim();
+    const rawDir = (searchParams.get("dir") || "desc").trim();
+
+    const sortKey: SortKey =
+      rawSort === "createdAt" || rawSort === "title" ? rawSort : "updatedAt";
+
+    const sortDir: SortDir = rawDir === "asc" ? "asc" : "desc";
+
+    const where: Record<string, unknown> = {
+      deletedAt: null,
     };
 
-    const orderBy: Prisma.PageOrderByWithRelationInput = {
-      [sortKeyParam]: sortDirParam,
+    if (siteId && siteId !== "all") {
+      where.siteId = siteId;
+    }
+
+    if (statusParam && statusParam !== "all") {
+      if (PAGE_STATUSES.includes(statusParam as PageStatus)) {
+        where.status = statusParam;
+      } else {
+        return NextResponse.json(
+          {
+            items: [],
+            total: 0,
+            hasMore: false,
+            error: `Invalid status: ${statusParam}`,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (q) {
+      where.OR = [
+        { title: { contains: q } },
+        { slug: { contains: q } },
+        { path: { contains: q } },
+      ];
+    }
+
+    const orderBy: Record<string, SortDir> = {
+      [sortKey]: sortDir,
     };
 
     const [items, total] = await Promise.all([
@@ -79,7 +112,10 @@ export async function GET(req: NextRequest) {
       hasMore,
     });
   } catch (e: unknown) {
+    console.error("GET /api/admin/builder/pages/list failed:", e);
+
     const message = e instanceof Error ? e.message : "Failed to load pages";
+
     return NextResponse.json(
       {
         items: [],

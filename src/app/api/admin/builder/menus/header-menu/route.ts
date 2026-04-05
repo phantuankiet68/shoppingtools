@@ -1,25 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { MenuSetKey, Prisma } from "@prisma/client";
+import { MenuArea, Prisma } from "@/generated/prisma";
 
 export const runtime = "nodejs";
 
-const DEFAULT_SET_KEY: MenuSetKey = "home"; // header menu của trang Home
+const DEFAULT_AREA: MenuArea = "SITE";
 
 async function resolveSiteId(req: Request, maybeSiteId?: string | null) {
   if (maybeSiteId) {
-    const ok = await prisma.site.findUnique({ where: { id: maybeSiteId }, select: { id: true } });
+    const ok = await prisma.site.findUnique({
+      where: { id: maybeSiteId },
+      select: { id: true },
+    });
     if (ok) return ok.id;
   }
 
   const h = req.headers;
   const domain = h.get("x-site-domain") ?? h.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   if (domain) {
-    const s = await prisma.site.findUnique({ where: { domain }, select: { id: true } });
+    const s = await prisma.site.findUnique({
+      where: { domain },
+      select: { id: true },
+    });
     if (s) return s.id;
   }
 
-  const first = await prisma.site.findFirst({ select: { id: true }, orderBy: { createdAt: "asc" } });
+  const first = await prisma.site.findFirst({
+    select: { id: true },
+    orderBy: { createdAt: "asc" },
+  });
   if (!first) throw new Error("No Site found. Seed the Site table first.");
   return first.id;
 }
@@ -32,7 +41,7 @@ type MenuRow = {
   icon: string | null;
   sortOrder: number;
   visible: boolean;
-  setKey: MenuSetKey;
+  area: MenuArea;
 };
 
 type TreeNode = {
@@ -61,12 +70,17 @@ function buildTree(rows: MenuRow[]): TreeNode[] {
   const roots: TreeNode[] = [];
   rows.forEach((r) => {
     const node = map.get(r.id)!;
-    if (r.parentId && map.has(r.parentId)) map.get(r.parentId)!.children.push(node);
-    else roots.push(node);
+    if (r.parentId && map.has(r.parentId)) {
+      map.get(r.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
   });
 
   const sortMap: Record<string, number> = {};
-  rows.forEach((r) => (sortMap[r.id] = r.sortOrder));
+  rows.forEach((r) => {
+    sortMap[r.id] = r.sortOrder;
+  });
 
   const sortRec = (arr: TreeNode[]) => {
     arr.sort((a, b) => {
@@ -82,6 +96,13 @@ function buildTree(rows: MenuRow[]): TreeNode[] {
   return roots;
 }
 
+function parseArea(value: string | null): MenuArea {
+  if (value === "PLATFORM" || value === "ADMIN" || value === "SITE") {
+    return value;
+  }
+  return DEFAULT_AREA;
+}
+
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
@@ -89,15 +110,13 @@ export async function GET(req: Request) {
     const siteIdParam = url.searchParams.get("siteId");
     const siteId = await resolveSiteId(req, siteIdParam);
 
-    // setKey mặc định = "home"
-    const setKey = (url.searchParams.get("setKey") as MenuSetKey) || DEFAULT_SET_KEY;
-
+    const area = parseArea(url.searchParams.get("area"));
     const includeHidden = url.searchParams.get("includeHidden") === "1";
-    const tree = url.searchParams.get("tree") !== "0"; // mặc định trả tree
+    const tree = url.searchParams.get("tree") !== "0";
 
     const where: Prisma.MenuItemWhereInput = {
       siteId,
-      setKey,
+      area,
       ...(includeHidden ? {} : { visible: true }),
     };
 
@@ -112,13 +131,13 @@ export async function GET(req: Request) {
         icon: true,
         sortOrder: true,
         visible: true,
-        setKey: true,
+        area: true,
       },
     });
 
     return NextResponse.json({
       siteId,
-      setKey,
+      area,
       ...(tree ? { tree: buildTree(items as MenuRow[]) } : { items }),
     });
   } catch (e) {

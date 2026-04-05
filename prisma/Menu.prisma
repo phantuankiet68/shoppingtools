@@ -4,25 +4,24 @@ enum MenuArea {
   SITE
 }
 
-
 model MenuItem {
-  id          String               @id @default(cuid())
-  siteId      String
-  site        Site                 @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  id     String @id @default(cuid())
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onUpdate: Cascade)
 
-  parentId    String?              @db.VarChar(191)
-  parent      MenuItem?            @relation("MenuItemToSelf", fields: [parentId], references: [id])
-  children    MenuItem[]           @relation("MenuItemToSelf")
+  parentId String?    @db.VarChar(191)
+  parent   MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  children MenuItem[] @relation("MenuItemToSelf")
 
-  title       String               @db.VarChar(191)
-  path        String?              @db.VarChar(255)
-  icon        String?              @db.VarChar(100)
-  sortOrder   Int                  @default(0)
-  visible     Boolean              @default(true)
+  title     String  @db.VarChar(191)
+  path      String? @db.VarChar(255)
+  icon      String? @db.VarChar(100)
+  sortOrder Int     @default(0)
+  visible   Boolean @default(true)
 
-  area        MenuArea
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  area      MenuArea
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   rolePermissions MenuRolePermission[]
 
@@ -33,15 +32,15 @@ model MenuItem {
 }
 
 model MenuRolePermission {
-  id         String     @id @default(cuid())
-  menuId      String
-  menu        MenuItem   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  id     String   @id @default(cuid())
+  menuId String
+  menu   MenuItem @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
-  systemRole  SystemRole
-  enabled     Boolean    @default(true)
+  systemRole SystemRole
+  enabled    Boolean    @default(true)
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([menuId, systemRole])
   @@index([systemRole, enabled])

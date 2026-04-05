@@ -1,14 +1,10 @@
-"use client";
+// app/admin/layout.tsx
+import { AdminTitleProvider } from "@/components/admin/AdminTitleContext";
 
-import { useEffect } from "react";
-import { useAdminTitle } from "@/components/admin/AdminTitleContext";
-
-export default function AdminPageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  const { setMeta } = useAdminTitle();
-
-  useEffect(() => {
-    setMeta({ title, subtitle });
-  }, [title, subtitle, setMeta]);
-
-  return null;
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminTitleProvider>
+      {children}
+    </AdminTitleProvider>
+  );
 }

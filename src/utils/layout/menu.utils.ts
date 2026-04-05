@@ -81,23 +81,21 @@ export function bestMatchWithTrail(items: Item[], currentNoLocale: string): Matc
 
 export const isAccountItem = (t: string) => /(account|profile|setting|logout|sign\s*out|chat)/i.test(t);
 
-export type SectionKey = "overview" | "builder" | "commerce" | "system" | "account";
+export type SectionKey = "overview" | "marketing" | "content" | "account";
 
 export const SECTION_TITLES: Record<SectionKey, string> = {
   overview: "OVERVIEW",
-  builder: "NO-CODE BUILDER",
-  commerce: "COMMERCE",
-  system: "SYSTEM",
+  marketing: "MARKETING",
+  content: "CONTENT",
   account: "ACCOUNT",
 };
 
-export const SECTION_ORDER: SectionKey[] = ["overview", "builder", "commerce", "system", "account"];
+export const SECTION_ORDER: SectionKey[] = ["overview", "marketing", "content", "account"];
 
 export function sectionOfTopItem(title: string): SectionKey {
   const t = (title || "").toLowerCase();
   if (isAccountItem(title)) return "account";
-  if (/(^|\s)(builder)(\s|$)/i.test(title)) return "builder";
-  if (/(products|inventory|orders|customers)/i.test(t)) return "commerce";
-  if (/(integrations|settings|roles|logs|system)/i.test(t)) return "system";
+  if (/(marketing|campaigns|discounts|coupons)/i.test(t)) return "marketing";
+  if (/(content|pages|media|blog|articles)/i.test(t)) return "content";
   return "overview";
 }

@@ -1,33 +1,67 @@
 "use client";
 
-import type { CSSProperties, MouseEvent as ReactMouseEvent, RefObject } from "react";
+import type {
+  CSSProperties,
+  MouseEvent as ReactMouseEvent,
+  RefObject,
+} from "react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import styles from "@/styles/admin/layouts/LayoutA.module.css";
 import { useAdminLayoutStore } from "@/store/layout/layouta/index";
-import { SECTION_ORDER, SECTION_TITLES, sectionOfTopItem, type Item, type SectionKey } from "@/utils/layout/menu.utils";
+import {
+  SECTION_ORDER,
+  SECTION_TITLES,
+  sectionOfTopItem,
+  type Item,
+  type SectionKey,
+} from "@/utils/layout/menu.utils";
+
+type SectionBucket = {
+  flats: Item[];
+  groups: Item[];
+};
+
+type CloseTimerMap = Record<
+  string,
+  ReturnType<typeof setTimeout> | number | undefined
+>;
 
 function positionFlyout(groupEl: HTMLElement, flyEl: HTMLElement) {
-  const railRect = groupEl.getBoundingClientRect();
+  const groupRect = groupEl.getBoundingClientRect();
   const flyRect = flyEl.getBoundingClientRect();
-  const vpH = window.innerHeight;
-
-  const centerY = railRect.top + railRect.height / 2;
-  const halfFly = flyRect.height / 2;
-
-  let top = centerY - halfFly;
+  const viewportHeight = window.innerHeight;
   const margin = 8;
 
+  const centerY = groupRect.top + groupRect.height / 2;
+  const flyHalfHeight = flyRect.height / 2;
+
+  let top = centerY - flyHalfHeight;
+
   if (top < margin) top = margin;
-  if (top + flyRect.height > vpH - margin) {
-    top = Math.max(margin, vpH - margin - flyRect.height);
+
+  if (top + flyRect.height > viewportHeight - margin) {
+    top = Math.max(margin, viewportHeight - margin - flyRect.height);
   }
 
   flyEl.style.top = `${top}px`;
-  flyEl.style.left = `${railRect.right + 10}px`;
+  flyEl.style.left = `${groupRect.right + 10}px`;
 }
 
-export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement | null> }) {
+function createEmptySectionBuckets(): Record<SectionKey, SectionBucket> {
+  return {
+    overview: { flats: [], groups: [] },
+    marketing: { flats: [], groups: [] },
+    content: { flats: [], groups: [] },
+    account: { flats: [], groups: [] },
+  };
+}
+
+export default function Sidebar({
+  navRef,
+}: {
+  navRef: RefObject<HTMLDivElement | null>;
+}) {
   const {
     sidebarOpen,
     setSidebarOpen,
@@ -41,90 +75,125 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
   } = useAdminLayoutStore();
 
   const asideRef = useRef<HTMLElement | null>(null);
-  const closeTimers = useRef<Record<string, number | undefined>>({});
-
-  useEffect(() => {
-    return () => {
-      Object.values(closeTimers.current).forEach((id) => {
-        if (id) window.clearTimeout(id);
-      });
-    };
-  }, []);
-
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      const root = asideRef.current;
-      if (!root) return;
-      if (root.contains(e.target as Node)) return;
-
-      if (collapsed) {
-        useAdminLayoutStore.setState({ openGroups: {} });
-      }
-    };
-
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
-  }, [collapsed]);
+  const closeTimersRef = useRef<CloseTimerMap>({});
 
   const sectionBuckets = useMemo(() => {
-    const buckets: Record<SectionKey, { flats: Item[]; groups: Item[] }> = {
-      overview: { flats: [], groups: [] },
-      builder: { flats: [], groups: [] },
-      commerce: { flats: [], groups: [] },
-      system: { flats: [], groups: [] },
-      account: { flats: [], groups: [] },
-    };
+    const buckets = createEmptySectionBuckets();
 
-    for (const it of items) {
-      const sec = sectionOfTopItem(it.title);
-      if (it.children?.length) buckets[sec].groups.push(it);
-      else buckets[sec].flats.push(it);
+    for (const item of items) {
+      const sectionKey = sectionOfTopItem(item.title);
+
+      if (item.children?.length) {
+        buckets[sectionKey].groups.push(item);
+      } else {
+        buckets[sectionKey].flats.push(item);
+      }
     }
 
     return buckets;
   }, [items]);
 
-  function scheduleCloseGroup(gKey: string, delay = 180) {
-    const old = closeTimers.current[gKey];
-    if (old) window.clearTimeout(old);
+  const railStyle = useMemo<CSSProperties | undefined>(() => {
+    return collapsed ? { width: 84 } : undefined;
+  }, [collapsed]);
 
-    closeTimers.current[gKey] = window.setTimeout(() => {
-      useAdminLayoutStore.setState((s) => ({
-        openGroups: { ...s.openGroups, [gKey]: false },
-      }));
-      closeTimers.current[gKey] = undefined;
-    }, delay);
-  }
+  const clearCloseTimer = (groupKey: string) => {
+    const timerId = closeTimersRef.current[groupKey];
+    if (!timerId) return;
 
-  const onGroupMouseEnter = (gKey: string, ev: ReactMouseEvent<HTMLDivElement>) => {
-    if (!collapsed) return;
-    openGroupExclusive(gKey);
-
-    const groupEl = ev.currentTarget;
-    const fly = groupEl.querySelector<HTMLElement>(`[data-flyout="${gKey}"]`);
-    if (fly) requestAnimationFrame(() => positionFlyout(groupEl, fly));
+    window.clearTimeout(timerId);
+    closeTimersRef.current[groupKey] = undefined;
   };
 
-  const onGroupMouseLeave = (gKey: string) => {
-    if (!collapsed) return;
-    scheduleCloseGroup(gKey, 220);
+  const clearAllCloseTimers = () => {
+    Object.values(closeTimersRef.current).forEach((timerId) => {
+      if (timerId) window.clearTimeout(timerId);
+    });
+    closeTimersRef.current = {};
   };
 
   const closeSidebarIfMobile = () => {
-    if (typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches) {
+    if (typeof window === "undefined") return;
+
+    if (window.matchMedia("(max-width: 900px)").matches) {
       setSidebarOpen(false);
     }
   };
 
-  const railStyle: CSSProperties | undefined = collapsed ? { width: 84 } : undefined;
-
   const handleItemClick = (key: string) => {
     setActiveKey(key);
+
     try {
       localStorage.setItem("sb_active_key", key);
     } catch {}
+
     closeSidebarIfMobile();
   };
+
+  const scheduleCloseGroup = (groupKey: string, delay = 180) => {
+    clearCloseTimer(groupKey);
+
+    closeTimersRef.current[groupKey] = window.setTimeout(() => {
+      useAdminLayoutStore.setState((state) => ({
+        openGroups: {
+          ...state.openGroups,
+          [groupKey]: false,
+        },
+      }));
+
+      closeTimersRef.current[groupKey] = undefined;
+    }, delay);
+  };
+
+  const handleGroupMouseEnter = (
+    groupKey: string,
+    event: ReactMouseEvent<HTMLDivElement>
+  ) => {
+    if (!collapsed) return;
+
+    clearCloseTimer(groupKey);
+    openGroupExclusive(groupKey);
+
+    const groupElement = event.currentTarget;
+    const flyoutElement = groupElement.querySelector<HTMLElement>(
+      `[data-flyout="${groupKey}"]`
+    );
+
+    if (flyoutElement) {
+      requestAnimationFrame(() => {
+        positionFlyout(groupElement, flyoutElement);
+      });
+    }
+  };
+
+  const handleGroupMouseLeave = (groupKey: string) => {
+    if (!collapsed) return;
+    scheduleCloseGroup(groupKey, 220);
+  };
+
+  useEffect(() => {
+    return () => {
+      clearAllCloseTimers();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!collapsed) return;
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const root = asideRef.current;
+      if (!root) return;
+      if (root.contains(event.target as Node)) return;
+
+      useAdminLayoutStore.setState({ openGroups: {} });
+    };
+
+    document.addEventListener("click", handleDocumentClick);
+
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, [collapsed]);
 
   return (
     <>
@@ -138,159 +207,208 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
       )}
 
       <aside
-        ref={(el) => {
-          asideRef.current = el;
+        ref={(element) => {
+          asideRef.current = element;
         }}
+        data-collapsed={collapsed ? "true" : "false"}
         className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}
         style={railStyle}
         aria-label="Sidebar"
       >
-        <div className={styles.brandWrap}>
-          <Link href="/admin" className={styles.brandLink}>
-            <div className={styles.brandLogo}>
-              <span className={styles.brandLogoText}>A</span>
-            </div>
-
-            {!collapsed && (
-              <div className={styles.brandText}>
-                <div className={styles.brandTop}>
-                  <div className={styles.brandName}>Manager</div>
-                </div>
-                <div className={styles.brandSub}>
-                  <i className="bi bi-shield-lock" />
-                  <span>Dashboard Panel</span>
-                </div>
+        <div className={styles.sidebarPanel}>
+          <div className={styles.brandWrap}>
+            <Link href="/admin" className={styles.brandLink}>
+              <div className={styles.brandLogo}>
+                <span className={styles.brandLogoText}>A</span>
               </div>
-            )}
-          </Link>
-        </div>
 
-        <nav className={styles.nav} ref={navRef}>
-          {SECTION_ORDER.map((sec) => {
-            const bucket = sectionBuckets[sec];
-            const hasAny = bucket.flats.length + bucket.groups.length > 0;
-            if (!hasAny) return null;
+              {!collapsed && (
+                <div className={styles.brandText}>
+                  <div className={styles.brandTop}>
+                    <div className={styles.brandName}>Manager</div>
+                  </div>
 
-            return (
-              <div key={sec} className={styles.section}>
-                {!collapsed && <div className={styles.sectionTitle}>{SECTION_TITLES[sec]}</div>}
+                  <div className={styles.brandSub}>
+                    <i className="bi bi-shield-lock" />
+                    <span>Dashboard Panel</span>
+                  </div>
+                </div>
+              )}
+            </Link>
+          </div>
 
-                <div className={styles.sectionList}>
-                  {bucket.flats.map((it) => (
-                    <Link
-                      key={it.key}
-                      href={it.path ?? "#"}
-                      className={`${styles.navItem} ${activeKey === it.key ? styles.navItemActive : ""}`}
-                      aria-current={activeKey === it.key ? "page" : undefined}
-                      title={collapsed ? (it.title ?? undefined) : undefined}
-                      aria-label={it.title ?? ""}
-                      onClick={(e) => {
-                        if (!it.path || it.path === "#") e.preventDefault();
-                        handleItemClick(it.key);
-                      }}
-                    >
-                      <span className={styles.navIcon}>
-                        <i className={it.icon} />
-                      </span>
-                      {!collapsed && <span className={styles.navLabel}>{it.title ?? ""}</span>}
-                    </Link>
-                  ))}
+          <nav className={styles.nav} ref={navRef}>
+            {SECTION_ORDER.map((sectionKey) => {
+              const bucket = sectionBuckets[sectionKey];
+              const hasItems = bucket.flats.length + bucket.groups.length > 0;
 
-                  {bucket.groups.map((g) => {
-                    const isOpen = !!openGroups[g.key];
+              if (!hasItems) return null;
 
-                    return (
-                      <div
-                        key={g.key}
-                        className={styles.navGroup}
-                        onMouseEnter={(e) => onGroupMouseEnter(g.key, e)}
-                        onMouseLeave={() => onGroupMouseLeave(g.key)}
+              return (
+                <div key={sectionKey} className={styles.section}>
+                  {!collapsed && (
+                    <div className={styles.sectionTitle}>
+                      {SECTION_TITLES[sectionKey]}
+                    </div>
+                  )}
+
+                  <div className={styles.sectionList}>
+                    {bucket.flats.map((item) => (
+                      <Link
+                        key={item.key}
+                        href={item.path ?? "#"}
+                        className={`${styles.navItem} ${
+                          activeKey === item.key ? styles.navItemActive : ""
+                        }`}
+                        aria-current={activeKey === item.key ? "page" : undefined}
+                        title={collapsed ? item.title ?? undefined : undefined}
+                        aria-label={item.title ?? ""}
+                        onClick={(event) => {
+                          if (!item.path || item.path === "#") {
+                            event.preventDefault();
+                          }
+                          handleItemClick(item.key);
+                        }}
                       >
-                        <button
-                          type="button"
-                          className={`${styles.navItem} ${styles.navGroupBtn} ${isOpen ? styles.navItemActive : ""}`}
-                          aria-expanded={isOpen}
-                          title={collapsed ? (g.title ?? undefined) : undefined}
-                          aria-label={g.title ?? ""}
-                          onClick={(e) => {
-                            if (collapsed) return;
-                            e.preventDefault();
-                            toggleGroupExclusive(g.key);
-                          }}
-                        >
-                          <span className={styles.navIcon}>
-                            <i className={g.icon} />
-                          </span>
-
-                          {!collapsed && <span className={styles.navLabel}>{g.title ?? ""}</span>}
-
-                          {!collapsed && (
-                            <span className={`${styles.chev} ${isOpen ? styles.chevOpen : ""}`}>
-                              <i className="bi bi-chevron-down" />
-                            </span>
-                          )}
-                        </button>
+                        <span className={styles.navIcon}>
+                          <i className={item.icon} />
+                        </span>
 
                         {!collapsed && (
-                          <div className={`${styles.submenu} ${isOpen ? styles.submenuOpen : ""}`}>
-                            {g.children?.map((s) => (
-                              <Link
-                                key={s.key}
-                                href={s.path ?? "#"}
-                                className={`${styles.subItem} ${activeKey === s.key ? styles.subItemActive : ""}`}
-                                title={s.title ?? undefined}
-                                aria-label={s.title ?? ""}
-                                onClick={(e) => {
-                                  if (!s.path || s.path === "#") e.preventDefault();
-                                  handleItemClick(s.key);
-                                }}
-                              >
-                                <span className={styles.navIcon}>
-                                  <i className={s.icon} />
-                                </span>
-                                <span className={styles.subLabel}>{s.title ?? ""}</span>
-                              </Link>
-                            ))}
-                          </div>
+                          <span className={styles.navLabel}>{item.title ?? ""}</span>
                         )}
+                      </Link>
+                    ))}
 
-                        {collapsed && isOpen && (
-                          <div data-flyout={g.key} className={styles.flyout}>
-                            <div className={styles.flyoutTitle}>{g.title ?? ""}</div>
-                            <div className={styles.flyoutList}>
-                              {g.children?.map((s) => (
+                    {bucket.groups.map((group) => {
+                      const isOpen = Boolean(openGroups[group.key]);
+
+                      return (
+                        <div
+                          key={group.key}
+                          className={styles.navGroup}
+                          onMouseEnter={(event) =>
+                            handleGroupMouseEnter(group.key, event)
+                          }
+                          onMouseLeave={() => handleGroupMouseLeave(group.key)}
+                        >
+                          <button
+                            type="button"
+                            className={`${styles.navItem} ${styles.navGroupBtn} ${
+                              isOpen ? styles.navItemActive : ""
+                            }`}
+                            aria-expanded={isOpen}
+                            title={collapsed ? group.title ?? undefined : undefined}
+                            aria-label={group.title ?? ""}
+                            onClick={(event) => {
+                              if (collapsed) return;
+                              event.preventDefault();
+                              toggleGroupExclusive(group.key);
+                            }}
+                          >
+                            <span className={styles.navIcon}>
+                              <i className={group.icon} />
+                            </span>
+
+                            {!collapsed && (
+                              <span className={styles.navLabel}>
+                                {group.title ?? ""}
+                              </span>
+                            )}
+
+                            {!collapsed && (
+                              <span
+                                className={`${styles.chev} ${
+                                  isOpen ? styles.chevOpen : ""
+                                }`}
+                              >
+                                <i className="bi bi-chevron-down" />
+                              </span>
+                            )}
+                          </button>
+
+                          {!collapsed && (
+                            <div
+                              className={`${styles.submenu} ${
+                                isOpen ? styles.submenuOpen : ""
+                              }`}
+                            >
+                              {group.children?.map((subItem) => (
                                 <Link
-                                  key={s.key}
-                                  href={s.path ?? "#"}
-                                  className={`${styles.flyoutItem} ${
-                                    activeKey === s.key ? styles.flyoutItemActive : ""
+                                  key={subItem.key}
+                                  href={subItem.path ?? "#"}
+                                  className={`${styles.subItem} ${
+                                    activeKey === subItem.key
+                                      ? styles.subItemActive
+                                      : ""
                                   }`}
-                                  aria-label={s.title ?? ""}
-                                  onClick={(e) => {
-                                    if (!s.path || s.path === "#") e.preventDefault();
-                                    handleItemClick(s.key);
-                                    toggleGroupExclusive(g.key);
+                                  title={subItem.title ?? undefined}
+                                  aria-label={subItem.title ?? ""}
+                                  onClick={(event) => {
+                                    if (!subItem.path || subItem.path === "#") {
+                                      event.preventDefault();
+                                    }
+                                    handleItemClick(subItem.key);
                                   }}
                                 >
                                   <span className={styles.navIcon}>
-                                    <i className={s.icon} />
+                                    <i className={subItem.icon} />
                                   </span>
-                                  <span>{s.title ?? ""}</span>
+                                  <span className={styles.subLabel}>
+                                    {subItem.title ?? ""}
+                                  </span>
                                 </Link>
                               ))}
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                          )}
 
-                {sec !== "account" && <div className={styles.sectionDivider} />}
-              </div>
-            );
-          })}
-        </nav>
+                          {collapsed && isOpen && (
+                            <div data-flyout={group.key} className={styles.flyout}>
+                              <div className={styles.flyoutTitle}>
+                                {group.title ?? ""}
+                              </div>
+
+                              <div className={styles.flyoutList}>
+                                {group.children?.map((subItem) => (
+                                  <Link
+                                    key={subItem.key}
+                                    href={subItem.path ?? "#"}
+                                    className={`${styles.flyoutItem} ${
+                                      activeKey === subItem.key
+                                        ? styles.flyoutItemActive
+                                        : ""
+                                    }`}
+                                    aria-label={subItem.title ?? ""}
+                                    onClick={(event) => {
+                                      if (!subItem.path || subItem.path === "#") {
+                                        event.preventDefault();
+                                      }
+                                      handleItemClick(subItem.key);
+                                      toggleGroupExclusive(group.key);
+                                    }}
+                                  >
+                                    <span className={styles.navIcon}>
+                                      <i className={subItem.icon} />
+                                    </span>
+                                    <span>{subItem.title ?? ""}</span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {sectionKey !== "account" && (
+                    <div className={styles.sectionDivider} />
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </div>
       </aside>
     </>
   );

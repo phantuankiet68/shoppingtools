@@ -270,13 +270,6 @@ function PageList({
                   <code className={styles.code}>{p.slug}</code>
                   <span className={styles.dot}>•</span>
                   <code className={styles.code}>{p.path}</code>
-
-                  {site && (
-                    <>
-                      <span className={styles.dot}>•</span>
-                      <code className={styles.code}>{site}</code>
-                    </>
-                  )}
                 </div>
               </div>
 

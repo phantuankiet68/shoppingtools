@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma, PageStatus } from "@prisma/client";
+import { Prisma, PageStatus } from "@/generated/prisma";
 
 type BlockDTO = { kind: string; props: Record<string, unknown> };
 

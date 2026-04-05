@@ -47,6 +47,7 @@ export type InternalPage = {
   path: string;
   label: string;
   labelVi?: string;
+  icon?: string;
   aliases?: string[];
   tags?: string[];
 };
@@ -280,7 +281,7 @@ function createInternalMenuItem(page: InternalPage): BuilderMenuItem {
   return {
     id: uid(),
     title: page.label,
-    icon: "",
+    icon: page.icon ?? "",
     visible: true,
     linkType: "internal",
     externalUrl: "",

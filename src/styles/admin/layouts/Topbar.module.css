@@ -154,7 +154,7 @@
 
 .functionKey {
   height: 58px;
-  min-width: 110px;
+  min-width: 102px;
   border: var(--bd-header);
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   border-radius: 6px;

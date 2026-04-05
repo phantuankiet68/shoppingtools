@@ -387,7 +387,7 @@ vậy bạn hãy tách store và service trông file code này giúp tôi nhé
 
 Dựa vào api và model purchase-orders bạn có thể độ lại vầ thêm các api vào page.tsx purchase-orders giúp tôi được không hiện tại tôi đang sử dụng next 16 và css module bạn hãy dộ lại với phong cách mới mẽ và chuyên nghiệp nhé
 
-Hiện tại design rất xấu và chua có phong cách chuyên nghiệp nên hãy dộ lại giúp tôi nhé nếu ngư có thể thì hãy để list và Tạo purchase order hãy dộ lại giúp tôi nhé tôi đang sử dụng next 16 và css module. không cần box shadow
+Hiện tại design rất xấu và chua có phong cách chuyên nghiệp nên hãy dộ lại giúp tôi nhé nếu ngư có thể thì hãy để list và Tạo purchase order hãy dộ lại giúp tôi nhé tôi đang sử dụng next 16 và css module và icon bootstrap. không cần box shadow
 
 low-code = drag & drop builder chuyển đổi AI + low-code
 

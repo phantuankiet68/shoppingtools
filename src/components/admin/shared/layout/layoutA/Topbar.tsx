@@ -96,16 +96,6 @@ export default function Topbar({ meta, onLogout }: Props) {
         </div>
 
         <div className={styles.topbarRight}>
-          <button className={styles.iconBtn} type="button" aria-label="Chat">
-            <i className="bi bi-chat-dots" />
-            <span className={styles.notificationDot} />
-          </button>
-
-          <button className={styles.iconBtn} type="button" aria-label="Language">
-            <i className="bi bi-globe2" />
-            <span className={styles.notificationDot} />
-          </button>
-
           <div className={styles.notiWrap} ref={notiRef}>
             <button
               className={styles.iconBtn}

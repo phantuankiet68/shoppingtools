@@ -1,4 +1,5 @@
 import { getSessionUser, pickCurrentMembership } from "@/lib/auth/auth-workspace";
+import { prisma } from '@/lib/prisma';
 
 function toSystemRoleLabel(role: string) {
   switch (role) {
@@ -25,6 +26,38 @@ export async function GET(req: Request) {
   const currentMembership = pickCurrentMembership(user, requestedWorkspaceId);
   const displayName = user.email.includes("@") ? user.email.split("@")[0] : user.email;
 
+  let site = null;
+
+  if (currentMembership?.workspaceId) {
+    site = await prisma.site.findFirst({
+      where: {
+        workspaceId: currentMembership.workspaceId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        domain: true,
+        ownerUserId: true,
+        status: true,
+        isPublic: true,
+        publishedAt: true,
+        themeConfig: true,
+        seoTitleDefault: true,
+        seoDescDefault: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
+        createdByUserId: true,
+        workspaceId: true,
+        type: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
   return Response.json({
     user: {
       id: user.id,
@@ -42,6 +75,7 @@ export async function GET(req: Request) {
           role: currentMembership.role,
         }
       : null,
+    site,
     memberships: user.memberships.map((membership) => ({
       workspaceId: membership.workspaceId,
       workspaceName: membership.workspaceName,
