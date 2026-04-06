@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Resend } from 'resend';
 import {
   Prisma,
   EmailProvider,
@@ -7,6 +8,7 @@ import {
   EmailRecipientStatus,
   EmailLogStatus,
 } from '@/generated/prisma';
+import { decryptSystemCredential } from '@/lib/crypto/system-credential';
 
 interface EmailTemplateData {
   campaignTitle?: string;
@@ -108,6 +110,7 @@ function dedupeRecipients(recipients: SendEmailRecipientInput[]): SendEmailRecip
   for (const recipient of recipients) {
     const email = normalizeEmail(recipient.email);
     if (!email || !isValidEmail(email)) continue;
+
     if (!map.has(email)) {
       map.set(email, {
         email,
@@ -163,6 +166,45 @@ async function verifyUserOwnership(userId: string, siteId: string) {
   return site;
 }
 
+async function findSystemCredentialOrThrow(siteId: string) {
+  const credential = await prisma.systemCredential.findFirst({
+    where: {
+      siteId,
+      isActive: true,
+    },
+    orderBy: {
+      updatedAt: 'desc',
+    },
+    select: {
+      id: true,
+      key: true,
+      provider: true,
+      apiKeyEncrypted: true,
+      fromEmail: true,
+      fromName: true,
+      replyToEmail: true,
+      isActive: true,
+    },
+  });
+
+  if (!credential) {
+    throw new Error('No active system email credential found for this site.');
+  }
+
+  return credential;
+}
+
+function resolveEmailProvider(provider: string): EmailProvider {
+  const upper = provider.toUpperCase();
+
+  if (upper === 'RESEND') return EmailProvider.RESEND;
+  if (upper === 'SENDGRID') return EmailProvider.SENDGRID;
+  if (upper === 'MAILGUN') return EmailProvider.MAILGUN;
+  if (upper === 'SMTP') return EmailProvider.SMTP;
+
+  throw new Error(`Unsupported email provider: ${provider}`);
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as SendAdminEmailBody;
@@ -204,26 +246,39 @@ export async function POST(request: Request) {
       );
     }
 
-    if (body.fromEmail && !isValidEmail(body.fromEmail)) {
-      return Response.json({ message: 'fromEmail is invalid.' }, { status: 400 });
-    }
-
-    if (body.replyToEmail && !isValidEmail(body.replyToEmail)) {
-      return Response.json({ message: 'replyToEmail is invalid.' }, { status: 400 });
-    }
-
     const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
+
     if (body.scheduledAt && Number.isNaN(scheduledAt?.getTime())) {
       return Response.json({ message: 'scheduledAt is invalid.' }, { status: 400 });
     }
 
     await verifyUserOwnership(body.userId, body.siteId);
     const template = await findTemplateOrThrow(body.templateKey);
+    const credential = await findSystemCredentialOrThrow(body.siteId);
+
+    const provider = resolveEmailProvider(credential.provider);
+    const fromEmail = credential.fromEmail?.trim() || body.fromEmail?.trim() || '';
+    const fromName = credential.fromName?.trim() || body.fromName?.trim() || null;
+    const replyToEmail =
+      credential.replyToEmail?.trim() || body.replyToEmail?.trim() || null;
+
+    if (!fromEmail || !isValidEmail(fromEmail)) {
+      return Response.json(
+        { message: 'Configured fromEmail is missing or invalid.' },
+        { status: 400 }
+      );
+    }
+
+    if (replyToEmail && !isValidEmail(replyToEmail)) {
+      return Response.json(
+        { message: 'Configured replyToEmail is invalid.' },
+        { status: 400 }
+      );
+    }
 
     const htmlContent = template.htmlContent || buildHtmlContent(body);
     const textContent = template.textContent || buildTextContent(body);
-    const status = getEmailStatus(body);
-    const provider = body.provider ?? EmailProvider.RESEND;
+    const initialStatus = getEmailStatus(body);
     const type = body.type ?? EmailType.BULK;
 
     const created = await prisma.$transaction(async (tx) => {
@@ -233,17 +288,17 @@ export async function POST(request: Request) {
           templateId: template.id,
           templateKey: template.key,
           type,
-          status,
+          status: initialStatus,
           subject: body.subject.trim(),
           previewText: body.previewText?.trim() || null,
-          fromName: body.fromName?.trim() || null,
-          fromEmail: body.fromEmail?.trim() || null,
-          replyToEmail: body.replyToEmail?.trim() || null,
+          fromName,
+          fromEmail,
+          replyToEmail,
           provider,
           htmlContent,
           textContent,
           scheduledAt,
-          sentAt: status === EmailStatus.SENT ? new Date() : null,
+          sentAt: null,
           totalRecipients: recipients.length,
           successCount: 0,
           failedCount: 0,
@@ -255,6 +310,10 @@ export async function POST(request: Request) {
           status: true,
           scheduledAt: true,
           totalRecipients: true,
+          fromEmail: true,
+          fromName: true,
+          replyToEmail: true,
+          provider: true,
         },
       });
 
@@ -272,6 +331,7 @@ export async function POST(request: Request) {
             select: {
               id: true,
               email: true,
+              name: true,
             },
           })
         )
@@ -284,7 +344,7 @@ export async function POST(request: Request) {
           recipientId: recipient.id,
           templateId: template.id,
           toEmail: recipient.email,
-          toName: null,
+          toName: recipient.name ?? null,
           subjectSnapshot: body.subject.trim(),
           provider,
           status: EmailLogStatus.QUEUED,
@@ -292,24 +352,152 @@ export async function POST(request: Request) {
             campaignTitle: body.campaignTitle,
             templateKey: body.templateKey,
             testMode: Boolean(body.testMode),
+            credentialKey: credential.key,
           },
         })),
       });
 
-      return email;
+      return {
+        email,
+        recipients: createdRecipients,
+      };
     });
 
-    return Response.json(
-      {
-        message: scheduledAt
-          ? 'Email campaign scheduled successfully.'
-          : 'Email campaign queued successfully.',
-        emailId: created.id,
-        status: created.status,
-        totalRecipients: created.totalRecipients,
+    if (scheduledAt) {
+      return Response.json(
+        {
+          message: 'Email campaign scheduled successfully.',
+          emailId: created.email.id,
+          status: created.email.status,
+          totalRecipients: created.email.totalRecipients,
+        },
+        { status: 201 }
+      );
+    }
+
+    if (provider !== EmailProvider.RESEND) {
+      return Response.json(
+        {
+          message: `Email campaign queued, but provider ${provider} is not implemented yet.`,
+          emailId: created.email.id,
+          status: created.email.status,
+          totalRecipients: created.email.totalRecipients,
+        },
+        { status: 201 }
+      );
+    }
+
+    const resendApiKey = decryptSystemCredential(credential.apiKeyEncrypted);
+    const resend = new Resend(resendApiKey);
+
+    let successCount = 0;
+    let failedCount = 0;
+    let lastError: string | null = null;
+    if (body.testMode) {
+      return Response.json({
+        message: 'Test mode - email not sent',
+      });
+    }
+
+    for (const recipient of created.recipients) {
+      try {
+        await resend.emails.send({
+          from: fromName ? `${fromName} <${fromEmail}>` : fromEmail,
+          to: recipient.email,
+          subject: body.subject.trim(),
+          html: htmlContent,
+          text: textContent,
+          replyTo: replyToEmail || undefined,
+        });
+
+        successCount += 1;
+
+        await prisma.$transaction([
+          prisma.emailRecipient.update({
+            where: { id: recipient.id },
+            data: {
+              status: EmailRecipientStatus.SENT,
+            },
+          }),
+          prisma.emailLog.updateMany({
+            where: {
+              emailId: created.email.id,
+              recipientId: recipient.id,
+            },
+            data: {
+              status: EmailLogStatus.SENT,
+              sentAt: new Date(),
+              errorMessage: null,
+            },
+          }),
+        ]);
+      } catch (error) {
+        failedCount += 1;
+        lastError = error instanceof Error ? error.message : 'Failed to send email.';
+
+        await prisma.$transaction([
+          prisma.emailRecipient.update({
+            where: { id: recipient.id },
+            data: {
+              status: EmailRecipientStatus.FAILED,
+              errorMessage: lastError,
+            },
+          }),
+          prisma.emailLog.updateMany({
+            where: {
+              emailId: created.email.id,
+              recipientId: recipient.id,
+            },
+            data: {
+              status: EmailLogStatus.FAILED,
+              errorMessage: lastError,
+            },
+          }),
+        ]);
+      }
+    }
+
+    const finalStatus =
+      successCount > 0 && failedCount === 0
+        ? EmailStatus.SENT
+        : successCount > 0
+        ? EmailStatus.PARTIAL
+        : EmailStatus.FAILED;
+
+    await prisma.email.update({
+      where: { id: created.email.id },
+      data: {
+        status: finalStatus,
+        sentAt: successCount > 0 ? new Date() : null,
+        successCount,
+        failedCount,
+        lastError,
       },
-      { status: 201 }
-    );
+    });
+
+   const httpStatus =
+    finalStatus === EmailStatus.SENT
+      ? 201
+      : finalStatus === EmailStatus.PARTIAL
+      ? 207
+      : 500;
+
+  return Response.json(
+    {
+      message:
+        finalStatus === EmailStatus.SENT
+          ? 'Email campaign sent successfully.'
+          : finalStatus === EmailStatus.PARTIAL
+          ? 'Email campaign sent partially.'
+          : 'Email campaign failed.',
+      emailId: created.email.id,
+      status: finalStatus,
+      totalRecipients: created.email.totalRecipients,
+      successCount,
+      failedCount,
+    },
+    { status: httpStatus }
+  );
   } catch (error) {
     console.error('[POST /api/admin/email/send]', error);
 

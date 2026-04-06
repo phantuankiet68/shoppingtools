@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import styles from '@/styles/admin/email/email.module.css';
+import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
 import EmailTemplatePreview from '@/components/admin/email/templates/EmailTemplatePreview';
 import type { EmailTemplateData, TemplateId } from '@/features/email/types';
+import styles from '@/styles/admin/email/email.module.css';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type EmailCampaignStatus =
   | 'draft'
@@ -77,7 +78,7 @@ interface EmailListItem {
   templateId: string | null;
   templateKey: string | null;
   type: EmailType;
-  status: Uppercase<EmailCampaignStatus>;
+  status: string;
   subject: string;
   previewText: string | null;
   fromName: string | null;
@@ -110,39 +111,28 @@ interface EmailListResponse {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
+  message?: string;
 }
 
-interface AdminAuthMeResponse {
-  user?: {
-    id: string;
-    name: string | null;
-    email: string | null;
-    image: string | null;
-    systemRole: string;
-    roleLabel: string;
-  };
-  currentWorkspace?: {
-    id: string;
-    name: string;
-    slug: string;
-    role: string;
-  } | null;
-  site?: {
-    id: string;
-    name: string;
-    domain: string | null;
-    ownerUserId: string;
-    status: string;
-    workspaceId: string | null;
-    type: string | null;
+interface SystemCredentialResponse {
+  ok: boolean;
+  message?: string;
+  data?: {
+    id?: string;
+    key?: string;
+    provider?: string;
+    fromEmail?: string | null;
+    fromName?: string | null;
+    replyToEmail?: string | null;
+    siteId?: string | null;
+    isActive?: boolean;
+    hasApiKey?: boolean;
+    apiKeyMasked?: string;
   } | null;
 }
 
 const BATCH_SIZE = 100;
 const DEFAULT_CTA_URL = 'https://your-landing-page.com';
-const DEFAULT_FROM_NAME = 'Support Team';
-const DEFAULT_FROM_EMAIL = 'support@yourdomain.com';
-const DEFAULT_REPLY_TO_EMAIL = 'support@yourdomain.com';
 
 const EMAIL_TEMPLATES: EmailTemplateDefinition[] = [
   {
@@ -294,6 +284,8 @@ function formatLocalDateTime(date: Date): string {
 function mapApiStatus(status: string | null | undefined): EmailCampaignStatus {
   const normalized = (status || '').toLowerCase();
 
+  if (normalized === 'partially_sent') return 'partial';
+
   if (
     normalized === 'draft' ||
     normalized === 'queued' ||
@@ -326,12 +318,22 @@ function mapEmailItemToCampaign(item: EmailListItem): EmailCampaignSummary {
   };
 }
 
+function normalizeProvider(value?: string | null): EmailProvider {
+  const upper = (value || '').toUpperCase();
+
+  if (upper === 'SMTP') return 'SMTP';
+  if (upper === 'SENDGRID') return 'SENDGRID';
+  return 'RESEND';
+}
+
 export default function AdminEmailPage() {
+  const { user, site, currentWorkspace } = useAdminAuth();
+
   const [campaigns, setCampaigns] = useState<EmailCampaignSummary[]>([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
-  const [isLoadingContext, setIsLoadingContext] = useState(true);
+  const [isLoadingCredential, setIsLoadingCredential] = useState(true);
   const [listError, setListError] = useState('');
-  const [contextError, setContextError] = useState('');
+  const [credentialError, setCredentialError] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [selectedTemplateKey, setSelectedTemplateKey] = useState<TemplateId>('welcome');
@@ -340,14 +342,9 @@ export default function AdminEmailPage() {
   const [previewText, setPreviewText] = useState('A quick preview of the email content.');
   const [content, setContent] = useState(EMAIL_TEMPLATES[0].content);
   const [emailsText, setEmailsText] = useState('');
-  const [userId, setUserId] = useState('');
-  const [siteId, setSiteId] = useState('');
-  const [workspaceName, setWorkspaceName] = useState('');
-  const [siteName, setSiteName] = useState('');
-  const [siteDomain, setSiteDomain] = useState('');
-  const [fromName, setFromName] = useState(DEFAULT_FROM_NAME);
-  const [fromEmail, setFromEmail] = useState(DEFAULT_FROM_EMAIL);
-  const [replyToEmail, setReplyToEmail] = useState(DEFAULT_REPLY_TO_EMAIL);
+  const [fromName, setFromName] = useState('');
+  const [fromEmail, setFromEmail] = useState('');
+  const [replyToEmail, setReplyToEmail] = useState('');
   const [provider, setProvider] = useState<EmailProvider>('RESEND');
   const [emailType, setEmailType] = useState<EmailType>('BULK');
   const [scheduledAt, setScheduledAt] = useState('');
@@ -360,7 +357,12 @@ export default function AdminEmailPage() {
   const [benefitsText, setBenefitsText] = useState(() => getTemplateDefaultFields('welcome').benefitsText);
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState('');
-  const hasAutoFilledContextRef = useRef(false);
+
+  const userId = user?.id ?? '';
+  const siteId = site?.id ?? '';
+  const workspaceName = currentWorkspace?.name ?? '';
+  const siteName = site?.name ?? '';
+  const siteDomain = site?.domain ?? '';
 
   const selectedTemplate = useMemo(
     () => EMAIL_TEMPLATES.find((item) => item.key === selectedTemplateKey) ?? null,
@@ -429,10 +431,6 @@ export default function AdminEmailPage() {
     setEmailsText('');
     setScheduledAt('');
     setTestMode(false);
-    setFromName(DEFAULT_FROM_NAME);
-    setFromEmail(DEFAULT_FROM_EMAIL);
-    setReplyToEmail(DEFAULT_REPLY_TO_EMAIL);
-    setProvider('RESEND');
     setEmailType('BULK');
     setCtaUrl(DEFAULT_CTA_URL);
   };
@@ -484,7 +482,7 @@ export default function AdminEmailPage() {
         cache: 'no-store',
       });
 
-      const result = (await response.json()) as EmailListResponse & { message?: string };
+      const result = (await response.json()) as EmailListResponse;
 
       if (!response.ok) {
         throw new Error(result.message || 'Failed to load email campaigns.');
@@ -500,55 +498,55 @@ export default function AdminEmailPage() {
   }, [siteId, searchKeyword, userId]);
 
   useEffect(() => {
-    const fetchAdminContext = async () => {
-      setIsLoadingContext(true);
-      setContextError('');
+    const fetchSystemCredential = async () => {
+      if (!siteId.trim()) {
+        setIsLoadingCredential(false);
+        setCredentialError('Missing site context.');
+        return;
+      }
+
+      setIsLoadingCredential(true);
+      setCredentialError('');
 
       try {
-        const response = await fetch('/api/admin/auth/me', {
+      const params = new URLSearchParams({
+        key: 'resend_local',
+        siteId: siteId.trim(),
+      });
+        const response = await fetch(`/api/admin/email/system?${params.toString()}`, {
           method: 'GET',
           cache: 'no-store',
         });
 
-        const result = (await response.json()) as AdminAuthMeResponse & { message?: string };
+        const result = (await response.json()) as SystemCredentialResponse;
 
-        if (!response.ok) {
-          throw new Error(result.message || 'Failed to load admin context.');
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || 'Failed to load system email credential.');
         }
 
-        const nextUserId = result.user?.id ?? '';
-        const nextSiteId = result.site?.id ?? '';
-
-        if (!hasAutoFilledContextRef.current) {
-          setUserId(nextUserId);
-          setSiteId(nextSiteId);
-          hasAutoFilledContextRef.current = true;
+        if (!result.data) {
+          throw new Error('No system email credential found for this site.');
         }
 
-        setWorkspaceName(result.currentWorkspace?.name ?? '');
-        setSiteName(result.site?.name ?? '');
-        setSiteDomain(result.site?.domain ?? '');
-
-        if (result.user?.email && DEFAULT_FROM_EMAIL === fromEmail) {
-          setFromEmail(result.user.email);
-        }
-
-        if (result.user?.name && DEFAULT_FROM_NAME === fromName) {
-          setFromName(result.user.name);
-        }
-
-        if (result.user?.email && DEFAULT_REPLY_TO_EMAIL === replyToEmail) {
-          setReplyToEmail(result.user.email);
-        }
+        setFromName(result.data.fromName ?? '');
+        setFromEmail(result.data.fromEmail ?? '');
+        setReplyToEmail(result.data.replyToEmail ?? '');
+        setProvider(normalizeProvider(result.data.provider));
       } catch (error) {
-        setContextError(error instanceof Error ? error.message : 'Failed to load admin context.');
+        setCredentialError(
+          error instanceof Error ? error.message : 'Failed to load system email credential.'
+        );
+        setFromName('');
+        setFromEmail('');
+        setReplyToEmail('');
+        setProvider('RESEND');
       } finally {
-        setIsLoadingContext(false);
+        setIsLoadingCredential(false);
       }
     };
 
-    void fetchAdminContext();
-  }, [fromEmail, fromName, replyToEmail]);
+    void fetchSystemCredential();
+  }, [siteId]);
 
   useEffect(() => {
     if (!userId.trim()) return;
@@ -557,12 +555,12 @@ export default function AdminEmailPage() {
 
   const handleSend = async () => {
     if (!userId.trim()) {
-      setMessage('Please enter a user ID.');
+      setMessage('Missing user context.');
       return;
     }
 
     if (!siteId.trim()) {
-      setMessage('Please enter a site ID.');
+      setMessage('Missing site context.');
       return;
     }
 
@@ -587,17 +585,17 @@ export default function AdminEmailPage() {
     }
 
     if (!fromName.trim()) {
-      setMessage('Please enter a sender name.');
+      setMessage('System sender name is missing. Please configure Email Settings first.');
       return;
     }
 
     if (!isValidEmail(fromEmail.trim())) {
-      setMessage('Please enter a valid sender email address.');
+      setMessage('System sender email is missing or invalid. Please configure Email Settings first.');
       return;
     }
 
     if (replyToEmail.trim() && !isValidEmail(replyToEmail.trim())) {
-      setMessage('Please enter a valid reply-to email address.');
+      setMessage('System reply-to email is invalid. Please configure Email Settings first.');
       return;
     }
 
@@ -646,11 +644,19 @@ export default function AdminEmailPage() {
       }
 
       resetFormAfterSend();
-      setMessage(
-        scheduledAt
-          ? `Campaign scheduled successfully for ${formatLocalDateTime(new Date(scheduledAt))}.`
-          : `Successfully submitted ${validEmails.length} recipients in ${batchCount} batch(es).`
-      );
+      if (result?.status) {
+        setMessage(
+          `${result.message || 'Request completed.'} Status: ${result.status}${
+            typeof (result as any).successCount === 'number'
+              ? ` | Success: ${(result as any).successCount}`
+              : ''
+          }${
+            typeof (result as any).failedCount === 'number'
+              ? ` | Failed: ${(result as any).failedCount}`
+              : ''
+          }`
+        );
+      }
       await fetchCampaigns();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'An error occurred while sending the email.');
@@ -730,31 +736,52 @@ export default function AdminEmailPage() {
                   <h4>Account context</h4>
                 </div>
 
-                {isLoadingContext && <div className={styles.messageBox}>Loading admin context...</div>}
-                {!isLoadingContext && contextError && <div className={styles.messageBox}>{contextError}</div>}
-
                 <div className={styles.formRow}>
-                 <div className={styles.formGroup}>
+                  <div className={styles.formGroup}>
                     <label htmlFor="userId">User ID</label>
                     <input
-                        id="userId"
-                        className={styles.input}
-                        value={userId}
-                        readOnly
-                        placeholder="Auto-filled from /api/admin/auth/me"
+                      id="userId"
+                      className={styles.input}
+                      value={userId}
+                      readOnly
+                      placeholder="Auto-filled from AdminAuthProvider"
                     />
-                    </div>
+                  </div>
 
-                    <div className={styles.formGroup}>
+                  <div className={styles.formGroup}>
                     <label htmlFor="siteId">Site ID</label>
                     <input
-                        id="siteId"
-                        className={styles.input}
-                        value={siteId}
-                        readOnly
-                        placeholder="Auto-filled from /api/admin/auth/me"
+                      id="siteId"
+                      className={styles.input}
+                      value={siteId}
+                      readOnly
+                      placeholder="Auto-filled from AdminAuthProvider"
                     />
-                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="workspaceName">Workspace</label>
+                    <input
+                      id="workspaceName"
+                      className={styles.input}
+                      value={workspaceName}
+                      readOnly
+                      placeholder="Auto-filled from AdminAuthProvider"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="siteName">Site name</label>
+                    <input
+                      id="siteName"
+                      className={styles.input}
+                      value={siteName}
+                      readOnly
+                      placeholder="Auto-filled from AdminAuthProvider"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -825,6 +852,14 @@ export default function AdminEmailPage() {
                   <p>Fields that map directly to the Email model.</p>
                 </div>
 
+                {isLoadingCredential && (
+                  <div className={styles.messageBox}>Loading email credential...</div>
+                )}
+
+                {!isLoadingCredential && credentialError && (
+                  <div className={styles.messageBox}>{credentialError}</div>
+                )}
+
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label htmlFor="provider">Provider</label>
@@ -832,7 +867,7 @@ export default function AdminEmailPage() {
                       id="provider"
                       className={styles.select}
                       value={provider}
-                      onChange={(event) => setProvider(event.target.value as EmailProvider)}
+                      disabled
                     >
                       {PROVIDER_OPTIONS.map((option) => (
                         <option key={option} value={option}>
@@ -840,6 +875,9 @@ export default function AdminEmailPage() {
                         </option>
                       ))}
                     </select>
+                    <span className={styles.fieldHint}>
+                      Loaded automatically from system email settings.
+                    </span>
                   </div>
 
                   <div className={styles.formGroup}>
@@ -866,8 +904,8 @@ export default function AdminEmailPage() {
                       id="fromName"
                       className={styles.input}
                       value={fromName}
-                      onChange={(event) => setFromName(event.target.value)}
-                      placeholder="Support Team"
+                      readOnly
+                      placeholder="Loaded from system email settings"
                     />
                   </div>
 
@@ -877,8 +915,8 @@ export default function AdminEmailPage() {
                       id="fromEmail"
                       className={styles.input}
                       value={fromEmail}
-                      onChange={(event) => setFromEmail(event.target.value)}
-                      placeholder="support@yourdomain.com"
+                      readOnly
+                      placeholder="Loaded from system email settings"
                     />
                   </div>
                 </div>
@@ -890,8 +928,8 @@ export default function AdminEmailPage() {
                       id="replyToEmail"
                       className={styles.input}
                       value={replyToEmail}
-                      onChange={(event) => setReplyToEmail(event.target.value)}
-                      placeholder="support@yourdomain.com"
+                      readOnly
+                      placeholder="Loaded from system email settings"
                     />
                   </div>
 
@@ -1154,19 +1192,21 @@ export default function AdminEmailPage() {
             <div className={styles.bottomBar}>
               <div className={styles.inlineInfo}>
                 <span className={styles.inlineDot} />
-                User ID and Site ID are auto-filled from /api/admin/auth/me and remain editable.
+                User ID and Site ID are loaded from AdminAuthProvider. Sender settings are loaded from
+                system email credentials.
               </div>
 
               <button
                 className={styles.primaryButton}
                 onClick={handleSend}
-                disabled={isSending || isLoadingContext}
+                disabled={isSending || isLoadingCredential || !userId || !siteId}
                 type="button"
               >
                 {isSending ? 'Submitting...' : scheduledAt ? 'Schedule campaign' : 'Send campaign'}
               </button>
             </div>
 
+            {message && <div className={styles.messageBox}>{message}</div>}
           </section>
 
           <section className={styles.summaryColumn}>
