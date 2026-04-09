@@ -104,7 +104,7 @@ const HeaderGreenEditor: React.FC<EditorProps> = ({ props, updateActive }) => {
 
       {/* Menu & API */}
       <Section title="Menu &amp; API">
-        <LabeledRow label="Tự động load menu (API /api/admin/builder/menus)">
+        <LabeledRow label="Tự động load menu (API /api/admin/menus)">
           <Checkbox checked={p.autoLoadMenu ?? true} onChange={(checked) => updateActive({ autoLoadMenu: checked })} />
         </LabeledRow>
 

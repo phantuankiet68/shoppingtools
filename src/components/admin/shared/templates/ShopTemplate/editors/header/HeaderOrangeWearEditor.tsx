@@ -56,7 +56,7 @@ const HeaderOrangeWearEditor: React.FC<EditorProps> = ({ props, updateActive }) 
 
       {/* MENU & API */}
       <Section title="Menu &amp; API">
-        <LabeledRow label="Tự động load menu (API /api/admin/builder/menus)">
+        <LabeledRow label="Tự động load menu (API /api/admin/menus)">
           <Checkbox checked={p.autoLoadMenu ?? true} onChange={(checked) => updateActive({ autoLoadMenu: checked })} />
         </LabeledRow>
 

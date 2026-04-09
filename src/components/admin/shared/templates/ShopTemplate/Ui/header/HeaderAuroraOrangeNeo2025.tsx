@@ -229,7 +229,7 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
     };
   }, [autoLoadMenu, menuApiUrl, onMenuLoaded]);
 
-  // Case 2: autoLoadMenu without explicit menuApiUrl → /api/admin/builder/menus
+  // Case 2: autoLoadMenu without explicit menuApiUrl → /api/admin/menus
   useEffect(() => {
     if (!autoLoadMenu || menuApiUrl) return;
 
@@ -245,7 +245,7 @@ const HeaderAuroraOrangeNeo2025: React.FC<HeaderAuroraOrangeNeo2025Props> = (pro
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 
-        const res = await fetch(`/api/admin/builder/menus?${params.toString()}`, {
+        const res = await fetch(`/api/admin/menus?${params.toString()}`, {
           cache: "no-store",
         });
 

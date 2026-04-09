@@ -45,7 +45,7 @@ export const adminMenuService = {
       params.set("includeHidden", "1");
     }
 
-    const res = await fetch(`/api/admin/builder/menus/layout?${params.toString()}`, {
+    const res = await fetch(`/api/admin/menus/layout?${params.toString()}`, {
       cache: "no-store",
     });
 

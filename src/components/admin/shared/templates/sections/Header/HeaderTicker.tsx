@@ -262,7 +262,7 @@ export function HeaderCompact({
   quickLinks = DEFAULT_QUICK_LINKS,
   trendingKeywords = DEFAULT_TRENDING,
   onSearchSubmit,
-  menuApiUrl = "/api/admin/builder/menus/header-menu",
+  menuApiUrl = "/api/admin/menus/header-menu",
   menuSetKey = "home",
   menuSiteIdKey = "builder_site_id",
   preview = false,
@@ -933,7 +933,7 @@ export const SHOP_HEADER_TICKER: RegItem = {
     qrTitle: "Tải ứng dụng",
     qrHint: "Quét QR để xem nhanh",
     navItems: "[]",
-    menuApiUrl: "/api/admin/builder/menus/header-menu",
+    menuApiUrl: "/api/admin/menus/header-menu",
     menuSetKey: "home",
     menuSiteIdKey: "builder_site_id",
     isAuthed: 0,
@@ -982,7 +982,7 @@ export const SHOP_HEADER_TICKER: RegItem = {
           qrHint={p.qrHint}
           preview={p.preview}
           navItems={navItems}
-          menuApiUrl={p.menuApiUrl || "/api/admin/builder/menus/header-menu"}
+          menuApiUrl={p.menuApiUrl || "/api/admin/menus/header-menu"}
           menuSetKey={p.menuSetKey || "home"}
           menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
           isAuthed={Number(p.isAuthed) === 1}

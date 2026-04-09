@@ -12,15 +12,26 @@ type Ctx = {
   setMeta: (m: AdminHeaderMeta) => void;
 };
 
+type AdminTitleProviderProps = {
+  children: React.ReactNode;
+  title?: string;
+  subtitle?: string;
+};
+
 const AdminTitleContext = createContext<Ctx | null>(null);
 
-export function AdminTitleProvider({ children }: { children: React.ReactNode }) {
+export function AdminTitleProvider({
+  children,
+  title = "Dashboard",
+  subtitle = "Overview & statistics",
+}: AdminTitleProviderProps) {
   const [meta, setMeta] = useState<AdminHeaderMeta>({
-    title: "Dashboard",
-    subtitle: "Overview & statistics",
+    title,
+    subtitle,
   });
 
   const value = useMemo(() => ({ meta, setMeta }), [meta]);
+
   return <AdminTitleContext.Provider value={value}>{children}</AdminTitleContext.Provider>;
 }
 

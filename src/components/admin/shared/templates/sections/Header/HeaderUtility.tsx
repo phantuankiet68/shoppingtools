@@ -384,7 +384,7 @@ export function HeaderUtility({
   navItems,
   quickActions = DEFAULT_QUICK_ACTIONS,
   utilityFeatures = DEFAULT_FEATURES,
-  menuApiUrl = "/api/admin/builder/menus/header-menu",
+  menuApiUrl = "/api/admin/menus/header-menu",
   menuSetKey = "home",
   menuSiteIdKey = "builder_site_id",
   onSearchSubmit,
@@ -1035,7 +1035,7 @@ export const SHOP_HEADER_UTILITY: RegItem = {
     spotlightTitle: "New Season Collection",
     spotlightHref: "/collections/new-season",
     navItems: "[]",
-    menuApiUrl: "/api/admin/builder/menus/header-menu",
+    menuApiUrl: "/api/admin/menus/header-menu",
     menuSetKey: "home",
     menuSiteIdKey: "builder_site_id",
     isAuthed: 0,
@@ -1080,7 +1080,7 @@ export const SHOP_HEADER_UTILITY: RegItem = {
           spotlightHref={toStringOrUndefined(p.spotlightHref) ?? "/collections/new-season"}
           preview={Boolean(p.preview)}
           navItems={parsedNavItems}
-          menuApiUrl={toStringOrUndefined(p.menuApiUrl) ?? "/api/admin/builder/menus/header-menu"}
+          menuApiUrl={toStringOrUndefined(p.menuApiUrl) ?? "/api/admin/menus/header-menu"}
           menuSetKey={toStringOrUndefined(p.menuSetKey) ?? "home"}
           menuSiteIdKey={toStringOrUndefined(p.menuSiteIdKey) ?? "builder_site_id"}
           isAuthed={toNumber(p.isAuthed) === 1}

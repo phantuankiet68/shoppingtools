@@ -2,7 +2,7 @@ import 'server-only';
 import { headers } from 'next/headers';
 import type { AdminAuthData } from '@/components/admin/providers/AdminAuthProvider';
 
-export async function getAdminAuth(): Promise<AdminAuthData> {
+export async function getAdminAuth(): Promise<AdminAuthData | null> {
   const h = await headers();
   const host = h.get('host');
 
@@ -15,14 +15,17 @@ export async function getAdminAuth(): Promise<AdminAuthData> {
 
   const res = await fetch(`${protocol}://${host}/api/admin/auth/me`, {
     method: 'GET',
-    headers: {
-      cookie,
-    },
+    headers: { cookie },
     cache: 'no-store',
   });
 
+  // ✅ FIX ở đây
+  if (res.status === 401) {
+    return null;
+  }
+
   if (!res.ok) {
-    throw new Error('Failed to fetch admin auth');
+    throw new Error(`Failed to fetch admin auth: ${res.status}`);
   }
 
   return res.json();

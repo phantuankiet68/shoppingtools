@@ -59,7 +59,7 @@ export const useSiteStore = create<SiteState>((set, get) => ({
     try {
       set({ loading: true, err: "" });
 
-      const res = await fetch("/api/admin/builder/sites", { cache: "no-store" });
+      const res = await fetch("/api/admin/sites", { cache: "no-store" });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         const errorObj = j as { error?: string; message?: string };

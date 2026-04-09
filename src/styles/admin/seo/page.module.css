@@ -1,0 +1,653 @@
+.page {
+  color: #0f172a;
+  padding: 18px;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brandCard,
+.navCard,
+.scoreCard,
+.panel,
+.previewCard,
+.miniStat,
+.stickyBar,
+.switchCard,
+.readonlyBox {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.brandCard,
+.navCard,
+.scoreCard,
+.panel,
+.stickyBar {
+  border-radius: 28px;
+}
+
+.brandCard,
+.navCard,
+.scoreCard,
+.panel {
+  padding: 20px;
+}
+
+.brandTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.brandMark {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #111827 0%, #334155 100%);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.eyebrow,
+.panelKicker,
+.stickyLabel,
+.cardHead span,
+.previewBadge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.pageTitle {
+  margin: 2px 0 0;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.pageIntro {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardHead strong {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navItem {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 16px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #334155;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.navItem:hover {
+  background: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.navItemActive {
+  background: linear-gradient(180deg, #ffffff 0%, #f3f6fb 100%);
+  border-color: rgba(99, 102, 241, 0.18);
+  color: #111827;
+}
+
+.navItemLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.scoreCard[data-tone='excellent'] .scoreBarFill {
+  background: linear-gradient(90deg, #0f172a 0%, #10b981 100%);
+}
+
+.scoreCard[data-tone='good'] .scoreBarFill {
+  background: linear-gradient(90deg, #0f172a 0%, #3b82f6 100%);
+}
+
+.scoreCard[data-tone='fair'] .scoreBarFill {
+  background: linear-gradient(90deg, #334155 0%, #f59e0b 100%);
+}
+
+.scoreCard[data-tone='weak'] .scoreBarFill {
+  background: linear-gradient(90deg, #64748b 0%, #ef4444 100%);
+}
+
+.scoreBar {
+  height: 10px;
+  border-radius: 999px;
+  background: #edf2f7;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.scoreBarFill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.scoreMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.miniStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.miniStat {
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.miniStat span {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.miniStat strong {
+  font-size: 20px;
+  letter-spacing: -0.04em;
+}
+
+.main {
+  min-width: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stickyBar {
+  position: sticky;
+  top: 24px;
+  z-index: 5;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.stickyTitle {
+  margin: 4px 0 0;
+  font-size: 24px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.stickyActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.primaryButton,
+.ghostButton {
+  height: 46px;
+  border-radius: 16px;
+  padding: 0 18px;
+  border: 1px solid #dbe3ec;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primaryButton {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.ghostButton {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.primaryButton:hover,
+.ghostButton:hover,
+.navItem:hover {
+  transform: translateY(-1px);
+}
+
+.panel {
+  scroll-margin-top: 120px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.panelHeader h3 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.panelHint {
+  color: #64748b;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.field input,
+.field textarea,
+.selectWrap,
+.prefixInput,
+.readonlyBox {
+  width: 100%;
+  min-width: 0;
+  border-radius: 18px;
+  border: 1px solid #dbe3ec;
+  background: #fcfdff;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.field input,
+.field textarea,
+.selectWrap select,
+.prefixInput input,
+.readonlyBox {
+  padding: 15px 16px;
+}
+
+.field input,
+.field textarea,
+.selectWrap select,
+.prefixInput input {
+  outline: none;
+}
+
+.field input:focus,
+.field textarea:focus,
+.selectWrap:focus-within,
+.prefixInput:focus-within {
+  border-color: #94a3b8;
+  background: #ffffff;
+}
+
+.field small {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.warning {
+  color: #dc2626 !important;
+}
+
+.inputWrap,
+.textareaWrap {
+  position: relative;
+}
+
+.counter {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  height: 28px;
+  min-width: 48px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.94);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.textareaWrap textarea {
+  padding-right: 76px;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.inputWrap input {
+  padding-right: 76px;
+}
+
+.prefixInput {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.prefixInput span {
+  padding-left: 16px;
+  color: #64748b;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.prefixInput input {
+  border: none;
+  background: transparent;
+  padding-left: 8px;
+}
+
+.selectWrap {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.selectWrap select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+}
+
+.selectWrap i {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+
+.readonlyBox {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.toggleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.switchCard {
+  border-radius: 22px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+}
+
+.switchCard strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.switchCard span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.switchCard input {
+  width: 18px;
+  height: 18px;
+  accent-color: #0f172a;
+  flex-shrink: 0;
+}
+
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.previewCard {
+  border-radius: 24px;
+  padding: 18px;
+}
+
+.previewTop {
+  margin-bottom: 14px;
+}
+
+.googlePreview {
+  border-radius: 20px;
+  border: 1px solid #e7edf4;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 18px;
+}
+
+.googleUrl {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #15803d;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.googlePreview h4 {
+  margin: 0 0 8px;
+  color: #1d4ed8;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.googlePreview p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.socialPreview {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e7edf4;
+  background: #ffffff;
+}
+
+.socialThumb {
+  height: 220px;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(71, 85, 105, 0.88)),
+    #1e293b;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+}
+
+.socialBody {
+  padding: 16px;
+}
+
+.socialBody small {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+}
+
+.socialBody h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.socialBody p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+@media (max-width: 1280px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .stickyBar {
+    top: 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .grid,
+  .toggleGrid,
+  .previewGrid,
+  .miniStats {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeader,
+  .stickyBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .panelHint {
+    white-space: normal;
+  }
+
+  .stickyActions {
+    width: 100%;
+  }
+
+  .primaryButton,
+  .ghostButton {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px;
+  }
+
+  .brandCard,
+  .navCard,
+  .scoreCard,
+  .panel,
+  .stickyBar {
+    border-radius: 22px;
+    padding: 16px;
+  }
+
+  .pageTitle {
+    font-size: 24px;
+  }
+
+  .stickyTitle,
+  .panelHeader h3 {
+    font-size: 20px;
+  }
+
+  .socialThumb {
+    height: 180px;
+  }
+}

@@ -360,7 +360,7 @@ export function HeaderCompact({
   notifications = DEFAULT_NOTIFICATIONS,
   notificationHref = "/notifications",
   preview = false,
-  menuApiUrl = "/api/admin/builder/menus/header-menu",
+  menuApiUrl = "/api/admin/menus/header-menu",
   menuSetKey = "home",
   menuSiteIdKey = "builder_site_id",
   isAuthed = false,
@@ -1377,7 +1377,7 @@ export const SHOP_HEADER_COMPACT: RegItem = {
     badgeStoreLocator: 2,
     badgeCart: 0,
     navItems: "[]",
-    menuApiUrl: "/api/admin/builder/menus/header-menu",
+    menuApiUrl: "/api/admin/menus/header-menu",
     menuSetKey: "home",
     menuSiteIdKey: "builder_site_id",
     isAuthed: 0,
@@ -1414,7 +1414,7 @@ export const SHOP_HEADER_COMPACT: RegItem = {
           badgeCart={p.badgeCart}
           preview={p.preview}
           navItems={navItems}
-          menuApiUrl={p.menuApiUrl || "/api/admin/builder/menus/header-menu"}
+          menuApiUrl={p.menuApiUrl || "/api/admin/menus/header-menu"}
           menuSetKey={p.menuSetKey || "home"}
           menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
           isAuthed={Number(p.isAuthed) === 1}

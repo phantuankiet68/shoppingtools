@@ -45,7 +45,7 @@ export type HeaderAuroraPinkConfig = {
   showAuth?: boolean;
   authLabel?: string;
 
-  /** Tham số cho auto-load menu /api/admin/builder/menus */
+  /** Tham số cho auto-load menu /api/admin/menus */
   locale?: string;
   siteId?: string;
   setKey?: string;
@@ -59,7 +59,7 @@ export interface HeaderAuroraPinkProps extends HeaderAuroraPinkConfig {
   className?: string;
 }
 
-/** ===== Types DB giống HeaderPro (dùng khi auto load từ /api/admin/builder/menus) ===== */
+/** ===== Types DB giống HeaderPro (dùng khi auto load từ /api/admin/menus) ===== */
 type DbMenuItem = {
   id: string;
   siteId: string;
@@ -214,9 +214,9 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
     };
   }, [autoLoadMenu, menuApiUrl, onMenuLoaded]);
 
-  /** ===== useEffect 2: auto load menu từ /api/admin/builder/menus (giống HeaderPro) ===== */
+  /** ===== useEffect 2: auto load menu từ /api/admin/menus (giống HeaderPro) ===== */
   useEffect(() => {
-    // Nếu đang dùng menuApiUrl thì không gọi /api/admin/builder/menus nữa
+    // Nếu đang dùng menuApiUrl thì không gọi /api/admin/menus nữa
     if (!autoLoadMenu || menuApiUrl) {
       // Nếu autoLoadMenu = false mà có navItems truyền từ ngoài thì sync vào state
       if (!autoLoadMenu && menuItems && menuItems.length) {
@@ -236,7 +236,7 @@ const HeaderAuroraPink: React.FC<HeaderAuroraPinkProps> = (props) => {
         params.set("setKey", setKey ?? "home");
         if (siteId) params.set("siteId", siteId);
 
-        const res = await fetch(`/api/admin/builder/menus?${params.toString()}`, {
+        const res = await fetch(`/api/admin/menus?${params.toString()}`, {
           cache: "no-store",
         });
 

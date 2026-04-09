@@ -182,7 +182,7 @@ export function Header1({
 
   navItems,
   preview = false,
-  menuApiUrl = "/api/admin/builder/menus/header-menu",
+  menuApiUrl = "/api/admin/menus/header-menu",
   menuSetKey = "home",
   menuSiteIdKey = "builder_site_id",
 
@@ -822,7 +822,7 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
 
     navItems: "[]",
 
-    menuApiUrl: "/api/admin/builder/menus/header-menu",
+    menuApiUrl: "/api/admin/menus/header-menu",
     menuSetKey: "home",
     menuSiteIdKey: "builder_site_id",
 
@@ -864,7 +864,7 @@ export const SHOP_HEADER_GREEN_ONE: RegItem = {
           badgeCart={p.badgeCart}
           preview={p.preview}
           navItems={navItems ?? []}
-          menuApiUrl={p.menuApiUrl || "/api/admin/builder/menus/header-menu"}
+          menuApiUrl={p.menuApiUrl || "/api/admin/menus/header-menu"}
           menuSetKey={p.menuSetKey || "home"}
           menuSiteIdKey={p.menuSiteIdKey || "builder_site_id"}
           isAuthed={Number(p.isAuthed) === 1}

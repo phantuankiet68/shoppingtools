@@ -61,7 +61,7 @@ const HeaderAuroraPinkEditor: React.FC<EditorProps> = ({ props, updateActive }) 
           <TextInput
             value={props.menuApiUrl ?? ""}
             onChange={(v) => updateActive({ menuApiUrl: v })}
-            placeholder="/api/admin/builder/menus?..."
+            placeholder="/api/admin/menus?..."
           />
         </LabeledRow>
 
