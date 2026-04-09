@@ -243,7 +243,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 1200;
   background: #d6efff8c;
   display: flex;
   align-items: center;

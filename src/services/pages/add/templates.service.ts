@@ -1,6 +1,6 @@
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import { TEMPLATES } from "@/constants/builder/pages/templates.constants";
-import type { BuilderTemplate, RegistryKind } from "@/constants/builder/pages/templates.constants";
+import { TEMPLATES } from "@/constants/pages/templates.constants";
+import type { BuilderTemplate, RegistryKind } from "@/constants/pages/templates.constants";
 
 export function filterTemplates(args: {
   templates: readonly BuilderTemplate[];

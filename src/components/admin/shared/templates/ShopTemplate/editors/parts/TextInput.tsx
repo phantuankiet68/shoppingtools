@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import cls from "@/styles/admin/builder/pages/inspector.module.css";
+import cls from "@/styles/admin/pages/inspector.module.css";
 
 type Props = {
   value: string;

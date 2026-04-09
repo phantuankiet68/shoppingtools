@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import type { Block } from "@/lib/builder/pages/types";
+import type { Block } from "@/lib/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import type { InspectorField } from "@/lib/ui-builder/types";
-import cls from "@/styles/admin/builder/pages/inspector.module.css";
+import cls from "@/styles/admin/pages/inspector.module.css";
 
 import { CUSTOM_EDITORS } from "@/components/admin/shared/templates/ShopTemplate/editors";
 

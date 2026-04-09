@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import styles from "@/styles/admin/layouts/DashboardA.module.css";
-import ActiveProjectsUsers from "@/components/admin/builder/pages/ActiveProjectsUsers";
+import ActiveProjectsUsers from "@/components/admin/pages/ActiveProjectsUsers";
 export default function DashboardA() {
   return (
     <div className={styles.dashboard}>

@@ -1,4 +1,4 @@
-// features/builder/pages/messages.ts
+// features/pages/messages.ts
 
 export const PAGE_MESSAGES = {
   confirmDelete: "Delete this page? This action is irreversible.",

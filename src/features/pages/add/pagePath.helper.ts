@@ -1,4 +1,4 @@
-import { slugify } from "@/lib/builder/pages/utils";
+import { slugify } from "@/lib/pages/utils";
 
 export function ensureLeadingSlash(p?: string | null) {
   if (!p) return "/";

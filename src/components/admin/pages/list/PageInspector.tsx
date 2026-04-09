@@ -5,7 +5,7 @@ import styles from "@/styles/admin/pages/PageInspector.module.css";
 import { API_ROUTES } from "@/constants/api";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import { useModal } from "@/components/admin/shared/common/modal";
-import { fillAutoSEO, PageRow, SEO } from "@/lib/builder/pages/types";
+import { fillAutoSEO, PageRow, SEO } from "@/lib/pages/types";
 import { useSiteStore } from "@/store/site/site.store";
 
 type Props = {

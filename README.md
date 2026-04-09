@@ -391,112 +391,21 @@ Hiện tại design rất xấu và chua có phong cách chuyên nghiệp nên h
 
 c
 low-code = drag & drop builder chuyển đổi AI + low-code
+à tôi đang lấy sit id theo import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
+  const { user, site, currentWorkspace } = useAdminAuth();
+  const userId = user?.id ?? '';
+  const siteId = site?.id ?? '';
+  const workspaceName = currentWorkspace?.name ?? '';
+  const siteName = site?.name ?? '';
+  const siteDomain = site?.domain ?? '';
 
-low-code = design system engine
 
-Nên chuyển sang mô hình metadata-driven resource.
+Ban có thể chỉnh sửa và ghi lại toàn bộ file HeaderAnnouncement.tsx giúp tôi nhé và nếu như kiểm tra có phần dư và tốn thêm api không cần thiết hãy xóa ra giúp tôi nhé 
 
-Bắt buộc có RBAC + tenant isolation + RLS + audit log + least privilege.
+Trang danh sách sản phẩm có thể dùng ISR để đảm bảo tốc độ nhanh và vẫn cập nhật dữ liệu định kỳ
+Trang chi tiết sản phẩm có thể dùng SSG hoặc ISR nếu dữ liệu không thay đổi thường xuyên
+Các phần cần dữ liệu realtime như giỏ hàng hoặc user-specific data thì sẽ dùng CSR hoặc SSR
 
-Điều công ty sẽ thích ở bạn
-
-Nếu bạn đi phỏng vấn và nói:
-
-"Tôi đã build một low-code SaaS system trong 1 năm"
-
-Người phỏng vấn sẽ hỏi:
-
-multi-tenant làm thế nào?
-
-database model ra sao?
-
-auth thế nào?
-
-deploy thế nào?
-
-Nếu bạn trả lời được → ấn tượng rất mạnh.
-
-1️⃣ Kỹ năng cốt lõi (Technical Mastery)
-
-Bạn đã có hướng khá rõ: performance + architecture + SaaS systems. Từ giờ tới 2030, nếu muốn bứt phá trong ngành dev, bạn nên tập trung sâu vào vài thứ:
-
-System design / architecture (multi-tenant, scalability, caching, queues)
-
-Backend performance (database design, indexing, async jobs)
-
-Security cơ bản cho SaaS (auth, permission, tenant isolation)
-
-Cloud & deployment (Docker, CI/CD, monitoring)
-
-AI integration (không cần làm model, nhưng biết dùng AI vào product)
-
-Nếu bạn giỏi mấy thứ này, bạn có thể trở thành:
-
-Senior / Staff Engineer
-
-Platform engineer
-
-hoặc founder kỹ thuật
-
-2️⃣ Tài sản công nghệ của riêng bạn
-
-Project low-code của bạn không chỉ là project học tập. Nếu phát triển tốt, nó có thể trở thành:
-
-engine SaaS của riêng bạn
-
-template ecommerce để bán cho người khác
-
-portfolio rất mạnh khi đi xin việc
-
-Bạn nên đặt mục tiêu:
-
-2025–2026: deploy hệ thống, dùng thật
-2026–2027: cải tiến architecture, performance
-2027–2028: thêm template / automation / AI
-2028–2030: có user thật hoặc thu nhập phụ
-
-Không cần quá lớn; chỉ cần thực sự chạy được và dùng được.
-
-3️⃣ Ổn định cuộc sống
-
-Để đến 2030 cảm thấy “ổn”, thường cần 3 yếu tố:
-
-thu nhập ổn định (job hoặc sản phẩm)
-
-kỹ năng có giá trị cao (để không sợ thất nghiệp)
-
-một tài sản cá nhân (project, business, hoặc đầu tư)
-
-Bạn đang đi theo hướng khá tốt vì:
-
-bạn thích xây system lớn
-
-bạn có project dài hạn
-
-bạn muốn tự chủ platform
-
-4️⃣ Nhưng có một điều mình muốn bạn nhớ
-
-2030 còn vài năm nữa. Nếu bạn cứ nghĩ:
-
-phải bứt phá ngay
-phải thành công nhanh
-
-thì dễ tự tạo áp lực cho mình.
-
-Thực tế, người bứt phá thường là người kiên trì tiến từng bước nhưng không dừng.
-
-✅ Tóm lại, nếu hướng tới 2030, bạn nên tập trung:
-
-nâng cấp architecture & system design
-
-hoàn thiện project SaaS của mình
-
-deploy và dùng trong đời sống thật
-
-học thêm cloud + performance + AI integration
-
-Những thứ này sẽ giúp bạn không bị mắc kẹt ở mức junior.
 
 hiện tại design chưa được đẹp và hoàn chỉnh tôi có cảm giác chưa có bố cục rõ ràng và minh bạch. Ui không phù hợp với phong cách mới mẽ. Bạn có thể độ design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ nhé, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file. Hãy giữ sự chuyên nghiệp nhưng giảm whitespace + tăng mật độ thông tin (information density) kiểu admin tool.
 Đặc biệt cần phải có đoạn code bên dưới nhé

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import cls from "@/styles/admin/builder/pages/design-header.module.css";
+import cls from "@/styles/admin/pages/design-header.module.css";
 
 type Device = "desktop" | "tablet" | "mobile";
 

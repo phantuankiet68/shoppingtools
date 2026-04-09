@@ -1,5 +1,5 @@
 import { API_ROUTES } from "@/constants/api";
-import type { Block, SEO } from "@/lib/builder/pages/types";
+import type { Block, SEO } from "@/lib/pages/types";
 
 export type AdminPageDto = {
   id: string;

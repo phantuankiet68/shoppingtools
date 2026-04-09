@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
-import styles from "@/styles/admin/builder/pages/page/page.module.css";
-import type { PageRow } from "@/lib/builder/pages/types";
+import styles from "@/styles/admin/pages/page/page.module.css";
+import type { PageRow } from "@/lib/pages/types";
 
-import { PAGE_MESSAGES as M } from "@/features/builder/pages/messages";
+import { PAGE_MESSAGES as M } from "@/features/pages/messages";
 
 type SortKey = "updatedAt" | "createdAt" | "title";
 type SortDir = "asc" | "desc";

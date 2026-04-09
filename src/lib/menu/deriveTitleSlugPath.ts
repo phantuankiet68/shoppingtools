@@ -1,5 +1,5 @@
-import { slugify } from "@/lib/builder/pages/utils";
-import type { BuilderMenuItem, InternalPage } from "@/components/admin/builder/menus/state/useMenuStore";
+import { slugify } from "@/lib/pages/utils";
+import type { BuilderMenuItem, InternalPage } from "@/components/admin/menus/state/useMenuStore";
 
 export type TSP = { title: string; slug: string; path: string };
 

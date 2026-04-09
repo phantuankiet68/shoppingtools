@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/builder/integrations/integrations.module.css";
+import styles from "@/styles/admin/integrations/integrations.module.css";
 
 type IntegrationCategory = "all" | "payments" | "email" | "analytics" | "storage" | "ai" | "crm";
 type IntegrationStatus = "disconnected" | "connected" | "error";

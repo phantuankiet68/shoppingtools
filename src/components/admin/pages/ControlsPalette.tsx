@@ -3,10 +3,10 @@
 import React from "react";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import type { RegItem } from "@/lib/ui-builder/types";
-import styles from "@/styles/admin/builder/pages/navigators.module.css";
+import styles from "@/styles/admin/pages/navigators.module.css";
 
-import { useControlsPaletteStore } from "@/store/builder/pages/add/controlsPalette.store";
-import { filterTemplates, TEMPLATES, type RegistryKind } from "@/services/builder/pages/add/templates.service";
+import { useControlsPaletteStore } from "@/store/pages/add/controlsPalette.store";
+import { filterTemplates, TEMPLATES, type RegistryKind } from "@/services/pages/add/templates.service";
 
 type Props = {
   search: string;

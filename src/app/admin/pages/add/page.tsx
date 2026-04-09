@@ -2,28 +2,28 @@
 
 import React, { useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import styles from "@/styles/admin/builder/pages/add.module.css";
-import DesignHeader from "@/components/admin/builder/pages/DesignHeader";
-import { ControlsPalette, Canvas, Inspector } from "@/components/admin/builder/pages";
+import styles from "@/styles/admin/pages/add.module.css";
+import DesignHeader from "@/components/admin/pages/DesignHeader";
+import { ControlsPalette, Canvas, Inspector } from "@/components/admin/pages";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 
-import type { Block, DropMeta } from "@/lib/builder/pages/types";
+import type { Block, DropMeta } from "@/lib/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import { useUiBuilderAddStore } from "@/store/builder/pages/add/uiBuilderAdd.store";
+import { useUiBuilderAddStore } from "@/store/pages/add/uiBuilderAdd.store";
 import { useSiteStore } from "@/store/site/site.store";
-import { fetchAdminPage, publishAdminPage, saveAdminPage } from "@/services/builder/pages/add/adminPages.service";
+import { fetchAdminPage, publishAdminPage, saveAdminPage } from "@/services/pages/add/adminPages.service";
 
 import {
   ensureLeadingSlash,
   originFromDomain,
   normalizeSlugAndPath,
-} from "@/features/builder/pages/add/pagePath.helper";
+} from "@/features/pages/add/pagePath.helper";
 import {
   buildDroppedSingleBlock,
   buildDroppedTemplateBlocks,
   normalizeBlocks,
-} from "@/features/builder/pages/add/blocks.helper";
-import { BUILDER_ADD_MESSAGES } from "@/features/builder/pages/add/messages";
+} from "@/features/pages/add/blocks.helper";
+import { BUILDER_ADD_MESSAGES } from "@/features/pages/add/messages";
 
 type RouteParams = {
   locale?: "en";
@@ -399,7 +399,7 @@ export default function UiBuilderAddPage() {
   }, [effectivePath, selectedSite]);
 
   const handleRefresh = React.useCallback(() => {
-    window.location.href = "/admin/builder/pages";
+    window.location.href = "/admin/pages";
   }, []);
 
   const functionKeyActions = useMemo(

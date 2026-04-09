@@ -153,7 +153,7 @@ export default function PageClient() {
       params.set("templateName", templateMeta.name);
     }
 
-    router.push(`/admin/builder/pages/add?${params.toString()}`);
+    router.push(`/admin/pages/add?${params.toString()}`);
   };
 
   function openPreview(p: PageRowWithSite) {

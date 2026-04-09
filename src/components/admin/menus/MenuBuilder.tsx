@@ -18,14 +18,7 @@ import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunc
 import { useModal } from "@/components/admin/shared/common/modal";
 
 const SITE_KIND_OPTIONS: { value: SiteKind; label: string }[] = [
-  { value: "landing", label: "Landing" },
-  { value: "blog", label: "Blog" },
-  { value: "company", label: "Company" },
   { value: "ecommerce", label: "eCommerce" },
-  { value: "booking", label: "Booking" },
-  { value: "news", label: "News" },
-  { value: "lms", label: "LMS" },
-  { value: "directory", label: "Directory" },
 ];
 
 type SiteItem = {

@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "@/styles/admin/builder/theme/theme-builder.module.css";
+import styles from "@/styles/admin/theme/theme-builder.module.css";
 import { useTemplateEditorStore } from "@/store/builder/themes/useTemplateEditorStore";
 import { useMemo } from "react";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";

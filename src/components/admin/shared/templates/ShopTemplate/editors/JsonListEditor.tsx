@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import cls from "@/styles/admin/builder/pages/inspector.module.css";
+import cls from "@/styles/admin/pages/inspector.module.css";
 import Section from "./parts/Section";
 import TextInput from "./parts/TextInput";
 import LabeledRow from "./parts/LabeledRow";

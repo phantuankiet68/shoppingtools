@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useModal } from "@/components/admin/shared/common/modal";
 import styles from "@/styles/admin/pages/pageList.module.css";
-import type { PageRow } from "@/lib/builder/pages/types";
+import type { PageRow } from "@/lib/pages/types";
 import { PAGE_MESSAGES as M } from "@/features/pages/messages";
 
 type SortKey = "updatedAt" | "createdAt" | "title";

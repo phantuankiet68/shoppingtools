@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import type { Block, DropMeta, InternalProps } from "@/lib/builder/pages/types";
+import type { Block, DropMeta, InternalProps } from "@/lib/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
-import cls from "@/styles/admin/builder/pages/canvas.module.css";
+import cls from "@/styles/admin/pages/canvas.module.css";
 
 type Device = "desktop" | "tablet" | "mobile";
 

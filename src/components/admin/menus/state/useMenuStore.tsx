@@ -11,15 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import {
-  BLOG_HEADER_BASIC,
-  BOOKING_HEADER_BASIC,
-  COMPANY_HEADER_BASIC,
-  DIRECTORY_HEADER_BASIC,
   ECOMMERCE_HEADER_FULL,
   INTERNAL_PAGE_SETS,
-  LMS_HEADER_BASIC,
-  NEWS_HEADER_BASIC,
-  LANDING_HEADER_BASIC,
   TEMPLATE_ALLOWED_BY_SITE,
 } from "@/constants/ecommerce.menu";
 import {
@@ -31,14 +24,7 @@ import {
 export type MenuSetKey = "home" | "v1";
 
 export type SiteKind =
-  | "landing"
-  | "blog"
-  | "company"
   | "ecommerce"
-  | "booking"
-  | "news"
-  | "lms"
-  | "directory";
 
 export type TemplateKey = "header" | "sidebar" | "mega" | "drawer";
 
@@ -312,44 +298,9 @@ function buildDefaultMenusBySiteKind(kind: SiteKind): MenuState {
   const pages = INTERNAL_PAGE_SETS[kind] ?? [];
 
   switch (kind) {
-    case "landing":
-      return {
-        home: buildMenuFromLabels(LANDING_HEADER_BASIC, pages),
-        v1: [],
-      };
-    case "blog":
-      return {
-        home: buildMenuFromLabels(BLOG_HEADER_BASIC, pages),
-        v1: [],
-      };
-    case "company":
-      return {
-        home: buildMenuFromLabels(COMPANY_HEADER_BASIC, pages),
-        v1: [],
-      };
     case "ecommerce":
       return {
         home: buildMenuFromLabels(ECOMMERCE_HEADER_FULL, pages),
-        v1: [],
-      };
-    case "booking":
-      return {
-        home: buildMenuFromLabels(BOOKING_HEADER_BASIC, pages),
-        v1: [],
-      };
-    case "news":
-      return {
-        home: buildMenuFromLabels(NEWS_HEADER_BASIC, pages),
-        v1: [],
-      };
-    case "lms":
-      return {
-        home: buildMenuFromLabels(LMS_HEADER_BASIC, pages),
-        v1: [],
-      };
-    case "directory":
-      return {
-        home: buildMenuFromLabels(DIRECTORY_HEADER_BASIC, pages),
         v1: [],
       };
     default:
