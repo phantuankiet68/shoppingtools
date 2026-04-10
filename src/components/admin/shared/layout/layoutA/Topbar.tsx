@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import styles from "@/styles/admin/layouts/Topbar.module.css";
 import { useAdminLayoutStore } from "@/store/layout/layouta/index";
 import { FunctionKeyBar, type FunctionKeyCode } from "@/components/admin/shared/layout/function-keys";
 import { useFunctionKeysContext } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
+import { useAdminUser } from "@/components/admin/providers/AdminAuthProvider";
 
 type Props = {
   meta: { title: string; subtitle?: string | null };
@@ -26,9 +27,16 @@ export default function Topbar({ meta, onLogout }: Props) {
   } = useAdminLayoutStore();
 
   const { items, actions } = useFunctionKeysContext();
+  const adminUser = useAdminUser();
+
+  const isSystemAdmin = adminUser.systemRole?.toUpperCase() === "ADMIN";
+
+  const [searchValue, setSearchValue] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const notiRef = useRef<HTMLDivElement | null>(null);
+  const chatRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function onDocMouseDown(e: MouseEvent) {
@@ -41,12 +49,17 @@ export default function Topbar({ meta, onLogout }: Props) {
       if (notiRef.current && !notiRef.current.contains(t)) {
         setNotiOpen(false);
       }
+
+      if (chatRef.current && !chatRef.current.contains(t)) {
+        setChatOpen(false);
+      }
     }
 
     function onEsc(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       setUserMenuOpen(false);
       setNotiOpen(false);
+      setChatOpen(false);
     }
 
     document.addEventListener("mousedown", onDocMouseDown);
@@ -65,6 +78,17 @@ export default function Topbar({ meta, onLogout }: Props) {
 
   const handleFunctionClick = (key: FunctionKeyCode) => {
     actions[key]?.();
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!searchValue.trim()) return;
+
+    console.log("Search help:", searchValue);
+    // Gợi ý:
+    // router.push(`/admin/help?q=${encodeURIComponent(searchValue.trim())}`);
+    // hoặc mở command/help modal
   };
 
   return (
@@ -92,10 +116,119 @@ export default function Topbar({ meta, onLogout }: Props) {
         </div>
 
         <div className={styles.topbarCenter}>
-          <FunctionKeyBar items={items} onClick={handleFunctionClick} />
+          {isSystemAdmin ? (
+            <form className={styles.topbarSearch} onSubmit={handleSearchSubmit}>
+              <span className={styles.topbarSearchIcon}>
+                <i className="bi bi-search" />
+              </span>
+
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                className={styles.topbarSearchInput}
+                placeholder="Search"
+                aria-label="Search help and features"
+              />
+
+              <button
+                type="submit"
+                className={styles.topbarSearchVisual}
+                aria-label="Submit search"
+                title="Search"
+              >
+                <img
+                  src="/assets/images/iconSearch.png"
+                  alt=""
+                  className={styles.topbarSearchImage}
+                />
+              </button>
+            </form>
+          ) : (
+            <FunctionKeyBar items={items} onClick={handleFunctionClick} />
+          )}
         </div>
 
         <div className={styles.topbarRight}>
+          {isSystemAdmin && (
+            <>
+              <div className={styles.quickActions}>
+                <div className={styles.chatWrap} ref={chatRef}>
+                  <button
+                    className={styles.iconBtn}
+                    type="button"
+                    aria-label="Open chats"
+                    aria-haspopup="menu"
+                    aria-expanded={chatOpen}
+                    onClick={() => setChatOpen((prev) => !prev)}
+                  >
+                    <i className="bi bi-chat-dots" />
+                    <span className={styles.chatBadge}>5</span>
+                  </button>
+
+                  {chatOpen && (
+                    <div className={styles.dropdownCard} role="menu" aria-label="Chat menu">
+                      <div className={styles.dropdownHeader}>
+                        <div>
+                          <div className={styles.dropdownTitle}>User Chats</div>
+                          <div className={styles.dropdownSubtitle}>5 cuộc trò chuyện cần xem</div>
+                        </div>
+
+                        <Link className={styles.textButton} href="/admin/chats">
+                          View all
+                        </Link>
+                      </div>
+
+                      <div className={styles.chatList}>
+                        <button className={styles.chatItem} type="button">
+                          <div className={styles.chatAvatar}>L</div>
+                          <div className={styles.chatContent}>
+                            <div className={styles.chatTopRow}>
+                              <span className={styles.chatName}>Linh</span>
+                              <span className={styles.chatTime}>2m</span>
+                            </div>
+                            <div className={styles.chatMessage}>Em cần hỗ trợ đơn hàng #A1024</div>
+                          </div>
+                        </button>
+
+                        <button className={styles.chatItem} type="button">
+                          <div className={styles.chatAvatar}>N</div>
+                          <div className={styles.chatContent}>
+                            <div className={styles.chatTopRow}>
+                              <span className={styles.chatName}>Ngọc</span>
+                              <span className={styles.chatTime}>8m</span>
+                            </div>
+                            <div className={styles.chatMessage}>Sản phẩm này còn hàng không ạ?</div>
+                          </div>
+                        </button>
+
+                        <button className={styles.chatItem} type="button">
+                          <div className={styles.chatAvatar}>H</div>
+                          <div className={styles.chatContent}>
+                            <div className={styles.chatTopRow}>
+                              <span className={styles.chatName}>Hải</span>
+                              <span className={styles.chatTime}>15m</span>
+                            </div>
+                            <div className={styles.chatMessage}>Mình cần xuất hóa đơn VAT</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <Link
+                  href="/admin/settings"
+                  className={styles.iconBtn}
+                  aria-label="Settings"
+                  title="Settings"
+                >
+                  <i className="bi bi-gear" />
+                </Link>
+              </div>
+            </>
+          )}
+
           <div className={styles.notiWrap} ref={notiRef}>
             <button
               className={styles.iconBtn}
