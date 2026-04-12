@@ -10,8 +10,6 @@ export default function Page() {
   return (
     <main>
       <AdminPageTitle title="Dashboard" />
-      <div>locale: {locale}</div>
-      <div>{t("common.save")}</div>
       <DashboardA />
     </main>
   );

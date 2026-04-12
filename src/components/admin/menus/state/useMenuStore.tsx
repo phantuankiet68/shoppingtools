@@ -20,19 +20,21 @@ import {
   saveMenuTree,
   type DbMenuItem,
 } from "@/services/menus/menuItems.service";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 
 export type MenuSetKey = "home" | "v1";
 
 export type SiteKind =
-  | "ecommerce"
+  | "ecommerce";
 
 export type TemplateKey = "header" | "sidebar" | "mega" | "drawer";
 
+export type MenuLocale = "en" | "vi" | "ja";
+
 export type InternalPage = {
   id: string;
-  path: string;
-  label: string;
-  labelVi?: string;
+  paths: Record<MenuLocale, string>;
+  labelKey: string;
   icon?: string;
   aliases?: string[];
   tags?: string[];
@@ -107,10 +109,6 @@ function normalizePath(value?: string | null): string | null {
   return result;
 }
 
-function normalizeLabel(value?: string | null): string {
-  return (value ?? "").trim().toLowerCase();
-}
-
 function buildTree(rows: DbMenuItem[]): DbTreeNode[] {
   const byId = new Map<string, DbTreeNode>();
   const roots: DbTreeNode[] = [];
@@ -132,6 +130,10 @@ function buildTree(rows: DbMenuItem[]): DbTreeNode[] {
   }
 
   return roots;
+}
+
+function getPagePath(page: InternalPage, locale: MenuLocale): string {
+  return page.paths[locale] ?? page.paths.en ?? "/";
 }
 
 function inferLinkFromPath(
@@ -158,7 +160,9 @@ function inferLinkFromPath(
     };
   }
 
-  const internalPageId = internalPages.find((page) => normalizePath(page.path) === normalizedPath)?.id;
+  const internalPageId = internalPages.find((page) =>
+    Object.values(page.paths).some((p) => normalizePath(p) === normalizedPath),
+  )?.id;
 
   if (internalPageId) {
     return {
@@ -175,19 +179,32 @@ function inferLinkFromPath(
   };
 }
 
-function mapDbTreeToBuilder(nodes: DbTreeNode[], internalPages: InternalPage[]): BuilderMenuItem[] {
+function mapDbTreeToBuilder(
+  nodes: DbTreeNode[],
+  internalPages: InternalPage[],
+  locale: MenuLocale,
+  t: (key: string) => string,
+): BuilderMenuItem[] {
   const walk = (node: DbTreeNode): BuilderMenuItem => {
     const inferred = inferLinkFromPath(node.path, internalPages);
 
+    const matchedPage = inferred.internalPageId
+      ? internalPages.find((page) => page.id === inferred.internalPageId)
+      : undefined;
+
+    const isInternal = inferred.linkType === "internal" && !!matchedPage;
+
     return {
       id: node.id,
-      title: node.title,
-      icon: node.icon ?? undefined,
+      title: isInternal ? t(matchedPage.labelKey) : node.title,
+      icon: node.icon ?? matchedPage?.icon ?? undefined,
       visible: node.visible ?? true,
       linkType: inferred.linkType,
       externalUrl: inferred.externalUrl,
       internalPageId: inferred.internalPageId,
-      rawPath: inferred.rawPath ?? node.path ?? null,
+      rawPath: isInternal
+        ? getPagePath(matchedPage, locale)
+        : (inferred.rawPath ?? node.path ?? null),
       schedules: [],
       children: (node.children ?? []).map(walk),
     };
@@ -196,7 +213,11 @@ function mapDbTreeToBuilder(nodes: DbTreeNode[], internalPages: InternalPage[]):
   return nodes.map(walk);
 }
 
-function resolvePathFromBuilder(item: BuilderMenuItem, internalPages: InternalPage[]): string | null {
+function resolvePathFromBuilder(
+  item: BuilderMenuItem,
+  internalPages: InternalPage[],
+  locale: MenuLocale,
+): string | null {
   const rawPath = typeof item.rawPath === "string" ? item.rawPath.trim() : "";
 
   if (rawPath) return normalizePath(rawPath);
@@ -209,7 +230,7 @@ function resolvePathFromBuilder(item: BuilderMenuItem, internalPages: InternalPa
     const page = item.internalPageId
       ? internalPages.find((candidate) => candidate.id === item.internalPageId)
       : undefined;
-    return page?.path ? normalizePath(page.path) : null;
+    return page ? normalizePath(getPagePath(page, locale)) : null;
   }
 
   return null;
@@ -219,6 +240,7 @@ function flattenBuilderToDb(
   tree: BuilderMenuItem[],
   setKey: MenuSetKey,
   internalPages: InternalPage[],
+  locale: MenuLocale,
 ): Array<{
   id: string;
   parentId: string | null;
@@ -246,7 +268,7 @@ function flattenBuilderToDb(
         id: node.id,
         parentId,
         title: node.title,
-        path: resolvePathFromBuilder(node, internalPages),
+        path: resolvePathFromBuilder(node, internalPages, locale),
         icon: node.icon ?? null,
         sortOrder: index + 1,
         visible: node.visible ?? true,
@@ -263,44 +285,51 @@ function flattenBuilderToDb(
   return output;
 }
 
-function createInternalMenuItem(page: InternalPage): BuilderMenuItem {
+function createInternalMenuItem(
+  page: InternalPage,
+  locale: MenuLocale,
+  t: (key: string) => string,
+): BuilderMenuItem {
   return {
     id: uid(),
-    title: page.label,
+    title: t(page.labelKey),
     icon: page.icon ?? "",
     visible: true,
     linkType: "internal",
     externalUrl: "",
     newTab: false,
     internalPageId: page.id,
-    rawPath: page.path,
+    rawPath: getPagePath(page, locale),
     schedules: [],
     children: [],
   };
 }
 
-function buildMenuFromLabels(labels: readonly string[], pages: InternalPage[]): BuilderMenuItem[] {
-  return labels
-    .map((label) => {
-      const match = pages.find((page) => {
-        if (normalizeLabel(page.label) === normalizeLabel(label)) return true;
-        if (page.labelVi && normalizeLabel(page.labelVi) === normalizeLabel(label)) return true;
-        if (page.aliases?.some((alias) => normalizeLabel(alias) === normalizeLabel(label))) return true;
-        return false;
-      });
-
-      return match ? createInternalMenuItem(match) : null;
+function buildMenuFromPageIds(
+  pageIds: readonly string[],
+  pages: InternalPage[],
+  locale: MenuLocale,
+  t: (key: string) => string,
+): BuilderMenuItem[] {
+  return pageIds
+    .map((pageId) => {
+      const match = pages.find((page) => page.id === pageId);
+      return match ? createInternalMenuItem(match, locale, t) : null;
     })
     .filter((item): item is BuilderMenuItem => item !== null);
 }
 
-function buildDefaultMenusBySiteKind(kind: SiteKind): MenuState {
+function buildDefaultMenusBySiteKind(
+  kind: SiteKind,
+  locale: MenuLocale,
+  t: (key: string) => string,
+): MenuState {
   const pages = INTERNAL_PAGE_SETS[kind] ?? [];
 
   switch (kind) {
     case "ecommerce":
       return {
-        home: buildMenuFromLabels(ECOMMERCE_HEADER_FULL, pages),
+        home: buildMenuFromPageIds(ECOMMERCE_HEADER_FULL, pages, locale, t),
         v1: [],
       };
     default:
@@ -308,11 +337,34 @@ function buildDefaultMenusBySiteKind(kind: SiteKind): MenuState {
   }
 }
 
+function localizeMenuTree(
+  nodes: BuilderMenuItem[],
+  internalPages: InternalPage[],
+  locale: MenuLocale,
+  t: (key: string) => string,
+): BuilderMenuItem[] {
+  return nodes.map((node) => {
+    const matchedPage = node.internalPageId
+      ? internalPages.find((page) => page.id === node.internalPageId)
+      : undefined;
+
+    return {
+      ...node,
+      title: matchedPage ? t(matchedPage.labelKey) : node.title,
+      rawPath: matchedPage ? getPagePath(matchedPage, locale) : node.rawPath,
+      children: localizeMenuTree(node.children ?? [], internalPages, locale, t),
+    };
+  });
+}
+
 export function MenuStoreProvider({ children }: { children: ReactNode }) {
   const [siteKind, setSiteKind] = useState<SiteKind>("ecommerce");
   const [templateKey, setTemplateKey] = useState<TemplateKey>("header");
   const [menus, setMenus] = useState<MenuState>({ home: [], v1: [] });
   const [currentSet, setCurrentSet] = useState<MenuSetKey>("home");
+
+  const { t, locale } = useAdminI18n();
+  const currentLocale = (locale ?? "en") as MenuLocale;
 
   const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind] ?? [], [siteKind]);
   const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind] ?? {}, [siteKind]);
@@ -357,6 +409,13 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    setMenus((prev) => ({
+      home: localizeMenuTree(prev.home, INTERNAL_PAGES, currentLocale, t),
+      v1: localizeMenuTree(prev.v1, INTERNAL_PAGES, currentLocale, t),
+    }));
+  }, [currentLocale, INTERNAL_PAGES, t]);
+
   const activeMenu = useMemo(() => menus[currentSet] ?? [], [menus, currentSet]);
 
   const setActiveMenu = useCallback(
@@ -370,22 +429,24 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
   );
 
   const addBlankItem = useCallback(() => {
+    const firstPage = INTERNAL_PAGES[0];
+
     const item: BuilderMenuItem = {
       id: uid(),
-      title: "New Item",
+      title: t("pages.newItem"),
       icon: "",
       visible: true,
       linkType: "internal",
       externalUrl: "",
       newTab: false,
-      internalPageId: INTERNAL_PAGES[0]?.id ?? null,
-      rawPath: INTERNAL_PAGES[0]?.path ?? "/",
+      internalPageId: firstPage?.id ?? null,
+      rawPath: firstPage ? getPagePath(firstPage, currentLocale) : "/",
       schedules: [],
       children: [],
     };
 
     setActiveMenu((prev) => [...prev, item]);
-  }, [INTERNAL_PAGES, setActiveMenu]);
+  }, [INTERNAL_PAGES, currentLocale, setActiveMenu, t]);
 
   const buildHref = useCallback(
     (item: BuilderMenuItem, now: Date): string => {
@@ -411,18 +472,18 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
           ? INTERNAL_PAGES.find((candidate) => candidate.id === item.internalPageId)
           : undefined;
 
-        return page?.path ?? "";
+        return page ? getPagePath(page, currentLocale) : "";
       }
 
       return "";
     },
-    [INTERNAL_PAGES],
+    [INTERNAL_PAGES, currentLocale],
   );
 
   const generateMenusBySiteKind = useCallback((kind: SiteKind) => {
-    setMenus(buildDefaultMenusBySiteKind(kind));
+    setMenus(buildDefaultMenusBySiteKind(kind, currentLocale, t));
     setCurrentSet("home");
-  }, []);
+  }, [currentLocale, t]);
 
   const findItem = useCallback(
     (id: string, setKey?: MenuSetKey): BuilderMenuItem | null => {
@@ -470,7 +531,7 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
 
   const loadFromServer = useCallback(
     async (setKey: MenuSetKey, siteId?: string) => {
-      const requestKey = `${setKey}|${siteId ?? ""}|${siteKind}`;
+      const requestKey = `${setKey}|${siteId ?? ""}|${siteKind}|${currentLocale}`;
 
       if (inflightRef.current && inflightKeyRef.current === requestKey) return;
       if (!inflightRef.current && loadedKeyRef.current === requestKey) return;
@@ -491,7 +552,7 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
         });
 
         const treeDb = buildTree(rows);
-        const builderTree = mapDbTreeToBuilder(treeDb, INTERNAL_PAGES);
+        const builderTree = mapDbTreeToBuilder(treeDb, INTERNAL_PAGES, currentLocale, t);
 
         setMenus((prev) => ({
           ...prev,
@@ -509,19 +570,19 @@ export function MenuStoreProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [INTERNAL_PAGES, siteKind],
+    [INTERNAL_PAGES, siteKind, currentLocale, t],
   );
 
   const saveToServer = useCallback(
     async (setKey: MenuSetKey, siteId?: string) => {
       const treeToSave = menus[setKey] ?? [];
-      const items = flattenBuilderToDb(treeToSave, setKey, INTERNAL_PAGES);
+      const items = flattenBuilderToDb(treeToSave, setKey, INTERNAL_PAGES, currentLocale);
 
       await saveMenuTree({ setKey, siteId, items });
 
-      loadedKeyRef.current = `${setKey}|${siteId ?? ""}|${siteKind}`;
+      loadedKeyRef.current = `${setKey}|${siteId ?? ""}|${siteKind}|${currentLocale}`;
     },
-    [menus, INTERNAL_PAGES, siteKind],
+    [menus, INTERNAL_PAGES, currentLocale, siteKind],
   );
 
   const value = useMemo<Ctx>(

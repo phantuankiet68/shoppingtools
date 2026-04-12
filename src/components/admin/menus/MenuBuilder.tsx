@@ -11,11 +11,13 @@ import {
 import AllowedBlocks from "@/components/admin/menus/state/AllowedBlocks";
 import MenuStructure from "@/components/admin/menus/state/MenuStructure";
 import { flattenTriples } from "@/lib/menu/deriveTitleSlugPath";
-import { fetchSites, syncPagesFromMenu } from "@/services/menus/menuBuilder.service";
+import { syncPagesFromMenu } from "@/services/menus/menuBuilder.service";
 import { useMenuBuilderUIStore } from "@/store/menus/useMenuBuilderUIStore";
 import { MENU_MESSAGES as M } from "@/features/menus/messages";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
+import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 
 const SITE_KIND_OPTIONS: { value: SiteKind; label: string }[] = [
   { value: "ecommerce", label: "eCommerce" },
@@ -32,8 +34,16 @@ type SiteItem = {
 export default function MenuBuilder() {
   const router = useRouter();
   const modal = useModal();
+  const { t } = useAdminI18n();
   const [q, setQ] = useState("");
   const latestLoadId = useRef(0);
+
+  const { user, site, currentWorkspace } = useAdminAuth();
+  const userId = user?.id ?? "";
+  const siteId = site?.id ?? "";
+  const workspaceName = currentWorkspace?.name ?? "";
+  const siteName = site?.name ?? "";
+  const siteDomain = site?.domain ?? "";
 
   const {
     currentSet,
@@ -62,12 +72,18 @@ export default function MenuBuilder() {
     setSelectedSiteId,
   } = useMenuBuilderUIStore();
 
-  const hideSiteSelect = currentSet === "v1";
+  const hideSiteSelect = true;
 
-  const selectedSite = useMemo(
-    () => (sites as SiteItem[]).find((s) => s.id === selectedSiteId),
-    [sites, selectedSiteId],
-  );
+  const selectedSite = useMemo<SiteItem | undefined>(() => {
+    if (!siteId) return undefined;
+
+    return {
+      id: siteId,
+      name: siteName,
+      domain: siteDomain,
+      type: site?.type as SiteKind | undefined,
+    };
+  }, [siteId, siteName, siteDomain, site?.type]);
 
   const reloadAll = useCallback(async () => {
     if (!selectedSiteId) return;
@@ -76,46 +92,37 @@ export default function MenuBuilder() {
       setRefreshing(true);
       await loadFromServer(currentSet, selectedSiteId);
     } catch (e) {
-      modal.error("Cannot refresh data", (e as Error)?.message ?? M.error.unknown);
+      modal.error(
+        t("menus.errors.cannotRefreshTitle"),
+        (e as Error)?.message ?? M.error.unknown,
+      );
     } finally {
       setRefreshing(false);
     }
-  }, [selectedSiteId, setRefreshing, loadFromServer, currentSet, modal]);
+  }, [selectedSiteId, setRefreshing, loadFromServer, currentSet, modal, t]);
 
   useEffect(() => {
-    let active = true;
-
-    (async () => {
-      try {
-        const list = (await fetchSites()) as SiteItem[];
-        if (!active) return;
-        setSites(list);
-      } catch (e) {
-        console.error("fetchSites failed:", e);
-        if (active) setSites([]);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [setSites]);
-
-  useEffect(() => {
-    if (!sites.length) return;
-
-    const saved = localStorage.getItem("ui.selectedSiteId") || "";
-    const nextId = saved && sites.some((s) => s.id === saved) ? saved : sites[0].id;
-
-    if (!selectedSiteId || !sites.some((s) => s.id === selectedSiteId)) {
-      setSelectedSiteId(nextId);
+    if (!siteId) {
+      setSites([]);
+      return;
     }
-  }, [sites, selectedSiteId, setSelectedSiteId]);
+
+    const authSite: SiteItem = {
+      id: siteId,
+      name: siteName,
+      domain: siteDomain,
+      type: site?.type as SiteKind | undefined,
+    };
+
+    setSites([authSite]);
+  }, [siteId, siteName, siteDomain, site?.type, setSites]);
 
   useEffect(() => {
-    if (!selectedSiteId) return;
-    localStorage.setItem("ui.selectedSiteId", selectedSiteId);
-  }, [selectedSiteId]);
+    if (!siteId) return;
+    if (selectedSiteId !== siteId) {
+      setSelectedSiteId(siteId);
+    }
+  }, [siteId, selectedSiteId, setSelectedSiteId]);
 
   useEffect(() => {
     if (!selectedSiteId) return;
@@ -131,23 +138,29 @@ export default function MenuBuilder() {
       } catch (e) {
         if (loadId !== latestLoadId.current) return;
         console.error("loadFromServer failed:", e);
-        modal.error("Cannot load data", (e as Error)?.message ?? M.error.unknown);
+        modal.error(
+          t("menus.errors.cannotLoadTitle"),
+          (e as Error)?.message ?? M.error.unknown,
+        );
       } finally {
         if (loadId === latestLoadId.current) {
           setLoading(false);
         }
       }
     })();
-  }, [currentSet, selectedSiteId, loadFromServer, setLoading, modal]);
+  }, [currentSet, selectedSiteId, loadFromServer, setLoading, modal, t]);
 
   useEffect(() => {
     if (!selectedSite?.type) return;
     setSiteKind(selectedSite.type);
-  }, [selectedSiteId, selectedSite?.type, setSiteKind]);
+  }, [selectedSite?.type, setSiteKind]);
 
   const handleSaveAll = useCallback(async () => {
     if (!selectedSiteId) {
-      modal.error("No website selected", "Please select a website before saving.");
+      modal.error(
+        t("menus.errors.noWebsiteSelectedTitle"),
+        t("menus.errors.noWebsiteSelectedMessage"),
+      );
       return;
     }
 
@@ -184,10 +197,11 @@ export default function MenuBuilder() {
     INTERNAL_PAGES,
     reloadAll,
     modal,
+    t,
   ]);
 
   const importJSONFromPrompt = useCallback(() => {
-    const text = prompt("Please paste the menu JSON data below.");
+    const text = prompt(t("menus.actions.importPrompt"));
     if (!text) return;
 
     try {
@@ -197,15 +211,21 @@ export default function MenuBuilder() {
       }
 
       setActiveMenu(data);
-      modal.success("Import successful", "Menu structure has been updated.");
+      modal.success(
+        t("menus.actions.importSuccessTitle"),
+        t("menus.actions.importSuccessMessage"),
+      );
     } catch (e: unknown) {
-      modal.error("Cannot import data", (e as Error)?.message ?? M.error.unknown);
+      modal.error(
+        t("menus.errors.cannotImportTitle"),
+        (e as Error)?.message ?? M.error.unknown,
+      );
     }
-  }, [setActiveMenu, modal]);
+  }, [setActiveMenu, modal, t]);
 
   const handleAutoCreateMenu = useCallback(() => {
     const ok = window.confirm(
-      `The system will regenerate the default menu for "${siteKind}" and overwrite current data. Do you want to continue?`,
+      t("menus.actions.autoCreateConfirm").replace("{siteKind}", siteKind),
     );
     if (!ok) return;
 
@@ -213,10 +233,10 @@ export default function MenuBuilder() {
     setCurrentSet("home");
 
     modal.success(
-      "Auto menu creation successful",
-      `Default menu structure has been created for "${siteKind}" site type.`,
+      t("menus.actions.autoCreateSuccessTitle"),
+      t("menus.actions.autoCreateSuccessMessage").replace("{siteKind}", siteKind),
     );
-  }, [siteKind, generateMenusBySiteKind, setCurrentSet, modal]);
+  }, [siteKind, generateMenusBySiteKind, setCurrentSet, modal, t]);
 
   const pageFunctionKeys = useMemo(
     () => ({
@@ -242,9 +262,9 @@ export default function MenuBuilder() {
                 className={`${styles.formSelectSm} ${styles.selectStyled}`}
                 value={selectedSiteId}
                 onChange={(e) => setSelectedSiteId(e.target.value)}
-                aria-label={M.aria.chooseSite}
+                aria-label={t("menus.aria.chooseSite")}
               >
-                {!sites.length ? <option value="">{M.misc.noSites}</option> : null}
+                {!sites.length ? <option value="">{t("menus.misc.noSites")}</option> : null}
                 {(sites as SiteItem[]).map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} — {s.domain}
@@ -261,7 +281,7 @@ export default function MenuBuilder() {
               className={`${styles.formSelectSm} ${styles.selectStyled}`}
               value={siteKind}
               onChange={(e) => setSiteKind(e.target.value as SiteKind)}
-              aria-label={M.aria.siteKind}
+              aria-label={t("menus.aria.siteKind")}
             >
               {SITE_KIND_OPTIONS.map((item) => (
                 <option key={item.value} value={item.value}>
@@ -275,9 +295,9 @@ export default function MenuBuilder() {
               className={`${styles.btn} ${styles.btnOutlineSecondary}`}
               style={{ marginLeft: 6 }}
               onClick={handleAutoCreateMenu}
-              title="Generate default menu by site type"
+              title={t("menus.actions.autoGenerateTitle")}
             >
-              <i className="bi bi-magic" /> Auto generate
+              <i className="bi bi-magic" /> {t("menus.actions.autoGenerate")}
             </button>
           </div>
         </div>
@@ -298,32 +318,52 @@ export default function MenuBuilder() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by title or path..."
-              aria-label="Search in menu"
+              placeholder={t("menus.search.placeholder")}
+              aria-label={t("menus.search.ariaLabel")}
               className={styles.searchInput}
             />
           </div>
+
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnOutlineSuccess}`}
+            style={{ marginLeft: 6 }}
+            onClick={addBlankItem}
+            title={t("menus.actions.addNewItemTitle")}
+          >
+            <i className="bi bi-plus" /> {t("menus.actions.addNewItem")}
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnOutlinePrimary}`}
+            style={{ marginLeft: 6 }}
+            onClick={handleSaveAll}
+            title={t("menus.actions.saveChangesTitle")}
+          >
+            <i className="bi bi-magic" /> {t("menus.actions.saveChanges")}
+          </button>
 
           {q ? (
             <button
               className={`${styles.btn} ${styles.btnOutlineSecondary}`}
               onClick={() => setQ("")}
-              title="Clear search filter"
+              title={t("menus.actions.clearFilterTitle")}
               type="button"
             >
-              <i className="bi bi-x-circle" /> Clear filter
+              <i className="bi bi-x-circle" /> {t("menus.actions.clearFilter")}
             </button>
           ) : null}
 
           {saving ? (
             <span className={styles.smallHelp} aria-live="polite">
-              Saving data...
+              {t("menus.status.saving")}
             </span>
           ) : null}
 
           {loading || refreshing ? (
             <span className={styles.smallHelp} aria-live="polite">
-              {loading ? "Loading data..." : "Syncing data..."}
+              {loading ? t("menus.status.loading") : t("menus.status.syncing")}
             </span>
           ) : null}
         </div>

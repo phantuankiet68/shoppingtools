@@ -39,7 +39,7 @@
   justify-content: space-between;
   margin-bottom: 0.75rem;
   font-size: 13px;
-  background: var(--bg-header);
+  background: var(--background);
   padding: 10px;
   border-radius: 5px;
   border: var(--bd-header);
@@ -196,14 +196,14 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
-  height: 80vh;
+  height: 81vh;
   overflow: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
 }
 
 .blocksGridRight {
-  height: 80vh;
+  height: 81vh;
   overflow: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
@@ -221,7 +221,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.7rem 0.5rem;
+  padding:0.5rem;
   border-radius: 6px;
   cursor: -webkit-grab;
   cursor: grab;
@@ -232,14 +232,13 @@
   filter: brightness(1.05);
 }
 .blockIconWrap {
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   background: var(--bg-pro);
-  border: var(--bd-header);
   color: var(--text);
 }
 .blockTitle {

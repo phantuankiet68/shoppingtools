@@ -11,17 +11,17 @@ import {
   forcedTabFromSet,
   getSuggestBySite,
   pickBaseNames,
-  buildExistingPagesSet,
   buildExistingTitlesSet,
 } from "@/services/menus/allowedBlocks.service";
 
-import { MENU_MESSAGES as M } from "@/features/menus/messages";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 
 type TabKey = "home" | "dashboard";
 
 export default function AllowedBlocks() {
   const modal = useModal();
+  const { t, locale } = useAdminI18n();
 
   const {
     TEMPLATE_ALLOWED,
@@ -35,20 +35,41 @@ export default function AllowedBlocks() {
 
   const { addByName, onDragStart } = useAllowedBlocksStore();
 
+  const currentLocale = (locale ?? "en") as "en" | "vi" | "ja";
+
   const tpl = TEMPLATE_ALLOWED[templateKey];
   const forcedTab: TabKey = forcedTabFromSet(currentSet);
 
-  const baseNames = useMemo(() => pickBaseNames(tpl, forcedTab), [tpl, forcedTab]);
+  /* =========================================================
+   * BASE BLOCKS
+   * ======================================================= */
 
-  const existingPages = useMemo(
-    () => buildExistingPagesSet(INTERNAL_PAGES || []),
-    [INTERNAL_PAGES],
+  const baseKeys = useMemo(
+    () => pickBaseNames(tpl, forcedTab),
+    [tpl, forcedTab],
   );
+
+  const baseNames = useMemo(
+    () =>
+      baseKeys.map((key) => {
+        const page = INTERNAL_PAGES.find((p) => p.id === key);
+        return page?.labelKey ? t(page.labelKey) : key;
+      }),
+    [baseKeys, INTERNAL_PAGES, t],
+  );
+
+  /* =========================================================
+   * EXISTING
+   * ======================================================= */
 
   const existingTitles = useMemo(
     () => buildExistingTitlesSet(activeMenu || []),
     [activeMenu],
   );
+
+  /* =========================================================
+   * SUGGEST
+   * ======================================================= */
 
   const suggestSource = useMemo(
     () => getSuggestBySite(siteKind),
@@ -61,10 +82,14 @@ export default function AllowedBlocks() {
         suggest: suggestSource,
         baseNames,
         existingTitles,
-        existingPages,
+        existingPages: new Set(), // 🔥 FIX QUAN TRỌNG
       }),
-    [suggestSource, baseNames, existingTitles, existingPages],
+    [suggestSource, baseNames, existingTitles],
   );
+
+  /* =========================================================
+   * ACTIONS
+   * ======================================================= */
 
   const handleAddName = useCallback(
     (name: string) => {
@@ -74,25 +99,32 @@ export default function AllowedBlocks() {
           activeMenu: activeMenu || [],
           setActiveMenu,
           internalPages: INTERNAL_PAGES || [],
+          locale: currentLocale,
+          t,
         });
 
         modal.success(
-          "Block added successfully",
-          `Block "${name}" has been added to the menu.`,
+          t("menus.allowedBlocks.addSuccessTitle"),
+          t("menus.allowedBlocks.addSuccessMessage").replace("{name}", t(name)),
         );
       } catch (e: unknown) {
         modal.error(
-          "Cannot add block",
-          (e as Error)?.message || "An error occurred while adding the block.",
+          t("menus.allowedBlocks.addErrorTitle"),
+          (e as Error)?.message || t("menus.allowedBlocks.addErrorMessage"),
         );
       }
     },
-    [addByName, activeMenu, setActiveMenu, INTERNAL_PAGES, modal],
+    [addByName, activeMenu, setActiveMenu, INTERNAL_PAGES, currentLocale, t, modal],
   );
+
+  /* =========================================================
+   * RENDER
+   * ======================================================= */
 
   return (
     <div className={styles.cardform}>
       <div className={styles.grid2}>
+        {/* LEFT: BASE BLOCKS */}
         <div className={styles.blocksGrid}>
           {baseNames.map((name) => (
             <div key={name} className={styles.blockCell}>
@@ -100,10 +132,15 @@ export default function AllowedBlocks() {
                 className={`${styles.blockCard} ${styles.appCard}`}
                 draggable
                 onDragStart={(e) =>
-                  onDragStart(e, { name, internalPages: INTERNAL_PAGES || [] })
+                  onDragStart(e, {
+                    name,
+                    internalPages: INTERNAL_PAGES || [],
+                    locale: currentLocale,
+                    t,
+                  })
                 }
                 onClick={() => handleAddName(name)}
-                title={M.allowedBlocks.baseBlockTooltip}
+                title={t("menus.allowedBlocks.baseBlockTooltip")}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -125,26 +162,27 @@ export default function AllowedBlocks() {
           ))}
         </div>
 
+        {/* RIGHT: SUGGEST */}
         <section
           className={styles.blocksGridRight}
-          aria-label={M.allowedBlocks.suggestionsAria}
+          aria-label={t("menus.allowedBlocks.suggestionsAria")}
         >
           {Object.keys(filteredSuggest).length === 0 ? (
             <div className={styles.smallHelp}>
-              {M.allowedBlocks.noMoreSuggestions}
+              {t("menus.allowedBlocks.noMoreSuggestions")}
             </div>
           ) : (
             Object.entries(filteredSuggest).map(([group, items]) => (
               <div key={group} style={{ marginBottom: 10 }}>
                 <div
                   style={{
-                    fontWeight: 500,
+                    fontWeight: 600,
                     marginBottom: 6,
                     color: "rgb(134 134 134)",
                     fontSize: 13,
                   }}
                 >
-                  {group}
+                  {t(group)}
                 </div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -157,6 +195,8 @@ export default function AllowedBlocks() {
                         onDragStart(e, {
                           name,
                           internalPages: INTERNAL_PAGES || [],
+                          locale: currentLocale,
+                          t,
                         })
                       }
                       draggable
@@ -168,13 +208,13 @@ export default function AllowedBlocks() {
                         padding: "6px 10px",
                         fontSize: 13,
                       }}
-                      title={M.allowedBlocks.suggestChipTooltip}
+                      title={t("menus.allowedBlocks.suggestChipTooltip")}
                     >
                       <i
                         className="bi bi-plus-lg"
                         style={{ marginRight: 6 }}
                       />
-                      {name}
+                      {t(name)}
                     </button>
                   ))}
                 </div>

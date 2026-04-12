@@ -1,11 +1,18 @@
 "use client";
 
-import React, { Dispatch, SetStateAction, useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "@/styles/admin/menus/MenuStructure.module.css";
 import EditOffcanvas from "./EditOffcanvas";
 import { useMenuStore } from "@/components/admin/menus/state/useMenuStore";
-import { MENU_MESSAGES as M } from "@/features/menus/messages";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 
 type MenuItem = ReturnType<typeof useMenuStore>["activeMenu"][number];
 
@@ -55,8 +62,16 @@ function highlight(text: string, needle: string) {
 
 export default function MenuStructure({ q }: MenuStructureProps) {
   const modal = useModal();
+  const { t } = useAdminI18n();
 
-  const { activeMenu, setActiveMenu, removeItemById, buildHref, findItem } = useMenuStore();
+  const {
+    activeMenu,
+    setActiveMenu,
+    removeItemById,
+    buildHref,
+    findItem,
+    INTERNAL_PAGES,
+  } = useMenuStore();
 
   const [editing, setEditing] = useState<MenuItem | null>(null);
   const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
@@ -64,6 +79,33 @@ export default function MenuStructure({ q }: MenuStructureProps) {
   const overRef = useRef<HTMLElement | null>(null);
 
   const normalizedQuery = q.trim().toLowerCase();
+
+  const pagesById = useMemo(() => {
+    const map = new Map<string, (typeof INTERNAL_PAGES)[number]>();
+    (INTERNAL_PAGES || []).forEach((page) => {
+      map.set(page.id, page);
+    });
+    return map;
+  }, [INTERNAL_PAGES]);
+
+  const resolveItemTitle = useCallback(
+    (item?: MenuItem | null) => {
+      if (!item) return t("menus.menuStructure.untitled");
+
+      const page = item.internalPageId ? pagesById.get(item.internalPageId) : undefined;
+
+      if (page?.labelKey) {
+        return t(page.labelKey);
+      }
+
+      if (item.title?.includes(".")) {
+        return t(item.title);
+      }
+
+      return item.title || t("menus.menuStructure.untitled");
+    },
+    [pagesById, t],
+  );
 
   const setOver = useCallback((element: HTMLElement | null, isActive: boolean) => {
     if (!element) return;
@@ -109,7 +151,8 @@ export default function MenuStructure({ q }: MenuStructureProps) {
 
     const matchNode = (node: MenuItem): MenuItem | null => {
       const href = buildHref(node, now);
-      const titleHit = (node.title || "").toLowerCase().includes(normalizedQuery);
+      const title = resolveItemTitle(node);
+      const titleHit = title.toLowerCase().includes(normalizedQuery);
       const hrefHit = (href || "").toLowerCase().includes(normalizedQuery);
 
       const keptChildren = (node.children || [])
@@ -127,7 +170,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
     };
 
     return (activeMenu || []).map(matchNode).filter(Boolean) as MenuItem[];
-  }, [activeMenu, normalizedQuery, buildHref]);
+  }, [activeMenu, normalizedQuery, buildHref, resolveItemTitle]);
 
   const updateDeletingState = useCallback((id: string, value: boolean) => {
     setDeletingIds((prev) => {
@@ -147,6 +190,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
   const handleDelete = useCallback(
     async (id: string) => {
       const current = findItem(id);
+      const currentTitle = resolveItemTitle(current as MenuItem | null);
       updateDeletingState(id, true);
 
       try {
@@ -167,71 +211,84 @@ export default function MenuStructure({ q }: MenuStructureProps) {
         }
 
         modal.success(
-          "Menu item deleted successfully",
-          `Removed "${current?.title || "menu item"}" from the menu structure.`,
+          t("menus.menuStructure.deleteSuccessTitle"),
+          t("menus.menuStructure.deleteSuccessMessage").replace("{name}", currentTitle),
         );
       } catch (error: unknown) {
         modal.error(
-          "Cannot delete menu item",
-          (error as Error)?.message || "An error occurred while deleting the menu item.",
+          t("menus.menuStructure.deleteErrorTitle"),
+          (error as Error)?.message || t("menus.menuStructure.deleteErrorMessage"),
         );
       } finally {
         updateDeletingState(id, false);
       }
     },
-    [findItem, updateDeletingState, removeItemById, setActiveMenu, editing?.id, modal],
+    [
+      findItem,
+      resolveItemTitle,
+      updateDeletingState,
+      removeItemById,
+      setActiveMenu,
+      editing?.id,
+      modal,
+      t,
+    ],
   );
 
   const askDelete = useCallback(
     (id: string) => {
       const current = findItem(id);
+      const currentTitle = resolveItemTitle(current as MenuItem | null);
 
       modal.confirmDelete(
-        M.menuStructure.confirmDeleteTitle || "Delete menu item?",
-        `Are you sure you want to delete "${current?.title || "this item"}"? This action cannot be undone.`,
+        t("menus.menuStructure.confirmDeleteTitle"),
+        t("menus.menuStructure.confirmDeleteMessage").replace("{name}", currentTitle),
         () => {
           void handleDelete(id);
         },
       );
     },
-    [findItem, modal, handleDelete],
+    [findItem, resolveItemTitle, modal, handleDelete, t],
   );
 
-  const createNewItemFromPayload = useCallback((payload: Record<string, unknown>): MenuItem | null => {
-    if (payload?.type !== "new") return null;
+  const createNewItemFromPayload = useCallback(
+    (payload: Record<string, unknown>): MenuItem | null => {
+      if (payload?.type !== "new") return null;
 
-    const title = (payload.name as string) || "Untitled";
-    const linkType = ((payload.linkType as string) ?? "internal") as MenuItem["linkType"];
-    const baseId = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
+      const title = (payload.name as string) || t("menus.menuStructure.untitled");
+      const linkType = ((payload.linkType as string) ?? "internal") as MenuItem["linkType"];
+      const baseId = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
 
-    let rawPath = "";
-    let slug: string | undefined;
+      let rawPath = "";
+      let slug: string | undefined;
 
-    if (linkType === "internal") {
-      rawPath = (payload.rawPath as string | undefined) || "";
-      if (!rawPath) {
-        const fallbackSlug = slugifyLoose(title) || "untitled";
-        rawPath = `/${fallbackSlug}`;
+      if (linkType === "internal") {
+        rawPath = (payload.rawPath as string | undefined) || "";
+        if (!rawPath) {
+          const fallbackSlug = slugifyLoose(title) || "untitled";
+          rawPath = `/${fallbackSlug}`;
+        }
+
+        const segments = rawPath.split("/").filter(Boolean);
+        slug = segments.length ? segments[segments.length - 1] : "/";
       }
 
-      const segments = rawPath.split("/").filter(Boolean);
-      slug = segments.length ? segments[segments.length - 1] : "/";
-    }
-
-    return {
-      id: baseId,
-      title,
-      icon: "",
-      linkType,
-      externalUrl: (payload.externalUrl as string) ?? "",
-      newTab: false,
-      internalPageId: (payload.internalPageId as string) ?? null,
-      rawPath,
-      ...(slug ? { slug } : {}),
-      schedules: [],
-      children: [],
-    };
-  }, []);
+      return {
+        id: baseId,
+        title,
+        icon: "",
+        linkType,
+        externalUrl: (payload.externalUrl as string) ?? "",
+        newTab: false,
+        internalPageId: (payload.internalPageId as string) ?? null,
+        rawPath,
+        ...(slug ? { slug } : {}),
+        schedules: [],
+        children: [],
+      };
+    },
+    [t],
+  );
 
   const handleDropNew = useCallback(
     (event: React.DragEvent, zone: "root" | "children", parentId?: string) => {
@@ -244,7 +301,8 @@ export default function MenuStructure({ q }: MenuStructureProps) {
       }
 
       const raw =
-        event.dataTransfer.getData("application/json") || event.dataTransfer.getData("text/plain");
+        event.dataTransfer.getData("application/json") ||
+        event.dataTransfer.getData("text/plain");
 
       if (!raw) {
         clearOverState();
@@ -270,12 +328,23 @@ export default function MenuStructure({ q }: MenuStructureProps) {
 
         setActiveMenu(nextMenu);
       } catch {
-        modal.error("Cannot add block", "Block data is invalid or corrupted.");
+        modal.error(
+          t("menus.allowedBlocks.addErrorTitle"),
+          t("menus.menuStructure.invalidBlockData"),
+        );
       } finally {
         clearOverState();
       }
     },
-    [isRootItemId, clearOverState, createNewItemFromPayload, setActiveMenu, activeMenu, modal],
+    [
+      isRootItemId,
+      clearOverState,
+      createNewItemFromPayload,
+      setActiveMenu,
+      activeMenu,
+      modal,
+      t,
+    ],
   );
 
   const onDragStartRow = useCallback(
@@ -381,6 +450,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
 
       const hrefPreview = buildHref(item, new Date());
       const isDeleting = !!deletingIds[item.id];
+      const displayTitle = resolveItemTitle(item);
 
       return (
         <div key={item.id} className={styles.itemContainer} data-menu-id={item.id}>
@@ -401,16 +471,26 @@ export default function MenuStructure({ q }: MenuStructureProps) {
                 depth === 1 ? styles.depthMain : styles.depthSub
               }`}
             >
-              {depth === 1 ? "Main" : "Sub"}
+              {depth === 1
+                ? t("menus.menuStructure.main")
+                : t("menus.menuStructure.sub")}
             </span>
-            <span className={`${styles.typeBadge} ${typeBadgeClass}`}>{item.linkType}</span>
+            <span className={`${styles.typeBadge} ${typeBadgeClass}`}>
+              {item.linkType === "internal"
+                ? t("menus.link.internal")
+                : item.linkType === "scheduled"
+                  ? t("menus.link.scheduled")
+                  : t("menus.link.external")}
+            </span>
 
             <span className={styles.flex1}>
-              {highlight(item.title || "(Untitled)", q.trim())}
+              {highlight(displayTitle, q.trim())}
             </span>
 
             {hrefPreview ? (
-              <span className={styles.linkPill}>{highlight(hrefPreview, q.trim())}</span>
+              <span className={styles.linkPill}>
+                {highlight(hrefPreview, q.trim())}
+              </span>
             ) : null}
 
             <button
@@ -418,7 +498,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
               className={`${styles.btn} ${styles.btnIcon} ${styles.btnOutlineLight}`}
               onClick={() => setEditing(item)}
               disabled={isDeleting}
-              title="Edit menu item"
+              title={t("menus.menuStructure.editItem")}
             >
               <i className="bi bi-sliders2" />
             </button>
@@ -434,7 +514,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
               }}
               draggable={false}
               disabled={isDeleting}
-              title="Delete this item"
+              title={t("menus.menuStructure.deleteItem")}
             >
               <i className={`bi ${isDeleting ? "bi-hourglass-split" : "bi-x-lg"}`} />
             </button>
@@ -443,8 +523,8 @@ export default function MenuStructure({ q }: MenuStructureProps) {
           {depth < 2 ? (
             <div className={styles.subwrap} data-parent={item.id}>
               <div className={styles.smallHelp}>
-                <i className="bi bi-diagram-2" /> Children of{" "}
-                <b>{item.title || "(Untitled)"}</b>
+                <i className="bi bi-diagram-2" /> {t("menus.menuStructure.childrenOf")}{" "}
+                <b>{displayTitle}</b>
               </div>
 
               <div
@@ -462,7 +542,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
               >
                 {(item.children || []).length === 0 ? (
                   <p className={`${styles.smallHelp} m-0 py-2`}>
-                    Drag items here to create a submenu (Level 2)
+                    {t("menus.menuStructure.dragToCreateSubmenu")}
                   </p>
                 ) : (
                   (item.children || []).map((child, childIndex) =>
@@ -486,6 +566,8 @@ export default function MenuStructure({ q }: MenuStructureProps) {
       handleDropzoneLeave,
       handleDropMove,
       handleDropNew,
+      resolveItemTitle,
+      t,
     ],
   );
 
@@ -506,14 +588,18 @@ export default function MenuStructure({ q }: MenuStructureProps) {
       >
         {filteredTree.length === 0 ? (
           <p className={`${styles.smallHelp} text-center m-0 py-3`}>
-            {q ? "No matching results found" : "Drag blocks here to create a level 1 menu"}
+            {q
+              ? t("menus.menuStructure.noMatchingResults")
+              : t("menus.menuStructure.dragToCreateLevel1")}
           </p>
         ) : (
           filteredTree.map((item, idx) => renderRow(item, idx, 1))
         )}
       </div>
 
-      {editing ? <EditOffcanvas item={editing} onClose={() => setEditing(null)} /> : null}
+      {editing ? (
+        <EditOffcanvas item={editing} onClose={() => setEditing(null)} />
+      ) : null}
     </div>
   );
 }

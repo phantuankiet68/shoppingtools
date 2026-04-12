@@ -456,6 +456,12 @@ const banner = safeJson<HotProductOneBanner>(p.banner);
 
 export default HotProductOne;
 
+Hiện tại tôi chưa có text messages en.ts, ja.ts,vi.ts Bạn có thể đổi các test theo 3 dạng ngôn ngữ giúp tôi được không
+
+viết tiếp cho bạn bản full MenuStructure.tsx đã thay toàn bộ text cứng sang t(...).
+
+
+
 Do ProfileOne.tsx là file có cấu trúc mẫu templates dành để tạo block cho pages. Bạn có thể tạo SecurityOne.tsx cải tiến design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ dựa vào cấu trúc mẫu HeaderAnnouncement, tôi đang sử dụng next 16 và css module và icon bootstrapt. Tôi muốn bạn ở cương bị cấp bật là serior front-end. Hãy tách ra SecurityOne.tsx và SecurityOne.module.css giống với ảnh giúp tôi có được không. Tôi đang tạo profile Acount dành cho customer bạn có thể tâoj giúp tôi được không
 
 Mục tiêu cải tiến
