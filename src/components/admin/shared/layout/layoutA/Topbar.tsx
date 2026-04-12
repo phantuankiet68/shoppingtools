@@ -7,6 +7,7 @@ import { useAdminLayoutStore } from "@/store/layout/layouta/index";
 import { FunctionKeyBar, type FunctionKeyCode } from "@/components/admin/shared/layout/function-keys";
 import { useFunctionKeysContext } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
 import { useAdminUser } from "@/components/admin/providers/AdminAuthProvider";
+import AdminLocaleSwitcher from "@/components/admin/layouts/AdminLocaleSwitcher";
 
 type Props = {
   meta: { title: string; subtitle?: string | null };
@@ -148,6 +149,7 @@ export default function Topbar({ meta, onLogout }: Props) {
             <FunctionKeyBar items={items} onClick={handleFunctionClick} />
           )}
         </div>
+        <AdminLocaleSwitcher />
 
         <div className={styles.topbarRight}>
           {isSystemAdmin && (

@@ -50,7 +50,7 @@ export function AdminAuthProvider({
   value,
   children,
 }: {
-  value: AdminAuthData;
+  value: AdminAuthData | null;
   children: ReactNode;
 }) {
   return (

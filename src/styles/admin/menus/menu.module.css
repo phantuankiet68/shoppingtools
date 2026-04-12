@@ -621,10 +621,10 @@
 }
 
 .searchInput {
-  font-size: 14px;
+  font-size: 13px;
 }
 .searchInput:focus {
-  font-size: 14px;
+  font-size: 13px;
   border-color: var(--border-color);
   box-shadow: var(--box-shadow);
 }
