@@ -183,6 +183,234 @@ const vi = {
     terms: "Điều khoản & Điều kiện",
     newItem: "Mục mới",
   },
+   adminEmail: {
+    templates: {
+      welcome: {
+        name: "Chào mừng",
+        subject: "Chào mừng bạn đến với nền tảng của chúng tôi",
+        description: "Dùng cho onboarding và chào đón người dùng mới.",
+        content:
+          "Xin chào {{name}},\n\nCảm ơn bạn đã tham gia nền tảng của chúng tôi.\nChúng tôi rất vui khi có bạn đồng hành.\n\nTrân trọng,",
+      },
+      promotion: {
+        name: "Khuyến mãi",
+        subject: "Đặt hàng ngay và nhận miễn phí giao hàng",
+        description: "Dùng cho ưu đãi, giảm giá và các chiến dịch sản phẩm.",
+        content:
+          "Nhấn vào bên dưới để hoàn tất đơn hàng và nhập mã ưu đãi độc quyền để được miễn phí giao hàng.",
+      },
+      reminder: {
+        name: "Nhắc nhở",
+        subject: "Nhắc nhở quan trọng",
+        description: "Dùng để nhắc người dùng về các thao tác chưa hoàn tất hoặc cập nhật quan trọng.",
+        content:
+          "Xin chào {{name}},\n\nĐây là lời nhắc liên quan đến hoạt động gần đây của bạn.\nVui lòng xem thông tin mới nhất.\n\nTrân trọng,",
+      },
+    },
+
+    defaults: {
+      previewText: "Xem nhanh nội dung email.",
+      ctaUrl: "https://your-landing-page.com",
+      unknownTemplate: "Mẫu không xác định",
+      avatarFallback: "C",
+      previewCampaignFallback: "Xem trước chiến dịch",
+      previewNoSubject: "(Không có tiêu đề)",
+      emptyValue: "--",
+    },
+
+    status: {
+      draft: "Bản nháp",
+      queued: "Đang chờ",
+      scheduled: "Đã lên lịch",
+      sent: "Đã gửi",
+      partial: "Gửi một phần",
+      failed: "Thất bại",
+      cancelled: "Đã huỷ",
+    },
+
+    providerOptions: {
+      SMTP: "SMTP",
+      RESEND: "RESEND",
+      SENDGRID: "SENDGRID",
+    },
+
+    emailTypeOptions: {
+      SYSTEM: "SYSTEM",
+      TEMPLATE: "TEMPLATE",
+      BULK: "BULK",
+      TEST: "TEST",
+    },
+
+    templateDefaults: {
+      promotion: {
+        ctaText: "Hoàn tất đơn hàng",
+        promoCode: "AC41FD2P",
+        productName: "Mounjaro Kwikpen",
+        productImage: "/image.png",
+        benefitsText:
+          "Thuốc kê đơn đã được chứng minh lâm sàng\nGiảm cảm giác đói và thèm ăn\nKèm hỗ trợ lâm sàng để đánh giá tiến trình",
+      },
+      reminder: {
+        ctaText: "Xem ngay",
+        promoCode: "",
+        productName: "Danh sách việc cần làm",
+        productImage: "",
+        benefitsText:
+          "Hoàn tất bước còn thiếu\nXem lại hoạt động gần đây\nTiếp tục từ nơi bạn đã dừng",
+      },
+      welcome: {
+        ctaText: "Bắt đầu",
+        promoCode: "",
+        productName: "Hướng dẫn bắt đầu",
+        productImage: "",
+        benefitsText: "Thiết lập nhanh\nOnboarding dễ dàng\nHỗ trợ hữu ích",
+      },
+    },
+
+    messages: {
+      waitingUserContext: "Đang chờ thông tin người dùng để tải lịch sử email.",
+      failedLoadCampaigns: "Không thể tải danh sách chiến dịch email.",
+      missingSiteContext: "Thiếu thông tin site.",
+      failedLoadSystemCredential: "Không thể tải cấu hình email hệ thống.",
+      noSystemCredentialFound: "Không tìm thấy cấu hình email hệ thống cho site này.",
+      missingUserContext: "Thiếu thông tin người dùng.",
+      enterCampaignName: "Vui lòng nhập tên chiến dịch.",
+      selectTemplate: "Vui lòng chọn template.",
+      enterEmailSubject: "Vui lòng nhập tiêu đề email.",
+      enterPreviewText: "Vui lòng nhập preview text.",
+      missingSenderName:
+        "Thiếu tên người gửi hệ thống. Vui lòng cấu hình Email Settings trước.",
+      invalidSenderEmail:
+        "Email người gửi hệ thống bị thiếu hoặc không hợp lệ. Vui lòng cấu hình Email Settings trước.",
+      invalidReplyToEmail:
+        "Email reply-to của hệ thống không hợp lệ. Vui lòng cấu hình Email Settings trước.",
+      invalidCtaUrl: "Vui lòng nhập CTA URL hợp lệ.",
+      invalidScheduledAt: "Vui lòng nhập ngày giờ hợp lệ.",
+      enterAtLeastOneEmail: "Vui lòng nhập ít nhất 1 địa chỉ email hợp lệ.",
+      sendingError: "Đã xảy ra lỗi khi gửi email.",
+      requestCompleted: "Yêu cầu đã hoàn tất.",
+      status: "Trạng thái",
+      success: "Thành công",
+      failed: "Thất bại",
+      loadingCampaigns: "Đang tải chiến dịch...",
+      noCampaignsFound: "Không tìm thấy chiến dịch nào.",
+      loadingEmailCredential: "Đang tải cấu hình email...",
+      invalidEmailAddresses: "Địa chỉ email không hợp lệ",
+    },
+
+    sidebar: {
+      searchPlaceholder: "Tìm kiếm chiến dịch",
+      recipientsSuffix: "người nhận",
+    },
+
+    sections: {
+      accountContext: "Thông tin tài khoản",
+      messageMetadata: "Metadata email",
+      messageMetadataDesc: "Các trường map trực tiếp tới Email model.",
+      messageContent: "Nội dung email",
+      messageContentDesc: "Các trường dùng để xây dựng nội dung email cuối cùng.",
+      ctaAndDestination: "CTA & liên kết đích",
+      ctaAndDestinationDesc: "Nội dung nút và URL chuyển đổi.",
+      offerProductDetails: "Thông tin ưu đãi & sản phẩm",
+      offerProductDetailsDesc: "Các trường riêng cho template khuyến mãi.",
+      welcomeDetails: "Thông tin chào mừng",
+      welcomeDetailsDesc: "Các trường riêng cho email onboarding.",
+      reminderDetails: "Thông tin nhắc nhở",
+      reminderDetailsDesc: "Các trường riêng cho email nhắc nhở.",
+      recipients: "Người nhận",
+      recipientsDesc: "Các trường này map tới EmailRecipient records.",
+      reviewInformation: "Thông tin rà soát",
+      reviewInformationDesc: "Kiểm tra payload trước khi gửi.",
+      emailPreview: "Xem trước email",
+    },
+
+    fields: {
+      userId: "User ID",
+      siteId: "Site ID",
+      workspace: "Workspace",
+      siteName: "Tên site",
+      campaignName: "Tên chiến dịch",
+      templateKey: "Template key",
+      batchSize: "Kích thước batch",
+      templateDescription: "Mô tả template",
+      provider: "Provider",
+      emailType: "Loại email",
+      fromName: "Tên người gửi",
+      fromEmail: "Email người gửi",
+      replyToEmail: "Email reply-to",
+      scheduledAt: "Thời gian lên lịch",
+      enableTestMode: "Bật test mode",
+      subject: "Tiêu đề",
+      previewText: "Preview text",
+      content: "Nội dung chính",
+      ctaText: "Nội dung CTA",
+      ctaUrl: "CTA URL",
+      promoCode: "Mã khuyến mãi",
+      productName: "Tên sản phẩm",
+      productImage: "URL ảnh sản phẩm",
+      benefits: "Lợi ích",
+      welcomeBenefits: "Lợi ích / điểm nổi bật",
+      reminderBenefits: "Điểm nhắc nhở",
+      recipientList: "Danh sách người nhận",
+      validEmails: "Email hợp lệ",
+      duplicateEmails: "Email trùng lặp",
+      batchCount: "Số batch ước tính",
+      siteDomain: "Domain site",
+      campaign: "Chiến dịch",
+      type: "Loại",
+      recipients: "Người nhận",
+      from: "Người gửi",
+    },
+
+    placeholders: {
+      userId: "Tự động điền từ AdminAuthProvider",
+      siteId: "Tự động điền từ AdminAuthProvider",
+      workspace: "Tự động điền từ AdminAuthProvider",
+      siteName: "Tự động điền từ AdminAuthProvider",
+      campaignName: "Ví dụ: Welcome Campaign - April",
+      subject: "Nhập tiêu đề email",
+      previewText: "Nhập preview text",
+      content: "Nhập nội dung email",
+      ctaText: "Hoàn tất đơn hàng",
+      ctaUrl: "https://your-landing-page.com",
+      promoCode: "AC41FD2P",
+      productName: "Mounjaro Kwikpen",
+      productImage: "/image.png hoặc https://...",
+      benefits: "Lợi ích 1\nLợi ích 2\nLợi ích 3",
+      welcomeBenefits: "Thiết lập nhanh\nOnboarding dễ dàng\nHỗ trợ hữu ích",
+      reminderBenefits: "Hoàn tất bước còn thiếu\nXem lại hoạt động gần đây\nTiếp tục từ nơi bạn đã dừng",
+      recipientList:
+        "Nhập danh sách email, mỗi dòng một email\njohn@example.com\nanna@example.com\nsupport@example.com",
+      fromName: "Tải từ cấu hình email hệ thống",
+      fromEmail: "Tải từ cấu hình email hệ thống",
+      replyToEmail: "Tải từ cấu hình email hệ thống",
+    },
+
+    hints: {
+      campaignName: "Tên nội bộ dùng để quản lý chiến dịch trong admin panel.",
+      templateKey: "Trường này map trực tiếp tới EmailTemplate.key trong database.",
+      batchSize: "Kích thước batch hiện tại là cố định.",
+      templateDescription: "Mô tả tham chiếu của template đang chọn.",
+      provider: "Tự động tải từ cấu hình email hệ thống.",
+      testMode: "Khi bật, backend có thể đánh dấu Email.testMode = true.",
+      subject: "Được lưu trong Email.subject và hiển thị cho người nhận.",
+      previewText: "Được lưu trong Email.previewText cho inbox preview snippets.",
+      content: "Nội dung chính dùng để render htmlContent hoặc textContent ở backend.",
+      recipientList: "Bạn có thể phân tách bằng xuống dòng, dấu phẩy hoặc dấu chấm phẩy.",
+      bottomInfo:
+        "User ID và Site ID được tải từ AdminAuthProvider. Cấu hình người gửi được tải từ system email credentials.",
+    },
+
+    buttons: {
+      submitting: "Đang gửi...",
+      scheduleCampaign: "Lên lịch chiến dịch",
+      sendCampaign: "Gửi chiến dịch",
+    },
+
+    misc: {
+      batchSizeValue: "{{count}} email / batch",
+    },
+  },
 };
 
 export default vi;

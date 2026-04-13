@@ -183,6 +183,234 @@ const ja = {
     terms: "利用規約",
     newItem: "新商品",
   },
+   adminEmail: {
+    templates: {
+      welcome: {
+        name: "ようこそ",
+        subject: "私たちのプラットフォームへようこそ",
+        description: "新規ユーザーのオンボーディングと挨拶に使用します。",
+        content:
+          "こんにちは {{name}} さん、\n\n私たちのプラットフォームにご参加いただきありがとうございます。\nご利用いただけることを嬉しく思います。\n\nよろしくお願いいたします。",
+      },
+      promotion: {
+        name: "プロモーション",
+        subject: "今すぐ注文して送料無料をお楽しみください",
+        description: "プロモーション、割引、商品キャンペーンに使用します。",
+        content:
+          "以下をクリックして注文を完了し、専用コードを入力すると送料無料になります。",
+      },
+      reminder: {
+        name: "リマインダー",
+        subject: "重要なお知らせ",
+        description: "未完了の操作や重要な更新をユーザーに通知するために使用します。",
+        content:
+          "こんにちは {{name}} さん、\n\n最近の操作に関するリマインダーです。\n最新情報をご確認ください。\n\nよろしくお願いいたします。",
+      },
+    },
+
+    defaults: {
+      previewText: "メール内容のプレビューです。",
+      ctaUrl: "https://your-landing-page.com",
+      unknownTemplate: "不明なテンプレート",
+      avatarFallback: "C",
+      previewCampaignFallback: "キャンペーンプレビュー",
+      previewNoSubject: "（件名なし）",
+      emptyValue: "--",
+    },
+
+    status: {
+      draft: "下書き",
+      queued: "キュー済み",
+      scheduled: "予約済み",
+      sent: "送信済み",
+      partial: "一部送信",
+      failed: "失敗",
+      cancelled: "キャンセル済み",
+    },
+
+    providerOptions: {
+      SMTP: "SMTP",
+      RESEND: "RESEND",
+      SENDGRID: "SENDGRID",
+    },
+
+    emailTypeOptions: {
+      SYSTEM: "SYSTEM",
+      TEMPLATE: "TEMPLATE",
+      BULK: "BULK",
+      TEST: "TEST",
+    },
+
+    templateDefaults: {
+      promotion: {
+        ctaText: "注文を完了する",
+        promoCode: "AC41FD2P",
+        productName: "Mounjaro Kwikpen",
+        productImage: "/image.png",
+        benefitsText:
+          "臨床的に証明された処方薬\n空腹感や食欲を抑える\n進捗確認のための臨床サポート付き",
+      },
+      reminder: {
+        ctaText: "今すぐ確認",
+        promoCode: "",
+        productName: "アクションチェックリスト",
+        productImage: "",
+        benefitsText:
+          "保留中のステップを完了\n最近の操作を確認\n中断したところから再開",
+      },
+      welcome: {
+        ctaText: "始める",
+        promoCode: "",
+        productName: "スタートガイド",
+        productImage: "",
+        benefitsText: "簡単セットアップ\nスムーズなオンボーディング\n役立つサポート",
+      },
+    },
+
+    messages: {
+      waitingUserContext: "ユーザー情報の読み込みを待機中です。",
+      failedLoadCampaigns: "メールキャンペーンの読み込みに失敗しました。",
+      missingSiteContext: "サイト情報がありません。",
+      failedLoadSystemCredential: "システムメール認証情報の読み込みに失敗しました。",
+      noSystemCredentialFound: "このサイトのシステムメール認証情報が見つかりませんでした。",
+      missingUserContext: "ユーザー情報がありません。",
+      enterCampaignName: "キャンペーン名を入力してください。",
+      selectTemplate: "テンプレートを選択してください。",
+      enterEmailSubject: "メール件名を入力してください。",
+      enterPreviewText: "プレビューテキストを入力してください。",
+      missingSenderName:
+        "送信者名がありません。先にメール設定を構成してください。",
+      invalidSenderEmail:
+        "送信者メールアドレスが未設定または不正です。先にメール設定を構成してください。",
+      invalidReplyToEmail:
+        "Reply-to メールアドレスが不正です。先にメール設定を構成してください。",
+      invalidCtaUrl: "有効な CTA URL を入力してください。",
+      invalidScheduledAt: "有効な日時を入力してください。",
+      enterAtLeastOneEmail: "少なくとも1件の有効なメールアドレスを入力してください。",
+      sendingError: "メール送信中にエラーが発生しました。",
+      requestCompleted: "リクエストが完了しました。",
+      status: "ステータス",
+      success: "成功",
+      failed: "失敗",
+      loadingCampaigns: "キャンペーンを読み込み中...",
+      noCampaignsFound: "キャンペーンが見つかりません。",
+      loadingEmailCredential: "メール認証情報を読み込み中...",
+      invalidEmailAddresses: "無効なメールアドレス",
+    },
+
+    sidebar: {
+      searchPlaceholder: "キャンペーンを検索",
+      recipientsSuffix: "受信者",
+    },
+
+    sections: {
+      accountContext: "アカウント情報",
+      messageMetadata: "メッセージメタデータ",
+      messageMetadataDesc: "Email モデルに直接対応する項目です。",
+      messageContent: "メッセージ内容",
+      messageContentDesc: "最終的なメール内容を構築するための項目です。",
+      ctaAndDestination: "CTA と遷移先",
+      ctaAndDestinationDesc: "ボタンテキストと遷移先 URL です。",
+      offerProductDetails: "オファーと商品詳細",
+      offerProductDetailsDesc: "プロモーション用テンプレート固有の項目です。",
+      welcomeDetails: "ウェルカム詳細",
+      welcomeDetailsDesc: "オンボーディング用テンプレート固有の項目です。",
+      reminderDetails: "リマインダー詳細",
+      reminderDetailsDesc: "リマインダーテンプレート固有の項目です。",
+      recipients: "受信者",
+      recipientsDesc: "これらは EmailRecipient レコードに対応します。",
+      reviewInformation: "確認情報",
+      reviewInformationDesc: "送信前に payload を確認してください。",
+      emailPreview: "メールプレビュー",
+    },
+
+    fields: {
+      userId: "ユーザーID",
+      siteId: "サイトID",
+      workspace: "ワークスペース",
+      siteName: "サイト名",
+      campaignName: "キャンペーン名",
+      templateKey: "テンプレートキー",
+      batchSize: "バッチサイズ",
+      templateDescription: "テンプレート説明",
+      provider: "プロバイダー",
+      emailType: "メール種別",
+      fromName: "送信者名",
+      fromEmail: "送信者メール",
+      replyToEmail: "返信先メール",
+      scheduledAt: "予約時刻",
+      enableTestMode: "テストモードを有効化",
+      subject: "件名",
+      previewText: "プレビューテキスト",
+      content: "本文",
+      ctaText: "CTA テキスト",
+      ctaUrl: "CTA URL",
+      promoCode: "プロモコード",
+      productName: "商品名",
+      productImage: "商品画像 URL",
+      benefits: "メリット",
+      welcomeBenefits: "メリット / ハイライト",
+      reminderBenefits: "リマインダーポイント",
+      recipientList: "受信者リスト",
+      validEmails: "有効メール数",
+      duplicateEmails: "重複メール数",
+      batchCount: "推定バッチ数",
+      siteDomain: "サイトドメイン",
+      campaign: "キャンペーン",
+      type: "種別",
+      recipients: "受信者",
+      from: "送信元",
+    },
+
+    placeholders: {
+      userId: "AdminAuthProvider から自動入力",
+      siteId: "AdminAuthProvider から自動入力",
+      workspace: "AdminAuthProvider から自動入力",
+      siteName: "AdminAuthProvider から自動入力",
+      campaignName: "例: Welcome Campaign - April",
+      subject: "メール件名を入力",
+      previewText: "プレビューテキストを入力",
+      content: "メール内容を入力",
+      ctaText: "注文を完了する",
+      ctaUrl: "https://your-landing-page.com",
+      promoCode: "AC41FD2P",
+      productName: "Mounjaro Kwikpen",
+      productImage: "/image.png または https://...",
+      benefits: "メリット1\nメリット2\nメリット3",
+      welcomeBenefits: "簡単セットアップ\nスムーズなオンボーディング\n役立つサポート",
+      reminderBenefits: "保留中のステップを完了\n最近の操作を確認\n中断したところから再開",
+      recipientList:
+        "メール一覧を入力してください。1行に1件\njohn@example.com\nanna@example.com\nsupport@example.com",
+      fromName: "システムメール設定から読み込み",
+      fromEmail: "システムメール設定から読み込み",
+      replyToEmail: "システムメール設定から読み込み",
+    },
+
+    hints: {
+      campaignName: "管理画面でキャンペーンを管理するための内部名です。",
+      templateKey: "これはデータベースの EmailTemplate.key に直接対応します。",
+      batchSize: "現在のバッチサイズは固定です。",
+      templateDescription: "選択中テンプレートの参照説明です。",
+      provider: "システムメール設定から自動読込されます。",
+      testMode: "有効にすると backend で Email.testMode = true にできます。",
+      subject: "Email.subject に保存され、受信者に表示されます。",
+      previewText: "受信トレイのプレビュー用 Email.previewText に保存されます。",
+      content: "backend で htmlContent または textContent を生成する本文です。",
+      recipientList: "改行、カンマ、セミコロンで区切ることができます。",
+      bottomInfo:
+        "User ID と Site ID は AdminAuthProvider から読み込まれます。送信者設定はシステムメール認証情報から読み込まれます。",
+    },
+
+    buttons: {
+      submitting: "送信中...",
+      scheduleCampaign: "キャンペーンを予約",
+      sendCampaign: "キャンペーンを送信",
+    },
+
+    misc: {
+      batchSizeValue: "{{count}} 件 / バッチ",
+    },
+  },
 };
 
 export default ja;

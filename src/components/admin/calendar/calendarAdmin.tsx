@@ -13,6 +13,7 @@ import type {
 } from '@fullcalendar/core';
 import styles from '@/styles/admin/calendar/calendarAdmin.module.css';
 import Image from 'next/image';
+
 type CalendarView = 'timeGridDay' | 'dayGridWeek' | 'dayGridMonth';
 
 type BookingStatus =
@@ -245,14 +246,20 @@ function getMonthMatrix(year: number, month: number) {
 export default function CalendarAdmin() {
   const calendarRef = useRef<FullCalendar | null>(null);
 
+  const initialDate = new Date('2026-04-09T09:00:00');
+
   const [currentView, setCurrentView] = useState<CalendarView>('dayGridWeek');
-  const [calendarTitle, setCalendarTitle] = useState('April 2026');
+  const [calendarTitle, setCalendarTitle] = useState(formatCalendarTitle(initialDate, 'dayGridWeek'));
   const [search, setSearch] = useState('');
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
   const [selectedBookingId, setSelectedBookingId] = useState<string>('b2');
+  const [miniCalendarDate, setMiniCalendarDate] = useState<Date>(initialDate);
+  const [selectedMiniDay, setSelectedMiniDay] = useState<number>(initialDate.getDate());
 
-  const today = new Date('2026-04-09T09:00:00');
-  const miniCalendar = useMemo(() => getMonthMatrix(today.getFullYear(), today.getMonth()), [today]);
+  const miniCalendar = useMemo(
+    () => getMonthMatrix(miniCalendarDate.getFullYear(), miniCalendarDate.getMonth()),
+    [miniCalendarDate]
+  );
 
   const filteredBookings = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -296,10 +303,60 @@ export default function CalendarAdmin() {
     }));
   }, [filteredBookings]);
 
-  const updateTitleFromApi = () => {
+  const attendeeList = [
+    {
+      id: 'u1',
+      name: 'Anna Tran',
+      avatar:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      id: 'u2',
+      name: 'David Lee',
+      avatar:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      id: 'u3',
+      name: 'Mia Nguyen',
+      avatar:
+        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      id: 'u4',
+      name: 'Khanh Le',
+      avatar:
+        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      id: 'u5',
+      name: 'Lina Pham',
+      avatar:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      id: 'u6',
+      name: 'Tracy Do',
+      avatar:
+        'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=120&q=80',
+    },
+  ];
+
+  const syncCalendarStateFromApi = () => {
     const api = calendarRef.current?.getApi();
     if (!api) return;
-    setCalendarTitle(formatCalendarTitle(api.getDate(), api.view.type as CalendarView));
+
+    const currentDate = api.getDate();
+    const currentType = api.view.type as CalendarView;
+
+    setCalendarTitle(formatCalendarTitle(currentDate, currentType));
+    setCurrentView(currentType);
+    setMiniCalendarDate(currentDate);
+    setSelectedMiniDay(currentDate.getDate());
+  };
+
+  const updateTitleFromApi = () => {
+    syncCalendarStateFromApi();
   };
 
   const handlePrev = () => {
@@ -324,6 +381,36 @@ export default function CalendarAdmin() {
     const api = calendarRef.current?.getApi();
     api?.changeView(view);
     setCurrentView(view);
+    updateTitleFromApi();
+  };
+
+  const handleMiniPrevMonth = () => {
+    setMiniCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleMiniNextMonth = () => {
+    setMiniCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const handleMiniDayClick = (day: number | null) => {
+    if (!day) return;
+
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+
+    const year = miniCalendarDate.getFullYear();
+    const month = miniCalendarDate.getMonth();
+    const clickedDate = new Date(year, month, day);
+
+    api.gotoDate(clickedDate);
+
+    if (currentView === 'dayGridMonth') {
+      api.changeView('timeGridDay', clickedDate);
+      setCurrentView('timeGridDay');
+    }
+
+    setSelectedMiniDay(day);
+    setMiniCalendarDate(clickedDate);
     updateTitleFromApi();
   };
 
@@ -352,55 +439,26 @@ export default function CalendarAdmin() {
     );
   };
 
-  const attendeeList = [
-  {
-    id: 'u1',
-    name: 'Anna Tran',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 'u2',
-    name: 'David Lee',
-    avatar:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 'u3',
-    name: 'Mia Nguyen',
-    avatar:
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 'u4',
-    name: 'Khanh Le',
-    avatar:
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 'u5',
-    name: 'Lina Pham',
-    avatar:
-      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 'u6',
-    name: 'Tracy Do',
-    avatar:
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=120&q=80',
-  },
-];
-
   return (
     <div className={styles.pageShell}>
       <div className={styles.appFrame}>
         <aside className={styles.sidebar}>
           <div className={styles.sidebarBlock}>
             <div className={styles.sidebarMonthHeader}>
-              <span className={styles.monthTitle}>January 2024</span>
+              <span className={styles.monthTitle}>
+                {miniCalendarDate.toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </span>
+
               <div className={styles.inlineActions}>
-                <button type="button"><i className="bi bi-chevron-left" /></button>
-                <button type="button"><i className="bi bi-chevron-right" /></button>
+                <button type="button" onClick={handleMiniPrevMonth}>
+                  <i className="bi bi-chevron-left" />
+                </button>
+                <button type="button" onClick={handleMiniNextMonth}>
+                  <i className="bi bi-chevron-right" />
+                </button>
               </div>
             </div>
 
@@ -416,7 +474,9 @@ export default function CalendarAdmin() {
                   <button
                     key={`${day}-${index}`}
                     type="button"
-                    className={`${styles.miniDay} ${day === 15 ? styles.miniDayActive : ''}`}
+                    onClick={() => handleMiniDayClick(day)}
+                    disabled={day === null}
+                    className={`${styles.miniDay} ${day === selectedMiniDay ? styles.miniDayActive : ''}`}
                   >
                     {day ?? ''}
                   </button>
@@ -428,20 +488,37 @@ export default function CalendarAdmin() {
           <div className={styles.sidebarBlock}>
             <div className={styles.sidebarTitle}>My calendars</div>
             <div className={styles.menuList}>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <span className={`${styles.dot} ${styles.dotWork}`} /> Work</label>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <span className={`${styles.dot} ${styles.dotEdu}`} /> Education</label>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <span className={`${styles.dot} ${styles.dotPersonal}`} /> Personal</label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked /> <span className={`${styles.dot} ${styles.dotWork}`} /> Work
+              </label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked /> <span className={`${styles.dot} ${styles.dotEdu}`} /> Education
+              </label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked />{' '}
+                <span className={`${styles.dot} ${styles.dotPersonal}`} /> Personal
+              </label>
             </div>
           </div>
 
           <div className={styles.sidebarBlock}>
             <div className={styles.sidebarTitle}>Platforms</div>
             <div className={styles.menuList}>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <i className="bi bi-camera-video-fill" /> Google Meet</label>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <i className="bi bi-slack" /> Slack</label>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <i className="bi bi-camera-video-fill" /> Zoom</label>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <i className="bi bi-discord" /> Discord</label>
-              <label className={styles.menuItem}><input type="checkbox" defaultChecked /> <i className="bi bi-skype" /> Skype</label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked /> <i className="bi bi-camera-video-fill" /> Google Meet
+              </label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked /> <i className="bi bi-slack" /> Slack
+              </label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked /> <i className="bi bi-camera-video-fill" /> Zoom
+              </label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked /> <i className="bi bi-discord" /> Discord
+              </label>
+              <label className={styles.menuItem}>
+                <input type="checkbox" defaultChecked /> <i className="bi bi-skype" /> Skype
+              </label>
             </div>
           </div>
         </aside>
@@ -459,7 +536,9 @@ export default function CalendarAdmin() {
             </div>
 
             <div className={styles.topbarCenter}>
-              <button type="button" className={styles.todayBtn} onClick={handleToday}>Today</button>
+              <button type="button" className={styles.todayBtn} onClick={handleToday}>
+                Today
+              </button>
               <div className={styles.viewTabs}>
                 <button
                   type="button"
@@ -496,22 +575,23 @@ export default function CalendarAdmin() {
                 />
               </label>
             </div>
-            <div className={styles.userStackWrap}>
-                <div className={styles.userStack}>
-                    {attendeeList.slice(0, 5).map((user) => (
-                    <div
-                        key={user.id}
-                        className={styles.userAvatar}
-                        title={user.name}
-                    >
-                       <Image src={user.avatar} alt={user.name} fill sizes="36px" unoptimized />
-                    </div>
-                    ))}
 
-                    {attendeeList.length > 5 ? (
-                    <div className={styles.userMore}>+{attendeeList.length - 5}</div>
-                    ) : null}
-                </div>
+            <div className={styles.userStackWrap}>
+              <div className={styles.userStack}>
+                {attendeeList.slice(0, 5).map((user) => (
+                  <div
+                    key={user.id}
+                    className={styles.userAvatar}
+                    title={user.name}
+                  >
+                    <Image src={user.avatar} alt={user.name} fill sizes="36px" unoptimized />
+                  </div>
+                ))}
+
+                {attendeeList.length > 5 ? (
+                  <div className={styles.userMore}>+{attendeeList.length - 5}</div>
+                ) : null}
+              </div>
             </div>
           </header>
 
@@ -551,6 +631,8 @@ export default function CalendarAdmin() {
                     const nextView = arg.view.type as CalendarView;
                     setCurrentView(nextView);
                     setCalendarTitle(formatCalendarTitle(arg.start, nextView));
+                    setMiniCalendarDate(arg.start);
+                    setSelectedMiniDay(arg.start.getDate());
                   }}
                   eventContent={renderEventContent}
                 />
@@ -573,12 +655,36 @@ export default function CalendarAdmin() {
 
                 {selectedBooking ? (
                   <div className={styles.detailList}>
-                    <div className={styles.detailRow}><span>Customer</span><strong>{selectedBooking.customerName}</strong></div>
-                    <div className={styles.detailRow}><span>Phone</span><strong>{selectedBooking.customerPhone}</strong></div>
-                    <div className={styles.detailRow}><span>Service</span><strong>{selectedBooking.serviceName}</strong></div>
-                    <div className={styles.detailRow}><span>Time</span><strong>{formatTime(selectedBooking.start)} - {formatTime(selectedBooking.end)}</strong></div>
-                    <div className={styles.detailRow}><span>Staff</span><strong>{selectedStaff?.name ?? 'Unassigned'}</strong></div>
-                    <div className={styles.detailRow}><span>Source</span><strong>{getSourceLabel(selectedBooking.source)}</strong></div>
+                    <div className={styles.detailRow}>
+                      <span>Customer</span>
+                      <strong>{selectedBooking.customerName}</strong>
+                    </div>
+                    <div className={styles.detailRow}>
+                      <span>Phone</span>
+                      <strong>{selectedBooking.customerPhone}</strong>
+                    </div>
+                    <div className={styles.detailRow}>
+                      <span>Service</span>
+                      <strong>{selectedBooking.serviceName}</strong>
+                    </div>
+                    <div className={styles.detailRow}>
+                      <span>Time</span>
+                      <strong>
+                        {formatTime(selectedBooking.start)} - {formatTime(selectedBooking.end)}
+                      </strong>
+                    </div>
+                    <div className={styles.detailRow}>
+                      <span>Staff</span>
+                      <strong>{selectedStaff?.name ?? 'Unassigned'}</strong>
+                    </div>
+                    <div className={styles.detailRow}>
+                      <span>Source</span>
+                      <strong>{getSourceLabel(selectedBooking.source)}</strong>
+                    </div>
+                    <div className={styles.detailRow}>
+                      <span>Staff status</span>
+                      <strong>{selectedStaff ? getStaffStatusLabel(selectedStaff.status) : 'Unknown'}</strong>
+                    </div>
                     <div className={styles.detailNote}>
                       <span>Note</span>
                       <p>{selectedBooking.note || 'No note from customer.'}</p>

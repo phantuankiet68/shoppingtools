@@ -1,0 +1,50 @@
+model Booking {
+  id            String   @id @default(cuid())
+
+  customerName  String
+  customerPhone String
+  serviceName   String
+  staffId       String
+  staff         Staff    @relation(fields: [staffId], references: [id])
+  start         DateTime
+  end           DateTime
+  status        BookingStatus @default(pending)
+  source        BookingSource
+  note          String?
+  siteId        String
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([start, end])
+  @@index([siteId])
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  checked_in
+  in_service
+  completed
+  cancelled
+  no_show
+}
+
+enum BookingSource {
+  website
+  facebook
+  zalo
+  phone
+  walk_in
+}
+
+
+model Staff {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  avatar    String?
+  siteId    String
+
+  bookings  Booking[]
+}

@@ -458,7 +458,7 @@ export default HotProductOne;
 
 Hiện tại tôi chưa có text messages en.ts, ja.ts,vi.ts Bạn có thể đổi các test theo 3 dạng ngôn ngữ giúp tôi được không
 
-viết tiếp cho bạn bản full MenuStructure.tsx đã thay toàn bộ text cứng sang t(...).
+viết tiếp cho bạn bản full page.tsx email đã thay toàn bộ text cứng sang t(...).
 
 
 

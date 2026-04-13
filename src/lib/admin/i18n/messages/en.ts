@@ -183,6 +183,234 @@ const en = {
     terms: "Terms & Conditions",
     newItem: "New Item",
   },
+   adminEmail: {
+    templates: {
+      welcome: {
+        name: "Welcome",
+        subject: "Welcome to our platform",
+        description: "Used for onboarding and greeting new users.",
+        content:
+          "Hello {{name}},\n\nThank you for joining our platform.\nWe are happy to have you with us.\n\nBest regards,",
+      },
+      promotion: {
+        name: "Promotion",
+        subject: "Order now and enjoy Free Delivery completely on us",
+        description: "Used for promotional offers, discounts, and product campaigns.",
+        content:
+          "Click below to complete your order and enter your exclusive code below to receive free delivery on your order.",
+      },
+      reminder: {
+        name: "Reminder",
+        subject: "Important reminder",
+        description: "Used to remind users about incomplete actions or important updates.",
+        content:
+          "Hello {{name}},\n\nThis is a reminder regarding your recent activity.\nPlease review the latest information.\n\nBest regards,",
+      },
+    },
+
+    defaults: {
+      previewText: "A quick preview of the email content.",
+      ctaUrl: "https://your-landing-page.com",
+      unknownTemplate: "Unknown template",
+      avatarFallback: "C",
+      previewCampaignFallback: "Campaign preview",
+      previewNoSubject: "(No subject)",
+      emptyValue: "--",
+    },
+
+    status: {
+      draft: "Draft",
+      queued: "Queued",
+      scheduled: "Scheduled",
+      sent: "Sent",
+      partial: "Partial",
+      failed: "Failed",
+      cancelled: "Cancelled",
+    },
+
+    providerOptions: {
+      SMTP: "SMTP",
+      RESEND: "RESEND",
+      SENDGRID: "SENDGRID",
+    },
+
+    emailTypeOptions: {
+      SYSTEM: "SYSTEM",
+      TEMPLATE: "TEMPLATE",
+      BULK: "BULK",
+      TEST: "TEST",
+    },
+
+    templateDefaults: {
+      promotion: {
+        ctaText: "Complete My Order",
+        promoCode: "AC41FD2P",
+        productName: "Mounjaro Kwikpen",
+        productImage: "/image.png",
+        benefitsText:
+          "Clinically proven prescription medication\nReduces hunger and cravings\nPaired with clinical support to assess progress",
+      },
+      reminder: {
+        ctaText: "Review now",
+        promoCode: "",
+        productName: "Action checklist",
+        productImage: "",
+        benefitsText:
+          "Complete your pending step\nReview your recent activity\nContinue where you left off",
+      },
+      welcome: {
+        ctaText: "Get started",
+        promoCode: "",
+        productName: "Getting started guide",
+        productImage: "",
+        benefitsText: "Quick setup\nEasy onboarding\nHelpful support",
+      },
+    },
+
+    messages: {
+      waitingUserContext: "Waiting for user context before loading email history.",
+      failedLoadCampaigns: "Failed to load email campaigns.",
+      missingSiteContext: "Missing site context.",
+      failedLoadSystemCredential: "Failed to load system email credential.",
+      noSystemCredentialFound: "No system email credential found for this site.",
+      missingUserContext: "Missing user context.",
+      enterCampaignName: "Please enter a campaign name.",
+      selectTemplate: "Please select a template.",
+      enterEmailSubject: "Please enter an email subject.",
+      enterPreviewText: "Please enter preview text.",
+      missingSenderName: "System sender name is missing. Please configure Email Settings first.",
+      invalidSenderEmail:
+        "System sender email is missing or invalid. Please configure Email Settings first.",
+      invalidReplyToEmail:
+        "System reply-to email is invalid. Please configure Email Settings first.",
+      invalidCtaUrl: "Please enter a valid CTA URL.",
+      invalidScheduledAt: "Please enter a valid scheduled date and time.",
+      enterAtLeastOneEmail: "Please enter at least 1 valid email address.",
+      sendingError: "An error occurred while sending the email.",
+      requestCompleted: "Request completed.",
+      status: "Status",
+      success: "Success",
+      failed: "Failed",
+      loadingCampaigns: "Loading campaigns...",
+      noCampaignsFound: "No campaigns found.",
+      loadingEmailCredential: "Loading email credential...",
+      invalidEmailAddresses: "Invalid email addresses",
+    },
+
+    sidebar: {
+      searchPlaceholder: "Search campaigns",
+      recipientsSuffix: "recipients",
+    },
+
+    sections: {
+      accountContext: "Account context",
+      messageMetadata: "Message metadata",
+      messageMetadataDesc: "Fields that map directly to the Email model.",
+      messageContent: "Message content",
+      messageContentDesc: "Fields used to build the final email content.",
+      ctaAndDestination: "CTA & destination",
+      ctaAndDestinationDesc: "Button text and conversion destination URL.",
+      offerProductDetails: "Offer & product details",
+      offerProductDetailsDesc: "Template-specific fields for promotions.",
+      welcomeDetails: "Welcome details",
+      welcomeDetailsDesc: "Template-specific fields for onboarding emails.",
+      reminderDetails: "Reminder details",
+      reminderDetailsDesc: "Template-specific fields for reminder emails.",
+      recipients: "Recipients",
+      recipientsDesc: "These map to EmailRecipient records.",
+      reviewInformation: "Review information",
+      reviewInformationDesc: "Review the payload before submitting.",
+      emailPreview: "Email Preview",
+    },
+
+    fields: {
+      userId: "User ID",
+      siteId: "Site ID",
+      workspace: "Workspace",
+      siteName: "Site name",
+      campaignName: "Campaign name",
+      templateKey: "Template key",
+      batchSize: "Batch size",
+      templateDescription: "Template description",
+      provider: "Provider",
+      emailType: "Email type",
+      fromName: "From name",
+      fromEmail: "From email",
+      replyToEmail: "Reply-to email",
+      scheduledAt: "Scheduled time",
+      enableTestMode: "Enable test mode",
+      subject: "Subject",
+      previewText: "Preview text",
+      content: "Main content",
+      ctaText: "CTA text",
+      ctaUrl: "CTA URL",
+      promoCode: "Promo code",
+      productName: "Product name",
+      productImage: "Product image URL",
+      benefits: "Benefits",
+      welcomeBenefits: "Benefits / highlights",
+      reminderBenefits: "Reminder points",
+      recipientList: "Recipient list",
+      validEmails: "Valid emails",
+      duplicateEmails: "Duplicate emails",
+      batchCount: "Estimated batches",
+      siteDomain: "Site domain",
+      campaign: "Campaign",
+      type: "Type",
+      recipients: "Recipients",
+      from: "From",
+    },
+
+    placeholders: {
+      userId: "Auto-filled from AdminAuthProvider",
+      siteId: "Auto-filled from AdminAuthProvider",
+      workspace: "Auto-filled from AdminAuthProvider",
+      siteName: "Auto-filled from AdminAuthProvider",
+      campaignName: "Example: Welcome Campaign - April",
+      subject: "Enter the email subject",
+      previewText: "Enter preview text",
+      content: "Enter the email content",
+      ctaText: "Complete My Order",
+      ctaUrl: "https://your-landing-page.com",
+      promoCode: "AC41FD2P",
+      productName: "Mounjaro Kwikpen",
+      productImage: "/image.png or https://...",
+      benefits: "Benefit 1\nBenefit 2\nBenefit 3",
+      welcomeBenefits: "Quick setup\nEasy onboarding\nHelpful support",
+      reminderBenefits:
+        "Complete your pending step\nReview your recent activity\nContinue where you left off",
+      recipientList:
+        "Enter the email list, one email per line\njohn@example.com\nanna@example.com\nsupport@example.com",
+      fromName: "Loaded from system email settings",
+      fromEmail: "Loaded from system email settings",
+      replyToEmail: "Loaded from system email settings",
+    },
+
+    hints: {
+      campaignName: "Internal name used to manage the campaign in the admin panel.",
+      templateKey: "This maps directly to EmailTemplate.key in the database.",
+      batchSize: "The current batch size is fixed.",
+      templateDescription: "Reference description of the selected template.",
+      provider: "Loaded automatically from system email settings.",
+      testMode: "When enabled, the backend can mark Email.testMode = true.",
+      subject: "Stored in Email.subject and shown to recipients.",
+      previewText: "Stored in Email.previewText for inbox preview snippets.",
+      content: "Main text used to render htmlContent or textContent on the backend.",
+      recipientList: "You can separate entries with line breaks, commas, or semicolons.",
+      bottomInfo:
+        "User ID and Site ID are loaded from AdminAuthProvider. Sender settings are loaded from system email credentials.",
+    },
+
+    buttons: {
+      submitting: "Submitting...",
+      scheduleCampaign: "Schedule campaign",
+      sendCampaign: "Send campaign",
+    },
+
+    misc: {
+      batchSizeValue: "{{count}} emails / batch",
+    },
+  },
 };
 
 export default en;
