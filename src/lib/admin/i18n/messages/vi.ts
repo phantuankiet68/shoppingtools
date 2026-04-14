@@ -182,6 +182,110 @@ const vi = {
     privacyPolicy: "Chính sách bảo mật",
     terms: "Điều khoản & Điều kiện",
     newItem: "Mục mới",
+    pageInspector: {
+      noDate: "(không có ngày)",
+      loadSeoFailed: "Không thể tải dữ liệu SEO.",
+      newPage: "Trang mới",
+      autoSeoCompleted: "Tạo SEO tự động thành công.",
+      saveSeoFailed: "Không thể lưu dữ liệu SEO.",
+      saveSeoSuccess: "Lưu SEO thành công.",
+      saveSeoError: "Đã xảy ra lỗi khi lưu SEO.",
+      missingSite: "Thiếu website",
+      currentSiteNotFound: "Không tìm thấy website hiện tại.",
+      missingTitle: "Thiếu tiêu đề",
+      pleaseEnterTitle: "Vui lòng nhập tiêu đề.",
+      missingSlug: "Thiếu slug",
+      pleaseEnterSlug: "Vui lòng nhập slug.",
+      syncPageFailed: "Không thể đồng bộ trang.",
+      syncPageSuccess: "Đồng bộ trang thành công.",
+      syncPageError: "Đã xảy ra lỗi khi đồng bộ trang.",
+      deletePageTitle: "Xóa trang",
+      deletePageConfirm: 'Bạn có chắc muốn xóa "{title}" không?',
+      thisPage: "trang này",
+
+      preview: "Xem trước",
+      delete: "Xóa",
+      sync: "Đồng bộ",
+      edit: "Chỉnh sửa",
+      autoSeo: "SEO tự động",
+      saving: "Đang lưu...",
+      saveSeo: "Lưu SEO",
+      unpublish: "Gỡ xuất bản",
+      publish: "Xuất bản",
+
+      untitled: "Chưa có tiêu đề",
+      path: "Đường dẫn",
+      status: "Trạng thái",
+      published: "Đã xuất bản",
+      draft: "Bản nháp",
+      updatedAt: "Cập nhật lúc",
+      emptyState: "Hãy chọn một trang để xem chi tiết và chỉnh SEO.",
+
+      metaTitle: "Meta title",
+      metaTitleRange: "/ 60–70",
+      titlePlaceholder: "Nhập tiêu đề trang",
+      ogTitle: "OG title",
+      twitterCard: "Twitter card",
+      choices: "Tùy chọn",
+      noindex: "noindex",
+      nofollow: "nofollow",
+
+      metaDescription: "Meta description",
+      metaDescriptionRange: "/ 150–160",
+      metaDescriptionPlaceholder: "Nhập mô tả meta",
+      keywordsOptional: "Từ khóa (tùy chọn)",
+      keywordsPlaceholder: "từ khóa 1, từ khóa 2, từ khóa 3",
+      canonicalUrl: "Canonical URL",
+      canonicalUrlPlaceholder: "https://example.com/your-page",
+
+      ogDescription: "OG description",
+      ogImageUrl: "URL ảnh OG",
+      ogImageHelper: "Ảnh đề xuất khi chia sẻ mạng xã hội",
+      ogImagePlaceholder: "https://...",
+
+      sitemapChangefreq: "Tần suất cập nhật sitemap",
+      sitemapPriority: "Độ ưu tiên sitemap",
+      structuredData: "Structured data",
+      structuredDataPlaceholder:
+        '{"@context":"https://schema.org","@type":"WebPage","name":"..."}',
+
+      syncModalTitle: "Tạo và đồng bộ trang",
+      close: "Đóng",
+      closeIcon: "✕",
+      site: "Website",
+      currentSite: "Website hiện tại",
+      usingCurrentSite: 'Đang dùng website hiện tại: "{site}"',
+      title: "Tiêu đề",
+      enterTitle: "Nhập tiêu đề",
+      slug: "Slug",
+      slugPlaceholder: "profile",
+      slugHelper: "Slug được dùng để tạo đường dẫn trang.",
+      pathPlaceholder: "/account/profile",
+      syncHintPrefix: "Thao tác này sẽ",
+      createAndSync: "tạo và đồng bộ",
+      syncHintSuffix: "trang vào website hiện tại với payload sau:",
+      syncing: "Đang đồng bộ...",
+
+      yourSiteId: "site-id-cua-ban",
+      yourTitle: "Tiêu đề của bạn",
+      slugExample: "profile",
+      pathExample: "/account/profile",
+
+      twitterCardOptions: {
+        summaryLargeImage: "Ảnh lớn",
+        summary: "Tóm tắt",
+      },
+
+      changefreq: {
+        always: "Luôn luôn",
+        hourly: "Hàng giờ",
+        daily: "Hàng ngày",
+        weekly: "Hàng tuần",
+        monthly: "Hàng tháng",
+        yearly: "Hàng năm",
+        never: "Không bao giờ",
+      },
+    },
   },
    adminEmail: {
     templates: {
@@ -538,6 +642,94 @@ const vi = {
       needInvoice: 'Khách cần xuất hóa đơn',
       followUpLater: 'Khách hẹn trao đổi thêm',
     },
+  },
+  pageList: {
+    title: "Danh sách trang",
+
+    common: {
+      error: "Lỗi",
+      refresh: "Làm mới",
+      sort: "Sắp xếp theo",
+      clear: "Xóa",
+      noDate: "(không có ngày)",
+    },
+
+    sites: {
+      loading: "Đang tải danh sách site...",
+      all: "Tất cả site",
+    },
+
+    status: {
+      all: "Tất cả trạng thái",
+      published: "Đã xuất bản",
+      draft: "Bản nháp",
+    },
+
+    fields: {
+      title: "Tiêu đề",
+      updated: "Cập nhật",
+    },
+
+    searchPlaceholder: "Tìm kiếm trang...",
+    searchAria: "Tìm kiếm trang",
+    noResults: "Không có kết quả",
+    untitled: "Chưa có tiêu đề",
+
+    filters: {
+      site: "Lọc theo site",
+      status: "Lọc theo trạng thái",
+    },
+
+    errors: {
+      loadPages: "Không thể tải danh sách trang",
+    },
+
+    pagination: {
+      previous: "Trang trước",
+      next: "Trang sau",
+      page: "Trang",
+      items: "mục",
+    },
+  },
+  builderAdd: {
+    siteFallback: "Site",
+    untitled: "Chưa có tiêu đề",
+
+    titles: {
+      pageEditor: "Trình chỉnh sửa trang",
+    },
+
+    aria: {
+      builderEditor: "Trình chỉnh sửa builder",
+    },
+
+    actions: {
+      publish: "Xuất bản",
+      preview: "Xem trước",
+      save: "Lưu",
+      cancel: "Hủy",
+      close: "Đóng",
+      closeModal: "Đóng cửa sổ",
+      backToDesign: "Quay lại thiết kế",
+    },
+
+    status: {
+      saving: "Đang lưu...",
+      loadingSites: "Đang tải site.",
+    },
+
+    messages: {
+      saveDraftOk: "Đã lưu bản nháp thành công",
+    },
+
+    errors: {
+      noSiteSelected: "Chưa chọn site",
+      needSaveBeforePublish: "Vui lòng lưu trước khi xuất bản",
+      saveErrorFallback: "Lưu trang thất bại",
+      publishErrorFallback: "Xuất bản trang thất bại",
+    },
+
+    initError: "Lỗi khởi tạo:",
   },
 };
 

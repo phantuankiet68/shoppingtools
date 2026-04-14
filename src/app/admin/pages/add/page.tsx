@@ -6,11 +6,12 @@ import styles from "@/styles/admin/pages/add.module.css";
 import DesignHeader from "@/components/admin/pages/DesignHeader";
 import { ControlsPalette, Canvas, Inspector } from "@/components/admin/pages";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
+import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 
 import type { Block, DropMeta } from "@/lib/pages/types";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 import { useUiBuilderAddStore } from "@/store/pages/add/uiBuilderAdd.store";
-import { useSiteStore } from "@/store/site/site.store";
 import { fetchAdminPage, publishAdminPage, saveAdminPage } from "@/services/pages/add/adminPages.service";
 
 import {
@@ -23,16 +24,9 @@ import {
   buildDroppedTemplateBlocks,
   normalizeBlocks,
 } from "@/features/pages/add/blocks.helper";
-import { BUILDER_ADD_MESSAGES } from "@/features/pages/add/messages";
 
 type RouteParams = {
   locale?: "en";
-};
-
-type SiteOption = {
-  id: string;
-  name: string;
-  domain?: string;
 };
 
 function normalizeText(value?: string | null) {
@@ -42,6 +36,11 @@ function normalizeText(value?: string | null) {
 export default function UiBuilderAddPage() {
   const { locale: routeLocale } = useParams<RouteParams>();
   const sp = useSearchParams();
+  const { t } = useAdminI18n();
+  const { site } = useAdminAuth();
+
+  const siteId = site?.id ?? "";
+  const siteDomain = site?.domain ?? "";
 
   const initialId = sp.get("id");
   const templateGroup = sp.get("templateGroup");
@@ -49,14 +48,6 @@ export default function UiBuilderAddPage() {
   const templateName = sp.get("templateName");
 
   const [state, dispatch] = useUiBuilderAddStore(initialId);
-
-  const sites = useSiteStore((siteState) => siteState.sites);
-  const sitesLoading = useSiteStore((siteState) => siteState.loading);
-  const sitesErr = useSiteStore((siteState) => siteState.err);
-  const selectedSiteId = useSiteStore((siteState) => siteState.siteId);
-  const setSelectedSiteId = useSiteStore((siteState) => siteState.setSiteId);
-  const hydrateFromStorage = useSiteStore((siteState) => siteState.hydrateFromStorage);
-  const loadSites = useSiteStore((siteState) => siteState.loadSites);
 
   const [guardMsg, setGuardMsg] = React.useState("");
   const [showEditorModal, setShowEditorModal] = React.useState(false);
@@ -108,18 +99,6 @@ export default function UiBuilderAddPage() {
     [state.blocks, state.activeId],
   );
 
-  const selectedSite = useMemo(() => {
-    return sites.find((site) => String(site.id) === String(selectedSiteId)) ?? null;
-  }, [sites, selectedSiteId]);
-
-  const siteOptions = useMemo<SiteOption[]>(() => {
-    return sites.map((site) => ({
-      id: String(site.id),
-      name: site.name ?? site.domain ?? `Site ${site.id}`,
-      domain: site.domain,
-    }));
-  }, [sites]);
-
   const filteredRegistry = useMemo(() => {
     if (!templateGroup) return REGISTRY;
 
@@ -147,15 +126,12 @@ export default function UiBuilderAddPage() {
 
     (async () => {
       try {
-        hydrateFromStorage();
-        await loadSites();
-
         if (initialId) {
           const p = await fetchAdminPage(initialId, ac.signal);
 
           if (p) {
             dispatch({ type: "setPageId", pageId: p.id });
-            dispatch({ type: "setTitle", title: p.title ?? "Untitled" });
+            dispatch({ type: "setTitle", title: p.title ?? t("builderAdd.untitled") });
             dispatch({ type: "setSlug", slug: p.slug ?? "" });
             dispatch({
               type: "setBlocks",
@@ -169,21 +145,17 @@ export default function UiBuilderAddPage() {
                 ogTitle: p.title ?? "",
               },
             });
-
-            if (p.siteId) {
-              setSelectedSiteId(String(p.siteId));
-            }
           }
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          console.error("Initialization error:", err);
+          console.error(t("builderAdd.initError"), err);
         }
       }
     })();
 
     return () => ac.abort();
-  }, [initialId, routeLocale, dispatch, hydrateFromStorage, loadSites, setSelectedSiteId]);
+  }, [initialId, routeLocale, dispatch, t]);
 
   useEffect(() => {
     dispatch({
@@ -312,8 +284,8 @@ export default function UiBuilderAddPage() {
   );
 
   const savePage = React.useCallback(async () => {
-    if (!selectedSiteId) {
-      setGuard("Chưa chọn site", 1800);
+    if (!siteId) {
+      setGuard(t("builderAdd.errors.noSiteSelected"), 1800);
       return;
     }
 
@@ -324,8 +296,8 @@ export default function UiBuilderAddPage() {
 
       const body = {
         id: state.pageId ?? undefined,
-        siteId: selectedSiteId,
-        domain: selectedSite?.domain || "",
+        siteId: String(siteId),
+        domain: siteDomain,
         title: safeTitle,
         slug: finalSlug,
         path: finalPath,
@@ -339,33 +311,33 @@ export default function UiBuilderAddPage() {
 
       const rs = await saveAdminPage({
         body,
-        siteDomain: selectedSite?.domain || "",
+        siteDomain,
       });
 
       if (!rs.ok) {
-        throw new Error(rs.error || BUILDER_ADD_MESSAGES.SAVE_ERROR_FALLBACK);
+        throw new Error(rs.error || t("builderAdd.errors.saveErrorFallback"));
       }
 
       if (rs.id && rs.id !== state.pageId) {
         dispatch({ type: "setPageId", pageId: rs.id });
       }
 
-      setGuard(BUILDER_ADD_MESSAGES.SAVE_DRAFT_OK, 1500);
+      setGuard(t("builderAdd.messages.saveDraftOk"), 1500);
     } catch (e: unknown) {
-      setGuard((e as Error)?.message || BUILDER_ADD_MESSAGES.SAVE_ERROR_FALLBACK, 2200);
+      setGuard((e as Error)?.message || t("builderAdd.errors.saveErrorFallback"), 2200);
     } finally {
       dispatch({ type: "setSaving", saving: false });
     }
-  }, [dispatch, selectedSiteId, selectedSite, state, setGuard]);
+  }, [dispatch, siteId, siteDomain, state, setGuard, t]);
 
   const publishPage = React.useCallback(async () => {
-    if (!selectedSiteId) {
-      setGuard("Chưa chọn site", 1800);
+    if (!siteId) {
+      setGuard(t("builderAdd.errors.noSiteSelected"), 1800);
       return;
     }
 
     if (!state.pageId) {
-      setGuard(BUILDER_ADD_MESSAGES.NEED_SAVE_BEFORE_PUBLISH, 1800);
+      setGuard(t("builderAdd.errors.needSaveBeforePublish"), 1800);
       return;
     }
 
@@ -374,29 +346,29 @@ export default function UiBuilderAddPage() {
 
       const rs = await publishAdminPage({
         id: state.pageId,
-        siteDomain: selectedSite?.domain || "",
+        siteDomain,
       });
 
       if (!rs.ok) {
-        throw new Error(rs.error || BUILDER_ADD_MESSAGES.PUBLISH_ERROR_FALLBACK);
+        throw new Error(rs.error || t("builderAdd.errors.publishErrorFallback"));
       }
 
-      const siteOrigin = originFromDomain(selectedSite?.domain);
+      const siteOrigin = originFromDomain(siteDomain);
       const url = siteOrigin ? `${siteOrigin}${effectivePath}` : effectivePath;
 
       window.open(url, "_blank");
     } catch (e: unknown) {
-      setGuard((e as Error)?.message || BUILDER_ADD_MESSAGES.PUBLISH_ERROR_FALLBACK, 2000);
+      setGuard((e as Error)?.message || t("builderAdd.errors.publishErrorFallback"), 2000);
     } finally {
       dispatch({ type: "setPublishing", publishing: false });
     }
-  }, [dispatch, selectedSiteId, selectedSite, state.pageId, effectivePath, setGuard]);
+  }, [dispatch, siteId, siteDomain, state.pageId, effectivePath, setGuard, t]);
 
   const openPreview = React.useCallback(() => {
-    const siteOrigin = originFromDomain(selectedSite?.domain);
+    const siteOrigin = originFromDomain(siteDomain);
     const url = siteOrigin ? `${siteOrigin}${effectivePath}` : effectivePath;
     window.open(url, "_blank");
-  }, [effectivePath, selectedSite]);
+  }, [effectivePath, siteDomain]);
 
   const handleRefresh = React.useCallback(() => {
     window.location.href = "/admin/pages";
@@ -406,26 +378,26 @@ export default function UiBuilderAddPage() {
     () => ({
       F2: {
         action: publishPage,
-        label: "Publish",
+        label: t("builderAdd.actions.publish"),
         icon: "bi-arrow-right-short",
       },
       F3: {
         action: openPreview,
-        label: "Preview",
+        label: t("builderAdd.actions.preview"),
         icon: "bi-eye",
       },
       F5: {
         action: savePage,
-        label: "Save",
+        label: t("builderAdd.actions.save"),
         icon: "bi-save",
       },
       F6: {
         action: handleRefresh,
-        label: "Cancel",
+        label: t("builderAdd.actions.cancel"),
         icon: "bi-arrow-repeat",
       },
     }),
-    [publishPage, openPreview, savePage, handleRefresh],
+    [publishPage, openPreview, savePage, handleRefresh, t],
   );
 
   usePageFunctionKeys(functionKeyActions);
@@ -437,7 +409,12 @@ export default function UiBuilderAddPage() {
           <div className={styles.toast}>
             <i className="bi bi-exclamation-triangle" />
             <span className={styles.toastText}>{guardMsg}</span>
-            <button type="button" className={styles.toastClose} onClick={() => setGuardMsg("")} aria-label="Close">
+            <button
+              type="button"
+              className={styles.toastClose}
+              onClick={() => setGuardMsg("")}
+              aria-label={t("builderAdd.actions.close")}
+            >
               <i className="bi bi-x" />
             </button>
           </div>
@@ -458,6 +435,22 @@ export default function UiBuilderAddPage() {
             </aside>
 
             <main className={styles.center}>
+              <div className={styles.listBtn}>
+                {Object.entries(functionKeyActions).map(([key, item]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={styles.actionBtn}
+                    onClick={item.action}
+                    title={`${item.label} (${key})`}
+                  >
+                    <i className={`bi ${item.icon} ${styles.actionIcon}`} />
+                    <span className={styles.actionLabel}>{item.label}</span>
+                    <span className={styles.actionKey}>{key}</span>
+                  </button>
+                ))}
+              </div>
+
               <Canvas
                 blocks={state.blocks}
                 activeId={state.activeId}
@@ -487,17 +480,17 @@ export default function UiBuilderAddPage() {
                   onClick={() => dispatch({ type: "setMode", mode: "design" })}
                 >
                   <i className="bi bi-arrow-left-short" />
-                  Back to Design
+                  {t("builderAdd.actions.backToDesign")}
                 </button>
 
                 <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={savePage} disabled={state.saving}>
                   {state.saving ? (
                     <>
                       <span className={styles.spinner} />
-                      Saving…
+                      {t("builderAdd.status.saving")}
                     </>
                   ) : (
-                    <>Save</>
+                    <>{t("builderAdd.actions.save")}</>
                   )}
                 </button>
               </div>
@@ -513,15 +506,15 @@ export default function UiBuilderAddPage() {
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Builder editor"
+            aria-label={t("builderAdd.aria.builderEditor")}
           >
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Page Editor</h3>
+              <h3 className={styles.modalTitle}>{t("builderAdd.titles.pageEditor")}</h3>
               <button
                 type="button"
                 className={styles.modalClose}
                 onClick={() => setShowEditorModal(false)}
-                aria-label="Close modal"
+                aria-label={t("builderAdd.actions.closeModal")}
               >
                 <i className="bi bi-x-lg" />
               </button>
@@ -541,10 +534,10 @@ export default function UiBuilderAddPage() {
                 onRefresh={handleRefresh}
                 device={state.device}
                 setDevice={(d) => dispatch({ type: "setDevice", device: d })}
-                sites={siteOptions}
-                selectedSiteId={selectedSiteId || ""}
-                onChangeSite={setSelectedSiteId}
-                disableSiteSelect={Boolean(state.pageId)}
+                sites={[]}
+                selectedSiteId={String(siteId)}
+                onChangeSite={() => {}}
+                disableSiteSelect
               />
 
               <Inspector active={active} move={move} remove={remove} updateActive={updateActive} />
@@ -553,8 +546,11 @@ export default function UiBuilderAddPage() {
         </div>
       )}
 
-      {sitesLoading && <div className="small text-secondary mt-2">Đang tải site.</div>}
-      {sitesErr && <div className="small text-danger mt-2">{sitesErr}</div>}
+      {!siteId && (
+        <div className="small text-warning mt-2">
+          {t("builderAdd.errors.noSiteSelected")}
+        </div>
+      )}
     </div>
   );
 }

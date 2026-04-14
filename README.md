@@ -456,9 +456,7 @@ const banner = safeJson<HotProductOneBanner>(p.banner);
 
 export default HotProductOne;
 
-Hiện tại tôi chưa có text messages en.ts, ja.ts,vi.ts Bạn có thể đổi các test theo 3 dạng ngôn ngữ giúp tôi được không
-
-viết tiếp cho bạn bản full page.tsx email đã thay toàn bộ text cứng sang t(...).
+Hiện tại tôi chưa có text messages en.ts, ja.ts,vi.ts Bạn có thể đổi các test theo 3 dạng ngôn ngữ giúp tôi được không import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n(); viết tiếp cho bạn bản full PageInspector.tsx email đã thay toàn bộ text cứng sang t(...).
 
 
 

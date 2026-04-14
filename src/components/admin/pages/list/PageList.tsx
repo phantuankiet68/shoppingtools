@@ -2,9 +2,9 @@
 
 import React, { useCallback, useMemo } from "react";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 import styles from "@/styles/admin/pages/pageList.module.css";
 import type { PageRow } from "@/lib/pages/types";
-import { PAGE_MESSAGES as M } from "@/features/pages/messages";
 
 type SortKey = "updatedAt" | "createdAt" | "title";
 type SortDir = "asc" | "desc";
@@ -49,8 +49,8 @@ type Props = {
   totalPages: number;
 };
 
-function initialsFromTitle(t?: string) {
-  const s = (t || "").trim();
+function initialsFromTitle(title?: string) {
+  const s = (title || "").trim();
   if (!s) return "PG";
   const parts = s.split(/\s+/).slice(0, 2);
   return parts.map((x) => x[0]?.toUpperCase() || "").join("") || "PG";
@@ -81,6 +81,7 @@ function PageList({
   totalPages,
 }: Props) {
   const modal = useModal();
+  const { t } = useAdminI18n();
 
   const toggleSort = useCallback(
     (k: SortKey) => {
@@ -101,9 +102,12 @@ function PageList({
     try {
       await onRefresh();
     } catch (e: unknown) {
-      modal.error("Error", (e as Error)?.message || M.loadPagesError);
+      modal.error(
+        t("pageList.common.error"),
+        (e as Error)?.message || t("pageList.errors.loadPages"),
+      );
     }
-  }, [onRefresh, modal]);
+  }, [onRefresh, modal, t]);
 
   const canPrev = page > 1;
   const canNext = page < totalPages;
@@ -142,14 +146,14 @@ function PageList({
     <aside className={styles.leftPane}>
       <div className={styles.leftHead}>
         <div className={styles.listToolbar}>
-          <h2>List Pages</h2>
+          <h2>{t("pageList.title")}</h2>
           <button
             className={styles.refreshBtn}
             type="button"
             onClick={() => void handleRefresh()}
             disabled={loading}
-            aria-label={M.refresh}
-            title={M.refresh}
+            aria-label={t("pageList.common.refresh")}
+            title={t("pageList.common.refresh")}
           >
             <i className={`bi bi-arrow-repeat ${styles.iconLeft}`} />
           </button>
@@ -160,10 +164,12 @@ function PageList({
             className={styles.select}
             value={siteId || "all"}
             onChange={onSiteChange}
-            aria-label="Site filter"
+            aria-label={t("pageList.filters.site")}
             disabled={!!sitesLoading}
           >
-            <option value="all">{sitesLoading ? "Loading sites..." : M.allSites}</option>
+            <option value="all">
+              {sitesLoading ? t("pageList.sites.loading") : t("pageList.sites.all")}
+            </option>
             {sites.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name || s.id}
@@ -175,76 +181,74 @@ function PageList({
             className={styles.select}
             value={status}
             onChange={onStatusChange}
-            aria-label="Status filter"
+            aria-label={t("pageList.filters.status")}
             disabled={loading}
           >
-            <option value="all">{M.allStatuses}</option>
-            <option value="PUBLISHED">{M.publish}</option>
-            <option value="DRAFT">{M.unpublish}</option>
+            <option value="all">{t("pageList.status.all")}</option>
+            <option value="PUBLISHED">{t("pageList.status.published")}</option>
+            <option value="DRAFT">{t("pageList.status.draft")}</option>
           </select>
 
           <button
             className={styles.ghostBtn}
             type="button"
             onClick={() => toggleSort("updatedAt")}
-            title={`${M.sort} by ${M.updated}`}
+            title={`${t("pageList.common.sort")} ${t("pageList.fields.updated")}`}
             disabled={loading}
           >
             <i className={`bi ${updatedSortIcon}`} />
-            <span className={styles.btnText}>{M.updated}</span>
+            <span className={styles.btnText}>{t("pageList.fields.updated")}</span>
           </button>
 
           <button
             className={styles.ghostBtn}
             type="button"
             onClick={() => toggleSort("title")}
-            title={`${M.sort} by ${M.title}`}
+            title={`${t("pageList.common.sort")} ${t("pageList.fields.title")}`}
             disabled={loading}
           >
             <i className={`bi ${titleSortIcon}`} />
-            <span className={styles.btnText}>{M.title}</span>
+            <span className={styles.btnText}>{t("pageList.fields.title")}</span>
           </button>
+          <div className={styles.searchBox}>
+            <i className={`bi bi-search ${styles.searchIcon}`} />
+            <input
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(1);
+              }}
+              placeholder={t("pageList.searchPlaceholder")}
+              aria-label={t("pageList.searchAria")}
+              disabled={loading}
+            />
+            {q && (
+              <button
+                className={styles.clearBtn}
+                onClick={() => {
+                  setQ("");
+                  setPage(1);
+                }}
+                type="button"
+                title={t("pageList.common.clear")}
+                aria-label={t("pageList.common.clear")}
+                disabled={loading}
+              >
+                <i className="bi bi-x-lg" />
+              </button>
+            )}
+          </div>
         </div>
 
         {sitesErr ? <div className={styles.empty}>{sitesErr}</div> : null}
-
-        <div className={styles.searchBox}>
-          <i className={`bi bi-search ${styles.searchIcon}`} />
-          <input
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPage(1);
-            }}
-            placeholder={M.searchPlaceholder}
-            aria-label="Search pages"
-            disabled={loading}
-          />
-          {q && (
-            <button
-              className={styles.clearBtn}
-              onClick={() => {
-                setQ("");
-                setPage(1);
-              }}
-              type="button"
-              title="Clear"
-              aria-label="Clear"
-              disabled={loading}
-            >
-              <i className="bi bi-x-lg" />
-            </button>
-          )}
-        </div>
       </div>
 
       <div className={styles.listWrap} id="listWrap">
-        {pages.length === 0 && !loading && <div className={styles.empty}>{M.noResults}</div>}
+        {pages.length === 0 && !loading && <div className={styles.empty}>{t("pageList.noResults")}</div>}
 
         {pages.map((p) => {
           const ts = p.updatedAt || p.createdAt || 0;
-          const dateText = ts ? dateFormatter.format(new Date(ts)) : "(no date)";
-          const site = p.siteId ?? p.site_id ?? undefined;
+          const dateText = ts ? dateFormatter.format(new Date(ts)) : t("pageList.common.noDate");
 
           return (
             <button
@@ -258,11 +262,13 @@ function PageList({
 
               <div className={styles.itemMain}>
                 <div className={styles.itemTitle}>
-                  <span className={styles.titleText}>{p.title || M.untitled}</span>
+                  <span className={styles.titleText}>{p.title || t("pageList.untitled")}</span>
                   <span
                     className={`${styles.badge} ${p.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}
                   >
-                    {p.status}
+                    {p.status === "PUBLISHED"
+                      ? t("pageList.status.published")
+                      : t("pageList.status.draft")}
                   </span>
                 </div>
 
@@ -293,17 +299,19 @@ function PageList({
           type="button"
           onClick={() => canPrev && setPage(page - 1)}
           disabled={!canPrev || loading}
-          aria-label="Previous page"
-          title="Previous page"
+          aria-label={t("pageList.pagination.previous")}
+          title={t("pageList.pagination.previous")}
         >
           <i className="bi bi-chevron-left" />
         </button>
 
         <div className={styles.pageInfo}>
           <span>
-            {M.page} <strong>{page}</strong> / {totalPages}
+            {t("pageList.pagination.page")} <strong>{page}</strong> / {totalPages}
           </span>
-          <span className={styles.muted}>({total} items)</span>
+          <span className={styles.muted}>
+            ({total} {t("pageList.pagination.items")})
+          </span>
         </div>
 
         <button
@@ -311,8 +319,8 @@ function PageList({
           type="button"
           onClick={() => canNext && setPage(page + 1)}
           disabled={!canNext || loading}
-          aria-label="Next page"
-          title="Next page"
+          aria-label={t("pageList.pagination.next")}
+          title={t("pageList.pagination.next")}
         >
           <i className="bi bi-chevron-right" />
         </button>

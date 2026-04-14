@@ -151,7 +151,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
                     onDragStart={onDragTemplate(tpl.id)}
                     title="Drag entire template"
                   >
-                    <i className="bi bi-stack" /> Drag all
+                    <i className="bi bi-stack" /> Drag
                   </button>
                 </div>
 

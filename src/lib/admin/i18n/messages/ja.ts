@@ -182,6 +182,110 @@ const ja = {
     privacyPolicy: "プライバシーポリシー",
     terms: "利用規約",
     newItem: "新商品",
+    pageInspector: {
+      noDate: "(日付なし)",
+      loadSeoFailed: "SEOデータの読み込みに失敗しました。",
+      newPage: "新しいページ",
+      autoSeoCompleted: "自動SEOの生成が完了しました。",
+      saveSeoFailed: "SEOデータの保存に失敗しました。",
+      saveSeoSuccess: "SEOを保存しました。",
+      saveSeoError: "SEOの保存中にエラーが発生しました。",
+      missingSite: "サイトがありません",
+      currentSiteNotFound: "現在のサイトが見つかりません。",
+      missingTitle: "タイトルがありません",
+      pleaseEnterTitle: "タイトルを入力してください。",
+      missingSlug: "スラッグがありません",
+      pleaseEnterSlug: "スラッグを入力してください。",
+      syncPageFailed: "ページの同期に失敗しました。",
+      syncPageSuccess: "ページの同期が完了しました。",
+      syncPageError: "ページ同期中にエラーが発生しました。",
+      deletePageTitle: "ページを削除",
+      deletePageConfirm: '"{title}" を削除してもよろしいですか？',
+      thisPage: "このページ",
+
+      preview: "プレビュー",
+      delete: "削除",
+      sync: "同期",
+      edit: "編集",
+      autoSeo: "自動SEO",
+      saving: "保存中...",
+      saveSeo: "SEOを保存",
+      unpublish: "公開解除",
+      publish: "公開",
+
+      untitled: "無題",
+      path: "パス",
+      status: "状態",
+      published: "公開済み",
+      draft: "下書き",
+      updatedAt: "更新日時",
+      emptyState: "ページを選択して詳細とSEO設定を確認してください。",
+
+      metaTitle: "メタタイトル",
+      metaTitleRange: "/ 60–70",
+      titlePlaceholder: "ページタイトルを入力",
+      ogTitle: "OGタイトル",
+      twitterCard: "Twitterカード",
+      choices: "オプション",
+      noindex: "noindex",
+      nofollow: "nofollow",
+
+      metaDescription: "メタディスクリプション",
+      metaDescriptionRange: "/ 150–160",
+      metaDescriptionPlaceholder: "メタディスクリプションを入力",
+      keywordsOptional: "キーワード（任意）",
+      keywordsPlaceholder: "キーワード1, キーワード2, キーワード3",
+      canonicalUrl: "Canonical URL",
+      canonicalUrlPlaceholder: "https://example.com/your-page",
+
+      ogDescription: "OG説明",
+      ogImageUrl: "OG画像URL",
+      ogImageHelper: "SNS共有用の推奨画像",
+      ogImagePlaceholder: "https://...",
+
+      sitemapChangefreq: "Sitemap更新頻度",
+      sitemapPriority: "Sitemap優先度",
+      structuredData: "構造化データ",
+      structuredDataPlaceholder:
+        '{"@context":"https://schema.org","@type":"WebPage","name":"..."}',
+
+      syncModalTitle: "ページを作成して同期",
+      close: "閉じる",
+      closeIcon: "✕",
+      site: "サイト",
+      currentSite: "現在のサイト",
+      usingCurrentSite: '現在のサイトを使用中: "{site}"',
+      title: "タイトル",
+      enterTitle: "タイトルを入力",
+      slug: "スラッグ",
+      slugPlaceholder: "profile",
+      slugHelper: "スラッグはページパスの生成に使用されます。",
+      pathPlaceholder: "/account/profile",
+      syncHintPrefix: "この操作でページを",
+      createAndSync: "作成して同期",
+      syncHintSuffix: "します。送信されるペイロードは以下です:",
+      syncing: "同期中...",
+
+      yourSiteId: "your-site-id",
+      yourTitle: "Your title",
+      slugExample: "profile",
+      pathExample: "/account/profile",
+
+      twitterCardOptions: {
+        summaryLargeImage: "大きな画像付き要約",
+        summary: "要約",
+      },
+
+      changefreq: {
+        always: "常時",
+        hourly: "毎時",
+        daily: "毎日",
+        weekly: "毎週",
+        monthly: "毎月",
+        yearly: "毎年",
+        never: "なし",
+      },
+    },
   },
    adminEmail: {
     templates: {
@@ -539,6 +643,94 @@ const ja = {
       needInvoice: '請求書が必要',
       followUpLater: '後で追加相談予定',
     },
+  },
+  pageList: {
+    title: "ページ一覧",
+
+    common: {
+      error: "エラー",
+      refresh: "更新",
+      sort: "並び替え",
+      clear: "クリア",
+      noDate: "（日付なし）",
+    },
+
+    sites: {
+      loading: "サイトを読み込み中...",
+      all: "すべてのサイト",
+    },
+
+    status: {
+      all: "すべてのステータス",
+      published: "公開",
+      draft: "下書き",
+    },
+
+    fields: {
+      title: "タイトル",
+      updated: "更新日",
+    },
+
+    searchPlaceholder: "ページを検索...",
+    searchAria: "ページを検索",
+    noResults: "結果がありません",
+    untitled: "無題",
+
+    filters: {
+      site: "サイトフィルター",
+      status: "ステータスフィルター",
+    },
+
+    errors: {
+      loadPages: "ページの読み込みに失敗しました",
+    },
+
+    pagination: {
+      previous: "前のページ",
+      next: "次のページ",
+      page: "ページ",
+      items: "件",
+    },
+  },
+  builderAdd: {
+    siteFallback: "サイト",
+    untitled: "無題",
+
+    titles: {
+      pageEditor: "ページエディター",
+    },
+
+    aria: {
+      builderEditor: "ビルダーエディター",
+    },
+
+    actions: {
+      publish: "公開",
+      preview: "プレビュー",
+      save: "保存",
+      cancel: "キャンセル",
+      close: "閉じる",
+      closeModal: "モーダルを閉じる",
+      backToDesign: "デザインに戻る",
+    },
+
+    status: {
+      saving: "保存中...",
+      loadingSites: "サイトを読み込み中。",
+    },
+
+    messages: {
+      saveDraftOk: "下書きが正常に保存されました",
+    },
+
+    errors: {
+      noSiteSelected: "サイトが選択されていません",
+      needSaveBeforePublish: "公開する前に保存してください",
+      saveErrorFallback: "ページの保存に失敗しました",
+      publishErrorFallback: "ページの公開に失敗しました",
+    },
+
+    initError: "初期化エラー:",
   },
 };
 

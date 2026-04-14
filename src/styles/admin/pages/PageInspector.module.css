@@ -25,18 +25,21 @@
 
 .detailInfo {
   min-width: 0;
+  max-width: 300px;
 }
 
 .detailTitle {
   margin: 0;
-  font-size: 20px;
-  font-weight: 900;
+  font-size: 23px;
+  font-weight: 700;
   color: var(--color-title);
   line-height: 1.15;
   max-width: 560px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-transform: uppercase;
+  margin-bottom: 5px;
 }
 
 .kv {
@@ -51,16 +54,17 @@
   gap: 8px;
   padding: 6px 10px;
   border-radius: 8px;
-  background: rgba(17, 24, 39, 0.03);
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: #ffffff;
+  border: var(--bd-header);
   font-size: 12px;
   font-weight: 500;
   color: rgba(17, 24, 39, 0.75);
+  margin-right: 5px;
 }
 
 .kvLabel {
   color: rgba(17, 24, 39, 0.55);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .kvValue {
@@ -246,7 +250,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .field {
@@ -274,7 +278,7 @@
   border: var(--bd-header);
   background: var(--bg-header);
   outline: none;
-  padding: 7px 12px;
+  padding: 10px 12px;
   font-size: 13px;
   color: rgba(17, 24, 39, 0.88);
   transition:
@@ -285,7 +289,7 @@
 
 .textarea {
   resize: vertical;
-  min-height: 93px;
+  min-height: 112px;
 }
 
 .input:focus,
@@ -572,4 +576,63 @@
   gap: 10px;
   padding: 16px 20px 20px;
   border-top: 1px solid #e5e7eb;
+}
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: var(--bd-header);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: #f9fafb;
+  box-shadow: var(--box-shadow);
+  border-color: var(--border-color);
+}
+
+.actionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actionKey {
+  background: #d7e7ff;
+  border-radius: 6px;
+  padding: 5px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: var(--bd-header);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.actionIcon {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
 }

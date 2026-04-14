@@ -26,18 +26,6 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     "TopbarUtility",
   ]),
 
-  tpl("tpl-widget", "widget", [
-    "SocialWidgetOne",
-    "SocialWidgetTwo",
-    "SocialWidgetThree",
-    "SocialWidgetFour",
-    "SocialWidgetFive",
-    "SocialWidgetSix",
-    "SocialWidgetSeven",
-    "SocialWidgetEight",
-    "SocialWidgetNine",
-    "SocialWidgetTen",
-  ]),
 
   tpl("tpl-header", "Header", [
     "HeaderAnnouncement",

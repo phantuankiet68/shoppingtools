@@ -32,10 +32,11 @@
 }
 
 .listToolbar h2 {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   color: var(--color-title);
   letter-spacing: -1px;
+  text-transform: uppercase;
 }
 
 /* =========================
@@ -52,6 +53,7 @@
   transition:
     border-color 160ms ease,
     background 160ms ease;
+    min-width: 71.5%;
 }
 
 .searchBox:focus-within {
@@ -87,7 +89,7 @@
   background: transparent;
   color: rgba(17, 24, 39, 0.55);
   width: 20px;
-  height: 2s0px;
+  height: 20px;
   border-radius: 10px;
   display: grid;
   place-items: center;
@@ -115,7 +117,7 @@
 /* Nếu bạn vẫn dùng bootstrap select, class này sẽ không ảnh hưởng.
    Khuyến nghị: đổi select sang className={styles.select} */
 .select {
-  height: 30px;
+  height: 37px;
   padding: 3px 10px;
   border-radius: 6px;
   border: var(--bd-header);
@@ -123,7 +125,7 @@
   font-size: 12px;
   color: var(--muted);
   outline: none;
-  max-width: 100px;
+  min-width: 100px;
 }
 
 .select:focus {
@@ -136,15 +138,14 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 30px;
+  height: 37px;
   padding: 0 6px;
   border-radius: 6px;
   border: var(--bd-header);
   background: var(--bg-header);
   color: var(--muted);
   font-size: 12px;
-  max-width: 90px;
-  min-width: 78px;
+  min-width: 102px;
   cursor: pointer;
   transition:
     background 160ms ease,
@@ -197,11 +198,11 @@
 ========================= */
 .listWrap {
   flex: 1;
-  padding: 10px;
+  padding: 12px 10px;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .empty {
@@ -222,7 +223,7 @@
   grid-template-columns: 40px 1fr auto;
   gap: 25px;
   align-items: center;
-  padding: 15px 12px;
+  padding: 10px 12px;
   border-radius: 6px;
   border: 1px dashed rgba(17, 24, 39, 0.08);
   background: rgba(255, 255, 255, 0.75);
@@ -231,6 +232,7 @@
     border-color 160ms ease,
     background 160ms ease,
     transform 120ms ease;
+  min-height: 76px;
 }
 
 .item:hover {
@@ -243,8 +245,8 @@
 }
 
 .itemActive {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.35);
+     background: #eb95484a;
+    border-color: #b9680e59;
 }
 
 /* subtle sheen (optional) */

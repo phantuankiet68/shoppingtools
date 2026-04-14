@@ -182,6 +182,110 @@ const en = {
     privacyPolicy: "Privacy Policy",
     terms: "Terms & Conditions",
     newItem: "New Item",
+    pageInspector: {
+      noDate: "(no date)",
+      loadSeoFailed: "Failed to load SEO data.",
+      newPage: "New page",
+      autoSeoCompleted: "Auto SEO completed.",
+      saveSeoFailed: "Failed to save SEO data.",
+      saveSeoSuccess: "SEO saved successfully.",
+      saveSeoError: "An error occurred while saving SEO.",
+      missingSite: "Missing site",
+      currentSiteNotFound: "Current site not found.",
+      missingTitle: "Missing title",
+      pleaseEnterTitle: "Please enter a title.",
+      missingSlug: "Missing slug",
+      pleaseEnterSlug: "Please enter a slug.",
+      syncPageFailed: "Failed to sync page.",
+      syncPageSuccess: "Page synced successfully.",
+      syncPageError: "An error occurred while syncing page.",
+      deletePageTitle: "Delete page",
+      deletePageConfirm: 'Are you sure you want to delete "{title}"?',
+      thisPage: "this page",
+
+      preview: "Preview",
+      delete: "Delete",
+      sync: "Sync",
+      edit: "Edit",
+      autoSeo: "Auto SEO",
+      saving: "Saving...",
+      saveSeo: "Save SEO",
+      unpublish: "Unpublish",
+      publish: "Publish",
+
+      untitled: "Untitled",
+      path: "Path",
+      status: "Status",
+      published: "Published",
+      draft: "Draft",
+      updatedAt: "Updated at",
+      emptyState: "Select a page to inspect and edit its SEO settings.",
+
+      metaTitle: "Meta title",
+      metaTitleRange: "/ 60–70",
+      titlePlaceholder: "Enter page title",
+      ogTitle: "OG title",
+      twitterCard: "Twitter card",
+      choices: "Options",
+      noindex: "noindex",
+      nofollow: "nofollow",
+
+      metaDescription: "Meta description",
+      metaDescriptionRange: "/ 150–160",
+      metaDescriptionPlaceholder: "Enter meta description",
+      keywordsOptional: "Keywords (optional)",
+      keywordsPlaceholder: "keyword 1, keyword 2, keyword 3",
+      canonicalUrl: "Canonical URL",
+      canonicalUrlPlaceholder: "https://example.com/your-page",
+
+      ogDescription: "OG description",
+      ogImageUrl: "OG image URL",
+      ogImageHelper: "Recommended image for social sharing",
+      ogImagePlaceholder: "https://...",
+
+      sitemapChangefreq: "Sitemap change frequency",
+      sitemapPriority: "Sitemap priority",
+      structuredData: "Structured data",
+      structuredDataPlaceholder:
+        '{"@context":"https://schema.org","@type":"WebPage","name":"..."}',
+
+      syncModalTitle: "Create and sync page",
+      close: "Close",
+      closeIcon: "✕",
+      site: "Site",
+      currentSite: "Current site",
+      usingCurrentSite: 'Using current site: "{site}"',
+      title: "Title",
+      enterTitle: "Enter title",
+      slug: "Slug",
+      slugPlaceholder: "profile",
+      slugHelper: "Slug is used to generate the page path.",
+      pathPlaceholder: "/account/profile",
+      syncHintPrefix: "This action will",
+      createAndSync: "create and sync",
+      syncHintSuffix: "the page to the current site using this payload:",
+      syncing: "Syncing...",
+
+      yourSiteId: "your-site-id",
+      yourTitle: "Your title",
+      slugExample: "profile",
+      pathExample: "/account/profile",
+
+      twitterCardOptions: {
+        summaryLargeImage: "Summary large image",
+        summary: "Summary",
+      },
+
+      changefreq: {
+        always: "Always",
+        hourly: "Hourly",
+        daily: "Daily",
+        weekly: "Weekly",
+        monthly: "Monthly",
+        yearly: "Yearly",
+        never: "Never",
+      },
+    },
   },
    adminEmail: {
     templates: {
@@ -538,6 +642,94 @@ const en = {
       needInvoice: 'Need invoice',
       followUpLater: 'Follow up later',
     },
+  },
+   pageList: {
+    title: "List Pages",
+
+    common: {
+      error: "Error",
+      refresh: "Refresh",
+      sort: "Sort by",
+      clear: "Clear",
+      noDate: "(no date)",
+    },
+
+    sites: {
+      loading: "Loading sites...",
+      all: "All sites",
+    },
+
+    status: {
+      all: "All statuses",
+      published: "Published",
+      draft: "Draft",
+    },
+
+    fields: {
+      title: "Title",
+      updated: "Updated",
+    },
+
+    searchPlaceholder: "Search pages...",
+    searchAria: "Search pages",
+    noResults: "No results",
+    untitled: "Untitled",
+
+    filters: {
+      site: "Site filter",
+      status: "Status filter",
+    },
+
+    errors: {
+      loadPages: "Failed to load pages",
+    },
+
+    pagination: {
+      previous: "Previous page",
+      next: "Next page",
+      page: "Page",
+      items: "items",
+    },
+  },
+  builderAdd: {
+    siteFallback: "Site",
+    untitled: "Untitled",
+
+    titles: {
+      pageEditor: "Page Editor",
+    },
+
+    aria: {
+      builderEditor: "Builder editor",
+    },
+
+    actions: {
+      publish: "Publish",
+      preview: "Preview",
+      save: "Save",
+      cancel: "Cancel",
+      close: "Close",
+      closeModal: "Close modal",
+      backToDesign: "Back to Design",
+    },
+
+    status: {
+      saving: "Saving...",
+      loadingSites: "Loading site.",
+    },
+
+    messages: {
+      saveDraftOk: "Draft saved successfully",
+    },
+
+    errors: {
+      noSiteSelected: "No site selected",
+      needSaveBeforePublish: "Please save before publishing",
+      saveErrorFallback: "Failed to save page",
+      publishErrorFallback: "Failed to publish page",
+    },
+
+    initError: "Initialization error:",
   },
 };
 

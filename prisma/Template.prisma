@@ -1,0 +1,81 @@
+enum SiteType {
+  ECOMMERCE
+  COMPANY
+  LANDING_PAGE
+  BLOG
+  PORTFOLIO
+}
+
+enum TemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AccessTier {
+  BASIC
+  NORMAL
+  PRO
+}
+
+model TemplateGroup {
+  id            String           @id @default(cuid())
+  code          String           @unique
+  name          String
+  description   String?
+  sortOrder     Int              @default(0) @map("sort_order")
+  isActive      Boolean          @default(true) @map("is_active")
+
+  minTier       AccessTier       @default(BASIC) @map("min_tier")
+  minTierLevel  Int              @default(1) @map("min_tier_level")
+
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  templates     TemplateCatalog[]
+
+  @@index([isActive, sortOrder])
+  @@index([minTierLevel])
+  @@map("template_groups")
+}
+
+model TemplateCatalog {
+  id              String           @id @default(cuid())
+  code            String           @unique
+  name            String
+  kind            String
+  description     String?
+
+  groupId         String           @map("group_id")
+  group           TemplateGroup    @relation(fields: [groupId], references: [id], onDelete: Restrict)
+
+  siteType        SiteType         @map("site_type")
+
+  status          TemplateStatus   @default(PUBLISHED)
+
+  thumbnailUrl    String?          @map("thumbnail_url")
+  previewImageUrl String?          @map("preview_image_url")
+
+  initialProps    Json?            @map("initial_props")
+
+  blocks          Json?
+
+  isActive        Boolean          @default(true) @map("is_active")
+  isPublic        Boolean          @default(true) @map("is_public")
+  sortOrder       Int              @default(0) @map("sort_order")
+
+  minTier         AccessTier       @default(BASIC) @map("min_tier")
+  minTierLevel    Int              @default(1) @map("min_tier_level")
+  ownerKey        String?          @map("owner_key")
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  deletedAt       DateTime?        @map("deleted_at")
+
+  @@index([groupId, sortOrder])
+  @@index([siteType, status, isActive])
+  @@index([minTierLevel])
+  @@index([kind])
+  @@index([ownerKey])
+  @@map("template_catalog")
+}

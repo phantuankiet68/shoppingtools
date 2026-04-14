@@ -5,8 +5,9 @@ import styles from "@/styles/admin/pages/PageInspector.module.css";
 import { API_ROUTES } from "@/constants/api";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 import { fillAutoSEO, PageRow, SEO } from "@/lib/pages/types";
-import { useSiteStore } from "@/store/site/site.store";
 
 type Props = {
   page: PageRow | null;
@@ -31,13 +32,13 @@ function hasMeaningfulSeo(seo?: Partial<SEO> | null) {
 
   return Boolean(
     seo.metaTitle ||
-    seo.metaDescription ||
-    seo.keywords ||
-    seo.canonicalUrl ||
-    seo.ogTitle ||
-    seo.ogDescription ||
-    seo.ogImage ||
-    seo.structuredData,
+      seo.metaDescription ||
+      seo.keywords ||
+      seo.canonicalUrl ||
+      seo.ogTitle ||
+      seo.ogDescription ||
+      seo.ogImage ||
+      seo.structuredData,
   );
 }
 
@@ -92,8 +93,26 @@ function replaceLastPathSegment(path: string, slug: string) {
   return `/${parts.join("/")}`;
 }
 
-function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
+function sanitizeSeo(seo?: Partial<SEO> | null): SEO {
   return {
+    metaTitle: seo?.metaTitle ?? "",
+    metaDescription: seo?.metaDescription ?? "",
+    keywords: seo?.keywords ?? "",
+    canonicalUrl: seo?.canonicalUrl ?? "",
+    noindex: seo?.noindex ?? false,
+    nofollow: seo?.nofollow ?? false,
+    ogTitle: seo?.ogTitle ?? "",
+    ogDescription: seo?.ogDescription ?? "",
+    ogImage: seo?.ogImage ?? "",
+    twitterCard: seo?.twitterCard ?? "summary_large_image",
+    sitemapChangefreq: seo?.sitemapChangefreq ?? "weekly",
+    sitemapPriority: seo?.sitemapPriority ?? 0.7,
+    structuredData: seo?.structuredData ?? "",
+  };
+}
+
+function buildDefaultSEO(page: PageRow | null, initialSeo?: Partial<SEO> | null): SEO {
+  const base: SEO = {
     metaTitle: page?.title || "",
     metaDescription: "",
     keywords: "",
@@ -107,7 +126,11 @@ function buildDefaultSEO(page: PageRow | null, initialSeo?: SEO | null): SEO {
     sitemapChangefreq: "weekly",
     sitemapPriority: 0.7,
     structuredData: "",
-    ...(initialSeo || {}),
+  };
+
+  return {
+    ...base,
+    ...sanitizeSeo(initialSeo),
   };
 }
 
@@ -137,8 +160,21 @@ function isAbortError(error: unknown) {
   return false;
 }
 
-function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDelete, initialSeo = null }: Props) {
+function PageInspector({
+  page,
+  onEdit,
+  onPreview,
+  onPublish,
+  onUnpublish,
+  onDelete,
+  initialSeo = null,
+}: Props) {
   const modal = useModal();
+  const { site } = useAdminAuth();
+  const { t } = useAdminI18n();
+
+  const siteId = site?.id ?? "";
+  const siteName = site?.name ?? "";
   const hasPage = !!page?.id;
 
   const [seo, setSeo] = useState<SEO>(() => buildDefaultSEO(page, initialSeo));
@@ -147,25 +183,14 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
   const [syncOpen, setSyncOpen] = useState(false);
   const [syncingPage, setSyncingPage] = useState(false);
   const [syncForm, setSyncForm] = useState<SyncForm>({
-    siteId: "",
+    siteId,
     title: "",
     slug: "",
     path: "/",
   });
 
-  const lastLoadedPageIdRef = useRef<string | null>(null);
-
-  const sites = useSiteStore((state) => state.sites);
-  const sitesLoading = useSiteStore((state) => state.loading);
-  const sitesErr = useSiteStore((state) => state.err);
-  const selectedSiteId = useSiteStore((state) => state.siteId);
-  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
-  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
-  const loadSites = useSiteStore((state) => state.loadSites);
-
-  const syncSelectedSite = useMemo(() => {
-    return sites.find((site) => site.id === syncForm.siteId) ?? null;
-  }, [sites, syncForm.siteId]);
+  const initializedPageIdRef = useRef<string | null>(null);
+  const fetchedSeoPageIdRef = useRef<string | null>(null);
 
   const pathPretty = useMemo(() => normalizePath(page?.path || "/"), [page?.path]);
 
@@ -174,42 +199,35 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   }, []);
 
   const updatedText = useMemo(() => {
     if (!page) return "";
     const ts = page.updatedAt || page.createdAt || 0;
-    return ts ? dateTimeFormatter.format(new Date(ts)) : "(no date)";
-  }, [page, dateTimeFormatter]);
-
-  useEffect(() => {
-    hydrateFromStorage();
-    void loadSites();
-  }, [hydrateFromStorage, loadSites]);
+    return ts ? dateTimeFormatter.format(new Date(ts)) : t("pages.pageInspector.noDate");
+  }, [page, dateTimeFormatter, t]);
 
   useEffect(() => {
     if (!page?.id) {
-      lastLoadedPageIdRef.current = null;
+      initializedPageIdRef.current = null;
+      fetchedSeoPageIdRef.current = null;
       setSeo(buildDefaultSEO(null, null));
       return;
     }
 
+    if (initializedPageIdRef.current === page.id) return;
+
+    initializedPageIdRef.current = page.id;
+    fetchedSeoPageIdRef.current = null;
+
     setSeo(buildDefaultSEO(page, hasMeaningfulSeo(initialSeo) ? initialSeo : null));
-    lastLoadedPageIdRef.current = null;
   }, [page?.id, initialSeo, page]);
 
   useEffect(() => {
     if (!page?.id) return;
-
-    if (hasMeaningfulSeo(initialSeo)) {
-      lastLoadedPageIdRef.current = page.id;
-      return;
-    }
-
-    if (lastLoadedPageIdRef.current === page.id) return;
+    if (hasMeaningfulSeo(initialSeo)) return;
+    if (fetchedSeoPageIdRef.current === page.id) return;
 
     const controller = new AbortController();
     const pageId = page.id;
@@ -226,10 +244,11 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
           if (disposed || controller.signal.aborted) return;
 
           if (r.status === 404) {
-            modal.error("Not found", "Trang không tồn tại");
-          } else {
-            modal.error("Error", "Load SEO failed");
+            fetchedSeoPageIdRef.current = pageId;
+            return;
           }
+
+          modal.error(t("common.error"), t("pages.pageInspector.loadSeoFailed"));
           return;
         }
 
@@ -237,29 +256,28 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
         if (disposed || controller.signal.aborted) return;
 
+        fetchedSeoPageIdRef.current = pageId;
+
         if (data?.seo) {
           setSeo((prev) => ({
             ...prev,
-            ...data.seo,
+            ...sanitizeSeo(data.seo),
           }));
         }
-
-        lastLoadedPageIdRef.current = pageId;
       } catch (error) {
         if (isAbortError(error) || controller.signal.aborted || disposed) {
           return;
         }
 
-        console.error("Load SEO error:", error);
-        modal.error("Error", "Load SEO failed");
+        modal.error(t("common.error"), t("pages.pageInspector.loadSeoFailed"));
       }
     })();
 
     return () => {
       disposed = true;
-      controller.abort("PageInspector effect cleanup");
+      controller.abort();
     };
-  }, [page?.id, initialSeo, modal]);
+  }, [page?.id, initialSeo, modal, t]);
 
   useEffect(() => {
     if (!page?.id) return;
@@ -271,6 +289,16 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
     }));
   }, [page?.id, page?.title]);
 
+  useEffect(() => {
+    setSyncForm((prev) => {
+      if (prev.siteId === siteId) return prev;
+      return {
+        ...prev,
+        siteId,
+      };
+    });
+  }, [siteId]);
+
   const metaLen = (seo.metaTitle || "").length;
   const descLen = (seo.metaDescription || "").length;
 
@@ -278,17 +306,15 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
   const seoOkDesc = descLen <= 160 ? "good" : descLen <= 180 ? "warn" : "bad";
 
   const openSyncModal = useCallback(() => {
-    const fallbackSiteId = selectedSiteId || sites[0]?.id || "";
-
     setSyncForm({
-      siteId: fallbackSiteId,
+      siteId,
       title: page?.title || "",
       slug: getLastSlugSegment(page?.slug || page?.path || ""),
       path: normalizePath(page?.path || buildPathFromSlug(page?.slug || "")),
     });
 
     setSyncOpen(true);
-  }, [page, selectedSiteId, sites]);
+  }, [page, siteId]);
 
   const closeSyncModal = useCallback(() => {
     if (syncingPage) return;
@@ -327,29 +353,21 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
     });
   }, []);
 
-  const handleSiteChange = useCallback(
-    (siteId: string) => {
-      setSelectedSiteId(siteId);
-      handleSyncFormChange("siteId", siteId);
-    },
-    [setSelectedSiteId, handleSyncFormChange],
-  );
-
   const handleAutoSEO = useCallback(() => {
     if (!page?.id) return;
 
     const { seo: nextSeo } = fillAutoSEO({
-      title: page.title || "Trang mới",
+      title: page.title || t("pages.pageInspector.newPage"),
       path: page.path || "/",
     });
 
     setSeo((prev) => ({
       ...prev,
-      ...nextSeo,
+      ...sanitizeSeo(nextSeo),
     }));
 
-    modal.success("Success", "Đã autocomplete SEO");
-  }, [page, modal]);
+    modal.success(t("common.success"), t("pages.pageInspector.autoSeoCompleted"));
+  }, [page, modal, t]);
 
   const handleSaveSEO = useCallback(async () => {
     if (!page?.id) return;
@@ -365,38 +383,37 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
       if (!res.ok) {
         const j = await res.json().catch(() => null);
-        const msg = j?.error || "Save SEO failed";
-        throw new Error(msg);
+        throw new Error(j?.error || t("pages.pageInspector.saveSeoFailed"));
       }
 
-      modal.success("Success", "Đã lưu SEO");
+      modal.success(t("common.success"), t("pages.pageInspector.saveSeoSuccess"));
     } catch (e: unknown) {
-      modal.error("Error", (e as Error)?.message || "Save SEO error");
+      modal.error(t("common.error"), (e as Error)?.message || t("pages.pageInspector.saveSeoError"));
     } finally {
       setSavingSEO(false);
     }
-  }, [page?.id, seo, modal]);
+  }, [page?.id, seo, modal, t]);
 
   const handleSyncFromMenu = useCallback(async () => {
     try {
-      const siteId = syncForm.siteId.trim();
+      const currentSiteId = syncForm.siteId.trim() || siteId;
       const title = syncForm.title.trim();
       const manualSlug = normalizeSlug(syncForm.slug);
       const path = syncForm.path.trim() ? normalizePath(syncForm.path) : buildPathFromSlug(manualSlug);
       const slug = getLastSlugSegment(path) || manualSlug;
 
-      if (!siteId) {
-        modal.error("Thiếu site", "Vui lòng chọn site.");
+      if (!currentSiteId) {
+        modal.error(t("pages.pageInspector.missingSite"), t("pages.pageInspector.currentSiteNotFound"));
         return;
       }
 
       if (!title) {
-        modal.error("Thiếu title", "Vui lòng nhập title.");
+        modal.error(t("pages.pageInspector.missingTitle"), t("pages.pageInspector.pleaseEnterTitle"));
         return;
       }
 
       if (!slug) {
-        modal.error("Thiếu slug", "Vui lòng nhập slug.");
+        modal.error(t("pages.pageInspector.missingSlug"), t("pages.pageInspector.pleaseEnterSlug"));
         return;
       }
 
@@ -406,14 +423,8 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          siteId,
-          items: [
-            {
-              title,
-              slug,
-              path,
-            },
-          ],
+          siteId: currentSiteId,
+          items: [{ title, slug, path }],
         }),
         cache: "no-store",
       });
@@ -421,31 +432,35 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Sync page failed");
+        throw new Error(data?.error || t("pages.pageInspector.syncPageFailed"));
       }
 
-      modal.success("Success", "Đã sync page từ menu thành công.");
+      modal.success(t("common.success"), t("pages.pageInspector.syncPageSuccess"));
       setSyncOpen(false);
       setSyncForm((prev) => ({
         ...prev,
+        siteId: currentSiteId,
         title,
         slug,
         path,
       }));
     } catch (e: unknown) {
-      modal.error("Error", (e as Error)?.message || "Sync page error");
+      modal.error(t("common.error"), (e as Error)?.message || t("pages.pageInspector.syncPageError"));
     } finally {
       setSyncingPage(false);
     }
-  }, [syncForm, modal]);
-
+  }, [syncForm, siteId, modal, t]);
   const handleDelete = useCallback(() => {
     if (!page?.id) return;
 
-    modal.confirmDelete("Delete page?", `Delete “${page.title || "this page"}”? This action cannot be undone.`, () =>
-      onDelete(),
+    const pageTitle = page.title || t("pages.pageInspector.thisPage");
+
+    modal.confirmDelete(
+      t("pages.pageInspector.deletePageTitle"),
+      `${t("pages.pageInspector.deletePageConfirm")} "${pageTitle}"`,
+      () => onDelete(),
     );
-  }, [page, onDelete, modal]);
+  }, [page, onDelete, modal, t]);
 
   const functionKeys = useMemo(
     () => ({
@@ -495,42 +510,141 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
   usePageFunctionKeys(functionKeys);
 
+  const actionButtons = useMemo(
+    () => [
+      {
+        key: "preview",
+        label: t("pages.pageInspector.preview"),
+        hotkey: "F2",
+        icon: "bi-eye",
+        onClick: onPreview,
+        disabled: !hasPage,
+      },
+      {
+        key: "delete",
+        label: t("pages.pageInspector.delete"),
+        hotkey: "F3",
+        icon: "bi-trash",
+        onClick: handleDelete,
+        disabled: !hasPage,
+      },
+      {
+        key: "sync",
+        label: t("pages.pageInspector.sync"),
+        hotkey: "F5",
+        icon: "bi-arrow-repeat",
+        onClick: openSyncModal,
+        disabled: !siteId,
+      },
+      {
+        key: "edit",
+        label: t("pages.pageInspector.edit"),
+        hotkey: "F6",
+        icon: "bi-pencil",
+        onClick: onEdit,
+        disabled: !hasPage,
+      },
+      {
+        key: "autoSeo",
+        label: t("pages.pageInspector.autoSeo"),
+        hotkey: "F9",
+        icon: "bi-magic",
+        onClick: handleAutoSEO,
+        disabled: !hasPage,
+      },
+      {
+        key: "saveSeo",
+        label: savingSEO
+          ? t("pages.pageInspector.saving")
+          : t("pages.pageInspector.saveSeo"),
+        hotkey: "F10",
+        icon: "bi-save",
+        onClick: () => void handleSaveSEO(),
+        disabled: !hasPage || savingSEO,
+      },
+      {
+        key: "publishToggle",
+        label:
+          page?.status === "PUBLISHED"
+            ? t("pages.pageInspector.unpublish")
+            : t("pages.pageInspector.publish"),
+        hotkey: "F11",
+        icon: page?.status === "PUBLISHED" ? "bi-eye-slash" : "bi-upload",
+        onClick: () => {
+          if (!hasPage) return;
+          if (page?.status === "PUBLISHED") onUnpublish();
+          else onPublish();
+        },
+        disabled: !hasPage,
+      },
+    ],
+    [
+      hasPage,
+      onPreview,
+      handleDelete,
+      openSyncModal,
+      onEdit,
+      handleAutoSEO,
+      handleSaveSEO,
+      savingSEO,
+      page?.status,
+      onPublish,
+      onUnpublish,
+      siteId,
+      t,
+    ],
+  );
+
   return (
     <>
       <section className={styles.rightPane}>
         {hasPage ? (
-          <header className={styles.detailHead}>
-            <div className={styles.detailInfo}>
-              <h2 className={styles.detailTitle}>{page!.title || "(untitled)"}</h2>
-            </div>
+          <>
+            <header className={styles.detailHead}>
+              <div className={styles.detailInfo}>
+                <h2 className={styles.detailTitle}>
+                  {page!.title || t("pages.pageInspector.untitled")}
+                </h2>
 
-            <div className={styles.actionRow}>
-              <div className={styles.kv}>
                 <div className={styles.kvItem}>
-                  <span className={styles.kvLabel}>Status</span>
+                  <span className={styles.kvLabel}>{t("pages.pageInspector.path")}</span>
+                  <span className={styles.kvValue}>{pathPretty}</span>
+                </div>
+
+                <div className={styles.kvItem}>
+                  <span className={styles.kvLabel}>{t("pages.pageInspector.status")}</span>
                   <span
                     className={`${styles.badge} ${page!.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}
                   >
-                    {page!.status}
+                    {page!.status === "PUBLISHED"
+                      ? t("pages.pageInspector.published")
+                      : t("pages.pageInspector.draft")}
                   </span>
                 </div>
-
-                <div className={styles.kvItem}>
-                  <span className={styles.kvLabel}>Updated</span>
-                  <span className={styles.kvValue}>{updatedText}</span>
-                </div>
-
-                <div className={styles.kvItem}>
-                  <span className={styles.kvLabel}>Path</span>
-                  <span className={styles.kvValue}>{pathPretty}</span>
-                </div>
               </div>
-            </div>
-          </header>
+
+              <div className={styles.headActions}>
+                {actionButtons.map((action) => (
+                  <button
+                    key={action.key}
+                    type="button"
+                    className={styles.actionBtn}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                    title={`${action.label} (${action.hotkey})`}
+                  >
+                    <i className={`bi ${action.icon} ${styles.actionIcon}`} />
+                    <span>{action.label}</span>
+                    <span className={styles.actionKey}>{action.hotkey}</span>
+                  </button>
+                ))}
+              </div>
+            </header>
+          </>
         ) : (
           <div className={styles.rightEmpty}>
             <i className={`bi bi-layout-sidebar-inset ${styles.emptyIcon}`} />
-            <p className={styles.emptyText}>Chọn một trang ở danh sách bên trái để chỉnh Settings & SEO.</p>
+            <p className={styles.emptyText}>{t("pages.pageInspector.emptyState")}</p>
           </div>
         )}
 
@@ -538,45 +652,49 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
           <div className={styles.card}>
             <div className={styles.field}>
               <div className={styles.fieldTop}>
-                <label className={styles.label}>Meta Title</label>
+                <label className={styles.label}>{t("pages.pageInspector.metaTitle")}</label>
                 <div className={styles.counter}>
                   <span className={styles.counterNum}>{metaLen}</span>
-                  <span className={`${styles.counterHint} ${styles[`counter_${seoOkTitle}`]}`}>/ 60–70</span>
+                  <span className={`${styles.counterHint} ${styles[`counter_${seoOkTitle}`]}`}>
+                    {t("pages.pageInspector.metaTitleRange")}
+                  </span>
                 </div>
               </div>
 
               <input
                 className={styles.input}
-                value={seo.metaTitle}
+                value={seo.metaTitle ?? ""}
                 onChange={(e) => setSeo((prev) => ({ ...prev, metaTitle: e.target.value }))}
-                placeholder={page!.title || "Tiêu đề…"}
+                placeholder={page!.title || t("pages.pageInspector.titlePlaceholder")}
               />
             </div>
 
             <div className={styles.threeCol}>
               <div className={styles.field}>
-                <label className={styles.label}>OG Title</label>
+                <label className={styles.label}>{t("pages.pageInspector.ogTitle")}</label>
                 <input
                   className={styles.input}
-                  value={seo.ogTitle}
+                  value={seo.ogTitle ?? ""}
                   onChange={(e) => setSeo((prev) => ({ ...prev, ogTitle: e.target.value }))}
                 />
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Twitter Card</label>
+                <label className={styles.label}>{t("pages.pageInspector.twitterCard")}</label>
                 <select
                   className={styles.select}
                   value={seo.twitterCard}
                   onChange={(e) => setSeo((prev) => ({ ...prev, twitterCard: e.target.value as SEO["twitterCard"] }))}
                 >
-                  <option value="summary_large_image">summary_large_image</option>
-                  <option value="summary">summary</option>
+                  <option value="summary_large_image">
+                    {t("pages.pageInspector.twitterCardOptions.summaryLargeImage")}
+                  </option>
+                  <option value="summary">{t("pages.pageInspector.twitterCardOptions.summary")}</option>
                 </select>
               </div>
 
               <div className={styles.checkRow}>
-                <label className={styles.label}>Chooses</label>
+                <label className={styles.label}>{t("pages.pageInspector.choices")}</label>
                 <div className={styles.dFlex}>
                   <label className={styles.check}>
                     <input
@@ -585,7 +703,7 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                       checked={!!seo.noindex}
                       onChange={(e) => setSeo((prev) => ({ ...prev, noindex: e.target.checked }))}
                     />
-                    <span className={styles.checkText}>noindex</span>
+                    <span className={styles.checkText}>{t("pages.pageInspector.noindex")}</span>
                   </label>
 
                   <label className={styles.check}>
@@ -595,7 +713,7 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                       checked={!!seo.nofollow}
                       onChange={(e) => setSeo((prev) => ({ ...prev, nofollow: e.target.checked }))}
                     />
-                    <span className={styles.checkText}>nofollow</span>
+                    <span className={styles.checkText}>{t("pages.pageInspector.nofollow")}</span>
                   </label>
                 </div>
               </div>
@@ -603,40 +721,42 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
             <div className={styles.field}>
               <div className={styles.fieldTop}>
-                <label className={styles.label}>Meta Description</label>
+                <label className={styles.label}>{t("pages.pageInspector.metaDescription")}</label>
                 <div className={styles.counter}>
                   <span className={styles.counterNum}>{descLen}</span>
-                  <span className={`${styles.counterHint} ${styles[`counter_${seoOkDesc}`]}`}>/ 150–160</span>
+                  <span className={`${styles.counterHint} ${styles[`counter_${seoOkDesc}`]}`}>
+                    {t("pages.pageInspector.metaDescriptionRange")}
+                  </span>
                 </div>
               </div>
 
               <textarea
                 className={styles.textarea}
                 rows={3}
-                value={seo.metaDescription}
+                value={seo.metaDescription ?? ""}
                 onChange={(e) => setSeo((prev) => ({ ...prev, metaDescription: e.target.value }))}
-                placeholder="Mô tả ngắn gọn, hấp dẫn…"
+                placeholder={t("pages.pageInspector.metaDescriptionPlaceholder")}
               />
             </div>
 
             <div className={styles.twoCol}>
               <div className={styles.field}>
-                <label className={styles.label}>Keywords (optional)</label>
+                <label className={styles.label}>{t("pages.pageInspector.keywordsOptional")}</label>
                 <input
                   className={styles.input}
-                  value={seo.keywords}
+                  value={seo.keywords ?? ""}
                   onChange={(e) => setSeo((prev) => ({ ...prev, keywords: e.target.value }))}
-                  placeholder="zento, builder, landing page…"
+                  placeholder={t("pages.pageInspector.keywordsPlaceholder")}
                 />
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Canonical URL</label>
+                <label className={styles.label}>{t("pages.pageInspector.canonicalUrl")}</label>
                 <input
                   className={styles.input}
-                  value={seo.canonicalUrl}
+                  value={seo.canonicalUrl ?? ""}
                   onChange={(e) => setSeo((prev) => ({ ...prev, canonicalUrl: e.target.value }))}
-                  placeholder="https://example.com/your-page"
+                  placeholder={t("pages.pageInspector.canonicalUrlPlaceholder")}
                 />
               </div>
             </div>
@@ -645,47 +765,24 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
             <div className={styles.twoCol}>
               <div className={styles.field}>
-                <label className={styles.label}>OG Title</label>
+                <label className={styles.label}>{t("pages.pageInspector.ogDescription")}</label>
                 <input
                   className={styles.input}
-                  value={seo.ogTitle}
-                  onChange={(e) => setSeo((prev) => ({ ...prev, ogTitle: e.target.value }))}
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Twitter Card</label>
-                <select
-                  className={styles.select}
-                  value={seo.twitterCard}
-                  onChange={(e) => setSeo((prev) => ({ ...prev, twitterCard: e.target.value as SEO["twitterCard"] }))}
-                >
-                  <option value="summary_large_image">summary_large_image</option>
-                  <option value="summary">summary</option>
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.twoCol}>
-              <div className={styles.field}>
-                <label className={styles.label}>OG Description</label>
-                <input
-                  className={styles.input}
-                  value={seo.ogDescription}
+                  value={seo.ogDescription ?? ""}
                   onChange={(e) => setSeo((prev) => ({ ...prev, ogDescription: e.target.value }))}
                 />
               </div>
 
               <div className={styles.field}>
                 <div className={styles.fieldTop}>
-                  <label className={styles.label}>OG Image URL</label>
-                  <span className={styles.helper}>Khuyến nghị 1200×630px, &lt; 1MB</span>
+                  <label className={styles.label}>{t("pages.pageInspector.ogImageUrl")}</label>
+                  <span className={styles.helper}>{t("pages.pageInspector.ogImageHelper")}</span>
                 </div>
                 <input
                   className={styles.input}
-                  value={seo.ogImage}
+                  value={seo.ogImage ?? ""}
                   onChange={(e) => setSeo((prev) => ({ ...prev, ogImage: e.target.value }))}
-                  placeholder="https://…"
+                  placeholder={t("pages.pageInspector.ogImagePlaceholder")}
                 />
               </div>
             </div>
@@ -694,7 +791,7 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
             <div className={styles.twoCol}>
               <div className={styles.field}>
-                <label className={styles.label}>Sitemap Changefreq</label>
+                <label className={styles.label}>{t("pages.pageInspector.sitemapChangefreq")}</label>
                 <select
                   className={styles.select}
                   value={seo.sitemapChangefreq}
@@ -702,18 +799,18 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
                     setSeo((prev) => ({ ...prev, sitemapChangefreq: e.target.value as SEO["sitemapChangefreq"] }))
                   }
                 >
-                  <option value="always">always</option>
-                  <option value="hourly">hourly</option>
-                  <option value="daily">daily</option>
-                  <option value="weekly">weekly</option>
-                  <option value="monthly">monthly</option>
-                  <option value="yearly">yearly</option>
-                  <option value="never">never</option>
+                  <option value="always">{t("pages.pageInspector.changefreq.always")}</option>
+                  <option value="hourly">{t("pages.pageInspector.changefreq.hourly")}</option>
+                  <option value="daily">{t("pages.pageInspector.changefreq.daily")}</option>
+                  <option value="weekly">{t("pages.pageInspector.changefreq.weekly")}</option>
+                  <option value="monthly">{t("pages.pageInspector.changefreq.monthly")}</option>
+                  <option value="yearly">{t("pages.pageInspector.changefreq.yearly")}</option>
+                  <option value="never">{t("pages.pageInspector.changefreq.never")}</option>
                 </select>
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Sitemap Priority</label>
+                <label className={styles.label}>{t("pages.pageInspector.sitemapPriority")}</label>
                 <input
                   type="number"
                   step="0.1"
@@ -731,14 +828,14 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
               </div>
             </div>
 
-            <div className={styles.field}>
-              <label className={styles.label}>Structured Data (JSON-LD)</label>
+            <div>
+              <label className={styles.label}>{t("pages.pageInspector.structuredData")}</label>
               <textarea
                 className={styles.textarea}
                 rows={3}
-                value={seo.structuredData}
+                value={seo.structuredData ?? ""}
                 onChange={(e) => setSeo((prev) => ({ ...prev, structuredData: e.target.value }))}
-                placeholder='{"@context":"https://schema.org","@type":"WebPage","name":"..."}'
+                placeholder={t("pages.pageInspector.structuredDataPlaceholder")}
               />
             </div>
           </div>
@@ -754,84 +851,78 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
             }}
           >
             <div className={styles.syncHead}>
-              <h3 className={styles.syncTitle}>Sync page from menu (F5)</h3>
-              <button type="button" className={styles.iconBtn} onClick={closeSyncModal} disabled={syncingPage}>
-                ✕
+              <h3 className={styles.syncTitle}>{t("pages.pageInspector.syncModalTitle")}</h3>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={closeSyncModal}
+                disabled={syncingPage}
+                aria-label={t("pages.pageInspector.close")}
+              >
+                {t("pages.pageInspector.closeIcon")}
               </button>
             </div>
 
             <div className={styles.syncBody}>
               <div className={styles.field}>
-                <label className={styles.label}>Site</label>
-                <select
-                  className={styles.select}
-                  value={syncForm.siteId}
-                  onChange={(e) => handleSiteChange(e.target.value)}
-                  disabled={sitesLoading || syncingPage}
-                >
-                  <option value="">-- Chọn site --</option>
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.name || site.domain || site.id}
-                    </option>
-                  ))}
-                </select>
-
-                {syncSelectedSite && syncForm.siteId ? (
-                  <div className={styles.helper}>
-                    Selected: {syncSelectedSite.name || "(no name)"}{" "}
-                    {syncSelectedSite.domain ? `- ${syncSelectedSite.domain}` : ""}
-                  </div>
-                ) : null}
-
-                {sitesLoading ? <div className={styles.helper}>Đang tải danh sách site...</div> : null}
-                {sitesErr ? <div className={styles.helper}>Lỗi tải site: {sitesErr}</div> : null}
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Title</label>
+                <label className={styles.label}>{t("pages.pageInspector.site")}</label>
                 <input
                   className={styles.input}
-                  value={syncForm.title}
-                  onChange={(e) => handleSyncFormChange("title", e.target.value)}
-                  placeholder="Nhập title"
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Slug</label>
-                <input
-                  className={styles.input}
-                  value={syncForm.slug}
-                  onChange={(e) => handleSyncFormChange("slug", e.target.value)}
-                  placeholder="profile"
+                  value={siteName || siteId}
+                  disabled
+                  placeholder={t("pages.pageInspector.currentSite")}
                 />
                 <div className={styles.helper}>
-                  Slug chỉ lấy segment cuối. Ví dụ path /account/profile thì slug là profile.
+                  {siteId
+                    ? t("pages.pageInspector.usingCurrentSite") + " " + (siteName || siteId)
+                    : t("pages.pageInspector.currentSiteNotFound")}
                 </div>
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Path</label>
+                <label className={styles.label}>{t("pages.pageInspector.title")}</label>
+                <input
+                  className={styles.input}
+                  value={syncForm.title}
+                  onChange={(e) => handleSyncFormChange("title", e.target.value)}
+                  placeholder={t("pages.pageInspector.enterTitle")}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>{t("pages.pageInspector.slug")}</label>
+                <input
+                  className={styles.input}
+                  value={syncForm.slug}
+                  onChange={(e) => handleSyncFormChange("slug", e.target.value)}
+                  placeholder={t("pages.pageInspector.slugPlaceholder")}
+                />
+                <div className={styles.helper}>{t("pages.pageInspector.slugHelper")}</div>
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>{t("pages.pageInspector.path")}</label>
                 <input
                   className={styles.input}
                   value={syncForm.path}
                   onChange={(e) => handleSyncFormChange("path", e.target.value)}
-                  placeholder="/account/profile"
+                  placeholder={t("pages.pageInspector.pathPlaceholder")}
                 />
               </div>
 
               <div className={styles.syncHint}>
-                Khi bấm <strong>Create & Sync</strong>, component sẽ gọi:
+                {t("pages.pageInspector.syncHintPrefix")}{" "}
+                <strong>{t("pages.pageInspector.createAndSync")}</strong>,{" "}
+                {t("pages.pageInspector.syncHintSuffix")}
                 <pre className={styles.codeBlock}>
                   {`POST ${API_ROUTES.ADMIN_BUILDER_PAGE_SYNC}
                     {
-                      "siteId": "${syncForm.siteId || "your-site-id"}",
+                      "siteId": "${syncForm.siteId || siteId || t("pages.pageInspector.yourSiteId")}",
                       "items": [
                         {
-                          "title": "${syncForm.title || "Your title"}",
-                          "slug": "${syncForm.slug || "profile"}",
-                          "path": "${syncForm.path || "/account/profile"}"
+                          "title": "${syncForm.title || t("pages.pageInspector.yourTitle")}",
+                          "slug": "${syncForm.slug || t("pages.pageInspector.slugExample")}",
+                          "path": "${syncForm.path || t("pages.pageInspector.pathExample")}"
                         }
                       ]
                     }`}
@@ -841,15 +932,17 @@ function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDele
 
             <div className={styles.syncFoot}>
               <button type="button" className={styles.secondaryBtn} onClick={closeSyncModal} disabled={syncingPage}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
                 className={styles.primaryBtn}
                 onClick={() => void handleSyncFromMenu()}
-                disabled={syncingPage || sitesLoading}
+                disabled={syncingPage || !siteId}
               >
-                {syncingPage ? "Syncing..." : "Create & Sync"}
+                {syncingPage
+                  ? t("pages.pageInspector.syncing")
+                  : t("pages.pageInspector.createAndSync")}
               </button>
             </div>
           </div>
