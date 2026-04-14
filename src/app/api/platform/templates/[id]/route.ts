@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, AccessTier } from '@/generated/prisma';
+import { Prisma, TemplateStatus } from '@/generated/prisma';
 import { prisma } from '@/lib/prisma';
 
-const ACCESS_TIERS: AccessTier[] = ['BASIC', 'NORMAL', 'PRO'];
+const TEMPLATE_STATUSES: TemplateStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 
-type CreateTemplateGroupBody = {
+type UpdateTemplateBody = {
   code?: string;
   name?: string;
-  description?: string | null;
-  sortOrder?: number;
+  kind?: string;
+  groupId?: string;
+  status?: TemplateStatus;
+  previewImageUrl?: string | null;
   isActive?: boolean;
-  minTier?: AccessTier;
-  minTierLevel?: number;
+  isPublic?: boolean;
+  sortOrder?: number;
 };
 
 function normalizeString(value: unknown) {
@@ -25,126 +27,192 @@ function toSlug(value: string) {
     .replace(/\s+/g, '-');
 }
 
-function isAccessTier(value: unknown): value is AccessTier {
-  return typeof value === 'string' && ACCESS_TIERS.includes(value as AccessTier);
+function isTemplateStatus(value: unknown): value is TemplateStatus {
+  return typeof value === 'string' && TEMPLATE_STATUSES.includes(value as TemplateStatus);
 }
 
-export async function GET(req: NextRequest) {
+function toSafeInteger(value: unknown, defaultValue: number) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.trunc(value);
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return Math.trunc(parsed);
+    }
+  }
+
+  return defaultValue;
+}
+
+type RouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export async function GET(_req: NextRequest, context: RouteContext) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { id } = await context.params;
 
-    const keyword = searchParams.get('keyword')?.trim() || '';
-    const isActiveParam = searchParams.get('isActive');
-    const minTier = searchParams.get('minTier');
-
-    // ✅ mặc định pageSize = 8
-    const page = Number(searchParams.get('page') || 1);
-    const pageSize = Number(searchParams.get('pageSize') || 8);
-
-    const safePage = Number.isFinite(page) && page > 0 ? Math.trunc(page) : 1;
-    const safePageSize =
-      Number.isFinite(pageSize) && pageSize > 0 && pageSize <= 100
-        ? Math.trunc(pageSize)
-        : 8;
-
-    const where: Prisma.TemplateGroupWhereInput = {
-      ...(keyword
-        ? {
-            OR: [
-              { name: { contains: keyword, mode: 'insensitive' } },
-              { code: { contains: keyword, mode: 'insensitive' } },
-              { description: { contains: keyword, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-      ...(isActiveParam === 'true' ? { isActive: true } : {}),
-      ...(isActiveParam === 'false' ? { isActive: false } : {}),
-      ...(isAccessTier(minTier) ? { minTier } : {}),
-    };
-
-    const [items, total] = await Promise.all([
-      prisma.templateGroup.findMany({
-        where,
-        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
-        skip: (safePage - 1) * safePageSize,
-        take: safePageSize,
-        include: {
-          _count: {
-            select: {
-              templates: true,
-            },
-          },
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Template id is required.',
         },
-      }),
-      prisma.templateGroup.count({ where }),
-    ]);
+        { status: 400 }
+      );
+    }
+
+    const template = await prisma.templateCatalog.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      include: {
+        group: true,
+      },
+    });
+
+    if (!template) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Không tìm thấy template.',
+        },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      data: items,
-      meta: {
-        page: safePage,
-        pageSize: safePageSize,
-        total,
-        totalPages: Math.ceil(total / safePageSize),
-      },
+      data: template,
     });
   } catch (error) {
-    console.error('GET template-groups error:', error);
+    console.error('GET template detail error:', error);
 
     return NextResponse.json(
       {
         success: false,
-        message: 'Failed to fetch template groups',
+        message: 'Failed to fetch template detail.',
       },
       { status: 500 }
     );
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function PUT(req: NextRequest, context: RouteContext) {
   try {
-    const body = (await req.json()) as CreateTemplateGroupBody;
+    const { id } = await context.params;
 
-    const codeRaw = normalizeString(body.code);
-    const name = normalizeString(body.name);
-
-    if (!codeRaw || !name) {
+    if (!id) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Code và Name là bắt buộc.',
+          message: 'Template id is required.',
         },
         { status: 400 }
       );
     }
 
-    const code = toSlug(codeRaw);
+    const body = (await req.json()) as UpdateTemplateBody;
 
-    const created = await prisma.templateGroup.create({
-      data: {
-        code,
-        name,
-        description: normalizeString(body.description) || null,
-        sortOrder: Number(body.sortOrder ?? 0),
-        isActive: body.isActive ?? true,
-        minTier: isAccessTier(body.minTier) ? body.minTier : 'BASIC',
-        minTierLevel: Number(body.minTierLevel ?? 1),
+    const codeRaw = normalizeString(body.code);
+    const name = normalizeString(body.name);
+    const kind = normalizeString(body.kind);
+    const groupId = normalizeString(body.groupId);
+    const previewImageUrl = normalizeString(body.previewImageUrl) || null;
+
+    const code = toSlug(codeRaw);
+    const sortOrder = toSafeInteger(body.sortOrder, 0);
+    const status = isTemplateStatus(body.status) ? body.status : 'PUBLISHED';
+    const isActive = typeof body.isActive === 'boolean' ? body.isActive : true;
+    const isPublic = typeof body.isPublic === 'boolean' ? body.isPublic : true;
+
+    const errors: string[] = [];
+
+    if (!code) errors.push('code is required');
+    if (!name) errors.push('name is required');
+    if (!kind) errors.push('kind is required');
+    if (!groupId) errors.push('groupId is required');
+    if (sortOrder < 0) errors.push('sortOrder must be greater than or equal to 0');
+
+    if (errors.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Validation failed',
+          errors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const existingTemplate = await prisma.templateCatalog.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
       },
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: created,
-        message: 'Tạo nhóm template thành công.',
-      },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    console.error('POST template-groups error:', error);
+    if (!existingTemplate) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Không tìm thấy template.',
+        },
+        { status: 404 }
+      );
+    }
 
-    // ✅ fix chuẩn P2002 (không dùng instanceof)
+    const existingGroup = await prisma.templateGroup.findUnique({
+      where: { id: groupId },
+      select: { id: true },
+    });
+
+    if (!existingGroup) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Group không tồn tại.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const updated = await prisma.templateCatalog.update({
+      where: { id },
+      data: {
+        code,
+        name,
+        kind,
+        status,
+        previewImageUrl,
+        isActive,
+        isPublic,
+        sortOrder,
+        group: {
+          connect: { id: groupId },
+        },
+      },
+      include: {
+        group: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: updated,
+      message: 'Cập nhật template thành công.',
+    });
+  } catch (error: any) {
+    console.error('PUT template error:', error);
+
     if (error?.code === 'P2002') {
       return NextResponse.json(
         {
@@ -158,7 +226,65 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: 'Tạo nhóm template thất bại.',
+        message: 'Cập nhật template thất bại.',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(_req: NextRequest, context: RouteContext) {
+  try {
+    const { id } = await context.params;
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Template id is required.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const existingTemplate = await prisma.templateCatalog.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existingTemplate) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Không tìm thấy template.',
+        },
+        { status: 404 }
+      );
+    }
+
+    await prisma.templateCatalog.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Xóa template thành công.',
+    });
+  } catch (error) {
+    console.error('DELETE template error:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Xóa template thất bại.',
       },
       { status: 500 }
     );

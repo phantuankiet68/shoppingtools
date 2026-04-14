@@ -2,20 +2,6 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { REGISTRY } from "@/lib/ui-builder/registry";
 
-type JsonPrimitive = string | number | boolean | null;
-type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
-type JsonObject = { [key: string]: JsonValue };
-
-type BlockItem = {
-  id?: string;
-  kind?: string;
-  props?: Record<string, unknown>;
-};
-
-type TemplateBlocks = {
-  items?: BlockItem[];
-};
-
 type TemplateListItem = {
   id: string;
   code: string;
@@ -29,32 +15,13 @@ type TemplateListItem = {
   children: string[];
   rawChildren: string[];
   previewImageUrl: string | null;
-  initialProps: JsonValue | null;
   isActive: boolean;
   isPublic: boolean;
   sortOrder: number;
   status: string;
-  minTier: string;
-  minTierLevel: number;
   createdAt: string;
   updatedAt: string;
 };
-
-function parseChildrenFromBlocks(blocks: unknown): string[] {
-  if (!blocks || typeof blocks !== "object" || Array.isArray(blocks)) {
-    return [];
-  }
-
-  const raw = blocks as TemplateBlocks;
-
-  if (!Array.isArray(raw.items)) {
-    return [];
-  }
-
-  return raw.items
-    .map((item) => item?.kind)
-    .filter((kind): kind is string => typeof kind === "string" && kind.trim().length > 0);
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -95,30 +62,26 @@ export async function GET(request: NextRequest) {
         ...(q
           ? {
               OR: [
-                { name: { contains: q } },
-                { code: { contains: q } },
-                { kind: { contains: q } },
-                { group: { name: { contains: q } } },
-                { group: { code: { contains: q } } },
+                { name: { contains: q, mode: "insensitive" } },
+                { code: { contains: q, mode: "insensitive" } },
+                { kind: { contains: q, mode: "insensitive" } },
+                { group: { name: { contains: q, mode: "insensitive" } } },
+                { group: { code: { contains: q, mode: "insensitive" } } },
               ],
             }
           : {}),
       },
-      orderBy: [{ sortOrder: "desc" }, { updatedAt: "asc" }],
+      orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
       select: {
         id: true,
         code: true,
         name: true,
         kind: true,
         previewImageUrl: true,
-        initialProps: true,
-        blocks: true,
         isActive: true,
         isPublic: true,
         sortOrder: true,
         status: true,
-        minTier: true,
-        minTierLevel: true,
         createdAt: true,
         updatedAt: true,
         group: {
@@ -132,11 +95,8 @@ export async function GET(request: NextRequest) {
     });
 
     const data: TemplateListItem[] = rows.map((row) => {
-      const blockKinds = parseChildrenFromBlocks(row.blocks);
-      const rawChildren = blockKinds.length > 0 ? blockKinds : [row.kind];
-      const uniqueChildren = Array.from(
-        new Set(rawChildren.filter((kind): kind is string => typeof kind === "string" && kind.trim().length > 0)),
-      );
+      const rawChildren = [row.kind];
+      const children = Array.from(new Set(rawChildren));
 
       return {
         id: row.id,
@@ -148,25 +108,20 @@ export async function GET(request: NextRequest) {
           code: row.group.code,
           name: row.group.name,
         },
-        children: uniqueChildren,
+        children,
         rawChildren,
         previewImageUrl: row.previewImageUrl,
-        initialProps: (row.initialProps as JsonValue | null) ?? null,
         isActive: row.isActive,
         isPublic: row.isPublic,
         sortOrder: row.sortOrder,
         status: String(row.status),
-        minTier: String(row.minTier),
-        minTierLevel: row.minTierLevel,
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       };
     });
 
     const unmatchedKinds = Array.from(
-      new Set(
-        data.flatMap((item) => item.children).filter((kind) => !registryKindSet.has(kind)),
-      ),
+      new Set(data.flatMap((item) => item.children).filter((kind) => !registryKindSet.has(kind))),
     );
 
     return Response.json({

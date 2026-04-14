@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, TemplateStatus, AccessTier } from '@/generated/prisma';
+import { Prisma, TemplateStatus } from '@/generated/prisma';
 import { prisma } from '@/lib/prisma';
 
 const TEMPLATE_STATUSES: TemplateStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
-const ACCESS_TIERS: AccessTier[] = ['BASIC', 'NORMAL', 'PRO'];
 
 type CreateTemplateCatalogBody = {
   code?: string;
@@ -12,13 +11,9 @@ type CreateTemplateCatalogBody = {
   groupId?: string;
   status?: TemplateStatus;
   previewImageUrl?: string | null;
-  initialProps?: Prisma.InputJsonValue | null;
-  blocks?: Prisma.InputJsonValue | null;
   isActive?: boolean;
   isPublic?: boolean;
   sortOrder?: number;
-  minTier?: AccessTier;
-  minTierLevel?: number;
 };
 
 function normalizeString(value: unknown) {
@@ -36,14 +31,6 @@ function isTemplateStatus(value: unknown): value is TemplateStatus {
   return typeof value === 'string' && TEMPLATE_STATUSES.includes(value as TemplateStatus);
 }
 
-function isAccessTier(value: unknown): value is AccessTier {
-  return typeof value === 'string' && ACCESS_TIERS.includes(value as AccessTier);
-}
-
-function isValidJsonValue(value: unknown): value is Prisma.InputJsonValue | null {
-  return value === null || value === undefined || typeof value !== 'undefined';
-}
-
 function validateCreateBody(body: CreateTemplateCatalogBody) {
   const codeRaw = normalizeString(body.code);
   const code = toSlug(codeRaw);
@@ -53,13 +40,6 @@ function validateCreateBody(body: CreateTemplateCatalogBody) {
   const previewImageUrl = normalizeString(body.previewImageUrl) || null;
 
   const status = isTemplateStatus(body.status) ? body.status : 'PUBLISHED';
-
-  const initialProps =
-    body.initialProps === undefined ? null : (body.initialProps as Prisma.InputJsonValue | null);
-
-  const blocks =
-    body.blocks === undefined ? null : (body.blocks as Prisma.InputJsonValue | null);
-
   const isActive = typeof body.isActive === 'boolean' ? body.isActive : true;
   const isPublic = typeof body.isPublic === 'boolean' ? body.isPublic : true;
 
@@ -68,13 +48,6 @@ function validateCreateBody(body: CreateTemplateCatalogBody) {
       ? Math.trunc(body.sortOrder)
       : 0;
 
-  const minTier = isAccessTier(body.minTier) ? body.minTier : 'BASIC';
-
-  const minTierLevel =
-    typeof body.minTierLevel === 'number' && Number.isFinite(body.minTierLevel)
-      ? Math.trunc(body.minTierLevel)
-      : 1;
-
   const errors: string[] = [];
 
   if (!code) errors.push('code is required');
@@ -82,9 +55,6 @@ function validateCreateBody(body: CreateTemplateCatalogBody) {
   if (!kind) errors.push('kind is required');
   if (!groupId) errors.push('groupId is required');
   if (sortOrder < 0) errors.push('sortOrder must be greater than or equal to 0');
-  if (minTierLevel < 1) errors.push('minTierLevel must be greater than or equal to 1');
-  if (!isValidJsonValue(initialProps)) errors.push('initialProps is invalid');
-  if (!isValidJsonValue(blocks)) errors.push('blocks is invalid');
 
   return {
     valid: errors.length === 0,
@@ -96,13 +66,9 @@ function validateCreateBody(body: CreateTemplateCatalogBody) {
       groupId,
       status,
       previewImageUrl,
-      initialProps,
-      blocks,
       isActive,
       isPublic,
       sortOrder,
-      minTier,
-      minTierLevel,
     },
   };
 }
@@ -114,10 +80,18 @@ export async function GET(req: NextRequest) {
     const keyword = searchParams.get('keyword')?.trim() || '';
     const groupId = searchParams.get('groupId')?.trim() || '';
     const status = searchParams.get('status');
-    const minTier = searchParams.get('minTier');
     const isActiveParam = searchParams.get('isActive');
     const isPublicParam = searchParams.get('isPublic');
     const includeDeleted = searchParams.get('includeDeleted') === 'true';
+
+    const page = Number(searchParams.get('page') || 1);
+    const pageSize = Number(searchParams.get('pageSize') || 10);
+
+    const safePage = Number.isFinite(page) && page > 0 ? Math.trunc(page) : 1;
+    const safePageSize =
+      Number.isFinite(pageSize) && pageSize > 0 && pageSize <= 100
+        ? Math.trunc(pageSize)
+        : 10;
 
     const where: Prisma.TemplateCatalogWhereInput = {
       ...(keyword
@@ -131,7 +105,6 @@ export async function GET(req: NextRequest) {
         : {}),
       ...(groupId ? { groupId } : {}),
       ...(isTemplateStatus(status) ? { status } : {}),
-      ...(isAccessTier(minTier) ? { minTier } : {}),
       ...(isActiveParam === 'true' ? { isActive: true } : {}),
       ...(isActiveParam === 'false' ? { isActive: false } : {}),
       ...(isPublicParam === 'true' ? { isPublic: true } : {}),
@@ -143,6 +116,8 @@ export async function GET(req: NextRequest) {
       prisma.templateCatalog.findMany({
         where,
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+        skip: (safePage - 1) * safePageSize,
+        take: safePageSize,
         include: {
           group: true,
         },
@@ -165,7 +140,10 @@ export async function GET(req: NextRequest) {
       success: true,
       data: normalizedItems,
       meta: {
+        page: safePage,
+        pageSize: safePageSize,
         total,
+        totalPages: Math.ceil(total / safePageSize),
       },
     });
   } catch (error) {
@@ -220,13 +198,9 @@ export async function POST(req: NextRequest) {
         groupId: result.data.groupId,
         status: result.data.status,
         previewImageUrl: result.data.previewImageUrl,
-        initialProps: result.data.initialProps ?? Prisma.JsonNull,
-        blocks: result.data.blocks ?? Prisma.JsonNull,
         isActive: result.data.isActive,
         isPublic: result.data.isPublic,
         sortOrder: result.data.sortOrder,
-        minTier: result.data.minTier,
-        minTierLevel: result.data.minTierLevel,
       },
       include: {
         group: true,

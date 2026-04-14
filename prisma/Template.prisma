@@ -44,15 +44,9 @@ model TemplateCatalog {
   status          TemplateStatus   @default(PUBLISHED)
   previewImageUrl String?          @map("preview_image_url")
 
-  initialProps    Json?            @map("initial_props")
-  blocks          Json?
-
   isActive        Boolean          @default(true) @map("is_active")
   isPublic        Boolean          @default(true) @map("is_public")
   sortOrder       Int              @default(0) @map("sort_order")
-
-  minTier         AccessTier       @default(BASIC) @map("min_tier")
-  minTierLevel    Int              @default(1) @map("min_tier_level")
 
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
@@ -60,7 +54,7 @@ model TemplateCatalog {
 
   @@index([groupId, sortOrder])
   @@index([status, isActive])
-  @@index([minTierLevel])
   @@index([kind])
+
   @@map("template_catalog")
 }

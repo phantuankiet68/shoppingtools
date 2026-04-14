@@ -11,7 +11,7 @@
 }
 
 .modalCard {
-  width: min(100%, 980px);
+  width: min(100%, 680px);
   max-height: calc(100vh - 48px);
   overflow: hidden;
   display: flex;
@@ -27,7 +27,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 15px;
+  padding: 12px;
   border-bottom: 1px solid var(--border-color);
   align-items: center;
 }
@@ -58,9 +58,9 @@
 }
 
 .modalClose {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -103,7 +103,7 @@
 .modalGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 16px;
+  gap: 10px;
 }
 
 .field {
@@ -122,6 +122,7 @@
   font-weight: 500;
   color: var(--muted);
   line-height: 1.4;
+  margin-top: 10px;
 }
 
 .input,
@@ -304,4 +305,148 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+.uploadCard {
+  border: 1px solid #dbe4f0;
+  border-radius: 14px;
+  background: #f8fbff;
+  padding: 14px;
+}
+
+.uploadTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #c7d7f2;
+  background: #eef4ff;
+  color: #2457d6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadButton:hover {
+  background: #e3edff;
+  border-color: #adc4f3;
+}
+
+.uploadStatus {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.fileRow {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #dbe4f0;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fileIcon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.fileMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileSubtext {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.removeButton {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #f1c7c7;
+  background: #fff5f5;
+  color: #c53030;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.removeButton:hover {
+  background: #ffeaea;
+}
+
+.progressBar {
+  margin-top: 12px;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e5edf8;
+  overflow: hidden;
+}
+
+.progressValue {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5b8def 0%, #2563eb 100%);
+  transition: width 0.25s ease;
+}
+
+.previewBox {
+  margin-top: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #dbe4f0;
+  background: #fff;
+}
+
+.previewImage {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+}
+
+.hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
 }

@@ -57,6 +57,12 @@ type TemplateListResponse = {
   message?: string;
 };
 
+type TemplateDetailResponse = {
+  success: boolean;
+  data: TemplateCatalog;
+  message?: string;
+};
+
 type GroupListResponse = {
   success: boolean;
   data: TemplateGroup[];
@@ -121,6 +127,10 @@ export default function AdminTemplatesPage() {
   const [openNewTemplate, setOpenNewTemplate] = useState(false);
   const [openNewGroup, setOpenNewGroup] = useState(false);
 
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateCatalog | null>(null);
+  const [loadingTemplateDetail, setLoadingTemplateDetail] = useState(false);
+
   const fetchTemplateGroups = async () => {
     try {
       setLoadingGroups(true);
@@ -181,6 +191,54 @@ export default function AdminTemplatesPage() {
     }
   };
 
+  const fetchTemplateDetail = async (id: string) => {
+    try {
+      setLoadingTemplateDetail(true);
+
+      const response = await fetch(`/api/platform/templates/${id}`, {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      const result: TemplateDetailResponse = await response.json().catch(() => ({
+        success: false,
+        data: null as unknown as TemplateCatalog,
+        message: 'Invalid response',
+      }));
+
+      if (!response.ok || !result.success || !result.data) {
+        console.error('Failed to fetch template detail:', result);
+        alert(result.message || 'Không lấy được thông tin template');
+        return;
+      }
+
+      setSelectedTemplate(result.data);
+      setModalMode('edit');
+      setOpenNewTemplate(true);
+    } catch (error) {
+      console.error('Fetch template detail error:', error);
+      alert('Có lỗi khi lấy thông tin template');
+    } finally {
+      setLoadingTemplateDetail(false);
+    }
+  };
+
+  const handleOpenCreateTemplate = () => {
+    setModalMode('create');
+    setSelectedTemplate(null);
+    setOpenNewTemplate(true);
+  };
+
+  const handleEditTemplate = async (id: string) => {
+    await fetchTemplateDetail(id);
+  };
+
+  const handleCloseTemplateModal = () => {
+    setOpenNewTemplate(false);
+    setModalMode('create');
+    setSelectedTemplate(null);
+  };
+
   useEffect(() => {
     fetchTemplateGroups();
     fetchTemplates();
@@ -239,7 +297,7 @@ export default function AdminTemplatesPage() {
             New Group
           </button>
 
-          <button className={styles.primaryButton} onClick={() => setOpenNewTemplate(true)} type="button">
+          <button className={styles.primaryButton} onClick={handleOpenCreateTemplate} type="button">
             <i className="bi bi-plus-lg" />
             New Template
           </button>
@@ -530,12 +588,16 @@ export default function AdminTemplatesPage() {
 
                           <td>
                             <div className={styles.rowActions}>
-                              <button className={styles.iconAction} title="Preview" type="button">
-                                <i className="bi bi-eye" />
-                              </button>
-                              <button className={styles.iconAction} title="Edit" type="button">
+                              <button
+                                className={styles.iconAction}
+                                title="Edit"
+                                type="button"
+                                onClick={() => handleEditTemplate(template.id)}
+                                disabled={loadingTemplateDetail}
+                              >
                                 <i className="bi bi-pencil-square" />
                               </button>
+
                               <button className={styles.iconAction} title="Duplicate" type="button">
                                 <i className="bi bi-copy" />
                               </button>
@@ -555,8 +617,12 @@ export default function AdminTemplatesPage() {
       <NewTemplateModal
         open={openNewTemplate}
         groups={groups}
-        onClose={() => setOpenNewTemplate(false)}
+        mode={modalMode}
+        initialData={selectedTemplate}
+        loading={loadingTemplateDetail}
+        onClose={handleCloseTemplateModal}
         onCreated={() => {
+          handleCloseTemplateModal();
           fetchTemplates();
         }}
       />
