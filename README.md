@@ -454,11 +454,30 @@ const banner = safeJson<HotProductOneBanner>(p.banner);
 },
 };
 
+Bạn hãy ở cương vị  serior front-end và serior back-end Hiện tại tôi đang sử dụng next 16 và prisma 7.6.0 
+Bạn hãy giúp tôi chỉnh sửa api và NewTemplateModal.tsx và ghi toàn bộ file giúp tôi
+
+Bạn là serior front-end Hiện tại tôi đang sử dụng next 16 và css module Và đây là modal ành cho form tạo template Bạn có thể tạo css module tương ứng với file. Các ô input không cần box shaw nếu như focus cần border-color: var(--border-color); box-shadow: var(--box-shadow); và label text cứ font-size: 13px; font-weight: 500; color: var(--muted);
+
+Bạn là serior back-end Hiện tại tôi đang sử dụng next 16 và prisma 7.6.0
+import { ... } from "@/generated/prisma"; 
+import { prisma } from "@/lib/prisma";Bạn hãy tạo api crub dựa vào model TemplateGroup  giúp tôi nhé 
+
 export default HotProductOne;
 
 Hiện tại tôi chưa có text messages en.ts, ja.ts,vi.ts Bạn có thể đổi các test theo 3 dạng ngôn ngữ giúp tôi được không import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n(); viết tiếp cho bạn bản full PageInspector.tsx email đã thay toàn bộ text cứng sang t(...).
 
-
+Code: topbar01
+Name: Topbar One
+Kind: TopbarAnnouncement
+Group: [chọn group phù hợp trong dropdown]
+Status: PUBLISHED
+Preview Image URL:
+Min Tier: BASIC
+Min Tier Level: 1
+Sort Order: 0
+Is Active: true
+Is Public: true
 
 Do ProfileOne.tsx là file có cấu trúc mẫu templates dành để tạo block cho pages. Bạn có thể tạo SecurityOne.tsx cải tiến design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ dựa vào cấu trúc mẫu HeaderAnnouncement, tôi đang sử dụng next 16 và css module và icon bootstrapt. Tôi muốn bạn ở cương bị cấp bật là serior front-end. Hãy tách ra SecurityOne.tsx và SecurityOne.module.css giống với ảnh giúp tôi có được không. Tôi đang tạo profile Acount dành cho customer bạn có thể tâoj giúp tôi được không
 

@@ -452,7 +452,7 @@ export function HeaderAnnouncement({
   notifications = DEFAULT_NOTIFICATIONS,
   notificationHref = "/notifications",
   preview = false,
-  menuApiUrl = "/api/admin/menus/header-menu",
+  menuApiUrl = "/api/admin/menus/header-menu?setKey=home&tree=1&includeHidden=0&page=1&size=1000&sort=sortOrder%3Aasc",
   menuSetKey = "home",
   menuMode = "auto",
   isAuthed = false,
@@ -1277,7 +1277,7 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
     searchPlaceholder: "What are you looking for today?",
     badgeCart: 0,
     navItems: "[]",
-    menuApiUrl: "/api/admin/menus/header-menu",
+    menuApiUrl: "/api/admin/menus/header-menu?setKey=home&tree=1&includeHidden=0&page=1&size=1000&sort=sortOrder%3Aasc",
     menuSetKey: "home",
     menuMode: "auto",
     isAuthed: 0,
@@ -1313,7 +1313,7 @@ export const SHOP_HEADER_ANNOUNCEMENT: RegItem = {
           badgeCart={data.badgeCart}
           preview={data.preview}
           navItems={navItems}
-          menuApiUrl={data.menuApiUrl || "/api/admin/menus/header-menu"}
+          menuApiUrl={data.menuApiUrl || "/api/admin/menus/header-menu?setKey=home&tree=1&includeHidden=0&page=1&size=1000&sort=sortOrder%3Aasc"}
           menuSetKey={data.menuSetKey || "home"}
           menuMode={menuMode}
           isAuthed={Number(data.isAuthed) === 1}

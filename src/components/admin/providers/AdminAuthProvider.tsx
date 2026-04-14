@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { createContext, useContext } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
 
 export type AdminAuthData = {
   user: {
@@ -44,13 +44,13 @@ export type AdminAuthData = {
   }>;
 };
 
-const AdminAuthContext = createContext<AdminAuthData | null>(null);
+const AdminAuthContext = createContext<AdminAuthData | undefined>(undefined);
 
 export function AdminAuthProvider({
   value,
   children,
 }: {
-  value: AdminAuthData | null;
+  value: AdminAuthData;
   children: ReactNode;
 }) {
   return (
@@ -63,8 +63,8 @@ export function AdminAuthProvider({
 export function useAdminAuth() {
   const context = useContext(AdminAuthContext);
 
-  if (!context) {
-    throw new Error('useAdminAuth must be used within AdminAuthProvider');
+  if (context === undefined) {
+    throw new Error("useAdminAuth must be used within AdminAuthProvider");
   }
 
   return context;

@@ -14,28 +14,36 @@ import { AdminTitleProvider } from "@/components/admin/AdminTitleContext";
 type LayoutKey = "A" | "B" | "C";
 const STORAGE_KEY = "admin_layout";
 
-export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+export default function AdminLayoutClient({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/admin/login";
 
   const [mounted, setMounted] = useState(false);
-  const [layout, setLayout] = useState<LayoutKey | null>(null);
+  const [layout, setLayout] = useState<LayoutKey>("A");
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (isLoginPage) return;
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || isLoginPage) return;
 
     const saved = window.localStorage.getItem(STORAGE_KEY) as LayoutKey | null;
 
     if (saved === "A" || saved === "B" || saved === "C") {
       setLayout(saved);
       setOpen(false);
-    } else {
-      setLayout(null);
-      setOpen(true);
+      return;
     }
-  }, [isLoginPage]);
+
+    setLayout("A");
+    setOpen(false);
+  }, [mounted, isLoginPage]);
 
   const Chosen = useMemo(() => {
     if (layout === "B") return LayoutB;
@@ -49,23 +57,10 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     setOpen(false);
   };
 
-  if (!mounted) return null;
-  if (isLoginPage) return <>{children}</>;
 
-  if (open) {
-    return (
-      <ChooseLayoutModal
-        onPick={applyLayout}
-        onClose={() => {
-          setLayout("A");
-          setOpen(false);
-        }}
-      />
-    );
+  if (isLoginPage) {
+    return <>{children}</>;
   }
-
-  if (!mounted) return null;
-  if (isLoginPage) return <>{children}</>;
 
   return (
     <AdminTitleProvider>
@@ -73,7 +68,6 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         <ChooseLayoutModal
           onPick={applyLayout}
           onClose={() => {
-            // nếu bạn muốn bắt buộc chọn layout thì return; ở đây
             setLayout("A");
             setOpen(false);
           }}
@@ -85,23 +79,30 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   );
 }
 
-function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void; onClose: () => void }) {
+function ChooseLayoutModal({
+  onPick,
+  onClose,
+}: {
+  onPick: (k: LayoutKey) => void;
+  onClose: () => void;
+}) {
   const items: Array<{
     key: LayoutKey;
     title: string;
     desc: string;
-    details: string; // mô tả dài hơn
+    details: string;
     icon: string;
     tag: string;
-    useCases: string[]; // badge "phù hợp cho"
-    highlights: string[]; // 1 dòng điểm nổi bật
+    useCases: string[];
+    highlights: string[];
     bullets: string[];
   }> = [
     {
       key: "A",
       title: "Layout A",
       desc: "Sidebar + content standard dashboards",
-      details: "A familiar layout for admin systems: clear sidebar navigation, multi-level menus, easy module expansion, and stable as the project scales.",
+      details:
+        "A familiar layout for admin systems: clear sidebar navigation, multi-level menus, easy module expansion, and stable as the project scales.",
       icon: "bi-layout-sidebar-inset",
       tag: "Classic",
       useCases: ["Product management", "Orders", "User roles"],
@@ -112,7 +113,8 @@ function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void
       key: "B",
       title: "Layout B",
       desc: "Topbar + content — clean and modern",
-      details: "Maximum focus on content: quick topbar navigation, ideal for wide screens, spacious tables and charts, and a clean, minimal experience.",
+      details:
+        "Maximum focus on content: quick topbar navigation, ideal for wide screens, spacious tables and charts, and a clean, minimal experience.",
       icon: "bi-window",
       tag: "Modern",
       useCases: ["Reports", "Analytics", "Content management"],
@@ -123,7 +125,8 @@ function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void
       key: "C",
       title: "Layout C",
       desc: "Mini sidebar icons — fast and professional",
-      details: "A modern SaaS-style design: compact icon-based sidebar, fast interactions, optimized for 13–14 inch laptops, and a more premium look and feel.",
+      details:
+        "A modern SaaS-style design: compact icon-based sidebar, fast interactions, optimized for 13–14 inch laptops, and a more premium look and feel.",
       icon: "bi-layout-text-window-reverse",
       tag: "Pro",
       useCases: ["Fast operations", "Small screens", "Power users"],
@@ -148,7 +151,12 @@ function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void
             </div>
           </div>
 
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
+          <button
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Đóng"
+            type="button"
+          >
             <i className="bi bi-x-lg" />
           </button>
         </div>
@@ -156,11 +164,15 @@ function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void
         <div className={styles.content}>
           <div className={styles.grid}>
             {items.map((it) => (
-              <button key={it.key} className={styles.cardBtn} onClick={() => onPick(it.key)} type="button">
+              <button
+                key={it.key}
+                className={styles.cardBtn}
+                onClick={() => onPick(it.key)}
+                type="button"
+              >
                 <div className={styles.card}>
                   <div className={styles.tag}>{it.tag}</div>
 
-                  {/* Header card */}
                   <div className={styles.cardTop}>
                     <div className={styles.cardIcon}>
                       <i className={`bi ${it.icon}`} />
@@ -181,14 +193,18 @@ function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void
                       </span>
                     ))}
                   </div>
+
                   <div className={styles.highlights}>
                     <span className={styles.highlightsLabel}>Highlights:</span>
-                    <span className={styles.highlightsText}>{it.highlights.join(" • ")}</span>
+                    <span className={styles.highlightsText}>
+                      {it.highlights.join(" • ")}
+                    </span>
                   </div>
 
                   <div className={styles.preview}>
                     <MiniPreview type={it.key} />
                   </div>
+
                   <ul className={styles.bullets}>
                     {it.bullets.map((b) => (
                       <li key={b}>
@@ -214,7 +230,10 @@ function ChooseLayoutModal({ onPick, onClose }: { onPick: (k: LayoutKey) => void
           <div className={styles.footer}>
             <div className={styles.footerLeft}>
               <i className="bi bi-shield-check" />
-              <span>Your selection is saved in the browser (localStorage). It does not affect your account.</span>
+              <span>
+                Your selection is saved in the browser (localStorage). It does
+                not affect your account.
+              </span>
             </div>
 
             <div className={styles.footerRight}>

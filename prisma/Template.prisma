@@ -1,10 +1,3 @@
-enum SiteType {
-  ECOMMERCE
-  COMPANY
-  LANDING_PAGE
-  BLOG
-  PORTFOLIO
-}
 
 enum TemplateStatus {
   DRAFT
@@ -44,20 +37,14 @@ model TemplateCatalog {
   code            String           @unique
   name            String
   kind            String
-  description     String?
 
   groupId         String           @map("group_id")
   group           TemplateGroup    @relation(fields: [groupId], references: [id], onDelete: Restrict)
 
-  siteType        SiteType         @map("site_type")
-
   status          TemplateStatus   @default(PUBLISHED)
-
-  thumbnailUrl    String?          @map("thumbnail_url")
   previewImageUrl String?          @map("preview_image_url")
 
   initialProps    Json?            @map("initial_props")
-
   blocks          Json?
 
   isActive        Boolean          @default(true) @map("is_active")
@@ -66,16 +53,14 @@ model TemplateCatalog {
 
   minTier         AccessTier       @default(BASIC) @map("min_tier")
   minTierLevel    Int              @default(1) @map("min_tier_level")
-  ownerKey        String?          @map("owner_key")
 
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
   deletedAt       DateTime?        @map("deleted_at")
 
   @@index([groupId, sortOrder])
-  @@index([siteType, status, isActive])
+  @@index([status, isActive])
   @@index([minTierLevel])
   @@index([kind])
-  @@index([ownerKey])
   @@map("template_catalog")
 }
