@@ -17,6 +17,7 @@ export type AdminAuthData = {
     name: string;
     slug: string;
     role: string;
+    tier: string;
   } | null;
   site: {
     id: string;

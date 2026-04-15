@@ -70,7 +70,7 @@
 }
 .searchInput {
   width: 100%;
-  padding: 14px 12px 14px 36px;
+  padding: 10px 12px 10px 36px;
   border: var(--bd-header);
   border-radius: 10px;
   font-size: 13px;
@@ -132,25 +132,25 @@
   list-style: none;
   margin: 4px 0 0 0;
   padding: 2px 4px 4px 24px;
-  border-left: 2px dashed #eef1f7;
 }
 .item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap:6px;
   padding: 10px 10px;
   font-size: 14px;
   border-radius: 8px;
   cursor: grab;
   border: var(--bd-header);
-  margin-left: 10px;
   transition:
     background 0.12s ease,
     transform 0.12s ease;
+    flex-direction: column;
+  margin-top: 10px;
 }
 .item:hover {
-background: #ff8e6a94;
+    background: #ffd9b0b3;
 }
 .item:active {
   cursor: grabbing;
@@ -257,10 +257,8 @@ background: #ff8e6a94;
   color: var(--text);
 }
 .tplChildren {
-  border-left: 2px dashed #eef1f7;
   flex-direction: column;
   justify-content: space-between;
-  margin: 0px 10px 6px 0px;
   list-style: none;
   display: flex;
   gap: 15px;
@@ -380,4 +378,17 @@ background: #ff8e6a94;
   .templatesWrapper {
     height: 70vh;
   }
+}
+
+
+.tplPreviewBox {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+.tplPreviewImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }

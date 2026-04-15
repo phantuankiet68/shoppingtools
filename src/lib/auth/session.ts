@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminAccessToken } from "@/lib/auth/jwt";
-import { SystemRole } from "@/generated/prisma";
+import { SystemRole, type AccessTier } from "@/generated/prisma";
 
 const ACCESS_TOKEN_COOKIE = "admin_access_token";
 const SESSION_COOKIE = "admin_session";
@@ -44,6 +44,7 @@ export type AdminCurrentWorkspace = {
   name: string;
   slug: string;
   role: string;
+  tier: AccessTier;
 } | null;
 
 export type AdminMembership = {
@@ -51,6 +52,7 @@ export type AdminMembership = {
   workspaceName: string;
   workspaceSlug: string;
   role: string;
+  tier: AccessTier;
 };
 
 export type AdminSession = {
@@ -117,6 +119,7 @@ export async function getCurrentSession(): Promise<AdminSession> {
           },
           select: {
             role: true,
+            tier: true,
             workspace: {
               select: {
                 id: true,
@@ -138,17 +141,20 @@ export async function getCurrentSession(): Promise<AdminSession> {
       workspaceName: membership.workspace.name,
       workspaceSlug: membership.workspace.slug,
       role: membership.role,
+      tier: membership.tier,
     }));
 
-    const currentWorkspace: AdminCurrentWorkspace =
-      memberships.length > 0
-        ? {
-            id: memberships[0].workspaceId,
-            name: memberships[0].workspaceName,
-            slug: memberships[0].workspaceSlug,
-            role: memberships[0].role,
-          }
-        : null;
+    const firstMembership = memberships[0];
+
+    const currentWorkspace: AdminCurrentWorkspace = firstMembership
+      ? {
+          id: firstMembership.workspaceId,
+          name: firstMembership.workspaceName,
+          slug: firstMembership.workspaceSlug,
+          role: firstMembership.role,
+          tier: firstMembership.tier,
+        }
+      : null;
 
     return {
       user: {

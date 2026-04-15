@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { hashToken } from "@/lib/session";
+import {  AccessTier } from '@/generated/prisma';
 
 export type WorkspaceRole = "OWNER" | "ADMIN" | "EDITOR" | "VIEWER";
 
@@ -9,6 +10,7 @@ export type SessionMembership = {
   workspaceName: string;
   workspaceSlug: string;
   role: WorkspaceRole;
+  tier: AccessTier;
 };
 
 export type SessionUser = {
@@ -59,7 +61,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
           image: true,
           memberships: {
             select: {
+              workspaceId: true,
               role: true,
+              tier: true,
               workspace: {
                 select: {
                   id: true,
@@ -68,6 +72,10 @@ export async function getSessionUser(): Promise<SessionUser | null> {
                 },
               },
             },
+            orderBy: [
+              { role: "asc" },
+              { createdAt: "asc" },
+            ],
           },
         },
       },
@@ -91,10 +99,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     status: session.user.status,
     image: session.user.image ?? null,
     memberships: session.user.memberships.map((membership) => ({
-      workspaceId: membership.workspace.id,
+      workspaceId: membership.workspaceId,
       workspaceName: membership.workspace.name,
       workspaceSlug: membership.workspace.slug,
       role: membership.role as WorkspaceRole,
+      tier: membership.tier,
     })),
   };
 }
@@ -107,19 +116,31 @@ export async function requireSessionUser(): Promise<SessionUser> {
   return user;
 }
 
-export function pickCurrentMembership(user: SessionUser, requestedWorkspaceId?: string | null) {
+export function pickCurrentMembership(
+  user: SessionUser,
+  requestedWorkspaceId?: string | null
+): SessionMembership | null {
   if (requestedWorkspaceId) {
-    return user.memberships.find((item) => item.workspaceId === requestedWorkspaceId) ?? null;
+    return (
+      user.memberships.find((item) => item.workspaceId === requestedWorkspaceId) ??
+      null
+    );
   }
 
   return user.memberships[0] ?? null;
 }
 
-export function hasWorkspaceRole(actualRole: WorkspaceRole, allowedRoles: WorkspaceRole[]): boolean {
+export function hasWorkspaceRole(
+  actualRole: WorkspaceRole,
+  allowedRoles: WorkspaceRole[]
+): boolean {
   return allowedRoles.some((role) => getRoleRank(actualRole) >= getRoleRank(role));
 }
 
-export function assertWorkspaceRole(actualRole: WorkspaceRole, allowedRoles: WorkspaceRole[]): void {
+export function assertWorkspaceRole(
+  actualRole: WorkspaceRole,
+  allowedRoles: WorkspaceRole[]
+): void {
   if (!hasWorkspaceRole(actualRole, allowedRoles)) {
     throw new Error("FORBIDDEN");
   }

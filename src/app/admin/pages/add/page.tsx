@@ -37,10 +37,12 @@ export default function UiBuilderAddPage() {
   const { locale: routeLocale } = useParams<RouteParams>();
   const sp = useSearchParams();
   const { t } = useAdminI18n();
-  const { site } = useAdminAuth();
+  const { site, currentWorkspace } = useAdminAuth();
 
   const siteId = site?.id ?? "";
   const siteDomain = site?.domain ?? "";
+  const siteType = site?.type ?? "";
+  const tier = currentWorkspace?.tier ?? "";
 
   const initialId = sp.get("id");
   const templateGroup = sp.get("templateGroup");
@@ -431,6 +433,8 @@ export default function UiBuilderAddPage() {
                 onDragStart={onDragStart}
                 registry={filteredRegistry}
                 templateGroup={templateGroup}
+                tier={tier}
+                siteType={siteType}
               />
             </aside>
 

@@ -1,5 +1,5 @@
 import { getSessionUser, pickCurrentMembership } from "@/lib/auth/auth-workspace";
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
 
 function toSystemRoleLabel(role: string) {
   switch (role) {
@@ -24,7 +24,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const requestedWorkspaceId = searchParams.get("workspaceId");
   const currentMembership = pickCurrentMembership(user, requestedWorkspaceId);
-  const displayName = user.email.includes("@") ? user.email.split("@")[0] : user.email;
+  const displayName = user.email.includes("@")
+    ? user.email.split("@")[0]
+    : user.email;
 
   let site = null;
 
@@ -73,6 +75,7 @@ export async function GET(req: Request) {
           name: currentMembership.workspaceName,
           slug: currentMembership.workspaceSlug,
           role: currentMembership.role,
+          tier: currentMembership.tier,
         }
       : null,
     site,
@@ -81,6 +84,7 @@ export async function GET(req: Request) {
       workspaceName: membership.workspaceName,
       workspaceSlug: membership.workspaceSlug,
       role: membership.role,
+      tier: membership.tier,
     })),
   });
 }

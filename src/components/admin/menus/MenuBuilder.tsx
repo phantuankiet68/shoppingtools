@@ -41,7 +41,6 @@ export default function MenuBuilder() {
   const { user, site, currentWorkspace } = useAdminAuth();
   const userId = user?.id ?? "";
   const siteId = site?.id ?? "";
-  const workspaceName = currentWorkspace?.name ?? "";
   const siteName = site?.name ?? "";
   const siteDomain = site?.domain ?? "";
 

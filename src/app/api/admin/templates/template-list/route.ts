@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { REGISTRY } from "@/lib/ui-builder/registry";
+import type { AccessTier, Prisma } from "@/generated/prisma";
 
 type TemplateListItem = {
   id: string;
@@ -11,6 +12,7 @@ type TemplateListItem = {
     id: string;
     code: string;
     name: string;
+    minTier: AccessTier;
   };
   children: string[];
   rawChildren: string[];
@@ -23,54 +25,61 @@ type TemplateListItem = {
   updatedAt: string;
 };
 
+function parseTier(value: string | null): AccessTier | null {
+  if (!value) return null;
+
+  const normalized = value.trim().toUpperCase();
+
+  if (normalized === "BASIC") return "BASIC";
+  if (normalized === "NORMAL") return "NORMAL";
+  if (normalized === "PRO") return "PRO";
+
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
     const q = searchParams.get("q")?.trim() || "";
-    const groupCode = searchParams.get("groupCode")?.trim() || "";
-    const groupName = searchParams.get("groupName")?.trim() || "";
+    const siteType = searchParams.get("siteType")?.trim() || "";
     const includeInactive = searchParams.get("includeInactive") === "true";
     const includeArchived = searchParams.get("includeArchived") === "true";
     const includeDeleted = searchParams.get("includeDeleted") === "true";
+    const tier = parseTier(searchParams.get("tier"));
 
     const registryKindSet = new Set(REGISTRY.map((item) => item.kind));
 
-    const rows = await prisma.templateCatalog.findMany({
-      where: {
-        ...(includeDeleted ? {} : { deletedAt: null }),
-        ...(includeInactive ? {} : { isActive: true }),
-        ...(includeArchived ? {} : { status: { not: "ARCHIVED" as const } }),
-        ...(groupCode
+    const where: Prisma.TemplateCatalogWhereInput = {
+      ...(includeDeleted ? {} : { deletedAt: null }),
+      ...(includeInactive ? {} : { isActive: true }),
+      ...(includeArchived ? {} : { status: { not: "ARCHIVED" } }),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { code: { contains: q, mode: "insensitive" } },
+              { kind: { contains: q, mode: "insensitive" } },
+              { group: { name: { contains: q, mode: "insensitive" } } },
+              { group: { code: { contains: q, mode: "insensitive" } } },
+            ],
+          }
+        : {}),
+      group: {
+        ...(tier ? { minTier: tier } : {}),
+        ...(siteType
           ? {
-              group: {
-                code: {
-                  equals: groupCode,
-                },
+              code: {
+                equals: siteType,
+                mode: "insensitive",
               },
-            }
-          : {}),
-        ...(groupName
-          ? {
-              group: {
-                name: {
-                  equals: groupName,
-                },
-              },
-            }
-          : {}),
-        ...(q
-          ? {
-              OR: [
-                { name: { contains: q, mode: "insensitive" } },
-                { code: { contains: q, mode: "insensitive" } },
-                { kind: { contains: q, mode: "insensitive" } },
-                { group: { name: { contains: q, mode: "insensitive" } } },
-                { group: { code: { contains: q, mode: "insensitive" } } },
-              ],
             }
           : {}),
       },
+    };
+
+    const rows = await prisma.templateCatalog.findMany({
+      where,
       orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
       select: {
         id: true,
@@ -89,6 +98,7 @@ export async function GET(request: NextRequest) {
             id: true,
             code: true,
             name: true,
+            minTier: true,
           },
         },
       },
@@ -107,6 +117,7 @@ export async function GET(request: NextRequest) {
           id: row.group.id,
           code: row.group.code,
           name: row.group.name,
+          minTier: row.group.minTier,
         },
         children,
         rawChildren,
@@ -132,10 +143,12 @@ export async function GET(request: NextRequest) {
         totalRows: rows.length,
         registryCount: registryKindSet.size,
         unmatchedKinds,
+        tierFilter: tier,
+        siteTypeFilter: siteType || null,
       },
     });
   } catch (error) {
-    console.error("GET /api/platform/templates/template-list error:", error);
+    console.error("GET /api/admin/templates/template-list error:", error);
 
     return Response.json(
       {

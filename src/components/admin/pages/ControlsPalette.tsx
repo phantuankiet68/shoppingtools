@@ -13,10 +13,11 @@ type Props = {
   onDragStart: (kind: string) => (e: React.DragEvent) => void;
   registry?: RegItem[];
   templateGroup?: string | null;
+  tier?: string | null;
+  siteType?: string | null;
 };
 
 type RegistryKind = string;
-
 type SpecialTemplateGroup = "Topbar" | "Header" | "Footer" | "Sidebar";
 
 type TemplateApiItem = {
@@ -30,9 +31,11 @@ type TemplateApiItem = {
         id?: string;
         code?: string;
         name?: string;
+        minTier?: string;
       }
     | null;
   children?: string[];
+  previewImageUrl?: string | null;
 };
 
 type BuilderTemplate = {
@@ -41,6 +44,7 @@ type BuilderTemplate = {
   group: string | null;
   kind: string | null;
   children: RegistryKind[];
+  previewImageUrl: string | null;
 };
 
 function normalizeText(value?: string | null) {
@@ -119,7 +123,15 @@ function filterTemplates({
     .filter((tpl) => tpl.children.length > 0);
 }
 
-export default function ControlsPalette({ search, setSearch, onDragStart, registry, templateGroup }: Props) {
+export default function ControlsPalette({
+  search,
+  setSearch,
+  onDragStart,
+  registry,
+  templateGroup,
+  tier,
+  siteType,
+}: Props) {
   const sourceRegistry = React.useMemo(() => registry ?? REGISTRY, [registry]);
 
   const registryByKind = React.useMemo(() => {
@@ -145,7 +157,22 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
         setLoading(true);
         setLoadError(null);
 
-        const response = await fetch("/api/platform/templates/template-list", {
+        const params = new URLSearchParams();
+
+        if (tier && tier.trim()) {
+          params.set("tier", tier.trim().toUpperCase());
+        }
+
+        if (siteType && siteType.trim()) {
+          params.set("siteType", siteType.trim().toLowerCase());
+        }
+
+        const queryString = params.toString();
+        const endpoint = queryString
+          ? `/api/admin/templates/template-list?${queryString}`
+          : "/api/admin/templates/template-list";
+
+        const response = await fetch(endpoint, {
           method: "GET",
           cache: "no-store",
         });
@@ -159,6 +186,10 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
           data?: TemplateApiItem[];
           message?: string;
         };
+
+        if (!json?.success) {
+          throw new Error(json?.message || "Không thể tải danh sách template");
+        }
 
         const rawTemplates = Array.isArray(json?.data) ? json.data : [];
 
@@ -178,6 +209,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
               group: inferredGroup ?? apiGroup,
               kind: primaryKind,
               children,
+              previewImageUrl: item.previewImageUrl ?? null,
             };
           })
           .filter((item) => item.children.length > 0);
@@ -203,7 +235,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tier, siteType]);
 
   const templatesFiltered = React.useMemo(() => {
     const baseTemplates = specialTemplateGroup
@@ -216,8 +248,6 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
       registryByKind,
     });
 
-    // KHÔNG loại template nếu registry chưa đủ
-    // Chỉ làm sạch children bị trùng
     return raw.map((tpl) => ({
       ...tpl,
       children: Array.from(new Set(tpl.children)),
@@ -226,7 +256,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
 
   const templateIds = React.useMemo(() => templatesFiltered.map((t) => t.id), [templatesFiltered]);
 
-  const { openTpl, setOpenTpl, toggleTpl, expandAll, collapseAll } = useControlsPaletteStore(templateIds);
+  const { openTpl, setOpenTpl, expandAll, collapseAll } = useControlsPaletteStore(templateIds);
 
   React.useEffect(() => {
     if (templatesFiltered.length > 0) {
@@ -236,15 +266,6 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
 
     setOpenTpl(new Set());
   }, [templatesFiltered, setOpenTpl]);
-
-  const onDragTemplate = React.useCallback(
-    (tplId: string) => (e: React.DragEvent) => {
-      e.dataTransfer.setData("text/plain", `template:${tplId}`);
-      e.dataTransfer.setData("application/json", JSON.stringify({ templateId: tplId }));
-      e.dataTransfer.effectAllowed = "copy";
-    },
-    [],
-  );
 
   const expandAllTemplates = React.useCallback(
     () => expandAll(templatesFiltered.map((t) => t.id)),
@@ -295,29 +316,6 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
             <ul className={styles.templatesList}>
               {templatesFiltered.map((tpl) => (
                 <li key={tpl.id} className={styles.tplItem}>
-                  <div className={styles.tplHeader}>
-                    <button
-                      type="button"
-                      className={styles.tplCaret}
-                      onClick={() => toggleTpl(tpl.id)}
-                      aria-expanded={openTpl.has(tpl.id)}
-                    >
-                      <i className={`bi ${openTpl.has(tpl.id) ? "bi-caret-down-fill" : "bi-caret-right-fill"}`} />
-                    </button>
-
-                    <span className={styles.tplLabel}>{tpl.label}</span>
-
-                    <button
-                      type="button"
-                      className={styles.tplDragAll}
-                      draggable
-                      onDragStart={onDragTemplate(tpl.id)}
-                      title="Drag entire template"
-                    >
-                      <i className="bi bi-stack" /> Drag
-                    </button>
-                  </div>
-
                   {openTpl.has(tpl.id) && (
                     <ul className={styles.tplChildren}>
                       {tpl.children.map((kind, index) => {
@@ -334,12 +332,27 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
                             role="treeitem"
                             aria-selected={false}
                           >
-                            <div className={styles.itemLeft}>
-                              <i className="bi bi-box" />
-                              <span className={styles.itemLabel}>{label}</span>
-                            </div>
-                            <div className={styles.itemRight}>
-                              <i className="bi bi-arrow-right-circle" />
+                            {tpl.previewImageUrl && (
+                              <div className={styles.tplPreviewWrapper}>
+                                <div className={styles.tplPreviewBox}>
+                                  <img
+                                    src={tpl.previewImageUrl}
+                                    alt={`${tpl.label} preview`}
+                                    className={styles.tplPreviewImage}
+                                    loading="lazy"
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="d-flex ju-content-between w-100">
+                              <div className={styles.itemLeft}>
+                                <i className="bi bi-box" />
+                                <span className={styles.itemLabel}>{label}</span>
+                              </div>
+                              <div className={styles.itemRight}>
+                                <i className="bi bi-arrow-right-circle" />
+                              </div>
                             </div>
                           </li>
                         );
@@ -354,7 +367,7 @@ export default function ControlsPalette({ search, setSearch, onDragStart, regist
           {!loading && !loadError && templatesFiltered.length === 0 && (
             <div className={styles.emptyState}>
               <i className="bi bi-search me-1" />
-              Không có template nào khớp với “{search.trim()}”
+              Không có template nào khớp điều kiện hiện tại
             </div>
           )}
         </div>

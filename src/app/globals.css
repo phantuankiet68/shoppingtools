@@ -188,8 +188,11 @@ a:visited {
 .gap-10 {
   align-items: center;
 }
-.ju-space-between {
+.ju-content-between {
   justify-content: space-between;
+}
+.w-100 {
+  width: 100%;
 }
 
 .center {
