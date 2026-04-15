@@ -1,6 +1,7 @@
 .dashboard {
   background: #f6f8fe;
   min-height: 100%;
+  padding: 5px;
 }
 
 /* ---------------- TOP GRID ---------------- */
@@ -190,7 +191,7 @@
 /* ---------------- MAIN GRID ---------------- */
 .mainGrid {
   display: grid;
-  grid-template-columns: 1.25fr 0.95fr 0.8fr;
+  grid-template-columns: 1.53fr 1fr;
   gap: 14px;
   align-items: start;
 }
@@ -200,17 +201,20 @@
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   overflow: hidden;
+  border: var(--bd-header);
 }
 .cardHead {
-  padding: 14px 14px 8px 14px;
+  padding: 16px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+  align-items: center;
 }
 .cardHeadLeft {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   gap: 6px;
 }
 .cardHeadRight {
@@ -230,7 +234,7 @@
 }
 
 .cardBody {
-  padding: 15px;
+  padding: 0px 15px 15px 15px;
 }
 
 /* Legend like image */
@@ -427,7 +431,7 @@
   background: #ffffff;
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-  padding: 18px;
+  padding: 17px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -619,4 +623,11 @@
   .congratsRight {
     justify-content: flex-start;
   }
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 15px;
 }

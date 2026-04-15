@@ -1,62 +1,24 @@
 import type { ReactNode } from "react";
 import styles from "@/styles/admin/layouts/DashboardA.module.css";
-import ActiveProjectsUsers from "@/components/admin/pages/ActiveProjectsUsers";
+import PagePricing from "@/components/admin/layouts/PagePricing";
+import Scarler from "@/components/admin/layouts/Scarler";
+import Browser from "@/components/admin/layouts/Browser";
+import TotalPage from "@/components/admin/layouts/TotalPage";
 export default function DashboardA() {
   return (
     <div className={styles.dashboard}>
-      <section className={styles.topGrid}>
-        <div className={styles.congratsCard}>
-          <div className={styles.congratsLeft}>
-            <div className={styles.congratsTitle}>
-              Congratulations John! <span className={styles.party}>🎉</span>
-            </div>
-            <div className={styles.congratsSub}>
-              You have done <b>72%</b> more sales today. <br />
-              Check your new raising badge in your profile.
-            </div>
-
-            <button className={styles.primarySoftBtn} type="button">
-              VIEW BADGES
-            </button>
-          </div>
-
-          <div className={styles.congratsRight} aria-hidden="true">
-            <div className={styles.illus}>
-              <div className={styles.illusHead} />
-              <div className={styles.illusBody} />
-              <div className={styles.illusLaptop} />
-            </div>
-
-            <div className={styles.congratsClock}>
-              <i className="bi bi-clock" />
-            </div>
-          </div>
-        </div>
-
-        <MiniStat icon="bi-graph-up" label="Profit" value="$12,628" delta="+72.8%" up />
-        <MiniStat icon="bi-bag" label="Sales" value="$4,679" delta="+28.42%" up />
-      </section>
-
       <section className={styles.mainGrid}>
-        <Card title="Total Revenue" legend={<YearLegend />}>
-          <RevenueBars />
-        </Card>
-        <Card title="" right={<PillSelect value="2023" />}>
-          <GrowthDonut />
-        </Card>
-        <div className={styles.rightStack}>
-          <div className={styles.rightMiniGrid}>
-            <MetricMini icon="bi-paypal" label="Payments" value="$2,468" delta="-14.82%" up={false} tone="peach" />
-            <MetricMini icon="bi-receipt" label="Transactions" value="$14,857" delta="+28.14%" up tone="violet" />
-            <MetricMini icon="bi-currency-dollar" label="Profit" value="$12,628" delta="+72.8%" up tone="green" />
-            <MetricMini icon="bi-cart2" label="Sales" value="$4,679" delta="+28.42%" up tone="blue" />
-          </div>
-        </div>
+        <TotalPage />
+        <Browser />
       </section>
-      <ActiveProjectsUsers />
+      <div className={styles.headerTop}>
+        <PagePricing /> 
+        <Scarler />
+      </div>
     </div>
   );
 }
+
 
 function Card({
   title,

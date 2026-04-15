@@ -99,6 +99,23 @@
   padding: 10px;
 }
 
+@media (max-width: 1636px) {
+  .leftCol{
+    max-width: 500px;
+  }
+
+  .rightCol{
+    max-width: 80%;
+    min-width: 60%;
+  }
+  .grid2 {
+  display: grid;
+  grid-template-columns: 1fr 165px;
+  gap: 0.75rem;
+}
+
+}
+
 /* ========== Firefox ========== */
 .leftCol,
 .rightCol {

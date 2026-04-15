@@ -1,0 +1,164 @@
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 15px;
+}
+
+/* CARD */
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: var(--bd-header);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.cardBody{
+    margin-top: 10px;
+}
+/* ACTIVE */
+.active {
+  border: 1px solid #6366f1;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+}
+
+/* HIGHLIGHT */
+.highlight {
+  background: linear-gradient(135deg, #8ddaff4d, #4da5ff40);
+  color: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* LEFT */
+.planInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ICON */
+.iconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--bg-primary);
+  color: white;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* NAME */
+.name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* META */
+.meta {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* BADGE */
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: white;
+
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3);
+}
+/* PRICE */
+.priceWrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.period {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* FEATURES */
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 5px 10px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.features li span {
+  font-size: 16px;
+}
+
+.features li:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* BUTTON */
+.btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--bg-primary);
+  color: white;
+  transition: all 0.25s ease;
+}
+
+.btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.active {
+  border-color: var(--border-color);
+  cursor: default;
+  box-shadow: var(--box-shadow);
+}
+
+.active:hover {
+  transform: none;
+}

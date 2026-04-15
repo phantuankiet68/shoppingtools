@@ -306,15 +306,17 @@ export default function Sidebar({
                               toggleGroupExclusive(group.key);
                             }}
                           >
-                            <span className={styles.navIcon}>
-                              <i className={group.icon} />
-                            </span>
-
-                            {!collapsed && (
-                              <span className={styles.navLabel}>
-                                {group.title ?? ""}
+                            <div className={styles.navGroupLeft}>
+                              <span className={styles.navIcon}>
+                                <i className={group.icon} />
                               </span>
-                            )}
+
+                              {!collapsed && (
+                                <span className={styles.navLabel}>
+                                  {group.title ?? ""}
+                                </span>
+                              )}
+                            </div>
 
                             {!collapsed && (
                               <span
