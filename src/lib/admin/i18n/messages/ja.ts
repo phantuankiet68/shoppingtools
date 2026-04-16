@@ -732,6 +732,46 @@ const ja = {
 
     initError: "初期化エラー:",
   },
+   pricing: {
+    basic: "ベーシック",
+    normal: "スタンダード",
+    pro: "プロ",
+    plus: "アドバンス",
+    upgrade: "アップグレード",
+    currentPlan: "現在のプラン",
+    templates: "テンプレート",
+    websites: "ウェブサイト",
+    products: "商品",
+    categories: "カテゴリ",
+    popular: "人気",
+    month: "月",
+    dragDrop: "ドラッグ＆ドロップビルダー",
+    analytics: "分析ダッシュボード",
+  },
+  dashboard: {
+    loading: "読み込み中...",
+    sitesUsed: "使用中のサイト",
+    templatesUsed: "使用テンプレート",
+    productsCreated: "作成された商品",
+    productsSold: "販売済み商品",
+    stockRemaining: "在庫残り",
+    usersMember: "ユーザー数",
+  },
+  scarler: {
+    home: "スマートホーム",
+    loading: "読み込み中...",
+    error: "エラー",
+    goal: "目標",
+    livingRoom: "リビングルーム",
+    on: "オン",
+    off: "オフ",
+    devices: {
+      refrigerator: "冷蔵庫",
+      temperature: "温度",
+      conditioner: "エアコン",
+      lights: "ライト",
+    },
+  },
 };
 
 export default ja;

@@ -28,17 +28,23 @@ model WorkspaceMember {
   id          String        @id @default(cuid())
   workspaceId String        @map("workspace_id")
   userId      String        @map("user_id")
+
   role        WorkspaceRole
-  tier      AccessTier @default(BASIC)
+  tier        AccessTier @default(BASIC)
+
+  siteId      String? @map("site_id")
+
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([workspaceId, userId])
+  @@unique([workspaceId, userId, siteId])
   @@index([workspaceId])
   @@index([userId])
+  @@index([siteId])
   @@index([workspaceId, role])
+
   @@map("workspace_members")
 }

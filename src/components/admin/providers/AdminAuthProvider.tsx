@@ -42,6 +42,7 @@ export type AdminAuthData = {
     workspaceName: string;
     workspaceSlug: string;
     role: string;
+    tier: string;
   }>;
 };
 

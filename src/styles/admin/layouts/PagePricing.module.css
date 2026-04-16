@@ -13,6 +13,7 @@
   cursor: pointer;
   transition: all 0.25s ease;
   border: var(--bd-header);
+  min-width: 235px;
 }
 
 .card:hover {

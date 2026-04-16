@@ -630,4 +630,27 @@
   justify-content: space-between;
   gap: 15px;
   margin-top: 15px;
+  
+}
+
+.footer {
+  margin-top: 5px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #64748b;
+  border: var(--bd-header);
+}
+
+.footerLeft {
+  font-weight: 500;
+}
+
+.footerRight {
+  display: flex;
+  gap: 16px;
 }

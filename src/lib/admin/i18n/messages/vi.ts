@@ -731,6 +731,46 @@ const vi = {
 
     initError: "Lỗi khởi tạo:",
   },
+  pricing: {
+    basic: "Basic",
+    normal: "Normal",
+    pro: "Pro",
+    plus: "Plus",
+    upgrade: "Nâng cấp",
+    currentPlan: "Gói hiện tại",
+    templates: "Giao diện",
+    websites: "Website",
+    products: "Sản phẩm",
+    categories: "Danh mục",
+    popular: "Phổ biến",
+    month: "tháng",
+    dragDrop: "Kéo & Thả",
+    analytics: "Thống kê",
+  },
+  dashboard: {
+    loading: "Đang tải dữ liệu...",
+    sitesUsed: "Số website đã dùng",
+    templatesUsed: "Template đã dùng",
+    productsCreated: "Sản phẩm đã tạo",
+    productsSold: "Sản phẩm đã bán",
+    stockRemaining: "Tồn kho",
+    usersMember: "Thành viên",
+  },
+  scarler: {
+    home: "Nhà thông minh",
+    loading: "Đang tải...",
+    error: "Lỗi",
+    goal: "Mục tiêu",
+    livingRoom: "Phòng khách",
+    on: "BẬT",
+    off: "TẮT",
+    devices: {
+      refrigerator: "Tủ lạnh",
+      temperature: "Nhiệt độ",
+      conditioner: "Điều hòa",
+      lights: "Đèn",
+    },
+  },
 };
 
 export default vi;

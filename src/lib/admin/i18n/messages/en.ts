@@ -731,6 +731,46 @@ const en = {
 
     initError: "Initialization error:",
   },
+  pricing: {
+    basic: "Basic",
+    normal: "Standard",
+    pro: "Professional",
+    plus: "Advanced",
+    upgrade: "Upgrade",
+    currentPlan: "Current Plan",
+    templates: "Templates",
+    websites: "Websites",
+    products: "Products",
+    categories: "Categories",
+    popular: "Popular",
+    month: "month",
+    dragDrop: "Drag & Drop Builder",
+    analytics: "Analytics Dashboard",
+  },
+  dashboard: {
+    loading: "Loading stats...",
+    sitesUsed: "Sites Used",
+    templatesUsed: "Templates Used",
+    productsCreated: "Products Created",
+    productsSold: "Products Sold",
+    stockRemaining: "Stock Remaining",
+    usersMember: "Users",
+  },
+  scarler: {
+    home: "Smart Home",
+    loading: "Loading...",
+    error: "Error",
+    goal: "Goal",
+    livingRoom: "Living Room",
+    on: "ON",
+    off: "OFF",
+    devices: {
+      refrigerator: "Refrigerator",
+      temperature: "Temperature",
+      conditioner: "Conditioner",
+      lights: "Lights",
+    },
+  },
 };
 
 export default en;
