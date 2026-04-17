@@ -1810,7 +1810,7 @@
 
 .brandLogo {
   color: #ffffff;
-  background: linear-gradient(135deg, #63c3f1, #3f45ff);
+  background: var(--bg-primary);
   border-radius: 8px;
   flex: 0 0 28px;
   place-items: center;

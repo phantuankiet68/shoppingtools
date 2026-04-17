@@ -3,6 +3,33 @@
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
+export type Site = {
+  id: string;
+  name: string;
+  domain: string;
+  ownerUserId: string;
+  status: string;
+  isPublic: boolean;
+  publishedAt: string | null;
+  themeConfig: unknown;
+  seoTitleDefault: string | null;
+  seoDescDefault: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  createdByUserId: string | null;
+  workspaceId: string;
+  type: string;
+};
+
+export type Membership = {
+  workspaceId: string;
+  workspaceName: string;
+  workspaceSlug: string;
+  role: string;
+  tier: string;
+};
+
 export type AdminAuthData = {
   user: {
     id: string;
@@ -12,6 +39,7 @@ export type AdminAuthData = {
     systemRole: string;
     roleLabel: string;
   };
+
   currentWorkspace: {
     id: string;
     name: string;
@@ -19,32 +47,16 @@ export type AdminAuthData = {
     role: string;
     tier: string;
   } | null;
-  site: {
-    id: string;
-    name: string;
-    domain: string;
-    ownerUserId: string;
-    status: string;
-    isPublic: boolean;
-    publishedAt: string | null;
-    themeConfig: unknown;
-    seoTitleDefault: string | null;
-    seoDescDefault: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    createdByUserId: string | null;
-    workspaceId: string;
-    type: string;
-  } | null;
-  memberships: Array<{
-    workspaceId: string;
-    workspaceName: string;
-    workspaceSlug: string;
-    role: string;
-    tier: string;
-  }>;
+
+  sites: Site[];
+  currentSite: Site | null;
+
+  memberships: Membership[];
 };
+
+/* =========================
+   CONTEXT
+========================= */
 
 const AdminAuthContext = createContext<AdminAuthData | undefined>(undefined);
 
@@ -65,7 +77,7 @@ export function AdminAuthProvider({
 export function useAdminAuth() {
   const context = useContext(AdminAuthContext);
 
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAdminAuth must be used within AdminAuthProvider");
   }
 
@@ -74,4 +86,12 @@ export function useAdminAuth() {
 
 export function useAdminUser() {
   return useAdminAuth().user;
+}
+
+export function useAdminSites() {
+  return useAdminAuth().sites;
+}
+
+export function useCurrentSite() {
+  return useAdminAuth().currentSite;
 }

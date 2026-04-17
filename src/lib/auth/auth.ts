@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { SystemRole, UserStatus } from "@/generated/prisma";
 
 function hashToken(rawToken: string) {
   return crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -9,8 +10,8 @@ function hashToken(rawToken: string) {
 export type AdminAuthUser = {
   id: string;
   email: string;
-  role: "USER" | "SUB_USER" | "ADMIN";
-  status: "ACTIVE" | "SUSPENDED";
+  systemRole: SystemRole;
+  status: UserStatus;
 };
 
 export async function getAdminAuthUser(): Promise<AdminAuthUser | null> {
@@ -25,14 +26,25 @@ export async function getAdminAuthUser(): Promise<AdminAuthUser | null> {
       refreshTokenHash: tokenHash,
       revokedAt: null,
       expiresAt: { gt: new Date() },
+
+      // ✅ FIX CHUẨN
       user: {
-        role: "ADMIN",
-        status: "ACTIVE",
+        is: {
+          systemRole: SystemRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        },
       },
     },
     select: {
       id: true,
-      user: { select: { id: true, email: true, role: true, status: true } },
+      user: {
+        select: {
+          id: true,
+          email: true,
+          systemRole: true, // ✅ FIX
+          status: true,
+        },
+      },
     },
   });
 

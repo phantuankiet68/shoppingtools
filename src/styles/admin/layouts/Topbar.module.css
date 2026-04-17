@@ -312,7 +312,7 @@ font-weight: 700;
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--bg-primary);
   color: #fff;
   display: flex;
   align-items: center;

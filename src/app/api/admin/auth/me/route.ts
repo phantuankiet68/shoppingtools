@@ -15,76 +15,96 @@ function toSystemRoleLabel(role: string) {
 }
 
 export async function GET(req: Request) {
-  const user = await getSessionUser();
+  try {
+    const user = await getSessionUser();
 
-  if (!user) {
-    return Response.json({ user: null }, { status: 401 });
-  }
+    if (!user) {
+      return Response.json({ user: null }, { status: 401 });
+    }
 
-  const { searchParams } = new URL(req.url);
-  const requestedWorkspaceId = searchParams.get("workspaceId");
-  const currentMembership = pickCurrentMembership(user, requestedWorkspaceId);
-  const displayName = user.email.includes("@")
-    ? user.email.split("@")[0]
-    : user.email;
+    const { searchParams } = new URL(req.url);
+    const requestedWorkspaceId = searchParams.get("workspaceId");
 
-  let site = null;
+    const currentMembership = pickCurrentMembership(user, requestedWorkspaceId);
 
-  if (currentMembership?.workspaceId) {
-    site = await prisma.site.findFirst({
-      where: {
-        workspaceId: currentMembership.workspaceId,
-        deletedAt: null,
+    const displayName = user.email.includes("@")
+      ? user.email.split("@")[0]
+      : user.email;
+
+    // ✅ MULTI-SITE
+    let sites: any[] = [];
+
+    if (currentMembership?.workspaceId) {
+      sites = await prisma.site.findMany({
+        where: {
+          workspaceId: currentMembership.workspaceId,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          name: true,
+          domain: true,
+          ownerUserId: true,
+          status: true,
+          isPublic: true,
+          publishedAt: true,
+          themeConfig: true,
+          seoTitleDefault: true,
+          seoDescDefault: true,
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          createdByUserId: true,
+          workspaceId: true,
+          type: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    }
+
+    // ✅ chọn site mặc định (site mới nhất)
+    const currentSite = sites.length > 0 ? sites[0] : null;
+
+    return Response.json({
+      user: {
+        id: user.id,
+        name: displayName,
+        email: user.email,
+        image: user.image,
+        systemRole: user.systemRole,
+        roleLabel: toSystemRoleLabel(user.systemRole),
       },
-      select: {
-        id: true,
-        name: true,
-        domain: true,
-        ownerUserId: true,
-        status: true,
-        isPublic: true,
-        publishedAt: true,
-        themeConfig: true,
-        seoTitleDefault: true,
-        seoDescDefault: true,
-        createdAt: true,
-        updatedAt: true,
-        deletedAt: true,
-        createdByUserId: true,
-        workspaceId: true,
-        type: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+
+      currentWorkspace: currentMembership
+        ? {
+            id: currentMembership.workspaceId,
+            name: currentMembership.workspaceName,
+            slug: currentMembership.workspaceSlug,
+            role: currentMembership.role,
+            tier: currentMembership.tier,
+          }
+        : null,
+
+      // ✅ NEW
+      sites,
+      currentSite,
+
+      memberships: user.memberships.map((membership) => ({
+        workspaceId: membership.workspaceId,
+        workspaceName: membership.workspaceName,
+        workspaceSlug: membership.workspaceSlug,
+        role: membership.role,
+        tier: membership.tier,
+      })),
     });
-  }
+  } catch (error) {
+    console.error("Auth API error:", error);
 
-  return Response.json({
-    user: {
-      id: user.id,
-      name: displayName,
-      email: user.email,
-      image: user.image,
-      systemRole: user.systemRole,
-      roleLabel: toSystemRoleLabel(user.systemRole),
-    },
-    currentWorkspace: currentMembership
-      ? {
-          id: currentMembership.workspaceId,
-          name: currentMembership.workspaceName,
-          slug: currentMembership.workspaceSlug,
-          role: currentMembership.role,
-          tier: currentMembership.tier,
-        }
-      : null,
-    site,
-    memberships: user.memberships.map((membership) => ({
-      workspaceId: membership.workspaceId,
-      workspaceName: membership.workspaceName,
-      workspaceSlug: membership.workspaceSlug,
-      role: membership.role,
-      tier: membership.tier,
-    })),
-  });
+    return Response.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
