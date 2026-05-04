@@ -475,13 +475,6 @@ export default function MenuStructure({ q }: MenuStructureProps) {
                 ? t("menus.menuStructure.main")
                 : t("menus.menuStructure.sub")}
             </span>
-            <span className={`${styles.typeBadge} ${typeBadgeClass}`}>
-              {item.linkType === "internal"
-                ? t("menus.link.internal")
-                : item.linkType === "scheduled"
-                  ? t("menus.link.scheduled")
-                  : t("menus.link.external")}
-            </span>
 
             <span className={styles.flex1}>
               {highlight(displayTitle, q.trim())}

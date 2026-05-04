@@ -1,6 +1,6 @@
 .wrapper {
   background: #ffffff;
-  padding: 15px;
+  padding: 21px 15px;
   border-radius: 15px;
   border: var(--bd-header);
 }
@@ -46,7 +46,7 @@
 .appCard {
   display: flex;
   align-items: center;
-  padding: 14.2px 18px;
+  padding: 18px;
   border-radius: 16px;
   background: white;
   text-decoration: none;

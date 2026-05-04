@@ -99,6 +99,14 @@ const ja = {
         contentGrowth: "コンテンツ・成長",
         engagement: "エンゲージメント",
         utilities: "ユーティリティ",
+        "hero": "ヒーローセクション",
+        "marketing": "マーケティング",
+        "trust": "信頼",
+        "conversion": "コンバージョン",
+        "content": "コンテンツ",
+        "company": "会社情報",
+        "support": "サポート",
+        "legal": "法的情報"
       },
       items: {
         productDetail: "商品詳細",
@@ -128,6 +136,37 @@ const ja = {
         sizeGuide: "サイズガイド",
         helpCenter: "ヘルプセンター",
         liveChat: "ライブチャット",
+        "heroBanner": "ヒーローバナー",
+        "heroCTA": "CTAボタン",
+        "introSection": "紹介",
+
+        "features": "機能",
+        "services": "サービス",
+        "pricing": "料金",
+        "comparison": "比較",
+
+        "customerLogos": "顧客ロゴ",
+        "caseStudies": "事例",
+        "successStories": "成功事例",
+
+        "callToAction": "CTA",
+        "signup": "登録",
+        "login": "ログイン",
+        "getStarted": "始める",
+
+        "blog": "ブログ",
+        "blogDetail": "記事詳細",
+
+        "about": "会社概要",
+        "team": "チーム",
+        "careers": "採用情報",
+        "portfolio": "実績",
+
+        "faq": "よくある質問",
+        "contact": "お問い合わせ",
+
+        "privacyPolicy": "プライバシー",
+        "terms": "利用規約"
       },
     },
     menuStructure: {
@@ -148,6 +187,36 @@ const ja = {
       deleteErrorMessage: "メニュー項目の削除中にエラーが発生しました。",
       invalidBlockData: "ブロックデータが無効または破損しています。",
     },
+    landing: {
+      "home": "ホーム",
+      "about": "会社概要",
+      "contact": "お問い合わせ",
+
+      "services": "サービス",
+      "pricing": "料金",
+      "features": "機能",
+      "testimonials": "お客様の声",
+      "faq": "よくある質問",
+
+      "signup": "登録",
+      "login": "ログイン",
+      "cta": "始める",
+
+      "blog": "ブログ",
+      "blogDetail": "記事詳細",
+
+      "team": "チーム",
+      "careers": "採用情報",
+      "portfolio": "実績",
+
+      "helpCenter": "ヘルプセンター",
+      "liveChat": "ライブチャット",
+
+      "privacyPolicy": "プライバシーポリシー",
+      "terms": "利用規約",
+
+      "notFound": "ページが見つかりません"
+    }
   },
   pages: {
     home: "ホーム",

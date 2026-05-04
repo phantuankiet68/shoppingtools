@@ -99,6 +99,14 @@ const vi = {
         contentGrowth: "Nội dung & Tăng trưởng",
         engagement: "Tương tác",
         utilities: "Tiện ích",
+        "hero": "Phần giới thiệu",
+        "marketing": "Marketing",
+        "trust": "Độ tin cậy",
+        "conversion": "Chuyển đổi",
+        "content": "Nội dung",
+        "company": "Công ty",
+        "support": "Hỗ trợ",
+        "legal": "Pháp lý"
       },
       items: {
         productDetail: "Chi tiết sản phẩm",
@@ -128,6 +136,37 @@ const vi = {
         sizeGuide: "Hướng dẫn kích thước",
         helpCenter: "Trung tâm trợ giúp",
         liveChat: "Chat trực tuyến",
+        "heroBanner": "Banner chính",
+        "heroCTA": "Nút kêu gọi hành động",
+        "introSection": "Giới thiệu",
+
+        "features": "Tính năng",
+        "services": "Dịch vụ",
+        "pricing": "Bảng giá",
+        "comparison": "So sánh",
+
+        "customerLogos": "Logo khách hàng",
+        "caseStudies": "Case study",
+        "successStories": "Câu chuyện thành công",
+
+        "callToAction": "Kêu gọi hành động",
+        "signup": "Đăng ký",
+        "login": "Đăng nhập",
+        "getStarted": "Bắt đầu",
+
+        "blog": "Blog",
+        "blogDetail": "Chi tiết bài viết",
+
+        "about": "Về chúng tôi",
+        "team": "Đội ngũ",
+        "careers": "Tuyển dụng",
+        "portfolio": "Dự án",
+
+        "faq": "Câu hỏi thường gặp",
+        "contact": "Liên hệ",
+
+        "privacyPolicy": "Chính sách bảo mật",
+        "terms": "Điều khoản"
       },
     },
     menuStructure: {
@@ -148,6 +187,36 @@ const vi = {
       deleteErrorMessage: "Đã xảy ra lỗi khi xóa mục menu.",
       invalidBlockData: "Dữ liệu block không hợp lệ hoặc bị hỏng.",
     },
+    landing: {
+      "home": "Trang chủ",
+      "about": "Về chúng tôi",
+      "contact": "Liên hệ",
+
+      "services": "Dịch vụ",
+      "pricing": "Bảng giá",
+      "features": "Tính năng",
+      "testimonials": "Đánh giá",
+      "faq": "Câu hỏi thường gặp",
+
+      "signup": "Đăng ký",
+      "login": "Đăng nhập",
+      "cta": "Bắt đầu",
+
+      "blog": "Blog",
+      "blogDetail": "Chi tiết bài viết",
+
+      "team": "Đội ngũ",
+      "careers": "Tuyển dụng",
+      "portfolio": "Dự án",
+
+      "helpCenter": "Trung tâm trợ giúp",
+      "liveChat": "Chat trực tuyến",
+
+      "privacyPolicy": "Chính sách bảo mật",
+      "terms": "Điều khoản & Điều kiện",
+
+      "notFound": "Không tìm thấy trang"
+    }
   },
   pages: {
     home: "Trang chủ",

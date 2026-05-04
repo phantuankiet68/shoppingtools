@@ -25,11 +25,11 @@ const getColor = (percent: number) => {
 };
 
 export default function TotalPage() {
-  const { user, site, memberships } = useAdminAuth();
+  const { user, currentSite, memberships } = useAdminAuth();
   const { t } = useAdminI18n();
 
   const userId = user?.id ?? "";
-  const siteId = site?.id ?? "";
+  const siteId = currentSite?.id ?? "";
 
   const { data, loading } = useDashboardStats(userId, siteId);
 

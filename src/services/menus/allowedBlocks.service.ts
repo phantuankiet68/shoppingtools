@@ -197,9 +197,76 @@ function ecommerceSuggest(): Record<string, string[]> {
   };
 }
 
+function landingSuggest(): Record<string, string[]> {
+  return {
+    // ===== HERO / FIRST IMPRESSION =====
+    "menus.allowedBlocks.groups.hero": [
+      "menus.allowedBlocks.items.heroBanner",
+      "menus.allowedBlocks.items.heroCTA",
+      "menus.allowedBlocks.items.introSection",
+    ],
+
+    // ===== MARKETING =====
+    "menus.allowedBlocks.groups.marketing": [
+      "menus.allowedBlocks.items.features",
+      "menus.allowedBlocks.items.services",
+      "menus.allowedBlocks.items.pricing",
+      "menus.allowedBlocks.items.comparison",
+    ],
+
+    // ===== TRUST =====
+    "menus.allowedBlocks.groups.trust": [
+      "menus.allowedBlocks.items.testimonials",
+      "menus.allowedBlocks.items.customerLogos",
+      "menus.allowedBlocks.items.caseStudies",
+      "menus.allowedBlocks.items.successStories",
+    ],
+
+    // ===== CONVERSION =====
+    "menus.allowedBlocks.groups.conversion": [
+      "menus.allowedBlocks.items.callToAction",
+      "menus.allowedBlocks.items.signup",
+      "menus.allowedBlocks.items.login",
+      "menus.allowedBlocks.items.getStarted",
+    ],
+
+    // ===== CONTENT =====
+    "menus.allowedBlocks.groups.content": [
+      "menus.allowedBlocks.items.blog",
+      "menus.allowedBlocks.items.blogDetail",
+      "menus.allowedBlocks.items.news",
+    ],
+
+    // ===== COMPANY =====
+    "menus.allowedBlocks.groups.company": [
+      "menus.allowedBlocks.items.about",
+      "menus.allowedBlocks.items.team",
+      "menus.allowedBlocks.items.careers",
+      "menus.allowedBlocks.items.portfolio",
+    ],
+
+    // ===== SUPPORT =====
+    "menus.allowedBlocks.groups.support": [
+      "menus.allowedBlocks.items.faq",
+      "menus.allowedBlocks.items.helpCenter",
+      "menus.allowedBlocks.items.contact",
+      "menus.allowedBlocks.items.liveChat",
+    ],
+
+    // ===== LEGAL =====
+    "menus.allowedBlocks.groups.legal": [
+      "menus.allowedBlocks.items.privacyPolicy",
+      "menus.allowedBlocks.items.terms",
+    ],
+  };
+}
+
 export function getSuggestBySite(siteKind: SiteKind): Record<string, string[]> {
   if (siteKind === "ecommerce") {
     return ecommerceSuggest();
+  }
+  if (siteKind === "landing") {
+    return landingSuggest(); // ✅ FIX
   }
 
   return {};

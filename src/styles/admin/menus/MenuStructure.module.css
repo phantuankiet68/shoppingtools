@@ -497,3 +497,9 @@
   border-radius: 6px;
   padding: 1px 4px;
 }
+
+@media (max-width: 1600px) {
+  .dropzone {
+    padding: 25px 15px;
+  }
+}

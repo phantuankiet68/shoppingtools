@@ -348,6 +348,150 @@ export const ECOMMERCE_INTERNAL_PAGES: InternalPage[] = [
   },
 ];
 
+export const LANDING_INTERNAL_PAGES: InternalPage[] = [
+  // ===== CORE =====
+  {
+    id: "home",
+    paths: { en: "/", vi: "/", ja: "/" },
+    labelKey: "menus.landing.home",
+    icon: "bi-house",
+  },
+  {
+    id: "about",
+    paths: { en: "/about", vi: "/gioi-thieu", ja: "/会社概要" },
+    labelKey: "menus.landing.about",
+    icon: "bi-info-circle",
+  },
+  {
+    id: "contact",
+    paths: { en: "/contact", vi: "/lien-he", ja: "/お問い合わせ" },
+    labelKey: "menus.landing.contact",
+    icon: "bi-envelope",
+  },
+
+  // ===== MARKETING =====
+  {
+    id: "services",
+    paths: { en: "/services", vi: "/dich-vu", ja: "/サービス" },
+    labelKey: "menus.landing.services",
+    icon: "bi-briefcase",
+  },
+  {
+    id: "pricing",
+    paths: { en: "/pricing", vi: "/bang-gia", ja: "/料金" },
+    labelKey: "menus.landing.pricing",
+    icon: "bi-cash-stack",
+  },
+  {
+    id: "features",
+    paths: { en: "/features", vi: "/tinh-nang", ja: "/機能" },
+    labelKey: "menus.landing.features",
+    icon: "bi-stars",
+  },
+  {
+    id: "testimonials",
+    paths: { en: "/testimonials", vi: "/danh-gia", ja: "/お客様の声" },
+    labelKey: "menus.landing.testimonials",
+    icon: "bi-chat-quote",
+  },
+  {
+    id: "faq",
+    paths: { en: "/faq", vi: "/cau-hoi-thuong-gap", ja: "/よくある質問" },
+    labelKey: "menus.landing.faq",
+    icon: "bi-question-circle",
+  },
+
+  // ===== CONVERSION =====
+  {
+    id: "signup",
+    paths: { en: "/signup", vi: "/dang-ky", ja: "/登録" },
+    labelKey: "menus.landing.signup",
+    icon: "bi-person-plus",
+  },
+  {
+    id: "login",
+    paths: { en: "/login", vi: "/dang-nhap", ja: "/ログイン" },
+    labelKey: "menus.landing.login",
+    icon: "bi-box-arrow-in-right",
+  },
+  {
+    id: "cta",
+    paths: { en: "/get-started", vi: "/bat-dau", ja: "/始める" },
+    labelKey: "menus.landing.cta",
+    icon: "bi-rocket",
+  },
+
+  // ===== CONTENT =====
+  {
+    id: "blog",
+    paths: { en: "/blog", vi: "/blog", ja: "/ブログ" },
+    labelKey: "menus.landing.blog",
+    icon: "bi-journal-text",
+  },
+  {
+    id: "blogDetail",
+    paths: { en: "/blog-detail", vi: "/chi-tiet-bai-viet", ja: "/記事詳細" },
+    labelKey: "menus.landing.blogDetail",
+    icon: "bi-file-text",
+  },
+
+  // ===== COMPANY =====
+  {
+    id: "team",
+    paths: { en: "/team", vi: "/doi-ngu", ja: "/チーム" },
+    labelKey: "menus.landing.team",
+    icon: "bi-people",
+  },
+  {
+    id: "careers",
+    paths: { en: "/careers", vi: "/tuyen-dung", ja: "/採用情報" },
+    labelKey: "menus.landing.careers",
+    icon: "bi-briefcase",
+  },
+  {
+    id: "portfolio",
+    paths: { en: "/portfolio", vi: "/du-an", ja: "/実績" },
+    labelKey: "menus.landing.portfolio",
+    icon: "bi-grid",
+  },
+
+  // ===== SUPPORT =====
+  {
+    id: "helpCenter",
+    paths: { en: "/help-center", vi: "/tro-giup", ja: "/ヘルプ" },
+    labelKey: "menus.landing.helpCenter",
+    icon: "bi-life-preserver",
+  },
+  {
+    id: "liveChat",
+    paths: { en: "/live-chat", vi: "/chat", ja: "/チャット" },
+    labelKey: "menus.landing.liveChat",
+    icon: "bi-chat-dots",
+  },
+
+  // ===== LEGAL =====
+  {
+    id: "privacyPolicy",
+    paths: { en: "/privacy-policy", vi: "/bao-mat", ja: "/プライバシー" },
+    labelKey: "menus.landing.privacyPolicy",
+    icon: "bi-shield-lock",
+  },
+  {
+    id: "terms",
+    paths: { en: "/terms", vi: "/dieu-khoan", ja: "/利用規約" },
+    labelKey: "menus.landing.terms",
+    icon: "bi-file-earmark-text",
+  },
+
+  // ===== EXTRA (UX / SEO) =====
+  {
+    id: "404",
+    paths: { en: "/404", vi: "/404", ja: "/404" },
+    labelKey: "menus.landing.notFound",
+    icon: "bi-exclamation-triangle",
+  },
+];
+
 /* =========================================================
  * HEADER BASIC
  * ======================================================= */
@@ -386,12 +530,44 @@ export const ECOMMERCE_HEADER_FULL = [
   "terms",
 ] as const;
 
+export const LANDING_PAGE_IDS = [
+  "home",
+  "about",
+  "contact",
+
+  "services",
+  "pricing",
+  "features",
+  "testimonials",
+  "faq",
+
+  "signup",
+  "login",
+  "cta",
+
+  "blog",
+  "blogDetail",
+
+  "team",
+  "careers",
+  "portfolio",
+
+  "helpCenter",
+  "liveChat",
+
+  "privacyPolicy",
+  "terms",
+
+  "404",
+] as const;
+
 /* =========================================================
  * MAPS
  * ======================================================= */
 
 export const INTERNAL_PAGE_SETS: Record<SiteKind, InternalPage[]> = {
   ecommerce: ECOMMERCE_INTERNAL_PAGES,
+  landing: LANDING_INTERNAL_PAGES,
 };
 
 export const TEMPLATE_ALLOWED_BY_SITE: Record<SiteKind, TemplateAllowed> = {
@@ -400,4 +576,9 @@ export const TEMPLATE_ALLOWED_BY_SITE: Record<SiteKind, TemplateAllowed> = {
       home: [...ECOMMERCE_HEADER_FULL],
     },
   },
+  landing: {
+    header: {
+      home: [...LANDING_PAGE_IDS],
+    },
+  }
 };

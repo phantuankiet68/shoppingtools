@@ -786,3 +786,32 @@
   object-fit: contain;
   display: block;
 }
+
+@media (max-width: 1600px) {
+  .grid2 {
+        grid-template-columns: 1fr 182px;
+  }
+  .leftCol {
+    width: 50%;
+  }
+  .leftCol {
+    max-width: 800px;
+  }
+  .rightCol {
+    min-width: 42%;
+    width: 50%;
+  }
+  .blocksGrid, .blocksGridRight {
+    height: 78vh;
+    margin-bottom: 10px;
+  }
+  .formSelectSm{
+    width: 135px;
+  }
+}
+
+.btnOutlineSecondary {
+  background: #e9ecef;
+  color: #333;
+  border-color: #ced4da;
+}

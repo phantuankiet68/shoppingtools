@@ -12,7 +12,7 @@
     "prisma:studio": "prisma studio",
     "prisma:validate": "prisma validate",
     "prisma:reset": "prisma migrate reset --force --skip-generate --skip-seed && tsx prisma/seed.ts",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

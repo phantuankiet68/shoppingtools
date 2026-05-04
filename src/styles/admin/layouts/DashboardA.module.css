@@ -191,7 +191,7 @@
 /* ---------------- MAIN GRID ---------------- */
 .mainGrid {
   display: grid;
-  grid-template-columns: 1.53fr 1fr;
+  grid-template-columns: 1fr 2.8fr;
   gap: 14px;
   align-items: start;
 }
@@ -634,7 +634,7 @@
 }
 
 .footer {
-  margin-top: 5px;
+  margin: 10px 0;
   padding: 16px 20px;
   border-radius: 8px;
   background: #ffffff;
@@ -653,4 +653,10 @@
 .footerRight {
   display: flex;
   gap: 16px;
+}
+@media (max-width: 1600px) {
+ .dashboard {
+    height: 90vh;
+  }
+
 }

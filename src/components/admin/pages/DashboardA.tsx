@@ -10,14 +10,14 @@ export default function DashboardA() {
       {/* MAIN */}
       <section className={styles.mainGrid}>
         <TotalPage />
-        <Browser />
+        <div className={styles.rightGrid}>
+           <PagePricing />
+           <div className={styles.headerTop}>
+            <Browser /> 
+            <Scarler />
+          </div>
+        </div>
       </section>
-
-      {/* TOP */}
-      <div className={styles.headerTop}>
-        <PagePricing />
-        <Scarler />
-      </div>
 
       {/* 🔥 NEW FOOTER */}
       <div className={styles.footer}>

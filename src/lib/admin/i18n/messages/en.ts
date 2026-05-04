@@ -99,6 +99,14 @@ const en = {
         contentGrowth: "Content & Growth",
         engagement: "Engagement",
         utilities: "Utilities",
+        "hero": "Hero Section",
+        "marketing": "Marketing",
+        "trust": "Trust",
+        "conversion": "Conversion",
+        "content": "Content",
+        "company": "Company",
+        "support": "Support",
+        "legal": "Legal"
       },
       items: {
         productDetail: "Product Detail",
@@ -128,6 +136,36 @@ const en = {
         sizeGuide: "Size Guide",
         helpCenter: "Help Center",
         liveChat: "Live Chat",
+        "heroBanner": "Hero Banner",
+        "heroCTA": "Call To Action",
+        "introSection": "Introduction",
+
+        "features": "Features",
+        "services": "Services",
+        "pricing": "Pricing",
+        "comparison": "Comparison",
+        "customerLogos": "Customer Logos",
+        "caseStudies": "Case Studies",
+        "successStories": "Success Stories",
+
+        "callToAction": "Call To Action",
+        "signup": "Sign Up",
+        "login": "Login",
+        "getStarted": "Get Started",
+
+        "blog": "Blog",
+        "blogDetail": "Blog Detail",
+
+        "about": "About",
+        "team": "Team",
+        "careers": "Careers",
+        "portfolio": "Portfolio",
+
+        "faq": "FAQ",
+        "contact": "Contact",
+
+        "privacyPolicy": "Privacy Policy",
+        "terms": "Terms & Conditions"
       },
     },
     menuStructure: {
@@ -148,6 +186,36 @@ const en = {
       deleteErrorMessage: "An error occurred while deleting the menu item.",
       invalidBlockData: "Block data is invalid or corrupted.",
     },
+    landing: {
+      "home": "Home",
+      "about": "About",
+      "contact": "Contact",
+
+      "services": "Services",
+      "pricing": "Pricing",
+      "features": "Features",
+      "testimonials": "Testimonials",
+      "faq": "FAQ",
+
+      "signup": "Sign Up",
+      "login": "Login",
+      "cta": "Get Started",
+
+      "blog": "Blog",
+      "blogDetail": "Blog Detail",
+
+      "team": "Team",
+      "careers": "Careers",
+      "portfolio": "Portfolio",
+
+      "helpCenter": "Help Center",
+      "liveChat": "Live Chat",
+
+      "privacyPolicy": "Privacy Policy",
+      "terms": "Terms & Conditions",
+
+      "notFound": "Page Not Found"
+    }
   },
   pages: {
     home: "Home",
@@ -771,6 +839,7 @@ const en = {
       lights: "Lights",
     },
   },
+  
 };
 
 export default en;

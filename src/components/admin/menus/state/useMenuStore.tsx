@@ -14,6 +14,7 @@ import {
   ECOMMERCE_HEADER_FULL,
   INTERNAL_PAGE_SETS,
   TEMPLATE_ALLOWED_BY_SITE,
+  LANDING_PAGE_IDS,
 } from "@/constants/ecommerce.menu";
 import {
   fetchMenuItems,
@@ -25,7 +26,8 @@ import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 export type MenuSetKey = "home" | "v1";
 
 export type SiteKind =
-  | "ecommerce";
+  | "ecommerce"
+  | "landing"; // 👈 thêm
 
 export type TemplateKey = "header" | "sidebar" | "mega" | "drawer";
 
@@ -332,11 +334,17 @@ function buildDefaultMenusBySiteKind(
         home: buildMenuFromPageIds(ECOMMERCE_HEADER_FULL, pages, locale, t),
         v1: [],
       };
+
+    case "landing":
+      return {
+        home: buildMenuFromPageIds(LANDING_PAGE_IDS, pages, locale, t), // ✅ FIX
+        v1: [],
+      };
+
     default:
       return { home: [], v1: [] };
   }
 }
-
 function localizeMenuTree(
   nodes: BuilderMenuItem[],
   internalPages: InternalPage[],

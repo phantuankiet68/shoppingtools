@@ -163,3 +163,11 @@
 .active:hover {
   transform: none;
 }
+@media (max-width: 1600px) {
+  .wrapper {
+    gap: 8px;
+  }
+  .card {
+    min-width: 0px;
+  }
+}

@@ -368,3 +368,27 @@
   );
   opacity: 0.3;
 }
+
+
+.Scarler-module__X1o1HW__container {
+    border: var(--bd-header);
+    background: #fff;
+    border-radius: 14px;
+    /* min-width: 590px; */
+    max-height: 430px;
+    padding: 15px;
+    font-family: system-ui;
+}
+
+@media (max-width: 1600px) {
+  .container {
+    min-width: 429px;
+    max-height: 430px;
+    padding: 8px;
+    font-family: system-ui;
+  }
+  .devices
+  {
+      display: none;
+  }
+}
