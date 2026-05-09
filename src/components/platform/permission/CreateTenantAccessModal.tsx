@@ -130,6 +130,7 @@ export function CreateTenantAccessModal({ open, onClose, onCreated }: Props) {
             color: "#1e3a8a",
             fontSize: 13,
             lineHeight: 1.5,
+            gap: 15
           }}
         >
           <div style={{ fontWeight: 700, marginBottom: 4 }}>Default account configuration</div>

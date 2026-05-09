@@ -31,7 +31,9 @@ export async function GET(req: Request) {
       ? user.email.split("@")[0]
       : user.email;
 
-    // ✅ MULTI-SITE
+    // =========================
+    // ✅ 1. GET SITES
+    // =========================
     let sites: any[] = [];
 
     if (currentMembership?.workspaceId) {
@@ -64,9 +66,38 @@ export async function GET(req: Request) {
       });
     }
 
-    // ✅ chọn site mặc định (site mới nhất)
     const currentSite = sites.length > 0 ? sites[0] : null;
 
+    // =========================
+    // ✅ 2. GET WORKSPACE POLICY
+    // =========================
+    let accessPolicy = null;
+
+    if (currentMembership?.workspaceId) {
+      accessPolicy = await prisma.workspaceAccessPolicy.findFirst({
+        where: {
+          workspaceId: currentMembership.workspaceId,
+        },
+        select: {
+          maxSites: true,
+          maxPages: true,
+          maxMenus: true,
+          maxProductCategories: true,
+          maxProducts: true,
+          maxCustomDomains: true,
+          allowBlog: true,
+          allowEcommerce: true,
+          allowBooking: true,
+          allowNews: true,
+          allowLms: true,
+          allowDirectory: true,
+        },
+      });
+    }
+
+    // =========================
+    // ✅ RESPONSE
+    // =========================
     return Response.json({
       user: {
         id: user.id,
@@ -84,10 +115,12 @@ export async function GET(req: Request) {
             slug: currentMembership.workspaceSlug,
             role: currentMembership.role,
             tier: currentMembership.tier,
+
+            // 🔥 NEW: policy ở đây
+            accessPolicy,
           }
         : null,
 
-      // ✅ NEW
       sites,
       currentSite,
 

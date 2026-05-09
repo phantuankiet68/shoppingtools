@@ -29,7 +29,7 @@ export function WebsiteTypesSection({ items, sites = [] }: Props) {
   return (
     <div className={styles.permissionSection}>
       <div className={styles.sectionHeader}>
-        <div>
+        <div  className={styles.sectionHeaderTop}>
           <h3 className={styles.sectionTitle}>Website Types</h3>
           <p className={styles.sectionDescription}>Control which website builders this tenant can create.</p>
         </div>

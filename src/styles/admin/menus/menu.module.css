@@ -811,7 +811,7 @@
 }
 
 .btnOutlineSecondary {
-  background: #e9ecef;
   color: #333;
-  border-color: #ced4da;
+  background: #ffdba6;
+  border-color: #ffb47b;
 }

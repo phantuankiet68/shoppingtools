@@ -55,9 +55,6 @@ export function UsageLimits({ items, editable = false, loading = false, onSave }
       <div className={styles.sectionHeader}>
         <div>
           <h3 className={styles.sectionTitle}>Usage Limits</h3>
-          <p className={styles.sectionDescription}>
-            Quota by plan for pages, menus, categories, images, and templates.
-          </p>
         </div>
 
         {editable ? (

@@ -401,16 +401,14 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
         </div>
 
         {!workspaceId ? (
-          <div className={styles.emptyState}>
-            This tenant does not have a workspace yet. Create a workspace first to manage sites.
-          </div>
+          <div className={styles.emptyState}> <div className={styles.emptyCard}> <h3 className={styles.title}>No workspace found</h3> <p className={styles.description}> Create your first workspace to start managing your sites and permissions. </p></div> </div>
         ) : loading ? (
           <div className={styles.emptyState}>Loading sites...</div>
         ) : error ? (
           <div className={styles.emptyState}>{error}</div>
         ) : sites.length === 0 ? (
           <div className={styles.emptyState}>
-            No sites found in this workspace. Create the first site to start managing publishing.
+            <div className={styles.emptyState}> <div className={styles.emptyCard}> <h3 className={styles.title}>No sites found</h3> <p className={styles.description}> Create the first site to start managing publishing. </p></div> </div>
           </div>
         ) : (
           <div className={styles.sitePermissionTable}>
@@ -453,7 +451,6 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                       onClick={() => openEditModal(site)}
                     >
                       <i className="bi bi-pencil-square" />
-                      Edit
                     </button>
 
                     <button
@@ -462,7 +459,6 @@ export function DomainAccessSection({ workspaceId, selectedStaffId }: Props) {
                       onClick={() => handleDeleteSite(site.id)}
                     >
                       <i className="bi bi-trash" />
-                      Delete
                     </button>
                   </div>
                 </div>

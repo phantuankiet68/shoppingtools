@@ -36,6 +36,7 @@ export function WorkspaceModal({ open, ownerUserId, ownerName, onClose, onCreate
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [tier, setTier] = useState<"BASIC" | "NORMAL" | "PRO">("BASIC"); // ✅ NEW
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,6 +45,7 @@ export function WorkspaceModal({ open, ownerUserId, ownerName, onClose, onCreate
 
     setName(defaultName);
     setSlug(toSlug(defaultName));
+    setTier("BASIC");
     setSubmitting(false);
     setError("");
   }, [open, defaultName]);
@@ -79,6 +81,7 @@ export function WorkspaceModal({ open, ownerUserId, ownerName, onClose, onCreate
           name: trimmedName,
           slug: normalizedSlug,
           ownerUserId,
+          tier, // ✅ NEW
         }),
       });
 
@@ -104,7 +107,9 @@ export function WorkspaceModal({ open, ownerUserId, ownerName, onClose, onCreate
         <div className={styles.sectionHeader}>
           <div>
             <h3 className={styles.sectionTitle}>Create Workspace</h3>
-            <p className={styles.sectionDescription}>Create a workspace and assign it to this user.</p>
+            <p className={styles.sectionDescription}>
+              Create a workspace and assign it to this user.
+            </p>
           </div>
         </div>
 
@@ -133,10 +138,29 @@ export function WorkspaceModal({ open, ownerUserId, ownerName, onClose, onCreate
             />
           </div>
 
+          {/* ✅ NEW: Tier select */}
+          <div className={styles.field}>
+            <label className={styles.label}>Plan</label>
+            <select
+              className={styles.searchInput}
+              value={tier}
+              onChange={(e) => setTier(e.target.value as any)}
+            >
+              <option value="BASIC">Basic</option>
+              <option value="NORMAL">Normal</option>
+              <option value="PRO">Pro</option>
+            </select>
+          </div>
+
           {error ? <div className={styles.emptyState}>{error}</div> : null}
 
           <div className={styles.profileActions}>
-            <button type="button" className={styles.secondaryButton} onClick={onClose} disabled={submitting}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={onClose}
+              disabled={submitting}
+            >
               Cancel
             </button>
 

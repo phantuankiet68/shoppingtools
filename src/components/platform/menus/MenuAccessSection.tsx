@@ -500,8 +500,7 @@ export function MenuAccessSection({ items = [] }: MenuAccessSectionProps) {
         <div className={styles.topbar}>
           <div className={styles.topbarLeft}>
             <div className={styles.titleInline}>
-              <span className={styles.kicker}>Permission</span>
-              <h1 className={styles.pageTitle}>Admin Menu Access</h1>
+              <span className={styles.kicker}>Admin Menu Access</span>
             </div>
           </div>
 
@@ -819,7 +818,6 @@ export function MenuAccessSection({ items = [] }: MenuAccessSectionProps) {
             <div className={styles.sideCard}>
               <div className={styles.sideCardHeader}>
                 <h2 className={styles.sideCardTitle}>Overview</h2>
-                <p className={styles.sideCardDescription}>Quick operational summary for current ADMIN menu access.</p>
               </div>
 
               <div className={styles.overviewList}>

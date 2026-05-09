@@ -1,9 +1,6 @@
 .page {
-  height: 93vh;
   background: #f5f7fb;
-  padding: 8px;
   color: #111827;
-  overflow: auto;
 }
 
 .toolbar {
@@ -73,14 +70,18 @@
   font-size: 14px;
   color: #334155;
   outline: none;
+    height: 46px;
+  padding: 0 14px;
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
 }
 
 .inviteButton {
-  height: 42px;
+  min-width: 195px;
+  height: 51px;
   border: var(--bd-s-save);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 0 18px;
-  background: var(--bg-save);
   color: var(--color-save);
   display: inline-flex;
   align-items: center;
@@ -104,7 +105,7 @@
   flex-wrap: wrap;
   gap: 16px;
   padding: 15px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   border: var(--bd-header);
   border-radius: 8px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
@@ -153,7 +154,6 @@
   outline: none;
   background: transparent;
   font-size: 14px;
-  font-weight: 500;
 }
 
 /* FILTER */
@@ -178,7 +178,6 @@
   border: none;
   outline: none;
   background: transparent;
-  font-weight: 600;
   cursor: pointer;
 }
 
@@ -188,12 +187,12 @@
   align-items: center;
   gap: 10px;
   min-height: 42px;
-  padding: 0 20px;
+  padding: 0 11px;
   border: var(--bd-s-save);
   border-radius: 8px;
   background: var(--bg-save);
   color: var(--color-save);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -223,7 +222,7 @@
 
 .contentGrid {
   display: grid;
-  grid-template-columns: 367px minmax(0, 1fr);
+  grid-template-columns: 330px minmax(0, 1fr);
   gap: 15px;
   align-items: start;
 }
@@ -235,7 +234,7 @@
   border-radius: 8px;
 }
 .sidebarCard {
-  padding: 18px;
+  padding: 12px;
   height: 74.5vh;
 }
 
@@ -254,9 +253,9 @@
 .cardTitle,
 .sectionTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-title);
 }
 
 .cardMeta {
@@ -265,7 +264,7 @@
 }
 
 .staffTable {
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .staffTableHead,
@@ -308,8 +307,8 @@
 }
 
 .staffRow:hover {
-  border-color: #dbe7ff;
-  background: #f3f7ff;
+  color: #ffffff;
+  background: var(--bg-primary);
 }
 
 .staffRowActive {
@@ -428,8 +427,8 @@
   gap: 8px;
   padding: 8px 12px;
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  color: #d8431d;
+  background: #ffedd1;
   font-size: 13px;
   font-weight: 700;
 }
@@ -443,10 +442,9 @@
 .editButton,
 .secondaryButton {
   height: 42px;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0 16px;
   border: var(--bd-s-save);
-  background: var(--bg-save);
   color: var(--color-save);
   display: inline-flex;
   align-items: center;
@@ -576,12 +574,11 @@
 
 .permissionSection {
   border-top: 1px solid #edf2f7;
-  padding-top: 24px;
-  margin-top: 24px;
+  padding-top: 15px;
+  margin-top: 15px;
 }
 
 .sectionDescription {
-  margin: 6px 0 0;
   color: #64748b;
   font-size: 14px;
 }
@@ -810,41 +807,6 @@
   margin-top: 8px;
 }
 
-.secondaryButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.secondaryButton:hover:not(:disabled) {
-  background: #f8fafc;
-  border-color: #94a3b8;
-}
-
-.editButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: 12px;
-  border: var(--bd-s-save);
-  background: var(--bg-save);
-  color: var(--color-save);
-  font-size: 14px;
-  cursor: pointer;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
 
 .editButton:hover:not(:disabled) {
   opacity: 0.92;
@@ -888,7 +850,7 @@
   display: grid;
   grid-template-columns: 1fr 2fr 1fr 1.5fr 1.5fr;
   gap: 16px;
-  padding: 18px 24px;
+  padding: 15px 24px;
   border-bottom: 1px solid #e5edff;
   background: #f8fbff;
 }
@@ -911,7 +873,7 @@
   grid-template-columns: 1fr 2fr 1fr 1.5fr 1.5fr;
   gap: 16px;
   align-items: center;
-  padding: 18px 24px;
+  padding: 15px 24px;
   border-bottom: 1px solid #eef2ff;
 }
 
@@ -929,8 +891,8 @@
 }
 
 .sitePermissionSiteName {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 500;
   color: #334e73;
   line-height: 1.4;
 }
@@ -952,22 +914,21 @@
   min-height: 32px;
   padding: 6px 16px;
   border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: #0f172a;
   background: #f1f5f9;
   white-space: nowrap;
 }
 
 .sitePermissionDomain {
-  font-size: 16px;
+  font-size: 13px;
   color: #334155;
   word-break: break-word;
 }
 
 .sitePermissionActions {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
@@ -1047,8 +1008,16 @@
   }
 }
 .tabCard {
-  height: 79vh;
-  overflow: auto;
+    height: 79vh;
+    overflow: auto;
+
+    /* Chrome, Edge, Safari */
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE, Edge cũ */
+}
+
+.tabCard::-webkit-scrollbar {
+    display: none;               /* Chrome, Safari */
 }
 .websiteTypeGrid {
   display: grid;
@@ -1074,9 +1043,9 @@
 }
 
 .websiteTypeName {
-  font-size: 16px;
-  font-weight: 600;
-  color: #334155;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .websiteTypeStatus {
@@ -1122,4 +1091,64 @@
   height: 8px;
   border-radius: 50%;
   background: #22c55e;
+}
+
+.emptyState {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.emptyCard {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 32px 28px;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+
+  border: 2px dashed #e5e7eb;
+}
+
+.title {
+font-size: 15px;
+font-weight: 500;
+color: var(--muted);
+margin-bottom: 8px;
+}
+
+.description {
+font-size: 14px;
+color: #6b7280;
+margin-bottom: 20px;
+line-height: 1.5;
+}
+
+.button {
+background: #2563eb;
+color: #fff;
+border: none;
+border-radius: 6px;
+padding: 10px 16px;
+font-size: 14px;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.button:hover {
+background: #1d4ed8;
+}
+.sectionHeaderTop{
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+
+@media (max-width: 1600px) {
+  .tabCard {
+    height: 74vh;
+  }
 }

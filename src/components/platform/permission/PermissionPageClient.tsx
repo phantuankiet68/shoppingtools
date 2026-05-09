@@ -7,7 +7,6 @@ import { DomainAccessSection } from "./DomainAccessSection";
 import { getAccessProfile } from "./mock-data";
 import { PlanSummary } from "./PlanSummary";
 import { TenantList } from "./TenantList";
-import { TemplatesSection } from "./TemplatesSection";
 import { StaffMember, UsageMetric } from "./types";
 import { UsageLimits } from "./UsageLimits";
 import { WebsiteTypesSection } from "./WebsiteTypesSection";
@@ -438,13 +437,14 @@ export function PermissionPageClient() {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: 25,
-                    padding: "14px 16px",
+                    marginBottom: 20,
+                    padding: "0px 16px",
                     borderRadius: 8,
                     border: "1px solid #dbeafe",
                     background: selectedStaff.workspaceId
                       ? "linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 255, 0.92))"
                       : "#eff6ff",
+                    gap: 12
                   }}
                 >
                   <div
@@ -686,7 +686,6 @@ export function PermissionPageClient() {
                   selectedStaffId={selectedStaff?.id}
                 />
                 <WebsiteTypesSection items={accessProfile.websiteTypes} sites={sites} />
-                <TemplatesSection items={accessProfile.templates} />
               </div>
             </>
           )}
