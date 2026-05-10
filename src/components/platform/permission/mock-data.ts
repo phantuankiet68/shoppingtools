@@ -27,7 +27,6 @@ export function getAccessProfile(staff: StaffMember): TenantAccessProfile {
 
   return {
     planName: isEnterprise ? "Enterprise" : isPro ? "Pro" : "Basic",
-    monthlyPrice: isEnterprise ? "$299/mo" : isPro ? "$99/mo" : "$29/mo",
     customDomainEnabled: true,
     maxCustomDomains: isEnterprise ? 10 : isPro ? 3 : 1,
     platformSubdomain: `${staff.name.toLowerCase().replace(/\s+/g, "-")}.yourplatform.com`,

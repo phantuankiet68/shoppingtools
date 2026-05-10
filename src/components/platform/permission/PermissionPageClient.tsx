@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "@/styles/platform/permission.module.css";
 import { CreateTenantAccessModal } from "./CreateTenantAccessModal";
-import { DomainAccessSection } from "./DomainAccessSection";
 import { getAccessProfile } from "./mock-data";
 import { PlanSummary } from "./PlanSummary";
 import { TenantList } from "./TenantList";
 import { StaffMember, UsageMetric } from "./types";
 import { UsageLimits } from "./UsageLimits";
-import { WebsiteTypesSection } from "./WebsiteTypesSection";
 import { WorkspaceModal } from "./WorkspaceModal";
 
 type StaffWithWorkspace = StaffMember & {
@@ -444,7 +442,7 @@ export function PermissionPageClient() {
                     background: selectedStaff.workspaceId
                       ? "linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 255, 0.92))"
                       : "#eff6ff",
-                    gap: 12
+                    gap: 12,
                   }}
                 >
                   <div
@@ -681,11 +679,6 @@ export function PermissionPageClient() {
                   loading={permissionLoading}
                   onSave={handleSaveUsageLimits}
                 />
-                <DomainAccessSection
-                  workspaceId={selectedStaff?.workspaceId ?? null}
-                  selectedStaffId={selectedStaff?.id}
-                />
-                <WebsiteTypesSection items={accessProfile.websiteTypes} sites={sites} />
               </div>
             </>
           )}

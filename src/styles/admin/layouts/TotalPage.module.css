@@ -1,9 +1,6 @@
-
-
 /* GRID FIX */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
 }
 
@@ -13,8 +10,8 @@
   border-radius: 14px;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  transition: all .25s;
+  padding: 16px;
+  transition: all 0.25s;
   display: flex;
   box-shadow: var(--box-shadow);
   border: 1px solid #80dcfdb3;

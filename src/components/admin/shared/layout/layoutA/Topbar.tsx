@@ -112,7 +112,7 @@ export default function Topbar({ meta, onLogout }: Props) {
               <h1 className={styles.pageTitle}>{meta.title}</h1>
             </div>
 
-            <div className={styles.breadcrumb}>Admin Panel / Dashboard</div>
+            <div className={styles.breadcrumb}>Admin Panel</div>
           </div>
         </div>
 
@@ -132,17 +132,8 @@ export default function Topbar({ meta, onLogout }: Props) {
                 aria-label="Search help and features"
               />
 
-              <button
-                type="submit"
-                className={styles.topbarSearchVisual}
-                aria-label="Submit search"
-                title="Search"
-              >
-                <img
-                  src="/assets/images/iconSearch.png"
-                  alt=""
-                  className={styles.topbarSearchImage}
-                />
+              <button type="submit" className={styles.topbarSearchVisual} aria-label="Submit search" title="Search">
+                <img src="/assets/images/iconSearch.png" alt="" className={styles.topbarSearchImage} />
               </button>
             </form>
           ) : (
@@ -219,12 +210,7 @@ export default function Topbar({ meta, onLogout }: Props) {
                   )}
                 </div>
 
-                <Link
-                  href="/admin/settings"
-                  className={styles.iconBtn}
-                  aria-label="Settings"
-                  title="Settings"
-                >
+                <Link href="/admin/settings" className={styles.iconBtn} aria-label="Settings" title="Settings">
                   <i className="bi bi-gear" />
                 </Link>
               </div>

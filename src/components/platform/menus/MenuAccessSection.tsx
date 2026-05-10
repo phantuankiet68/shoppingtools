@@ -71,7 +71,6 @@ type SiteOptionsResponse = {
 
 export type TenantAccessProfile = {
   planName: "Basic" | "Pro" | "Enterprise";
-  monthlyPrice: string;
   customDomainEnabled: boolean;
   maxCustomDomains: number;
   platformSubdomain: string;
@@ -346,15 +345,18 @@ export function MenuAccessSection({ items = [] }: MenuAccessSectionProps) {
     void fetchSiteOptions();
   }, [fetchMenus, fetchSiteOptions]);
 
-  const handleSort = useCallback((key: SortKey) => {
-    if (key === sortKey) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-      return;
-    }
+  const handleSort = useCallback(
+    (key: SortKey) => {
+      if (key === sortKey) {
+        setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+        return;
+      }
 
-    setSortKey(key);
-    setSortDirection("asc");
-  }, [sortKey]);
+      setSortKey(key);
+      setSortDirection("asc");
+    },
+    [sortKey],
+  );
 
   const handleToggleAdminPermission = useCallback(async (menu: MenuRecord) => {
     try {
@@ -510,12 +512,7 @@ export function MenuAccessSection({ items = [] }: MenuAccessSectionProps) {
               Add menu
             </button>
 
-            <button
-              type="button"
-              className={styles.refreshButton}
-              onClick={handleRefresh}
-              disabled={isBusy}
-            >
+            <button type="button" className={styles.refreshButton} onClick={handleRefresh} disabled={isBusy}>
               <i className="bi bi-arrow-clockwise" />
               {isBusy ? "Refreshing..." : "Refresh"}
             </button>
@@ -932,14 +929,7 @@ type EditMenuModalProps = {
   onUpdated: () => void | Promise<void>;
 };
 
-function EditMenuModal({
-  open,
-  menu,
-  siteOptions,
-  parentOptions,
-  onClose,
-  onUpdated,
-}: EditMenuModalProps) {
+function EditMenuModal({ open, menu, siteOptions, parentOptions, onClose, onUpdated }: EditMenuModalProps) {
   const [form, setForm] = useState<EditMenuFormState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -965,21 +955,18 @@ function EditMenuModal({
     return parentOptions.filter((option) => option.id !== menu.id && option.area === form.area);
   }, [form, menu, parentOptions]);
 
-  const handleChange = useCallback(
-    <K extends keyof EditMenuFormState>(key: K, value: EditMenuFormState[K]) => {
-      setForm((prev) => {
-        if (!prev) {
-          return prev;
-        }
+  const handleChange = useCallback(<K extends keyof EditMenuFormState>(key: K, value: EditMenuFormState[K]) => {
+    setForm((prev) => {
+      if (!prev) {
+        return prev;
+      }
 
-        return {
-          ...prev,
-          [key]: value,
-        };
-      });
-    },
-    [],
-  );
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
+  }, []);
 
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
@@ -1035,13 +1022,7 @@ function EditMenuModal({
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-menu-title"
-      onClick={onClose}
-      style={modalOverlayStyle}
-    >
+    <div role="dialog" aria-modal="true" aria-labelledby="edit-menu-title" onClick={onClose} style={modalOverlayStyle}>
       <div onClick={(event) => event.stopPropagation()} style={modalCardStyle}>
         <div style={modalHeaderStyle}>
           <div>
@@ -1051,12 +1032,7 @@ function EditMenuModal({
             <p style={modalSubtitleStyle}>Update menu information and save changes.</p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            style={closeButtonStyle}
-            aria-label="Close edit menu modal"
-          >
+          <button type="button" onClick={onClose} style={closeButtonStyle} aria-label="Close edit menu modal">
             <i className="bi bi-x-lg" />
           </button>
         </div>
@@ -1160,11 +1136,7 @@ function EditMenuModal({
               </label>
             </Field>
 
-            {submitError ? (
-              <div style={errorBoxStyle}>
-                {submitError}
-              </div>
-            ) : null}
+            {submitError ? <div style={errorBoxStyle}>{submitError}</div> : null}
           </div>
 
           <div style={modalFooterStyle}>

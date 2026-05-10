@@ -5,15 +5,14 @@ import { useAdminTitle } from "@/components/admin/AdminTitleContext";
 
 type Props = {
   title: string;
-  subtitle?: string;
 };
 
-export default function AdminPageTitle({ title, subtitle }: Props) {
+export default function AdminPageTitle({ title }: Props) {
   const { setMeta } = useAdminTitle();
 
   useEffect(() => {
-    setMeta({ title, subtitle });
-  }, [title, subtitle, setMeta]);
+    setMeta({ title });
+  }, [title, setMeta]);
 
   return null;
 }

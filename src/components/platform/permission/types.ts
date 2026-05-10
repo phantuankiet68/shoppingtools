@@ -55,7 +55,6 @@ export type TemplateItem = {
 
 export type TenantAccessProfile = {
   planName: "Basic" | "Pro" | "Enterprise";
-  monthlyPrice: string;
   customDomainEnabled: boolean;
   maxCustomDomains: number;
   platformSubdomain: string;

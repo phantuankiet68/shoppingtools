@@ -27,7 +27,6 @@ export function PlanSummary({ staff, profile }: Props) {
               <div className={styles.profileMeta}>
                 <span>{staff.email}</span>
                 <span className={styles.dot} />
-                <span>{profile.monthlyPrice}</span>
               </div>
             </div>
           </div>

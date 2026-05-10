@@ -1,6 +1,6 @@
 .wrapper {
   background: #ffffff;
-  padding: 21px 15px;
+  padding: 15px;
   border-radius: 15px;
   border: var(--bd-header);
 }
@@ -53,6 +53,8 @@
   color: inherit;
   transition: all 0.25s ease;
   border: var(--bd-header);
+  min-width: 275px;
+  min-height: 121px;
 }
 
 .appCard:hover {

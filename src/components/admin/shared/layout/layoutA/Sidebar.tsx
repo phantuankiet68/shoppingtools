@@ -1,31 +1,25 @@
 "use client";
 
-import type {
-  CSSProperties,
-  MouseEvent as ReactMouseEvent,
-  RefObject,
-} from "react";
+import type { CSSProperties, MouseEvent as ReactMouseEvent, RefObject } from "react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
+
 import styles from "@/styles/admin/layouts/LayoutA.module.css";
+
 import { useAdminLayoutStore } from "@/store/layout/layouta/index";
-import {
-  SECTION_ORDER,
-  SECTION_TITLES,
-  sectionOfTopItem,
-  type Item,
-  type SectionKey,
-} from "@/utils/layout/menu.utils";
+
+import { SECTION_ORDER, SECTION_TITLES, sectionOfTopItem, type Item, type SectionKey } from "@/utils/layout/menu.utils";
+
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
+
+import { toI18nKey } from "@/utils/layout/i18n";
 
 type SectionBucket = {
   flats: Item[];
   groups: Item[];
 };
 
-type CloseTimerMap = Record<
-  string,
-  ReturnType<typeof setTimeout> | number | undefined
->;
+type CloseTimerMap = Record<string, ReturnType<typeof setTimeout> | number | undefined>;
 
 function positionFlyout(groupEl: HTMLElement, flyEl: HTMLElement) {
   const groupRect = groupEl.getBoundingClientRect();
@@ -57,11 +51,7 @@ function createEmptySectionBuckets(): Record<SectionKey, SectionBucket> {
   };
 }
 
-export default function Sidebar({
-  navRef,
-}: {
-  navRef: RefObject<HTMLDivElement | null>;
-}) {
+export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement | null> }) {
   const {
     sidebarOpen,
     setSidebarOpen,
@@ -74,7 +64,10 @@ export default function Sidebar({
     openGroupExclusive,
   } = useAdminLayoutStore();
 
+  const { t } = useAdminI18n();
+
   const asideRef = useRef<HTMLElement | null>(null);
+
   const closeTimersRef = useRef<CloseTimerMap>({});
 
   const sectionBuckets = useMemo(() => {
@@ -99,9 +92,11 @@ export default function Sidebar({
 
   const clearCloseTimer = (groupKey: string) => {
     const timerId = closeTimersRef.current[groupKey];
+
     if (!timerId) return;
 
     window.clearTimeout(timerId);
+
     closeTimersRef.current[groupKey] = undefined;
   };
 
@@ -109,6 +104,7 @@ export default function Sidebar({
     Object.values(closeTimersRef.current).forEach((timerId) => {
       if (timerId) window.clearTimeout(timerId);
     });
+
     closeTimersRef.current = {};
   };
 
@@ -145,19 +141,16 @@ export default function Sidebar({
     }, delay);
   };
 
-  const handleGroupMouseEnter = (
-    groupKey: string,
-    event: ReactMouseEvent<HTMLDivElement>
-  ) => {
+  const handleGroupMouseEnter = (groupKey: string, event: ReactMouseEvent<HTMLDivElement>) => {
     if (!collapsed) return;
 
     clearCloseTimer(groupKey);
+
     openGroupExclusive(groupKey);
 
     const groupElement = event.currentTarget;
-    const flyoutElement = groupElement.querySelector<HTMLElement>(
-      `[data-flyout="${groupKey}"]`
-    );
+
+    const flyoutElement = groupElement.querySelector<HTMLElement>(`[data-flyout="${groupKey}"]`);
 
     if (flyoutElement) {
       requestAnimationFrame(() => {
@@ -168,6 +161,7 @@ export default function Sidebar({
 
   const handleGroupMouseLeave = (groupKey: string) => {
     if (!collapsed) return;
+
     scheduleCloseGroup(groupKey, 220);
   };
 
@@ -182,7 +176,9 @@ export default function Sidebar({
 
     const handleDocumentClick = (event: MouseEvent) => {
       const root = asideRef.current;
+
       if (!root) return;
+
       if (root.contains(event.target as Node)) return;
 
       useAdminLayoutStore.setState({ openGroups: {} });
@@ -225,12 +221,12 @@ export default function Sidebar({
               {!collapsed && (
                 <div className={styles.brandText}>
                   <div className={styles.brandTop}>
-                    <div className={styles.brandName}>Manager</div>
+                    <div className={styles.brandName}>{t("menus.manager")}</div>
                   </div>
 
                   <div className={styles.brandSub}>
                     <i className="bi bi-shield-lock" />
-                    <span>Dashboard Panel</span>
+                    <span>{t("menus.dashboardPanel")}</span>
                   </div>
                 </div>
               )}
@@ -240,33 +236,29 @@ export default function Sidebar({
           <nav className={styles.nav} ref={navRef}>
             {SECTION_ORDER.map((sectionKey) => {
               const bucket = sectionBuckets[sectionKey];
+
               const hasItems = bucket.flats.length + bucket.groups.length > 0;
 
               if (!hasItems) return null;
 
               return (
                 <div key={sectionKey} className={styles.section}>
-                  {!collapsed && (
-                    <div className={styles.sectionTitle}>
-                      {SECTION_TITLES[sectionKey]}
-                    </div>
-                  )}
+                  {!collapsed && <div className={styles.sectionTitle}>{t(SECTION_TITLES[sectionKey])}</div>}
 
                   <div className={styles.sectionList}>
                     {bucket.flats.map((item) => (
                       <Link
                         key={item.key}
                         href={item.path ?? "#"}
-                        className={`${styles.navItem} ${
-                          activeKey === item.key ? styles.navItemActive : ""
-                        }`}
+                        className={`${styles.navItem} ${activeKey === item.key ? styles.navItemActive : ""}`}
                         aria-current={activeKey === item.key ? "page" : undefined}
-                        title={collapsed ? item.title ?? undefined : undefined}
-                        aria-label={item.title ?? ""}
+                        title={collapsed ? t(`menus.${toI18nKey(item.title)}`) : undefined}
+                        aria-label={t(`menus.${toI18nKey(item.title)}`)}
                         onClick={(event) => {
                           if (!item.path || item.path === "#") {
                             event.preventDefault();
                           }
+
                           handleItemClick(item.key);
                         }}
                       >
@@ -274,138 +266,116 @@ export default function Sidebar({
                           <i className={item.icon} />
                         </span>
 
-                        {!collapsed && (
-                          <span className={styles.navLabel}>{item.title ?? ""}</span>
-                        )}
+                        {!collapsed && <span className={styles.navLabel}>{t(`menus.${toI18nKey(item.title)}`)}</span>}
                       </Link>
                     ))}
+                  </div>
+                  {bucket.groups.map((group) => {
+                    const isOpen = Boolean(openGroups[group.key]);
 
-                    {bucket.groups.map((group) => {
-                      const isOpen = Boolean(openGroups[group.key]);
+                    return (
+                      <div
+                        key={group.key}
+                        className={styles.navGroup}
+                        onMouseEnter={(event) => handleGroupMouseEnter(group.key, event)}
+                        onMouseLeave={() => handleGroupMouseLeave(group.key)}
+                      >
+                        <button
+                          type="button"
+                          className={`${styles.navItem} ${styles.navGroupBtn} ${isOpen ? styles.navItemActive : ""}`}
+                          aria-expanded={isOpen}
+                          title={collapsed ? t(`menus.${toI18nKey(group.title)}`) : undefined}
+                          aria-label={t(`menus.${toI18nKey(group.title)}`)}
+                          onClick={(event) => {
+                            if (collapsed) return;
 
-                      return (
-                        <div
-                          key={group.key}
-                          className={styles.navGroup}
-                          onMouseEnter={(event) =>
-                            handleGroupMouseEnter(group.key, event)
-                          }
-                          onMouseLeave={() => handleGroupMouseLeave(group.key)}
+                            event.preventDefault();
+
+                            toggleGroupExclusive(group.key);
+                          }}
                         >
-                          <button
-                            type="button"
-                            className={`${styles.navItem} ${styles.navGroupBtn} ${
-                              isOpen ? styles.navItemActive : ""
-                            }`}
-                            aria-expanded={isOpen}
-                            title={collapsed ? group.title ?? undefined : undefined}
-                            aria-label={group.title ?? ""}
-                            onClick={(event) => {
-                              if (collapsed) return;
-                              event.preventDefault();
-                              toggleGroupExclusive(group.key);
-                            }}
-                          >
-                            <div className={styles.navGroupLeft}>
-                              <span className={styles.navIcon}>
-                                <i className={group.icon} />
-                              </span>
-
-                              {!collapsed && (
-                                <span className={styles.navLabel}>
-                                  {group.title ?? ""}
-                                </span>
-                              )}
-                            </div>
+                          <div className={styles.navGroupLeft}>
+                            <span className={styles.navIcon}>
+                              <i className={group.icon} />
+                            </span>
 
                             {!collapsed && (
-                              <span
-                                className={`${styles.chev} ${
-                                  isOpen ? styles.chevOpen : ""
-                                }`}
-                              >
-                                <i className="bi bi-chevron-down" />
-                              </span>
+                              <span className={styles.navLabel}>{t(`menus.${toI18nKey(group.title)}`)}</span>
                             )}
-                          </button>
+                          </div>
 
                           {!collapsed && (
-                            <div
-                              className={`${styles.submenu} ${
-                                isOpen ? styles.submenuOpen : ""
-                              }`}
-                            >
+                            <span className={`${styles.chev} ${isOpen ? styles.chevOpen : ""}`}>
+                              <i className="bi bi-chevron-down" />
+                            </span>
+                          )}
+                        </button>
+
+                        {!collapsed && (
+                          <div className={`${styles.submenu} ${isOpen ? styles.submenuOpen : ""}`}>
+                            {group.children?.map((subItem) => (
+                              <Link
+                                key={subItem.key}
+                                href={subItem.path ?? "#"}
+                                className={`${styles.subItem} ${activeKey === subItem.key ? styles.subItemActive : ""}`}
+                                title={t(`menus.${toI18nKey(subItem.title)}`)}
+                                aria-label={t(`menus.${toI18nKey(subItem.title)}`)}
+                                onClick={(event) => {
+                                  if (!subItem.path || subItem.path === "#") {
+                                    event.preventDefault();
+                                  }
+
+                                  handleItemClick(subItem.key);
+                                }}
+                              >
+                                <span className={styles.navIcon}>
+                                  <i className={subItem.icon} />
+                                </span>
+
+                                <span className={styles.subLabel}>{t(`menus.${toI18nKey(subItem.title)}`)}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        {collapsed && isOpen && (
+                          <div data-flyout={group.key} className={styles.flyout}>
+                            <div className={styles.flyoutTitle}>{t(`menus.${toI18nKey(group.title)}`)}</div>
+
+                            <div className={styles.flyoutList}>
                               {group.children?.map((subItem) => (
                                 <Link
                                   key={subItem.key}
                                   href={subItem.path ?? "#"}
-                                  className={`${styles.subItem} ${
-                                    activeKey === subItem.key
-                                      ? styles.subItemActive
-                                      : ""
+                                  className={`${styles.flyoutItem} ${
+                                    activeKey === subItem.key ? styles.flyoutItemActive : ""
                                   }`}
-                                  title={subItem.title ?? undefined}
-                                  aria-label={subItem.title ?? ""}
+                                  aria-label={t(`menus.${toI18nKey(subItem.title)}`)}
                                   onClick={(event) => {
                                     if (!subItem.path || subItem.path === "#") {
                                       event.preventDefault();
                                     }
+
                                     handleItemClick(subItem.key);
+
+                                    toggleGroupExclusive(group.key);
                                   }}
                                 >
                                   <span className={styles.navIcon}>
                                     <i className={subItem.icon} />
                                   </span>
-                                  <span className={styles.subLabel}>
-                                    {subItem.title ?? ""}
-                                  </span>
+
+                                  <span>{t(`menus.${toI18nKey(subItem.title)}`)}</span>
                                 </Link>
                               ))}
                             </div>
-                          )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
 
-                          {collapsed && isOpen && (
-                            <div data-flyout={group.key} className={styles.flyout}>
-                              <div className={styles.flyoutTitle}>
-                                {group.title ?? ""}
-                              </div>
-
-                              <div className={styles.flyoutList}>
-                                {group.children?.map((subItem) => (
-                                  <Link
-                                    key={subItem.key}
-                                    href={subItem.path ?? "#"}
-                                    className={`${styles.flyoutItem} ${
-                                      activeKey === subItem.key
-                                        ? styles.flyoutItemActive
-                                        : ""
-                                    }`}
-                                    aria-label={subItem.title ?? ""}
-                                    onClick={(event) => {
-                                      if (!subItem.path || subItem.path === "#") {
-                                        event.preventDefault();
-                                      }
-                                      handleItemClick(subItem.key);
-                                      toggleGroupExclusive(group.key);
-                                    }}
-                                  >
-                                    <span className={styles.navIcon}>
-                                      <i className={subItem.icon} />
-                                    </span>
-                                    <span>{subItem.title ?? ""}</span>
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {sectionKey !== "account" && (
-                    <div className={styles.sectionDivider} />
-                  )}
+                  {sectionKey !== "account" && <div className={styles.sectionDivider} />}
                 </div>
               );
             })}
