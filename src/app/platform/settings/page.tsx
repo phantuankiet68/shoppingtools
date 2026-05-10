@@ -111,8 +111,6 @@ type SiteFormState = {
   domain: string;
   status: SiteStatus;
   isPublic: boolean;
-  seoTitleDefault: string;
-  seoDescDefault: string;
   themeConfig: string;
 };
 
@@ -125,8 +123,6 @@ type SiteRecord = {
   isPublic: boolean;
   publishedAt: string | null;
   themeConfig: Record<string, unknown> | null;
-  seoTitleDefault: string | null;
-  seoDescDefault: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -303,8 +299,6 @@ const DEFAULT_SITE_FORM: SiteFormState = {
   domain: "",
   status: "DRAFT",
   isPublic: false,
-  seoTitleDefault: "",
-  seoDescDefault: "",
   themeConfig: '{\n  "accent": "#6f42c1",\n  "radius": 18,\n  "theme": "auto"\n}',
 };
 
@@ -447,8 +441,6 @@ function buildSiteForm(settings: SettingsState, site?: SiteRecord | null): SiteF
     domain: site.domain,
     status: site.status,
     isPublic: site.isPublic,
-    seoTitleDefault: site.seoTitleDefault ?? "",
-    seoDescDefault: site.seoDescDefault ?? "",
     themeConfig: site.themeConfig ? JSON.stringify(site.themeConfig, null, 2) : DEFAULT_SITE_FORM.themeConfig,
   };
 }
@@ -866,8 +858,6 @@ export default function SettingsPage() {
         isPublic: siteForm.isPublic,
         publishedAt: siteForm.status === "ACTIVE" ? now : null,
         themeConfig: parsedThemeConfig,
-        seoTitleDefault: siteForm.seoTitleDefault.trim() || null,
-        seoDescDefault: siteForm.seoDescDefault.trim() || null,
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
@@ -1510,27 +1500,6 @@ function CreateSiteSection({
         </div>
 
         <div className={styles.formColumn}>
-          <FieldRow label="SEO title default">
-            <input
-              className={styles.input}
-              value={siteForm.seoTitleDefault}
-              onChange={(event) => onSiteFieldChange("seoTitleDefault", event.target.value)}
-              placeholder="Default SEO title"
-              disabled={siteLocked}
-            />
-          </FieldRow>
-
-          <FieldRow label="SEO description default">
-            <textarea
-              className={styles.textarea}
-              value={siteForm.seoDescDefault}
-              onChange={(event) => onSiteFieldChange("seoDescDefault", event.target.value)}
-              placeholder="Default SEO description"
-              rows={4}
-              disabled={siteLocked}
-            />
-          </FieldRow>
-
           <FieldRow label="Theme config JSON" hint='Dữ liệu sẽ map vào field "themeConfig".'>
             <textarea
               className={styles.textareaCode}

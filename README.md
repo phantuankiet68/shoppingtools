@@ -7,14 +7,13 @@ linear-gradient(90deg, rgba(109, 40, 217, 0.06), #ec48990a), #ffffff8c
 //Back yellow beautifull
 linear-gradient(#fff7edfa, #fffffff0)
 
-
-Email	Password
+Email Password
 superadmin@example.com
 phantuankiet@123
 admin1@example.com
 admin@123
 admin2@example.com
-	123456
+123456
 
 Chạy xem dữ liệu
 npm run prisma:studio
@@ -392,20 +391,18 @@ Hiện tại design rất xấu và chua có phong cách chuyên nghiệp nên h
 c
 low-code = drag & drop builder chuyển đổi AI + low-code
 à tôi đang lấy sit id theo import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
-  const { user, site, currentWorkspace } = useAdminAuth();
-  const userId = user?.id ?? '';
-  const siteId = site?.id ?? '';
-  const workspaceName = currentWorkspace?.name ?? '';
-  const siteName = site?.name ?? '';
-  const siteDomain = site?.domain ?? '';
+const { user, site, currentWorkspace } = useAdminAuth();
+const userId = user?.id ?? '';
+const siteId = site?.id ?? '';
+const workspaceName = currentWorkspace?.name ?? '';
+const siteName = site?.name ?? '';
+const siteDomain = site?.domain ?? '';
 
-
-Ban có thể chỉnh sửa và ghi lại toàn bộ file HeaderAnnouncement.tsx giúp tôi nhé và nếu như kiểm tra có phần dư và tốn thêm api không cần thiết hãy xóa ra giúp tôi nhé 
+Ban có thể chỉnh sửa và ghi lại toàn bộ file HeaderAnnouncement.tsx giúp tôi nhé và nếu như kiểm tra có phần dư và tốn thêm api không cần thiết hãy xóa ra giúp tôi nhé
 
 Trang danh sách sản phẩm có thể dùng ISR để đảm bảo tốc độ nhanh và vẫn cập nhật dữ liệu định kỳ
 Trang chi tiết sản phẩm có thể dùng SSG hoặc ISR nếu dữ liệu không thay đổi thường xuyên
 Các phần cần dữ liệu realtime như giỏ hàng hoặc user-specific data thì sẽ dùng CSR hoặc SSR
-
 
 hiện tại design chưa được đẹp và hoàn chỉnh tôi có cảm giác chưa có bố cục rõ ràng và minh bạch. Ui không phù hợp với phong cách mới mẽ. Bạn có thể độ design ui mang tính chất chuyên nghiệp đa dạng và mới mẽ nhé, tôi đang sử dụng next 16 và css module. Tôi muốn bạn ở cương bị cấp bật là serior front-end bạn hãy tạo design UI mới hoàn toàn so với cái cũ và ghi lại toàn bộ file. Hãy giữ sự chuyên nghiệp nhưng giảm whitespace + tăng mật độ thông tin (information density) kiểu admin tool.
 Đặc biệt cần phải có đoạn code bên dưới nhé
@@ -454,14 +451,14 @@ const banner = safeJson<HotProductOneBanner>(p.banner);
 },
 };
 
-Bạn hãy ở cương vị  serior front-end và serior back-end Hiện tại tôi đang sử dụng next 16 và prisma 7.6.0 
+Bạn hãy ở cương vị serior front-end và serior back-end Hiện tại tôi đang sử dụng next 16 và prisma 7.6.0
 Bạn hãy giúp tôi chỉnh sửa api và NewTemplateModal.tsx và ghi toàn bộ file giúp tôi
 
 Bạn là serior front-end Hiện tại tôi đang sử dụng next 16 và css module Và đây là modal ành cho form tạo template Bạn có thể tạo css module tương ứng với file. Các ô input không cần box shaw nếu như focus cần border-color: var(--border-color); box-shadow: var(--box-shadow); và label text cứ font-size: 13px; font-weight: 500; color: var(--muted);
 
 Bạn là serior back-end Hiện tại tôi đang sử dụng next 16 và prisma 7.6.0
-import { ... } from "@/generated/prisma"; 
-import { prisma } from "@/lib/prisma";Bạn hãy tạo api crub dựa vào model TemplateGroup  giúp tôi nhé 
+import { ... } from "@/generated/prisma";
+import { prisma } from "@/lib/prisma";Bạn hãy tạo api crub dựa vào model TemplateGroup giúp tôi nhé
 
 export default HotProductOne;
 
@@ -527,198 +524,5 @@ Hệ thống gồm 3 cấp:
    chat / booking
 
 👉 CUSTOMER thuộc về SITE, không thuộc platform
-
-src/app
-admin/
-login/
-page.tsx
-
-platform/
-layout.tsx
-page.tsx
-sub-admins/
-page.tsx
-[id]/
-page.tsx
-templates/
-page.tsx
-[templateId]/
-page.tsx
-settings/
-page.tsx
-system/
-page.tsx
-
-tenant/
-layout.tsx
-page.tsx
-sites/
-page.tsx
-create/
-page.tsx
-[siteId]/
-layout.tsx
-page.tsx
-builder/
-page.tsx
-pages/
-page.tsx
-[pageId]/
-page.tsx
-menus/
-page.tsx
-domains/
-page.tsx
-media/
-page.tsx
-products/
-page.tsx
-[productId]/
-page.tsx
-categories/
-page.tsx
-inventory/
-page.tsx
-orders/
-page.tsx
-[orderId]/
-page.tsx
-customers/
-page.tsx
-integrations/
-page.tsx
-settings/
-page.tsx
-publish/
-page.tsx
-theme/
-page.tsx
-
-store/
-[siteId]/
-layout.tsx
-page.tsx
-[[...slug]]/
-page.tsx
-products/
-page.tsx
-[slug]/
-page.tsx
-cart/
-page.tsx
-checkout/
-page.tsx
-orders/
-page.tsx
-account/
-page.tsx
-///API
-src/app/api
-auth/
-admin/
-login/
-route.ts
-logout/
-route.ts
-sub-admin/
-login/
-route.ts
-logout/
-route.ts
-customer/
-login/
-route.ts
-register/
-route.ts
-logout/
-route.ts
-
-platform/
-users/
-route.ts
-[id]/
-route.ts
-sub-admins/
-route.ts
-[id]/
-route.ts
-templates/
-route.ts
-[templateId]/
-route.ts
-template-files/
-route.ts
-settings/
-route.ts
-system/
-route.ts
-
-tenant/
-sites/
-route.ts
-[siteId]/
-route.ts
-builder/
-route.ts
-pages/
-route.ts
-[pageId]/
-route.ts
-menus/
-route.ts
-domains/
-route.ts
-media/
-route.ts
-products/
-route.ts
-[productId]/
-route.ts
-categories/
-route.ts
-inventory/
-route.ts
-orders/
-route.ts
-[orderId]/
-route.ts
-customers/
-route.ts
-integrations/
-route.ts
-settings/
-route.ts
-publish/
-route.ts
-theme/
-route.ts
-upload/
-route.ts
-
-store/
-[siteId]/
-pages/
-[...slug]/
-route.ts
-products/
-route.ts
-[slug]/
-route.ts
-cart/
-route.ts
-checkout/
-route.ts
-orders/
-route.ts
-customer/
-profile/
-route.ts
-auth/
-login/
-route.ts
-register/
-route.ts
-logout/
-route.ts
 
 Nhưng không thiếu pemission để chặn một số quyền của admin và một số cái như được tạo bao nhiêu menu tạo được bao nhiêu page những cái cần có bao nhiêu dữ liệu để tiện kiểm soát vì tôi cho họ thuê template và lưu lượng để tạo web mà

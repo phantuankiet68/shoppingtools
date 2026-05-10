@@ -27,9 +27,7 @@ export async function GET(req: Request) {
 
     const currentMembership = pickCurrentMembership(user, requestedWorkspaceId);
 
-    const displayName = user.email.includes("@")
-      ? user.email.split("@")[0]
-      : user.email;
+    const displayName = user.email.includes("@") ? user.email.split("@")[0] : user.email;
 
     // =========================
     // ✅ 1. GET SITES
@@ -51,8 +49,6 @@ export async function GET(req: Request) {
           isPublic: true,
           publishedAt: true,
           themeConfig: true,
-          seoTitleDefault: true,
-          seoDescDefault: true,
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
@@ -135,9 +131,6 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("Auth API error:", error);
 
-    return Response.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

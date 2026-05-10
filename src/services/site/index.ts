@@ -10,8 +10,6 @@ export type Site = {
   status: SiteStatus;
   isPublic: boolean;
   publishedAt: string | null;
-  seoTitleDefault: string | null;
-  seoDescDefault: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -27,8 +25,6 @@ export type UpdateSitePayload = {
   status: SiteStatus;
   isPublic: boolean;
   publishedAt: string | null;
-  seoTitleDefault: string | null;
-  seoDescDefault: string | null;
 };
 
 type ApiErrorShape = { error?: string } | { error?: { fieldErrors?: Record<string, string[]>; formErrors?: string[] } };

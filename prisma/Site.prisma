@@ -16,8 +16,6 @@ model Site {
   isPublic                Boolean                 @default(false) @map("is_public")
   publishedAt             DateTime?               @map("published_at")
   themeConfig             Json?                   @map("theme_config")
-  seoTitleDefault         String?                 @map("seo_title_default")
-  seoDescDefault          String?                 @map("seo_desc_default")
   createdAt               DateTime                @default(now()) @map("created_at")
   updatedAt               DateTime                @updatedAt @map("updated_at")
   deletedAt               DateTime?               @map("deleted_at")

@@ -12,7 +12,6 @@ export type Site = {
   isPublic: boolean;
   publishedAt: string | null;
   themeConfig: unknown;
-  seoTitleDefault: string | null;
   seoDescDefault: string | null;
   createdAt: string;
   updatedAt: string;
@@ -60,18 +59,8 @@ export type AdminAuthData = {
 
 const AdminAuthContext = createContext<AdminAuthData | undefined>(undefined);
 
-export function AdminAuthProvider({
-  value,
-  children,
-}: {
-  value: AdminAuthData;
-  children: ReactNode;
-}) {
-  return (
-    <AdminAuthContext.Provider value={value}>
-      {children}
-    </AdminAuthContext.Provider>
-  );
+export function AdminAuthProvider({ value, children }: { value: AdminAuthData; children: ReactNode }) {
+  return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
 
 export function useAdminAuth() {

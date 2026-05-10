@@ -75,7 +75,13 @@ export async function GET() {
         id: true,
         domain: true,
         name: true,
-        type: true
+        type: true,
+
+        status: true,
+        isPublic: true,
+
+        createdAt: true,
+        updatedAt: true,
       },
     });
 

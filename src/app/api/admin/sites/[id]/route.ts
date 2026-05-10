@@ -18,8 +18,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         status: body.status,
         isPublic: body.isPublic,
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : null,
-        seoTitleDefault: body.seoTitleDefault,
-        seoDescDefault: body.seoDescDefault,
       },
     });
 
@@ -41,6 +39,23 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ success: true });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Delete failed";
-    return NextResponse.json({ message }, { status: 500 });
+
+    console.error("DELETE SITE ERROR:", e);
+
+    if (message.includes("MenuItem_siteId_fkey")) {
+      return NextResponse.json(
+        {
+          message: "Cannot delete this site because menus still exist.",
+        },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: "Failed to delete site.",
+      },
+      { status: 500 },
+    );
   }
 }
