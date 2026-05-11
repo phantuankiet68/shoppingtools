@@ -310,6 +310,68 @@ const ja = {
       terms: "利用規約",
       notFound: "ページが見つかりません",
     },
+    siteKinds: {
+      ecommerce: "ECサイト",
+      landing: "ランディングページ",
+      blog: "ブログ",
+      booking: "予約",
+      news: "ニュース",
+      lms: "学習管理システム",
+    },
+
+    subtypes: {
+      select: "ウェブサイト種類を選択",
+
+      landing: {
+        product: "商品ランディングページ",
+        service: "サービスランディングページ",
+        course: "コースランディングページ",
+        startup: "スタートアップランディングページ",
+        event: "イベントランディングページ",
+      },
+
+      ecommerce: {
+        fashion: "ファッションショップ",
+        electronics: "電子機器ショップ",
+        marketplace: "マーケットプレイス",
+        dropshipping: "ドロップシッピングショップ",
+      },
+
+      blog: {
+        personal: "個人ブログ",
+        tech: "技術ブログ",
+        travel: "旅行ブログ",
+      },
+
+      booking: {
+        hotel: "ホテル予約",
+        restaurant: "レストラン予約",
+        spa: "スパ予約",
+      },
+
+      news: {
+        local: "地域ニュース",
+        tech: "技術ニュース",
+        finance: "金融ニュース",
+      },
+
+      lms: {
+        school: "学校LMS",
+        course: "コースプラットフォーム",
+        training: "研修プラットフォーム",
+      },
+    },
+
+    states: {
+      saving: "保存中...",
+      loading: "読み込み中...",
+    },
+
+    messages: {
+      saved: "保存完了",
+      savedDesc: "メニューが正常に保存されました",
+      error: "エラー",
+    },
   },
   pages: {
     home: "ホーム",

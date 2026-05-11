@@ -310,6 +310,68 @@ const vi = {
       terms: "Điều khoản sử dụng",
       notFound: "Không tìm thấy trang",
     },
+    siteKinds: {
+      ecommerce: "Thương mại điện tử",
+      landing: "Landing Page",
+      blog: "Blog",
+      booking: "Đặt lịch",
+      news: "Tin tức",
+      lms: "Hệ thống học tập",
+    },
+
+    subtypes: {
+      select: "Chọn loại website",
+
+      landing: {
+        product: "Landing bán sản phẩm",
+        service: "Landing dịch vụ",
+        course: "Landing khóa học",
+        startup: "Landing startup",
+        event: "Landing sự kiện",
+      },
+
+      ecommerce: {
+        fashion: "Cửa hàng thời trang",
+        electronics: "Cửa hàng điện tử",
+        marketplace: "Sàn thương mại điện tử",
+        dropshipping: "Cửa hàng Dropshipping",
+      },
+
+      blog: {
+        personal: "Blog cá nhân",
+        tech: "Blog công nghệ",
+        travel: "Blog du lịch",
+      },
+
+      booking: {
+        hotel: "Đặt phòng khách sạn",
+        restaurant: "Đặt bàn nhà hàng",
+        spa: "Đặt lịch spa",
+      },
+
+      news: {
+        local: "Tin tức địa phương",
+        tech: "Tin tức công nghệ",
+        finance: "Tin tức tài chính",
+      },
+
+      lms: {
+        school: "Hệ thống trường học",
+        course: "Nền tảng khóa học",
+        training: "Nền tảng đào tạo",
+      },
+    },
+
+    states: {
+      saving: "Đang lưu...",
+      loading: "Đang tải...",
+    },
+
+    messages: {
+      saved: "Đã lưu",
+      savedDesc: "Menu đã được lưu thành công",
+      error: "Lỗi",
+    },
   },
   pages: {
     home: "Trang chủ",

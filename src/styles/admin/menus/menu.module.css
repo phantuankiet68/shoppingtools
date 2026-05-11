@@ -100,20 +100,19 @@
 }
 
 @media (max-width: 1636px) {
-  .leftCol{
+  .leftCol {
     max-width: 500px;
   }
 
-  .rightCol{
+  .rightCol {
     max-width: 80%;
     min-width: 60%;
   }
   .grid2 {
-  display: grid;
-  grid-template-columns: 1fr 165px;
-  gap: 0.75rem;
-}
-
+    display: grid;
+    grid-template-columns: 1fr 165px;
+    gap: 0.75rem;
+  }
 }
 
 /* ========== Firefox ========== */
@@ -238,7 +237,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding:0.5rem;
+  padding: 0.5rem;
   border-radius: 6px;
   cursor: -webkit-grab;
   cursor: grab;
@@ -295,6 +294,9 @@
   color: var(--color-save);
   background: var(--bg-save);
   border-color: var(--bd-save);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .btnOutlineWarning {
@@ -350,7 +352,7 @@
 }
 .formSelectSm {
   padding: 0.5rem;
-  width: 174px;
+  width: 195px;
   color: var(--text);
   background: var(--white);
   outline: none;
@@ -789,7 +791,7 @@
 
 @media (max-width: 1600px) {
   .grid2 {
-        grid-template-columns: 1fr 182px;
+    grid-template-columns: 1fr 182px;
   }
   .leftCol {
     width: 50%;
@@ -801,17 +803,81 @@
     min-width: 42%;
     width: 50%;
   }
-  .blocksGrid, .blocksGridRight {
+  .blocksGrid,
+  .blocksGridRight {
     height: 78vh;
     margin-bottom: 10px;
   }
-  .formSelectSm{
+  .formSelectSm {
     width: 135px;
   }
 }
 
 .btnOutlineSecondary {
-  color: #333;
+  color: #e37718;
   background: #ffdba6;
   border-color: #ffb47b;
+}
+.searchBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  font-size: 13px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 360px;
+  height: 38px;
+  padding: 0 14px 0 40px;
+  border-radius: 6px;
+  border: 1px solid #dbe2ea;
+  background: #fff;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #4f8cff;
+  box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.12);
+}
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: #888;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 36px;
+}
+
+.inlineLimit {
+  font-weight: 500;
+  padding: 10px;
+  border: var(--bd-header);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  display: flex;
+  gap: 10px;
+}
+
+.inlineSmall {
+  margin-left: 8;
+  opacity: 0.8;
+  font-size: 13px;
 }

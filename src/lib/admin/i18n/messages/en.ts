@@ -309,6 +309,68 @@ const en = {
       terms: "Terms of Service",
       notFound: "Page Not Found",
     },
+    siteKinds: {
+      ecommerce: "eCommerce",
+      landing: "Landing Page",
+      blog: "Blog",
+      booking: "Booking",
+      news: "News",
+      lms: "Learning Management System",
+    },
+
+    subtypes: {
+      select: "Select website type",
+
+      landing: {
+        product: "Product Landing Page",
+        service: "Service Landing Page",
+        course: "Course Landing Page",
+        startup: "Startup Landing Page",
+        event: "Event Landing Page",
+      },
+
+      ecommerce: {
+        fashion: "Fashion Store",
+        electronics: "Electronics Store",
+        marketplace: "Marketplace",
+        dropshipping: "Dropshipping Store",
+      },
+
+      blog: {
+        personal: "Personal Blog",
+        tech: "Tech Blog",
+        travel: "Travel Blog",
+      },
+
+      booking: {
+        hotel: "Hotel Booking",
+        restaurant: "Restaurant Booking",
+        spa: "Spa Booking",
+      },
+
+      news: {
+        local: "Local News",
+        tech: "Tech News",
+        finance: "Finance News",
+      },
+
+      lms: {
+        school: "School LMS",
+        course: "Course Platform",
+        training: "Training Platform",
+      },
+    },
+
+    states: {
+      saving: "Saving...",
+      loading: "Loading...",
+    },
+
+    messages: {
+      saved: "Saved",
+      savedDesc: "Menu saved successfully",
+      error: "Error",
+    },
   },
   pages: {
     home: "Home",

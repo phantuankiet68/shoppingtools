@@ -9,7 +9,7 @@ const MenuBuilder = dynamic(() => import("@/components/admin/menus/MenuBuilder")
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Menus" subtitle="Manage navigation & links" />
+      <AdminPageTitle title="Menus" />
       <MenuStoreProvider>
         <MenuBuilder />
       </MenuStoreProvider>

@@ -5,6 +5,7 @@ import styles from "@/styles/admin/menus/menu.module.css";
 
 import { useMenuStore } from "@/components/admin/menus/state/useMenuStore";
 import { useAllowedBlocksStore } from "@/store/menus/useAllowedBlocksStore";
+import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 
 import {
   filterSuggest,
@@ -19,62 +20,55 @@ import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 
 type TabKey = "home" | "dashboard";
 
+function countMenus(items: any[]): number {
+  if (!Array.isArray(items)) return 0;
+
+  return items.reduce((total, item) => {
+    const childCount = item?.children?.length > 0 ? countMenus(item.children) : 0;
+
+    return total + 1 + childCount;
+  }, 0);
+}
+
 export default function AllowedBlocks() {
   const modal = useModal();
+
   const { t, locale } = useAdminI18n();
 
-  const {
-    TEMPLATE_ALLOWED,
-    templateKey,
-    activeMenu,
-    setActiveMenu,
-    INTERNAL_PAGES,
-    siteKind,
-    currentSet,
-  } = useMenuStore();
+  const { currentWorkspace } = useAdminAuth();
+
+  const workspacePolicy = (currentWorkspace as any)?.accessPolicy;
+
+  const maxMenus = workspacePolicy?.maxMenus ?? Number.MAX_SAFE_INTEGER;
+
+  const { TEMPLATE_ALLOWED, templateKey, activeMenu, setActiveMenu, INTERNAL_PAGES, siteKind, currentSet } =
+    useMenuStore();
 
   const { addByName, onDragStart } = useAllowedBlocksStore();
 
   const currentLocale = (locale ?? "en") as "en" | "vi" | "ja";
 
   const tpl = TEMPLATE_ALLOWED[templateKey];
+
   const forcedTab: TabKey = forcedTabFromSet(currentSet);
 
-  /* =========================================================
-   * BASE BLOCKS
-   * ======================================================= */
+  const menuItems = activeMenu || [];
 
-  const baseKeys = useMemo(
-    () => pickBaseNames(tpl, forcedTab),
-    [tpl, forcedTab],
-  );
+  const baseKeys = useMemo(() => pickBaseNames(tpl, forcedTab), [tpl, forcedTab]);
 
   const baseNames = useMemo(
     () =>
       baseKeys.map((key) => {
         const page = INTERNAL_PAGES.find((p) => p.id === key);
+
         return page?.labelKey ? t(page.labelKey) : key;
       }),
     [baseKeys, INTERNAL_PAGES, t],
   );
 
-  /* =========================================================
-   * EXISTING
-   * ======================================================= */
+  const existingTitles = useMemo(() => buildExistingTitlesSet(menuItems), [menuItems]);
 
-  const existingTitles = useMemo(
-    () => buildExistingTitlesSet(activeMenu || []),
-    [activeMenu],
-  );
-
-  /* =========================================================
-   * SUGGEST
-   * ======================================================= */
-
-  const suggestSource = useMemo(
-    () => getSuggestBySite(siteKind),
-    [siteKind],
-  );
+  const suggestSource = useMemo(() => getSuggestBySite(siteKind), [siteKind]);
 
   const filteredSuggest = useMemo(
     () =>
@@ -82,31 +76,35 @@ export default function AllowedBlocks() {
         suggest: suggestSource,
         baseNames,
         existingTitles,
-        existingPages: new Set(), // 🔥 FIX QUAN TRỌNG
+        existingPages: new Set(),
       }),
     [suggestSource, baseNames, existingTitles],
   );
 
-  /* =========================================================
-   * ACTIONS
-   * ======================================================= */
+  const currentMenuCount = useMemo(() => countMenus(menuItems), [menuItems]);
+
+  const isLimitReached = currentMenuCount >= maxMenus;
 
   const handleAddName = useCallback(
     (name: string) => {
       try {
+        const currentMenus = activeMenu || [];
+
+        const latestMenuCount = countMenus(currentMenus);
+
+        if (latestMenuCount >= maxMenus) {
+          modal.error(`Maximum menu limit is ${maxMenus}`);
+          return;
+        }
+
         addByName({
           name,
-          activeMenu: activeMenu || [],
+          activeMenu: currentMenus,
           setActiveMenu,
-          internalPages: INTERNAL_PAGES || [],
+          internalPages: INTERNAL_PAGES,
           locale: currentLocale,
           t,
         });
-
-        modal.success(
-          t("menus.allowedBlocks.addSuccessTitle"),
-          t("menus.allowedBlocks.addSuccessMessage").replace("{name}", t(name)),
-        );
       } catch (e: unknown) {
         modal.error(
           t("menus.allowedBlocks.addErrorTitle"),
@@ -114,27 +112,22 @@ export default function AllowedBlocks() {
         );
       }
     },
-    [addByName, activeMenu, setActiveMenu, INTERNAL_PAGES, currentLocale, t, modal],
+    [activeMenu, maxMenus, addByName, setActiveMenu, INTERNAL_PAGES, currentLocale, t, modal],
   );
-
-  /* =========================================================
-   * RENDER
-   * ======================================================= */
 
   return (
     <div className={styles.cardform}>
       <div className={styles.grid2}>
-        {/* LEFT: BASE BLOCKS */}
         <div className={styles.blocksGrid}>
           {baseNames.map((name) => (
             <div key={name} className={styles.blockCell}>
               <div
                 className={`${styles.blockCard} ${styles.appCard}`}
-                draggable
+                draggable={!isLimitReached}
                 onDragStart={(e) =>
                   onDragStart(e, {
                     name,
-                    internalPages: INTERNAL_PAGES || [],
+                    internalPages: INTERNAL_PAGES,
                     locale: currentLocale,
                     t,
                   })
@@ -162,18 +155,17 @@ export default function AllowedBlocks() {
           ))}
         </div>
 
-        {/* RIGHT: SUGGEST */}
-        <section
-          className={styles.blocksGridRight}
-          aria-label={t("menus.allowedBlocks.suggestionsAria")}
-        >
+        <section className={styles.blocksGridRight} aria-label={t("menus.allowedBlocks.suggestionsAria")}>
           {Object.keys(filteredSuggest).length === 0 ? (
-            <div className={styles.smallHelp}>
-              {t("menus.allowedBlocks.noMoreSuggestions")}
-            </div>
+            <div className={styles.smallHelp}>{t("menus.allowedBlocks.noMoreSuggestions")}</div>
           ) : (
             Object.entries(filteredSuggest).map(([group, items]) => (
-              <div key={group} style={{ marginBottom: 10 }}>
+              <div
+                key={group}
+                style={{
+                  marginBottom: 10,
+                }}
+              >
                 <div
                   style={{
                     fontWeight: 600,
@@ -185,21 +177,27 @@ export default function AllowedBlocks() {
                   {t(group)}
                 </div>
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
                   {items.map((name) => (
                     <button
                       type="button"
                       key={name}
+                      draggable={!isLimitReached}
                       onClick={() => handleAddName(name)}
                       onDragStart={(e) =>
                         onDragStart(e, {
                           name,
-                          internalPages: INTERNAL_PAGES || [],
+                          internalPages: INTERNAL_PAGES,
                           locale: currentLocale,
                           t,
                         })
                       }
-                      draggable
                       className={styles.btn}
                       style={{
                         borderRadius: 20,
@@ -212,8 +210,11 @@ export default function AllowedBlocks() {
                     >
                       <i
                         className="bi bi-plus-lg"
-                        style={{ marginRight: 6 }}
+                        style={{
+                          marginRight: 6,
+                        }}
                       />
+
                       {t(name)}
                     </button>
                   ))}

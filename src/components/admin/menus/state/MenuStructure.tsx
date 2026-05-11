@@ -1,13 +1,6 @@
 "use client";
 
-import React, {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { Dispatch, SetStateAction, useCallback, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/menus/MenuStructure.module.css";
 import EditOffcanvas from "./EditOffcanvas";
 import { useMenuStore } from "@/components/admin/menus/state/useMenuStore";
@@ -16,14 +9,12 @@ import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 
 type MenuItem = ReturnType<typeof useMenuStore>["activeMenu"][number];
 
-type DragInfo =
-  | null
-  | {
-      kind: "move";
-      id: string;
-      source: "root" | "children";
-      parentId?: string | null;
-    };
+type DragInfo = null | {
+  kind: "move";
+  id: string;
+  source: "root" | "children";
+  parentId?: string | null;
+};
 
 type MenuStructureProps = {
   q: string;
@@ -64,14 +55,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
   const modal = useModal();
   const { t } = useAdminI18n();
 
-  const {
-    activeMenu,
-    setActiveMenu,
-    removeItemById,
-    buildHref,
-    findItem,
-    INTERNAL_PAGES,
-  } = useMenuStore();
+  const { activeMenu, setActiveMenu, removeItemById, buildHref, findItem, INTERNAL_PAGES } = useMenuStore();
 
   const [editing, setEditing] = useState<MenuItem | null>(null);
   const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
@@ -137,9 +121,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
       const node = findItem(nodeId);
       if (!node?.children?.length) return false;
 
-      return node.children.some(
-        (child) => child.id === targetId || isDescendant(child.id, targetId),
-      );
+      return node.children.some((child) => child.id === targetId || isDescendant(child.id, targetId));
     },
     [findItem],
   );
@@ -155,9 +137,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
       const titleHit = title.toLowerCase().includes(normalizedQuery);
       const hrefHit = (href || "").toLowerCase().includes(normalizedQuery);
 
-      const keptChildren = (node.children || [])
-        .map(matchNode)
-        .filter(Boolean) as MenuItem[];
+      const keptChildren = (node.children || []).map(matchNode).filter(Boolean) as MenuItem[];
 
       if (titleHit || hrefHit || keptChildren.length > 0) {
         return {
@@ -190,30 +170,20 @@ export default function MenuStructure({ q }: MenuStructureProps) {
   const handleDelete = useCallback(
     async (id: string) => {
       const current = findItem(id);
-      const currentTitle = resolveItemTitle(current as MenuItem | null);
       updateDeletingState(id, true);
-
       try {
-        const response = await fetch(`/api/admin/menus/${id}`, {
-          method: "DELETE",
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error(await response.text());
-        }
-
         const [, nextRoot] = removeItemById(id);
         setActiveMenu(nextRoot);
-
         if (editing?.id === id) {
           setEditing(null);
         }
-
-        modal.success(
-          t("menus.menuStructure.deleteSuccessTitle"),
-          t("menus.menuStructure.deleteSuccessMessage").replace("{name}", currentTitle),
-        );
+        const isSavedMenu = !current?.isLocal;
+        if (isSavedMenu) {
+          const response = await fetch(`/api/admin/menus/${id}`, { method: "DELETE", cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+        }
       } catch (error: unknown) {
         modal.error(
           t("menus.menuStructure.deleteErrorTitle"),
@@ -223,23 +193,18 @@ export default function MenuStructure({ q }: MenuStructureProps) {
         updateDeletingState(id, false);
       }
     },
-    [
-      findItem,
-      resolveItemTitle,
-      updateDeletingState,
-      removeItemById,
-      setActiveMenu,
-      editing?.id,
-      modal,
-      t,
-    ],
+    [findItem, updateDeletingState, removeItemById, setActiveMenu, editing?.id, modal, t],
   );
 
   const askDelete = useCallback(
     (id: string) => {
       const current = findItem(id);
+      if (!current) return;
+      if (current.isLocal) {
+        void handleDelete(id);
+        return;
+      }
       const currentTitle = resolveItemTitle(current as MenuItem | null);
-
       modal.confirmDelete(
         t("menus.menuStructure.confirmDeleteTitle"),
         t("menus.menuStructure.confirmDeleteMessage").replace("{name}", currentTitle),
@@ -285,6 +250,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
         ...(slug ? { slug } : {}),
         schedules: [],
         children: [],
+        isLocal: true,
       };
     },
     [t],
@@ -300,9 +266,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
         return;
       }
 
-      const raw =
-        event.dataTransfer.getData("application/json") ||
-        event.dataTransfer.getData("text/plain");
+      const raw = event.dataTransfer.getData("application/json") || event.dataTransfer.getData("text/plain");
 
       if (!raw) {
         clearOverState();
@@ -321,30 +285,17 @@ export default function MenuStructure({ q }: MenuStructureProps) {
         }
 
         const nextMenu = (activeMenu || []).map((menuItem) =>
-          menuItem.id === parentId
-            ? { ...menuItem, children: [...(menuItem.children || []), item] }
-            : menuItem,
+          menuItem.id === parentId ? { ...menuItem, children: [...(menuItem.children || []), item] } : menuItem,
         );
 
         setActiveMenu(nextMenu);
       } catch {
-        modal.error(
-          t("menus.allowedBlocks.addErrorTitle"),
-          t("menus.menuStructure.invalidBlockData"),
-        );
+        modal.error(t("menus.allowedBlocks.addErrorTitle"), t("menus.menuStructure.invalidBlockData"));
       } finally {
         clearOverState();
       }
     },
-    [
-      isRootItemId,
-      clearOverState,
-      createNewItemFromPayload,
-      setActiveMenu,
-      activeMenu,
-      modal,
-      t,
-    ],
+    [isRootItemId, clearOverState, createNewItemFromPayload, setActiveMenu, activeMenu, modal, t],
   );
 
   const onDragStartRow = useCallback(
@@ -401,9 +352,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
         setActiveMenu([...nextRoot, removed]);
       } else {
         const nextMenu = nextRoot.map((menuItem) =>
-          menuItem.id === parentId
-            ? { ...menuItem, children: [...(menuItem.children || []), removed] }
-            : menuItem,
+          menuItem.id === parentId ? { ...menuItem, children: [...(menuItem.children || []), removed] } : menuItem,
         );
         setActiveMenu(nextMenu);
       }
@@ -457,34 +406,20 @@ export default function MenuStructure({ q }: MenuStructureProps) {
           <div
             className={styles.menuItem}
             draggable={!isDeleting}
-            onDragStart={(event) =>
-              onDragStartRow(event, item, parentId ? "children" : "root", parentId)
-            }
+            onDragStart={(event) => onDragStartRow(event, item, parentId ? "children" : "root", parentId)}
             onDragEnd={onDragEndRow}
             title={hrefPreview || ""}
             style={isDeleting ? { opacity: 0.5, pointerEvents: "none" } : undefined}
           >
             <span className={`${styles.order} text-white`}>{idx + 1}</span>
             <i className={`bi bi-grip-vertical ${styles.handle}`} />
-            <span
-              className={`${styles.depthBadge} ${
-                depth === 1 ? styles.depthMain : styles.depthSub
-              }`}
-            >
-              {depth === 1
-                ? t("menus.menuStructure.main")
-                : t("menus.menuStructure.sub")}
+            <span className={`${styles.depthBadge} ${depth === 1 ? styles.depthMain : styles.depthSub}`}>
+              {depth === 1 ? t("menus.menuStructure.main") : t("menus.menuStructure.sub")}
             </span>
 
-            <span className={styles.flex1}>
-              {highlight(displayTitle, q.trim())}
-            </span>
+            <span className={styles.flex1}>{highlight(displayTitle, q.trim())}</span>
 
-            {hrefPreview ? (
-              <span className={styles.linkPill}>
-                {highlight(hrefPreview, q.trim())}
-              </span>
-            ) : null}
+            {hrefPreview ? <span className={styles.linkPill}>{highlight(hrefPreview, q.trim())}</span> : null}
 
             <button
               type="button"
@@ -516,8 +451,7 @@ export default function MenuStructure({ q }: MenuStructureProps) {
           {depth < 2 ? (
             <div className={styles.subwrap} data-parent={item.id}>
               <div className={styles.smallHelp}>
-                <i className="bi bi-diagram-2" /> {t("menus.menuStructure.childrenOf")}{" "}
-                <b>{displayTitle}</b>
+                <i className="bi bi-diagram-2" /> {t("menus.menuStructure.childrenOf")} <b>{displayTitle}</b>
               </div>
 
               <div
@@ -534,13 +468,9 @@ export default function MenuStructure({ q }: MenuStructureProps) {
                 }}
               >
                 {(item.children || []).length === 0 ? (
-                  <p className={`${styles.smallHelp} m-0 py-2`}>
-                    {t("menus.menuStructure.dragToCreateSubmenu")}
-                  </p>
+                  <p className={`${styles.smallHelp} m-0 py-2`}>{t("menus.menuStructure.dragToCreateSubmenu")}</p>
                 ) : (
-                  (item.children || []).map((child, childIndex) =>
-                    renderRow(child, childIndex, depth + 1, item.id),
-                  )
+                  (item.children || []).map((child, childIndex) => renderRow(child, childIndex, depth + 1, item.id))
                 )}
               </div>
             </div>
@@ -581,18 +511,14 @@ export default function MenuStructure({ q }: MenuStructureProps) {
       >
         {filteredTree.length === 0 ? (
           <p className={`${styles.smallHelp} text-center m-0 py-3`}>
-            {q
-              ? t("menus.menuStructure.noMatchingResults")
-              : t("menus.menuStructure.dragToCreateLevel1")}
+            {q ? t("menus.menuStructure.noMatchingResults") : t("menus.menuStructure.dragToCreateLevel1")}
           </p>
         ) : (
           filteredTree.map((item, idx) => renderRow(item, idx, 1))
         )}
       </div>
 
-      {editing ? (
-        <EditOffcanvas item={editing} onClose={() => setEditing(null)} />
-      ) : null}
+      {editing ? <EditOffcanvas item={editing} onClose={() => setEditing(null)} /> : null}
     </div>
   );
 }
