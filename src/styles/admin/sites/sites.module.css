@@ -33,10 +33,10 @@
 }
 
 .pageTitle {
-  font-size: 18px;
-  font-weight: 800;
-  color: #2c8fe7;
+  color: var(--muted);
   text-transform: uppercase;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .pageSub {
@@ -269,8 +269,8 @@
 
 .panelTitle {
   font-size: 15px;
-  font-weight: 700;
-  color: var(--color-title);
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .panelSub {
@@ -470,7 +470,7 @@
     1fr
     1fr
     1fr
-    1fr 1fr;
+    1fr 1.5fr;
   align-items: center;
   padding: 0 20px;
   border-bottom: var(--bd-header);
@@ -494,7 +494,7 @@
     1fr
     1fr
     1fr
-    1fr 1fr;
+    1fr 1.5fr;
   align-items: center;
   padding: 0 20px;
   border-bottom: 1px solid #f1f5f9;
@@ -666,6 +666,7 @@
 
 .dropdownDanger {
   color: #dc2626;
+  max-width: 100px;
 }
 
 .dropdownDanger:hover {
