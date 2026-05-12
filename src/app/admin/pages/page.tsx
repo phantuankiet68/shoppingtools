@@ -6,7 +6,7 @@ const PageBuilder = dynamic(() => import("@/components/admin/pages/PageClient"),
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Page Management" subtitle="Build, edit, and manage system pages" />
+      <AdminPageTitle title="Page Management" />
       <PageBuilder />
     </main>
   );

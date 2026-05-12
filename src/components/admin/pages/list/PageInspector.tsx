@@ -32,13 +32,13 @@ function hasMeaningfulSeo(seo?: Partial<SEO> | null) {
 
   return Boolean(
     seo.metaTitle ||
-      seo.metaDescription ||
-      seo.keywords ||
-      seo.canonicalUrl ||
-      seo.ogTitle ||
-      seo.ogDescription ||
-      seo.ogImage ||
-      seo.structuredData,
+    seo.metaDescription ||
+    seo.keywords ||
+    seo.canonicalUrl ||
+    seo.ogTitle ||
+    seo.ogDescription ||
+    seo.ogImage ||
+    seo.structuredData,
   );
 }
 
@@ -160,21 +160,13 @@ function isAbortError(error: unknown) {
   return false;
 }
 
-function PageInspector({
-  page,
-  onEdit,
-  onPreview,
-  onPublish,
-  onUnpublish,
-  onDelete,
-  initialSeo = null,
-}: Props) {
+function PageInspector({ page, onEdit, onPreview, onPublish, onUnpublish, onDelete, initialSeo = null }: Props) {
   const modal = useModal();
-  const { site } = useAdminAuth();
+  const { currentSite } = useAdminAuth();
   const { t } = useAdminI18n();
 
-  const siteId = site?.id ?? "";
-  const siteName = site?.name ?? "";
+  const siteId = currentSite?.id ?? "";
+  const siteName = currentSite?.name ?? "";
   const hasPage = !!page?.id;
 
   const [seo, setSeo] = useState<SEO>(() => buildDefaultSEO(page, initialSeo));
@@ -356,8 +348,9 @@ function PageInspector({
   const handleAutoSEO = useCallback(() => {
     if (!page?.id) return;
 
-    const { seo: nextSeo } = fillAutoSEO({
+    const { seo: nextSeo } = fillAutoSEO(t, {
       title: page.title || t("pages.pageInspector.newPage"),
+
       path: page.path || "/",
     });
 
@@ -366,7 +359,7 @@ function PageInspector({
       ...sanitizeSeo(nextSeo),
     }));
 
-    modal.success(t("common.success"), t("pages.pageInspector.autoSeoCompleted"));
+    modal.success(t("pageList.common.success"), t("pages.pageInspector.autoSeoCompleted"));
   }, [page, modal, t]);
 
   const handleSaveSEO = useCallback(async () => {
@@ -386,7 +379,7 @@ function PageInspector({
         throw new Error(j?.error || t("pages.pageInspector.saveSeoFailed"));
       }
 
-      modal.success(t("common.success"), t("pages.pageInspector.saveSeoSuccess"));
+      modal.success(t("pageList.common.success"), t("pages.pageInspector.saveSeoSuccess"));
     } catch (e: unknown) {
       modal.error(t("common.error"), (e as Error)?.message || t("pages.pageInspector.saveSeoError"));
     } finally {
@@ -435,7 +428,7 @@ function PageInspector({
         throw new Error(data?.error || t("pages.pageInspector.syncPageFailed"));
       }
 
-      modal.success(t("common.success"), t("pages.pageInspector.syncPageSuccess"));
+      modal.success(t("pageList.common.success"), t("pages.pageInspector.syncPageSuccess"));
       setSyncOpen(false);
       setSyncForm((prev) => ({
         ...prev,
@@ -471,9 +464,6 @@ function PageInspector({
       F3: () => {
         if (!hasPage) return;
         handleDelete();
-      },
-      F5: () => {
-        openSyncModal();
       },
       F6: () => {
         if (!hasPage) return;
@@ -529,14 +519,6 @@ function PageInspector({
         disabled: !hasPage,
       },
       {
-        key: "sync",
-        label: t("pages.pageInspector.sync"),
-        hotkey: "F5",
-        icon: "bi-arrow-repeat",
-        onClick: openSyncModal,
-        disabled: !siteId,
-      },
-      {
         key: "edit",
         label: t("pages.pageInspector.edit"),
         hotkey: "F6",
@@ -554,9 +536,7 @@ function PageInspector({
       },
       {
         key: "saveSeo",
-        label: savingSEO
-          ? t("pages.pageInspector.saving")
-          : t("pages.pageInspector.saveSeo"),
+        label: savingSEO ? t("pages.pageInspector.saving") : t("pages.pageInspector.saveSeo"),
         hotkey: "F10",
         icon: "bi-save",
         onClick: () => void handleSaveSEO(),
@@ -564,10 +544,7 @@ function PageInspector({
       },
       {
         key: "publishToggle",
-        label:
-          page?.status === "PUBLISHED"
-            ? t("pages.pageInspector.unpublish")
-            : t("pages.pageInspector.publish"),
+        label: page?.status === "PUBLISHED" ? t("pages.pageInspector.unpublish") : t("pages.pageInspector.publish"),
         hotkey: "F11",
         icon: page?.status === "PUBLISHED" ? "bi-eye-slash" : "bi-upload",
         onClick: () => {
@@ -602,9 +579,7 @@ function PageInspector({
           <>
             <header className={styles.detailHead}>
               <div className={styles.detailInfo}>
-                <h2 className={styles.detailTitle}>
-                  {page!.title || t("pages.pageInspector.untitled")}
-                </h2>
+                <h2 className={styles.detailTitle}>{page!.title || t("pages.pageInspector.untitled")}</h2>
 
                 <div className={styles.kvItem}>
                   <span className={styles.kvLabel}>{t("pages.pageInspector.path")}</span>
@@ -616,9 +591,7 @@ function PageInspector({
                   <span
                     className={`${styles.badge} ${page!.status === "PUBLISHED" ? styles.badgeGreen : styles.badgeGray}`}
                   >
-                    {page!.status === "PUBLISHED"
-                      ? t("pages.pageInspector.published")
-                      : t("pages.pageInspector.draft")}
+                    {page!.status === "PUBLISHED" ? t("pages.pageInspector.published") : t("pages.pageInspector.draft")}
                   </span>
                 </div>
               </div>
@@ -911,8 +884,7 @@ function PageInspector({
               </div>
 
               <div className={styles.syncHint}>
-                {t("pages.pageInspector.syncHintPrefix")}{" "}
-                <strong>{t("pages.pageInspector.createAndSync")}</strong>,{" "}
+                {t("pages.pageInspector.syncHintPrefix")} <strong>{t("pages.pageInspector.createAndSync")}</strong>,{" "}
                 {t("pages.pageInspector.syncHintSuffix")}
                 <pre className={styles.codeBlock}>
                   {`POST ${API_ROUTES.ADMIN_BUILDER_PAGE_SYNC}
@@ -940,9 +912,7 @@ function PageInspector({
                 onClick={() => void handleSyncFromMenu()}
                 disabled={syncingPage || !siteId}
               >
-                {syncingPage
-                  ? t("pages.pageInspector.syncing")
-                  : t("pages.pageInspector.createAndSync")}
+                {syncingPage ? t("pages.pageInspector.syncing") : t("pages.pageInspector.createAndSync")}
               </button>
             </div>
           </div>

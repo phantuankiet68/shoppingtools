@@ -1,4 +1,7 @@
 import type { RegItem, InspectorField } from "@/lib/ui-builder/types";
+
+type TranslateFn = (key: string, params?: Record<string, string>) => string;
+
 type BuildAutoSEOInput = {
   title?: string | null;
   path?: string | null;
@@ -42,13 +45,24 @@ export type SEO = {
 };
 
 export type DropMeta =
-  | { type: "row-col"; parentRowId: string; colIndex: number }
-  | { type: "section"; parentSectionId: string; slot: string };
+  | {
+      type: "row-col";
+      parentRowId: string;
+      colIndex: number;
+    }
+  | {
+      type: "section";
+      parentSectionId: string;
+      slot: string;
+    };
 
 export type InternalProps = {
   _parentRowId?: string;
   _parentColIndex?: number;
-  __parent?: { id: string; slot: string };
+  __parent?: {
+    id: string;
+    slot: string;
+  };
 };
 
 export type Mode = "pages" | "settings" | "design" | "code" | "preview";
@@ -60,58 +74,82 @@ export type RegistryTypes = {
 
 function ensureLeadingSlash(p?: string | null) {
   if (!p) return "/";
+
   const s = p.trim();
+
   return s.startsWith("/") ? s : `/${s}`;
 }
 
-function cleanupTitle(title?: string | null) {
-  return (title || "Sản phẩm nổi bật").trim();
+function cleanupTitle(t: TranslateFn, title?: string | null) {
+  return (title || t("seo.defaultTitle")).trim();
 }
 
 function isHomePage(path: string) {
   return path === "/" || path === "/home";
 }
 
-function buildMetaTitle(title: string, siteName: string, isHome: boolean) {
-  if (isHome) return `${siteName} - Mua sắm dễ dàng, sản phẩm đẹp và giá tốt`;
-  return `${title} | ${siteName}`;
-}
-
-function buildMetaDescription(title: string, siteName: string, isHome: boolean) {
+function buildMetaTitle(t: TranslateFn, title: string, siteName: string, isHome: boolean) {
   if (isHome) {
-    return `Khám phá ${siteName} với nhiều sản phẩm đẹp, giá tốt, dễ chọn mua và tối ưu trải nghiệm trên mọi thiết bị.`;
+    return t("seo.homeMetaTitle").replace("{siteName}", siteName);
   }
 
-  return `Khám phá ${title} tại ${siteName}. Thông tin rõ ràng, hình ảnh đẹp, trải nghiệm mua sắm mượt mà và dễ chuyển đổi.`;
+  return t("seo.pageMetaTitle").replace("{title}", title).replace("{siteName}", siteName);
 }
 
-function buildOgTitle(title: string, siteName: string, isHome: boolean) {
-  if (isHome) return `${siteName} | Ưu đãi hấp dẫn mỗi ngày`;
-  return `${title} - Xem ngay tại ${siteName}`;
-}
-
-function buildOgDescription(title: string, siteName: string, isHome: boolean) {
+function buildOgTitle(t: TranslateFn, title: string, siteName: string, isHome: boolean) {
   if (isHome) {
-    return `Mua sắm nhanh hơn với giao diện đẹp, nội dung rõ ràng và nhiều ưu đãi hấp dẫn tại ${siteName}.`;
+    return t("seo.homeOgTitle").replace("{siteName}", siteName);
   }
 
-  return `Xem ngay ${title} tại ${siteName} với thông tin nổi bật, nội dung hấp dẫn và trải nghiệm mua sắm tối ưu.`;
+  return t("seo.pageOgTitle").replace("{title}", title).replace("{siteName}", siteName);
 }
 
-function buildKeywords(title: string, category?: string | null, siteName?: string | null) {
-  return [title, category, siteName, "mua online", "giá tốt", "ưu đãi", "shopping online"].filter(Boolean).join(", ");
+function buildMetaDescription(t: TranslateFn, title: string, siteName: string, isHome: boolean) {
+  if (isHome) {
+    return t("seo.homeMetaDescription").replace("{siteName}", siteName);
+  }
+
+  return t("seo.pageMetaDescription").replace("{title}", title).replace("{siteName}", siteName);
 }
 
-export function fillAutoSEO(input: BuildAutoSEOInput): { seo: SEO } {
+function buildKeywords(t: TranslateFn, title: string, category?: string | null, siteName?: string | null) {
+  const keywords =
+    t("seo.keywords")
+      ?.split(",")
+      .map((item) => item.trim()) || [];
+
+  return [title, category, siteName, ...keywords].filter(Boolean).join(", ");
+}
+
+function buildOgDescription(t: TranslateFn, title: string, siteName: string, isHome: boolean) {
+  if (isHome) {
+    return t("seo.homeOgDescription").replace("{siteName}", siteName);
+  }
+
+  return t("seo.pageOgDescription").replace("{title}", title).replace("{siteName}", siteName);
+}
+
+export function fillAutoSEO(
+  t: TranslateFn,
+  input: BuildAutoSEOInput,
+): {
+  seo: SEO;
+} {
   const path = ensureLeadingSlash(input.path);
-  const title = cleanupTitle(input.title);
+
+  const title = cleanupTitle(t, input.title);
+
   const siteName = (input.siteName || "Zento Shop").trim();
+
   const isHome = isHomePage(path);
 
-  const metaTitle = buildMetaTitle(title, siteName, isHome).slice(0, 70);
-  const metaDescription = buildMetaDescription(title, siteName, isHome).slice(0, 160);
-  const ogTitle = buildOgTitle(title, siteName, isHome).slice(0, 95);
-  const ogDescription = buildOgDescription(title, siteName, isHome).slice(0, 200);
+  const metaTitle = buildMetaTitle(t, title, siteName, isHome).slice(0, 70);
+
+  const metaDescription = buildMetaDescription(t, title, siteName, isHome).slice(0, 160);
+
+  const ogTitle = buildOgTitle(t, title, siteName, isHome).slice(0, 95);
+
+  const ogDescription = buildOgDescription(t, title, siteName, isHome).slice(0, 200);
 
   const structuredData = JSON.stringify(
     {
@@ -133,7 +171,7 @@ export function fillAutoSEO(input: BuildAutoSEOInput): { seo: SEO } {
     seo: {
       metaTitle,
       metaDescription,
-      keywords: buildKeywords(title, input.category, siteName),
+      keywords: buildKeywords(t, title, input.category, siteName),
       canonicalUrl: path,
       noindex: false,
       nofollow: false,

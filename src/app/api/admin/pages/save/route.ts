@@ -129,15 +129,13 @@ export async function POST(req: NextRequest) {
       ogTitle: s.ogTitle ?? null,
       ogDescription: s.ogDescription ?? null,
       ogImage: s.ogImage ?? null,
-      twitterCard: s.twitterCard ?? null, // ✅ String
-      sitemapChangefreq: s.sitemapChangefreq ?? null, // ✅ String
+      twitterCard: s.twitterCard ?? null,
+      sitemapChangefreq: s.sitemapChangefreq ?? null,
       sitemapPriority: typeof s.sitemapPriority === "number" ? s.sitemapPriority : 0.7,
       structuredData: s.structuredData ?? null,
     };
 
     const blocksJson = (body.blocks || []) as unknown as Prisma.InputJsonValue;
-
-    // UPDATE
     if (body.id) {
       const updated = await prisma.page.updateMany({
         where: { id: body.id, siteId },
@@ -147,8 +145,6 @@ export async function POST(req: NextRequest) {
           path: finalPath,
           blocks: blocksJson,
           status: PageStatus.DRAFT,
-
-          // optional: keep old columns if you still use them
           seoTitle: seoData.metaTitle,
           seoDesc: seoData.metaDescription,
         },
@@ -157,7 +153,6 @@ export async function POST(req: NextRequest) {
       if (updated.count !== 1) {
         return NextResponse.json({ ok: false, error: "Page not found in current site" }, { status: 404 });
       }
-
       await prisma.pageSEO.upsert({
         where: { pageId: body.id },
         create: { pageId: body.id, ...seoData },
@@ -166,8 +161,6 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ ok: true, id: body.id, siteId, path: finalPath });
     }
-
-    // CREATE
     const created = await prisma.page.create({
       data: {
         siteId,
@@ -176,10 +169,8 @@ export async function POST(req: NextRequest) {
         path: finalPath,
         blocks: blocksJson,
         status: PageStatus.DRAFT,
-
         seoTitle: seoData.metaTitle,
         seoDesc: seoData.metaDescription,
-
         seo: {
           create: seoData,
         },

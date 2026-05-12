@@ -871,6 +871,8 @@ const vi = {
       sort: "Sắp xếp theo",
       clear: "Xóa",
       noDate: "(không có ngày)",
+      success: "Thành công",
+      cancel: "Hủy",
     },
 
     sites: {
@@ -908,6 +910,20 @@ const vi = {
       next: "Trang sau",
       page: "Trang",
       items: "mục",
+    },
+    actions: {
+      newPage: "Trang mới",
+    },
+    usage: {
+      pagesUsage: "Sử dụng trang",
+    },
+    createModal: {
+      title: "Tạo trang",
+      fields: { site: "Website", title: "Tiêu đề", slug: "Đường dẫn" },
+      placeholders: { title: "Nhập tiêu đề", slug: "gioi-thieu" },
+      buttons: { create: "Tạo", creating: "Đang tạo..." },
+      validation: { titleRequired: "Vui lòng nhập tiêu đề", siteRequired: "Vui lòng chọn website" },
+      messages: { createSuccess: "Tạo trang thành công", createFailed: "Tạo trang thất bại" },
     },
   },
   builderAdd: {
@@ -989,6 +1005,30 @@ const vi = {
       conditioner: "Điều hòa",
       lights: "Đèn",
     },
+  },
+  seo: {
+    defaultTitle: "Sản phẩm nổi bật",
+
+    homeMetaTitle: "{siteName} - Mua sắm dễ dàng, sản phẩm đẹp và giá tốt",
+
+    homeMetaDescription:
+      "Khám phá {siteName} với nhiều sản phẩm đẹp, giá tốt, dễ chọn mua và tối ưu trải nghiệm trên mọi thiết bị.",
+
+    pageMetaTitle: "{title} | {siteName}",
+
+    pageMetaDescription:
+      "Khám phá {title} tại {siteName}. Thông tin rõ ràng, hình ảnh đẹp, trải nghiệm mua sắm mượt mà và dễ chuyển đổi.",
+
+    homeOgTitle: "{siteName} | Ưu đãi hấp dẫn mỗi ngày",
+
+    pageOgTitle: "{title} - Xem ngay tại {siteName}",
+
+    homeOgDescription: "Mua sắm nhanh hơn với giao diện đẹp, nội dung rõ ràng và nhiều ưu đãi hấp dẫn tại {siteName}.",
+
+    pageOgDescription:
+      "Xem ngay {title} tại {siteName} với thông tin nổi bật, nội dung hấp dẫn và trải nghiệm mua sắm tối ưu.",
+
+    keywords: "mua online, giá tốt, ưu đãi, shopping online",
   },
 };
 

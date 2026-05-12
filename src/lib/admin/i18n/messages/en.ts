@@ -870,6 +870,8 @@ const en = {
       sort: "Sort by",
       clear: "Clear",
       noDate: "(no date)",
+      success: "Success",
+      cancel: "Cancel",
     },
 
     sites: {
@@ -907,6 +909,20 @@ const en = {
       next: "Next page",
       page: "Page",
       items: "items",
+    },
+    actions: {
+      newPage: "New Page",
+    },
+    usage: {
+      pagesUsage: "Pages Usage",
+    },
+    createModal: {
+      title: "Create Page",
+      fields: { site: "Website", title: "Title", slug: "Slug" },
+      placeholders: { title: "Enter title", slug: "about-us" },
+      buttons: { create: "Create", creating: "Creating..." },
+      validation: { titleRequired: "Please enter title", siteRequired: "Please select website" },
+      messages: { createSuccess: "Page created successfully", createFailed: "Failed to create page" },
     },
   },
   builderAdd: {
@@ -988,6 +1004,30 @@ const en = {
       conditioner: "Conditioner",
       lights: "Lights",
     },
+  },
+  seo: {
+    defaultTitle: "Featured Products",
+
+    homeMetaTitle: "{siteName} - Easy Shopping, Beautiful Products & Great Prices",
+
+    homeMetaDescription:
+      "Explore {siteName} with beautiful products, affordable prices, smooth shopping experiences, and optimized performance across all devices.",
+
+    pageMetaTitle: "{title} | {siteName}",
+
+    pageMetaDescription:
+      "Discover {title} at {siteName}. Clear information, attractive visuals, smooth shopping experiences, and optimized conversions.",
+
+    homeOgTitle: "{siteName} | Amazing Deals Every Day",
+
+    pageOgTitle: "{title} - Discover Now at {siteName}",
+
+    homeOgDescription: "Shop faster with a beautiful interface, clear content, and exciting daily deals at {siteName}.",
+
+    pageOgDescription:
+      "Discover {title} at {siteName} with highlighted information, engaging content, and an optimized shopping experience.",
+
+    keywords: "online shopping, best price, deals, ecommerce",
   },
 };
 

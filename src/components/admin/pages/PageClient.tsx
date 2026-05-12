@@ -5,16 +5,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PageList from "@/components/admin/pages/list/PageList";
 import PageInspector from "@/components/admin/pages/list/PageInspector";
 import { useModal } from "@/components/admin/shared/common/modal";
+import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 import styles from "@/styles/admin/pages/page/page.module.css";
 import type { PageRowWithSite } from "@/services/pages/builderPages.service";
 import { useBuilderPagesStore } from "@/store/pages/useBuilderPagesStore";
 import { PAGE_MESSAGES } from "@/features/pages/messages";
 import { TEMPLATES } from "@/constants/pages/templates.constants";
 
-type StatusFilter = "all" | "DRAFT" | "PUBLISHED";
+type StatusFilter = "DRAFT" | "PUBLISHED" | "all";
+
 type SortKey = "updatedAt" | "createdAt" | "title";
+
 type SortDir = "asc" | "desc";
-type SiteFilter = "all" | string;
+
+type SiteFilter = string;
 
 type TemplateGroup = "Topbar" | "Header" | "Footer" | "Sidebar" | null;
 
@@ -26,7 +30,9 @@ function detectTemplateGroup(page?: PageRowWithSite | null): TemplateGroup {
   if (!page) return null;
 
   const title = normalizeText(page.title);
+
   const slug = normalizeText(page.slug);
+
   const path = normalizeText(page.path);
 
   if (title === "topbar" || slug === "topbar" || path === "/topbar" || path.startsWith("/topbar/")) {
@@ -63,18 +69,31 @@ function getTemplateMetaByGroup(group: TemplateGroup) {
 
 export default function PageClient() {
   const router = useRouter();
+
   const sp = useSearchParams();
+
   const modal = useModal();
 
+  const { sites = [] } = useAdminAuth();
+
   const initQ = sp.get("q") ?? "";
+
   const initStatus = (sp.get("status") as StatusFilter | null) ?? "all";
+
   const initSort = (sp.get("sort") as SortKey | null) ?? "updatedAt";
+
   const initDir = (sp.get("dir") as SortDir | null) ?? "desc";
 
   const pageParam = Number(sp.get("page"));
+
   const initPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
 
-  const initSiteId = (sp.get("siteId") as SiteFilter | null) ?? "all";
+  /**
+   * ưu tiên query param
+   * nếu không có -> lấy site đầu tiên
+   */
+  const initSiteId = sp.get("siteId") ?? sites?.[0]?.id ?? "";
+
   const initActiveId = sp.get("id");
 
   const store = useBuilderPagesStore({
@@ -95,7 +114,6 @@ export default function PageClient() {
     siteId,
     page,
     activeId,
-    loadSites,
     loadPages,
     setPage,
     setActiveId,
@@ -104,38 +122,63 @@ export default function PageClient() {
     pub,
     pages,
     loading,
-    sites,
-    sitesLoading,
-    sitesErr,
     total,
     totalPages,
     active,
   } = store;
 
+  /**
+   * auto set first site
+   */
+  useEffect(() => {
+    if (!siteId && sites.length > 0) {
+      store.setSiteId(sites[0].id);
+    }
+  }, [siteId, sites, store]);
+
   useEffect(() => {
     const params = new URLSearchParams(sp.toString());
 
-    if (q) params.set("q", q);
-    else params.delete("q");
+    if (q) {
+      params.set("q", q);
+    } else {
+      params.delete("q");
+    }
 
-    if (status !== "all") params.set("status", status);
-    else params.delete("status");
+    if (status !== "all") {
+      params.set("status", status);
+    } else {
+      params.delete("status");
+    }
 
     params.set("sort", sortKey);
+
     params.set("dir", sortDir);
 
-    if (siteId !== "all") params.set("siteId", siteId);
-    else params.delete("siteId");
+    if (siteId) {
+      params.set("siteId", siteId);
+    } else {
+      params.delete("siteId");
+    }
 
-    if (page !== 1) params.set("page", String(page));
-    else params.delete("page");
+    if (page !== 1) {
+      params.set("page", String(page));
+    } else {
+      params.delete("page");
+    }
 
-    if (activeId) params.set("id", activeId);
-    else params.delete("id");
+    if (activeId) {
+      params.set("id", activeId);
+    } else {
+      params.delete("id");
+    }
 
     const nextSearch = params.toString();
+
     if (nextSearch !== sp.toString()) {
-      router.replace(`?${nextSearch}`, { scroll: false });
+      router.replace(`?${nextSearch}`, {
+        scroll: false,
+      });
     }
   }, [q, status, sortKey, sortDir, siteId, page, activeId, router, sp]);
 
@@ -145,11 +188,14 @@ export default function PageClient() {
     });
 
     const detectedGroup = detectTemplateGroup(pageRow);
+
     const templateMeta = getTemplateMetaByGroup(detectedGroup);
 
     if (detectedGroup && templateMeta) {
       params.set("templateGroup", detectedGroup);
+
       params.set("templateId", templateMeta.id);
+
       params.set("templateName", templateMeta.name);
     }
 
@@ -161,15 +207,20 @@ export default function PageClient() {
 
     if (/^https?:\/\//i.test(p.path)) {
       window.open(p.path, "_blank");
+
       return;
     }
 
     const base = p.siteDomain ? `http://${p.siteDomain}` : "";
+
     const nextPath = p.path.startsWith("/") ? p.path : `/${p.path}`;
+
     window.open(`${base}${nextPath}`, "_blank");
   }
 
   useEffect(() => {
+    if (!siteId) return;
+
     const t = window.setTimeout(() => {
       loadPages().catch((e: unknown) => {
         modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.loadPagesError);
@@ -177,22 +228,19 @@ export default function PageClient() {
     }, 260);
 
     return () => window.clearTimeout(t);
-  }, [loadPages, modal]);
+  }, [loadPages, modal, siteId]);
 
   const didMountRef = useRef(false);
+
   useEffect(() => {
     if (!didMountRef.current) {
       didMountRef.current = true;
+
       return;
     }
+
     setPage(1);
   }, [siteId, setPage]);
-
-  useEffect(() => {
-    loadSites().catch((e: unknown) => {
-      modal.error("Error", (e as Error)?.message || "Failed to load sites.");
-    });
-  }, [loadSites, modal]);
 
   async function del(id: string) {
     const current = pages.find((p) => p.id === id);
@@ -203,6 +251,7 @@ export default function PageClient() {
       async () => {
         try {
           await remove(id);
+
           modal.success("Success", `Deleted “${current?.title ?? "this page"}” successfully.`);
         } catch (e: unknown) {
           modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.deleteError);
@@ -216,6 +265,7 @@ export default function PageClient() {
 
     try {
       await dup(id);
+
       modal.success("Success", `Duplicated “${current?.title ?? "this page"}” successfully.`);
     } catch (e: unknown) {
       modal.error("Error", (e as Error)?.message || PAGE_MESSAGES.duplicateError);
@@ -227,6 +277,7 @@ export default function PageClient() {
 
     try {
       await pub(id, next);
+
       modal.success(
         "Success",
         next === "publish"
@@ -256,9 +307,6 @@ export default function PageClient() {
           sortDir={sortDir}
           setSortKey={store.setSortKey}
           setSortDir={store.setSortDir}
-          sites={sites}
-          sitesLoading={sitesLoading}
-          sitesErr={sitesErr}
           siteId={siteId}
           setSiteId={store.setSiteId}
           onRefresh={loadPages}

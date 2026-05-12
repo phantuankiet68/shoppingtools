@@ -451,15 +451,15 @@ const ja = {
       ogTitle: "OGタイトル",
       twitterCard: "Twitterカード",
       choices: "オプション",
-      noindex: "noindex",
-      nofollow: "nofollow",
+      noindex: "インデックス禁止",
+      nofollow: "リンク追跡禁止",
 
       metaDescription: "メタディスクリプション",
       metaDescriptionRange: "/ 150–160",
       metaDescriptionPlaceholder: "メタディスクリプションを入力",
       keywordsOptional: "キーワード（任意）",
       keywordsPlaceholder: "キーワード1, キーワード2, キーワード3",
-      canonicalUrl: "Canonical URL",
+      canonicalUrl: "正規URL",
       canonicalUrlPlaceholder: "https://example.com/your-page",
 
       ogDescription: "OG説明",
@@ -869,6 +869,8 @@ const ja = {
       sort: "並び替え",
       clear: "クリア",
       noDate: "（日付なし）",
+      success: "成功",
+      cancel: "キャンセル",
     },
 
     sites: {
@@ -906,6 +908,20 @@ const ja = {
       next: "次のページ",
       page: "ページ",
       items: "件",
+    },
+    actions: {
+      newPage: "新しいページ",
+    },
+    usage: {
+      pagesUsage: "ページ使用状況",
+    },
+    createModal: {
+      title: "ページ作成",
+      fields: { site: "ウェブサイト", title: "タイトル", slug: "スラッグ" },
+      placeholders: { title: "タイトルを入力", slug: "about-us" },
+      buttons: { create: "作成", creating: "作成中..." },
+      validation: { titleRequired: "タイトルを入力してください", siteRequired: "ウェブサイトを選択してください" },
+      messages: { createSuccess: "ページを作成しました", createFailed: "ページの作成に失敗しました" },
     },
   },
   builderAdd: {
@@ -987,6 +1003,29 @@ const ja = {
       conditioner: "エアコン",
       lights: "ライト",
     },
+  },
+  seo: {
+    defaultTitle: "注目の商品",
+
+    homeMetaTitle: "{siteName} - 簡単ショッピング、美しい商品、お得な価格",
+
+    homeMetaDescription:
+      "{siteName}では、美しい商品、お得な価格、快適なショッピング体験をすべてのデバイスで提供しています。",
+
+    pageMetaTitle: "{title} | {siteName}",
+
+    pageMetaDescription:
+      "{siteName}で{title}をご覧ください。分かりやすい情報、美しいデザイン、快適なショッピング体験を提供します。",
+
+    homeOgTitle: "{siteName} | 毎日お得なキャンペーン",
+
+    pageOgTitle: "{title} - {siteName}で今すぐチェック",
+
+    homeOgDescription: "{siteName}では、美しいUI、分かりやすいコンテンツ、お得なキャンペーンで快適にお買い物できます。",
+
+    pageOgDescription: "{siteName}で{title}の魅力的な情報と最適化されたショッピング体験をご確認ください。",
+
+    keywords: "オンラインショッピング, お得, セール, ECサイト",
   },
 };
 
