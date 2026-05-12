@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "@/styles/admin/layouts/TotalPage.module.css";
+import styles from "@/styles/admin/dashboard/TotalPage.module.css";
 import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 import { useDashboardStats } from "@/store/dashboard/useDashboardStats";
 import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
@@ -19,7 +19,7 @@ const calcPercent = (value: number, max?: number) => {
 };
 
 const getColor = (percent: number) => {
-  if (percent >= 90) return "rgb(68 190 239) 100%";
+  if (percent >= 90) return "rgb(253 217 162) 100%";
   if (percent >= 70) return "#e79b44ff";
   return "#22c55e";
 };
@@ -37,11 +37,7 @@ export default function TotalPage() {
   const limits = PLAN_LIMITS[tier as keyof typeof PLAN_LIMITS];
 
   if (loading) {
-    return (
-      <div className={styles.loading}>
-        {t("dashboard.loading")}
-      </div>
-    );
+    return <div className={styles.loading}>{t("dashboard.loading")}</div>;
   }
 
   const stats = [
@@ -109,20 +105,13 @@ export default function TotalPage() {
                     background: `conic-gradient(${color} ${item.percent}%, #e5e7eb 0%)`,
                   }}
                 >
-                  <div className={styles.inner}>
-                    {item.percent}%
-                  </div>
+                  <div className={styles.inner}>{item.percent}%</div>
                 </div>
 
                 <div className={styles.right}>
                   <span className={styles.value}>
                     {item.value}
-                    {item.limit && (
-                      <span className={styles.limit}>
-                        {" "}
-                        / {item.limit}
-                      </span>
-                    )}
+                    {item.limit && <span className={styles.limit}> / {item.limit}</span>}
                   </span>
                 </div>
               </div>

@@ -1,8 +1,5 @@
 .wrapper {
-  background: #ffffff;
-  padding: 15px;
   border-radius: 15px;
-  border: var(--bd-header);
 }
 
 /* MAIN CARD */
@@ -54,7 +51,7 @@
   transition: all 0.25s ease;
   border: var(--bd-header);
   min-width: 275px;
-  min-height: 121px;
+  min-height: 80px;
 }
 
 .appCard:hover {

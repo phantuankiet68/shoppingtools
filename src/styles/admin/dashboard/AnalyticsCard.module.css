@@ -1,0 +1,122 @@
+/* CARD */
+
+.card {
+  width: 100%;
+  border-radius: 16px;
+  padding: 15px;
+  background: white;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+/* HEADER */
+
+.header {
+  margin-bottom: 8px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+/* CHART */
+
+.chartWrap {
+  position: relative;
+}
+
+/* AXIS */
+
+.recharts-cartesian-axis-tick-value {
+  font-size: 11px !important;
+}
+
+/* FLOAT CARD */
+
+.floatingCard {
+  position: absolute;
+  top: -35px;
+  right: 54px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  color: white;
+  box-shadow: 0 10px 24px #2563eb47;
+  background: linear-gradient(135deg, #ceecff, #86a6cd) !important;
+}
+
+.floatingCard span {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.floatingCard strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.floatingCard small {
+  display: block;
+
+  margin-top: 6px;
+
+  font-size: 10px;
+
+  opacity: 0.88;
+}
+
+/* TOOLTIP */
+
+.tooltip {
+  padding: 14px 16px;
+
+  border-radius: 20px;
+
+  background: white;
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.tooltipMonth {
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #0f172a;
+}
+
+.tooltipValue {
+  margin-top: 6px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #f59e0b;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .card {
+    padding: 18px;
+  }
+
+  .floatingCard {
+    position: static;
+
+    margin-top: 16px;
+
+    width: fit-content;
+  }
+}
+
+@media (max-width: 1600px) {
+  .card {
+    width: 374px;
+  }
+}

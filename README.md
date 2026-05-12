@@ -526,3 +526,5 @@ Hệ thống gồm 3 cấp:
 👉 CUSTOMER thuộc về SITE, không thuộc platform
 
 Nhưng không thiếu pemission để chặn một số quyền của admin và một số cái như được tạo bao nhiêu menu tạo được bao nhiêu page những cái cần có bao nhiêu dữ liệu để tiện kiểm soát vì tôi cho họ thuê template và lưu lượng để tạo web mà
+
+Hiện tại bạn có thể giúp tôi thêm phần message vi.ts en.ts ja.ts được không import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n();

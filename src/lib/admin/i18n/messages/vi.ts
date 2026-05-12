@@ -1030,6 +1030,26 @@ const vi = {
 
     keywords: "mua online, giá tốt, ưu đãi, shopping online",
   },
+  analytics: {
+    monthlyRecapReport: "Báo cáo tổng kết tháng",
+    targetIncome: "Mục tiêu doanh thu",
+  },
+  welcome: {
+    badge: "Chào mừng trở lại Anna!",
+    titleStart: "Bạn đã hoàn thành",
+    titleEnd: "mục tiêu của tuần này!",
+    description: "Tiếp tục cố gắng và cải thiện kết quả của bạn!",
+  },
+  support: {
+    managerName: "Muhammad Waqas",
+    message: "Nhắn tin",
+    email: "Email",
+    phone: "Điện thoại",
+    chatGreeting: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
+    chatRequest: "Tôi cần hỗ trợ cho dashboard website của mình.",
+    chatReply: "Chắc chắn rồi 👋 Hãy gửi thêm chi tiết cho tôi.",
+    typeMessage: "Nhập tin nhắn...",
+  },
 };
 
 export default vi;

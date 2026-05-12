@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "@/styles/admin/layouts/PagePricing.module.css";
+import styles from "@/styles/admin/dashboard/PagePricing.module.css";
 import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 
@@ -40,15 +40,6 @@ export default function PagePricing() {
       categories: 30,
       highlight: true,
     },
-    {
-      id: "plus",
-      name: t("pricing.plus"),
-      price: "500.000đ",
-      sites: 5,
-      templates: 15,
-      products: 999,
-      categories: 999,
-    },
   ];
 
   return (
@@ -73,11 +64,7 @@ export default function PagePricing() {
               </div>
             </div>
 
-            {plan.highlight && (
-              <span className={styles.badge}>
-                🔥 {t("pricing.popular")}
-              </span>
-            )}
+            {plan.highlight && <span className={styles.badge}>🔥 {t("pricing.popular")}</span>}
           </div>
 
           {/* BODY */}
@@ -85,9 +72,7 @@ export default function PagePricing() {
             {/* PRICE */}
             <div className={styles.priceWrapper}>
               <span className={styles.price}>{plan.price}</span>
-              <span className={styles.period}>
-                /{t("pricing.month")}
-              </span>
+              <span className={styles.period}>/{t("pricing.month")}</span>
             </div>
 
             {/* FEATURES */}
@@ -119,14 +104,8 @@ export default function PagePricing() {
             </ul>
 
             {/* CTA */}
-            <button
-              className={`${styles.btn} ${
-                activePlan === plan.id ? styles.active : ""
-              }`}
-            >
-              {activePlan === plan.id
-                ? t("pricing.currentPlan")
-                : t("pricing.upgrade")}
+            <button className={`${styles.btn} ${activePlan === plan.id ? styles.active : ""}`}>
+              {activePlan === plan.id ? t("pricing.currentPlan") : t("pricing.upgrade")}
             </button>
           </div>
         </div>

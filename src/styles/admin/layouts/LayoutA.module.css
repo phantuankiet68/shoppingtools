@@ -1,8 +1,7 @@
 .shell {
+  grid-template-columns: 248px 1fr;
   height: 100vh;
   display: grid;
-  grid-template-columns: 280px 1fr;
-  background: #f5f7ff;
   overflow: hidden;
 }
 .shell.shellSidebarClosed {
@@ -973,7 +972,7 @@
 
 /* Default: Desktop/Window lớn */
 .shell {
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 248px 1fr;
 }
 
 .backdrop {
@@ -1739,50 +1738,45 @@
   background: rgba(59, 130, 246, 0.12);
   border-color: rgba(59, 130, 246, 0.35);
 }
-.shell {
-  height: 100vh;
-  display: grid;
-  grid-template-columns: 248px 1fr;
-  background: #f6f8fc;
-  overflow: hidden;
-}
-
 .shellSidebarClosed {
   grid-template-columns: 86px 1fr;
 }
 
 .sidebar {
+  width: 248px;
   height: 100vh;
-  position: sticky;
-  top: 0;
-  z-index: 40;
+  position: relative;
+  z-index: 50;
+  border-right: 1px solid #ece7dc;
+  background: radial-gradient(circle at 0 0, #fffaf6 0%, #0000 30%), linear-gradient(#76c6ff 0%, #fff 100%);
+}
+
+.shellSidebarClosed .sidebar {
+  width: 80px;
+}
+
+.shellSidebarClosed .submenu {
+  padding-left: 0px;
+}
+
+.sidebarPanel {
   display: flex;
   flex-direction: column;
-  background: #fff;
-  color: #cbd5f5;
-  height: 100vh;
-  padding: 16px 12px;
-  border-right: var(--bd-header);
-  padding: 14px 12px 12px;
-  overflow: hidden;
-  transition:
-    width 0.22s ease,
-    transform 0.22s ease,
-    box-shadow 0.22s ease;
+  height: 100%;
 }
 
 /* ===== Brand ===== */
 .brandWrap {
   padding: 0 2px 6px;
-  border-bottom: var(--bd-header);
+  border-bottom: 3px solid #ffffff;
 }
 
 .brandLink {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   text-decoration: none;
-  color: inherit;
+  padding: 15px;
 }
 
 .brandLogo {
@@ -1840,8 +1834,8 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-top: 5px;
-  padding-right: 2px;
+  padding: 5px 15px;
+  background: #ffffff7d;
 }
 
 .navGroupLeft {
@@ -1897,37 +1891,47 @@
 }
 
 .navItem {
-  width: 100%;
-  color: var(--muted);
-  cursor: pointer;
-  align-items: center;
-  gap: 12px;
-  padding: 0px 0px 6px 0px;
-  transition:
-    background 0.2s,
-    color 0.2s,
-    transform 0.1s;
   display: flex;
-  position: relative;
-  border-bottom: var(--bd-header);
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 43px;
+  padding: 0 14px;
+  border-radius: 16px;
+  color: #64748b;
+  text-decoration: none;
+  transition:
+    background 0.25s ease,
+    transform 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-/* Hover */
-.navItem:hover {
-  color: #2c8fe7;
-  border-bottom: 1px solid #2c8fe7;
+.navItem:hover,
+.subItem:hover {
+  background: rgba(255, 255, 255, 0.65);
+
+  transform: translateX(2px);
+
+  color: #3a4863;
 }
 
-/* Active */
-.navItemActive {
-  color: #2c8fe7;
-  border-bottom: 1px solid #2c8fe7;
+.navItemActive,
+.subItemActive {
+  background: white;
+
+  color: #4e8df7;
+
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.05),
+    0 2px 4px rgba(0, 0, 0, 0.03);
 }
 /* Group */
 .navGroupBtn {
   display: flex;
   justify-content: space-between;
   margin-top: 12px;
+  cursor: pointer;
 }
 
 .navIcon {
@@ -1947,7 +1951,6 @@
 }
 
 .shellSidebarClosed .navIcon {
-  font-size: 25px;
   opacity: 0.8;
   transition: all 0.2s ease;
 }
@@ -1972,7 +1975,6 @@
   justify-content: center;
   color: #98a2b3;
   transition: transform 0.18s ease;
-  margin-top: 8px;
 }
 
 .chev :global(i) {
@@ -2010,30 +2012,20 @@
 }
 
 .subItem {
-  width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0px 0px 6px 0px;
-  font-size: 14px;
-  color: var(--muted);
-  transition: all 0.2s;
+  gap: 14px;
+  width: 100%;
+  min-height: 43px;
+  padding: 0 14px;
+  border-radius: 16px;
+  color: #64748b;
+  text-decoration: none;
   transition:
-    background 0.16s ease,
-    color 0.16s ease;
-  border-bottom: var(--bd-header);
-}
-
-/* Hover */
-.subItem:hover {
-  color: #2c8fe7;
-  border-bottom: 1px solid #2c8fe7;
-}
-
-/* Active */
-.subItemActive {
-  color: #2c8fe7;
-  border-bottom: 1px solid #2c8fe7;
+    background 0.25s ease,
+    transform 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .subDot {
@@ -2234,6 +2226,7 @@
   flex: 1;
   overflow: auto;
   padding: 8px;
+  background: radial-gradient(circle at center top, rgba(96, 165, 250, 0.1), rgba(0, 0, 0, 0) 30%), rgb(245, 247, 251);
 }
 
 .children {

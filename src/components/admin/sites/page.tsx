@@ -526,20 +526,18 @@ export default function SitesPage() {
 
         <div className={styles.left}>
           <header className={styles.topbar}>
-            <div className={styles.pageTitle}>{t("sites.table.title")}</div>
+            <div className={styles.searchWrap}>
+              <i className="bi bi-search" />
+
+              <input
+                className={styles.search}
+                placeholder={t("sites.table.search")}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
 
             <div className={styles.topRight}>
-              <div className={styles.searchWrap}>
-                <i className="bi bi-search" />
-
-                <input
-                  className={styles.search}
-                  placeholder={t("sites.table.search")}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </div>
-
               <button className={styles.refreshBtn} onClick={handleRefresh}>
                 <i className="bi bi-arrow-clockwise" />
               </button>

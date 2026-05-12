@@ -45,9 +45,9 @@
   --bg-blue: #4cb3ff;
   --bg-table: linear-gradient(#e9f4fff0 0%, #ecf5fff0 100%);
   --title: #74b6f1;
-  --bd-header: 1px solid #dae7fb;
+  --bd-header: 1px solid #e2e8f0b3;
   --bd-header-active: #6e95e973;
-  --bg-pro: linear-gradient(135deg, #c3e5f5, #95caff);
+  --bg-pro: linear-gradient(135deg, #ffffff, #cce6ff);
   --bg-add: #24ff9a1f;
   --color-add: #2ecb96;
   --bd-add: 1px solid #00ff8970;

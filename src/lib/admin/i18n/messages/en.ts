@@ -1029,6 +1029,26 @@ const en = {
 
     keywords: "online shopping, best price, deals, ecommerce",
   },
+  analytics: {
+    monthlyRecapReport: "Monthly Recap Report",
+    targetIncome: "Target Income",
+  },
+  welcome: {
+    badge: "Welcome back Anna!",
+    titleStart: "You’ve learned",
+    titleEnd: "of your goal this week!",
+    description: "Keep it up and improve your results!",
+  },
+  support: {
+    managerName: "Muhammad Waqas",
+    message: "Message",
+    email: "Email",
+    phone: "Phone",
+    chatGreeting: "Hi! How can I help you today?",
+    chatRequest: "I need support for my website dashboard.",
+    chatReply: "Sure 👋 Please send me more details.",
+    typeMessage: "Type a message...",
+  },
 };
 
 export default en;

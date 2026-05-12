@@ -105,15 +105,6 @@ export default function Topbar({ meta, onLogout }: Props) {
           >
             <i className={`bi ${sidebarOpen ? "bi-text-indent-right" : "bi-list"}`} />
           </button>
-
-          <div className={styles.titleSection}>
-            <div className={styles.titleRow}>
-              <span className={styles.titleAccent} />
-              <h1 className={styles.pageTitle}>{meta.title}</h1>
-            </div>
-
-            <div className={styles.breadcrumb}>Admin Panel</div>
-          </div>
         </div>
 
         <div className={styles.topbarCenter}>

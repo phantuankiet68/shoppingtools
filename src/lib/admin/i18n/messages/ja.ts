@@ -1027,6 +1027,26 @@ const ja = {
 
     keywords: "オンラインショッピング, お得, セール, ECサイト",
   },
+  analytics: {
+    monthlyRecapReport: "月次レポート",
+    targetIncome: "収益目標",
+  },
+  welcome: {
+    badge: "おかえりなさい Anna!",
+    titleStart: "今週の目標を",
+    titleEnd: "達成しました！",
+    description: "この調子で結果を伸ばしていきましょう！",
+  },
+  support: {
+    managerName: "Muhammad Waqas",
+    message: "メッセージ",
+    email: "メール",
+    phone: "電話番号",
+    chatGreeting: "こんにちは！本日はどのようなご用件でしょうか？",
+    chatRequest: "Webサイトのダッシュボードについてサポートが必要です。",
+    chatReply: "もちろんです 👋 詳細を送ってください。",
+    typeMessage: "メッセージを入力...",
+  },
 };
 
 export default ja;
