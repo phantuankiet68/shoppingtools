@@ -14,11 +14,7 @@ import { REGISTRY } from "@/lib/ui-builder/registry";
 import { useUiBuilderAddStore } from "@/store/pages/add/uiBuilderAdd.store";
 import { fetchAdminPage, publishAdminPage, saveAdminPage } from "@/services/pages/add/adminPages.service";
 
-import {
-  ensureLeadingSlash,
-  originFromDomain,
-  normalizeSlugAndPath,
-} from "@/features/pages/add/pagePath.helper";
+import { ensureLeadingSlash, originFromDomain, normalizeSlugAndPath } from "@/features/pages/add/pagePath.helper";
 import {
   buildDroppedSingleBlock,
   buildDroppedTemplateBlocks,
@@ -37,11 +33,11 @@ export default function UiBuilderAddPage() {
   const { locale: routeLocale } = useParams<RouteParams>();
   const sp = useSearchParams();
   const { t } = useAdminI18n();
-  const { site, currentWorkspace } = useAdminAuth();
+  const { currentSite, currentWorkspace } = useAdminAuth();
 
-  const siteId = site?.id ?? "";
-  const siteDomain = site?.domain ?? "";
-  const siteType = site?.type ?? "";
+  const siteId = currentSite?.id ?? "";
+  const siteDomain = currentSite?.domain ?? "";
+  const siteType = currentSite?.type ?? "";
   const tier = currentWorkspace?.tier ?? "";
 
   const initialId = sp.get("id");
@@ -550,11 +546,7 @@ export default function UiBuilderAddPage() {
         </div>
       )}
 
-      {!siteId && (
-        <div className="small text-warning mt-2">
-          {t("builderAdd.errors.noSiteSelected")}
-        </div>
-      )}
+      {!siteId && <div className="small text-warning mt-2">{t("builderAdd.errors.noSiteSelected")}</div>}
     </div>
   );
 }

@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
         ...(siteType
           ? {
               code: {
-                equals: siteType,
+                contains: siteType,
                 mode: "insensitive",
               },
             }
