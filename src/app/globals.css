@@ -210,3 +210,9 @@ div[aria-label="Shop Header Announcement"] {
 div[aria-label="Shop Header Announcement"] > div {
   position: relative;
 }
+
+@media (max-width: 1600px) {
+  .no-width {
+    display: none;
+  }
+}

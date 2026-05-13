@@ -1,4 +1,16 @@
 const ja = {
+  common: {
+    error: "エラー",
+    refresh: "更新",
+    sort: "並び替え",
+    clear: "クリア",
+    noDate: "（日付なし）",
+    success: "成功",
+    cancel: "キャンセル",
+    save: "保存",
+    delete: "削除",
+  },
+
   sites: {
     form: {
       title: "サイトフォーム",
@@ -1046,6 +1058,308 @@ const ja = {
     chatRequest: "Webサイトのダッシュボードについてサポートが必要です。",
     chatReply: "もちろんです 👋 詳細を送ってください。",
     typeMessage: "メッセージを入力...",
+  },
+  categoriesAutomation: {
+    title: "カテゴリー初期化",
+    websiteType: "Webサイト種類",
+    businessType: "販売カテゴリ",
+    searchPlaceholder: "カテゴリ・サブカテゴリを検索...",
+    selectAll: "すべて選択",
+    clearAll: "選択解除",
+    creating: "作成中...",
+    autoCreate: "カテゴリーを自動作成",
+    selectedInfo: {
+      before: "",
+      after: " 件のカテゴリグループを選択中。確認すると、親カテゴリーと子カテゴリーが自動作成されます。",
+    },
+    common: {
+      cancel: "キャンセル",
+    },
+    websiteTypes: {
+      ecommerce: "ECサイト",
+      landingPage: "ランディングページ",
+      other: "その他",
+    },
+  },
+  categories: {
+    cosmetics: "化粧品",
+    electronics: "電子機器",
+    accessories: "アクセサリー",
+    fashion: "ファッション",
+    shoes: "靴",
+    home: "生活用品",
+    stationery: "文房具",
+    motherBaby: "ママ・ベビー",
+    food: "食品",
+    sports: "スポーツ",
+
+    business: "ビジネス",
+    portfolio: "ポートフォリオ",
+    saas: "SaaS",
+    course: "オンラインコース",
+    restaurant: "レストラン",
+    agency: "エージェンシー",
+
+    skincare: "スキンケア",
+    makeup: "メイクアップ",
+    haircare: "ヘアケア",
+    perfume: "香水",
+
+    phones: "スマートフォン",
+    laptops: "ノートパソコン",
+    audio: "オーディオ",
+    smartDevices: "スマートデバイス",
+
+    fashionAccessories: "ファッションアクセサリー",
+    techAccessories: "テックアクセサリー",
+    jewelry: "ジュエリー",
+
+    menFashion: "メンズファッション",
+    womenFashion: "レディースファッション",
+    kidsFashion: "キッズファッション",
+
+    menShoes: "メンズシューズ",
+    womenShoes: "レディースシューズ",
+    slippers: "スリッパ",
+
+    kitchen: "キッチン",
+    homeAppliances: "家電製品",
+    homeDecor: "インテリア",
+    cleaning: "掃除用品",
+
+    writingTools: "筆記用具",
+    paperNotebook: "ノート・紙類",
+    officeSupplies: "事務用品",
+
+    babyProducts: "ベビー用品",
+    babyFashion: "ベビーファッション",
+    motherProducts: "ママ用品",
+
+    snacks: "スナック",
+    drinks: "飲み物",
+    dryFood: "乾物食品",
+
+    sportswear: "スポーツウェア",
+    trainingEquipment: "トレーニング器具",
+    sportsAccessories: "スポーツアクセサリー",
+
+    businessSections: "ビジネスセクション",
+    portfolioSections: "ポートフォリオセクション",
+    saasSections: "SaaSセクション",
+    courseSections: "コースセクション",
+    restaurantSections: "レストランセクション",
+    agencySections: "エージェンシーセクション",
+
+    faceWash: "洗顔料",
+    toner: "トナー",
+    serum: "美容液",
+    moisturizer: "保湿クリーム",
+    sunscreen: "日焼け止め",
+
+    lipstick: "口紅",
+    powder: "パウダー",
+    foundation: "ファンデーション",
+    mascara: "マスカラ",
+    eyeliner: "アイライナー",
+
+    shampoo: "シャンプー",
+    conditioner: "コンディショナー",
+    hairMask: "ヘアマスク",
+    hairOil: "ヘアオイル",
+
+    menPerfume: "男性用香水",
+    womenPerfume: "女性用香水",
+    bodyMist: "ボディミスト",
+
+    android: "Android",
+    iphone: "iPhone",
+    phoneAccessories: "スマホアクセサリー",
+
+    officeLaptop: "オフィスノートPC",
+    gamingLaptop: "ゲーミングノートPC",
+    laptopAccessories: "ノートPCアクセサリー",
+
+    headphones: "ヘッドホン",
+    speakers: "スピーカー",
+    microphone: "マイク",
+
+    smartWatch: "スマートウォッチ",
+    camera: "カメラ",
+    smartHome: "スマートホーム機器",
+
+    bag: "バッグ",
+    wallet: "財布",
+    belt: "ベルト",
+    glasses: "メガネ",
+
+    charger: "充電器",
+    cable: "ケーブル",
+    powerBank: "モバイルバッテリー",
+    phoneHolder: "スマホスタンド",
+
+    ring: "指輪",
+    bracelet: "ブレスレット",
+    necklace: "ネックレス",
+    earrings: "イヤリング",
+
+    tshirt: "Tシャツ",
+    shirt: "シャツ",
+    jeans: "ジーンズ",
+    shorts: "ショートパンツ",
+
+    dress: "ドレス",
+    blouse: "ブラウス",
+    skirt: "スカート",
+    pants: "パンツ",
+
+    boyClothes: "男の子服",
+    girlClothes: "女の子服",
+
+    sneaker: "スニーカー",
+    leatherShoes: "革靴",
+    sandal: "サンダル",
+
+    highHeels: "ハイヒール",
+    womenSneaker: "レディーススニーカー",
+    womenSandal: "レディースサンダル",
+    flats: "フラットシューズ",
+
+    indoorSlippers: "室内スリッパ",
+    fashionSlippers: "ファッションスリッパ",
+
+    pot: "鍋",
+    knife: "包丁",
+    foodContainer: "食品保存容器",
+
+    riceCooker: "炊飯器",
+    blender: "ミキサー",
+    kettle: "電気ケトル",
+    fan: "扇風機",
+
+    lamp: "ランプ",
+    painting: "絵画",
+    curtain: "カーテン",
+
+    mop: "モップ",
+    floorCleaner: "床用クリーナー",
+    vacuum: "掃除機",
+
+    pen: "ペン",
+    pencil: "鉛筆",
+    highlighter: "蛍光ペン",
+
+    notebook: "ノート",
+    notePaper: "メモ用紙",
+    printPaper: "印刷用紙",
+
+    stapler: "ホッチキス",
+    paperClip: "クリップ",
+    fileFolder: "ファイルフォルダー",
+
+    diaper: "おむつ",
+    milk: "ミルク",
+    bottle: "哺乳瓶",
+    toys: "おもちゃ",
+
+    boyFashion: "男の子ファッション",
+    girlFashion: "女の子ファッション",
+
+    breastPump: "搾乳機",
+    milkStorageBag: "母乳保存バッグ",
+    postpartumCare: "産後ケア用品",
+
+    snack: "スナック",
+    cake: "ケーキ",
+    candy: "キャンディ",
+
+    coffee: "コーヒー",
+    tea: "お茶",
+    juice: "ジュース",
+
+    noodle: "麺類",
+    rice: "米",
+    nuts: "ナッツ",
+    spices: "スパイス",
+
+    sportShirt: "スポーツシャツ",
+    sportPants: "スポーツパンツ",
+    trainingSet: "トレーニングセット",
+
+    dumbbell: "ダンベル",
+    yogaMat: "ヨガマット",
+    resistanceBand: "レジスタンスバンド",
+
+    waterBottle: "ウォーターボトル",
+    gymBag: "ジムバッグ",
+    gloves: "グローブ",
+
+    about: "会社概要",
+    services: "サービス",
+    pricing: "料金",
+    testimonials: "レビュー",
+    contact: "お問い合わせ",
+
+    projects: "プロジェクト",
+    skills: "スキル",
+    experience: "経験",
+
+    features: "機能",
+    faq: "FAQ",
+    cta: "CTA",
+
+    curriculum: "カリキュラム",
+    mentor: "メンター",
+    reviews: "レビュー",
+
+    menu: "メニュー",
+    chef: "シェフ",
+    booking: "予約",
+    gallery: "ギャラリー",
+
+    clients: "顧客",
+    team: "チーム",
+    loading: "カテゴリを読み込み中...",
+    total: "カテゴリ",
+    automation: "自動化",
+    addCategory: "カテゴリ追加",
+    createTitle: "カテゴリ作成",
+    createCategory: "カテゴリ作成",
+    childCategories: "子カテゴリ",
+    addChild: "子カテゴリ追加",
+    autoSlug: "Slug自動生成",
+    root: "ルートカテゴリ",
+    newChild: "新しいカテゴリ",
+    searchPlaceholder: "カテゴリを検索...",
+    fields: { name: "名前", slug: "Slug", parent: "親カテゴリ", sortOrder: "並び順" },
+    placeholders: { name: "カテゴリ名を入力してください..." },
+    filters: { all: "すべて", root: "ルートのみ", children: "子カテゴリあり", empty: "商品なし" },
+    sort: { az: "A-Z", newest: "新しい順", updated: "最近更新", products: "商品数順" },
+    table: {
+      category: "カテゴリ",
+      slug: "Slug",
+      parent: "親カテゴリ",
+      products: "商品",
+      sort: "並び順",
+      updated: "更新日",
+      actions: "操作",
+    },
+    messages: {
+      loadError: "カテゴリを読み込めません。",
+      selectSite: "サイトを選択してください。",
+      enterName: "カテゴリ名を入力してください。",
+      createSuccess: "カテゴリを作成しました。",
+      createError: "カテゴリ作成に失敗しました。",
+      updateSuccess: "カテゴリを更新しました。",
+      updateError: "カテゴリ更新に失敗しました。",
+      deleteSuccess: "カテゴリを削除しました。",
+      deleteError: "カテゴリ削除に失敗しました。",
+      automationSuccess: "カテゴリプリセットを作成しました。",
+      automationError: "カテゴリプリセット作成に失敗しました。",
+      childCreated: "子カテゴリを作成しました。",
+      childError: "子カテゴリ作成に失敗しました。",
+      deleteTitle: "カテゴリを削除しますか？",
+      deleteDescription: "削除してもよろしいですか",
+    },
   },
 };
 

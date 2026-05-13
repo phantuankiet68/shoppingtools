@@ -1,4 +1,16 @@
 const en = {
+  common: {
+    error: "Error",
+    refresh: "Refresh",
+    sort: "Sort by",
+    clear: "Clear",
+    noDate: "(no date)",
+    success: "Success",
+    cancel: "Cancel",
+    save: "Save",
+    delete: "Delete",
+  },
+
   sites: {
     form: {
       title: "Site Form",
@@ -863,17 +875,6 @@ const en = {
   },
   pageList: {
     title: "List Pages",
-
-    common: {
-      error: "Error",
-      refresh: "Refresh",
-      sort: "Sort by",
-      clear: "Clear",
-      noDate: "(no date)",
-      success: "Success",
-      cancel: "Cancel",
-    },
-
     sites: {
       loading: "Loading sites...",
       all: "All sites",
@@ -1048,6 +1049,308 @@ const en = {
     chatRequest: "I need support for my website dashboard.",
     chatReply: "Sure 👋 Please send me more details.",
     typeMessage: "Type a message...",
+  },
+  categoriesAutomation: {
+    title: "Initialize Categories",
+    websiteType: "Website Type",
+    businessType: "Business Categories",
+    searchPlaceholder: "Search categories or subcategories...",
+    selectAll: "Select All",
+    clearAll: "Clear Selection",
+    creating: "Creating...",
+    autoCreate: "Auto Create Categories",
+    selectedInfo: {
+      before: "Selected ",
+      after: " category groups. After confirmation, the system will automatically create parent and child categories.",
+    },
+    common: {
+      cancel: "cancel",
+    },
+    websiteTypes: {
+      ecommerce: "Ecommerce",
+      landingPage: "Landing Page",
+      other: "Other",
+    },
+  },
+  categories: {
+    cosmetics: "Cosmetics",
+    electronics: "Electronics",
+    accessories: "Accessories",
+    fashion: "Fashion",
+    shoes: "Shoes",
+    home: "Home Appliances",
+    stationery: "Stationery",
+    motherBaby: "Mother & Baby",
+    food: "Food",
+    sports: "Sports",
+
+    business: "Business",
+    portfolio: "Portfolio",
+    saas: "SaaS",
+    course: "Online Course",
+    restaurant: "Restaurant",
+    agency: "Agency",
+
+    skincare: "Skincare",
+    makeup: "Makeup",
+    haircare: "Hair Care",
+    perfume: "Perfume",
+
+    phones: "Phones",
+    laptops: "Laptops",
+    audio: "Audio",
+    smartDevices: "Smart Devices",
+
+    fashionAccessories: "Fashion Accessories",
+    techAccessories: "Tech Accessories",
+    jewelry: "Jewelry",
+
+    menFashion: "Men Fashion",
+    womenFashion: "Women Fashion",
+    kidsFashion: "Kids Fashion",
+
+    menShoes: "Men Shoes",
+    womenShoes: "Women Shoes",
+    slippers: "Slippers",
+
+    kitchen: "Kitchen",
+    homeAppliances: "Home Appliances",
+    homeDecor: "Home Decor",
+    cleaning: "Cleaning",
+
+    writingTools: "Writing Tools",
+    paperNotebook: "Paper & Notebook",
+    officeSupplies: "Office Supplies",
+
+    babyProducts: "Baby Products",
+    babyFashion: "Baby Fashion",
+    motherProducts: "Mother Products",
+
+    snacks: "Snacks",
+    drinks: "Drinks",
+    dryFood: "Dry Food",
+
+    sportswear: "Sportswear",
+    trainingEquipment: "Training Equipment",
+    sportsAccessories: "Sports Accessories",
+
+    businessSections: "Business Sections",
+    portfolioSections: "Portfolio Sections",
+    saasSections: "SaaS Sections",
+    courseSections: "Course Sections",
+    restaurantSections: "Restaurant Sections",
+    agencySections: "Agency Sections",
+
+    faceWash: "Face Wash",
+    toner: "Toner",
+    serum: "Serum",
+    moisturizer: "Moisturizer",
+    sunscreen: "Sunscreen",
+
+    lipstick: "Lipstick",
+    powder: "Powder",
+    foundation: "Foundation",
+    mascara: "Mascara",
+    eyeliner: "Eyeliner",
+
+    shampoo: "Shampoo",
+    conditioner: "Conditioner",
+    hairMask: "Hair Mask",
+    hairOil: "Hair Oil",
+
+    menPerfume: "Men Perfume",
+    womenPerfume: "Women Perfume",
+    bodyMist: "Body Mist",
+
+    android: "Android",
+    iphone: "iPhone",
+    phoneAccessories: "Phone Accessories",
+
+    officeLaptop: "Office Laptop",
+    gamingLaptop: "Gaming Laptop",
+    laptopAccessories: "Laptop Accessories",
+
+    headphones: "Headphones",
+    speakers: "Speakers",
+    microphone: "Microphone",
+
+    smartWatch: "Smart Watch",
+    camera: "Camera",
+    smartHome: "Smart Home Devices",
+
+    bag: "Bag",
+    wallet: "Wallet",
+    belt: "Belt",
+    glasses: "Glasses",
+
+    charger: "Charger",
+    cable: "Cable",
+    powerBank: "Power Bank",
+    phoneHolder: "Phone Holder",
+
+    ring: "Ring",
+    bracelet: "Bracelet",
+    necklace: "Necklace",
+    earrings: "Earrings",
+
+    tshirt: "T-shirt",
+    shirt: "Shirt",
+    jeans: "Jeans",
+    shorts: "Shorts",
+
+    dress: "Dress",
+    blouse: "Blouse",
+    skirt: "Skirt",
+    pants: "Pants",
+
+    boyClothes: "Boy Clothes",
+    girlClothes: "Girl Clothes",
+
+    sneaker: "Sneaker",
+    leatherShoes: "Leather Shoes",
+    sandal: "Sandal",
+
+    highHeels: "High Heels",
+    womenSneaker: "Women Sneaker",
+    womenSandal: "Women Sandal",
+    flats: "Flats",
+
+    indoorSlippers: "Indoor Slippers",
+    fashionSlippers: "Fashion Slippers",
+
+    pot: "Pot",
+    knife: "Knife",
+    foodContainer: "Food Container",
+
+    riceCooker: "Rice Cooker",
+    blender: "Blender",
+    kettle: "Kettle",
+    fan: "Fan",
+
+    lamp: "Lamp",
+    painting: "Painting",
+    curtain: "Curtain",
+
+    mop: "Mop",
+    floorCleaner: "Floor Cleaner",
+    vacuum: "Vacuum Cleaner",
+
+    pen: "Pen",
+    pencil: "Pencil",
+    highlighter: "Highlighter",
+
+    notebook: "Notebook",
+    notePaper: "Note Paper",
+    printPaper: "Print Paper",
+
+    stapler: "Stapler",
+    paperClip: "Paper Clip",
+    fileFolder: "File Folder",
+
+    diaper: "Diaper",
+    milk: "Milk",
+    bottle: "Bottle",
+    toys: "Toys",
+
+    boyFashion: "Boy Fashion",
+    girlFashion: "Girl Fashion",
+
+    breastPump: "Breast Pump",
+    milkStorageBag: "Milk Storage Bag",
+    postpartumCare: "Postpartum Care",
+
+    snack: "Snack",
+    cake: "Cake",
+    candy: "Candy",
+
+    coffee: "Coffee",
+    tea: "Tea",
+    juice: "Juice",
+
+    noodle: "Noodle",
+    rice: "Rice",
+    nuts: "Nuts",
+    spices: "Spices",
+
+    sportShirt: "Sport Shirt",
+    sportPants: "Sport Pants",
+    trainingSet: "Training Set",
+
+    dumbbell: "Dumbbell",
+    yogaMat: "Yoga Mat",
+    resistanceBand: "Resistance Band",
+
+    waterBottle: "Water Bottle",
+    gymBag: "Gym Bag",
+    gloves: "Gloves",
+
+    about: "About",
+    services: "Services",
+    pricing: "Pricing",
+    testimonials: "Testimonials",
+    contact: "Contact",
+
+    projects: "Projects",
+    skills: "Skills",
+    experience: "Experience",
+
+    features: "Features",
+    faq: "FAQ",
+    cta: "CTA",
+
+    curriculum: "Curriculum",
+    mentor: "Mentor",
+    reviews: "Reviews",
+
+    menu: "Menu",
+    chef: "Chef",
+    booking: "Booking",
+    gallery: "Gallery",
+
+    clients: "Clients",
+    team: "Team",
+    loading: "Loading categories...",
+    total: "categories",
+    automation: "Automation",
+    addCategory: "Add category",
+    createTitle: "Create category",
+    createCategory: "Create category",
+    childCategories: "Child categories",
+    addChild: "Add child",
+    autoSlug: "Auto slug",
+    root: "Root category",
+    newChild: "New category",
+    searchPlaceholder: "Search categories...",
+    fields: { name: "Name", slug: "Slug", parent: "Parent category", sortOrder: "Sort order" },
+    placeholders: { name: "Enter category name..." },
+    filters: { all: "All", root: "Root only", children: "Has children", empty: "No products" },
+    sort: { az: "A-Z", newest: "Newest", updated: "Recently updated", products: "Most products" },
+    table: {
+      category: "Category",
+      slug: "Slug",
+      parent: "Parent",
+      products: "Products",
+      sort: "Sort",
+      updated: "Updated",
+      actions: "Actions",
+    },
+    messages: {
+      loadError: "Unable to load categories.",
+      selectSite: "Please select a website.",
+      enterName: "Please enter a category name.",
+      createSuccess: "Category created successfully.",
+      createError: "Failed to create category.",
+      updateSuccess: "Category updated successfully.",
+      updateError: "Failed to update category.",
+      deleteSuccess: "Category deleted successfully.",
+      deleteError: "Failed to delete category.",
+      automationSuccess: "Category presets created successfully.",
+      automationError: "Failed to create category presets.",
+      childCreated: "Child category created successfully.",
+      childError: "Failed to create child category.",
+      deleteTitle: "Delete category?",
+      deleteDescription: "Are you sure you want to delete",
+    },
   },
 };
 

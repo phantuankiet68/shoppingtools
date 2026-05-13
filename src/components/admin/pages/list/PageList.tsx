@@ -146,7 +146,7 @@ function PageList({
             {t("pageList.actions.newPage")}
           </button>
           <div className={styles.limitBox}>
-            <span>{t("pageList.usage.pagesUsage")}</span>
+            <span className="no-width">{t("pageList.usage.pagesUsage")}</span>
             <strong>
               {currentSitePageCount} / {maxPages}
             </strong>

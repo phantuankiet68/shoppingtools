@@ -881,3 +881,8 @@
   opacity: 0.8;
   font-size: 13px;
 }
+@media (max-width: 1600px) {
+  .searchInput {
+    width: 253px;
+  }
+}

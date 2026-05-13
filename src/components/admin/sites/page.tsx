@@ -622,7 +622,7 @@ export default function SitesPage() {
                         }}
                       >
                         <i className="bi bi-pencil-square" />
-                        {t("sites.table.edit")}
+                        <span className="no-width">{t("sites.table.edit")}</span>
                       </button>
 
                       <button
@@ -630,7 +630,7 @@ export default function SitesPage() {
                         onClick={() => handleDelete(site)}
                       >
                         <i className="bi bi-trash3" />
-                        {t("sites.table.delete")}
+                        <span className="no-width">{t("sites.table.delete")}</span>
                       </button>
                     </div>
                   </div>

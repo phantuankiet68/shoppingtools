@@ -347,12 +347,13 @@
   font-size: 12px;
   color: #666;
 }
-@media (max-width: 1540px) {
+
+@media (max-width: 1600px) {
   .wrap {
     padding: 0;
   }
   .grid {
+    grid-template-columns: 23.5% 1fr;
     margin-top: 0;
-    grid-template-columns: 25% 1fr;
   }
 }

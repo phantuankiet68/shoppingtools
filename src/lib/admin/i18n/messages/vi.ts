@@ -1,4 +1,16 @@
 const vi = {
+  common: {
+    error: "Lỗi",
+    refresh: "Làm mới",
+    sort: "Sắp xếp theo",
+    clear: "Xóa",
+    noDate: "(không có ngày)",
+    success: "Thành công",
+    cancel: "Hủy",
+    save: "Lưu",
+    delete: "Xóa",
+  },
+
   sites: {
     form: {
       title: "Biểu mẫu Website",
@@ -864,17 +876,6 @@ const vi = {
   },
   pageList: {
     title: "Danh sách trang",
-
-    common: {
-      error: "Lỗi",
-      refresh: "Làm mới",
-      sort: "Sắp xếp theo",
-      clear: "Xóa",
-      noDate: "(không có ngày)",
-      success: "Thành công",
-      cancel: "Hủy",
-    },
-
     sites: {
       loading: "Đang tải danh sách site...",
       all: "Tất cả site",
@@ -1049,6 +1050,331 @@ const vi = {
     chatRequest: "Tôi cần hỗ trợ cho dashboard website của mình.",
     chatReply: "Chắc chắn rồi 👋 Hãy gửi thêm chi tiết cho tôi.",
     typeMessage: "Nhập tin nhắn...",
+  },
+  categoriesAutomation: {
+    title: "Khởi tạo danh mục",
+    websiteType: "Loại website",
+    businessType: "Ngành hàng muốn bán",
+    searchPlaceholder: "Tìm ngành hàng, category con...",
+    selectAll: "Chọn tất cả",
+    clearAll: "Bỏ chọn",
+    creating: "Đang tạo...",
+    autoCreate: "Tạo categories tự động",
+    selectedInfo: {
+      before: "Đã chọn ",
+      after: " nhóm ngành. Khi xác nhận, hệ thống sẽ tự tạo category cha và category con tương ứng.",
+    },
+    common: {
+      cancel: "Hủy",
+    },
+    websiteTypes: {
+      ecommerce: "Ecommerce",
+      landingPage: "Landing Page",
+      other: "Khác",
+    },
+  },
+  categories: {
+    cosmetics: "Mỹ phẩm",
+    electronics: "Đồ điện tử",
+    accessories: "Phụ kiện",
+    fashion: "Quần áo",
+    shoes: "Giày dép",
+    home: "Đồ gia dụng",
+    stationery: "Văn phòng phẩm",
+    motherBaby: "Mẹ & bé",
+    food: "Thực phẩm",
+    sports: "Thể thao",
+
+    business: "Business",
+    portfolio: "Portfolio",
+    saas: "SaaS",
+    course: "Khóa học online",
+    restaurant: "Nhà hàng",
+    agency: "Agency",
+
+    skincare: "Chăm sóc da",
+    makeup: "Trang điểm",
+    haircare: "Chăm sóc tóc",
+    perfume: "Nước hoa",
+
+    phones: "Điện thoại",
+    laptops: "Laptop",
+    audio: "Âm thanh",
+    smartDevices: "Thiết bị thông minh",
+
+    fashionAccessories: "Phụ kiện thời trang",
+    techAccessories: "Phụ kiện công nghệ",
+    jewelry: "Trang sức",
+
+    menFashion: "Thời trang nam",
+    womenFashion: "Thời trang nữ",
+    kidsFashion: "Thời trang trẻ em",
+
+    menShoes: "Giày nam",
+    womenShoes: "Giày nữ",
+    slippers: "Dép",
+
+    kitchen: "Nhà bếp",
+    homeAppliances: "Điện gia dụng",
+    homeDecor: "Trang trí nhà cửa",
+    cleaning: "Dọn dẹp",
+
+    writingTools: "Dụng cụ viết",
+    paperNotebook: "Sổ & giấy",
+    officeSupplies: "Dụng cụ văn phòng",
+
+    babyProducts: "Đồ cho bé",
+    babyFashion: "Thời trang bé",
+    motherProducts: "Đồ cho mẹ",
+
+    snacks: "Đồ ăn vặt",
+    drinks: "Đồ uống",
+    dryFood: "Thực phẩm khô",
+
+    sportswear: "Quần áo thể thao",
+    trainingEquipment: "Dụng cụ tập luyện",
+    sportsAccessories: "Phụ kiện thể thao",
+
+    businessSections: "Business Sections",
+    portfolioSections: "Portfolio Sections",
+    saasSections: "SaaS Sections",
+    courseSections: "Course Sections",
+    restaurantSections: "Restaurant Sections",
+    agencySections: "Agency Sections",
+
+    faceWash: "Sữa rửa mặt",
+    toner: "Toner",
+    serum: "Serum",
+    moisturizer: "Kem dưỡng",
+    sunscreen: "Kem chống nắng",
+
+    lipstick: "Son",
+    powder: "Phấn nền",
+    foundation: "Kem nền",
+    mascara: "Mascara",
+    eyeliner: "Kẻ mắt",
+
+    shampoo: "Dầu gội",
+    conditioner: "Dầu xả",
+    hairMask: "Kem ủ",
+    hairOil: "Tinh dầu tóc",
+
+    menPerfume: "Nước hoa nam",
+    womenPerfume: "Nước hoa nữ",
+    bodyMist: "Xịt thơm cơ thể",
+
+    android: "Android",
+    iphone: "iPhone",
+    phoneAccessories: "Phụ kiện điện thoại",
+
+    officeLaptop: "Laptop văn phòng",
+    gamingLaptop: "Laptop gaming",
+    laptopAccessories: "Phụ kiện laptop",
+
+    headphones: "Tai nghe",
+    speakers: "Loa",
+    microphone: "Micro",
+
+    smartWatch: "Đồng hồ thông minh",
+    camera: "Camera",
+    smartHome: "Thiết bị nhà thông minh",
+
+    bag: "Túi xách",
+    wallet: "Ví",
+    belt: "Thắt lưng",
+    glasses: "Kính mắt",
+
+    charger: "Sạc",
+    cable: "Cáp",
+    powerBank: "Pin dự phòng",
+    phoneHolder: "Giá đỡ điện thoại",
+
+    ring: "Nhẫn",
+    bracelet: "Vòng tay",
+    necklace: "Dây chuyền",
+    earrings: "Bông tai",
+
+    tshirt: "Áo thun",
+    shirt: "Áo sơ mi",
+    jeans: "Quần jean",
+    shorts: "Quần short",
+
+    dress: "Đầm váy",
+    blouse: "Áo kiểu",
+    skirt: "Chân váy",
+    pants: "Quần",
+
+    boyClothes: "Bé trai",
+    girlClothes: "Bé gái",
+
+    sneaker: "Sneaker",
+    leatherShoes: "Giày tây",
+    sandal: "Sandal",
+
+    highHeels: "Cao gót",
+    womenSneaker: "Sneaker",
+    womenSandal: "Sandal",
+    flats: "Búp bê",
+
+    indoorSlippers: "Dép đi trong nhà",
+    fashionSlippers: "Dép thời trang",
+
+    pot: "Nồi chảo",
+    knife: "Dao kéo",
+    foodContainer: "Hộp đựng thực phẩm",
+
+    riceCooker: "Nồi cơm điện",
+    blender: "Máy xay",
+    kettle: "Ấm siêu tốc",
+    fan: "Quạt",
+
+    lamp: "Đèn",
+    painting: "Tranh",
+    curtain: "Rèm cửa",
+
+    mop: "Cây lau nhà",
+    floorCleaner: "Nước lau sàn",
+    vacuum: "Máy hút bụi",
+
+    pen: "Bút bi",
+    pencil: "Bút chì",
+    highlighter: "Bút highlight",
+
+    notebook: "Sổ tay",
+    notePaper: "Giấy note",
+    printPaper: "Giấy in",
+
+    stapler: "Bấm kim",
+    paperClip: "Kẹp giấy",
+    fileFolder: "File hồ sơ",
+
+    diaper: "Tã bỉm",
+    milk: "Sữa",
+    bottle: "Bình sữa",
+    toys: "Đồ chơi",
+
+    boyFashion: "Quần áo bé trai",
+    girlFashion: "Quần áo bé gái",
+
+    breastPump: "Máy hút sữa",
+    milkStorageBag: "Túi trữ sữa",
+    postpartumCare: "Đồ dùng sau sinh",
+
+    snack: "Snack",
+    cake: "Bánh",
+    candy: "Kẹo",
+
+    coffee: "Cà phê",
+    tea: "Trà",
+    juice: "Nước ép",
+
+    noodle: "Mì",
+    rice: "Gạo",
+    nuts: "Hạt",
+    spices: "Gia vị",
+
+    sportShirt: "Áo",
+    sportPants: "Quần",
+    trainingSet: "Bộ tập",
+
+    dumbbell: "Tạ",
+    yogaMat: "Thảm yoga",
+    resistanceBand: "Dây kháng lực",
+
+    waterBottle: "Bình nước",
+    gymBag: "Túi thể thao",
+    gloves: "Găng tay",
+
+    about: "Giới thiệu",
+    services: "Dịch vụ",
+    pricing: "Bảng giá",
+    testimonials: "Đánh giá",
+    contact: "Liên hệ",
+
+    projects: "Dự án",
+    skills: "Kỹ năng",
+    experience: "Kinh nghiệm",
+
+    features: "Tính năng",
+    faq: "FAQ",
+    cta: "CTA",
+
+    curriculum: "Giáo trình",
+    mentor: "Mentor",
+    reviews: "Đánh giá",
+
+    menu: "Menu",
+    chef: "Đầu bếp",
+    booking: "Đặt bàn",
+    gallery: "Thư viện",
+
+    clients: "Khách hàng",
+    team: "Đội ngũ",
+    loading: "Đang tải danh mục...",
+    total: "danh mục",
+    automation: "Tự động hóa",
+    addCategory: "Thêm danh mục",
+    createTitle: "Tạo danh mục",
+    createCategory: "Tạo danh mục",
+    childCategories: "Danh mục con",
+    addChild: "Thêm con",
+    autoSlug: "Tạo slug",
+    root: "Danh mục gốc",
+    newChild: "Danh mục mới",
+    searchPlaceholder: "Tìm kiếm danh mục...",
+
+    fields: {
+      name: "Tên",
+      slug: "Slug",
+      parent: "Danh mục cha",
+      sortOrder: "Thứ tự",
+    },
+
+    placeholders: {
+      name: "Nhập tên danh mục...",
+    },
+
+    filters: {
+      all: "Tất cả",
+      root: "Chỉ gốc",
+      children: "Có danh mục con",
+      empty: "Không có sản phẩm",
+    },
+
+    sort: {
+      az: "A-Z",
+      newest: "Mới nhất",
+      updated: "Cập nhật gần đây",
+      products: "Nhiều sản phẩm",
+    },
+
+    table: {
+      category: "Danh mục",
+      slug: "Slug",
+      parent: "Danh mục cha",
+      products: "Sản phẩm",
+      sort: "Sắp xếp",
+      updated: "Cập nhật",
+      actions: "Thao tác",
+    },
+
+    messages: {
+      loadError: "Không thể tải danh mục.",
+      selectSite: "Vui lòng chọn website.",
+      enterName: "Vui lòng nhập tên danh mục.",
+      createSuccess: "Tạo danh mục thành công.",
+      createError: "Tạo danh mục thất bại.",
+      updateSuccess: "Cập nhật danh mục thành công.",
+      updateError: "Cập nhật danh mục thất bại.",
+      deleteSuccess: "Xóa danh mục thành công.",
+      deleteError: "Xóa danh mục thất bại.",
+      automationSuccess: "Tạo preset danh mục thành công.",
+      automationError: "Tạo preset danh mục thất bại.",
+      childCreated: "Tạo danh mục con thành công.",
+      childError: "Tạo danh mục con thất bại.",
+      deleteTitle: "Xóa danh mục?",
+      deleteDescription: "Bạn có chắc muốn xóa “{{name}}”?",
+    },
   },
 };
 
