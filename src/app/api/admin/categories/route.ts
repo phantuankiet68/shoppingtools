@@ -41,7 +41,7 @@ function jsonError(message: string, status = 400) {
 }
 
 async function ensureParentInSite(siteId: string, parentId: string) {
-  const parent = await prisma.productCategory.findFirst({
+  const parent = await prisma.Category.findFirst({
     where: {
       id: parentId,
       siteId,
@@ -55,7 +55,7 @@ async function ensureParentInSite(siteId: string, parentId: string) {
 }
 
 async function nextSortOrderForParent(siteId: string, parentId: string | null) {
-  const result = await prisma.productCategory.aggregate({
+  const result = await prisma.Category.aggregate({
     where: {
       siteId,
       parentId,
@@ -111,7 +111,7 @@ export async function GET(req: Request) {
     const parentId = parentIdRaw == null || parentIdRaw === "" || parentIdRaw === "null" ? undefined : parentIdRaw;
     const page = clamp(toInt(url.searchParams.get("page"), 1), 1, 1_000_000);
     const pageSize = clamp(toInt(url.searchParams.get("pageSize"), 50), 1, 5000);
-    const where: Prisma.ProductCategoryWhereInput = {
+    const where: Prisma.CategoryWhereInput = {
       siteId,
     };
 
@@ -145,7 +145,7 @@ export async function GET(req: Request) {
 
     if (active === "active") {
       (
-        where as Prisma.ProductCategoryWhereInput & {
+        where as Prisma.CategoryWhereInput & {
           isActive?: boolean;
         }
       ).isActive = true;
@@ -153,7 +153,7 @@ export async function GET(req: Request) {
 
     if (active === "inactive") {
       (
-        where as Prisma.ProductCategoryWhereInput & {
+        where as Prisma.CategoryWhereInput & {
           isActive?: boolean;
         }
       ).isActive = false;
@@ -163,7 +163,7 @@ export async function GET(req: Request) {
     const skip = tree ? 0 : (page - 1) * pageSize;
     const take = tree ? 5000 : pageSize;
     const [categories, total] = await Promise.all([
-      prisma.productCategory.findMany({
+      prisma.Category.findMany({
         where,
         orderBy,
         skip,
@@ -187,7 +187,7 @@ export async function GET(req: Request) {
         },
       }),
 
-      prisma.productCategory.count({
+      prisma.Category.count({
         where,
       }),
     ]);
@@ -276,7 +276,7 @@ export async function POST(req: Request) {
         return jsonError("Parent category not found");
       }
     }
-    const existing = await prisma.productCategory.findFirst({
+    const existing = await prisma.Category.findFirst({
       where: {
         siteId,
         slug,
@@ -308,7 +308,7 @@ export async function POST(req: Request) {
     const sortOrder = Number.isFinite(Number(data.sortOrder))
       ? Math.trunc(Number(data.sortOrder))
       : await nextSortOrderForParent(siteId, parentId);
-    const created = await prisma.productCategory.create({
+    const created = await prisma.Category.create({
       data: {
         siteId,
         name,

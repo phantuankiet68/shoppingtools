@@ -107,7 +107,7 @@ export async function GET(req: Request) {
     }
 
     // 2) Query categories theo siteId
-    const rows = await prisma.productCategory.findMany({
+    const rows = await prisma.Category.findMany({
       where: {
         siteId: resolvedSiteId,
         ...(activeOnly ? { isActive: true } : {}),

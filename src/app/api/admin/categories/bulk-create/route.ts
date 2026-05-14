@@ -108,7 +108,7 @@ export async function POST(req: Request) {
 
         /* EXISTING */
 
-        const existing = await tx.productCategory.findFirst({
+        const existing = await tx.Category.findFirst({
           where: {
             siteId,
             slug,
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
 
         /* CREATE */
 
-        const createdCategory = await tx.productCategory.create({
+        const createdCategory = await tx.Category.create({
           data: {
             siteId,
 

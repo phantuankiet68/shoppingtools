@@ -45,6 +45,22 @@ export type AdminAuthData = {
     slug: string;
     role: string;
     tier: string;
+
+    accessPolicy: {
+      maxSites: number;
+      maxPages: number;
+      maxMenus: number;
+      maxCategories: number;
+      maxProducts: number;
+      maxCustomDomains: number;
+      maxBrands: number;
+      allowBlog: boolean;
+      allowEcommerce: boolean;
+      allowBooking: boolean;
+      allowNews: boolean;
+      allowLms: boolean;
+      allowDirectory: boolean;
+    };
   } | null;
 
   sites: Site[];

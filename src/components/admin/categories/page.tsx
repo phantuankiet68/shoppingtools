@@ -40,6 +40,7 @@ type CategoryRowProps = {
   expanded: Record<string, boolean>;
   toggleExpand: (id: string) => void;
   reload: () => Promise<void>;
+  maxCategories: number;
 };
 
 const CHILD_PER_PAGE = 3;
@@ -90,7 +91,7 @@ function buildTree(rows: Category[] = []): TreeNode[] {
 }
 
 export default function CategoriesPage() {
-  const { currentSite, sites } = useAdminAuth();
+  const { currentSite, sites, currentWorkspace } = useAdminAuth();
   const { t } = useAdminI18n();
   const modal = useModal();
 
@@ -111,6 +112,10 @@ export default function CategoriesPage() {
 
   const [openPresetModal, setOpenPresetModal] = useState(false);
   const [creatingPreset, setCreatingPreset] = useState(false);
+
+  const maxCategories = currentWorkspace?.accessPolicy?.maxCategories ?? 0;
+
+  const isCategoryLimitReached = rows.length >= maxCategories;
 
   useEffect(() => {
     if (currentSite?.id) {
@@ -240,6 +245,11 @@ export default function CategoriesPage() {
       return;
     }
 
+    if (rows.length >= maxCategories) {
+      modal.error(t("common.error"), `${t("categories.messages.maxCategoriesReached")} (${maxCategories})`);
+
+      return;
+    }
     if (!createName.trim()) {
       modal.error(t("common.error"), t("categories.messages.enterName"));
       return;
@@ -318,12 +328,11 @@ export default function CategoriesPage() {
             slug: createSlug(parentName),
             sortOrder,
           });
+
           sortOrder += 10;
 
           category.children?.forEach((child) => {
             const childName = t(child);
-
-            const childSlugKey = child.replace("categories.", "");
 
             preparedCategories.push({
               parentTempId,
@@ -336,6 +345,14 @@ export default function CategoriesPage() {
           });
         });
       });
+
+      const totalAfterCreate = rows.length + preparedCategories.length;
+
+      if (totalAfterCreate > maxCategories) {
+        modal.error(t("common.error"), `${t("categories.messages.maxCategoriesExceeded")} (${maxCategories})`);
+
+        return;
+      }
 
       const response = await fetch("/api/admin/categories/bulk-create", {
         method: "POST",
@@ -431,17 +448,32 @@ export default function CategoriesPage() {
         </div>
 
         <div className={styles.toolbarActions}>
-          <div className={styles.counterBadge}>
+          <div
+            className={styles.counterBadge}
+            style={{
+              background: filteredRows.length >= maxCategories ? "rgba(239, 68, 68, 0.15)" : undefined,
+              border: filteredRows.length >= maxCategories ? "1px solid rgba(239, 68, 68, 0.4)" : undefined,
+              color: filteredRows.length >= maxCategories ? "#ef4444" : undefined,
+            }}
+          >
             <i className="bi bi-folder2-open" />
-            {filteredRows.length} {t("categories.total")}
+            {filteredRows.length} / {maxCategories} {t("categories.total")}
           </div>
 
-          <button className={styles.secondaryBtn} onClick={() => setOpenPresetModal(true)}>
+          <button
+            className={styles.secondaryBtn}
+            onClick={() => setOpenPresetModal(true)}
+            disabled={isCategoryLimitReached}
+          >
             <i className="bi bi-magic" />
             {t("categories.automation")}
           </button>
 
-          <button className={styles.primaryBtn} onClick={() => setOpenCreateModal(true)}>
+          <button
+            className={styles.primaryBtn}
+            onClick={() => setOpenCreateModal(true)}
+            disabled={isCategoryLimitReached}
+          >
             <i className="bi bi-plus-lg" />
             {t("categories.addCategory")}
           </button>
@@ -473,6 +505,7 @@ export default function CategoriesPage() {
                 expanded={expanded}
                 toggleExpand={toggleExpand}
                 reload={loadCategories}
+                maxCategories={maxCategories}
               />
             ))}
           </div>
@@ -540,7 +573,7 @@ export default function CategoriesPage() {
   );
 }
 
-function CategoryRow({ node, rows, level, expanded, toggleExpand, reload }: CategoryRowProps) {
+function CategoryRow({ node, rows, level, expanded, toggleExpand, reload, maxCategories }: CategoryRowProps) {
   const { t } = useAdminI18n();
   const modal = useModal();
 
@@ -656,6 +689,12 @@ function CategoryRow({ node, rows, level, expanded, toggleExpand, reload }: Cate
       return;
     }
 
+    if (rows.length >= maxCategories) {
+      modal.error(t("common.error"), `${t("categories.messages.maxCategoriesReached")} (${maxCategories})`);
+
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -748,7 +787,11 @@ function CategoryRow({ node, rows, level, expanded, toggleExpand, reload }: Cate
               <div className={styles.childrenHeader}>
                 <h4>{t("categories.childCategories")}</h4>
 
-                <button className={styles.smallPrimaryBtn} onClick={handleAddChild}>
+                <button
+                  className={styles.smallPrimaryBtn}
+                  onClick={handleAddChild}
+                  disabled={rows.length >= maxCategories}
+                >
                   <i className="bi bi-plus-lg" />
                   {t("categories.addChild")}
                 </button>

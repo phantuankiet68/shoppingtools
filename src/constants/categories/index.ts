@@ -79,7 +79,7 @@ export const ECOMMERCE_CATEGORY_PRESETS: EcommercePreset[] = [
       {
         name: "categories.haircare",
 
-        children: ["categories.shampoo", "categories.conditioner", "categories.hairMask", "categories.hairOil"],
+        children: ["categories.shampoo", "categories.conditioner", "categories.hairMask"],
       },
 
       {

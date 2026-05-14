@@ -52,7 +52,6 @@ model User {
   imageFolders           ImageFolder[]
   imageAssets            ImageAsset[]
   merchants              Merchant[]
-  categories             Category[]
   transactions           Transaction[]
   systemCredentials      SystemCredential[]
 

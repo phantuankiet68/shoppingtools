@@ -55,11 +55,11 @@ export const API_ROUTES = {
     REQUEST: "/api/admin/user/friends/request",
   },
   ADMIN_BRAND: {
-    BRAND_API: "/api/admin/commerce/brands",
-    BRAND_IMAGE_UPLOAD_API: "/api/admin/commerce/brands/upload",
+    BRAND_API: "/api/admin/brands",
+    BRAND_IMAGE_UPLOAD_API: "/api/admin/brands/upload",
   },
   ADMIN_COMMERCE: {
-    BRANDS: "/api/admin/commerce/brands",
-    CATEGORIES: "/api/admin/commerce/categories",
+    BRANDS: "/api/admin/brands",
+    CATEGORIES: "/api/admin/categories",
   },
 } as const;

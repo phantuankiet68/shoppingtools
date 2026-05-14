@@ -37,9 +37,9 @@ model Site {
   fulfillments            Fulfillment[]
   pages                   Page[]
   products                Product[]
-  productBrands           ProductBrand[]
+  Brands                  Brand[]
   productVariants         ProductVariant[]
-  productCategories       ProductCategory[]
+  Categories              Category[]
 
   storageIntegration StorageIntegration?
   storageLogs        StorageLog[]

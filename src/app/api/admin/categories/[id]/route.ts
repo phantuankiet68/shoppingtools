@@ -58,7 +58,7 @@ type PatchData = {
 };
 
 async function assertCategoryInSite(siteId: string, id: string) {
-  return prisma.productCategory.findFirst({
+  return prisma.Category.findFirst({
     where: { id, siteId },
     select: { id: true, parentId: true },
   });
@@ -69,7 +69,7 @@ async function wouldCreateCycle(siteId: string, id: string, newParentId: string 
   if (!newParentId) return false;
   if (newParentId === id) return true;
 
-  const rows = await prisma.productCategory.findMany({
+  const rows = await prisma.Category.findMany({
     where: { siteId },
     select: { id: true, parentId: true },
   });
@@ -94,7 +94,7 @@ export async function GET(req: Request, ctx: Ctx) {
     const siteId = getSiteIdFromUrl(req);
     if (!siteId) return jsonError("siteId is required", 400);
 
-    const item = await prisma.productCategory.findFirst({
+    const item = await prisma.Category.findFirst({
       where: { id, siteId },
       select: {
         id: true,
@@ -184,7 +184,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       const parentId = raw == null || raw === "" || raw === "null" ? null : String(raw);
 
       if (parentId) {
-        const p = await prisma.productCategory.findFirst({
+        const p = await prisma.Category.findFirst({
           where: { id: parentId, siteId },
           select: { id: true },
         });
@@ -202,14 +202,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
     }
 
     // ✅ bảo vệ theo siteId
-    const r = await prisma.productCategory.updateMany({
+    const r = await prisma.Category.updateMany({
       where: { id, siteId },
       data: patch,
     });
 
     if (r.count === 0) return jsonError("Not found", 404);
 
-    const updated = await prisma.productCategory.findFirst({
+    const updated = await prisma.Category.findFirst({
       where: { id, siteId },
       select: {
         id: true,
@@ -265,14 +265,14 @@ export async function DELETE(req: Request, ctx: Ctx) {
     const siteId = getSiteIdFromUrl(req);
     if (!siteId) return jsonError("siteId is required", 400);
 
-    const root = await prisma.productCategory.findFirst({
+    const root = await prisma.Category.findFirst({
       where: { id: categoryId, siteId },
       select: { id: true },
     });
 
     if (!root) return jsonError("Not found", 404);
 
-    const allRows = await prisma.productCategory.findMany({
+    const allRows = await prisma.Category.findMany({
       where: { siteId },
       select: {
         id: true,
@@ -331,7 +331,7 @@ export async function DELETE(req: Request, ctx: Ctx) {
       const orderedIds = [...idsToDelete].sort((a, b) => getDepth(b) - getDepth(a));
 
       for (const id of orderedIds) {
-        await tx.productCategory.deleteMany({
+        await tx.Category.deleteMany({
           where: { id, siteId },
         });
       }

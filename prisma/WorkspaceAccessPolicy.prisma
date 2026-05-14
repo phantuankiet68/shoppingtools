@@ -7,7 +7,8 @@ model WorkspaceAccessPolicy {
   maxSites             Int @default(1) @map("max_sites")
   maxPages             Int @default(10) @map("max_pages")
   maxMenus             Int @default(3) @map("max_menus")
-  maxProductCategories Int @default(20) @map("max_product_categories")
+  maxCategories Int @default(20) @map("max_categories")
+  maxBrands Int @default(20) @map("max_brands")
   maxProducts          Int @default(100) @map("max_products")
   maxCustomDomains     Int @default(1) @map("max_custom_domains")
 

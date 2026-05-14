@@ -2,20 +2,21 @@
 
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
-import cls from "@/styles/admin/commerce/brand/brand.module.css";
-import { useSiteStore } from "@/store/site/site.store";
-import { useBrandStore } from "@/store/commerce/brands/brand.store";
+import cls from "@/styles/admin/brand/brand.module.css";
+import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
+import { useBrandStore } from "@/store/brands/brand.store";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import { useModal } from "@/components/admin/shared/common/modal";
-import { BRANDS_MESSAGES } from "@/features/commerce/brands/messages";
-import type { BrandRow, LogoFilter, SiteOption, SortBy } from "@/features/commerce/brands/types";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
+import type { BrandRow, LogoFilter, SortBy } from "@/features/brands/types";
+import { useShallow } from "zustand/react/shallow";
 
 function formatDate(value?: string) {
   if (!value) return "-";
-
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
   return date.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -24,166 +25,187 @@ function formatDate(value?: string) {
 }
 
 export default function AdminBrandCrudPage() {
+  const { t } = useAdminI18n();
   const modal = useModal();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { currentSite, sites } = useAdminAuth();
+  const {
+    items,
+    loading,
+    saving,
+    name,
+    slug,
+    description,
+    logoUrl,
+    logoFile,
+    logoPreview,
+    isDragging,
+    searchText,
+    logoFilter,
+    sortBy,
+    currentPage,
+    pageSize,
+    selectedBrandId,
+    mode,
+    setName,
+    setSlug,
+    setDescription,
+    setLogoUrl,
+    setLogoPreview,
+    setIsDragging,
+    setSearchText,
+    setLogoFilter,
+    setSortBy,
+    setCurrentPage,
+    setPageSize,
+    setSelectedBrandId,
+    resetLogoState,
+    resetAll,
+    loadBrands,
+    createBrand,
+    updateBrand,
+    deleteBrand,
+    publishBrand,
+    enterEditMode,
+    pickLogoFile,
+    derivedSlug,
+  } = useBrandStore(
+    useShallow((state) => ({
+      items: state.items,
+      loading: state.loading,
+      saving: state.saving,
+      name: state.name,
+      slug: state.slug,
+      description: state.description,
+      logoUrl: state.logoUrl,
+      logoFile: state.logoFile,
+      logoPreview: state.logoPreview,
+      isDragging: state.isDragging,
+      searchText: state.searchText,
+      logoFilter: state.logoFilter,
+      sortBy: state.sortBy,
+      currentPage: state.currentPage,
+      pageSize: state.pageSize,
+      selectedBrandId: state.selectedBrandId,
+      mode: state.mode,
+      setName: state.setName,
+      setSlug: state.setSlug,
+      setDescription: state.setDescription,
+      setLogoUrl: state.setLogoUrl,
+      setLogoPreview: state.setLogoPreview,
+      setIsDragging: state.setIsDragging,
+      setSearchText: state.setSearchText,
+      setLogoFilter: state.setLogoFilter,
+      setSortBy: state.setSortBy,
+      setCurrentPage: state.setCurrentPage,
+      setPageSize: state.setPageSize,
+      setSelectedBrandId: state.setSelectedBrandId,
+      resetLogoState: state.resetLogoState,
+      resetAll: state.resetAll,
+      loadBrands: state.loadBrands,
+      createBrand: state.createBrand,
+      updateBrand: state.updateBrand,
+      deleteBrand: state.deleteBrand,
+      publishBrand: state.publishBrand,
+      enterEditMode: state.enterEditMode,
+      pickLogoFile: state.pickLogoFile,
+      derivedSlug: state.derivedSlug,
+    })),
+  );
 
-  const sites = useSiteStore((state) => state.sites);
-  const sitesLoading = useSiteStore((state) => state.loading);
-  const sitesErr = useSiteStore((state) => state.err);
-  const selectedSiteId = useSiteStore((state) => state.siteId);
-  const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
-  const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
-  const loadSites = useSiteStore((state) => state.loadSites);
+  const finalSlug = useMemo(() => {
+    return derivedSlug();
+  }, [derivedSlug, name, slug]);
 
-  const items = useBrandStore((state) => state.items);
-  const loading = useBrandStore((state) => state.loading);
-  const saving = useBrandStore((state) => state.saving);
+  const previewSrc = logoPreview || logoUrl?.trim() || "";
 
-  const name = useBrandStore((state) => state.name);
-  const slug = useBrandStore((state) => state.slug);
-  const description = useBrandStore((state) => state.description);
-  const logoUrl = useBrandStore((state) => state.logoUrl);
-
-  const logoFile = useBrandStore((state) => state.logoFile);
-  const logoPreview = useBrandStore((state) => state.logoPreview);
-  const isDragging = useBrandStore((state) => state.isDragging);
-
-  const searchText = useBrandStore((state) => state.searchText);
-  const logoFilter = useBrandStore((state) => state.logoFilter);
-  const sortBy = useBrandStore((state) => state.sortBy);
-  const currentPage = useBrandStore((state) => state.currentPage);
-  const pageSize = useBrandStore((state) => state.pageSize);
-
-  const selectedBrandId = useBrandStore((state) => state.selectedBrandId);
-  const mode = useBrandStore((state) => state.mode);
-
-  const setName = useBrandStore((state) => state.setName);
-  const setSlug = useBrandStore((state) => state.setSlug);
-  const setDescription = useBrandStore((state) => state.setDescription);
-  const setLogoUrl = useBrandStore((state) => state.setLogoUrl);
-  const setLogoPreview = useBrandStore((state) => state.setLogoPreview);
-  const setIsDragging = useBrandStore((state) => state.setIsDragging);
-  const setSearchText = useBrandStore((state) => state.setSearchText);
-  const setLogoFilter = useBrandStore((state) => state.setLogoFilter);
-  const setSortBy = useBrandStore((state) => state.setSortBy);
-  const setCurrentPage = useBrandStore((state) => state.setCurrentPage);
-  const setPageSize = useBrandStore((state) => state.setPageSize);
-  const setSelectedBrandId = useBrandStore((state) => state.setSelectedBrandId);
-
-  const resetLogoState = useBrandStore((state) => state.resetLogoState);
-  const resetAll = useBrandStore((state) => state.resetAll);
-
-  const loadBrands = useBrandStore((state) => state.loadBrands);
-  const createBrand = useBrandStore((state) => state.createBrand);
-  const updateBrand = useBrandStore((state) => state.updateBrand);
-  const deleteBrand = useBrandStore((state) => state.deleteBrand);
-  const publishBrand = useBrandStore((state) => state.publishBrand);
-  const enterEditMode = useBrandStore((state) => state.enterEditMode);
-  const pickLogoFile = useBrandStore((state) => state.pickLogoFile);
-  const derivedSlug = useBrandStore((state) => state.derivedSlug);
-
-  const finalSlug = derivedSlug();
+  const [selectedSiteId, setSelectedSiteId] = React.useState(currentSite?.id || "");
 
   const selectedSite = useMemo(() => {
-    return sites.find((site) => site.id === selectedSiteId);
+    return sites?.find((site) => site.id === selectedSiteId);
   }, [sites, selectedSiteId]);
-
-  const selectedBrand = useMemo(() => {
-    return items.find((brand) => brand.id === selectedBrandId) ?? null;
-  }, [items, selectedBrandId]);
-
-  const withLogoCount = useMemo(() => {
-    return items.filter((brand) => Boolean(brand.logoUrl)).length;
-  }, [items]);
 
   const filteredItems = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
-    let nextItems = [...items];
 
-    if (keyword) {
-      nextItems = nextItems.filter((brand) => {
-        return (
-          brand.name.toLowerCase().includes(keyword) ||
-          brand.slug.toLowerCase().includes(keyword) ||
-          (brand.description || "").toLowerCase().includes(keyword) ||
-          (brand.site?.domain || "").toLowerCase().includes(keyword) ||
-          (brand.site?.name || "").toLowerCase().includes(keyword) ||
-          brand.siteId.toLowerCase().includes(keyword)
-        );
+    return [...items]
+      .filter((brand) => {
+        if (keyword) {
+          const matched =
+            brand.name.toLowerCase().includes(keyword) ||
+            brand.slug.toLowerCase().includes(keyword) ||
+            (brand.description || "").toLowerCase().includes(keyword) ||
+            (brand.site?.domain || "").toLowerCase().includes(keyword) ||
+            (brand.site?.name || "").toLowerCase().includes(keyword) ||
+            brand.siteId.toLowerCase().includes(keyword);
+          if (!matched) {
+            return false;
+          }
+        }
+
+        if (logoFilter === "with-logo" && !brand.logoUrl) {
+          return false;
+        }
+        if (logoFilter === "no-logo" && brand.logoUrl) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "name-asc":
+            return a.name.localeCompare(b.name, "vi");
+          case "name-desc":
+            return b.name.localeCompare(a.name, "vi");
+          case "oldest":
+            return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+          default:
+            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        }
       });
-    }
-
-    if (logoFilter === "with-logo") {
-      nextItems = nextItems.filter((brand) => Boolean(brand.logoUrl));
-    }
-
-    if (logoFilter === "no-logo") {
-      nextItems = nextItems.filter((brand) => !brand.logoUrl);
-    }
-
-    nextItems.sort((a, b) => {
-      if (sortBy === "name-asc") {
-        return a.name.localeCompare(b.name, "vi");
-      }
-
-      if (sortBy === "name-desc") {
-        return b.name.localeCompare(a.name, "vi");
-      }
-
-      if (sortBy === "oldest") {
-        return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-      }
-
-      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-    });
-
-    return nextItems;
   }, [items, searchText, logoFilter, sortBy]);
 
   const totalItems = filteredItems.length;
+
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   const paginatedItems = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
+
     return filteredItems.slice(startIndex, startIndex + pageSize);
   }, [filteredItems, currentPage, pageSize]);
 
-  const pageStart = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const pageEnd = Math.min(currentPage * pageSize, totalItems);
+  const pagination = useMemo(() => {
+    const start = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
 
-  const previewSrc = useMemo(() => {
-    return logoPreview || logoUrl.trim() || "";
-  }, [logoPreview, logoUrl]);
+    const end = Math.min(currentPage * pageSize, totalItems);
 
-  useEffect(() => {
-    hydrateFromStorage();
-    loadSites();
-  }, [hydrateFromStorage, loadSites]);
+    return { start, end };
+  }, [currentPage, pageSize, totalItems]);
 
   useEffect(() => {
-    if (!selectedSiteId && sites.length > 0) {
-      setSelectedSiteId(sites[0].id);
+    if (currentSite?.id && currentSite.id !== selectedSiteId) {
+      setSelectedSiteId(currentSite.id);
     }
-  }, [selectedSiteId, sites, setSelectedSiteId]);
+  }, [currentSite?.id]);
 
   useEffect(() => {
-    const controller = new AbortController();
+    if (!selectedSiteId) {
+      return;
+    }
 
+    const controller = new AbortController();
     loadBrands(selectedSiteId, controller.signal).catch((error: unknown) => {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
-
-      modal.error(
-        BRANDS_MESSAGES.common.loadFailedTitle,
-        error instanceof Error ? error.message : BRANDS_MESSAGES.common.loadFailedTitle,
-      );
+      modal.error(t("brands.modal.loadFailed"), error instanceof Error ? error.message : t("brands.modal.loadFailed"));
     });
 
     return () => {
       controller.abort();
     };
-  }, [selectedSiteId, loadBrands, modal]);
+  }, [selectedSiteId, loadBrands, modal, t]);
 
   useEffect(() => {
     if (!logoFile) {
@@ -192,6 +214,7 @@ export default function AdminBrandCrudPage() {
     }
 
     const objectUrl = URL.createObjectURL(logoFile);
+
     setLogoPreview(objectUrl);
 
     return () => {
@@ -205,115 +228,88 @@ export default function AdminBrandCrudPage() {
     }
   }, [currentPage, totalPages, setCurrentPage]);
 
+  /* HANDLERS */
   const handleLoadBrands = useCallback(() => {
+    if (!selectedSiteId || loading) {
+      return;
+    }
+
     loadBrands(selectedSiteId).catch((error: unknown) => {
-      modal.error(
-        BRANDS_MESSAGES.common.loadFailedTitle,
-        error instanceof Error ? error.message : BRANDS_MESSAGES.common.loadFailedTitle,
-      );
+      modal.error(t("brands.modal.loadFailed"), error instanceof Error ? error.message : t("brands.modal.loadFailed"));
     });
-  }, [loadBrands, selectedSiteId, modal]);
+  }, [loadBrands, selectedSiteId, modal, t]);
 
   const handlePrimarySubmit = useCallback(async () => {
     try {
       if (mode === "edit") {
         await updateBrand(selectedSiteId);
-        modal.success(BRANDS_MESSAGES.common.successTitle, BRANDS_MESSAGES.success.updated(name.trim()));
+        modal.success(t("brands.modal.success"), t("brands.modal.updatedSuccess").replace("{name}", name.trim()));
         return;
       }
-
       await createBrand(selectedSiteId);
-      modal.success(BRANDS_MESSAGES.common.successTitle, BRANDS_MESSAGES.success.created(name.trim()));
+      modal.success(t("brands.modal.success"), t("brands.modal.createdSuccess").replace("{name}", name.trim()));
     } catch (error: unknown) {
       modal.error(
-        mode === "edit" ? BRANDS_MESSAGES.common.updateFailedTitle : BRANDS_MESSAGES.common.createFailedTitle,
+        mode === "edit" ? t("brands.modal.updateFailed") : t("brands.modal.createFailed"),
         error instanceof Error
           ? error.message
           : mode === "edit"
-            ? BRANDS_MESSAGES.common.updateFailedTitle
-            : BRANDS_MESSAGES.common.createFailedTitle,
+            ? t("brands.modal.updateFailed")
+            : t("brands.modal.createFailed"),
       );
     }
-  }, [mode, updateBrand, selectedSiteId, modal, createBrand, name]);
+  }, [mode, updateBrand, selectedSiteId, modal, createBrand, name, t]);
 
-  const handleDelete = useCallback(() => {
-    if (!selectedBrand) {
-      modal.error(BRANDS_MESSAGES.common.missingBrandTitle, BRANDS_MESSAGES.validation.selectBrandFirst);
-      return;
-    }
-
-    modal.confirmDelete(
-      BRANDS_MESSAGES.modal.deleteTitle,
-      BRANDS_MESSAGES.modal.deleteDescription(selectedBrand.name),
-      async () => {
-        try {
-          await deleteBrand();
-          modal.success(BRANDS_MESSAGES.common.successTitle, BRANDS_MESSAGES.success.deleted(selectedBrand.name));
-        } catch (error: unknown) {
-          modal.error(
-            BRANDS_MESSAGES.common.deleteFailedTitle,
-            error instanceof Error ? error.message : BRANDS_MESSAGES.common.deleteFailedTitle,
-          );
-        }
-      },
-    );
-  }, [selectedBrand, modal, deleteBrand]);
+  const handleDelete = useCallback(
+    async (brand: BrandRow) => {
+      modal.confirmDelete(
+        t("brands.modal.deleteBrand"),
+        t("brands.modal.deleteBrandConfirm").replace("{name}", brand.name),
+        async () => {
+          try {
+            setSelectedBrandId(brand.id);
+            await deleteBrand();
+            modal.success(t("brands.modal.success"), t("brands.modal.deletedSuccess").replace("{name}", brand.name));
+          } catch (error: unknown) {
+            modal.error(
+              t("brands.modal.deleteFailed"),
+              error instanceof Error ? error.message : t("brands.modal.deleteFailed"),
+            );
+          }
+        },
+      );
+    },
+    [modal, deleteBrand, setSelectedBrandId, t],
+  );
 
   const handlePublish = useCallback(async () => {
-    if (!selectedBrand) {
-      modal.error(BRANDS_MESSAGES.common.missingBrandTitle, BRANDS_MESSAGES.validation.selectBrandFirst);
-      return;
-    }
-
     try {
       await publishBrand();
-      modal.success(BRANDS_MESSAGES.common.successTitle, BRANDS_MESSAGES.success.published(selectedBrand.name));
+      modal.success(t("brands.modal.success"), t("brands.modal.publishedSuccess").replace("{name}", name.trim()));
     } catch (error: unknown) {
       modal.error(
-        BRANDS_MESSAGES.common.publishFailedTitle,
-        error instanceof Error ? error.message : BRANDS_MESSAGES.common.publishFailedTitle,
+        t("brands.modal.publishFailed"),
+        error instanceof Error ? error.message : t("brands.modal.publishFailed"),
       );
     }
-  }, [selectedBrand, publishBrand, modal]);
-
-  const handleEnterEditMode = useCallback(() => {
-    if (!selectedBrand) {
-      modal.error(BRANDS_MESSAGES.common.missingBrandTitle, BRANDS_MESSAGES.validation.selectBrandFirst);
-      return;
-    }
-
-    enterEditMode(selectedBrand);
-    setSelectedSiteId(selectedBrand.siteId || "");
-
-    modal.success(BRANDS_MESSAGES.common.editModeTitle, BRANDS_MESSAGES.modal.editModeDescription(selectedBrand.name));
-  }, [selectedBrand, enterEditMode, setSelectedSiteId, modal]);
+  }, [publishBrand, modal, name, t]);
 
   const handlePickLogoFile = useCallback(
     (file: File | null) => {
       const error = pickLogoFile(file);
-
       if (error) {
-        modal.error(BRANDS_MESSAGES.common.invalidFileTitle, error);
+        modal.error(t("brands.modal.invalidFile"), error);
       }
     },
-    [pickLogoFile, modal],
-  );
-
-  const handleRowDoubleClick = useCallback(
-    (brand: BrandRow) => {
-      setSelectedBrandId(brand.id);
-      enterEditMode(brand);
-      setSelectedSiteId(brand.siteId || "");
-    },
-    [setSelectedBrandId, enterEditMode, setSelectedSiteId],
+    [pickLogoFile, modal, t],
   );
 
   const handleClearLogo = useCallback(() => {
-    if (saving) return;
-
+    if (saving) {
+      return;
+    }
     setLogoUrl("");
     resetLogoState();
-
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -329,12 +325,10 @@ export default function AdminBrandCrudPage() {
 
   const functionKeyActions = useMemo(
     () => ({
-      F3: handleDelete,
-      F6: handleEnterEditMode,
       F10: onF10,
       F11: onF11,
     }),
-    [handleDelete, handleEnterEditMode, onF10, onF11],
+    [onF10, onF11],
   );
 
   usePageFunctionKeys(functionKeyActions);
@@ -343,96 +337,94 @@ export default function AdminBrandCrudPage() {
     <div className={cls.page}>
       <div className={cls.bgOrbA} />
       <div className={cls.bgOrbB} />
-
       <div className={cls.shell}>
         <div className={cls.layout}>
           <aside className={cls.sidebar}>
             <div className={cls.composeCard}>
               <div className={cls.composeGlow} />
-
               <div className={cls.composeHead}>
                 <div className={cls.heroLeft}>
                   <div className={cls.eyebrow}>
                     <span className={cls.eyebrowDot} />
-                    Commerce brand
+                    {t("brands.form.commerceBrand")}
                   </div>
                 </div>
-
-                <button className={cls.secondaryBtn} type="button" onClick={handleLoadBrands} disabled={loading}>
+                <button className={cls.normalBtn} type="button" onClick={handleLoadBrands} disabled={loading}>
                   <i className={`bi bi-arrow-clockwise ${loading ? cls.spin : ""}`} />
-                  <span>Sync data</span>
+                  <span>{t("brands.actions.syncData")}</span>
                 </button>
               </div>
 
               <div className={cls.form}>
                 <label className={cls.field}>
-                  <span className={cls.label}>Site</span>
+                  <span className={cls.label}>{t("brands.form.site")}</span>
                   <div className={cls.inputShell}>
                     <i className={`bi bi-globe2 ${cls.inputIcon}`} />
                     <select
                       className={cls.select}
                       value={selectedSiteId || ""}
                       onChange={(e) => setSelectedSiteId(e.target.value)}
-                      disabled={sitesLoading || saving}
+                      disabled={saving}
                     >
-                      <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
-                      {sites.map((site: SiteOption) => (
+                      <option value="">{t("brands.form.selectSite")}</option>
+                      {sites.map((site) => (
                         <option key={site.id} value={site.id}>
-                          {site.name ?? site.id} ({site.id})
+                          {site.name ?? site.id}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div className={cls.helper}>
-                    {sitesErr
-                      ? `Site error: ${sitesErr}`
-                      : selectedSite
-                        ? `${selectedSite.name ?? "Site"}${selectedSite.domain ? ` • ${selectedSite.domain}` : ""}`
-                        : BRANDS_MESSAGES.helper.sitePlaceholder}
+                    {selectedSite
+                      ? `${selectedSite.name ?? t("brands.form.site")}${
+                          selectedSite.domain ? ` • ${selectedSite.domain}` : ""
+                        }`
+                      : t("brands.form.selectSite")}
                   </div>
                 </label>
 
                 <label className={cls.field}>
-                  <span className={cls.label}>Brand name</span>
+                  <span className={cls.label}>{t("brands.form.brandName")}</span>
                   <div className={cls.inputShell}>
                     <i className={`bi bi-bookmark-star ${cls.inputIcon}`} />
                     <input
                       className={cls.input}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Ví dụ: Sakura"
+                      placeholder={t("brands.form.brandNamePlaceholder")}
                       disabled={saving}
                     />
                   </div>
                 </label>
 
                 <label className={cls.field}>
-                  <span className={cls.label}>Slug</span>
+                  <span className={cls.label}>{t("brands.form.slug")}</span>
                   <div className={cls.inputShell}>
                     <i className={`bi bi-link-45deg ${cls.inputIcon}`} />
                     <input
                       className={cls.input}
                       value={slug}
                       onChange={(e) => setSlug(e.target.value)}
-                      placeholder={finalSlug || "auto-generated"}
+                      placeholder={finalSlug || t("brands.form.autoGenerated")}
                       disabled={saving}
                     />
                   </div>
 
                   <div className={cls.helper}>
-                    Final slug: <code className={cls.code}>{finalSlug || "-"}</code>
+                    {t("brands.form.finalSlug")}: <code className={cls.code}>{finalSlug || "-"}</code>
                   </div>
                 </label>
 
                 <label className={cls.field}>
-                  <span className={cls.label}>Description</span>
+                  <span className={cls.label}>{t("brands.form.description")}</span>
+
                   <div className={cls.textareaShell}>
                     <textarea
                       className={cls.textarea}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Mô tả ngắn về brand..."
+                      placeholder={t("brands.form.descriptionPlaceholder")}
                       rows={4}
                       disabled={saving}
                     />
@@ -440,23 +432,28 @@ export default function AdminBrandCrudPage() {
                 </label>
 
                 <div className={cls.field}>
-                  <span className={cls.label}>Logo</span>
+                  <span className={cls.label}>{t("brands.form.logo")}</span>
 
                   <div
                     onDragOver={(e) => {
                       e.preventDefault();
+
                       if (!saving) setIsDragging(true);
                     }}
                     onDragLeave={(e) => {
                       e.preventDefault();
+
                       setIsDragging(false);
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
+
                       setIsDragging(false);
+
                       if (saving) return;
 
                       const file = e.dataTransfer.files?.[0] || null;
+
                       handlePickLogoFile(file);
                     }}
                     onClick={() => {
@@ -469,6 +466,7 @@ export default function AdminBrandCrudPage() {
                     onKeyDown={(e) => {
                       if ((e.key === "Enter" || e.key === " ") && !saving) {
                         e.preventDefault();
+
                         fileInputRef.current?.click();
                       }
                     }}
@@ -487,6 +485,7 @@ export default function AdminBrandCrudPage() {
                       disabled={saving}
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
+
                         handlePickLogoFile(file);
                       }}
                     />
@@ -502,19 +501,14 @@ export default function AdminBrandCrudPage() {
                             className={cls.uploadPreviewImage}
                           />
                         </div>
-
-                        <div className={cls.uploadPreviewTitle}>
-                          {logoFile ? "Ảnh logo đã được chọn" : "Logo hiện tại"}
-                        </div>
-
                         <div className={cls.uploadPreviewName}>{logoFile ? logoFile.name : logoUrl}</div>
-
                         <div className={cls.uploadActions}>
                           <button
                             type="button"
-                            className={cls.secondaryBtn}
+                            className={cls.normalBtnImage}
                             onClick={(e) => {
                               e.stopPropagation();
+
                               if (!saving) {
                                 fileInputRef.current?.click();
                               }
@@ -522,12 +516,12 @@ export default function AdminBrandCrudPage() {
                             disabled={saving}
                           >
                             <i className="bi bi-upload" />
-                            <span>Chọn ảnh khác</span>
+                            <span>{t("brands.actions.chooseAnotherImage")}</span>
                           </button>
 
                           <button
                             type="button"
-                            className={cls.secondaryBtn}
+                            className={cls.normalBtnImage}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleClearLogo();
@@ -535,46 +529,46 @@ export default function AdminBrandCrudPage() {
                             disabled={saving}
                           >
                             <i className="bi bi-trash" />
-                            <span>Xóa ảnh</span>
+                            <span>{t("brands.actions.removeImage")}</span>
                           </button>
                         </div>
                       </>
                     ) : (
                       <>
                         <i className={`bi bi-file-earmark-plus ${cls.uploadIcon}`} />
-                        <div className={cls.uploadTitle}>Drop file here</div>
-                        <div className={cls.uploadOr}>or</div>
-                        <div className={cls.uploadBrowse}>Browse</div>
-                        <div className={cls.uploadHint}>Supports JPG, PNG, WEBP, GIF, SVG</div>
+                        <div className={cls.uploadTitle}>{t("brands.form.dropFileHere")}</div>
+                        <div className={cls.uploadOr}>{t("brands.form.or")}</div>
+                        <div className={cls.uploadBrowse}>{t("brands.actions.browse")}</div>
+                        <div className={cls.uploadHint}>{t("brands.form.uploadHint")}</div>
                       </>
                     )}
                   </div>
-
-                  <div className={cls.helper}>
-                    Upload the logo and <code className={cls.code}>logoUrl</code> will be saved automatically.
-                  </div>
                 </div>
 
-                <button className={cls.primaryBtn} type="button" onClick={handlePrimarySubmit} disabled={saving}>
-                  {saving ? (
-                    <>
-                      <span className={cls.buttonSpinner} />
-                      <span>{mode === "edit" ? "Updating brand..." : "Creating brand..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <i className={`bi ${mode === "edit" ? "bi-check2-circle" : "bi-stars"}`} />
-                      <span>{mode === "edit" ? "Update brand" : "Create brand"}</span>
-                    </>
-                  )}
-                </button>
-
-                {mode === "edit" && (
-                  <button className={cls.secondaryBtn} type="button" onClick={resetAll} disabled={saving}>
-                    <i className="bi bi-x-circle" />
-                    <span>Cancel edit</span>
+                <div className={cls.formActions}>
+                  <button className={cls.primaryBtn} type="button" onClick={handlePrimarySubmit} disabled={saving}>
+                    {saving ? (
+                      <>
+                        <span className={cls.buttonSpinner} />
+                        <span>
+                          {mode === "edit" ? t("brands.actions.updatingBrand") : t("brands.actions.creatingBrand")}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <i className={`bi ${mode === "edit" ? "bi-check2-circle" : "bi-stars"}`} />
+                        <span>
+                          {mode === "edit" ? t("brands.actions.updateBrand") : t("brands.actions.createBrand")}
+                        </span>
+                      </>
+                    )}
                   </button>
-                )}
+
+                  <button className={cls.normalBtnImage} type="button" onClick={resetAll} disabled={saving}>
+                    <i className="bi bi-x-circle" />
+                    <span>{t("brands.actions.cancel")}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </aside>
@@ -583,25 +577,6 @@ export default function AdminBrandCrudPage() {
             <div className={cls.workspaceCard}>
               <div className={cls.workspaceHead}>
                 <div className={cls.workspaceTop}>
-                  <div className={cls.workspaceIntro}>
-                    <div className={cls.statsRow}>
-                      <div className={cls.statCard}>
-                        <div className={cls.statLabel}>Total brands</div>
-                        <div className={cls.statValue}>{items.length}</div>
-                      </div>
-
-                      <div className={cls.statCard}>
-                        <div className={cls.statLabel}>Filtered</div>
-                        <div className={cls.statValue}>{filteredItems.length}</div>
-                      </div>
-
-                      <div className={cls.statCard}>
-                        <div className={cls.statLabel}>With logo</div>
-                        <div className={cls.statValue}>{withLogoCount}</div>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className={cls.toolbarCard}>
                     <div className={cls.searchWrap}>
                       <i className={`bi bi-search ${cls.searchIcon}`} />
@@ -609,15 +584,14 @@ export default function AdminBrandCrudPage() {
                         className={cls.searchInput}
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
-                        placeholder="Search by name, slug, description, domain..."
+                        placeholder={t("brands.filters.searchPlaceholder")}
                       />
-
                       {searchText.trim() && (
                         <button
                           type="button"
                           className={cls.clearSearchBtn}
                           onClick={() => setSearchText("")}
-                          aria-label="Clear search"
+                          aria-label={t("brands.filters.clearSearch")}
                         >
                           <i className="bi bi-x-lg" />
                         </button>
@@ -630,9 +604,9 @@ export default function AdminBrandCrudPage() {
                         value={logoFilter}
                         onChange={(e) => setLogoFilter(e.target.value as LogoFilter)}
                       >
-                        <option value="all">All logos</option>
-                        <option value="with-logo">With logo</option>
-                        <option value="no-logo">No logo</option>
+                        <option value="all">{t("brands.filters.allLogos")}</option>
+                        <option value="with-logo">{t("brands.filters.withLogo")}</option>
+                        <option value="no-logo">{t("brands.filters.noLogo")}</option>
                       </select>
 
                       <select
@@ -640,16 +614,19 @@ export default function AdminBrandCrudPage() {
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as SortBy)}
                       >
-                        <option value="newest">Newest</option>
-                        <option value="oldest">Oldest</option>
-                        <option value="name-asc">Name A-Z</option>
-                        <option value="name-desc">Name Z-A</option>
+                        <option value="newest">{t("brands.filters.newest")}</option>
+                        <option value="oldest">{t("brands.filters.oldest")}</option>
+                        <option value="name-asc">{t("brands.filters.nameAsc")}</option>
+                        <option value="name-desc">{t("brands.filters.nameDesc")}</option>
                       </select>
 
                       <select
                         className={cls.toolbarSelect}
                         value={String(pageSize)}
-                        onChange={(e) => setPageSize(Number(e.target.value))}
+                        onChange={(e) => {
+                          setPageSize(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
                       >
                         <option value="5">5 / page</option>
                         <option value="8">8 / page</option>
@@ -671,18 +648,18 @@ export default function AdminBrandCrudPage() {
                     </div>
                   </div>
 
-                  <div className={cls.emptyTitle}>No matching brands found</div>
-                  <div className={cls.emptyText}>
-                    Please create the first brand in the left pane or try changing the search keywords.
-                  </div>
+                  <div className={cls.emptyTitle}>{t("brands.empty.title")}</div>
+
+                  <div className={cls.emptyText}>{t("brands.empty.description")}</div>
                 </div>
               ) : (
                 <div className={cls.tableWrap}>
                   <div className={`${cls.row} ${cls.rowHead}`}>
-                    <div>Brand</div>
-                    <div>Slug</div>
-                    <div>Site</div>
-                    <div>Created</div>
+                    <div>{t("brands.table.brand")}</div>
+                    <div>{t("brands.form.slug")}</div>
+                    <div>{t("brands.table.site")}</div>
+                    <div>{t("brands.table.created")}</div>
+                    <div>{t("brands.table.actions")}</div>
                   </div>
 
                   {loading ? (
@@ -702,12 +679,21 @@ export default function AdminBrandCrudPage() {
                           role="button"
                           tabIndex={0}
                           aria-selected={isSelected}
-                          onClick={() => setSelectedBrandId(brand.id)}
-                          onDoubleClick={() => handleRowDoubleClick(brand)}
+                          onClick={() => {
+                            if (selectedBrandId !== brand.id) {
+                              setSelectedBrandId(brand.id);
+                            }
+                            enterEditMode(brand);
+                            setSelectedSiteId(brand.siteId || "");
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
-                              setSelectedBrandId(brand.id);
+                              if (selectedBrandId !== brand.id) {
+                                setSelectedBrandId(brand.id);
+                              }
+                              enterEditMode(brand);
+                              setSelectedSiteId(brand.siteId || "");
                             }
                           }}
                         >
@@ -732,11 +718,11 @@ export default function AdminBrandCrudPage() {
                               <div className={cls.brandTop}>
                                 <div className={cls.brandName}>{brand.name}</div>
                                 <span className={cls.badge}>#{brand.id.slice(0, 8)}</span>
-                                {isSelected && <span className={cls.badge}>Selected</span>}
+                                {isSelected && <span className={cls.badge}>{t("brands.table.editing")}</span>}
                               </div>
 
                               <div className={cls.brandMeta}>
-                                {brand.description?.trim() ? brand.description : BRANDS_MESSAGES.helper.noDescription}
+                                {brand.description?.trim() ? brand.description : t("brands.table.noDescription")}
                               </div>
                             </div>
                           </div>
@@ -748,14 +734,40 @@ export default function AdminBrandCrudPage() {
                           <div className={cls.siteCell}>
                             <div className={cls.siteName}>
                               <i className="bi bi-globe-americas" />
+
                               <span>{brand.site?.name || brand.siteId}</span>
                             </div>
+
                             <div className={cls.siteDomain}>{brand.site?.domain || brand.siteId}</div>
                           </div>
 
                           <div className={cls.dateCell}>
                             <div className={cls.dateCreated}>{formatDate(brand.createdAt)}</div>
-                            <div className={cls.dateSub}>Updated: {formatDate(brand.updatedAt)}</div>
+
+                            <div className={cls.dateSub}>
+                              {t("brands.table.updated")}: {formatDate(brand.updatedAt)}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <button
+                              type="button"
+                              className={cls.secondaryBtn}
+                              onClick={(e) => {
+                                e.stopPropagation();
+
+                                handleDelete(brand);
+                              }}
+                            >
+                              <i className="bi bi-trash" />
+
+                              <span>{t("brands.actions.delete")}</span>
+                            </button>
                           </div>
                         </div>
                       );
@@ -767,8 +779,8 @@ export default function AdminBrandCrudPage() {
               {!loading && totalItems > 0 && (
                 <div className={cls.paginationBar}>
                   <div className={cls.paginationInfo}>
-                    Showing <strong>{pageStart}</strong>-<strong>{pageEnd}</strong> of <strong>{totalItems}</strong>{" "}
-                    brands
+                    {t("brands.pagination.showing")} <strong>{pagination.start}</strong>-
+                    <strong>{pagination.end}</strong>
                   </div>
 
                   <div className={cls.paginationControls}>
@@ -791,7 +803,7 @@ export default function AdminBrandCrudPage() {
                     </button>
 
                     <div className={cls.pageIndicator}>
-                      Page <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
+                      {t("brands.pagination.page")} <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
                     </div>
 
                     <button

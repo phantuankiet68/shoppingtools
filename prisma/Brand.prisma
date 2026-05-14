@@ -1,0 +1,17 @@
+model Brand {
+  id          String    @id @default(cuid())
+  siteId      String    @map("site_id")
+  name        String
+  slug        String
+  description String?
+  logoUrl     String?   @map("logo_url")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  site        Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  products    Product[]
+
+  @@unique([siteId, slug])
+  @@unique([siteId, name])
+  @@index([siteId])
+  @@map("brands")
+}
