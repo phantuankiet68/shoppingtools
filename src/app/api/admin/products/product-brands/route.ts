@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "siteId is required" }, { status: 400 });
     }
 
-    const brands = await prisma.productBrand.findMany({
+    const brands = await prisma.Brand.findMany({
       where: {
         siteId,
       },

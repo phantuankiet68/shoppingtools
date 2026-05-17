@@ -74,23 +74,17 @@ export async function GET(req: Request) {
     const lite = url.searchParams.get("lite") === "1";
 
     const parentIdRaw = url.searchParams.get("parentId");
-    const parentId =
-      parentIdRaw == null || parentIdRaw === "" || parentIdRaw === "null"
-        ? undefined
-        : parentIdRaw;
+    const parentId = parentIdRaw == null || parentIdRaw === "" || parentIdRaw === "null" ? undefined : parentIdRaw;
 
     const page = clamp(toInt(url.searchParams.get("page"), 1), 1, 1_000_000);
     const pageSize = clamp(toInt(url.searchParams.get("pageSize"), 200), 1, 500);
 
-    const where: Prisma.ProductCategoryWhereInput = {
+    const where: Prisma.CategoryWhereInput = {
       siteId,
     };
 
     if (q) {
-      where.OR = [
-        { name: { contains: q, mode: "insensitive" } },
-        { slug: { contains: q, mode: "insensitive" } },
-      ];
+      where.OR = [{ name: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }];
     }
 
     if (parentId !== undefined) {
@@ -103,7 +97,7 @@ export async function GET(req: Request) {
     const take = tree ? 5000 : pageSize;
 
     const [items, total] = await Promise.all([
-      prisma.productCategory.findMany({
+      prisma.Category.findMany({
         where,
         orderBy,
         skip,
@@ -122,7 +116,7 @@ export async function GET(req: Request) {
           },
         },
       }),
-      prisma.productCategory.count({ where }),
+      prisma.Category.count({ where }),
     ]);
 
     const formatted = items.map((x) => ({

@@ -38,7 +38,7 @@
   border: var(--bd-header);
   color: #35507a;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   min-height: 40px;
@@ -1255,4 +1255,42 @@
   .paginationControls {
     justify-content: space-between;
   }
+}
+.limitBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: 0.2s ease;
+}
+
+.limitBadge strong {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.limitBadgeNormal {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+.limitBadgeWarning {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.12);
+
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.limitBadgeDanger {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.12);
+
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }

@@ -28,7 +28,7 @@ export default function AdminBrandCrudPage() {
   const { t } = useAdminI18n();
   const modal = useModal();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { currentSite, sites } = useAdminAuth();
+  const { currentSite, currentWorkspace, sites } = useAdminAuth();
   const {
     items,
     loading,
@@ -120,6 +120,13 @@ export default function AdminBrandCrudPage() {
   const previewSrc = logoPreview || logoUrl?.trim() || "";
 
   const [selectedSiteId, setSelectedSiteId] = React.useState(currentSite?.id || "");
+  const maxBrands = currentWorkspace?.accessPolicy?.maxBrands ?? 0;
+
+  const brandUsagePercent = maxBrands > 0 ? Math.min((items.length / maxBrands) * 100, 100) : 0;
+
+  const isBrandLimitReached = items.length >= maxBrands;
+
+  const isNearBrandLimit = !isBrandLimitReached && brandUsagePercent >= 80;
 
   const selectedSite = useMemo(() => {
     return sites?.find((site) => site.id === selectedSiteId);
@@ -246,6 +253,14 @@ export default function AdminBrandCrudPage() {
         modal.success(t("brands.modal.success"), t("brands.modal.updatedSuccess").replace("{name}", name.trim()));
         return;
       }
+
+      if (items.length >= maxBrands) {
+        modal.error(
+          t("brands.modal.limitReached"),
+          t("brands.modal.maxBrandsReached").replace("{max}", String(maxBrands)),
+        );
+        return;
+      }
       await createBrand(selectedSiteId);
       modal.success(t("brands.modal.success"), t("brands.modal.createdSuccess").replace("{name}", name.trim()));
     } catch (error: unknown) {
@@ -258,7 +273,7 @@ export default function AdminBrandCrudPage() {
             : t("brands.modal.createFailed"),
       );
     }
-  }, [mode, updateBrand, selectedSiteId, modal, createBrand, name, t]);
+  }, [mode, updateBrand, selectedSiteId, modal, createBrand, name, t, items.length, maxBrands]);
 
   const handleDelete = useCallback(
     async (brand: BrandRow) => {
@@ -596,6 +611,26 @@ export default function AdminBrandCrudPage() {
                           <i className="bi bi-x-lg" />
                         </button>
                       )}
+                    </div>
+                    <div
+                      className={[
+                        cls.limitBadge,
+                        isBrandLimitReached
+                          ? cls.limitBadgeDanger
+                          : isNearBrandLimit
+                            ? cls.limitBadgeWarning
+                            : cls.limitBadgeNormal,
+                      ].join(" ")}
+                    >
+                      <i className="bi bi-box-seam" />
+
+                      <span>
+                        {t("brands.stats.brands")}:
+                        <strong>
+                          {" "}
+                          {items.length}/{maxBrands}
+                        </strong>
+                      </span>
                     </div>
 
                     <div className={cls.toolbarFilters}>

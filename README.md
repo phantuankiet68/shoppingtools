@@ -303,3 +303,7 @@ Hệ thống gồm 3 cấp:
 Nhưng không thiếu pemission để chặn một số quyền của admin và một số cái như được tạo bao nhiêu menu tạo được bao nhiêu page những cái cần có bao nhiêu dữ liệu để tiện kiểm soát vì tôi cho họ thuê template và lưu lượng để tạo web mà
 
 tôi muốn thêm phần message vi.ts en.ts ja.ts dựa vào các message ở file page.tsx. Hiện tại đang sử dụng bằng import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n(); Bạn hãy tạo message vi en ja và ghi lại toàn bộ file page.tsx hoàn chỉnh
+
+<div className={styles.barcodeWrap}>
+  {product.barcode ? <BarcodeComponent value={product.barcode} /> : null}
+</div>

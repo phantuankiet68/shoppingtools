@@ -216,3 +216,21 @@ div[aria-label="Shop Header Announcement"] > div {
     display: none;
   }
 }
+.ck-editor-wrap .ck-editor__editable {
+  min-height: 260px;
+  max-height: 600px;
+}
+
+.ck-editor-wrap .ck-content {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.ck-editor-wrap .ck-toolbar {
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.ck-editor-wrap .ck-editor__main {
+  border-radius: 0 0 12px 12px !important;
+  overflow: hidden;
+}

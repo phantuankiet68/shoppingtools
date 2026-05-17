@@ -1458,7 +1458,197 @@ const vi = {
 
       deleteBrand: "Xóa thương hiệu",
       deleteBrandConfirm: 'Bạn có chắc muốn xóa "{name}"?',
+      limitReached: "Đã vượt giới hạn",
+      maxBrandsReached: "Bạn chỉ được tạo tối đa {max} thương hiệu.",
     },
+    stats: {
+      brands: "Thương hiệu",
+    },
+  },
+  products: {
+    noProductsSelected: "Chưa chọn sản phẩm",
+    pleaseSelectAtLeastOneProduct: "Vui lòng chọn ít nhất một sản phẩm.",
+
+    success: "Thành công",
+
+    deactivateSuccessSingle: "Đã ngưng kích hoạt “{name}” thành công.",
+    deactivateSuccessMultiple: "Đã ngưng kích hoạt {count} sản phẩm thành công.",
+
+    deactivateFailed: "Ngưng kích hoạt thất bại",
+
+    missingSite: "Thiếu website",
+    pleaseSelectSiteFirst: "Vui lòng chọn website trước.",
+
+    noProductSelected: "Chưa chọn sản phẩm",
+    pleaseSelectOneProductToEdit: "Vui lòng chọn một sản phẩm để chỉnh sửa.",
+
+    multipleProductsSelected: "Đã chọn nhiều sản phẩm",
+    pleaseSelectOnlyOneProductToEdit: "Vui lòng chỉ chọn một sản phẩm để chỉnh sửa.",
+
+    pleaseSelectAtLeastOneProductToDeactivate: "Vui lòng chọn ít nhất một sản phẩm để ngưng kích hoạt.",
+
+    deactivateProduct: "Ngưng kích hoạt sản phẩm?",
+
+    deactivateConfirmSingle: "Ngưng kích hoạt “{name}”? Hành động này không thể hoàn tác.",
+
+    deactivateConfirmMultiple: "Ngưng kích hoạt {count} sản phẩm đã chọn? Hành động này không thể hoàn tác.",
+
+    filters: "Bộ lọc",
+    deactivate: "Ngưng kích hoạt",
+    create: "Tạo mới",
+    edit: "Chỉnh sửa",
+
+    deleteProduct: "Xóa sản phẩm?",
+
+    deleteConfirm: "Xóa “{name}”? Hành động này không thể hoàn tác.",
+
+    deleteFailed: "Xóa thất bại",
+
+    deleteSuccess: "Đã xóa “{name}” thành công.",
+
+    active: "Đang hoạt động",
+    inactive: "Ngưng hoạt động",
+    draft: "Nháp",
+    archived: "Lưu trữ",
+    loadingSites: "Đang tải website...",
+    selectSite: "Chọn website",
+
+    searchPlaceholder: "Tìm kiếm tên, SKU, mã vạch...",
+
+    searchSuggestions: "Gợi ý tìm kiếm",
+    itemsCount: "{count} sản phẩm",
+
+    noCategory: "Không có danh mục",
+
+    newestFirst: "Mới nhất",
+    oldestFirst: "Cũ nhất",
+    statusAsc: "Trạng thái A → Z",
+    statusDesc: "Trạng thái Z → A",
+
+    allCategories: "Tất cả danh mục",
+    allBrands: "Tất cả thương hiệu",
+
+    productList: "Danh sách sản phẩm",
+    editProduct: "Chỉnh sửa sản phẩm",
+    createProduct: "Tạo sản phẩm",
+    no: "STT",
+    product: "Sản phẩm",
+    sku: "SKU",
+    qty: "Số lượng",
+    brand: "Thương hiệu",
+    category: "Danh mục",
+    pricing: "Giá bán",
+    marketPrice: "Giá thị trường",
+    status: "Trạng thái",
+    updated: "Cập nhật",
+    actions: "Thao tác",
+
+    hidden: "Ẩn",
+
+    noBrand: "Không có thương hiệu",
+
+    deleteProductAria: "Xóa {name}",
+
+    prev: "Trước",
+    next: "Tiếp",
+
+    page: "Trang",
+    loadProductDetailFailed: "Tải chi tiết sản phẩm thất bại",
+    invalidProductDetailResponse: "Dữ liệu chi tiết sản phẩm không hợp lệ",
+
+    buyOnlineMeta: "Mua {name} trực tuyến. Giao hàng nhanh, chất lượng cao.",
+
+    premiumDescription: "{name} cao cấp cho nhu cầu sử dụng hằng ngày.",
+
+    keyFeatures: "✅ Tính năng nổi bật",
+    highQualityMaterials: "- Chất liệu cao cấp",
+    easyToUse: "- Dễ sử dụng",
+    greatValue: "- Giá trị tuyệt vời",
+
+    inTheBox: "📦 Trong hộp",
+    warranty: "🛡 Bảo hành",
+    warrantyPolicy: "- Vui lòng kiểm tra chính sách bảo hành theo danh mục.",
+
+    newProduct: "Sản phẩm mới",
+
+    siteRequired: "Website là bắt buộc",
+    nameRequired: "Tên sản phẩm là bắt buộc",
+    slugRequired: "Slug là bắt buộc",
+    categoryRequired: "Danh mục là bắt buộc",
+
+    invalidForm: "Form không hợp lệ",
+
+    uploadUnexpectedUrls: "Upload trả về số lượng URL không hợp lệ",
+
+    updateProductFailed: "Cập nhật sản phẩm thất bại",
+    createProductFailed: "Tạo sản phẩm thất bại",
+
+    updateProductSuccess: "Cập nhật sản phẩm thành công!",
+
+    createProductSuccess: "Tạo sản phẩm thành công!",
+
+    updateFailed: "Cập nhật thất bại",
+    createFailed: "Tạo thất bại",
+
+    cancel: "Hủy",
+    publishNow: "Đăng ngay",
+    autoFill: "Tự động điền",
+    save: "Lưu",
+    loadingProductMedia: "Đang tải media sản phẩm...",
+    noMediaYet: "Chưa có media. Hãy tải ảnh/video lên.",
+
+    remove: "Xóa",
+    upload: "Tải lên",
+
+    dropYourFileHere: "Thả file vào đây",
+    clickToUpload: "hoặc nhấn để tải lên",
+
+    seoOptimization: "Tối ưu SEO",
+    improveSearchEngines: "Cải thiện công cụ tìm kiếm",
+
+    recommended: "Đề xuất",
+
+    metaTitle: "Tiêu đề SEO",
+    urlPreview: "Xem trước URL",
+
+    yourSlug: "slug-cua-ban",
+
+    metaDescription: "Mô tả SEO",
+
+    recommendedChars: "Khuyến nghị 140–160 ký tự",
+
+    unsavedChanges: "Chưa lưu thay đổi",
+    saved: "Đã lưu",
+    lastSaved: "Lưu lần cuối {time}",
+
+    publish: "Đăng",
+    saving: "Đang lưu...",
+
+    site: "Website",
+    name: "Tên",
+    slug: "Slug",
+    selectSiteFirst: "Chọn website trước...",
+    selectCategory: "— Chọn danh mục —",
+
+    tags: "Tags",
+    typeTagAndPressAdd: "Nhập tag và nhấn Thêm",
+
+    add: "Thêm",
+
+    barcode: "Mã vạch",
+
+    shortDescription: "Mô tả ngắn",
+
+    shortDescriptionPlaceholder: "1–2 dòng hiển thị ngoài danh sách",
+
+    price: "Giá",
+    savingPrice: "Giá giảm",
+
+    quantity: "Số lượng",
+
+    description: "Mô tả",
+
+    writeProductDescription: "Nhập mô tả sản phẩm...",
   },
 };
 

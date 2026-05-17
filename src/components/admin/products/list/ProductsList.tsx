@@ -1,17 +1,24 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import styles from "@/styles/admin/products/list/productsList.module.css";
 import { useModal } from "@/components/admin/shared/common/modal";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
-import type { ApiProduct, Filters, SortKey } from "@/components/admin/commerce/products/client/AdminProductsClient";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
+
+import type { ApiProduct, Filters, SortKey } from "@/components/admin/products/client/AdminProductsClient";
 
 type ApiCategory = {
   id: string;
   name: string;
-  isActive: boolean;
-  count?: number;
+  isActive?: boolean;
+};
+
+type ApiBrand = {
+  id: string;
+  name: string;
+  isActive?: boolean;
 };
 
 type SiteOption = {
@@ -26,11 +33,15 @@ type ApiError = {
 type ProductImage = {
   id?: string;
   url?: string;
-  sort?: number;
   isCover?: boolean;
 };
 
 type ProductCategory = {
+  id: string;
+  name: string;
+};
+
+type ProductBrand = {
   id: string;
   name: string;
 };
@@ -43,10 +54,17 @@ type ProductLike = ApiProduct & {
   sku?: string;
   barcode?: string | number | null;
   images?: ProductImage[];
+
   category?: {
     id?: string;
     name?: string;
   } | null;
+
+  brand?: {
+    id?: string;
+    name?: string;
+  } | null;
+
   createdAt?: string;
   updatedAt?: string;
 };
@@ -57,6 +75,7 @@ type NormalizedProduct = ApiProduct & {
   stock: number;
   images: ProductImage[];
   category: ProductCategory | null;
+  brand: ProductBrand | null;
   statusLabel: string;
   sku?: string;
   barcode?: string | number | null;
@@ -65,14 +84,22 @@ type NormalizedProduct = ApiProduct & {
   updatedAt?: string;
 };
 
-function moneyFromCents(cents: number) {
-  const n = (cents ?? 0) / 100;
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+function moneyFromCents(value: number) {
+  return new Intl.NumberFormat("vi-VN").format(value ?? 0);
+}
+
+function moneyFromMaket(value?: string | number | null) {
+  const amount = Number(value ?? 0);
+
+  return new Intl.NumberFormat("vi-VN").format(amount);
 }
 
 async function safeJson<T>(res: Response): Promise<T> {
   const text = await res.text().catch(() => "");
-  if (!text) return {} as T;
+
+  if (!text) {
+    return {} as T;
+  }
 
   try {
     return JSON.parse(text) as T;
@@ -81,11 +108,16 @@ async function safeJson<T>(res: Response): Promise<T> {
   }
 }
 
-function normalizeStatus(rawStatus?: string, rawIsActive?: boolean) {
+function normalizeStatus(rawStatus?: string, rawIsActive?: boolean, t?: (key: string) => string) {
+  const activeLabel = t?.("products.active") || "Active";
+  const inactiveLabel = t?.("products.inactive") || "Inactive";
+  const draftLabel = t?.("products.draft") || "Draft";
+  const archivedLabel = t?.("products.archived") || "Archived";
+
   if (typeof rawIsActive === "boolean") {
     return {
       isActive: rawIsActive,
-      label: rawIsActive ? "Active" : "Inactive",
+      label: rawIsActive ? activeLabel : inactiveLabel,
       tone: rawIsActive ? "active" : "inactive",
     };
   }
@@ -96,30 +128,81 @@ function normalizeStatus(rawStatus?: string, rawIsActive?: boolean) {
 
   switch (status) {
     case "ACTIVE":
-      return { isActive: true, label: "Active", tone: "active" };
+      return {
+        isActive: true,
+        label: activeLabel,
+        tone: "active",
+      };
+
     case "DRAFT":
-      return { isActive: false, label: "Draft", tone: "draft" };
+      return {
+        isActive: false,
+        label: draftLabel,
+        tone: "draft",
+      };
+
     case "INACTIVE":
-      return { isActive: false, label: "Inactive", tone: "inactive" };
+      return {
+        isActive: false,
+        label: inactiveLabel,
+        tone: "inactive",
+      };
+
     case "ARCHIVED":
-      return { isActive: false, label: "Archived", tone: "archived" };
+      return {
+        isActive: false,
+        label: archivedLabel,
+        tone: "archived",
+      };
+
     default:
-      return { isActive: false, label: status || "Inactive", tone: "inactive" };
+      return {
+        isActive: false,
+        label: status || inactiveLabel,
+        tone: "inactive",
+      };
   }
 }
 
 function normalizeCategory(category: ProductLike["category"]): ProductCategory | null {
-  if (!category) return null;
+  if (!category) {
+    return null;
+  }
 
   const id = String(category.id ?? "").trim();
   const name = String(category.name ?? "").trim();
 
-  if (!id || !name) return null;
-  return { id, name };
+  if (!id || !name) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+  };
+}
+
+function normalizeBrand(brand: ProductLike["brand"]): ProductBrand | null {
+  if (!brand) {
+    return null;
+  }
+
+  const id = String(brand.id ?? "").trim();
+  const name = String(brand.name ?? "").trim();
+
+  if (!id || !name) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+  };
 }
 
 function normalizeProduct(p: ApiProduct): NormalizedProduct {
   const product = p as ProductLike;
+
   const statusInfo = normalizeStatus(product.status, product.isActive);
 
   return {
@@ -127,12 +210,13 @@ function normalizeProduct(p: ApiProduct): NormalizedProduct {
     status: product.status,
     isActive: statusInfo.isActive,
     statusLabel: statusInfo.label,
-    priceCents: Number(product.priceCents ?? 0),
-    stock: Number(product.stock ?? 0),
+    priceCents: Number(product.price ?? product.priceCents ?? 0),
+    stock: Number(product.productQty ?? product.stock ?? 0),
     sku: product.sku,
     barcode: product.barcode,
     images: Array.isArray(product.images) ? product.images : [],
     category: normalizeCategory(product.category),
+    brand: normalizeBrand(product.brand),
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
   };
@@ -140,54 +224,64 @@ function normalizeProduct(p: ApiProduct): NormalizedProduct {
 
 function getThumb(product: NormalizedProduct) {
   const images = Array.isArray(product.images) ? product.images : [];
+
   const cover = images.find((img) => img?.isCover && String(img?.url ?? "").trim());
+
   const first = images.find((img) => String(img?.url ?? "").trim());
+
   return String(cover?.url ?? first?.url ?? "").trim();
 }
 
-function getStatusTone(product: NormalizedProduct) {
-  const s = String(product.status ?? "").toUpperCase();
-  if (s === "ACTIVE") return "active";
-  if (s === "DRAFT") return "draft";
-  if (s === "ARCHIVED") return "archived";
-  return product.isActive ? "active" : "inactive";
+function getStatusTone(product: NormalizedProduct, t?: (key: string) => string) {
+  const status = String(product.status ?? "")
+    .trim()
+    .toUpperCase();
+
+  switch (status) {
+    case "ACTIVE":
+      return {
+        tone: "active",
+        label: t?.("products.active") || "Active",
+      };
+
+    case "DRAFT":
+      return {
+        tone: "draft",
+        label: t?.("products.draft") || "Draft",
+      };
+
+    case "ARCHIVED":
+      return {
+        tone: "archived",
+        label: t?.("products.archived") || "Archived",
+      };
+
+    case "INACTIVE":
+      return {
+        tone: "inactive",
+        label: t?.("products.inactive") || "Inactive",
+      };
+
+    default:
+      return {
+        tone: product.isActive ? "active" : "inactive",
+        label: product.isActive ? t?.("products.active") || "Active" : t?.("products.inactive") || "Inactive",
+      };
+  }
 }
 
-function formatDate(date?: string) {
-  if (!date) return "—";
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "—";
-
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  });
-}
-
-function relativeDate(date?: string) {
-  if (!date) return "Unknown";
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "Unknown";
-
-  const diff = Date.now() - d.getTime();
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 30) return `${days}d ago`;
-
-  return formatDate(date);
-}
-
-function matchesAdvancedSearch(product: NormalizedProduct, query: string) {
+function matchesAdvancedSearch(product: NormalizedProduct, query: string, t?: (key: string) => string) {
   const q = String(query ?? "")
     .trim()
     .toLowerCase();
-  if (!q) return true;
+
+  if (!q) {
+    return true;
+  }
+
+  const activeLabel = (t?.("products.active") || "Active").toLowerCase();
+  const inactiveLabel = (t?.("products.inactive") || "Inactive").toLowerCase();
+  const draftLabel = (t?.("products.draft") || "Draft").toLowerCase();
 
   const tokens = q.split(/\s+/).filter(Boolean);
 
@@ -210,24 +304,48 @@ function matchesAdvancedSearch(product: NormalizedProduct, query: string) {
         .includes(token.replace("cat:", ""));
     }
 
+    if (token.startsWith("brand:")) {
+      return String(product.brand?.name ?? "")
+        .toLowerCase()
+        .includes(token.replace("brand:", ""));
+    }
+
     if (token.startsWith("name:")) {
       return String(product.name ?? "")
         .toLowerCase()
         .includes(token.replace("name:", ""));
     }
 
-    if (token === "active") return product.isActive;
-    if (token === "inactive") return !product.isActive;
-    if (token === "draft") return String(product.status ?? "").toUpperCase() === "DRAFT";
-    if (token === "outofstock") return (product.stock ?? 0) <= 0;
-    if (token === "lowstock") return (product.stock ?? 0) > 0 && (product.stock ?? 0) <= 5;
-    if (token === "nocategory") return !product.category?.name;
+    if (token === "active" || token === activeLabel) {
+      return product.isActive;
+    }
+
+    if (token === "inactive" || token === inactiveLabel) {
+      return !product.isActive;
+    }
+
+    if (token === "draft" || token === draftLabel) {
+      return String(product.status ?? "").toUpperCase() === "DRAFT";
+    }
+
+    if (token === "outofstock") {
+      return (product.stock ?? 0) <= 0;
+    }
+
+    if (token === "lowstock") {
+      return (product.stock ?? 0) > 0 && (product.stock ?? 0) <= 5;
+    }
+
+    if (token === "nocategory") {
+      return !product.category?.name;
+    }
 
     const haystack = [
       String(product.name ?? ""),
       String(product.sku ?? ""),
       String(product.barcode ?? ""),
       String(product.category?.name ?? ""),
+      String(product.brand?.name ?? ""),
       String(product.statusLabel ?? ""),
       String(product.stock ?? ""),
       moneyFromCents(product.priceCents),
@@ -240,27 +358,51 @@ function matchesAdvancedSearch(product: NormalizedProduct, query: string) {
 }
 
 function matchesStatus(product: NormalizedProduct, activeFilter: Filters["active"]) {
-  if (activeFilter === "all") return true;
-  if (activeFilter === "active") return product.isActive;
+  if (activeFilter === "all") {
+    return true;
+  }
+
+  if (activeFilter === "active") {
+    return product.isActive;
+  }
+
   return !product.isActive;
 }
 
 function matchesCategory(product: NormalizedProduct, categoryIds?: string[]) {
-  if (!categoryIds || categoryIds.length === 0) return true;
+  if (!categoryIds || categoryIds.length === 0) {
+    return true;
+  }
+
   return categoryIds.includes(String(product.category?.id ?? ""));
+}
+
+function matchesBrand(product: NormalizedProduct, brandIds?: string[]) {
+  if (!brandIds || brandIds.length === 0) {
+    return true;
+  }
+
+  return brandIds.includes(String(product.brand?.id ?? ""));
 }
 
 function matchesPrice(product: NormalizedProduct, priceMin?: string, priceMax?: string) {
   const price = Number(product.priceCents ?? 0) / 100;
 
   const min = priceMin === "" || priceMin == null ? null : Number(priceMin);
+
   const max = priceMax === "" || priceMax == null ? null : Number(priceMax);
 
   const validMin = min == null || Number.isNaN(min) ? null : min;
+
   const validMax = max == null || Number.isNaN(max) ? null : max;
 
-  if (validMin != null && price < validMin) return false;
-  if (validMax != null && price > validMax) return false;
+  if (validMin != null && price < validMin) {
+    return false;
+  }
+
+  if (validMax != null && price > validMax) {
+    return false;
+  }
 
   return true;
 }
@@ -272,51 +414,34 @@ function sortProducts(items: NormalizedProduct[], sort: SortKey) {
     case "Oldest":
       arr.sort((a, b) => {
         const aTime = new Date(String(a.createdAt ?? a.updatedAt ?? 0)).getTime();
+
         const bTime = new Date(String(b.createdAt ?? b.updatedAt ?? 0)).getTime();
+
         return aTime - bTime;
       });
+
       break;
-    case "NameAsc":
-      arr.sort((a, b) => String(a.name ?? "").localeCompare(String(b.name ?? "")));
-      break;
-    case "NameDesc":
-      arr.sort((a, b) => String(b.name ?? "").localeCompare(String(a.name ?? "")));
-      break;
-    case "CategoryAsc":
-      arr.sort((a, b) =>
-        String(a.category?.name ?? "No category").localeCompare(String(b.category?.name ?? "No category")),
-      );
-      break;
-    case "CategoryDesc":
-      arr.sort((a, b) =>
-        String(b.category?.name ?? "No category").localeCompare(String(a.category?.name ?? "No category")),
-      );
-      break;
-    case "PriceAsc":
-      arr.sort((a, b) => a.priceCents - b.priceCents);
-      break;
-    case "PriceDesc":
-      arr.sort((a, b) => b.priceCents - a.priceCents);
-      break;
-    case "StockAsc":
-      arr.sort((a, b) => a.stock - b.stock);
-      break;
-    case "StockDesc":
-      arr.sort((a, b) => b.stock - a.stock);
-      break;
+
     case "StatusAsc":
       arr.sort((a, b) => a.statusLabel.localeCompare(b.statusLabel));
+
       break;
+
     case "StatusDesc":
       arr.sort((a, b) => b.statusLabel.localeCompare(a.statusLabel));
+
       break;
+
     case "Newest":
     default:
       arr.sort((a, b) => {
         const aTime = new Date(String(a.updatedAt ?? a.createdAt ?? 0)).getTime();
+
         const bTime = new Date(String(b.updatedAt ?? b.createdAt ?? 0)).getTime();
+
         return bTime - aTime;
       });
+
       break;
   }
 
@@ -324,10 +449,9 @@ function sortProducts(items: NormalizedProduct[], sort: SortKey) {
 }
 
 export default function ProductsList(props: {
-  title: string;
-  subtitle: string;
   items: ApiProduct[];
   categories: ApiCategory[];
+  brands: ApiBrand[];
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   loading: boolean;
@@ -351,6 +475,7 @@ export default function ProductsList(props: {
   const {
     items,
     categories,
+    brands,
     filters,
     setFilters,
     loading,
@@ -372,9 +497,21 @@ export default function ProductsList(props: {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 10;
   const blurTimer = useRef<number | null>(null);
 
   const normalizedItems = useMemo(() => (items ?? []).map(normalizeProduct), [items]);
+  const { t } = useAdminI18n();
+
+  useEffect(() => {
+    return () => {
+      if (blurTimer.current) {
+        clearTimeout(blurTimer.current);
+      }
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const result = normalizedItems.filter((product) => {
@@ -382,6 +519,7 @@ export default function ProductsList(props: {
         matchesAdvancedSearch(product, filters.q) &&
         matchesStatus(product, filters.active) &&
         matchesCategory(product, filters.categoryIds) &&
+        matchesBrand(product, filters.brandIds) &&
         matchesPrice(product, filters.priceMin, filters.priceMax)
       );
     });
@@ -389,56 +527,35 @@ export default function ProductsList(props: {
     return sortProducts(result, filters.sort ?? "Newest");
   }, [normalizedItems, filters]);
 
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+
+    return filtered.slice(startIndex, endIndex);
+  }, [filtered, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   const suggestions = useMemo(() => {
     const q = String(filters.q ?? "").trim();
     if (!q) return [];
     return normalizedItems.filter((p) => matchesAdvancedSearch(p, q)).slice(0, 8);
   }, [normalizedItems, filters.q]);
 
-  const selectedProducts = useMemo(() => filtered.filter((p) => selected[p.id]), [filtered, selected]);
+  const selectedIds = useMemo(() => new Set(Object.keys(selected).filter((k) => selected[k])), [selected]);
+
+  const selectedProducts = useMemo(() => filtered.filter((p) => selectedIds.has(p.id)), [filtered, selectedIds]);
 
   const checkedCount = selectedProducts.length;
-  const allChecked = filtered.length > 0 && filtered.every((p) => selected[p.id]);
-
-  const stats = useMemo(() => {
-    const total = filtered.length;
-    const active = filtered.filter((p) => p.isActive).length;
-    const draft = filtered.filter((p) => String(p.status ?? "").toUpperCase() === "DRAFT").length;
-    const outOfStock = filtered.filter((p) => (p.stock ?? 0) <= 0).length;
-    const lowStock = filtered.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5).length;
-    const categoriesInUse = new Set(filtered.map((p) => p.category?.id).filter(Boolean)).size;
-    const uncategorized = filtered.filter((p) => !p.category?.id).length;
-    const totalPrice = filtered.reduce((sum, p) => sum + Number(p.priceCents ?? 0), 0);
-    const avgPrice = filtered.length > 0 ? Math.round(totalPrice / filtered.length) : 0;
-
-    return {
-      total,
-      active,
-      draft,
-      outOfStock,
-      lowStock,
-      categoriesInUse,
-      uncategorized,
-      avgPrice,
-    };
-  }, [filtered]);
-
-  function toggleSelectAll() {
-    if (allChecked) {
-      setSelected({});
-      return;
-    }
-
-    const next: Record<string, boolean> = {};
-    filtered.forEach((p) => {
-      next[p.id] = true;
-    });
-    setSelected(next);
-  }
 
   async function deactivateProducts(products: NormalizedProduct[]) {
     if (products.length === 0) {
-      modal.error("No products selected", "Please select at least one product.");
+      modal.error(t("products.noProductsSelected"), t("products.pleaseSelectAtLeastOneProduct"));
+
       return;
     }
 
@@ -446,15 +563,16 @@ export default function ProductsList(props: {
 
     try {
       for (const product of products) {
-        const res = await fetch(`/api/admin/commerce/products/${product.id}`, {
+        const res = await fetch(`/api/admin/products/${product.id}`, {
           method: "DELETE",
           credentials: "include",
           cache: "no-store",
         });
 
         const json = await safeJson<ApiError>(res);
+
         if (!res.ok) {
-          throw new Error(json?.error || `Deactivate failed for “${product.name}”.`);
+          throw new Error(json?.error || `${t("products.deactivateFailed")} “${product.name}”.`);
         }
       }
 
@@ -462,13 +580,17 @@ export default function ProductsList(props: {
       props.afterMutate();
 
       if (products.length === 1) {
-        modal.success("Success", `Deactivated “${products[0].name}” successfully.`);
+        modal.success(t("products.success"), t("products.deactivateSuccessSingle").replace("{name}", products[0].name));
       } else {
-        modal.success("Success", `Deactivated ${products.length} products successfully.`);
+        modal.success(
+          t("products.success"),
+          t("products.deactivateSuccessMultiple").replace("{count}", String(products.length)),
+        );
       }
     } catch (e: unknown) {
-      const err = e instanceof Error ? e : new Error("Deactivate failed");
-      modal.error("Deactivate failed", err.message || "Deactivate failed");
+      const err = e instanceof Error ? e : new Error(t("products.deactivateFailed"));
+
+      modal.error(t("products.deactivateFailed"), err.message || t("products.deactivateFailed"));
     } finally {
       props.setBusy(false);
     }
@@ -480,7 +602,8 @@ export default function ProductsList(props: {
 
   function handleCreateProduct() {
     if (!selectedSiteId) {
-      modal.error("Missing site", "Please select a site first.");
+      modal.error(t("products.missingSite"), t("products.pleaseSelectSiteFirst"));
+
       return;
     }
 
@@ -489,12 +612,14 @@ export default function ProductsList(props: {
 
   function handleEditSelected() {
     if (checkedCount === 0) {
-      modal.error("No product selected", "Please select one product to edit.");
+      modal.error(t("products.noProductSelected"), t("products.pleaseSelectOneProductToEdit"));
+
       return;
     }
 
     if (checkedCount > 1) {
-      modal.error("Multiple products selected", "Please select only one product to edit.");
+      modal.error(t("products.multipleProductsSelected"), t("products.pleaseSelectOnlyOneProductToEdit"));
+
       return;
     }
 
@@ -503,19 +628,23 @@ export default function ProductsList(props: {
 
   function handleDeactivateSelected() {
     if (checkedCount === 0) {
-      modal.error("No product selected", "Please select at least one product to deactivate.");
+      modal.error(t("products.noProductSelected"), t("products.pleaseSelectAtLeastOneProductToDeactivate"));
+
       return;
     }
 
     const namesPreview =
       checkedCount === 1
-        ? `Deactivate “${selectedProducts[0].name}”? This action cannot be undone.`
-        : `Deactivate ${checkedCount} selected products? This action cannot be undone.`;
+        ? t("products.deactivateConfirmSingle").replace("{name}", selectedProducts[0].name)
+        : t("products.deactivateConfirmMultiple").replace("{count}", String(checkedCount));
 
-    modal.confirmDelete("Deactivate product?", namesPreview, () => {
+    modal.confirmDelete(t("products.deactivateProduct"), namesPreview, () => {
       void deactivateProducts(selectedProducts);
     });
   }
+
+  const filteredCategories = categories.filter((c) => c.isActive !== false);
+  const filteredBrands = brands.filter((c) => c.isActive !== false);
 
   const functionKeyActions = useMemo(
     () => ({
@@ -539,34 +668,95 @@ export default function ProductsList(props: {
         label: "Edit",
         icon: "bi-pencil-square",
       },
-      F11: {
-        action: toggleSelectAll,
-        label: "Select all",
-        icon: "bi-check2-square",
-      },
     }),
     [checkedCount, selectedProducts, selectedSiteId],
   );
 
   usePageFunctionKeys(functionKeyActions);
 
+  async function handleDeleteProduct(product: NormalizedProduct) {
+    modal.confirmDelete(
+      t("products.deleteProduct"),
+      t("products.deleteConfirm").replace("{name}", product.name),
+      async () => {
+        props.setBusy(true);
+
+        try {
+          const response = await fetch(`/api/admin/products/${product.id}`, {
+            method: "DELETE",
+            credentials: "include",
+            cache: "no-store",
+          });
+
+          const data = await safeJson<ApiError>(response);
+
+          if (!response.ok) {
+            throw new Error(data?.error || `${t("products.deleteFailed")} “${product.name}”.`);
+          }
+
+          props.afterMutate();
+
+          modal.success(t("products.success"), t("products.deleteSuccess").replace("{name}", product.name));
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(t("products.deleteFailed"));
+
+          modal.error(t("products.deleteFailed"), err.message);
+        } finally {
+          props.setBusy(false);
+        }
+      },
+    );
+  }
+
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
         <div className={styles.toolbarTop}>
+          <div className={styles.toolbarRight}>
+            <div className={styles.selectWrap}>
+              <i className={`bi bi-sort-down ${styles.selectIcon}`} />
+
+              <select
+                id="site-selector"
+                value={selectedSiteId}
+                onChange={(e) => onChangeSite(e.target.value)}
+                disabled={sitesLoading}
+                className={styles.select}
+              >
+                <option value="">{sitesLoading ? t("products.loadingSites") : t("products.selectSite")}</option>
+
+                {sites.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name ?? s.id}
+                  </option>
+                ))}
+              </select>
+
+              {sitesErr ? <span className={styles.siteError}>{sitesErr}</span> : null}
+            </div>
+          </div>
+
           <div className={styles.toolbarLeft}>
             <div className={styles.searchWrap}>
               <span className={styles.searchIcon} aria-hidden>
-                ⌕
+                <i className="bi bi-search-heart"></i>
               </span>
 
               <input
                 className={styles.searchInput}
                 value={filters.q}
-                placeholder="Search name, SKU, barcode... Tips: sku:TS-01 cat:shoe active outofstock lowstock nocategory"
-                onChange={(e) => setFilters((s) => ({ ...s, q: e.target.value }))}
+                placeholder={t("products.searchPlaceholder")}
+                onChange={(e) =>
+                  setFilters((s) => ({
+                    ...s,
+                    q: e.target.value,
+                  }))
+                }
                 onFocus={() => {
-                  if (blurTimer.current) window.clearTimeout(blurTimer.current);
+                  if (blurTimer.current) {
+                    window.clearTimeout(blurTimer.current);
+                  }
+
                   setSearchOpen(true);
                 }}
                 onBlur={() => {
@@ -575,15 +765,19 @@ export default function ProductsList(props: {
               />
 
               {searchOpen && String(filters.q ?? "").trim() && suggestions.length > 0 ? (
-                <div className={styles.suggest} role="listbox" aria-label="Search suggestions">
+                <div className={styles.suggest} role="listbox" aria-label={t("products.searchSuggestions")}>
                   <div className={styles.suggestHead}>
-                    <span className={styles.suggestTitle}>Quick results</span>
-                    <span className={styles.suggestHint}>{suggestions.length} items</span>
+                    <span className={styles.suggestTitle}>{t("products.searchSuggestions")}</span>
+
+                    <span className={styles.suggestHint}>
+                      {t("products.itemsCount").replace("{count}", String(suggestions.length))}
+                    </span>
                   </div>
 
                   <div className={styles.suggestList}>
                     {suggestions.map((product) => {
                       const thumb = getThumb(product);
+
                       return (
                         <button
                           key={product.id}
@@ -591,7 +785,11 @@ export default function ProductsList(props: {
                           className={styles.suggestItem}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
-                            setFilters((s) => ({ ...s, q: product.name ?? s.q }));
+                            setFilters((s) => ({
+                              ...s,
+                              q: product.name ?? s.q,
+                            }));
+
                             setSearchOpen(false);
                           }}
                         >
@@ -612,8 +810,10 @@ export default function ProductsList(props: {
 
                           <span className={styles.suggestMeta}>
                             <span className={styles.suggestName}>{product.name}</span>
+
                             <span className={styles.suggestSub}>
-                              {product.category?.name ?? "No category"} • {moneyFromCents(product.priceCents)}
+                              {product.category?.name ?? t("products.noCategory")} •{" "}
+                              {moneyFromCents(product.priceCents)}
                             </span>
                           </span>
 
@@ -628,57 +828,95 @@ export default function ProductsList(props: {
           </div>
 
           <div className={styles.toolbarRight}>
-            <select
-              className={styles.select}
-              value={filters.sort}
-              onChange={(e) => setFilters((s) => ({ ...s, sort: e.target.value as Filters["sort"] }))}
-              disabled={busy}
-            >
-              <option value="Newest">Newest first</option>
-              <option value="Oldest">Oldest first</option>
-              <option value="NameAsc">Name A → Z</option>
-              <option value="NameDesc">Name Z → A</option>
-              <option value="CategoryAsc">Category A → Z</option>
-              <option value="CategoryDesc">Category Z → A</option>
-              <option value="PriceAsc">Price Low → High</option>
-              <option value="PriceDesc">Price High → Low</option>
-              <option value="StockAsc">Stock Low → High</option>
-              <option value="StockDesc">Stock High → Low</option>
-              <option value="StatusAsc">Status A → Z</option>
-              <option value="StatusDesc">Status Z → A</option>
-            </select>
+            <div className={styles.selectWrap}>
+              <i className={`bi bi-sort-down ${styles.selectIcon}`} />
+
+              <select
+                className={styles.select}
+                value={filters.sort}
+                onChange={(e) =>
+                  setFilters((s) => ({
+                    ...s,
+                    sort: e.target.value as Filters["sort"],
+                  }))
+                }
+                disabled={busy}
+              >
+                <option value="Newest">{t("products.newestFirst")}</option>
+
+                <option value="Oldest">{t("products.oldestFirst")}</option>
+
+                <option value="StatusAsc">{t("products.statusAsc")}</option>
+
+                <option value="StatusDesc">{t("products.statusDesc")}</option>
+              </select>
+            </div>
+          </div>
+
+          <div className={styles.toolbarRight}>
+            <div className={styles.selectWrap}>
+              <i className={`bi bi-sort-down ${styles.selectIcon}`} />
+
+              <select
+                className={styles.select}
+                value={filters.categoryIds?.[0] ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  setFilters((s) => ({
+                    ...s,
+                    categoryIds: value ? [value] : [],
+                  }));
+                }}
+              >
+                <option value="">{t("products.allCategories")}</option>
+
+                {filteredCategories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className={styles.toolbarRight}>
+            <div className={styles.selectWrap}>
+              <i className={`bi bi-sort-down ${styles.selectIcon}`} />
+
+              <select
+                className={styles.select}
+                value={filters.brandIds?.[0] ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  setFilters((s) => ({
+                    ...s,
+                    brandIds: value ? [value] : [],
+                  }));
+                }}
+                disabled={busy}
+              >
+                <option value="">{t("products.allBrands")}</option>
+
+                {filteredBrands.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
         <div className={styles.pageHeaderRight}>
-          <div className={styles.siteSelectorWrap}>
-            <div className={styles.siteSelectorGroup}>
-              <label className={styles.siteLabel} htmlFor="site-selector">
-                Store
-              </label>
-
-              <select
-                id="site-selector"
-                value={selectedSiteId}
-                onChange={(e) => onChangeSite(e.target.value)}
-                disabled={sitesLoading}
-                className={styles.selectSite}
-              >
-                <option value="">{sitesLoading ? "Loading sites..." : "Select site"}</option>
-                {sites.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name ?? s.id}
-                  </option>
-                ))}
-              </select>
-
-              {sitesErr ? <span className={styles.siteError}>{sitesErr}</span> : null}
-            </div>
-          </div>
-
           <div className={styles.tabs}>
-            <button className={`${styles.tabBtn} ${styles.tabActive}`} type="button" onClick={onOpenList}>
-              Product list
+            <button
+              className={`${styles.tabBtn} ${!editingId ? styles.tabActive : ""}`}
+              type="button"
+              onClick={onOpenList}
+            >
+              {t("products.productList")}
             </button>
 
             <button
@@ -686,222 +924,13 @@ export default function ProductsList(props: {
               type="button"
               onClick={handleCreateProduct}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? "Please select site first" : undefined}
+              title={!selectedSiteId ? t("products.pleaseSelectSiteFirst") : undefined}
             >
-              {editingId ? "Edit product" : "Create product"}
+              {editingId ? t("products.editProduct") : t("products.createProduct")}
             </button>
           </div>
         </div>
       </header>
-
-      <div className={styles.toolbarCard}>
-        {filtersOpen ? (
-          <div className={styles.filtersPanel}>
-            <div className={styles.filtersPanelHeader}>
-              <div className={styles.filtersPanelTitleWrap}>
-                <h3 className={styles.filtersPanelTitle}>Advanced filters</h3>
-              </div>
-
-              <div className={styles.filtersQuickRow}>
-                <button
-                  type="button"
-                  className={styles.quickFilterChip}
-                  onClick={() => setFilters((s) => ({ ...s, active: "active" }))}
-                  disabled={busy}
-                >
-                  Active
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.quickFilterChip}
-                  onClick={() => setFilters((s) => ({ ...s, q: `${s.q} draft`.trim() }))}
-                  disabled={busy}
-                >
-                  Draft
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.quickFilterChip}
-                  onClick={() => setFilters((s) => ({ ...s, q: `${s.q} outofstock`.trim() }))}
-                  disabled={busy}
-                >
-                  Out of stock
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.quickFilterChip}
-                  onClick={() => setFilters((s) => ({ ...s, q: `${s.q} lowstock`.trim() }))}
-                  disabled={busy}
-                >
-                  Low stock
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.quickFilterChip}
-                  onClick={() => setFilters((s) => ({ ...s, q: `${s.q} nocategory`.trim() }))}
-                  disabled={busy}
-                >
-                  No category
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.filterGrid}>
-              <div className={styles.fieldCard}>
-                <label className={styles.fieldLabel}>Status</label>
-                <select
-                  className={styles.select}
-                  value={filters.active}
-                  onChange={(e) => setFilters((s) => ({ ...s, active: e.target.value as Filters["active"] }))}
-                  disabled={busy}
-                >
-                  <option value="all">All</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive / Draft</option>
-                </select>
-              </div>
-
-              <div className={styles.fieldCard}>
-                <label className={styles.fieldLabel}>Category</label>
-                <select
-                  className={styles.select}
-                  value={filters.categoryIds?.[0] ?? ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFilters((s) => ({ ...s, categoryIds: value ? [value] : [] }));
-                  }}
-                  disabled={busy}
-                >
-                  <option value="">All categories</option>
-                  {categories
-                    .filter((c) => c.isActive)
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              <div className={styles.fieldCard}>
-                <label className={styles.fieldLabel}>Min price</label>
-                <input
-                  className={styles.input}
-                  value={filters.priceMin}
-                  placeholder="0"
-                  onChange={(e) => setFilters((s) => ({ ...s, priceMin: e.target.value }))}
-                  inputMode="decimal"
-                  disabled={busy}
-                />
-              </div>
-
-              <div className={styles.fieldCard}>
-                <label className={styles.fieldLabel}>Max price</label>
-                <input
-                  className={styles.input}
-                  value={filters.priceMax}
-                  placeholder="9999"
-                  onChange={(e) => setFilters((s) => ({ ...s, priceMax: e.target.value }))}
-                  inputMode="decimal"
-                  disabled={busy}
-                />
-              </div>
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      <div className={styles.hero}>
-        <div className={styles.heroStats}>
-          <div className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>📦</span>
-              <span className={styles.metricLabel}>Total</span>
-            </div>
-
-            <div className={styles.metricBody}>
-              <strong className={styles.metricValue}>{stats.total}</strong>
-              <span className={styles.metricHint}>Products shown</span>
-            </div>
-          </div>
-
-          <div className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>🟢</span>
-              <span className={styles.metricLabel}>Active</span>
-            </div>
-
-            <div className={styles.metricBody}>
-              <strong className={styles.metricValue}>{stats.active}</strong>
-              <span className={styles.metricHint}>Ready to sell</span>
-            </div>
-          </div>
-
-          <div className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>📝</span>
-              <span className={styles.metricLabel}>Draft</span>
-            </div>
-
-            <div className={styles.metricBody}>
-              <strong className={styles.metricValue}>{stats.draft}</strong>
-              <span className={styles.metricHint}>Pending review</span>
-            </div>
-          </div>
-
-          <div className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>📦</span>
-              <span className={styles.metricLabel}>Out of stock</span>
-            </div>
-
-            <div className={styles.metricBody}>
-              <strong className={styles.metricValue}>{stats.outOfStock}</strong>
-              <span className={styles.metricHint}>Need replenishment</span>
-            </div>
-          </div>
-
-          <div className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>⚠️</span>
-              <span className={styles.metricLabel}>Low stock</span>
-            </div>
-
-            <div className={styles.metricBody}>
-              <strong className={styles.metricValue}>{stats.lowStock}</strong>
-              <span className={styles.metricHint}>≤ 5 items left</span>
-            </div>
-          </div>
-
-          <div className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>🗂️</span>
-              <span className={styles.metricLabel}>Categories</span>
-            </div>
-
-            <div className={styles.metricBody}>
-              <strong className={styles.metricValue}>{stats.categoriesInUse}</strong>
-              <span className={styles.metricHint}>{stats.uncategorized} uncategorized</span>
-            </div>
-          </div>
-
-          <div className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>💲</span>
-              <span className={styles.metricLabel}>Price</span>
-            </div>
-
-            <div className={styles.metricBody}>
-              <strong className={styles.metricValue}>{moneyFromCents(stats.avgPrice)}</strong>
-              <span className={styles.metricHint}>Current filtered set</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {error ? (
         <div className={styles.alertError} role="alert">
@@ -909,77 +938,190 @@ export default function ProductsList(props: {
         </div>
       ) : null}
 
-      <section className={styles.productsCardSection} aria-label="Products grid">
-        {filtered.length === 0 && !loading ? <div className={styles.emptyProductState}>No products found</div> : null}
+      <div className={styles.productsGrid}>
+        <div className={styles.tableHeader}>
+          <button className={styles.sortHeader}>
+            <span>{t("products.no")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
 
-        <div className={styles.productGrid}>
-          {filtered.map((product) => {
-            const thumb = getThumb(product);
-            const tone = getStatusTone(product);
+          <button className={styles.sortHeader}>
+            <span>{t("products.product")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
 
-            return (
-              <article key={product.id} className={styles.productCard}>
-                <div className={styles.productCardTop}>
-                  <label className={styles.productCheck}>
-                    <input
-                      type="checkbox"
-                      checked={!!selected[product.id]}
-                      onChange={(e) =>
-                        setSelected((s) => ({
-                          ...s,
-                          [product.id]: e.target.checked,
-                        }))
-                      }
-                    />
-                  </label>
+          <button className={styles.sortHeader}>
+            <span>{t("products.sku")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
 
-                  <span className={`${styles.statusBadge} ${styles[`statusBadge_${tone}`]}`}>
-                    {product.statusLabel}
-                  </span>
-                </div>
+          <button className={styles.sortHeader}>
+            <span>{t("products.qty")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
 
-                <div className={styles.productImageWrap}>
+          <button className={styles.sortHeader}>
+            <span>{t("products.brand")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
+
+          <button className={styles.sortHeader}>
+            <span>{t("products.category")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
+
+          <button className={styles.sortHeader}>
+            <span>{t("products.pricing")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
+
+          <button className={styles.sortHeader}>
+            <span>{t("products.marketPrice")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
+
+          <button className={styles.sortHeader}>
+            <span>{t("products.status")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
+
+          <button className={styles.sortHeader}>
+            <span>{t("products.updated")}</span>
+            <i className="bi bi-arrow-down-up" />
+          </button>
+
+          <div className={styles.actionHeader}>{t("products.actions")}</div>
+        </div>
+
+        {paginatedProducts.map((product, index) => {
+          const thumb = getThumb(product);
+          const tone = getStatusTone(product);
+
+          return (
+            <div key={product.id} className={styles.productRow}>
+              <div className={styles.indexCol}>
+                <span className={styles.indexColText}>
+                  {String((currentPage - 1) * ITEMS_PER_PAGE + index + 1).padStart(2, "0")}
+                </span>
+              </div>
+
+              <div className={styles.productCell}>
+                <div className={styles.productThumb}>
                   {thumb ? (
                     <Image
                       unoptimized
                       src={thumb}
                       alt={product.name}
-                      width={320}
-                      height={220}
-                      className={styles.productImage}
+                      width={84}
+                      height={84}
+                      className={styles.productThumbImg}
                     />
                   ) : (
-                    <div className={styles.productImageEmpty}>No image</div>
+                    <div className={styles.productThumbEmpty}>
+                      <i className="bi bi-image" />
+                    </div>
                   )}
-
-                  <div className={styles.imageOverlay}>
-                    {product.category?.name ? (
-                      <span className={styles.categoryTag}>{product.category.name}</span>
-                    ) : null}
-                  </div>
                 </div>
 
-                <div className={styles.productCardBody}>
-                  <div className={styles.productCardMain}>
-                    <h3 className={styles.productCardName}>{product.name}</h3>
+                <div className={styles.productInfo}>
+                  <div className={styles.productTop}>
+                    <div className={styles.productHeading}>
+                      <h3 className={styles.productTitle}>{product.name}</h3>
 
-                    <p className={styles.productCardDesc}>
-                      {product.description?.trim() ? product.description : "No description available"}
-                    </p>
-                  </div>
+                      <div className={styles.productSlug}>/{product.slug}</div>
+                    </div>
 
-                  <div className={styles.productMetaGroup}>
-                    {product.sku ? <span className={styles.metaChip}>SKU: {product.sku}</span> : null}
-                    {product.barcode ? (
-                      <span className={styles.metaChip}>Barcode: {String(product.barcode)}</span>
-                    ) : null}
+                    {!product.isVisible && <span className={styles.hiddenBadge}>{t("products.hidden")}</span>}
                   </div>
                 </div>
-              </article>
-            );
-          })}
+              </div>
+
+              <div className={styles.productMeta}>
+                {product.sku && (
+                  <div className={styles.metaItem}>
+                    <i className="bi bi-upc-scan" />
+                    <span>{product.sku}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.stockBox}>
+                <div className={styles.stockQty}>
+                  <span className={styles.stockQtyNumber}>{product.productQty ?? 0}</span>
+                </div>
+              </div>
+
+              <div className={styles.brandCell}>
+                <div className={styles.brandName}>
+                  <span className={styles.NameText}>{product.brand?.name ?? t("products.noBrand")}</span>
+                </div>
+              </div>
+
+              <div className={styles.categoryCell}>
+                <div className={styles.categoryName}>
+                  <span className={styles.NameText}>{product.category?.name ?? t("products.noCategory")}</span>
+                </div>
+              </div>
+
+              <div className={styles.priceCard}>
+                <div className={styles.currentPrice}>{moneyFromCents(product.priceCents)}</div>
+              </div>
+
+              <div className={styles.priceCard}>
+                <div className={styles.currentPrice}>{moneyFromMaket(product.marketPrice)}</div>
+              </div>
+
+              <div>
+                <span className={`${styles.statusPill} ${styles[`statusPill_${tone}`]}`}>{product.statusLabel}</span>
+              </div>
+
+              <div className={styles.dateCell}>
+                {new Date(product.updatedAt ?? product.createdAt ?? "").toLocaleDateString()}
+              </div>
+
+              <div className={styles.actions}>
+                <button type="button" className={styles.iconBtn} onClick={() => onEdit(product.id)}>
+                  <i className="bi bi-pencil-square" />
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={() => handleDeleteProduct(product)}
+                  disabled={busy}
+                  aria-label={t("products.deleteProductAria").replace("{name}", product.name)}
+                >
+                  <i className="bi bi-trash3" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className={styles.pagination}>
+        <button
+          type="button"
+          className={styles.paginationBtn}
+          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+          disabled={currentPage === 1}
+        >
+          {t("products.prev")}
+        </button>
+
+        <div className={styles.paginationInfo}>
+          {t("products.page")} {currentPage} / {totalPages || 1}
         </div>
-      </section>
+
+        <button
+          type="button"
+          className={styles.paginationBtn}
+          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+          disabled={currentPage === totalPages || totalPages === 0}
+        >
+          {t("products.next")}
+        </button>
+      </div>
     </div>
   );
 }

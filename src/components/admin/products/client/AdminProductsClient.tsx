@@ -6,10 +6,6 @@ import ProductsList from "@/components/admin/products/list/ProductsList";
 import ProductForm from "@/components/admin/products/add/ProductForm";
 import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 
-/* =========================
-   TYPES
-========================= */
-
 type ApiImage = {
   id?: string;
   url: string;
@@ -20,8 +16,14 @@ type ApiImage = {
 type ApiCategory = {
   id: string;
   name: string;
-  isActive: boolean;
+  isActive?: boolean;
   count?: number;
+};
+
+type ApiBrand = {
+  id: string;
+  name: string;
+  isActive?: boolean;
 };
 
 export type ApiProduct = {
@@ -29,20 +31,45 @@ export type ApiProduct = {
   name: string;
   slug: string;
   description: string | null;
-  sku: string;
-  barcode: string | null;
-  priceCents: number;
-  costCents: number;
-  stock: number;
-  isActive: boolean;
+
+  sku?: string;
+  barcode?: string | null;
+
+  price?: string | number;
+  marketPrice?: string | number;
+  savingPrice?: string | number;
+
+  priceCents?: number;
+  costCents?: number;
+
+  stock?: number;
+  productQty?: number;
+
+  isActive?: boolean;
+  isVisible?: boolean;
+
+  status?: string;
+  productType?: string;
+
   categoryId: string | null;
-  category?: { id: string; name: string } | null;
+
+  category?: {
+    id: string;
+    name: string;
+  } | null;
+
+  brandId: string | null;
+
+  brand?: {
+    id: string;
+    name: string;
+  } | null;
+
   createdAt: string;
   updatedAt: string;
-  images?: ApiImage[];
-  status?: string;
-};
 
+  images?: ApiImage[];
+};
 export type SortKey =
   | "Newest"
   | "Oldest"
@@ -60,30 +87,36 @@ export type SortKey =
 export type Filters = {
   q: string;
   categoryIds: string[];
+  brandIds: string[];
   priceMin: string;
   priceMax: string;
   active: "all" | "active" | "inactive";
   sort: SortKey;
 };
 
-type ApiError = { error?: string };
-type ApiListResponse<T> = ApiError & { items?: T[] };
+type ApiError = {
+  error?: string;
+};
+
+type ApiListResponse<T> = ApiError & {
+  success?: boolean;
+  data?: T[];
+  items?: T[];
+};
 
 const DEFAULT_FILTERS: Filters = {
   q: "",
   categoryIds: [],
+  brandIds: [],
   priceMin: "",
   priceMax: "",
   active: "all",
   sort: "Newest",
 };
 
-/* =========================
-   HELPERS
-========================= */
-
 async function safeJson<T>(res: Response): Promise<T> {
   const text = await res.text().catch(() => "");
+
   try {
     return text ? JSON.parse(text) : ({} as T);
   } catch {
@@ -100,89 +133,120 @@ function toApiSort(sort: SortKey) {
   switch (sort) {
     case "PriceAsc":
       return "priceAsc";
+
     case "PriceDesc":
       return "priceDesc";
+
     case "NameAsc":
       return "nameAsc";
+
     case "NameDesc":
       return "nameDesc";
+
     case "Oldest":
       return "oldest";
+
     default:
       return "newest";
   }
 }
 
-/* =========================
-   COMPONENT
-========================= */
-
 export default function AdminProductsClient() {
   const { sites, currentSite } = useAdminAuth();
 
-  const siteId = currentSite?.id ?? sites?.[0]?.id ?? "";
+  const [selectedSiteId, setSelectedSiteId] = useState(currentSite?.id ?? sites?.[0]?.id ?? "");
 
   const [tab, setTab] = useState<"list" | "form">("list");
+
   const [items, setItems] = useState<ApiProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [brands, setBrands] = useState<ApiBrand[]>([]);
+
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* =========================
-     LOAD DATA
-  ========================= */
-
-  const fetchProducts = useCallback(async (f: Filters) => {
-    if (!siteId) return;
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const params = new URLSearchParams();
-      params.set("siteId", siteId);
-      params.set("active", f.active);
-      params.set("sort", toApiSort(f.sort));
-
-      if (f.q.trim()) params.set("q", f.q.trim());
-      if (f.categoryIds.length) params.set("categoryIds", f.categoryIds.join(","));
-      if (f.priceMin) params.set("priceMinCents", String(centsFromInput(f.priceMin)));
-      if (f.priceMax) params.set("priceMaxCents", String(centsFromInput(f.priceMax)));
-
-      const res = await fetch(`/api/admin/commerce/products?${params}`, {
-        signal: controller.signal,
-        cache: "no-store",
-      });
-
-      const json = await safeJson<ApiListResponse<ApiProduct>>(res);
-      if (!res.ok) throw new Error(json.error || "Load products failed");
-
-      setItems(json.items ?? []);
-    } catch (e: any) {
-      if (e.name !== "AbortError") {
-        setError(e.message || "Error");
+  const fetchProducts = useCallback(
+    async (f: Filters) => {
+      if (!selectedSiteId) {
         setItems([]);
+        return;
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [siteId]);
+
+      abortRef.current?.abort();
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setLoading(true);
+      setError("");
+
+      try {
+        const params = new URLSearchParams();
+
+        params.set("siteId", selectedSiteId);
+        params.set("active", f.active);
+        params.set("sort", toApiSort(f.sort));
+
+        if (f.q.trim()) {
+          params.set("q", f.q.trim());
+        }
+
+        if (f.categoryIds.length) {
+          params.set("categoryIds", f.categoryIds.join(","));
+        }
+
+        if (f.brandIds.length) {
+          params.set("brandIds", f.brandIds.join(","));
+        }
+
+        if (f.priceMin) {
+          params.set("priceMinCents", String(centsFromInput(f.priceMin)));
+        }
+
+        if (f.priceMax) {
+          params.set("priceMaxCents", String(centsFromInput(f.priceMax)));
+        }
+
+        const res = await fetch(`/api/admin/products?${params.toString()}`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+
+        const json = await safeJson<ApiListResponse<ApiProduct>>(res);
+
+        if (!res.ok) {
+          throw new Error(json.error || "Load products failed");
+        }
+
+        setItems(json.items ?? json.data ?? []);
+      } catch (e: any) {
+        if (e.name !== "AbortError") {
+          setError(e.message || "Error");
+          setItems([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedSiteId],
+  );
 
   const fetchCategories = useCallback(async () => {
-    if (!siteId) return;
+    if (!selectedSiteId) {
+      setCategories([]);
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/admin/products/product-categories?siteId=${siteId}`, {
+      const res = await fetch(`/api/admin/products/product-categories?siteId=${selectedSiteId}`, {
         cache: "no-store",
       });
 
@@ -191,38 +255,66 @@ export default function AdminProductsClient() {
     } catch {
       setCategories([]);
     }
-  }, [siteId]);
+  }, [selectedSiteId]);
 
-  /* =========================
-     EFFECTS
-  ========================= */
+  const fetchBrands = useCallback(async () => {
+    if (!selectedSiteId) {
+      setBrands([]);
+      return;
+    }
 
-  // load lần đầu
+    try {
+      const res = await fetch(`/api/admin/products/product-brands?siteId=${selectedSiteId}`, {
+        cache: "no-store",
+      });
+
+      const json = await safeJson<ApiListResponse<ApiBrand>>(res);
+
+      setBrands(json.data ?? []);
+    } catch {
+      setBrands([]);
+    }
+  }, [selectedSiteId]);
+
   useEffect(() => {
-    if (!siteId) return;
+    if (!selectedSiteId) {
+      setItems([]);
+      setCategories([]);
+      setBrands([]);
+      return;
+    }
 
-    fetchProducts(DEFAULT_FILTERS);
     fetchCategories();
-  }, [siteId]);
+    fetchBrands();
+  }, [selectedSiteId, fetchCategories, fetchBrands]);
 
-  // debounce filter (🔥 giảm load server mạnh)
   useEffect(() => {
-    if (!siteId) return;
+    if (!selectedSiteId) return;
 
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
     debounceRef.current = setTimeout(() => {
       fetchProducts(filters);
     }, 400);
 
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
     };
-  }, [filters, siteId]);
+  }, [filters, selectedSiteId, fetchProducts]);
 
-  /* =========================
-     ACTIONS
-  ========================= */
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const onCreateNew = () => {
     setEditingId(null);
@@ -236,7 +328,8 @@ export default function AdminProductsClient() {
 
   const onSaved = async () => {
     setTab("list");
-    fetchProducts(filters);
+
+    await fetchProducts(filters);
   };
 
   const onCancelForm = () => {
@@ -244,19 +337,14 @@ export default function AdminProductsClient() {
     setEditingId(null);
   };
 
-  /* =========================
-     RENDER
-  ========================= */
-
   return (
     <div className={styles.page}>
       <main className={styles.content}>
         {tab === "list" ? (
           <ProductsList
-            title="Product Builder"
-            subtitle="Create, manage products..."
             items={items}
             categories={categories}
+            brands={brands}
             filters={filters}
             setFilters={setFilters}
             loading={loading}
@@ -271,23 +359,26 @@ export default function AdminProductsClient() {
             editingId={editingId}
             onOpenList={() => setTab("list")}
             onOpenForm={onCreateNew}
-
-            // multi-site
             sites={sites}
             sitesLoading={false}
-            selectedSiteId={siteId}
+            selectedSiteId={selectedSiteId}
             onChangeSite={(id) => {
-              console.log("switch site:", id);
+              setSelectedSiteId(id);
             }}
           />
         ) : (
           <ProductForm
             editingId={editingId}
-            categories={categories}
             busy={busy}
             setBusy={setBusy}
             onCancel={onCancelForm}
+            categories={categories}
+            brands={brands}
             onSaved={onSaved}
+            siteId={selectedSiteId}
+            sites={sites}
+            selectedSiteId={selectedSiteId}
+            onChangeSite={setSelectedSiteId}
           />
         )}
       </main>

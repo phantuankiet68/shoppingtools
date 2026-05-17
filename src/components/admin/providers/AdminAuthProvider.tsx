@@ -51,9 +51,9 @@ export type AdminAuthData = {
       maxPages: number;
       maxMenus: number;
       maxCategories: number;
+      maxBrands: number;
       maxProducts: number;
       maxCustomDomains: number;
-      maxBrands: number;
       allowBlog: boolean;
       allowEcommerce: boolean;
       allowBooking: boolean;

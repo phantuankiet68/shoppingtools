@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuthUser } from "@/lib/auth/auth";
-import type { Prisma, ProductStatus, ProductType } from "@prisma/client";
+import type { Prisma, ProductStatus } from "@/generated/prisma";
 
 /* ----------------------------- utils ----------------------------- */
 
@@ -93,14 +93,13 @@ type ProductSubmitPayload = {
 
   name: string;
   slug?: string;
-
+  sku?: string;
+  barcode?: string;
   categoryId?: string;
   category?: string;
 
   brandId?: string;
   brand?: string;
-
-  productType?: ProductType;
   tags?: string[];
 
   status?: ProductStatus;
@@ -117,11 +116,6 @@ type ProductSubmitPayload = {
   marketPrice?: number | string | null;
   savingPrice?: number | string | null;
   productQty?: number | string | null;
-
-  weight?: number | string | null;
-  length?: number | string | null;
-  width?: number | string | null;
-  height?: number | string | null;
 
   media?: MediaItem[];
 };
@@ -191,7 +185,8 @@ export async function GET(req: Request) {
           slug: true,
           shortDescription: true,
           description: true,
-          productType: true,
+          sku: true,
+          barcode: true,
           tags: true,
           status: true,
           isVisible: true,
@@ -203,11 +198,6 @@ export async function GET(req: Request) {
           marketPrice: true,
           savingPrice: true,
           productQty: true,
-
-          weight: true,
-          length: true,
-          width: true,
-          height: true,
 
           createdAt: true,
           updatedAt: true,
@@ -231,10 +221,6 @@ export async function GET(req: Request) {
       price: p.price?.toString() ?? null,
       marketPrice: p.marketPrice?.toString() ?? null,
       savingPrice: p.savingPrice?.toString() ?? null,
-      weight: p.weight?.toString() ?? null,
-      length: p.length?.toString() ?? null,
-      width: p.width?.toString() ?? null,
-      height: p.height?.toString() ?? null,
       images: p.images.map((img) => ({
         id: img.id,
         url: img.imageUrl,
@@ -278,7 +264,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "categoryId is required" }, { status: 400 });
     }
 
-    const category = await prisma.productCategory.findFirst({
+    const category = await prisma.Category.findFirst({
       where: {
         siteId,
         OR: [{ id: categoryInput }, { slug: categoryInput }],
@@ -297,7 +283,7 @@ export async function POST(req: NextRequest) {
     const brandInput = String(body.brandId ?? body.brand ?? "").trim();
 
     if (brandInput) {
-      const brand = await prisma.productBrand.findFirst({
+      const brand = await prisma.Brand.findFirst({
         where: {
           siteId,
           OR: [{ id: brandInput }, { slug: brandInput }, { name: brandInput }],
@@ -327,10 +313,11 @@ export async function POST(req: NextRequest) {
           name,
           slug: finalSlug,
 
+          sku: String(body.sku ?? "").trim() || null,
+          barcode: String(body.barcode ?? "").trim() || null,
           shortDescription: String(body.shortDescription ?? "").trim() || null,
           description: String(body.description ?? "").trim() || null,
 
-          productType: (body.productType ?? "PHYSICAL") as ProductType,
           tags: Array.isArray(body.tags) ? body.tags : [],
 
           status: (body.status ?? "DRAFT") as ProductStatus,
@@ -344,11 +331,6 @@ export async function POST(req: NextRequest) {
           marketPrice: parseNumberOrNull(body.marketPrice),
           savingPrice: parseNumberOrNull(body.savingPrice),
           productQty: parseIntOrDefault(body.productQty, 0),
-
-          weight: parseNumberOrNull(body.weight),
-          length: parseNumberOrNull(body.length),
-          width: parseNumberOrNull(body.width),
-          height: parseNumberOrNull(body.height),
         },
         select: {
           id: true,
@@ -386,10 +368,6 @@ export async function POST(req: NextRequest) {
         price: fullProduct.price?.toString() ?? null,
         marketPrice: fullProduct.marketPrice?.toString() ?? null,
         savingPrice: fullProduct.savingPrice?.toString() ?? null,
-        weight: fullProduct.weight?.toString() ?? null,
-        length: fullProduct.length?.toString() ?? null,
-        width: fullProduct.width?.toString() ?? null,
-        height: fullProduct.height?.toString() ?? null,
         images: fullProduct.images.map((img) => ({
           id: img.id,
           url: img.imageUrl,

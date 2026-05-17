@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import styles from "@/styles/admin/commerce/products/add/ProductForm.module.css";
+import styles from "@/styles/admin/products/add/ProductForm.module.css";
 import Image from "next/image";
 import { useModal } from "@/components/admin/shared/common/modal";
-import { useSiteStore } from "@/store/site/site.store";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
+import RichEditor from "@/components/admin/editor/RichEditor";
 
 type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
-type ProductType = "PHYSICAL" | "DIGITAL" | "SERVICE";
 
 type MediaItem = {
   id: string;
@@ -18,49 +18,24 @@ type MediaItem = {
   file?: File;
 };
 
-type VariantOption = { name: string; values: string[] };
-
-type VariantRow = {
-  id: string;
-  title: string;
-  sku: string;
-  barcode?: string;
-  price: string;
-  compareAtPrice?: string;
-  cost?: string;
-  stockQty: string;
-  isActive: boolean;
-  isDefault: boolean;
-};
-
 type ProductFormState = {
   name: string;
   slug: string;
-
+  sku: string;
+  barcode: string;
   categoryId: string;
   brandId: string;
-
-  productType: ProductType;
   tags: string[];
   tagsInput: string;
-
   status: ProductStatus;
   isVisible: boolean;
   publishedAt: string;
-
   shortDescription: string;
   description: string;
-
   price: string;
   marketPrice: string;
   savingPrice: string;
   productQty: string;
-
-  weight: string;
-  length: string;
-  width: string;
-  height: string;
-
   metaTitle: string;
   metaDescription: string;
 };
@@ -68,35 +43,34 @@ type ProductFormState = {
 type ProductSubmitPayload = ProductFormState & {
   siteId: string;
   media: MediaItem[];
-  hasVariants: boolean;
-  variantOptions: VariantOption[];
-  variants: VariantRow[];
-};
-
-type CategoryItem = {
-  id: string;
-  name: string;
-  slug: string;
-  parentId?: string | null;
-  count?: number;
-};
-
-type BrandItem = {
-  id: string;
-  name: string;
-  slug: string;
-  logoUrl?: string | null;
 };
 
 type Props = {
   editingId?: string | null;
-  categories?: { id: string; name: string; isActive: boolean; count?: number }[];
+  siteId?: string;
+  selectedSiteId?: string;
+  onChangeSite?: (id: string) => void;
+  sites?: {
+    id: string;
+    name: string;
+  }[];
+
+  categories?: {
+    id: string;
+    name: string;
+    isActive?: boolean;
+    count?: number;
+  }[];
+  brands?: {
+    id: string;
+    name: string;
+    isActive?: boolean;
+  }[];
   busy?: boolean;
   setBusy?: (v: boolean) => void;
   onCancel?: () => void;
   onSaved?: () => void;
   onSubmit?: (payload: ProductSubmitPayload) => void;
-  siteId?: string;
 };
 
 type ApiResponse<T> = {
@@ -114,43 +88,31 @@ type ApiProductDetail = {
   siteId?: string;
   name?: string;
   slug?: string;
+  sku?: string | null;
+  barcode?: string | null;
   description?: string | null;
   shortDescription?: string | null;
-
   categoryId?: string | null;
   category?: { id?: string; name?: string } | null;
-
   brandId?: string | null;
   brand?: { id?: string; name?: string } | null;
-
-  productType?: ProductType;
   tags?: string[];
-
   status?: ProductStatus;
   isVisible?: boolean;
   isActive?: boolean;
   publishedAt?: string | null;
-
   price?: number | string | null;
   marketPrice?: number | string | null;
   savingPrice?: number | string | null;
   productQty?: number | string | null;
-
-  weight?: number | string | null;
-  length?: number | string | null;
-  width?: number | string | null;
-  height?: number | string | null;
-
   metaTitle?: string | null;
   metaDescription?: string | null;
-
   media?: Array<{
     id?: string;
     type?: "image" | "video";
     url?: string;
     thumbUrl?: string;
   }>;
-
   images?: Array<{
     id?: string;
     url?: string;
@@ -163,9 +125,10 @@ type ApiProductDetail = {
 const INITIAL_FORM: ProductFormState = {
   name: "",
   slug: "",
+  sku: "",
+  barcode: "",
   categoryId: "",
   brandId: "",
-  productType: "PHYSICAL",
   tags: [],
   tagsInput: "",
   status: "DRAFT",
@@ -173,14 +136,10 @@ const INITIAL_FORM: ProductFormState = {
   publishedAt: "",
   shortDescription: "",
   description: "",
-  price: "0.00",
+  price: "",
   marketPrice: "",
   savingPrice: "",
-  productQty: "0",
-  weight: "",
-  length: "",
-  width: "",
-  height: "",
+  productQty: "1",
   metaTitle: "",
   metaDescription: "",
 };
@@ -209,18 +168,20 @@ function sanitizeDecimalInput(value: string) {
   return next;
 }
 
-function sanitizeIntegerInput(value: string) {
-  return value.replace(/\D/g, "");
+function formatPriceInput(value: string) {
+  if (!value) return "";
+
+  const cleaned = value.replace(/[^\d]/g, "");
+
+  return Number(cleaned).toLocaleString("en-US");
 }
 
-function safePickList<T>(j: unknown): T[] {
-  const obj = j as ApiResponse<T>;
-  if (Array.isArray(j)) return j as T[];
-  if (Array.isArray(obj?.items)) return obj.items;
-  if (Array.isArray(obj?.data)) return obj.data;
-  if (Array.isArray(obj?.categories)) return obj.categories;
-  if (Array.isArray(obj?.brands)) return obj.brands;
-  return [];
+function unformatPrice(value: string) {
+  return value.replace(/,/g, "");
+}
+
+function sanitizeIntegerInput(value: string) {
+  return value.replace(/\D/g, "");
 }
 
 function safePickItem<T>(j: unknown): T | null {
@@ -228,7 +189,7 @@ function safePickItem<T>(j: unknown): T | null {
   const obj = j as ApiResponse<T> & T;
   if (obj.item && typeof obj.item === "object") return obj.item;
   if (obj.data && !Array.isArray(obj.data) && typeof obj.data === "object") return obj.data as T;
-  return obj as T;
+  return "id" in obj ? (obj as T) : null;
 }
 
 function moneyString(value?: number | string | null) {
@@ -282,10 +243,10 @@ function toFormStateFromProduct(product: ApiProductDetail): ProductFormState {
   return {
     name: String(product.name ?? ""),
     slug: String(product.slug ?? ""),
+    sku: String(product.sku ?? ""),
+    barcode: String(product.barcode ?? ""),
     categoryId: String(product.categoryId ?? product.category?.id ?? ""),
     brandId: String(product.brandId ?? product.brand?.id ?? ""),
-    productType:
-      product.productType === "DIGITAL" || product.productType === "SERVICE" ? product.productType : "PHYSICAL",
     tags: Array.isArray(product.tags) ? product.tags.map((x) => String(x)) : [],
     tagsInput: "",
     status: resolvedStatus,
@@ -293,24 +254,44 @@ function toFormStateFromProduct(product: ApiProductDetail): ProductFormState {
     publishedAt: String(product.publishedAt ?? ""),
     shortDescription: String(product.shortDescription ?? ""),
     description: String(product.description ?? ""),
-    price: moneyString(product.price) || "0.00",
+    price: moneyString(product.price) || "",
     marketPrice: moneyString(product.marketPrice),
     savingPrice: moneyString(product.savingPrice),
     productQty: intString(product.productQty, "0"),
-    weight: product.weight == null ? "" : String(product.weight),
-    length: product.length == null ? "" : String(product.length),
-    width: product.width == null ? "" : String(product.width),
-    height: product.height == null ? "" : String(product.height),
     metaTitle: String(product.metaTitle ?? ""),
     metaDescription: String(product.metaDescription ?? ""),
   };
+}
+
+function formatDateParts(date = new Date()) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return {
+    yyyy,
+    mm,
+    dd,
+    yyyymmdd: `${yyyy}${mm}${dd}`,
+  };
+}
+
+function generateSKU(sequence: number) {
+  const { yyyymmdd } = formatDateParts();
+
+  return `SP-${yyyymmdd}-${String(sequence).slice(-6)}`;
+}
+
+function generateBarcode() {
+  const timestamp = Date.now().toString().slice(-10);
+  return `893${timestamp}`;
 }
 
 async function uploadMediaFiles(files: File[], signal?: AbortSignal): Promise<string[]> {
   const fd = new FormData();
   for (const f of files) fd.append("files", f);
 
-  const res = await fetch("/api/admin/commerce/products/uploads/images", {
+  const res = await fetch("/api/admin/products/uploads/images", {
     method: "POST",
     body: fd,
     signal,
@@ -330,203 +311,57 @@ async function uploadMediaFiles(files: File[], signal?: AbortSignal): Promise<st
 export default function ProductForm({
   editingId,
   categories: categoriesProp,
+  brands: brandsProp,
   busy: busyProp,
   setBusy: setBusyProp,
   onCancel,
   onSaved,
   onSubmit,
-  siteId: siteIdProp,
+  siteId,
+  sites,
+  selectedSiteId,
+  onChangeSite,
 }: Props) {
   const modal = useModal();
 
-  const sites = useSiteStore((s) => s.sites);
-  const sitesLoading = useSiteStore((s) => s.loading);
-  const sitesErr = useSiteStore((s) => s.err);
-  const selectedSiteId = useSiteStore((s) => s.siteId);
-  const setSelectedSiteId = useSiteStore((s) => s.setSiteId);
-  const hydrateFromStorage = useSiteStore((s) => s.hydrateFromStorage);
-  const loadSites = useSiteStore((s) => s.loadSites);
-
-  const effectiveSiteId = siteIdProp || selectedSiteId;
+  const effectiveSiteId = selectedSiteId || siteId || "";
   const isEditing = Boolean(editingId);
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    if (siteIdProp) return;
-    hydrateFromStorage();
-    loadSites();
-  }, [siteIdProp, hydrateFromStorage, loadSites]);
-
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
-  const [catLoading, setCatLoading] = useState(false);
-  const [catError, setCatError] = useState("");
-
-  const [brands, setBrands] = useState<BrandItem[]>([]);
-  const [brandLoading, setBrandLoading] = useState(false);
-  const [brandError, setBrandError] = useState("");
-
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [productError, setProductError] = useState("");
-
-  const loadCategories = useCallback(async () => {
-    if (Array.isArray(categoriesProp) && categoriesProp.length > 0) {
-      const normalized = categoriesProp
-        .filter((x) => x && x.id && x.name)
-        .map((x) => ({
-          id: String(x.id),
-          name: String(x.name),
-          slug: slugify(String(x.name)),
-          parentId: null,
-          count: x.count ?? 0,
-        }));
-      setCategories(normalized);
-      setCatError("");
-      return;
-    }
-
-    if (!effectiveSiteId) {
-      setCategories([]);
-      setCatError("");
-      return;
-    }
-
-    const controller = new AbortController();
-
-    try {
-      setCatLoading(true);
-      setCatError("");
-
-      const qs = new URLSearchParams();
-      qs.set("siteId", effectiveSiteId);
-      qs.set("lite", "1");
-
-      const url = `/api/admin/commerce/products/product-categories?${qs.toString()}`;
-
-      const res = await fetch(url, {
-        method: "GET",
-        cache: "no-store",
-        signal: controller.signal,
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        const errorObj = j as Record<string, unknown>;
-        throw new Error(String(errorObj?.error ?? errorObj?.message ?? "Load categories failed"));
-      }
-
-      const j = await res.json();
-      const list = safePickList<CategoryItem>(j);
-
-      const normalized = list
-        .filter((x) => x && x.id && x.name)
-        .map((x) => ({
-          id: String(x.id),
-          name: String(x.name),
-          slug: String(x.slug ?? ""),
-          parentId: x.parentId ?? null,
-          count: x.count ?? 0,
-        }));
-
-      setCategories(normalized);
-    } catch (e: unknown) {
-      if (e instanceof Error && e.name === "AbortError") return;
-      const message = e instanceof Error ? e.message : "Load categories failed";
-      setCatError(message);
-      setCategories([]);
-    } finally {
-      setCatLoading(false);
-    }
-
-    return () => controller.abort();
-  }, [categoriesProp, effectiveSiteId]);
-
-  const loadBrands = useCallback(async () => {
-    if (!effectiveSiteId) {
-      setBrands([]);
-      setBrandError("");
-      return;
-    }
-
-    const controller = new AbortController();
-
-    try {
-      setBrandLoading(true);
-      setBrandError("");
-
-      const qs = new URLSearchParams();
-      qs.set("siteId", effectiveSiteId);
-      qs.set("lite", "1");
-
-      const url = `/api/admin/commerce/products/product-brands?${qs.toString()}`;
-
-      const res = await fetch(url, {
-        method: "GET",
-        cache: "no-store",
-        signal: controller.signal,
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        const errorObj = j as Record<string, unknown>;
-        throw new Error(String(errorObj?.error ?? errorObj?.message ?? "Load brands failed"));
-      }
-
-      const j = await res.json();
-      const list = safePickList<BrandItem>(j);
-
-      const normalized = list
-        .filter((x) => x && x.id && x.name)
-        .map((x) => ({
-          id: String(x.id),
-          name: String(x.name),
-          slug: String(x.slug ?? ""),
-          logoUrl: x.logoUrl ?? null,
-        }));
-
-      setBrands(normalized);
-    } catch (e: unknown) {
-      if (e instanceof Error && e.name === "AbortError") return;
-      const message = e instanceof Error ? e.message : "Load brands failed";
-      setBrandError(message);
-      setBrands([]);
-    } finally {
-      setBrandLoading(false);
-    }
-
-    return () => controller.abort();
-  }, [effectiveSiteId]);
-
-  useEffect(() => {
-    let cleanup: void | (() => void);
-
-    void (async () => {
-      cleanup = await loadCategories();
-    })();
-
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [loadCategories]);
-
-  useEffect(() => {
-    let cleanup: void | (() => void);
-
-    void (async () => {
-      cleanup = await loadBrands();
-    })();
-
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [loadBrands]);
 
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [activeMediaId, setActiveMediaId] = useState<string | null>(null);
   const activeMedia = (activeMediaId ? media.find((m) => m.id === activeMediaId) : null) ?? media[0] ?? null;
+
+  const [form, setForm] = useState<ProductFormState>(INITIAL_FORM);
+
+  const [slugTouched, setSlugTouched] = useState(false);
+  const { t } = useAdminI18n();
+
+  const categories = useMemo(
+    () =>
+      (categoriesProp ?? []).map((c) => ({
+        id: String(c.id),
+        name: String(c.name),
+        slug: slugify(c.name),
+        count: c.count ?? 0,
+      })),
+    [categoriesProp],
+  );
+
+  const brands = useMemo(
+    () =>
+      (brandsProp ?? []).map((b) => ({
+        id: String(b.id),
+        name: String(b.name),
+        slug: slugify(b.name),
+      })),
+    [brandsProp],
+  );
 
   useEffect(() => {
     return () => {
@@ -536,90 +371,100 @@ export default function ProductForm({
     };
   }, [media]);
 
-  const [form, setForm] = useState<ProductFormState>(INITIAL_FORM);
-
-  const [hasVariants, setHasVariants] = useState(false);
-  const [variantOptions, setVariantOptions] = useState<VariantOption[]>([]);
-  const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [isDirty, setIsDirty] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string>("");
 
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadProductDetail(id: string) {
+    const resetFormState = () => {
+      setForm(INITIAL_FORM);
+      setMedia([]);
+      setActiveMediaId(null);
+    };
+
+    const loadProductDetail = async () => {
+      if (!editingId) {
+        setProductError("");
+        setLoadingProduct(false);
+        resetFormState();
+        return;
+      }
+
       try {
         setLoadingProduct(true);
         setProductError("");
 
-        const res = await fetch(`/api/admin/commerce/products/${id}`, {
+        const response = await fetch(`/api/admin/products/${editingId}`, {
           method: "GET",
           cache: "no-store",
           credentials: "include",
           signal: controller.signal,
         });
 
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error ?? j?.message ?? "Load product detail failed");
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+
+          throw new Error(errorData?.error ?? errorData?.message ?? t("products.loadProductDetailFailed"));
         }
 
-        const raw = await res.json();
-        const product = safePickItem<ApiProductDetail>(raw);
+        const data = await response.json();
 
-        if (!product || !product.id) {
-          throw new Error("Invalid product detail response");
-        }
+        const product = safePickItem<ApiProductDetail>(data);
 
-        if (product.siteId && !siteIdProp) {
-          setSelectedSiteId(String(product.siteId));
+        if (!product?.id) {
+          throw new Error(t("products.invalidProductDetailResponse"));
         }
 
         setForm(toFormStateFromProduct(product));
 
-        const nextMedia = normalizeMediaFromProduct(product);
-        setMedia(nextMedia);
-        setActiveMediaId(nextMedia[0]?.id ?? null);
+        const mediaItems = normalizeMediaFromProduct(product);
 
-        setHasVariants(false);
-        setVariantOptions([]);
-        setVariants([]);
-      } catch (e: unknown) {
-        if (e instanceof Error && e.name === "AbortError") return;
-        const message = e instanceof Error ? e.message : "Load product detail failed";
+        setMedia(mediaItems);
+
+        setActiveMediaId(mediaItems[0]?.id ?? null);
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : t("products.loadProductDetailFailed");
+
         setProductError(message);
-        setForm(INITIAL_FORM);
-        setMedia([]);
-        setActiveMediaId(null);
+
+        resetFormState();
       } finally {
         if (!controller.signal.aborted) {
           setLoadingProduct(false);
         }
       }
-    }
+    };
 
-    if (!editingId) {
-      setProductError("");
-      setLoadingProduct(false);
-      setForm(INITIAL_FORM);
-      setMedia([]);
-      setActiveMediaId(null);
-      setHasVariants(false);
-      setVariantOptions([]);
-      setVariants([]);
-      return () => controller.abort();
-    }
+    void loadProductDetail();
 
-    void loadProductDetail(editingId);
-
-    return () => controller.abort();
-  }, [editingId, setSelectedSiteId, siteIdProp]);
+    return () => {
+      controller.abort();
+    };
+  }, [editingId, t]);
 
   const setField = useCallback(<K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
-    setForm((p) => ({ ...p, [key]: value }));
+    setForm((p) => ({
+      ...p,
+      [key]: value,
+    }));
+
+    setIsDirty(true);
   }, []);
 
   const handleDecimalFieldChange = useCallback(
-    (key: "price" | "marketPrice" | "savingPrice" | "weight" | "length" | "width" | "height", value: string) => {
-      setField(key, sanitizeDecimalInput(value));
+    (key: "price" | "marketPrice" | "savingPrice", value: string) => {
+      const raw = unformatPrice(value);
+
+      const cleaned = sanitizeDecimalInput(raw);
+
+      const formatted = formatPriceInput(cleaned);
+
+      setField(key, formatted);
     },
     [setField],
   );
@@ -634,10 +479,6 @@ export default function ProductForm({
   const handleNameChange = useCallback(
     (v: string) => {
       setField("name", v);
-      setForm((p) => {
-        if (p.slug) return p;
-        return { ...p, slug: slugify(v) };
-      });
     },
     [setField],
   );
@@ -675,34 +516,40 @@ export default function ProductForm({
 
   const autoFill = useCallback(() => {
     setForm((p) => {
-      const name = p.name?.trim() ? p.name : "New product";
+      const name = p.name?.trim() ? p.name : t("products.newProduct");
+
       const slug = p.slug?.trim() ? p.slug : slugify(name);
 
       const metaTitle = p.metaTitle?.trim() ? p.metaTitle : name;
+
       const metaDescription = p.metaDescription?.trim()
         ? p.metaDescription
-        : `Buy ${name} online. Fast delivery, great quality.`;
+        : t("products.buyOnlineMeta").replace("{name}", name);
 
-      const shortDescription = p.shortDescription?.trim() ? p.shortDescription : `Premium ${name} for everyday use.`;
+      const shortDescription = p.shortDescription?.trim()
+        ? p.shortDescription
+        : t("products.premiumDescription").replace("{name}", name);
 
       const description = p.description?.trim()
         ? p.description
-        : `✅ Key features
-- High quality materials
-- Easy to use
-- Great value
+        : `${t("products.keyFeatures")}
+        ${t("products.highQualityMaterials")}
+        ${t("products.easyToUse")}
+        ${t("products.greatValue")}
 
-📦 In the box
-- 1 x ${name}
+        ${t("products.inTheBox")}
+        - 1 x ${name}
 
-🛡 Warranty
-- Please check warranty policy by category.
-`;
+        ${t("products.warranty")}
+        ${t("products.warrantyPolicy")}
+        `;
 
-      const price = p.price?.trim() ? p.price : "0.00";
+      const price = p.price?.trim() ? p.price : "";
+
       const productQty = p.productQty?.trim() ? p.productQty : "0";
 
       const tagFromCategory = selectedCategory?.name ? selectedCategory.name : "";
+
       const tags = p.tags.length > 0 ? p.tags : tagFromCategory ? [tagFromCategory] : [];
 
       return {
@@ -718,7 +565,7 @@ export default function ProductForm({
         tags,
       };
     });
-  }, [selectedCategory?.name]);
+  }, [selectedCategory?.name, t]);
 
   const onFilesSelected = useCallback(
     (files: FileList | null) => {
@@ -763,75 +610,37 @@ export default function ProductForm({
     [activeMediaId],
   );
 
-  const [createCatName, setCreateCatName] = useState("");
-  const createCatInputRef = useRef<HTMLInputElement | null>(null);
-
-  const openCreateCategory = useCallback(() => {
-    if (!effectiveSiteId) {
-      modal.error("Missing site", "Please select a site first.");
-      return;
-    }
-
-    setCreateCatName("");
-    setTimeout(() => createCatInputRef.current?.focus(), 0);
-
-    const name = window.prompt("Category name?", "");
-    if (name == null) return;
-    const trimmed = name.trim();
-    if (!trimmed) return;
-
-    void (async () => {
-      try {
-        const res = await fetch("/api/admin/commerce/products/product-categories", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            siteId: effectiveSiteId,
-            name: trimmed,
-            slug: slugify(trimmed),
-          }),
-          credentials: "include",
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          const errorObj = j as Record<string, unknown>;
-          throw new Error(String(errorObj?.error ?? errorObj?.message ?? "Create category failed"));
-        }
-
-        const j = await res.json().catch(() => null);
-        modal.success("Success", `Created “${trimmed}”.`);
-        await loadCategories();
-
-        const createdObj = j as { item?: { id?: string } } | null;
-        const createdId = createdObj?.item?.id ? String(createdObj.item.id) : "";
-        if (createdId) setField("categoryId", createdId);
-      } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : "Create category failed";
-        modal.error("Create failed", message);
-      }
-    })();
-  }, [effectiveSiteId, loadCategories, modal, setField]);
-
   const validateBasic = useCallback(() => {
     const errors: string[] = [];
 
-    if (!effectiveSiteId) errors.push("Site is required");
-    if (!form.name.trim()) errors.push("Name is required");
-    if (!form.slug.trim()) errors.push("Slug is required");
-    if (!form.categoryId.trim()) errors.push("Category is required");
+    if (!effectiveSiteId) {
+      errors.push(t("products.siteRequired"));
+    }
+
+    if (!form.name.trim()) {
+      errors.push(t("products.nameRequired"));
+    }
+
+    if (!form.slug.trim()) {
+      errors.push(t("products.slugRequired"));
+    }
+
+    if (!form.categoryId.trim()) {
+      errors.push(t("products.categoryRequired"));
+    }
 
     return errors;
-  }, [effectiveSiteId, form]);
+  }, [effectiveSiteId, form, t]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
 
       const errors = validateBasic();
+
       if (errors.length) {
-        modal.error("Invalid form", errors.join("\n"));
+        modal.error(t("products.invalidForm"), errors.join("\n"));
+
         return;
       }
 
@@ -841,23 +650,29 @@ export default function ProductForm({
         setBusyProp?.(true);
 
         const toUpload = media.filter((m) => m.file && m.url.startsWith("blob:"));
+
         let uploadedUrls: string[] = [];
 
         if (toUpload.length) {
           const files = toUpload.map((m) => m.file!) as File[];
+
           uploadedUrls = await uploadMediaFiles(files, controller.signal);
 
           if (uploadedUrls.length !== files.length) {
-            throw new Error("Upload returned unexpected urls length");
+            throw new Error(t("products.uploadUnexpectedUrls"));
           }
         }
 
         const mergedMedia: MediaItem[] = media.map((m) => {
           const idx = toUpload.findIndex((x) => x.id === m.id);
+
           if (idx === -1) return m;
 
           const newUrl = uploadedUrls[idx];
-          if (m.url.startsWith("blob:")) URL.revokeObjectURL(m.url);
+
+          if (m.url.startsWith("blob:")) {
+            URL.revokeObjectURL(m.url);
+          }
 
           return {
             ...m,
@@ -873,34 +688,28 @@ export default function ProductForm({
           ...form,
           siteId: effectiveSiteId!,
           media: mergedMedia,
-          hasVariants,
-          variantOptions,
-          variants,
         };
 
-        onSubmit?.(payload);
+        await onSubmit?.(payload);
 
         const apiPayload = {
           siteId: payload.siteId,
           name: payload.name.trim(),
           slug: payload.slug.trim(),
+          sku: payload.sku.trim() || null,
+          barcode: payload.barcode.trim() || null,
           categoryId: payload.categoryId || null,
           brandId: payload.brandId || null,
-          productType: payload.productType,
           tags: payload.tags,
           status: payload.status,
           isVisible: payload.isVisible,
           publishedAt: payload.publishedAt || null,
           shortDescription: payload.shortDescription.trim() || null,
           description: payload.description.trim() || null,
-          price: payload.price.trim() || null,
-          marketPrice: payload.marketPrice.trim() || null,
-          savingPrice: payload.savingPrice.trim() || null,
+          price: unformatPrice(payload.price.trim()) || null,
+          marketPrice: unformatPrice(payload.marketPrice.trim()) || null,
+          savingPrice: unformatPrice(payload.savingPrice.trim()) || null,
           productQty: payload.productQty.trim() || null,
-          weight: payload.weight.trim() || null,
-          length: payload.length.trim() || null,
-          width: payload.width.trim() || null,
-          height: payload.height.trim() || null,
           metaTitle: payload.metaTitle.trim() || null,
           metaDescription: payload.metaDescription.trim() || null,
           media: payload.media.map((m) => ({
@@ -911,12 +720,15 @@ export default function ProductForm({
           })),
         };
 
-        const endpoint = isEditing ? `/api/admin/commerce/products/${editingId}` : "/api/admin/commerce/products";
+        const endpoint = isEditing ? `/api/admin/products/${editingId}` : "/api/admin/products";
+
         const method = isEditing ? "PATCH" : "POST";
 
         const res = await fetch(endpoint, {
           method,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(apiPayload),
           credentials: "include",
           cache: "no-store",
@@ -924,42 +736,47 @@ export default function ProductForm({
 
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error ?? j?.message ?? (isEditing ? "Update product failed" : "Create product failed"));
+
+          throw new Error(
+            j?.error ??
+              j?.message ??
+              (isEditing ? t("products.updateProductFailed") : t("products.createProductFailed")),
+          );
         }
 
         await res.json().catch(() => null);
-        modal.success("Success", isEditing ? "Update product success!" : "Create product success!");
+
+        modal.success(
+          t("products.success"),
+          isEditing ? t("products.updateProductSuccess") : t("products.createProductSuccess"),
+        );
+
+        setIsDirty(false);
+
+        setLastSavedAt(new Date().toLocaleTimeString());
+
         onSaved?.();
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") return;
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
 
         const message =
-          err instanceof Error ? err.message : isEditing ? "Update product failed" : "Create product failed";
+          err instanceof Error
+            ? err.message
+            : isEditing
+              ? t("products.updateProductFailed")
+              : t("products.createProductFailed");
 
-        modal.error(isEditing ? "Update failed" : "Create failed", message);
+        modal.error(isEditing ? t("products.updateFailed") : t("products.createFailed"), message);
       } finally {
         setBusyProp?.(false);
       }
 
       return () => controller.abort();
     },
-    [
-      editingId,
-      effectiveSiteId,
-      form,
-      hasVariants,
-      isEditing,
-      media,
-      modal,
-      onSaved,
-      onSubmit,
-      setBusyProp,
-      validateBasic,
-      variantOptions,
-      variants,
-    ],
+    [editingId, effectiveSiteId, form, isEditing, media, modal, onSaved, onSubmit, setBusyProp, validateBasic, t],
   );
-
   const handleCancelAction = useCallback(() => {
     if (busyProp || loadingProduct) return;
     onCancel?.();
@@ -990,34 +807,61 @@ export default function ProductForm({
     () => ({
       F2: {
         action: handleCancelAction,
-        label: "Cancel",
+        label: t("products.cancel"),
         icon: "bi-x-circle",
       },
+
       F3: {
         action: handlePublishNowAction,
-        label: "Publish now",
+        label: t("products.publishNow"),
         icon: "bi-upload",
       },
+
       F6: {
         action: handleEditAction,
-        label: "Edit",
+        label: t("products.edit"),
         icon: "bi-pencil-square",
       },
+
       F9: {
         action: handleAutoFillAction,
-        label: "Auto fill",
+        label: t("products.autoFill"),
         icon: "bi-magic",
       },
+
       F10: {
         action: handleSaveAction,
-        label: "Save",
+        label: t("products.save"),
         icon: "bi-save",
       },
     }),
-    [handleAutoFillAction, handleCancelAction, handleEditAction, handlePublishNowAction, handleSaveAction],
+    [handleAutoFillAction, handleCancelAction, handleEditAction, handlePublishNowAction, handleSaveAction, t],
   );
 
   usePageFunctionKeys(functionKeyActions);
+
+  useEffect(() => {
+    if (editingId) return;
+
+    setForm((prev) => ({
+      ...prev,
+      sku: generateSKU(Date.now()),
+      barcode: generateBarcode(),
+    }));
+  }, [editingId]);
+
+  useEffect(() => {
+    if (slugTouched) return;
+
+    const source = form.metaTitle.trim() ? form.metaTitle : form.name;
+
+    if (!source.trim()) return;
+
+    setForm((prev) => ({
+      ...prev,
+      slug: slugify(source),
+    }));
+  }, [form.metaTitle, form.name, slugTouched]);
 
   return (
     <div className={styles.page}>
@@ -1042,7 +886,7 @@ export default function ProductForm({
                 )
               ) : (
                 <div className={styles.note}>
-                  {loadingProduct ? "Loading product media..." : "No media yet. Upload images/videos."}
+                  {loadingProduct ? t("products.loadingProductMedia") : t("products.noMediaYet")}
                 </div>
               )}
             </div>
@@ -1060,15 +904,20 @@ export default function ProductForm({
                     ) : (
                       <Image src={m.thumbUrl ?? m.url} alt="thumb" width={100} height={100} unoptimized />
                     )}
+
                     {m.type === "video" && <span className={styles.thumbBadge}>▶</span>}
                   </button>
 
                   <button
                     type="button"
                     className={styles.btnSmall}
-                    style={{ position: "absolute", top: 4, right: 4 }}
+                    style={{
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                    }}
                     onClick={() => removeMedia(m.id)}
-                    title="Remove"
+                    title={t("products.remove")}
                     disabled={loadingProduct || busyProp}
                   >
                     ×
@@ -1076,7 +925,7 @@ export default function ProductForm({
                 </div>
               ))}
 
-              <label className={styles.uploadTile} title="Upload">
+              <label className={styles.uploadTile} title={t("products.upload")}>
                 <input
                   className={styles.hiddenInput}
                   type="file"
@@ -1085,24 +934,40 @@ export default function ProductForm({
                   onChange={(e) => onFilesSelected(e.target.files)}
                   disabled={loadingProduct || busyProp}
                 />
+
                 <div className={styles.uploadIcon}>☁</div>
-                <div className={styles.uploadText}>Drop your file here</div>
-                <div className={styles.uploadHint}>or click to upload</div>
+
+                <div className={styles.uploadText}>{t("products.dropYourFileHere")}</div>
+
+                <div className={styles.uploadHint}>{t("products.clickToUpload")}</div>
               </label>
             </div>
           </div>
 
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <div>
-                <h2 className={styles.sectionTitle}>SEO</h2>
-                <p className={styles.sectionSub}>Meta title/description + preview</p>
+              <div className={styles.sectionHeaderLeft}>
+                <div className={styles.sectionIcon}>
+                  <i className="bi bi-search" />
+                </div>
+
+                <div>
+                  <h2 className={styles.sectionTitle}>{t("products.seoOptimization")}</h2>
+
+                  <p className={styles.sectionSub}>{t("products.improveSearchEngines")}</p>
+                </div>
+              </div>
+
+              <div className={styles.sectionBadge}>
+                <i className="bi bi-lightning-charge-fill" />
+                {t("products.recommended")}
               </div>
             </div>
 
             <div className={styles.grid2}>
               <div className={styles.field}>
-                <label className={styles.label}>Meta title</label>
+                <label className={styles.label}>{t("products.metaTitle")}</label>
+
                 <input
                   className={styles.input}
                   value={form.metaTitle}
@@ -1112,88 +977,121 @@ export default function ProductForm({
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>URL preview</label>
+                <label className={styles.label}>{t("products.urlPreview")}</label>
+
                 <div className={styles.previewUrl}>
-                  /products/<b>{form.slug || "your-slug"}</b>
+                  /products/
+                  <b>{form.slug || t("products.yourSlug")}</b>
                 </div>
               </div>
             </div>
 
             <div className={styles.field} style={{ marginTop: 12 }}>
-              <label className={styles.label}>Meta description</label>
+              <label className={styles.label}>{t("products.metaDescription")}</label>
+
               <textarea
                 className={styles.textareaSmall}
                 maxLength={160}
                 value={form.metaDescription}
                 onChange={(e) => setField("metaDescription", e.target.value)}
-                placeholder="Recommended 140–160 chars"
+                placeholder={t("products.recommendedChars")}
                 disabled={loadingProduct}
               />
-              <div className={styles.mini}>{form.metaDescription.length}/160</div>
+
+              <div className={styles.mini}>
+                {form.metaDescription.length}
+                /160
+              </div>
             </div>
           </div>
         </aside>
-
         <section className={styles.right}>
           <div className={styles.header}>
             <div className={styles.headerLeft}>
-              <div className={styles.headerTitle}>{isEditing ? "Edit product" : "Create product"}</div>
+              <div>
+                <div className={styles.headerTitle}>
+                  {isEditing ? t("products.editProduct") : t("products.createProduct")}
+                </div>
+
+                <div className={styles.headerSub}>
+                  {isDirty ? (
+                    <span className={styles.unsaved}>
+                      <i className="bi bi-dot" />
+                      {t("products.unsavedChanges")}
+                    </span>
+                  ) : (
+                    <span className={styles.saved}>
+                      <i className="bi bi-check-circle" />
+                      {t("products.saved")}
+                    </span>
+                  )}
+
+                  {lastSavedAt ? (
+                    <span className={styles.lastSaved}>{t("products.lastSaved").replace("{time}", lastSavedAt)}</span>
+                  ) : null}
+                </div>
+              </div>
             </div>
 
             <div className={styles.headerActions}>
-              <button onClick={handleAutoFillAction}>Auto-fill</button>
-              <div className={styles.headerMeta}>
-                <span className={styles.pill}>{form.status}</span>
-                <span className={`${styles.pill} ${form.isVisible ? styles.pillOn : styles.pillOff}`}>
-                  {form.isVisible ? "Visible" : "Hidden"}
-                </span>
-                {form.publishedAt ? (
-                  <span className={styles.mini}>Published</span>
-                ) : (
-                  <span className={styles.mini}>Not published</span>
-                )}
-              </div>
+              <button type="button" className={styles.actionBtn} onClick={handleCancelAction}>
+                <i className="bi bi-arrow-counterclockwise" />
+                {t("products.cancel")}
+              </button>
+
+              <button type="button" className={styles.actionBtn} onClick={handleAutoFillAction}>
+                <i className="bi bi-magic" />
+                {t("products.autoFill")}
+              </button>
+
+              <button type="button" className={styles.publishBtn} onClick={handlePublishNowAction}>
+                <i className="bi bi-send-check" />
+                {t("products.publish")}
+              </button>
+
+              <button
+                type="button"
+                className={styles.saveBtn}
+                onClick={handleSaveAction}
+                disabled={busyProp || loadingProduct}
+              >
+                <i className="bi bi-save2" />
+
+                {busyProp ? t("products.saving") : t("products.save")}
+              </button>
             </div>
           </div>
 
           <div className={styles.body}>
-            {productError ? (
-              <div className={styles.note} style={{ marginBottom: 12 }}>
-                {productError}
-              </div>
-            ) : null}
+            {productError ? <div className={styles.note}>{productError}</div> : null}
 
-            <div className={styles.section}>
+            <div className={styles.sectionForm}>
               <div className={styles.grid2}>
-                {!siteIdProp && (
-                  <div className={styles.field}>
-                    <label className={styles.label}>
-                      Site <span className={styles.req}>*</span>
-                    </label>
-                    <select
-                      className={styles.select}
-                      value={selectedSiteId || ""}
-                      onChange={(e) => setSelectedSiteId(e.target.value)}
-                      disabled={sitesLoading || loadingProduct}
-                    >
-                      <option value="">{sitesLoading ? "Loading sites..." : "— Select site —"}</option>
-                      {sites.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name ?? s.id} ({s.id})
-                        </option>
-                      ))}
-                    </select>
-                    {sitesErr ? (
-                      <div className={styles.note} style={{ marginTop: 8 }}>
-                        {sitesErr}
-                      </div>
-                    ) : null}
-                  </div>
-                )}
+                <div className={styles.field}>
+                  <label className={styles.label}>
+                    {t("products.site")}
+                    <span className={styles.req}>*</span>
+                  </label>
+
+                  <select
+                    className={styles.select}
+                    value={effectiveSiteId}
+                    onChange={(e) => onChangeSite?.(e.target.value)}
+                    disabled={loadingProduct}
+                  >
+                    <option value="">{t("products.selectSite")}</option>
+
+                    {sites?.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className={styles.field}>
                   <label className={styles.label}>
-                    Name <span className={styles.req}>*</span>
+                    {t("products.name")} <span className={styles.req}>*</span>
                   </label>
                   <input
                     ref={nameInputRef}
@@ -1206,19 +1104,23 @@ export default function ProductForm({
 
                 <div className={styles.field}>
                   <label className={styles.label}>
-                    Slug <span className={styles.req}>*</span>
+                    {t("products.slug")} <span className={styles.req}>*</span>
                   </label>
                   <input
                     className={styles.input}
                     value={form.slug}
-                    onChange={(e) => setField("slug", e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSlugTouched(Boolean(value.trim()));
+                      setField("slug", value);
+                    }}
                     disabled={loadingProduct}
                   />
                 </div>
 
                 <div className={styles.field}>
                   <label className={styles.label}>
-                    Category <span className={styles.req}>*</span>
+                    {t("products.category")} <span className={styles.req}>*</span>
                   </label>
 
                   <div style={{ display: "flex", gap: 8 }}>
@@ -1226,15 +1128,11 @@ export default function ProductForm({
                       className={styles.select}
                       value={form.categoryId}
                       onChange={(e) => setField("categoryId", e.target.value)}
-                      disabled={catLoading || !effectiveSiteId || loadingProduct}
+                      disabled={!effectiveSiteId || loadingProduct}
                       style={{ flex: 1 }}
                     >
                       <option value="">
-                        {!effectiveSiteId
-                          ? "Select site first..."
-                          : catLoading
-                            ? "Loading categories..."
-                            : "— Select category —"}
+                        {!effectiveSiteId ? t("products.selectSiteFirst") : t("products.selectCategory")}
                       </option>
 
                       {categories.map((c) => (
@@ -1243,108 +1141,90 @@ export default function ProductForm({
                         </option>
                       ))}
                     </select>
-
-                    <button
-                      type="button"
-                      className={styles.btnSmall}
-                      onClick={openCreateCategory}
-                      disabled={!effectiveSiteId || loadingProduct}
-                      title="Create category"
-                    >
-                      + New
-                    </button>
                   </div>
-
-                  {catError ? (
-                    <div className={styles.note} style={{ marginTop: 8 }}>
-                      {catError}
-                    </div>
-                  ) : null}
                 </div>
 
                 <div className={styles.field}>
-                  <label className={styles.label}>Product type</label>
-                  <select
-                    className={styles.select}
-                    value={form.productType}
-                    onChange={(e) => setField("productType", e.target.value as ProductType)}
-                    disabled={loadingProduct}
-                  >
-                    <option value="PHYSICAL">Physical</option>
-                    <option value="DIGITAL">Digital</option>
-                    <option value="SERVICE">Service</option>
-                  </select>
-                </div>
+                  <label className={styles.label}>{t("products.brand")}</label>
 
-                <div className={styles.field}>
-                  <label className={styles.label}>Brand</label>
                   <select
                     className={styles.select}
                     value={form.brandId}
                     onChange={(e) => setField("brandId", e.target.value)}
-                    disabled={brandLoading || !effectiveSiteId || loadingProduct}
+                    disabled={!effectiveSiteId || loadingProduct}
                   >
-                    <option value="">
-                      {!effectiveSiteId ? "Select site first..." : brandLoading ? "Loading brands..." : "— No brand —"}
-                    </option>
+                    <option value="">{!effectiveSiteId ? t("products.selectSiteFirst") : t("products.noBrand")}</option>
+
                     {brands.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.name}
                       </option>
                     ))}
                   </select>
-                  {brandError ? (
-                    <div className={styles.note} style={{ marginTop: 8 }}>
-                      {brandError}
-                    </div>
-                  ) : null}
                 </div>
-              </div>
-
-              <div className={styles.field} style={{ marginTop: 12 }}>
-                <label className={styles.label}>Tags</label>
                 <div className={styles.tagsRow}>
+                  <label className={styles.label}>{t("products.tags")}</label>
+                  <div className={styles.tagsInputWrap}>
+                    {form.tags.map((t) => (
+                      <span key={t} className={styles.tag}>
+                        {t}
+
+                        <button
+                          type="button"
+                          className={styles.tagX}
+                          onClick={() => removeTag(t)}
+                          disabled={loadingProduct}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+
+                    <input
+                      className={styles.tagsInput}
+                      placeholder={t("products.typeTagAndPressAdd")}
+                      value={form.tagsInput}
+                      onChange={(e) => setField("tagsInput", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addTag();
+                        }
+                      }}
+                      disabled={loadingProduct}
+                    />
+
+                    <button type="button" className={styles.btnSmallTag} onClick={addTag} disabled={loadingProduct}>
+                      <i className="bi bi-plus"></i> {t("products.add")}
+                    </button>
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label}> {t("products.sku")}</label>
                   <input
                     className={styles.input}
-                    placeholder="Type tag and press Add"
-                    value={form.tagsInput}
-                    onChange={(e) => setField("tagsInput", e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addTag();
-                      }
-                    }}
+                    value={form.sku}
+                    onChange={(e) => setField("sku", e.target.value)}
                     disabled={loadingProduct}
                   />
-                  <button type="button" className={styles.btnSmall} onClick={addTag} disabled={loadingProduct}>
-                    Add
-                  </button>
                 </div>
-
-                <div className={styles.tags}>
-                  {form.tags.map((t) => (
-                    <span key={t} className={styles.tag}>
-                      {t}
-                      <button
-                        type="button"
-                        className={styles.tagX}
-                        onClick={() => removeTag(t)}
-                        disabled={loadingProduct}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
+                <div className={styles.field}>
+                  <label className={styles.label}> {t("products.barcode")}</label>
+                  <input
+                    className={styles.input}
+                    value={form.barcode}
+                    onChange={(e) => setField("barcode", e.target.value)}
+                    disabled={loadingProduct}
+                  />
                 </div>
               </div>
 
-              <div className={styles.grid2} style={{ marginTop: 12 }}>
+              <div className={styles.grid2} style={{ marginTop: 6 }}>
                 <div className={styles.field}>
-                  <label className={styles.label}>Short description</label>
+                  <label className={styles.label}>{t("products.shortDescription")}</label>
                   <input
                     className={styles.input}
-                    placeholder="1–2 lines shown on listings"
+                    placeholder={t("products.shortDescriptionPlaceholder")}
                     value={form.shortDescription}
                     onChange={(e) => setField("shortDescription", e.target.value)}
                     disabled={loadingProduct}
@@ -1352,23 +1232,23 @@ export default function ProductForm({
                 </div>
 
                 <div className={styles.field}>
-                  <label className={styles.label}>Status</label>
+                  <label className={styles.label}>{t("products.status")}</label>
                   <select
                     className={styles.select}
                     value={form.status}
                     onChange={(e) => setField("status", e.target.value as ProductStatus)}
                     disabled={loadingProduct}
                   >
-                    <option value="DRAFT">Draft</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="ARCHIVED">Archived</option>
+                    <option value="DRAFT">{t("products.draft")}</option>
+                    <option value="ACTIVE">{t("products.active")}</option>
+                    <option value="ARCHIVED">{t("products.archived")}</option>
                   </select>
                 </div>
               </div>
 
               <div className={styles.grid2} style={{ marginTop: 12 }}>
                 <div className={styles.field}>
-                  <label className={styles.label}>Price</label>
+                  <label className={styles.label}>{t("products.price")}</label>
                   <input
                     className={styles.input}
                     value={form.price}
@@ -1380,7 +1260,7 @@ export default function ProductForm({
                 </div>
 
                 <div className={styles.field}>
-                  <label className={styles.label}>Market price</label>
+                  <label className={styles.label}>{t("products.marketPrice")}</label>
                   <input
                     className={styles.input}
                     value={form.marketPrice}
@@ -1392,7 +1272,7 @@ export default function ProductForm({
                 </div>
 
                 <div className={styles.field}>
-                  <label className={styles.label}>Saving price</label>
+                  <label className={styles.label}>{t("products.savingPrice")}</label>
                   <input
                     className={styles.input}
                     value={form.savingPrice}
@@ -1404,7 +1284,7 @@ export default function ProductForm({
                 </div>
 
                 <div className={styles.field}>
-                  <label className={styles.label}>Quantity</label>
+                  <label className={styles.label}>{t("products.quantity")}</label>
                   <input
                     className={styles.input}
                     value={form.productQty}
@@ -1415,83 +1295,19 @@ export default function ProductForm({
                   />
                 </div>
               </div>
-
-              <div className={styles.grid2} style={{ marginTop: 12 }}>
-                <div className={styles.field}>
-                  <label className={styles.label}>Weight</label>
-                  <input
-                    className={styles.input}
-                    value={form.weight}
-                    onChange={(e) => handleDecimalFieldChange("weight", e.target.value)}
-                    inputMode="decimal"
-                    disabled={loadingProduct}
-                  />
-                </div>
-
-                <div className={styles.field}>
-                  <label className={styles.label}>Length</label>
-                  <input
-                    className={styles.input}
-                    value={form.length}
-                    onChange={(e) => handleDecimalFieldChange("length", e.target.value)}
-                    inputMode="decimal"
-                    disabled={loadingProduct}
-                  />
-                </div>
-
-                <div className={styles.field}>
-                  <label className={styles.label}>Width</label>
-                  <input
-                    className={styles.input}
-                    value={form.width}
-                    onChange={(e) => handleDecimalFieldChange("width", e.target.value)}
-                    inputMode="decimal"
-                    disabled={loadingProduct}
-                  />
-                </div>
-
-                <div className={styles.field}>
-                  <label className={styles.label}>Height</label>
-                  <input
-                    className={styles.input}
-                    value={form.height}
-                    onChange={(e) => handleDecimalFieldChange("height", e.target.value)}
-                    inputMode="decimal"
-                    disabled={loadingProduct}
-                  />
-                </div>
-              </div>
-
               <div className={styles.field} style={{ marginTop: 12 }}>
-                <label className={styles.label}>Description</label>
-                <div className={styles.editor}>
-                  <div className={styles.editorToolbar}>
-                    {["B", "I", "U", "•", "1.", "🔗", "🖼", "↺", "↻"].map((t) => (
-                      <button key={t} type="button" className={styles.toolBtn}>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                  <textarea
-                    className={styles.textarea}
-                    placeholder="Write a detailed product description..."
-                    value={form.description}
-                    onChange={(e) => setField("description", e.target.value)}
-                    disabled={loadingProduct}
-                  />
-                </div>
+                <label className={styles.label}>{t("products.description")}</label>
+                <RichEditor
+                  value={form.description}
+                  onChange={(html) => setField("description", html)}
+                  placeholder={t("products.writeProductDescription")}
+                  disabled={loadingProduct}
+                />
               </div>
             </div>
           </div>
         </section>
       </form>
-
-      <input
-        ref={createCatInputRef}
-        value={createCatName}
-        onChange={(e) => setCreateCatName(e.target.value)}
-        style={{ display: "none" }}
-      />
     </div>
   );
 }

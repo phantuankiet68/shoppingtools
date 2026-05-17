@@ -79,6 +79,7 @@ export async function GET(req: Request) {
           maxPages: true,
           maxMenus: true,
           maxCategories: true,
+          maxBrands: true,
           maxProducts: true,
           maxCustomDomains: true,
           allowBlog: true,
