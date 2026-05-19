@@ -9,6 +9,7 @@ const vi = {
     cancel: "Hủy",
     save: "Lưu",
     delete: "Xóa",
+    edit: "Chỉnh sửa",
   },
 
   sites: {
@@ -271,6 +272,10 @@ const vi = {
         privacyPolicy: "Chính sách bảo mật",
         terms: "Điều khoản",
       },
+      history: "Lịch sử",
+      inventory: "Kho hàng",
+      lowStock: "Sắp hết hàng",
+      listInventory: "Danh sách kho",
     },
     menuStructure: {
       untitled: "(Chưa có tiêu đề)",
@@ -863,15 +868,6 @@ const vi = {
       wantToSeeSamples: "Muốn xem mẫu thực tế",
       needCatalogue: "Cần gửi catalogue",
       bulkImport: "Muốn nhập hàng số lượng lớn",
-    },
-    bookingNoteSuggestions: {
-      callBackBusinessHours: "Khách cần gọi lại trong giờ hành chính",
-      preferZalo: "Ưu tiên liên hệ qua Zalo",
-      wantQuotationFirst: "Khách muốn nhận báo giá trước",
-      consideringWholesale: "Khách đang cân nhắc mua sỉ",
-      wantProductImages: "Khách muốn xem hình ảnh sản phẩm",
-      needInvoice: "Khách cần xuất hóa đơn",
-      followUpLater: "Khách hẹn trao đổi thêm",
     },
   },
   pageList: {
@@ -1649,6 +1645,48 @@ const vi = {
     description: "Mô tả",
 
     writeProductDescription: "Nhập mô tả sản phẩm...",
+  },
+  inventory: {
+    inventoryDashboard: "Bảng điều khiển kho hàng",
+    warehouseManagement: "Quản lý kho hàng",
+
+    totalStock: "Tổng tồn kho",
+    totalSold: "Đã bán",
+    lowStock: "Sắp hết hàng",
+    outOfStock: "Hết hàng",
+
+    searchPlaceholder: "Tìm kiếm sản phẩm, SKU, mã vạch...",
+    search: "Tìm kiếm",
+
+    importStock: "Nhập kho",
+    importing: "Đang nhập...",
+    importStockSuccess: "Nhập kho thành công",
+
+    product: "Sản phẩm",
+    sku: "SKU",
+    category: "Danh mục",
+    brand: "Thương hiệu",
+    stock: "Tồn kho",
+    sold: "Đã bán",
+    imported: "Đã nhập",
+    reserved: "Đã giữ",
+    status: "Trạng thái",
+    updated: "Cập nhật",
+
+    inStock: "Còn hàng",
+    lowStockStatus: "Sắp hết hàng",
+    outStock: "Hết hàng",
+
+    loadingInventory: "Đang tải kho hàng...",
+    noInventoryFound: "Không tìm thấy dữ liệu kho hàng",
+
+    previous: "Trước",
+    next: "Tiếp",
+    page: "Trang",
+
+    selectProduct: "Chọn sản phẩm",
+    quantity: "Số lượng",
+    note: "Ghi chú",
   },
 };
 

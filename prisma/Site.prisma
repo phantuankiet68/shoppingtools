@@ -47,12 +47,7 @@ model Site {
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdBy                 User?                      @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  stockLevels               StockLevel[]
-  stockMovements            StockMovement[]
-  purchaseOrders            PurchaseOrder[]
-  purchaseOrderLines        PurchaseOrderLine[]
-  purchaseOrderReceipts     PurchaseOrderReceipt[]
-  purchaseOrderReceiptLines PurchaseOrderReceiptLine[]
+
   reviews                   Review[]
   systemCredentials         SystemCredential[]
 

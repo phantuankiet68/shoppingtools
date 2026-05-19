@@ -67,6 +67,9 @@
   --box-shadow: 0 0 0 5px #32dfff26;
   --bg-switch: linear-gradient(135deg, #25eb77, #3be5f6);
   --bg-active-add: linear-gradient(135deg, #16a34a, #22c55e);
+  --color-warning: #f18a4c;
+  --bg-warning: #fff4e5;
+  --bd-warning: 1px solid #ffd1ab;
 }
 
 html {

@@ -388,11 +388,9 @@
 }
 
 .dropdownTitle {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-title);
-  margin-bottom: 3px;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .dropdownSubtitle {
@@ -435,30 +433,53 @@
 }
 
 .notificationList {
-  padding: 0 10px 10px;
+  height: 250px;
+  overflow: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
+/* Chrome, Edge, Safari */
+.notificationList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.notificationList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notificationList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.notificationList::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 .notificationItem {
   width: 100%;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 7px 0px 12px;
+  padding: 12px 0px 12px;
   border: 0;
   border-radius: 6px;
   background: transparent;
   text-align: left;
   cursor: pointer;
+  margin-top: 10px;
+  border: var(--bd-header);
 }
 
 .notificationItem:hover {
-  background: var(--bg-active);
+  background: var(--bg-pro);
 }
 
 .notificationAccent {
   width: 6px;
   min-width: 6px;
-  height: 40px;
+  height: 74px;
   border-radius: 999px;
   background: var(--bg-pro);
 }
@@ -466,18 +487,28 @@
 .notificationContent {
   display: flex;
   flex-direction: column;
+  gap: 5px;
 }
 
 .notificationTitle {
-  font-size: 13px;
-  font-weight: 4s00;
-  color: #0f172a;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-warning);
+  background: var(--bg-warning);
+  border: var(--bd-warning);
   line-height: 1.45;
+  padding: 3px 10px;
+  border-radius: 999px;
 }
 
 .notificationMeta {
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted);
+}
+
+.notificationDesc {
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .dropdownFooter {
@@ -644,9 +675,9 @@
   position: absolute;
   top: 50px;
   right: 0;
-  width: 280px;
+  width: 380px;
   border-radius: 8px;
-  padding: 10px;
+  padding: 15px;
 }
 
 .topbarSearch {

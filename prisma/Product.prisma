@@ -39,6 +39,9 @@ model Product {
   images   ProductImage[]
   reviews  Review[]
 
+  inventory    Inventory?
+  transactions InventoryTransaction[]
+
   @@unique([siteId, slug])
   @@index([siteId])
   @@index([categoryId])
@@ -73,10 +76,6 @@ model ProductVariant {
   product                   Product                    @relation(fields: [productId], references: [id], onDelete: Cascade)
   site                      Site                       @relation(fields: [siteId], references: [id], onDelete: Cascade)
   images                    ProductImage[]
-  stockLevel                StockLevel?
-  stockMovements            StockMovement[]
-  purchaseOrderLines        PurchaseOrderLine[]
-  purchaseOrderReceiptLines PurchaseOrderReceiptLine[]
 
   @@unique([siteId, sku])
   @@index([productId])

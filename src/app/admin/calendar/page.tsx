@@ -8,8 +8,8 @@ const CalendarBuilder = dynamic(() => import("@/components/admin/calendar/calend
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Menus" subtitle="Manage navigation & links" />
-        <CalendarBuilder />
+      <AdminPageTitle title="Menus" />
+      <CalendarBuilder />
     </main>
   );
 }

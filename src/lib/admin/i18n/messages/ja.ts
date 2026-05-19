@@ -9,6 +9,7 @@ const ja = {
     cancel: "キャンセル",
     save: "保存",
     delete: "削除",
+    edit: "編集",
   },
 
   sites: {
@@ -384,6 +385,10 @@ const ja = {
       savedDesc: "メニューが正常に保存されました",
       error: "エラー",
     },
+    history: "履歴",
+    inventory: "在庫",
+    "low-stock": "在庫少",
+    list: "在庫一覧",
   },
   pages: {
     home: "ホーム",
@@ -1574,6 +1579,48 @@ const ja = {
     quantity: "数量",
     description: "説明",
     writeProductDescription: "商品詳細を書いてください...",
+  },
+  inventory: {
+    inventoryDashboard: "在庫ダッシュボード",
+    warehouseManagement: "倉庫管理",
+
+    totalStock: "合計在庫",
+    totalSold: "合計販売数",
+    lowStock: "在庫低下",
+    outOfStock: "在庫切れ",
+
+    searchPlaceholder: "商品、SKU、バーコードを検索...",
+    search: "検索",
+
+    importStock: "在庫をインポート",
+    importing: "インポート中...",
+    importStockSuccess: "在庫を正常にインポートしました",
+
+    product: "商品",
+    sku: "SKU",
+    category: "カテゴリ",
+    brand: "ブランド",
+    stock: "在庫",
+    sold: "販売数",
+    imported: "インポート済み",
+    reserved: "予約済み",
+    status: "ステータス",
+    updated: "更新日",
+
+    inStock: "在庫あり",
+    lowStockStatus: "在庫低下",
+    outStock: "在庫切れ",
+
+    loadingInventory: "在庫を読み込み中...",
+    noInventoryFound: "在庫が見つかりません",
+
+    previous: "前へ",
+    next: "次へ",
+    page: "ページ",
+
+    selectProduct: "商品を選択",
+    quantity: "数量",
+    note: "メモ",
   },
 };
 

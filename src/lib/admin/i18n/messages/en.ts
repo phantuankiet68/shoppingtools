@@ -9,6 +9,7 @@ const en = {
     cancel: "Cancel",
     save: "Save",
     delete: "Delete",
+    edit: "Edit",
   },
 
   sites: {
@@ -383,6 +384,10 @@ const en = {
       savedDesc: "Menu saved successfully",
       error: "Error",
     },
+    history: "History",
+    inventory: "Inventory",
+    "low-stock": "Low Stock",
+    list: "Inventory List",
   },
   pages: {
     home: "Home",
@@ -1565,6 +1570,48 @@ const en = {
     quantity: "Quantity",
     description: "Description",
     writeProductDescription: "Write product description...",
+  },
+  inventory: {
+    inventoryDashboard: "Inventory Dashboard",
+    warehouseManagement: "Warehouse Management",
+
+    totalStock: "Total Stock",
+    totalSold: "Total Sold",
+    lowStock: "Low Stock",
+    outOfStock: "Out of Stock",
+
+    searchPlaceholder: "Search product, SKU, barcode...",
+    search: "Search",
+
+    importStock: "Import Stock",
+    importing: "Importing...",
+    importStockSuccess: "Stock imported successfully",
+
+    product: "Product",
+    sku: "SKU",
+    category: "Category",
+    brand: "Brand",
+    stock: "Stock",
+    sold: "Sold",
+    imported: "Imported",
+    reserved: "Reserved",
+    status: "Status",
+    updated: "Updated",
+
+    inStock: "In Stock",
+    lowStockStatus: "Low Stock",
+    outStock: "Out of Stock",
+
+    loadingInventory: "Loading inventory...",
+    noInventoryFound: "No inventory found",
+
+    previous: "Previous",
+    next: "Next",
+    page: "Page",
+
+    selectProduct: "Select Product",
+    quantity: "Quantity",
+    note: "Note",
   },
 };
 

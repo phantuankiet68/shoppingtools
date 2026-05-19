@@ -1905,6 +1905,7 @@
     transform 0.2s ease,
     color 0.2s ease,
     box-shadow 0.2s ease;
+  background: #ffffff;
 }
 
 .navItem:hover,
@@ -1918,10 +1919,7 @@
 
 .navItemActive,
 .subItemActive {
-  background: white;
-
-  color: #4e8df7;
-
+  color: #4e8df7 !important;
   box-shadow:
     0 8px 20px rgba(0, 0, 0, 0.05),
     0 2px 4px rgba(0, 0, 0, 0.03);
@@ -2026,6 +2024,7 @@
     transform 0.2s ease,
     color 0.2s ease,
     box-shadow 0.2s ease;
+  background: #ffffff;
 }
 
 .subDot {

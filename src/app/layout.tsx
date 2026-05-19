@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { ToastProvider } from "@/components/ui/ToastCenter";
+import { Toaster } from "react-hot-toast";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -10,6 +11,7 @@ const poppins = Poppins({
   variable: "--font-poppins",
   display: "swap",
 });
+
 export const metadata: Metadata = {
   title: "Admin",
   description: "Admin dashboard",
@@ -23,7 +25,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body className="antialiased">
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {children}
+
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+            }}
+          />
+        </ToastProvider>
       </body>
     </html>
   );
