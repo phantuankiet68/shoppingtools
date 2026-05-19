@@ -11,7 +11,20 @@ const ja = {
     delete: "削除",
     edit: "編集",
   },
-
+  months: {
+    jan: "1月",
+    feb: "2月",
+    mar: "3月",
+    apr: "4月",
+    may: "5月",
+    jun: "6月",
+    jul: "7月",
+    aug: "8月",
+    sep: "9月",
+    oct: "10月",
+    nov: "11月",
+    dec: "12月",
+  },
   sites: {
     form: {
       title: "サイトフォーム",
@@ -1621,6 +1634,46 @@ const ja = {
     selectProduct: "商品を選択",
     quantity: "数量",
     note: "メモ",
+  },
+  inventoryHistory: {
+    totalImports: "入庫合計",
+    totalSales: "販売合計",
+    returns: "返品",
+    adjustments: "調整",
+
+    incomingWarehouseStock: "倉庫への入庫",
+    outgoingProductQuantity: "出庫商品数",
+    customerReturnActivities: "顧客返品履歴",
+    manualStockUpdates: "手動在庫更新",
+
+    searchPlaceholder: "商品名、SKU、メモを検索...",
+
+    all: "すべて",
+    import: "入庫",
+    sale: "販売",
+    return: "返品",
+    adjust: "調整",
+
+    results: "件",
+
+    export: "エクスポート",
+
+    product: "商品",
+    sku: "SKU",
+    note: "メモ",
+    transaction: "取引",
+    quantity: "数量",
+    before: "変更前",
+    after: "変更後",
+    date: "日付",
+
+    loadingHistory: "履歴を読み込み中...",
+
+    noInventoryHistory: "在庫履歴が見つかりません",
+
+    warehouseActivitiesWillAppearHere: "倉庫の活動履歴がここに表示されます。",
+
+    transactions: "取引",
   },
 };
 

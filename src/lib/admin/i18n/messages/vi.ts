@@ -11,6 +11,20 @@ const vi = {
     delete: "Xóa",
     edit: "Chỉnh sửa",
   },
+  months: {
+    jan: "Th1",
+    feb: "Th2",
+    mar: "Th3",
+    apr: "Th4",
+    may: "Th5",
+    jun: "Th6",
+    jul: "Th7",
+    aug: "Th8",
+    sep: "Th9",
+    oct: "Th10",
+    nov: "Th11",
+    dec: "Th12",
+  },
 
   sites: {
     form: {
@@ -1687,6 +1701,46 @@ const vi = {
     selectProduct: "Chọn sản phẩm",
     quantity: "Số lượng",
     note: "Ghi chú",
+  },
+  inventoryHistory: {
+    totalImports: "Tổng nhập kho",
+    totalSales: "Tổng bán hàng",
+    returns: "Hàng hoàn trả",
+    adjustments: "Điều chỉnh",
+
+    incomingWarehouseStock: "Hàng nhập vào kho",
+    outgoingProductQuantity: "Số lượng sản phẩm xuất",
+    customerReturnActivities: "Hoạt động trả hàng",
+    manualStockUpdates: "Cập nhật kho thủ công",
+
+    searchPlaceholder: "Tìm kiếm sản phẩm, SKU hoặc ghi chú...",
+
+    all: "Tất cả",
+    import: "Nhập kho",
+    sale: "Bán hàng",
+    return: "Hoàn trả",
+    adjust: "Điều chỉnh",
+
+    results: "Kết quả",
+
+    export: "Xuất file",
+
+    product: "Sản phẩm",
+    sku: "SKU",
+    note: "Ghi chú",
+    transaction: "Giao dịch",
+    quantity: "Số lượng",
+    before: "Trước",
+    after: "Sau",
+    date: "Ngày",
+
+    loadingHistory: "Đang tải lịch sử...",
+
+    noInventoryHistory: "Không tìm thấy lịch sử kho",
+
+    warehouseActivitiesWillAppearHere: "Các hoạt động kho sẽ hiển thị tại đây.",
+
+    transactions: "Giao dịch",
   },
 };
 

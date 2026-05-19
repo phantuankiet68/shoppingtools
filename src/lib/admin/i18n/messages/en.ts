@@ -11,6 +11,20 @@ const en = {
     delete: "Delete",
     edit: "Edit",
   },
+  months: {
+    jan: "Jan",
+    feb: "Feb",
+    mar: "Mar",
+    apr: "Apr",
+    may: "May",
+    jun: "Jun",
+    jul: "Jul",
+    aug: "Aug",
+    sep: "Sep",
+    oct: "Oct",
+    nov: "Nov",
+    dec: "Dec",
+  },
 
   sites: {
     form: {
@@ -1612,6 +1626,46 @@ const en = {
     selectProduct: "Select Product",
     quantity: "Quantity",
     note: "Note",
+  },
+  inventoryHistory: {
+    totalImports: "Total Imports",
+    totalSales: "Total Sales",
+    returns: "Returns",
+    adjustments: "Adjustments",
+
+    incomingWarehouseStock: "Incoming warehouse stock",
+    outgoingProductQuantity: "Outgoing product quantity",
+    customerReturnActivities: "Customer return activities",
+    manualStockUpdates: "Manual stock updates",
+
+    searchPlaceholder: "Search product, SKU or note...",
+
+    all: "All",
+    import: "Import",
+    sale: "Sale",
+    return: "Return",
+    adjust: "Adjust",
+
+    results: "Results",
+
+    export: "Export",
+
+    product: "Product",
+    sku: "SKU",
+    note: "Note",
+    transaction: "Transaction",
+    quantity: "Quantity",
+    before: "Before",
+    after: "After",
+    date: "Date",
+
+    loadingHistory: "Loading history...",
+
+    noInventoryHistory: "No inventory history found",
+
+    warehouseActivitiesWillAppearHere: "Warehouse activities will appear here.",
+
+    transactions: "Transactions",
   },
 };
 
