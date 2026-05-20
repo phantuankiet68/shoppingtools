@@ -1599,7 +1599,94 @@ const ja = {
 
     totalStock: "合計在庫",
     totalSold: "合計販売数",
-    lowStock: "在庫低下",
+    lowStock: {
+      httpError: "HTTPエラー:",
+      fetchFailed: "在庫不足データの取得に失敗しました:",
+
+      status: {
+        reorder: "再入荷必要",
+        lowStock: "在庫少",
+        inStock: "在庫あり",
+      },
+
+      table: {
+        sku: "SKU",
+        name: "名前",
+        thumb: "画像",
+        quantity: "数量",
+        category: "カテゴリー",
+        status: "状態",
+        action: "操作",
+      },
+
+      logs: {
+        filterClicked: "フィルターがクリックされました — フィルターパネルを実装してください",
+        rowAction: "アイテム操作:",
+      },
+      title: "在庫不足一覧",
+      description: "在庫状況と商品の利用可能性をリアルタイムで監視します",
+      live: "ライブ",
+
+      searchPlaceholder: "在庫を検索...",
+
+      threshold: {
+        lessThan: "≤",
+      },
+
+      actions: {
+        filter: "フィルター",
+        exportCsv: "CSV出力",
+        moreActions: "その他の操作",
+      },
+
+      loadingInventory: "在庫を読み込み中...",
+      noInventory: "在庫が見つかりません",
+
+      showing: "表示",
+      of: "/",
+      results: "件",
+
+      pagination: {
+        prev: "前へ",
+        next: "次へ",
+      },
+
+      stats: {
+        totalSkus: "SKU合計",
+        totalUnits: "商品合計",
+        lowStockAlerts: "在庫不足アラート",
+        totalValue: "総価値",
+        unchanged: "変更なし",
+      },
+
+      recentActivity: "最近のアクティビティ",
+
+      activities: {
+        stockReceived: {
+          title: "入庫",
+          description: "バッチ #9924 が到着しました",
+          time: "5分前",
+        },
+
+        orderFulfilled: {
+          title: "注文完了",
+          description: "注文が発送されました",
+          time: "28分前",
+        },
+
+        adjustmentMade: {
+          title: "調整完了",
+          description: "手動修正",
+          time: "1時間前",
+        },
+
+        lowStockTriggered: {
+          title: "在庫不足通知",
+          description: "しきい値に達しました",
+          time: "3時間前",
+        },
+      },
+    },
     outOfStock: "在庫切れ",
 
     searchPlaceholder: "商品、SKU、バーコードを検索...",

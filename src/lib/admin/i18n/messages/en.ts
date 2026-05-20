@@ -1591,7 +1591,94 @@ const en = {
 
     totalStock: "Total Stock",
     totalSold: "Total Sold",
-    lowStock: "Low Stock",
+    lowStock: {
+      httpError: "HTTP error:",
+      fetchFailed: "Failed to fetch low stock:",
+
+      status: {
+        reorder: "REORDER",
+        lowStock: "LOW STOCK",
+        inStock: "IN STOCK",
+      },
+
+      table: {
+        sku: "SKU",
+        name: "Name",
+        thumb: "Thumb",
+        quantity: "Quantity",
+        category: "Category",
+        status: "Status",
+        action: "Action",
+      },
+
+      logs: {
+        filterClicked: "Filter clicked — implement filter panel",
+        rowAction: "Row action for item:",
+      },
+      title: "Low Stock Inventory",
+      description: "Monitor stock levels and product availability in real time",
+      live: "Live",
+
+      searchPlaceholder: "Search inventory...",
+
+      threshold: {
+        lessThan: "≤",
+      },
+
+      actions: {
+        filter: "Filter",
+        exportCsv: "Export CSV",
+        moreActions: "More actions",
+      },
+
+      loadingInventory: "Loading inventory...",
+      noInventory: "No inventory found",
+
+      showing: "Showing",
+      of: "of",
+      results: "results",
+
+      pagination: {
+        prev: "Prev",
+        next: "Next",
+      },
+
+      stats: {
+        totalSkus: "Total SKUs",
+        totalUnits: "Total Units",
+        lowStockAlerts: "Low Stock Alerts",
+        totalValue: "Total Value",
+        unchanged: "Unchanged",
+      },
+
+      recentActivity: "Recent Activity",
+
+      activities: {
+        stockReceived: {
+          title: "Stock Received",
+          description: "Batch #9924 arrived",
+          time: "5 mins ago",
+        },
+
+        orderFulfilled: {
+          title: "Order Fulfilled",
+          description: "Order shipped to client",
+          time: "28 mins ago",
+        },
+
+        adjustmentMade: {
+          title: "Adjustment Made",
+          description: "Manual correction",
+          time: "1 hour ago",
+        },
+
+        lowStockTriggered: {
+          title: "Low Stock Triggered",
+          description: "Threshold reached",
+          time: "3 hours ago",
+        },
+      },
+    },
     outOfStock: "Out of Stock",
 
     searchPlaceholder: "Search product, SKU, barcode...",

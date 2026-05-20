@@ -1666,7 +1666,6 @@ const vi = {
 
     totalStock: "Tổng tồn kho",
     totalSold: "Đã bán",
-    lowStock: "Sắp hết hàng",
     outOfStock: "Hết hàng",
 
     searchPlaceholder: "Tìm kiếm sản phẩm, SKU, mã vạch...",
@@ -1701,6 +1700,93 @@ const vi = {
     selectProduct: "Chọn sản phẩm",
     quantity: "Số lượng",
     note: "Ghi chú",
+    lowStock: {
+      httpError: "Lỗi HTTP:",
+      fetchFailed: "Không thể tải danh sách tồn kho thấp:",
+
+      status: {
+        reorder: "CẦN NHẬP HÀNG",
+        lowStock: "SẮP HẾT HÀNG",
+        inStock: "CÒN HÀNG",
+      },
+
+      table: {
+        sku: "SKU",
+        name: "Tên",
+        thumb: "Ảnh",
+        quantity: "Số lượng",
+        category: "Danh mục",
+        status: "Trạng thái",
+        action: "Thao tác",
+      },
+
+      logs: {
+        filterClicked: "Đã click filter — cần implement filter panel",
+        rowAction: "Thao tác dòng cho item:",
+      },
+      title: "Tồn kho thấp",
+      description: "Theo dõi tồn kho và trạng thái sản phẩm theo thời gian thực",
+      live: "Trực tiếp",
+
+      searchPlaceholder: "Tìm kiếm tồn kho...",
+
+      threshold: {
+        lessThan: "≤",
+      },
+
+      actions: {
+        filter: "Bộ lọc",
+        exportCsv: "Xuất CSV",
+        moreActions: "Thao tác khác",
+      },
+      loadingInventory: "Đang tải tồn kho...",
+      noInventory: "Không tìm thấy tồn kho",
+
+      showing: "Hiển thị",
+      of: "trên",
+      results: "kết quả",
+
+      pagination: {
+        prev: "Trước",
+        next: "Tiếp",
+      },
+
+      stats: {
+        totalSkus: "Tổng SKU",
+        totalUnits: "Tổng sản phẩm",
+        lowStockAlerts: "Cảnh báo tồn kho thấp",
+        totalValue: "Tổng giá trị",
+        unchanged: "Không thay đổi",
+      },
+
+      recentActivity: "Hoạt động gần đây",
+
+      activities: {
+        stockReceived: {
+          title: "Nhập kho",
+          description: "Lô hàng #9924 đã đến",
+          time: "5 phút trước",
+        },
+
+        orderFulfilled: {
+          title: "Hoàn tất đơn hàng",
+          description: "Đơn hàng đã được giao",
+          time: "28 phút trước",
+        },
+
+        adjustmentMade: {
+          title: "Điều chỉnh",
+          description: "Chỉnh sửa thủ công",
+          time: "1 giờ trước",
+        },
+
+        lowStockTriggered: {
+          title: "Cảnh báo tồn kho thấp",
+          description: "Đã đạt ngưỡng cảnh báo",
+          time: "3 giờ trước",
+        },
+      },
+    },
   },
   inventoryHistory: {
     totalImports: "Tổng nhập kho",
