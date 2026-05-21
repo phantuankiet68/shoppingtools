@@ -47,6 +47,7 @@ model Site {
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdBy                 User?                      @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  returnRequests            ReturnRequest[]
 
   reviews                   Review[]
   systemCredentials         SystemCredential[]

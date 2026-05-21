@@ -1,17 +1,22 @@
-// ===== Enums =====
 enum OrderStatus {
   DRAFT
-  PLACED
-  CANCELLED
+  PENDING
+  CONFIRMED
+  PACKING
+  SHIPPING
+  DELIVERED
   COMPLETED
+  CANCELLED
+  REFUNDED
 }
 
 enum PaymentStatus {
   UNPAID
   PENDING
   PAID
-  FAILED
+  PARTIALLY_REFUNDED
   REFUNDED
+  FAILED
   CANCELED
 }
 
@@ -32,6 +37,7 @@ enum PaymentTxStatus {
   SUCCEEDED
   FAILED
   CANCELED
+  REFUNDED
 }
 
 enum PaymentMethod {
@@ -50,14 +56,15 @@ enum ShipmentStatus {
   DELIVERED
   FAILED
   RETURNED
+  CANCELLED
 }
 
 enum ShippingMethod {
   STANDARD
   EXPRESS
+  SAME_DAY
 }
 
-// ===== Models =====
 
 model Order {
   id         String  @id @default(cuid())
@@ -70,12 +77,18 @@ model Order {
   paymentStatus     PaymentStatus     @map("payment_status")
   fulfillmentStatus FulfillmentStatus @map("fulfillment_status")
 
-  currency      String @default("VND")
-  subtotalCents Int    @default(0) @map("subtotal_cents")
-  discountCents Int    @default(0) @map("discount_cents")
-  shippingCents Int    @default(0) @map("shipping_cents")
-  taxCents      Int    @default(0) @map("tax_cents")
-  totalCents    Int    @default(0) @map("total_cents")
+  currency     String  @default("VND")
+  exchangeRate Decimal @default(1.0) @db.Decimal(12, 4) @map("exchange_rate")
+
+  subtotalCents Int @default(0) @map("subtotal_cents")
+  discountCents Int @default(0) @map("discount_cents")
+  shippingCents Int @default(0) @map("shipping_cents")
+  taxCents      Int @default(0) @map("tax_cents")
+  totalCents    Int @default(0) @map("total_cents")
+
+  refundedCents Int @default(0) @map("refunded_cents")
+
+  couponCode String? @map("coupon_code")
 
   customerNameSnapshot  String? @map("customer_name_snapshot")
   customerEmailSnapshot String? @map("customer_email_snapshot")
@@ -83,43 +96,69 @@ model Order {
 
   shipToName  String? @map("ship_to_name")
   shipToPhone String? @map("ship_to_phone")
-  shipAddr1   String? @map("ship_addr1")
-  shipAddr2   String? @map("ship_addr2")
+
+  shipAddr1 String? @map("ship_addr1")
+  shipAddr2 String? @map("ship_addr2")
+
   shipCity    String? @map("ship_city")
   shipRegion  String? @map("ship_region")
   shipPostal  String? @map("ship_postal")
   shipCountry String? @map("ship_country")
 
+  provinceCode String? @map("province_code")
+  districtCode String? @map("district_code")
+  wardCode     String? @map("ward_code")
+
   source    String?
   ipAddress String? @map("ip_address")
   userAgent String? @map("user_agent")
 
-  placedAt    DateTime? @map("placed_at")
-  paidAt      DateTime? @map("paid_at")
-  cancelledAt DateTime? @map("cancelled_at")
-  completedAt DateTime? @map("completed_at")
-
   notes         String?
   internalNotes String? @map("internal_notes")
+
+  placedAt     DateTime? @map("placed_at")
+  confirmedAt  DateTime? @map("confirmed_at")
+  packedAt     DateTime? @map("packed_at")
+  shippedAt    DateTime? @map("shipped_at")
+  deliveredAt  DateTime? @map("delivered_at")
+  paidAt       DateTime? @map("paid_at")
+  cancelledAt  DateTime? @map("cancelled_at")
+  refundedAt   DateTime? @map("refunded_at")
+  completedAt  DateTime? @map("completed_at")
+
+  confirmedBy String? @map("confirmed_by")
+  cancelledBy String? @map("cancelled_by")
+  refundedBy  String? @map("refunded_by")
+
+  metadata Json?
+
+  version Int @default(1)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   // Relations
-  site         Site          @relation(fields: [siteId], references: [id], onDelete: Restrict)
-  customer     Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  site         Site             @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  customer     Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
   items        OrderItem[]
   payments     Payment[]
   fulfillments Fulfillment[]
+  timelines    OrderTimeline[]
+  returns      ReturnRequest[]
 
   @@unique([siteId, orderNumber], map: "uq_orders_site_order_number")
+
   @@index([siteId, createdAt], map: "idx_orders_site_created_at")
   @@index([siteId, placedAt], map: "idx_orders_site_placed_at")
   @@index([siteId, status], map: "idx_orders_site_status")
+
   @@index([customerId], map: "idx_orders_customer")
+
   @@map("orders")
 }
+
 
 model OrderItem {
   id      String @id @default(cuid())
@@ -129,17 +168,23 @@ model OrderItem {
   productId String? @map("product_id")
   variantId String? @map("variant_id")
 
+  warehouseId String? @map("warehouse_id")
+
   productNameSnapshot String  @map("product_name_snapshot")
   variantNameSnapshot String? @map("variant_name_snapshot")
-  skuSnapshot         String? @map("sku_snapshot")
-  imageSnapshot       String? @map("image_snapshot")
+
+  skuSnapshot   String? @map("sku_snapshot")
+  imageSnapshot String? @map("image_snapshot")
 
   qty            Int
   unitPriceCents Int @map("unit_price_cents")
-  subtotalCents  Int @map("subtotal_cents")
-  discountCents  Int @default(0) @map("discount_cents")
-  taxCents       Int @default(0) @map("tax_cents")
-  totalCents     Int @map("total_cents")
+
+  subtotalCents Int @map("subtotal_cents")
+  discountCents Int @default(0) @map("discount_cents")
+  taxCents      Int @default(0) @map("tax_cents")
+  totalCents    Int @map("total_cents")
+
+  metadata Json?
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -148,14 +193,18 @@ model OrderItem {
   // Relations
   order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   site             Site              @relation(fields: [siteId], references: [id], onDelete: Restrict)
+
   fulfillmentItems FulfillmentItem[]
 
   @@index([orderId], map: "idx_order_items_order")
   @@index([siteId, createdAt], map: "idx_order_items_site_created_at")
+
   @@index([productId], map: "idx_order_items_product")
   @@index([variantId], map: "idx_order_items_variant")
+
   @@map("order_items")
 }
+
 
 model Payment {
   id      String @id @default(cuid())
@@ -165,15 +214,18 @@ model Payment {
   direction PaymentDirection
   status    PaymentTxStatus
 
-  method                PaymentMethod
+  method PaymentMethod
+
   provider              String?
-  providerTransactionId String?       @map("provider_transaction_id")
+  providerTransactionId String? @map("provider_transaction_id")
 
   amountCents Int    @map("amount_cents")
   currency    String @default("VND")
 
   idempotencyKey String? @map("idempotency_key")
   reference      String?
+
+  providerResponse Json? @map("provider_response")
 
   occurredAt DateTime @map("occurred_at")
 
@@ -185,10 +237,13 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, idempotencyKey], map: "uq_payments_site_idempotency_key")
+
   @@index([siteId, occurredAt], map: "idx_payments_site_occurred_at")
   @@index([orderId], map: "idx_payments_order")
+
   @@map("payments")
 }
+
 
 model Fulfillment {
   id      String @id @default(cuid())
@@ -201,42 +256,113 @@ model Fulfillment {
   trackingNumber String? @map("tracking_number")
   trackingUrl    String? @map("tracking_url")
 
-  estimatedDeliveryAt DateTime? @map("estimated_delivery_at")
-  pickedUpAt          DateTime? @map("picked_up_at")
-  shippedAt           DateTime? @map("shipped_at")
-  outForDeliveryAt    DateTime? @map("out_for_delivery_at")
-  deliveredAt         DateTime? @map("delivered_at")
-  failedAt            DateTime? @map("failed_at")
+  shippingProviderSnapshot String? @map("shipping_provider_snapshot")
+  shippingServiceSnapshot  String? @map("shipping_service_snapshot")
 
-  shippingMethod   ShippingMethod @map("shipping_method")
-  shippingFeeCents Int            @default(0) @map("shipping_fee_cents")
-  notes            String?
+  estimatedDeliveryAt DateTime? @map("estimated_delivery_at")
+
+  pickedUpAt       DateTime? @map("picked_up_at")
+  shippedAt        DateTime? @map("shipped_at")
+  outForDeliveryAt DateTime? @map("out_for_delivery_at")
+  deliveredAt      DateTime? @map("delivered_at")
+  failedAt         DateTime? @map("failed_at")
+
+  shippingMethod ShippingMethod @map("shipping_method")
+
+  shippingFeeCents Int @default(0) @map("shipping_fee_cents")
+
+  notes String?
+
+  metadata Json?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  site  Site              @relation(fields: [siteId], references: [id], onDelete: Restrict)
-  order Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  site  Site  @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
   items FulfillmentItem[]
 
   @@index([orderId], map: "idx_fulfillments_order")
   @@index([siteId, status], map: "idx_fulfillments_site_status")
-  @@index([trackingNumber], map: "idx_fulfillments_tracking_number")
+
+  @@unique([carrier, trackingNumber], map: "uq_fulfillments_tracking")
+
   @@map("fulfillments")
 }
 
+
 model FulfillmentItem {
-  id            String @id @default(cuid())
+  id String @id @default(cuid())
+
   fulfillmentId String @map("fulfillment_id")
   orderItemId   String @map("order_item_id")
-  qty           Int
+
+  qty Int
 
   fulfillment Fulfillment @relation(fields: [fulfillmentId], references: [id], onDelete: Cascade)
-  orderItem   OrderItem   @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
 
   @@unique([fulfillmentId, orderItemId], map: "uq_fulfillment_items_unique_pair")
+
   @@index([fulfillmentId], map: "idx_fulfillment_items_fulfillment")
   @@index([orderItemId], map: "idx_fulfillment_items_order_item")
+
   @@map("fulfillment_items")
+}
+
+
+model OrderTimeline {
+  id String @id @default(cuid())
+
+  orderId String @map("order_id")
+
+  action String
+  message String?
+
+  fromValue String? @map("from_value")
+  toValue   String? @map("to_value")
+
+  createdBy String? @map("created_by")
+
+  metadata Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], map: "idx_order_timelines_order")
+
+  @@map("order_timelines")
+}
+
+
+model ReturnRequest {
+  id String @id @default(cuid())
+
+  siteId  String @map("site_id")
+  orderId String @map("order_id")
+
+  reason String?
+
+  approved Boolean @default(false)
+
+  refundAmountCents Int @default(0) @map("refund_amount_cents")
+
+  notes String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  site  Site  @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([siteId], map: "idx_return_requests_site")
+  @@index([orderId], map: "idx_return_requests_order")
+
+  @@map("return_requests")
 }
