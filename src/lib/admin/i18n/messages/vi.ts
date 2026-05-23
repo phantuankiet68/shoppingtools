@@ -1878,6 +1878,107 @@ const vi = {
     failed: "Thanh toán thất bại",
     refunded: "Đã hoàn tiền",
   },
+  invoice: {
+    paidOn: "Thanh toán vào",
+    back: "Quay lại",
+    active: "ĐANG HOẠT ĐỘNG",
+    totalAmount: "Tổng tiền",
+    status: "Trạng thái",
+    date: "Ngày",
+    invoiceDetails: "Chi tiết hóa đơn",
+    paymentBillingInfo: "Thông tin thanh toán & hóa đơn",
+    invoiceDate: "Ngày hóa đơn",
+    paymentMethod: "Phương thức thanh toán",
+    bankTransfer: "Chuyển khoản ngân hàng",
+    paymentStatus: "Trạng thái thanh toán",
+    article: "Sản phẩm",
+    quantity: "Số lượng",
+    unitPrice: "Đơn giá",
+    finalAmount: "Thành tiền",
+    productDescription: "Mô tả sản phẩm",
+    totalHT: "Tổng HT",
+    shippingFee: "Phí vận chuyển",
+    vat: "VAT",
+    totalPrice: "Tổng cộng",
+    termsConditions: "Điều khoản & Điều kiện",
+    paymentInvoicePolicy: "Chính sách thanh toán & hóa đơn",
+    thankYou: "Cảm ơn bạn đã mua hàng. Vui lòng hoàn tất thanh toán trong thời gian đã thỏa thuận.",
+    invoiceQuestion:
+      "Nếu bạn có bất kỳ câu hỏi nào về hóa đơn này, vui lòng liên hệ đội ngũ hỗ trợ của chúng tôi bất cứ lúc nào.",
+    needHelp: "Cần hỗ trợ?",
+    contactSupportCenter: "Liên hệ trung tâm hỗ trợ",
+    late: "Trễ hạn",
+    overdueInvoice: "Hóa đơn này đã quá hạn.",
+    invoiceActions: "Thao tác hóa đơn",
+    manageInvoiceActions: "Quản lý và xử lý hóa đơn",
+    sendInvoice: "Gửi hóa đơn",
+    downloadPDF: "Tải PDF",
+    printInvoice: "In hóa đơn",
+    paymentSummary: "Tóm tắt thanh toán",
+    invoiceFinancialOverview: "Tổng quan tài chính hóa đơn",
+    subtotal: "Tạm tính",
+    tax: "Thuế",
+    completed: "Hoàn thành",
+  },
+  payments: {
+    title: "Thanh toán",
+    loading: "Đang tải bảng điều khiển thanh toán...",
+
+    searchPlaceholder: "Tìm mã đơn hàng, giao dịch...",
+
+    status: "Trạng thái",
+    method: "Phương thức",
+
+    allStatus: "Tất cả trạng thái",
+    allMethods: "Tất cả phương thức",
+
+    applyFilter: "Áp dụng bộ lọc",
+
+    exportCsv: "Xuất CSV",
+    refresh: "Làm mới",
+    backOrders: "Quay lại đơn hàng",
+
+    monthlyRevenue: "Doanh thu theo tháng",
+    revenueAnalytics: "Phân tích doanh thu",
+    liveData: "Dữ liệu trực tiếp",
+
+    order: "Đơn hàng",
+    amount: "Số tiền",
+    actions: "Thao tác",
+
+    confirm: "Xác nhận",
+    refund: "Hoàn tiền",
+
+    noPaymentHistory: "Không có lịch sử thanh toán",
+    noPaymentDescription: "Hiện tại chưa có giao dịch thanh toán nào.",
+
+    previous: "Trước",
+    next: "Tiếp",
+    page: "Trang",
+    total: "Tổng",
+
+    transactions: "Giao dịch",
+    revenue: "Doanh thu",
+    methods: "Phương thức",
+    successRatio: "Tỷ lệ thành công",
+
+    performance: "Hiệu suất",
+    salesRatio: "Tỷ lệ bán hàng",
+    completed: "Hoàn thành",
+
+    paidOrders: "Đơn đã thanh toán",
+    failedOrders: "Đơn thất bại",
+
+    confirmRefund: "Bạn có chắc muốn hoàn tiền giao dịch này?",
+
+    errors: {
+      fetchPayments: "Không thể tải thanh toán",
+      fetchStats: "Không thể tải thống kê",
+      fetchAnalytics: "Không thể tải phân tích",
+      confirmPayment: "Không thể xác nhận thanh toán",
+      refundPayment: "Không thể hoàn tiền",
+    },
+  },
 };
 
 export default vi;

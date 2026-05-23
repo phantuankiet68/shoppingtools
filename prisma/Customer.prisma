@@ -2,7 +2,6 @@ model Customer {
   id     String  @id @default(cuid())
   siteId String  @map("site_id")
   userId String? @map("user_id")
-
   name      String
   email     String?
   phone     String?
@@ -10,22 +9,18 @@ model Customer {
   notes     String?
   tags      Json?
   isActive  Boolean @default(true) @map("is_active")
-
   lastOrderAt DateTime? @map("last_order_at")
   totalOrders Int       @default(0) @map("total_orders")
   totalSpent  Decimal   @default(0) @map("total_spent") @db.Decimal(18, 2)
-
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-
   site            Site             @relation(fields: [siteId], references: [id], onDelete: Restrict)
   user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   addresses       Address[]
   audienceMembers AudienceMember[]
   orders          Order[]
   reviews         Review[]
-
   @@unique([siteId, email], map: "uq_customers_site_email")
   @@index([siteId, phone], map: "idx_customers_site_phone")
   @@index([siteId, createdAt], map: "idx_customers_site_created_at")

@@ -1812,6 +1812,106 @@ const ja = {
     failed: "支払い失敗",
     refunded: "返金済み",
   },
+  invoice: {
+    paidOn: "支払日",
+    back: "戻る",
+    active: "有効",
+    totalAmount: "合計金額",
+    status: "ステータス",
+    date: "日付",
+    invoiceDetails: "請求書詳細",
+    paymentBillingInfo: "支払い・請求情報",
+    invoiceDate: "請求日",
+    paymentMethod: "支払い方法",
+    bankTransfer: "銀行振込",
+    paymentStatus: "支払い状況",
+    article: "商品",
+    quantity: "数量",
+    unitPrice: "単価",
+    finalAmount: "合計金額",
+    productDescription: "商品説明",
+    totalHT: "合計 HT",
+    shippingFee: "配送料",
+    vat: "VAT",
+    totalPrice: "総額",
+    termsConditions: "利用規約",
+    paymentInvoicePolicy: "支払い・請求ポリシー",
+    thankYou: "ご利用いただきありがとうございます。お支払いは期限内にお願いいたします。",
+    invoiceQuestion: "この請求書についてご不明な点がございましたら、いつでもサポートチームまでお問い合わせください。",
+    needHelp: "ヘルプが必要ですか？",
+    contactSupportCenter: "サポートセンターへ連絡",
+    late: "遅延",
+    overdueInvoice: "この請求書は期限切れです。",
+    invoiceActions: "請求書アクション",
+    manageInvoiceActions: "請求書アクションを管理",
+    sendInvoice: "請求書を送信",
+    downloadPDF: "PDF ダウンロード",
+    printInvoice: "請求書を印刷",
+    paymentSummary: "支払い概要",
+    invoiceFinancialOverview: "請求書の財務概要",
+    subtotal: "小計",
+    tax: "税金",
+    completed: "完了",
+  },
+  payments: {
+    title: "支払い",
+    loading: "支払いダッシュボードを読み込み中...",
+
+    searchPlaceholder: "注文番号・取引を検索...",
+
+    status: "ステータス",
+    method: "支払い方法",
+
+    allStatus: "すべてのステータス",
+    allMethods: "すべての方法",
+
+    applyFilter: "フィルター適用",
+
+    exportCsv: "CSV出力",
+    refresh: "更新",
+    backOrders: "注文へ戻る",
+
+    monthlyRevenue: "月間売上",
+    revenueAnalytics: "売上分析",
+    liveData: "ライブデータ",
+
+    order: "注文",
+    amount: "金額",
+    actions: "操作",
+
+    confirm: "確認",
+    refund: "返金",
+
+    noPaymentHistory: "支払い履歴がありません",
+    noPaymentDescription: "現在、支払い取引はありません。",
+
+    previous: "前へ",
+    next: "次へ",
+    page: "ページ",
+    total: "合計",
+
+    transactions: "取引",
+    revenue: "売上",
+    methods: "方法",
+    successRatio: "成功率",
+
+    performance: "パフォーマンス",
+    salesRatio: "販売率",
+    completed: "完了",
+
+    paidOrders: "支払い済み注文",
+    failedOrders: "失敗した注文",
+
+    confirmRefund: "この支払いを返金してもよろしいですか？",
+
+    errors: {
+      fetchPayments: "支払いの取得に失敗しました",
+      fetchStats: "統計の取得に失敗しました",
+      fetchAnalytics: "分析の取得に失敗しました",
+      confirmPayment: "支払い確認に失敗しました",
+      refundPayment: "返金に失敗しました",
+    },
+  },
 };
 
 export default ja;

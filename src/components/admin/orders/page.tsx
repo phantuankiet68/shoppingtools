@@ -357,10 +357,6 @@ export default function OrdersPage() {
     }
   }
 
-  /* =========================================================
-     RENDER
-  ========================================================= */
-
   return (
     <div className={styles.page}>
       <div className={styles.pageMain}>
@@ -388,17 +384,11 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* =========================================================
-            STATS
-        ========================================================= */}
-
         <div className={styles.statsGrid}>
           <div className={`${styles.card} ${styles.blueCard}`}>
             <div className={styles.cardGlow} />
-
             <div className={styles.cardTop}>
               <span>{t("orders.totalOrders")}</span>
-
               <div className={styles.iconBlue}>
                 <i className="bi bi-bag-check" />
               </div>
@@ -406,20 +396,16 @@ export default function OrdersPage() {
 
             <div className={styles.cardFooter}>
               <h2>{stats.totalOrders}</h2>
-
               <p>
                 <i className="bi bi-graph-up-arrow" />
                 +12.4%
               </p>
             </div>
           </div>
-
           <div className={`${styles.card} ${styles.yellowCard}`}>
             <div className={styles.cardGlow} />
-
             <div className={styles.cardTop}>
               <span>{t("orders.pendingOrders")}</span>
-
               <div className={styles.iconYellow}>
                 <i className="bi bi-clock-history" />
               </div>
@@ -427,10 +413,8 @@ export default function OrdersPage() {
 
             <div className={styles.cardFooter}>
               <h2>{stats.pendingOrders}</h2>
-
               <p>
                 <i className="bi bi-exclamation-circle" />
-
                 {t("orders.needsAttention")}
               </p>
             </div>
@@ -438,10 +422,8 @@ export default function OrdersPage() {
 
           <div className={`${styles.card} ${styles.purpleCard}`}>
             <div className={styles.cardGlow} />
-
             <div className={styles.cardTop}>
               <span>{t("orders.shippingOrders")}</span>
-
               <div className={styles.iconPurple}>
                 <i className="bi bi-truck" />
               </div>
@@ -449,10 +431,8 @@ export default function OrdersPage() {
 
             <div className={styles.cardFooter}>
               <h2>{stats.shippingOrders}</h2>
-
               <p>
                 <i className="bi bi-box-seam" />
-
                 {t("orders.inDelivery")}
               </p>
             </div>
@@ -460,10 +440,8 @@ export default function OrdersPage() {
 
           <div className={`${styles.card} ${styles.greenCard}`}>
             <div className={styles.cardGlow} />
-
             <div className={styles.cardTop}>
               <span>{t("orders.totalRevenue")}</span>
-
               <div className={styles.iconGreen}>
                 <i className="bi bi-cash-stack" />
               </div>
@@ -471,7 +449,6 @@ export default function OrdersPage() {
 
             <div className={styles.cardFooter}>
               <h2>{formatPrice(stats.revenue)}</h2>
-
               <p>
                 <i className="bi bi-currency-dollar" />
 
@@ -481,16 +458,11 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* =========================================================
-            TABLE
-        ========================================================= */}
-
         <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
             <div className={styles.searchForm}>
               <div className={styles.searchBox}>
                 <i className={`bi bi-search ${styles.searchIcon}`} />
-
                 <input
                   type="text"
                   placeholder={t("orders.searchPlaceholder")}
@@ -523,19 +495,12 @@ export default function OrdersPage() {
               <thead>
                 <tr>
                   <th>{t("orders.order")}</th>
-
                   <th>{t("orders.customer")}</th>
-
                   <th>{t("orders.items")}</th>
-
                   <th>{t("orders.total")}</th>
-
                   <th>{t("orders.payment")}</th>
-
                   <th>{t("orders.status")}</th>
-
                   <th>{t("orders.date")}</th>
-
                   <th>{t("orders.actions")}</th>
                 </tr>
               </thead>
@@ -559,17 +524,14 @@ export default function OrdersPage() {
                       <td>
                         <div className={styles.orderCell}>
                           <h4>#{order.orderNumber}</h4>
-
                           <span>
                             {order.items.length} {t("orders.items")}
                           </span>
                         </div>
                       </td>
-
                       <td>
                         <div className={styles.customerCell}>
                           <h4>{order.customerNameSnapshot || "-"}</h4>
-
                           <span>{order.customerPhoneSnapshot || "-"}</span>
                         </div>
                       </td>
@@ -584,7 +546,6 @@ export default function OrdersPage() {
                                 width={42}
                                 height={42}
                               />
-
                               <span>{item.productNameSnapshot}</span>
                             </div>
                           ))}
@@ -621,6 +582,17 @@ export default function OrdersPage() {
                             }}
                           >
                             <i className="bi bi-eye" />
+                          </button>
+                          <button
+                            className={styles.actionBtn}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+
+                              window.open(`/admin/orders/${order.id}/invoice`, "_blank");
+                            }}
+                          >
+                            <i className="bi bi-printer" />
                           </button>
 
                           {renderNextAction(order)}

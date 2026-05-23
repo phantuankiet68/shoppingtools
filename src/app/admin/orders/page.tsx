@@ -7,7 +7,7 @@ const OrderBuilder = dynamic(() => import("@/components/admin/orders/page"), { s
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Order Management" subtitle="View, process, and manage customer orders" />
+      <AdminPageTitle title="Order Management" />
       <OrderBuilder />
     </main>
   );

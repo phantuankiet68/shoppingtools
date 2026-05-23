@@ -1804,6 +1804,106 @@ const en = {
     failed: "Failed",
     refunded: "Refunded",
   },
+  invoice: {
+    paidOn: "Paid on",
+    back: "Back",
+    active: "ACTIVE",
+    totalAmount: "Total Amount",
+    status: "Status",
+    date: "Date",
+    invoiceDetails: "Invoice Details",
+    paymentBillingInfo: "Payment & billing information",
+    invoiceDate: "Invoice Date",
+    paymentMethod: "Payment Method",
+    bankTransfer: "Bank Transfer",
+    paymentStatus: "Payment Status",
+    article: "Article",
+    quantity: "Quantity",
+    unitPrice: "Unit Price",
+    finalAmount: "Final Amount",
+    productDescription: "Product Description",
+    totalHT: "Total HT",
+    shippingFee: "Shipping Fee",
+    vat: "VAT",
+    totalPrice: "Total Price",
+    termsConditions: "Terms & Conditions",
+    paymentInvoicePolicy: "Payment & invoice policy",
+    thankYou: "Thank you for your business. Please ensure payment is completed within the agreed period.",
+    invoiceQuestion: "If you have any questions regarding this invoice, feel free to contact our support team anytime.",
+    needHelp: "Need Help?",
+    contactSupportCenter: "Contact support center",
+    late: "Late",
+    overdueInvoice: "This invoice is overdue.",
+    invoiceActions: "Invoice Actions",
+    manageInvoiceActions: "Manage and process invoice actions",
+    sendInvoice: "Send Invoice",
+    downloadPDF: "Download PDF",
+    printInvoice: "Print Invoice",
+    paymentSummary: "Payment Summary",
+    invoiceFinancialOverview: "Invoice financial overview",
+    subtotal: "Subtotal",
+    tax: "Tax",
+    completed: "Completed",
+  },
+  payments: {
+    title: "Payments",
+    loading: "Loading payments dashboard...",
+
+    searchPlaceholder: "Search order number, transaction...",
+
+    status: "Status",
+    method: "Method",
+
+    allStatus: "All Status",
+    allMethods: "All Methods",
+
+    applyFilter: "Apply Filter",
+
+    exportCsv: "Export CSV",
+    refresh: "Refresh",
+    backOrders: "Back Orders",
+
+    monthlyRevenue: "Monthly Revenue",
+    revenueAnalytics: "Revenue analytics",
+    liveData: "Live Data",
+
+    order: "Order",
+    amount: "Amount",
+    actions: "Actions",
+
+    confirm: "Confirm",
+    refund: "Refund",
+
+    noPaymentHistory: "No Payment History",
+    noPaymentDescription: "There are currently no payment transactions available.",
+
+    previous: "Previous",
+    next: "Next",
+    page: "Page",
+    total: "Total",
+
+    transactions: "Transactions",
+    revenue: "Revenue",
+    methods: "Methods",
+    successRatio: "Success Ratio",
+
+    performance: "Performance",
+    salesRatio: "Sales Ratio",
+    completed: "Completed",
+
+    paidOrders: "Paid Orders",
+    failedOrders: "Failed Orders",
+
+    confirmRefund: "Are you sure you want to refund this payment?",
+
+    errors: {
+      fetchPayments: "Failed to fetch payments",
+      fetchStats: "Failed to fetch stats",
+      fetchAnalytics: "Failed to fetch analytics",
+      confirmPayment: "Failed to confirm payment",
+      refundPayment: "Failed to refund payment",
+    },
+  },
 };
 
 export default en;
