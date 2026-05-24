@@ -119,6 +119,14 @@ const ja = {
     sites: "サイト",
     manager: "管理",
     dashboardPanel: "ダッシュボードパネル",
+    orders: "注文",
+    payments: "支払い",
+    templates: "テンプレート",
+    permission: "権限",
+    profile: "プロフィール",
+    upload: "アップロード",
+    images: "画像",
+    files: "ファイル",
     aria: {
       chooseSite: "サイトを選択",
       siteKind: "サイト種別",
@@ -1910,6 +1918,52 @@ const ja = {
       fetchAnalytics: "分析の取得に失敗しました",
       confirmPayment: "支払い確認に失敗しました",
       refundPayment: "返金に失敗しました",
+    },
+  },
+  images: {
+    root: "ルート",
+    uploadImage: "画像をアップロード",
+    uploading: "アップロード中...",
+    dragDrop: "画像をドラッグ＆ドロップ",
+    clickBrowse: "クリックして選択",
+    tag: "タグ",
+    none: "なし",
+    available: "件の画像",
+    loading: "読み込み中...",
+
+    deleteTitle: "画像を削除しますか？",
+
+    deleteDescription: "「{name}」を削除してもよろしいですか？この操作は元に戻せません。",
+
+    filters: {
+      all: "すべて",
+      recent: "最近",
+      tagged: "タグ付き",
+    },
+
+    placeholders: {
+      search: "画像を検索...",
+      folderName: "フォルダー名...",
+    },
+
+    empty: {
+      title: "画像が見つかりません",
+      description: "最初の画像をアップロードするか、フィルターを変更してください。",
+    },
+
+    messages: {
+      loadFailed: "画像一覧を読み込めませんでした。",
+      onlyImages: "画像ファイルのみアップロードできます。",
+      noFile: "画像を選択してください。",
+      uploadFailed: "画像のアップロードに失敗しました。",
+      uploadSuccess: "画像をアップロードしました。",
+      deleteFailed: "画像の削除に失敗しました。",
+      deleteSuccess: "「{name}」を削除しました。",
+      linkCopied: "画像リンクをコピーしました。",
+      copyFailed: "リンクをコピーできませんでした。",
+      folderRequired: "フォルダー名を入力してください。",
+      createFolderFailed: "フォルダーの作成に失敗しました。",
+      folderCreated: "フォルダーを作成しました。",
     },
   },
 };

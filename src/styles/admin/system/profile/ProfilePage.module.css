@@ -120,7 +120,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 12px;
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 14px;
   color: #6b7280;
   text-decoration: none;
@@ -142,25 +142,25 @@
 }
 
 .navItem:hover {
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--bg-save);
+  color: var(--color-save);
+  border: var(--bd-s-save);
   transform: translateX(2px);
 }
 
 .navItem:hover i {
-  color: #374151;
+  color: var(--color-save);
 }
 
 .active {
-  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-  color: #3730a3;
-  box-shadow: inset 0 0 0 1px rgba(55, 48, 163, 0.12);
+  background: var(--bg-primary);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(48, 128, 163, 0.12);
 }
 
 .active i {
-  color: #3730a3;
+  color: #ffffff;
 }
-
 .active::before {
   content: "";
   position: absolute;
@@ -170,7 +170,7 @@
   width: 4px;
   height: 22px;
   border-radius: 999px;
-  background: #4f46e5;
+  background: #ffffff;
 }
 
 .active::after {
@@ -218,13 +218,6 @@
 .danger:hover {
   background: rgba(239, 68, 68, 0.08);
   color: #991b1b;
-}
-
-/* Active state giống ảnh */
-.active {
-  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-  color: #3730a3;
-  box-shadow: inset 0 0 0 1px rgba(55, 48, 163, 0.12);
 }
 
 /* Main */

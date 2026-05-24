@@ -583,18 +583,6 @@ export default function OrdersPage() {
                           >
                             <i className="bi bi-eye" />
                           </button>
-                          <button
-                            className={styles.actionBtn}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-
-                              window.open(`/admin/orders/${order.id}/invoice`, "_blank");
-                            }}
-                          >
-                            <i className="bi bi-printer" />
-                          </button>
-
                           {renderNextAction(order)}
                         </div>
                       </td>

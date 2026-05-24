@@ -120,6 +120,14 @@ const vi = {
     sites: "sites",
     manager: "Quản trị",
     dashboardPanel: "Bảng điều khiển",
+    orders: "Đơn hàng",
+    payments: "Thanh toán",
+    templates: "Mẫu giao diện",
+    permission: "Phân quyền",
+    profile: "Hồ sơ",
+    upload: "Tải lên",
+    images: "Hình ảnh",
+    files: "Tệp tin",
     aria: {
       chooseSite: "Chọn website",
       siteKind: "Loại website",
@@ -1977,6 +1985,63 @@ const vi = {
       fetchAnalytics: "Không thể tải phân tích",
       confirmPayment: "Không thể xác nhận thanh toán",
       refundPayment: "Không thể hoàn tiền",
+    },
+  },
+  images: {
+    root: "Thư mục gốc",
+    uploadImage: "Tải ảnh lên",
+    uploading: "Đang tải lên...",
+    dragDrop: "Kéo & thả hình ảnh",
+    clickBrowse: "Nhấn để chọn ảnh",
+    tag: "Nhãn",
+    none: "Không có",
+    available: "hình ảnh",
+    loading: "Đang tải dữ liệu...",
+
+    deleteTitle: "Xóa hình ảnh?",
+
+    deleteDescription: "Bạn có chắc muốn xóa “{name}”? Hành động này không thể hoàn tác.",
+
+    filters: {
+      all: "Tất cả",
+      recent: "Gần đây",
+      tagged: "Đã gắn nhãn",
+    },
+
+    placeholders: {
+      search: "Tìm kiếm hình ảnh...",
+      folderName: "Tên thư mục...",
+    },
+
+    empty: {
+      title: "Không tìm thấy hình ảnh",
+      description: "Hãy tải ảnh đầu tiên hoặc thay đổi bộ lọc.",
+    },
+
+    messages: {
+      loadFailed: "Không thể tải danh sách hình ảnh.",
+
+      onlyImages: "Chỉ cho phép tải lên file hình ảnh.",
+
+      noFile: "Vui lòng chọn hình ảnh.",
+
+      uploadFailed: "Tải ảnh lên thất bại.",
+
+      uploadSuccess: "Tải ảnh lên thành công.",
+
+      deleteFailed: "Xóa hình ảnh thất bại.",
+
+      deleteSuccess: "Đã xóa “{name}” thành công.",
+
+      linkCopied: "Đã sao chép liên kết hình ảnh.",
+
+      copyFailed: "Không thể sao chép liên kết.",
+
+      folderRequired: "Vui lòng nhập tên thư mục.",
+
+      createFolderFailed: "Tạo thư mục thất bại.",
+
+      folderCreated: "Tạo thư mục thành công.",
     },
   },
 };

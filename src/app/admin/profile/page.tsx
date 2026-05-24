@@ -9,7 +9,7 @@ import ChangePassword from "@/components/admin/system/profile/ChangePassword";
 import AdminMessagesClient from "@/components/admin/system/profile/AdminMessagesClient";
 import CalendarClient from "@/components/admin/system/profile/Calendar";
 import AdminFilesClient from "@/components/admin/system/profile/AdminFilesClient";
-import AdminImagesClient from "@/components/admin/system/profile/AdminImagesClient";
+import AdminImagesClient from "@/components/admin/images/AdminImagesClient";
 import AdminSpendingClient from "@/components/admin/system/profile/AdminSpendingClient";
 import AdminPrivacyClient from "@/components/admin/system/profile/AdminPrivacyClient";
 import AvatarUploadModal from "@/components/admin/system/profile/AvatarUploadModal";
@@ -69,7 +69,7 @@ export default function AdminProfilePage() {
 
   return (
     <div className={styles.page}>
-      <AdminPageTitle title="Profile" subtitle="Manage Profile" />
+      <AdminPageTitle title="Profile" />
 
       <aside className={styles.sidebar}>
         <div className={styles.profileBlock}>

@@ -299,7 +299,6 @@
 
 .calendarWrap {
   flex: 1;
-  min-height: 760px;
   padding: 8px 12px 12px;
 }
 
@@ -309,19 +308,6 @@
   align-content: start;
   height: 82vh;
   overflow: auto;
-}
-
-.rightPanel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.rightPanel::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
-  border-radius: 999px;
-}
-
-.rightPanel::-webkit-scrollbar-track {
-  background: transparent;
 }
 
 .card {
@@ -1120,7 +1106,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 15px;
-  height: 60vh;
+  height: 66vh;
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
