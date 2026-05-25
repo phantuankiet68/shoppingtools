@@ -263,40 +263,6 @@ bootstrapt icon
 
 Bạn hhãy kiểm tra và xóa nhưng phần dư thừa và tiêu tôn ttài nguyên trong file code và hãy xóa các ddữ liệu đang sset value ở dạng tĩnh thay thế lấy data từ api/v1/account/profile. Với lại tôi muốn xóa các card Preferences, Security, Quick summary thay thế cho form nhập dữ liệu address
 và ghi lại toàn bộ file giúp ttôi nhé
-s
-
-Hệ thống gồm 3 cấp:
-
-1. Platform (ADMIN)
-   Quản lý toàn bộ hệ thống
-   Tạo và quản lý tài khoản SUB_ADMIN
-   Quản lý template
-   Quản lý system settings
-   Có thể giám sát tất cả site
-2. Tenant (SUB_ADMIN)
-   Là khách hàng của platform
-   Có thể:
-   tạo website (site)
-   cấu hình domain
-   sử dụng template
-   thiết kế pages (builder)
-   quản lý:
-   products
-   orders
-   customers
-   media
-   integrations
-
-👉 Mỗi SUB_ADMIN là một tenant độc lập
-
-3. End User (CUSTOMER)
-   Là khách của từng website (site)
-   Chỉ tương tác với:
-   frontend website
-   giỏ hàng
-   checkout
-   order tracking
-   chat / booking
 
 👉 CUSTOMER thuộc về SITE, không thuộc platform
 

@@ -10,27 +10,18 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     const { id } = await ctx.params;
 
     const body = await req.json().catch(() => ({}) as any);
-    const parentId = (body?.parentId ?? null) as string | null;
+    const name = String(body?.name ?? "").trim();
+    if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
-    const current = await prisma.fileFolder.findFirst({
+    const current = await prisma.folder.findFirst({
       where: { id, ownerId: user.id },
       select: { id: true },
     });
     if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    if (parentId) {
-      if (parentId === id) return NextResponse.json({ error: "Invalid parent" }, { status: 400 });
-
-      const parent = await prisma.fileFolder.findFirst({
-        where: { id: parentId, ownerId: user.id },
-        select: { id: true },
-      });
-      if (!parent) return NextResponse.json({ error: "Parent folder not found" }, { status: 404 });
-    }
-
-    const folder = await prisma.fileFolder.update({
+    const folder = await prisma.folder.update({
       where: { id },
-      data: { parentId },
+      data: { name },
       select: { id: true, name: true, parentId: true, updatedAt: true },
     });
 

@@ -15,8 +15,13 @@ export async function GET(req: Request) {
     });
 
     const files = await prisma.file.findMany({
-      where: { userId: user.id, folderId: parentId ?? null },
-      orderBy: { title: "asc" },
+      where: {
+        userId: user.id,
+        folderId: parentId ?? null,
+      },
+      orderBy: {
+        title: "asc",
+      },
       select: {
         id: true,
         title: true,
@@ -25,6 +30,10 @@ export async function GET(req: Request) {
         size: true,
         updatedAt: true,
         folderId: true,
+
+        // ADD
+        key: true,
+        url: true,
       },
     });
 

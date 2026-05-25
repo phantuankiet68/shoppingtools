@@ -128,6 +128,9 @@ const vi = {
     upload: "Tải lên",
     images: "Hình ảnh",
     files: "Tệp tin",
+    seo: "SEO",
+    facebook: "Facebook",
+    tiktok: "TikTok",
     aria: {
       chooseSite: "Chọn website",
       siteKind: "Loại website",
@@ -2042,6 +2045,80 @@ const vi = {
       createFolderFailed: "Tạo thư mục thất bại.",
 
       folderCreated: "Tạo thư mục thành công.",
+    },
+  },
+  files: {
+    empty: "Trống",
+
+    labels: {
+      name: "Tên",
+    },
+
+    placeholders: {
+      newFolder: "Thư mục mới...",
+    },
+
+    columns: {
+      fileName: "Tên file",
+      size: "Kích thước",
+      updatedBy: "Cập nhật bởi",
+      updated: "Cập nhật lúc",
+      actions: "Thao tác",
+    },
+
+    actions: {
+      selectAll: "Chọn tất cả",
+      addFolder: "Thêm thư mục",
+      addFile: "Thêm file",
+      creating: "Đang tạo...",
+      rename: "Đổi tên",
+      move: "Di chuyển",
+      delete: "Xóa",
+      download: "Tải xuống",
+      copyLink: "Sao chép link",
+    },
+
+    messages: {
+      successTitle: "Thành công",
+
+      loadFailedTitle: "Lỗi tải dữ liệu",
+      loadFailed: "Không thể tải danh sách file.",
+
+      uploadFailedTitle: "Upload thất bại",
+      uploadFailed: "Không thể upload file.",
+      uploadSuccess: "Upload file thành công.",
+
+      createFolderFailedTitle: "Tạo thư mục thất bại",
+      createFolderFailed: "Không thể tạo thư mục.",
+      createFolderSuccess: "Tạo thư mục thành công.",
+
+      invalidSelectionTitle: "Lựa chọn không hợp lệ",
+      selectOneFile: "Vui lòng chọn đúng 1 file.",
+      selectOneItem: "Vui lòng chọn đúng 1 mục.",
+
+      copySuccessTitle: "Đã sao chép",
+      copySuccess: "Đã sao chép đường dẫn file.",
+
+      copyFailedTitle: "Lỗi",
+      copyFailed: "Không thể sao chép đường dẫn file.",
+
+      deleteTitle: "Xóa dữ liệu?",
+      deleteSuccessTitle: "Thành công",
+      deleteSuccess: "Đã xóa thành công.",
+
+      deleteMixedConfirm: "Xóa thư mục và file?",
+      deleteFoldersConfirm: "Xóa thư mục?",
+      deleteFilesConfirm: "Xóa file?",
+
+      renamePrompt: "Tên mới",
+      renameFailedTitle: "Đổi tên thất bại",
+      renameFolderFailed: "Không thể đổi tên thư mục.",
+      renameSuccess: "Đổi tên thành công.",
+
+      movePrompt: "Nhập folderId đích",
+      moveFailedTitle: "Di chuyển thất bại",
+      moveFolderFailed: "Không thể di chuyển thư mục.",
+      moveSuccess: "Di chuyển thành công.",
     },
   },
 };

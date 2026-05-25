@@ -127,6 +127,9 @@ const ja = {
     upload: "アップロード",
     images: "画像",
     files: "ファイル",
+    seo: "SEO設定",
+    facebook: "Facebook管理",
+    tiktok: "TikTok管理",
     aria: {
       chooseSite: "サイトを選択",
       siteKind: "サイト種別",
@@ -1964,6 +1967,80 @@ const ja = {
       folderRequired: "フォルダー名を入力してください。",
       createFolderFailed: "フォルダーの作成に失敗しました。",
       folderCreated: "フォルダーを作成しました。",
+    },
+  },
+  files: {
+    empty: "空",
+
+    labels: {
+      name: "名前",
+    },
+
+    placeholders: {
+      newFolder: "新しいフォルダ...",
+    },
+
+    columns: {
+      fileName: "ファイル名",
+      size: "サイズ",
+      updatedBy: "更新者",
+      updated: "更新日時",
+      actions: "操作",
+    },
+
+    actions: {
+      selectAll: "すべて選択",
+      addFolder: "フォルダ追加",
+      addFile: "ファイル追加",
+      creating: "作成中...",
+      rename: "名前変更",
+      move: "移動",
+      delete: "削除",
+      download: "ダウンロード",
+      copyLink: "リンクコピー",
+    },
+
+    messages: {
+      successTitle: "成功",
+
+      loadFailedTitle: "読み込み失敗",
+      loadFailed: "ファイル一覧を読み込めません。",
+
+      uploadFailedTitle: "アップロード失敗",
+      uploadFailed: "ファイルをアップロードできません。",
+      uploadSuccess: "ファイルをアップロードしました。",
+
+      createFolderFailedTitle: "フォルダ作成失敗",
+      createFolderFailed: "フォルダを作成できません。",
+      createFolderSuccess: "フォルダを作成しました。",
+
+      invalidSelectionTitle: "無効な選択",
+      selectOneFile: "ファイルを1つ選択してください。",
+      selectOneItem: "項目を1つ選択してください。",
+
+      copySuccessTitle: "コピー完了",
+      copySuccess: "ファイルURLをコピーしました。",
+
+      copyFailedTitle: "エラー",
+      copyFailed: "ファイルURLをコピーできません。",
+
+      deleteTitle: "削除しますか？",
+      deleteSuccessTitle: "成功",
+      deleteSuccess: "削除しました。",
+
+      deleteMixedConfirm: "フォルダとファイルを削除しますか？",
+      deleteFoldersConfirm: "フォルダを削除しますか？",
+      deleteFilesConfirm: "ファイルを削除しますか？",
+
+      renamePrompt: "新しい名前",
+      renameFailedTitle: "名前変更失敗",
+      renameFolderFailed: "フォルダ名を変更できません。",
+      renameSuccess: "名前を変更しました。",
+
+      movePrompt: "移動先 folderId を入力",
+      moveFailedTitle: "移動失敗",
+      moveFolderFailed: "フォルダを移動できません。",
+      moveSuccess: "移動しました。",
     },
   },
 };

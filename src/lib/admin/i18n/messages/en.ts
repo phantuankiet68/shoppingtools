@@ -128,6 +128,9 @@ const en = {
     upload: "Upload",
     images: "Images",
     files: "Files",
+    seo: "SEO",
+    facebook: "Facebook",
+    tiktok: "TikTok",
     aria: {
       chooseSite: "Choose website",
       siteKind: "Site type",
@@ -1950,6 +1953,80 @@ const en = {
       folderRequired: "Please enter a folder name.",
       createFolderFailed: "Failed to create folder.",
       folderCreated: "Folder created successfully.",
+    },
+  },
+  files: {
+    empty: "Empty",
+
+    labels: {
+      name: "Name",
+    },
+
+    placeholders: {
+      newFolder: "New folder...",
+    },
+
+    columns: {
+      fileName: "File Name",
+      size: "Size",
+      updatedBy: "Updated By",
+      updated: "Updated",
+      actions: "Actions",
+    },
+
+    actions: {
+      selectAll: "Select all",
+      addFolder: "Add Folder",
+      addFile: "Add File",
+      creating: "Creating...",
+      rename: "Rename",
+      move: "Move",
+      delete: "Delete",
+      download: "Download",
+      copyLink: "Copy Link",
+    },
+
+    messages: {
+      successTitle: "Success",
+
+      loadFailedTitle: "Load Failed",
+      loadFailed: "Unable to load files.",
+
+      uploadFailedTitle: "Upload Failed",
+      uploadFailed: "Unable to upload file.",
+      uploadSuccess: "File uploaded successfully.",
+
+      createFolderFailedTitle: "Create Folder Failed",
+      createFolderFailed: "Unable to create folder.",
+      createFolderSuccess: "Folder created successfully.",
+
+      invalidSelectionTitle: "Invalid Selection",
+      selectOneFile: "Please select exactly one file.",
+      selectOneItem: "Please select exactly one item.",
+
+      copySuccessTitle: "Copied",
+      copySuccess: "File URL copied successfully.",
+
+      copyFailedTitle: "Error",
+      copyFailed: "Unable to copy file URL.",
+
+      deleteTitle: "Delete Data?",
+      deleteSuccessTitle: "Success",
+      deleteSuccess: "Deleted successfully.",
+
+      deleteMixedConfirm: "Delete folders and files?",
+      deleteFoldersConfirm: "Delete folders?",
+      deleteFilesConfirm: "Delete files?",
+
+      renamePrompt: "New name",
+      renameFailedTitle: "Rename Failed",
+      renameFolderFailed: "Unable to rename folder.",
+      renameSuccess: "Renamed successfully.",
+
+      movePrompt: "Enter destination folderId",
+      moveFailedTitle: "Move Failed",
+      moveFolderFailed: "Unable to move folder.",
+      moveSuccess: "Moved successfully.",
     },
   },
 };

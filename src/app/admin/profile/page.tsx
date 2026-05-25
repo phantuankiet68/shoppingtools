@@ -8,7 +8,6 @@ import ProfileForm from "@/components/admin/system/profile/ProfileForm";
 import ChangePassword from "@/components/admin/system/profile/ChangePassword";
 import AdminMessagesClient from "@/components/admin/system/profile/AdminMessagesClient";
 import CalendarClient from "@/components/admin/system/profile/Calendar";
-import AdminFilesClient from "@/components/admin/system/profile/AdminFilesClient";
 import AdminImagesClient from "@/components/admin/images/AdminImagesClient";
 import AdminSpendingClient from "@/components/admin/system/profile/AdminSpendingClient";
 import AdminPrivacyClient from "@/components/admin/system/profile/AdminPrivacyClient";
