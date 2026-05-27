@@ -2121,6 +2121,246 @@ const vi = {
       moveSuccess: "Di chuyển thành công.",
     },
   },
+  facebook: {
+    dashboard: {
+      title: "Facebook Auto Post",
+
+      live: "Đang hoạt động",
+
+      meta: {
+        scheduled: "24 bài viết đã lên lịch",
+        published: "87 bài viết đã đăng",
+        autoPosting: "Đã bật tự động đăng bài",
+      },
+
+      tabs: {
+        posts: "Bài viết đã lên lịch",
+        schedule: "Tạo lịch đăng",
+        author: "Cấu hình tác giả",
+      },
+    },
+    title: "Facebook Posts",
+
+    description: "Schedule and publish professional Facebook content",
+
+    fields: {
+      title: "Post Title",
+      description: "Description",
+      hashtags: "Hashtags",
+      status: "Status",
+      publishDate: "Publish Date",
+      publishTime: "Publish Time",
+      href: "HREF URL",
+      image: "Upload Image",
+    },
+
+    placeholders: {
+      title: "Enter post title...",
+      description: "Write your facebook content...",
+      hashtags: "#sale #marketing",
+      href: "https://yourwebsite.com",
+    },
+
+    actions: {
+      generate: "Generate AI Content",
+      saveDraft: "Save Draft",
+      schedule: "Schedule Post",
+      saving: "Saving...",
+      scheduling: "Scheduling...",
+    },
+
+    messages: {
+      success: "Success",
+      error: "Error",
+      draftSaved: "Draft saved successfully.",
+      postScheduled: "Facebook post scheduled successfully.",
+      saveError: "Failed to save facebook post.",
+      unexpected: "Something went wrong.",
+      loadError: "Không thể tải danh sách bài viết.",
+      deleteError: "Không thể xóa bài viết.",
+      deleteSuccess: "Xóa bài viết thành công.",
+    },
+
+    preview: {
+      empty: "Your facebook content preview will appear here...",
+
+      image: "Facebook Image Preview",
+    },
+
+    stats: {
+      totalPosts: "Tổng bài viết",
+    },
+
+    header: {
+      post: "Bài viết",
+      url: "Liên kết",
+      status: "Trạng thái",
+      publishDate: "Ngày đăng",
+      time: "Thời gian",
+      hashtags: "Hashtags",
+      actions: "Hành động",
+    },
+
+    filters: {
+      allStatus: "Tất cả trạng thái",
+      draft: "Bản nháp",
+      scheduled: "Đã lên lịch",
+      published: "Đã đăng",
+    },
+
+    posts: {
+      search: "Tìm kiếm bài viết...",
+      empty: "Không có bài viết nào",
+      noPosts: "Không tìm thấy bài viết Facebook.",
+      deleteTitle: "Xóa bài viết",
+      deleteDescription: "Bạn có chắc muốn xóa bài viết này không?",
+    },
+    author: {
+      connected: "Đã kết nối",
+      notConnected: "Chưa kết nối",
+      createdAt: "Ngày tạo",
+      updatedAt: "Cập nhật lần cuối",
+
+      status: {
+        unknown: "Không xác định",
+        expired: "Đã hết hạn",
+        active: "Hoạt động",
+      },
+
+      messages: {
+        loadFailed: "Tải cấu hình Facebook thất bại.",
+        unableLoad: "Không thể tải cấu hình Facebook.",
+        pageIdRequired: "Facebook Page ID là bắt buộc.",
+        tokenRequired: "Page Access Token là bắt buộc.",
+        saveFailed: "Lưu cấu hình thất bại.",
+        updateSuccess: "Cập nhật cấu hình Facebook thành công.",
+        createSuccess: "Tạo cấu hình Facebook thành công.",
+        unexpected: "Đã xảy ra lỗi không mong muốn.",
+      },
+
+      guide: {
+        title: "Thiết lập Facebook API",
+        description: "Kết nối Facebook Page và cấu hình Meta Graph API để tự động đăng bài theo lịch.",
+      },
+
+      form: {
+        defaultPage: "Trang Facebook",
+        pageName: "Tên Facebook Page",
+        pageNamePlaceholder: "Trang Facebook của tôi",
+        pageId: "Facebook Page ID",
+        pageIdPlaceholder: "Nhập Facebook Page ID",
+        pageToken: "Page Access Token",
+        pageTokenPlaceholder: "Nhập Facebook Page Access Token",
+        autoPublish: "Tự động đăng bài",
+        autoPublishDesc: "Tự động đăng các bài viết Facebook đã lên lịch.",
+      },
+
+      notes: {
+        title: "Lưu ý quan trọng",
+        note1: "Sử dụng Page Access Token thay vì User Token.",
+        note2: "Khuyến khích sử dụng long-lived token.",
+        note3: "Auto publish yêu cầu quyền Graph API hợp lệ.",
+      },
+
+      actions: {
+        creating: "Đang tạo...",
+        updating: "Đang cập nhật...",
+        create: "Tạo cấu hình",
+        update: "Cập nhật cấu hình",
+      },
+
+      steps: {
+        metaAccount: {
+          title: "Tạo tài khoản Meta Developer",
+
+          description:
+            "Trước tiên, bạn cần tạo tài khoản Meta Developer bằng tài khoản Facebook hiện tại. Meta có thể yêu cầu xác minh số điện thoại trước khi cho phép truy cập Graph API.",
+
+          items: {
+            login: "Đăng nhập bằng tài khoản Facebook",
+            verify: "Xác minh số điện thoại hoặc email",
+            policy: "Chấp nhận chính sách nền tảng Meta Developer",
+            profile: "Hoàn tất đăng ký hồ sơ developer",
+          },
+
+          info: "Nếu không nhận được mã SMS xác minh, hãy thử dùng chế độ Ẩn danh hoặc trình duyệt khác.",
+
+          action: "Mở Meta Developer",
+        },
+
+        createApp: {
+          title: "Tạo Facebook App",
+
+          description:
+            "Tạo Facebook App để kết nối website hoặc CMS với Facebook Graph API. Ứng dụng này sẽ tạo các quyền cần thiết cho việc đăng bài tự động.",
+
+          items: {
+            create: 'Nhấn "Create App"',
+            type: 'Chọn loại app "Other" hoặc "Business"',
+            login: "Thêm sản phẩm Facebook Login",
+            permission: "Bật quyền Graph API",
+          },
+
+          badges: {
+            graph: "Graph API",
+            pages: "Pages API",
+            facebookLogin: "Facebook Login",
+            business: "Business App",
+          },
+
+          info: "Bạn không cần App Review nếu chỉ sử dụng ứng dụng cho tài khoản Facebook cá nhân.",
+        },
+
+        generateToken: {
+          title: "Tạo Page Access Token",
+
+          description:
+            "Tạo Facebook Page Access Token dài hạn bằng Graph API Explorer. Token này cần thiết cho việc đăng bài tự động theo lịch.",
+
+          items: {
+            select: "Chọn Facebook App trong API Explorer",
+            generate: 'Nhấn "Generate Access Token"',
+            permission: "Cấp quyền cho Facebook Page",
+            convert: "Chuyển sang long-lived token",
+          },
+
+          badges: {
+            manage: "pages_manage_posts",
+            show: "pages_show_list",
+            read: "pages_read_engagement",
+            long: "Long-lived Token",
+          },
+
+          warning: "Hãy sử dụng Page Access Token thay vì User Access Token để đăng bài tự động.",
+
+          action: "Mở API Explorer",
+        },
+
+        connectPage: {
+          title: "Kết nối Facebook Page",
+
+          description:
+            "Sao chép Facebook Page ID và Page Access Token vào form cấu hình để kích hoạt đăng bài Facebook theo lịch.",
+
+          items: {
+            pageId: "Sao chép Facebook Page ID",
+            token: "Dán Access Token dài hạn",
+            auto: "Bật Auto Publish",
+            save: "Lưu cấu hình",
+          },
+
+          badges: {
+            pageId: "Page ID",
+            token: "Access Token",
+            auto: "Auto Publish",
+            scheduler: "Scheduler",
+          },
+
+          info: "Hệ thống sẽ tự động đăng bài dựa trên thời gian publish đã lên lịch.",
+        },
+      },
+    },
+  },
 };
 
 export default vi;

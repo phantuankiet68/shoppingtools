@@ -54,7 +54,8 @@ model User {
   merchants              Merchant[]
   transactions           Transaction[]
   systemCredentials      SystemCredential[]
-
+  facebookAuthors FacebookAuthor[]
+  facebookPosts   FacebookPost[]
   @@index([systemRole])
   @@index([status])
   @@map("users")

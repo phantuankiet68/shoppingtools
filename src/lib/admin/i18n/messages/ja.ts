@@ -2043,6 +2043,243 @@ const ja = {
       moveSuccess: "移動しました。",
     },
   },
+  facebook: {
+    dashboard: {
+      title: "Facebook Auto Post",
+
+      live: "稼働中",
+
+      meta: {
+        scheduled: "24件の予約投稿",
+        published: "87件公開済み",
+        autoPosting: "自動投稿有効",
+      },
+
+      tabs: {
+        posts: "予約投稿",
+        schedule: "投稿スケジュール作成",
+        author: "投稿者設定",
+      },
+    },
+    title: "Facebook投稿",
+
+    description: "Facebook投稿をスケジュール・公開できます",
+
+    fields: {
+      title: "投稿タイトル",
+      description: "説明",
+      hashtags: "ハッシュタグ",
+      status: "ステータス",
+      publishDate: "公開日",
+      publishTime: "公開時間",
+      href: "リンクURL",
+      image: "画像アップロード",
+    },
+
+    placeholders: {
+      title: "投稿タイトルを入力...",
+      description: "Facebook投稿内容を入力...",
+      hashtags: "#sale #marketing",
+      href: "https://yourwebsite.com",
+    },
+
+    actions: {
+      generate: "AIコンテンツ生成",
+      saveDraft: "下書き保存",
+      schedule: "予約投稿",
+      saving: "保存中...",
+      scheduling: "予約中...",
+    },
+
+    messages: {
+      success: "成功",
+      error: "エラー",
+      draftSaved: "下書きを保存しました。",
+      postScheduled: "Facebook投稿を予約しました。",
+      saveError: "Facebook投稿を保存できませんでした。",
+      unexpected: "予期しないエラーが発生しました。",
+      loadError: "投稿の読み込みに失敗しました。",
+      deleteError: "投稿の削除に失敗しました。",
+      deleteSuccess: "投稿を削除しました。",
+    },
+
+    preview: {
+      empty: "Facebookプレビューがここに表示されます...",
+      image: "Facebook画像プレビュー",
+    },
+    stats: {
+      totalPosts: "投稿数",
+    },
+
+    header: {
+      post: "投稿",
+      url: "URL",
+      status: "状態",
+      publishDate: "公開日",
+      time: "時間",
+      hashtags: "ハッシュタグ",
+      actions: "操作",
+    },
+
+    filters: {
+      allStatus: "すべての状態",
+      draft: "下書き",
+      scheduled: "予約済み",
+      published: "公開済み",
+    },
+
+    posts: {
+      search: "投稿を検索...",
+      empty: "投稿がありません",
+      noPosts: "Facebook投稿が見つかりません。",
+      deleteTitle: "投稿を削除",
+      deleteDescription: "この投稿を削除してもよろしいですか？",
+    },
+    author: {
+      connected: "接続済み",
+      notConnected: "未接続",
+      createdAt: "作成日",
+      updatedAt: "最終更新",
+
+      status: {
+        unknown: "不明",
+        expired: "期限切れ",
+        active: "有効",
+      },
+
+      messages: {
+        loadFailed: "Facebook設定の読み込みに失敗しました。",
+        unableLoad: "Facebook設定を読み込めません。",
+        pageIdRequired: "Facebook Page IDは必須です。",
+        tokenRequired: "Page Access Tokenは必須です。",
+        saveFailed: "保存に失敗しました。",
+        updateSuccess: "Facebook設定を更新しました。",
+        createSuccess: "Facebook設定を作成しました。",
+        unexpected: "予期しないエラーが発生しました。",
+      },
+
+      guide: {
+        title: "Facebook API設定",
+        description: "Facebookページを接続し、Meta Graph APIを設定して自動投稿を有効化します。",
+      },
+
+      form: {
+        defaultPage: "Facebookページ",
+        pageName: "Facebookページ名",
+        pageNamePlaceholder: "私のFacebookページ",
+        pageId: "Facebook Page ID",
+        pageIdPlaceholder: "Facebook Page IDを入力",
+        pageToken: "Page Access Token",
+        pageTokenPlaceholder: "Facebook Page Access Tokenを入力",
+        autoPublish: "自動投稿",
+        autoPublishDesc: "スケジュールされたFacebook投稿を自動公開します。",
+      },
+
+      notes: {
+        title: "重要事項",
+        note1: "User TokenではなくPage Access Tokenを使用してください。",
+        note2: "Long-lived tokenを推奨します。",
+        note3: "自動投稿には有効なGraph API権限が必要です。",
+      },
+
+      actions: {
+        creating: "作成中...",
+        updating: "更新中...",
+        create: "設定を作成",
+        update: "設定を更新",
+      },
+
+      steps: {
+        metaAccount: {
+          title: "Meta Developerアカウント作成",
+
+          description:
+            "まず、現在のFacebookアカウントを使用してMeta Developerアカウントを作成する必要があります。Graph APIアクセスを有効にする前に電話番号認証が必要になる場合があります。",
+
+          items: {
+            login: "Facebookアカウントでログイン",
+            verify: "電話番号またはメールアドレスを認証",
+            policy: "Meta Developerポリシーに同意",
+            profile: "Developerプロフィール登録を完了",
+          },
+
+          info: "SMS認証コードが届かない場合は、シークレットモードまたは別ブラウザを試してください。",
+
+          action: "Meta Developerを開く",
+        },
+
+        createApp: {
+          title: "Facebook App作成",
+
+          description:
+            "Facebook Graph APIと接続するためのFacebook Appを作成します。このアプリは自動投稿に必要な権限を生成します。",
+
+          items: {
+            create: '"Create App"をクリック',
+            type: '"Other"または"Business"を選択',
+            login: "Facebook Loginを追加",
+            permission: "Graph API権限を有効化",
+          },
+
+          badges: {
+            graph: "Graph API",
+            pages: "Pages API",
+            facebookLogin: "Facebook Login",
+            business: "Business App",
+          },
+
+          info: "個人用Facebookアカウントのみで利用する場合、App Reviewは不要です。",
+        },
+
+        generateToken: {
+          title: "Page Access Token生成",
+
+          description:
+            "Graph API Explorerを使用してlong-lived Facebook Page Access Tokenを生成します。このトークンは予約投稿に必要です。",
+
+          items: {
+            select: "API ExplorerでFacebook Appを選択",
+            generate: '"Generate Access Token"をクリック',
+            permission: "Facebook Page権限を許可",
+            convert: "long-lived tokenへ変換",
+          },
+
+          badges: {
+            manage: "pages_manage_posts",
+            show: "pages_show_list",
+            read: "pages_read_engagement",
+            long: "Long-lived Token",
+          },
+
+          warning: "自動投稿にはUser Access TokenではなくPage Access Tokenを使用してください。",
+
+          action: "API Explorerを開く",
+        },
+
+        connectPage: {
+          title: "Facebookページ接続",
+
+          description: "Facebook Page IDとPage Access Tokenを設定フォームへ入力して予約投稿を有効化します。",
+
+          items: {
+            pageId: "Facebook Page IDをコピー",
+            token: "long-lived Access Tokenを貼り付け",
+            auto: "Auto Publishを有効化",
+            save: "設定を保存",
+          },
+
+          badges: {
+            pageId: "Page ID",
+            token: "Access Token",
+            auto: "Auto Publish",
+            scheduler: "Scheduler",
+          },
+
+          info: "システムはスケジュールされた公開時間に基づいて自動投稿します。",
+        },
+      },
+    },
+  },
 };
 
 export default ja;

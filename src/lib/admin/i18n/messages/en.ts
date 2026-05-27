@@ -2029,6 +2029,246 @@ const en = {
       moveSuccess: "Moved successfully.",
     },
   },
+  facebook: {
+    dashboard: {
+      title: "Facebook Auto Post",
+
+      live: "Live",
+
+      meta: {
+        scheduled: "24 Scheduled",
+        published: "87 Published",
+        autoPosting: "Auto Posting Enabled",
+      },
+
+      tabs: {
+        posts: "Scheduled Posts",
+        schedule: "Create Schedule",
+        author: "Author Config",
+      },
+    },
+    title: "Facebook Posts",
+
+    description: "Schedule and publish professional Facebook content",
+
+    fields: {
+      title: "Post Title",
+      description: "Description",
+      hashtags: "Hashtags",
+      status: "Status",
+      publishDate: "Publish Date",
+      publishTime: "Publish Time",
+      href: "HREF URL",
+      image: "Upload Image",
+    },
+
+    placeholders: {
+      title: "Enter post title...",
+      description: "Write your facebook content...",
+      hashtags: "#sale #marketing",
+      href: "https://yourwebsite.com",
+    },
+
+    actions: {
+      generate: "Generate AI Content",
+      saveDraft: "Save Draft",
+      schedule: "Schedule Post",
+      saving: "Saving...",
+      scheduling: "Scheduling...",
+    },
+
+    messages: {
+      success: "Success",
+      error: "Error",
+      draftSaved: "Draft saved successfully.",
+      postScheduled: "Facebook post scheduled successfully.",
+      saveError: "Failed to save facebook post.",
+      unexpected: "Something went wrong.",
+      loadError: "Failed to load posts.",
+      deleteError: "Failed to delete post.",
+      deleteSuccess: "Post deleted successfully.",
+    },
+
+    preview: {
+      empty: "Your facebook content preview will appear here...",
+
+      image: "Facebook Image Preview",
+    },
+    stats: {
+      totalPosts: "Total Posts",
+    },
+
+    header: {
+      post: "Post",
+      url: "Url",
+      status: "Status",
+      publishDate: "Publish Date",
+      time: "Time",
+      hashtags: "Hashtags",
+      actions: "Actions",
+    },
+
+    filters: {
+      allStatus: "All Status",
+      draft: "Draft",
+      scheduled: "Scheduled",
+      published: "Published",
+    },
+
+    posts: {
+      search: "Search posts...",
+      empty: "No posts found",
+      noPosts: "No facebook posts found.",
+      deleteTitle: "Delete Post",
+      deleteDescription: "Are you sure you want to delete this post?",
+    },
+    author: {
+      connected: "Connected",
+      notConnected: "Not Connected",
+      createdAt: "Created At",
+      updatedAt: "Last Updated",
+
+      status: {
+        unknown: "Unknown",
+        expired: "Expired",
+        active: "Active",
+      },
+
+      messages: {
+        loadFailed: "Failed to load Facebook configuration.",
+        unableLoad: "Unable to load Facebook configuration.",
+        pageIdRequired: "Facebook Page ID is required.",
+        tokenRequired: "Page Access Token is required.",
+        saveFailed: "Save failed.",
+        updateSuccess: "Facebook configuration updated successfully.",
+        createSuccess: "Facebook configuration created successfully.",
+        unexpected: "Unexpected error occurred.",
+      },
+
+      guide: {
+        title: "Facebook API Setup",
+        description:
+          "Connect your Facebook Page and configure Meta Graph API integration for automatic scheduled posting.",
+      },
+
+      form: {
+        defaultPage: "Facebook Page",
+        pageName: "Facebook Page Name",
+        pageNamePlaceholder: "My Facebook Page",
+        pageId: "Facebook Page ID",
+        pageIdPlaceholder: "Enter Facebook Page ID",
+        pageToken: "Page Access Token",
+        pageTokenPlaceholder: "Enter Facebook Page Access Token",
+        autoPublish: "Auto Publish",
+        autoPublishDesc: "Automatically publish scheduled Facebook posts.",
+      },
+
+      notes: {
+        title: "Important Notes",
+        note1: "Use Page Access Token instead of User Token.",
+        note2: "Long-lived token is recommended.",
+        note3: "Auto publish requires valid Graph API permissions.",
+      },
+
+      actions: {
+        creating: "Creating...",
+        updating: "Updating...",
+        create: "Create Configuration",
+        update: "Update Configuration",
+      },
+
+      steps: {
+        metaAccount: {
+          title: "Create Meta Developer Account",
+
+          description:
+            "First, you need to create a Meta Developer account using your existing Facebook account. Meta may require phone number verification before enabling Graph API access.",
+
+          items: {
+            login: "Login using your Facebook account",
+            verify: "Verify phone number or email address",
+            policy: "Accept Meta Developer platform policies",
+            profile: "Complete developer profile registration",
+          },
+
+          info: "If SMS verification does not arrive, try using Incognito mode or another browser.",
+
+          action: "Open Meta Developer",
+        },
+
+        createApp: {
+          title: "Create Facebook App",
+
+          description:
+            "Create a Facebook App to connect your website or CMS with Facebook Graph API. This app will generate the permissions required for automatic posting.",
+
+          items: {
+            create: 'Click "Create App"',
+            type: 'Select "Other" or "Business" app type',
+            login: "Add Facebook Login product",
+            permission: "Enable Graph API permissions",
+          },
+
+          badges: {
+            graph: "Graph API",
+            pages: "Pages API",
+            facebookLogin: "Facebook Login",
+            business: "Business App",
+          },
+
+          info: "You do not need App Review if you only use the app for your own Facebook account.",
+        },
+
+        generateToken: {
+          title: "Generate Page Access Token",
+
+          description:
+            "Generate a long-lived Facebook Page Access Token using Graph API Explorer. This token is required for scheduled auto posting.",
+
+          items: {
+            select: "Select your Facebook App in API Explorer",
+            generate: 'Click "Generate Access Token"',
+            permission: "Grant Facebook Page permissions",
+            convert: "Convert to long-lived token",
+          },
+
+          badges: {
+            manage: "pages_manage_posts",
+            show: "pages_show_list",
+            read: "pages_read_engagement",
+            long: "Long-lived Token",
+          },
+
+          warning: "Use Page Access Token instead of User Access Token for automatic posting.",
+
+          action: "Open API Explorer",
+        },
+
+        connectPage: {
+          title: "Connect Facebook Page",
+
+          description:
+            "Copy your Facebook Page ID and Page Access Token into the form configuration to activate scheduled Facebook posting.",
+
+          items: {
+            pageId: "Copy Facebook Page ID",
+            token: "Paste long-lived Access Token",
+            auto: "Enable Auto Publish",
+            save: "Save configuration settings",
+          },
+
+          badges: {
+            pageId: "Page ID",
+            token: "Access Token",
+            auto: "Auto Publish",
+            scheduler: "Scheduler",
+          },
+
+          info: "Your system will automatically publish posts based on the scheduled publish time.",
+        },
+      },
+    },
+  },
 };
 
 export default en;
