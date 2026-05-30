@@ -642,7 +642,11 @@ export function MenuAccessSection({ items = [] }: MenuAccessSectionProps) {
                   <SortIcon active={sortKey === "area"} direction={sortDirection} />
                 </button>
 
-                <button type="button" onClick={() => handleSort("visible")} className={styles.th}>
+                <button
+                  type="button"
+                  onClick={() => handleSort("visible")}
+                  className={`${styles.th} ${styles.noWidth}`}
+                >
                   Visibility
                   <SortIcon active={sortKey === "visible"} direction={sortDirection} />
                 </button>
@@ -708,7 +712,7 @@ export function MenuAccessSection({ items = [] }: MenuAccessSectionProps) {
                             <span className={styles.badge}>{menu.area}</span>
                           </div>
 
-                          <div className={styles.centerCell}>
+                          <div className={`${styles.centerCell} ${styles.noWidth}`}>
                             <span
                               className={`${styles.badge} ${menu.visible ? styles.badgeSuccessSoft : styles.badgeNeutralSoft}`}
                             >

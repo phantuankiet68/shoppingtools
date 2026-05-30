@@ -25,17 +25,17 @@ model Workspace {
 }
 
 model WorkspaceMember {
-  id          String        @id @default(cuid())
-  workspaceId String        @map("workspace_id")
-  userId      String        @map("user_id")
+  id          String @id @default(cuid())
+  workspaceId String @map("workspace_id")
+  userId      String @map("user_id")
 
-  role        WorkspaceRole
-  tier        AccessTier 
+  role WorkspaceRole
+  tier AccessTier
 
-  siteId      String? @map("site_id")
+  siteId String? @map("site_id")
 
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -45,6 +45,5 @@ model WorkspaceMember {
   @@index([userId])
   @@index([siteId])
   @@index([workspaceId, role])
-
   @@map("workspace_members")
 }

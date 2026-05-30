@@ -73,11 +73,8 @@ export async function assertCanCreateProductCategory(workspaceId: string) {
     },
   });
 
-  if (totalCategories >= policy.maxProductCategories) {
-    throw new WorkspaceLimitError(
-      `Product category limit reached (${policy.maxProductCategories})`,
-      "CATEGORY_LIMIT_REACHED",
-    );
+  if (totalCategories >= policy.maxCategories) {
+    throw new WorkspaceLimitError(`Product category limit reached (${policy.maxCategories})`, "CATEGORY_LIMIT_REACHED");
   }
 }
 

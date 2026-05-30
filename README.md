@@ -266,7 +266,7 @@ và ghi lại toàn bộ file giúp ttôi nhé
 
 👉 CUSTOMER thuộc về SITE, không thuộc platform
 
-Nhưng không thiếu pemission để chặn một số quyền của admin và một số cái như được tạo bao nhiêu menu tạo được bao nhiêu page những cái cần có bao nhiêu dữ liệu để tiện kiểm soát vì tôi cho họ thuê template và lưu lượng để tạo web mà
+tôi đã tạo xong model TikTokAuthor và TikTokPost tiếp theo bạn hãy tạo các api liên quan giúp tôi nhé. nhưng đặt biệt cần check admin import { requireAdminAuthUser } from "@/lib/auth/auth"; await requireAdminAuthUser(); và nếu như enum sẽ được lấy từ @/generated/prisma
 
 tôi muốn thêm phần message vi.ts en.ts ja.ts dựa vào các message ở file page.tsx. Hiện tại đang sử dụng bằng import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n(); Bạn hãy tạo message vi en ja và ghi lại toàn bộ file page.tsx hoàn chỉnh
 

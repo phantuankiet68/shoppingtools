@@ -1040,3 +1040,16 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 1600px) {
+  .noWidth {
+    display: none;
+  }
+  .tableHead,
+  .tableRow {
+    grid-template-columns: 280px 1.5fr 120px 120px 120px;
+    align-items: center;
+    gap: 14px;
+    display: grid;
+  }
+}

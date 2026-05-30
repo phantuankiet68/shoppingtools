@@ -8,18 +8,19 @@ enum NotificationType {
 }
 
 model Notification {
-  id String @id @default(cuid())
-  title String
-  message String
-  type NotificationType
-  isRead Boolean @default(false)
-  userId String?
-  entityId String?
-  image String?
-  link String?
-  metadata Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  userId    String?
+  entityId  String?
+  image     String?
+  link      String?
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
   @@index([isRead])
   @@index([type])
   @@index([createdAt])

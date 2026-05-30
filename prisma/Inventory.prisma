@@ -5,6 +5,7 @@ enum InventoryTransactionType {
   RETURN
   ADJUST
 }
+
 model Inventory {
   id          String   @id @default(cuid())
   productId   String   @unique @map("product_id")
@@ -20,21 +21,19 @@ model Inventory {
   @@map("inventories")
 }
 
-
 model InventoryTransaction {
-  id         String   @id @default(cuid())
-  productId  String   @map("product_id")
-  type       InventoryTransactionType
-  quantity   Int
-  beforeQty  Int
-  afterQty   Int
-  note       String?
-  createdAt  DateTime @default(now())
+  id        String                   @id @default(cuid())
+  productId String                   @map("product_id")
+  type      InventoryTransactionType
+  quantity  Int
+  beforeQty Int
+  afterQty  Int
+  note      String?
+  createdAt DateTime                 @default(now())
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([type])
-
   @@map("inventory_transactions")
 }

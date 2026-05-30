@@ -20,7 +20,7 @@ function getPolicyByTier(tier: string) {
         maxSites: 10,
         maxPages: 100,
         maxMenus: 31,
-        maxProductCategories: 200,
+        maxCategories: 200,
         maxProducts: 1000,
         maxCustomDomains: 5,
         allowBlog: true,
@@ -38,7 +38,7 @@ function getPolicyByTier(tier: string) {
         maxSites: 3,
         maxPages: 30,
         maxMenus: 20,
-        maxProductCategories: 50,
+        maxCategories: 50,
         maxProducts: 300,
         maxCustomDomains: 2,
         allowBlog: true,
@@ -56,7 +56,7 @@ function getPolicyByTier(tier: string) {
         maxSites: 1,
         maxPages: 10,
         maxMenus: 10,
-        maxProductCategories: 20,
+        maxCategories: 20,
         maxProducts: 100,
         maxCustomDomains: 1,
         allowBlog: true,
@@ -125,9 +125,7 @@ export async function POST(req: NextRequest) {
     const inputSlug = String(body.slug ?? "").trim();
 
     // ✅ FIX: khai báo tier TRƯỚC
-    const tier: AccessTier = ["BASIC", "NORMAL", "PRO"].includes(body.tier)
-      ? body.tier
-      : "BASIC";
+    const tier: AccessTier = ["BASIC", "NORMAL", "PRO"].includes(body.tier) ? body.tier : "BASIC";
 
     if (!name || !ownerUserId) {
       return NextResponse.json({ message: "name and ownerUserId are required" }, { status: 400 });
@@ -215,14 +213,13 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ message: "Workspace not found" }, { status: 404 });
     }
 
-    const hasWorkspaceInfoPayload =
-      body.name !== undefined || body.slug !== undefined;
+    const hasWorkspaceInfoPayload = body.name !== undefined || body.slug !== undefined;
 
     const hasPolicyPayload =
       body.maxSites !== undefined ||
       body.maxPages !== undefined ||
       body.maxMenus !== undefined ||
-      body.maxProductCategories !== undefined ||
+      body.maxCategories !== undefined ||
       body.maxProducts !== undefined;
 
     if (!hasWorkspaceInfoPayload && !hasPolicyPayload) {
@@ -273,9 +270,7 @@ export async function PUT(req: NextRequest) {
         maxSites: Number(body.maxSites ?? workspace.accessPolicy.maxSites),
         maxPages: Number(body.maxPages ?? workspace.accessPolicy.maxPages),
         maxMenus: Number(body.maxMenus ?? workspace.accessPolicy.maxMenus),
-        maxProductCategories: Number(
-          body.maxProductCategories ?? workspace.accessPolicy.maxProductCategories
-        ),
+        maxCategories: Number(body.maxCategories ?? workspace.accessPolicy.maxCategories),
         maxProducts: Number(body.maxProducts ?? workspace.accessPolicy.maxProducts),
       },
     });

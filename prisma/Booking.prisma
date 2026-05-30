@@ -1,17 +1,18 @@
 model Booking {
-  id String @id @default(cuid())
+  id            String        @id @default(cuid())
   customerName  String
   customerPhone String
   serviceName   String
-  start DateTime
-  end   DateTime
-  status BookingStatus @default(pending)
-  source BookingSource
-  note   String?
-  siteId String
-  notifiedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  start         DateTime
+  end           DateTime
+  status        BookingStatus @default(pending)
+  source        BookingSource
+  note          String?
+  siteId        String
+  notifiedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
   @@index([start, end])
   @@index([siteId])
   @@index([notifiedAt])

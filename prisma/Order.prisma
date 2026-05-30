@@ -65,7 +65,6 @@ enum ShippingMethod {
   SAME_DAY
 }
 
-
 model Order {
   id         String  @id @default(cuid())
   siteId     String  @map("site_id")
@@ -78,7 +77,7 @@ model Order {
   fulfillmentStatus FulfillmentStatus @map("fulfillment_status")
 
   currency     String  @default("VND")
-  exchangeRate Decimal @default(1.0) @db.Decimal(12, 4) @map("exchange_rate")
+  exchangeRate Decimal @default(1.0) @map("exchange_rate") @db.Decimal(12, 4)
 
   subtotalCents Int @default(0) @map("subtotal_cents")
   discountCents Int @default(0) @map("discount_cents")
@@ -116,15 +115,15 @@ model Order {
   notes         String?
   internalNotes String? @map("internal_notes")
 
-  placedAt     DateTime? @map("placed_at")
-  confirmedAt  DateTime? @map("confirmed_at")
-  packedAt     DateTime? @map("packed_at")
-  shippedAt    DateTime? @map("shipped_at")
-  deliveredAt  DateTime? @map("delivered_at")
-  paidAt       DateTime? @map("paid_at")
-  cancelledAt  DateTime? @map("cancelled_at")
-  refundedAt   DateTime? @map("refunded_at")
-  completedAt  DateTime? @map("completed_at")
+  placedAt    DateTime? @map("placed_at")
+  confirmedAt DateTime? @map("confirmed_at")
+  packedAt    DateTime? @map("packed_at")
+  shippedAt   DateTime? @map("shipped_at")
+  deliveredAt DateTime? @map("delivered_at")
+  paidAt      DateTime? @map("paid_at")
+  cancelledAt DateTime? @map("cancelled_at")
+  refundedAt  DateTime? @map("refunded_at")
+  completedAt DateTime? @map("completed_at")
 
   confirmedBy String? @map("confirmed_by")
   cancelledBy String? @map("cancelled_by")
@@ -139,8 +138,8 @@ model Order {
   deletedAt DateTime? @map("deleted_at")
 
   // Relations
-  site         Site             @relation(fields: [siteId], references: [id], onDelete: Restrict)
-  customer     Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   items        OrderItem[]
   payments     Payment[]
@@ -149,16 +148,12 @@ model Order {
   returns      ReturnRequest[]
 
   @@unique([siteId, orderNumber], map: "uq_orders_site_order_number")
-
   @@index([siteId, createdAt], map: "idx_orders_site_created_at")
   @@index([siteId, placedAt], map: "idx_orders_site_placed_at")
   @@index([siteId, status], map: "idx_orders_site_status")
-
   @@index([customerId], map: "idx_orders_customer")
-
   @@map("orders")
 }
-
 
 model OrderItem {
   id      String @id @default(cuid())
@@ -191,20 +186,17 @@ model OrderItem {
   deletedAt DateTime? @map("deleted_at")
 
   // Relations
-  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  site             Site              @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  site  Site  @relation(fields: [siteId], references: [id], onDelete: Restrict)
 
   fulfillmentItems FulfillmentItem[]
 
   @@index([orderId], map: "idx_order_items_order")
   @@index([siteId, createdAt], map: "idx_order_items_site_created_at")
-
   @@index([productId], map: "idx_order_items_product")
   @@index([variantId], map: "idx_order_items_variant")
-
   @@map("order_items")
 }
-
 
 model Payment {
   id      String @id @default(cuid())
@@ -237,13 +229,10 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, idempotencyKey], map: "uq_payments_site_idempotency_key")
-
   @@index([siteId, occurredAt], map: "idx_payments_site_occurred_at")
   @@index([orderId], map: "idx_payments_order")
-
   @@map("payments")
 }
-
 
 model Fulfillment {
   id      String @id @default(cuid())
@@ -284,14 +273,11 @@ model Fulfillment {
 
   items FulfillmentItem[]
 
+  @@unique([carrier, trackingNumber], map: "uq_fulfillments_tracking")
   @@index([orderId], map: "idx_fulfillments_order")
   @@index([siteId, status], map: "idx_fulfillments_site_status")
-
-  @@unique([carrier, trackingNumber], map: "uq_fulfillments_tracking")
-
   @@map("fulfillments")
 }
-
 
 model FulfillmentItem {
   id String @id @default(cuid())
@@ -306,20 +292,17 @@ model FulfillmentItem {
   orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
 
   @@unique([fulfillmentId, orderItemId], map: "uq_fulfillment_items_unique_pair")
-
   @@index([fulfillmentId], map: "idx_fulfillment_items_fulfillment")
   @@index([orderItemId], map: "idx_fulfillment_items_order_item")
-
   @@map("fulfillment_items")
 }
-
 
 model OrderTimeline {
   id String @id @default(cuid())
 
   orderId String @map("order_id")
 
-  action String
+  action  String
   message String?
 
   fromValue String? @map("from_value")
@@ -335,10 +318,8 @@ model OrderTimeline {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId], map: "idx_order_timelines_order")
-
   @@map("order_timelines")
 }
-
 
 model ReturnRequest {
   id String @id @default(cuid())
@@ -363,6 +344,5 @@ model ReturnRequest {
 
   @@index([siteId], map: "idx_return_requests_site")
   @@index([orderId], map: "idx_return_requests_order")
-
   @@map("return_requests")
 }

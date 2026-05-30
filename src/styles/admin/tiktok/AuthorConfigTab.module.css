@@ -1,0 +1,852 @@
+/* AuthorConfigTab.module.css */
+
+.wrapper {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 15px;
+  align-items: start;
+}
+
+/* =========================
+   LEFT
+========================= */
+
+/* ========================================
+   LEFT PANEL
+======================================== */
+
+.left {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 24px;
+}
+
+/* ========================================
+   GUIDE CARD
+======================================== */
+
+.guideCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  border: var(--bd-header);
+  isolation: isolate;
+  height: 81vh;
+  overflow-y: auto;
+  /* FIREFOX */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 72, 153, 0.4) transparent;
+}
+
+/* CHROME / EDGE / SAFARI */
+.guideCard::-webkit-scrollbar {
+  width: 5px;
+}
+
+.guideCard::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.guideCard::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgba(236, 72, 153, 0.5), rgba(59, 130, 246, 0.5));
+
+  border-radius: 999px;
+}
+
+.guideCard::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgba(236, 72, 153, 0.8), rgba(59, 130, 246, 0.8));
+}
+.guideCard::before {
+  content: "";
+
+  position: absolute;
+
+  top: -120px;
+  right: -120px;
+
+  width: 280px;
+  height: 280px;
+
+  border-radius: 999px;
+
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.16), transparent);
+
+  z-index: -1;
+}
+
+.guideCard::after {
+  content: "";
+
+  position: absolute;
+
+  bottom: -140px;
+  left: -140px;
+
+  width: 300px;
+  height: 300px;
+
+  border-radius: 999px;
+
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.14), transparent);
+
+  z-index: -1;
+}
+
+/* ========================================
+   GUIDE HEADER
+======================================== */
+
+.guideHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.guideIcon {
+  width: 69px;
+  height: 69px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #111827, #1e293b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.guideIcon i {
+  font-size: 18px;
+
+  color: #ffffff;
+}
+
+.guideHeaderContent {
+  flex: 1;
+}
+
+.guideBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  box-shadow: 0 10px 20px rgba(236, 72, 153, 0.18);
+}
+
+/* ========================================
+   STEPS
+======================================== */
+
+.guideSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  background: #fff;
+  padding: 15px;
+  height: 81vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Chrome, Edge, Safari */
+.guideSteps::-webkit-scrollbar {
+  width: 5px;
+}
+
+.guideSteps::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.guideSteps::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.guideSteps::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.stepItem {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.stepItem:not(:last-child)::after {
+  content: "";
+
+  position: absolute;
+
+  top: 29px;
+  left: 15px;
+
+  width: 2px;
+
+  height: calc(100% + 10px);
+
+  background: linear-gradient(to bottom, rgba(236, 72, 153, 0.3), rgba(59, 130, 246, 0.1));
+}
+
+/* ========================================
+   STEP NUMBER
+======================================== */
+
+.stepNumber {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 12px 24px rgba(236, 72, 153, 0.2);
+}
+
+/* ========================================
+   STEP CONTENT
+======================================== */
+
+.stepContent {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  border: 1px solid #f1f5f9;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.stepContent:hover {
+  transform: translateY(-3px);
+
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+}
+
+.stepTop {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 18px;
+}
+
+.stepIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepIcon i {
+  font-size: 22px;
+
+  color: #3a79a1;
+}
+
+.stepTop h4 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.stepTop p {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* ========================================
+   STEP LINK
+======================================== */
+
+.stepLink {
+  margin-top: 18px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  color: #ec4899;
+
+  font-size: 13px;
+
+  font-weight: 400;
+
+  text-decoration: none;
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.stepLink:hover {
+  transform: translateX(2px);
+
+  color: #db2777;
+}
+
+/* ========================================
+   FOOTER
+======================================== */
+
+.guideFooter {
+  margin-top: 36px;
+
+  padding-top: 28px;
+
+  border-top: 1px solid #f1f5f9;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 22px;
+}
+
+.footerLeft {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 18px 20px;
+
+  border-radius: 22px;
+
+  background: linear-gradient(145deg, #eff6ff, #f8fafc);
+
+  border: 1px solid #dbeafe;
+}
+
+.footerLeft i {
+  font-size: 22px;
+
+  color: #3b82f6;
+}
+
+.footerLeft span {
+  color: #64748b;
+
+  font-size: 14px;
+
+  line-height: 1.8;
+}
+
+/* ========================================
+   CONNECT BUTTON
+======================================== */
+
+.connectBtn {
+  width: 100%;
+  height: 50px;
+  border: 1px solid #f36bd3;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgb(253, 242, 248), rgb(239, 246, 255));
+  color: rgb(236, 72, 153);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.connectBtn:hover {
+  transform: translateY(-3px);
+}
+
+.connectBtn i {
+  font-size: 18px;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+  .guideHeader {
+    flex-direction: column;
+  }
+
+  .guideHeaderContent h2 {
+    font-size: 26px;
+  }
+
+  .stepTop {
+    flex-direction: column;
+  }
+
+  .stepContent {
+    padding: 20px;
+  }
+
+  .infoCard {
+    align-items: flex-start;
+  }
+
+  .guideFooter {
+    gap: 18px;
+  }
+
+  .footerLeft {
+    align-items: flex-start;
+  }
+}
+
+/* =========================
+   ACCOUNT CARD
+========================= */
+
+.accountCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(145deg, #ffd4eb, #bdd4f1);
+  border: var(--bd-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.accountCard::before {
+  content: "";
+
+  position: absolute;
+
+  top: -100px;
+  right: -100px;
+
+  width: 240px;
+  height: 240px;
+
+  border-radius: 999px;
+
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.18), transparent);
+}
+
+.accountTop {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* =========================
+   AVATAR
+========================= */
+
+.avatarWrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgb(236, 72, 153), rgb(139, 92, 246));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  color: #ffffff;
+}
+
+.avatarPlaceholder i {
+  font-size: 20px;
+}
+
+/* =========================
+   ACCOUNT INFO
+========================= */
+
+.accountInfo h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.accountInfo p {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================
+   META
+========================= */
+
+.accountMeta {
+  display: flex;
+  gap: 12px;
+}
+
+.metaItem {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  min-width: 150px;
+  gap: 12px;
+  align-items: center;
+}
+
+.metaItem span {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 3px;
+}
+
+.metaItem strong {
+  font-size: 13px;
+  font-weight: 400;
+  color: #5386ff;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* =========================
+   RIGHT
+========================= */
+
+.right {
+  min-width: 0;
+}
+
+/* =========================
+   FORM CARD
+========================= */
+
+.formCard {
+  border-radius: 12px;
+  padding: 15px;
+  background: #ffffff;
+  border: var(--bd-header);
+}
+
+/* =========================
+   FORM HEADER
+========================= */
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.formHeader h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.formHeader p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.statusBadge {
+  height: 42px;
+
+  padding: 0 18px;
+
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+
+  color: #15803d;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 13px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.5px;
+}
+
+/* =========================
+   FORM GRID
+========================= */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+/* =========================
+   FORM GROUP
+========================= */
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* =========================
+   INPUT
+========================= */
+
+.input,
+.textarea {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.input {
+  height: 42px;
+  padding: 0 18px;
+}
+
+.textarea {
+  min-height: 120px;
+  padding: 15px;
+  resize: none;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #94a3b8;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #ec4899;
+
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.12);
+
+  transform: translateY(-1px);
+}
+
+/* =========================
+   SWITCH
+========================= */
+
+.switchGroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fdf2f8, #eff6ff);
+}
+
+.switchGroup p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.switch {
+  position: relative;
+
+  width: 62px;
+
+  height: 34px;
+
+  display: inline-block;
+
+  flex-shrink: 0;
+}
+
+.switch input {
+  display: none;
+}
+
+.switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.switch span::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #ffffff;
+  transition: all 0.25s ease;
+}
+
+.switch input:checked + span {
+  background: var(--bg-switch);
+}
+
+.switch input:checked + span::before {
+  transform: translateX(28px);
+}
+
+/* =========================
+   ACTIONS
+========================= */
+
+.formActions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submitBtn {
+  height: 50px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 12px;
+  background: var(--bg-primary);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+
+  cursor: not-allowed;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1200px) {
+  .wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fullWidth {
+    grid-column: span 1;
+  }
+
+  .formHeader {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .guideHeader {
+    flex-direction: column;
+  }
+
+  .accountTop {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .switchGroup {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .submitBtn {
+    width: 100%;
+  }
+
+  .formHeader h2 {
+    font-size: 24px;
+  }
+}

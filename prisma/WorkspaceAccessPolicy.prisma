@@ -4,13 +4,13 @@ model WorkspaceAccessPolicy {
 
   planCode String @default("BASIC") @map("plan_code")
 
-  maxSites             Int @default(1) @map("max_sites")
-  maxPages             Int @default(10) @map("max_pages")
-  maxMenus             Int @default(3) @map("max_menus")
-  maxCategories Int @default(20) @map("max_categories")
-  maxBrands Int @default(20) @map("max_brands")
-  maxProducts          Int @default(100) @map("max_products")
-  maxCustomDomains     Int @default(1) @map("max_custom_domains")
+  maxSites         Int @default(1) @map("max_sites")
+  maxPages         Int @default(10) @map("max_pages")
+  maxMenus         Int @default(3) @map("max_menus")
+  maxCategories    Int @default(20) @map("max_categories")
+  maxBrands        Int @default(20) @map("max_brands")
+  maxProducts      Int @default(100) @map("max_products")
+  maxCustomDomains Int @default(1) @map("max_custom_domains")
 
   allowBlog      Boolean @default(true)
   allowEcommerce Boolean @default(false)

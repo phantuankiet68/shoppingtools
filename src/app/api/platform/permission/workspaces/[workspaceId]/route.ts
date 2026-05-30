@@ -37,7 +37,7 @@ export async function GET(_: NextRequest, { params }: Context) {
           site: { workspaceId },
         },
       }),
-      prisma.productCategory.count({
+      prisma.Category.count({
         where: {
           site: { workspaceId },
         },
@@ -61,7 +61,7 @@ export async function GET(_: NextRequest, { params }: Context) {
         sites: workspace._count.sites,
         pages,
         menus,
-        productCategories: categories,
+        Categories: categories,
         products,
       },
     });

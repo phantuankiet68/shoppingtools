@@ -21,7 +21,7 @@ type WorkspacePolicy = {
   maxSites: number;
   maxPages: number;
   maxMenus: number;
-  maxProductCategories: number;
+  maxCategories: number;
   maxProducts: number;
   maxCustomDomains: number;
   allowBlog: boolean;
@@ -279,7 +279,7 @@ export function PermissionPageClient() {
           key: "categories",
           label: "Product Categories",
           used: workspacePermission.usage.productCategories,
-          limit: workspacePermission.policy.maxProductCategories,
+          limit: workspacePermission.policy.maxCategories,
           summary: "Catalog category capacity for commerce websites.",
         },
         {
@@ -305,7 +305,7 @@ export function PermissionPageClient() {
       maxSites: nextItems.find((x) => x.key === "sites")?.limit ?? 1,
       maxPages: nextItems.find((x) => x.key === "pages")?.limit ?? 10,
       maxMenus: nextItems.find((x) => x.key === "menus")?.limit ?? 3,
-      maxProductCategories: nextItems.find((x) => x.key === "categories")?.limit ?? 20,
+      maxCategories: nextItems.find((x) => x.key === "categories")?.limit ?? 20,
       maxProducts: nextItems.find((x) => x.key === "products")?.limit ?? 100,
     };
 
