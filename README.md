@@ -1,6 +1,4 @@
-npm run prisma:reset
-
-npm run prisma:migrate -- --name friends_block
+https://access.pavietnam.vn/cai-dat-bao-mat
 
 //Back pink beautifull
 linear-gradient(90deg, rgba(109, 40, 217, 0.06), #ec48990a), #ffffff8c
@@ -273,3 +271,60 @@ tôi muốn thêm phần message vi.ts en.ts ja.ts dựa vào các message ở f
 <div className={styles.barcodeWrap}>
   {product.barcode ? <BarcodeComponent value={product.barcode} /> : null}
 </div>
+
+Ngoài ra mình còn khuyên bổ sung thêm một bảng EmailAnalyticsDaily để cache thống kê theo ngày nếu sau này bạn muốn làm dashboard kiểu Mailchimp/Brevo với biểu đồ Open Rate, CTR, Bounce Rate mà không phải query hàng triệu bản ghi tracking mỗi lần tải trang. Điều này rất hữu ích khi site của bạn có vài nghìn subscriber trở lên.
+
+Platform
+/api/platform/email/templates
+/api/platform/email/templates/:id
+
+/api/platform/email/logs
+
+/api/platform/email/analytics
+
+/api/platform/email/providers
+
+Admin
+/api/admin/email/connect
+
+/api/admin/email/campaigns
+
+/api/admin/email/campaigns/:id
+
+/api/admin/email/send
+
+/api/admin/email/test
+
+/api/admin/email/subscribers
+
+/api/admin/email/dashboard
+
+Giai đoạn 1 (Admin)
+✅ Gmail OAuth
+
+✅ Subscriber API
+
+✅ Template List API
+
+✅ Campaign CRUD
+
+✅ Send Test Email
+
+✅ Send Email
+
+Khi gửi mail thực tế được rồi mới sang bước tiếp theo.
+
+Giai đoạn 2 (Tracking)
+✅ Open Tracking
+
+✅ Click Tracking
+
+✅ Analytics Dashboard
+Giai đoạn 3 (Platform)
+✅ Template Management
+
+✅ Analytics Global
+
+✅ Queue Management
+
+✅ Email Logs

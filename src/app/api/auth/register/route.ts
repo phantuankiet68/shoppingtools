@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
-import { createUserSession, setSessionCookie } from "@/lib/auth/session";
 import { getRequestMeta } from "@/lib/auth/request";
 
 function isValidEmail(email: string) {
@@ -56,12 +55,29 @@ export async function POST(req: Request) {
       },
     });
 
+    const siteId = String(body?.siteId ?? "");
+
+    if (siteId) {
+      await prisma.subscriber.upsert({
+        where: {
+          siteId_email: {
+            siteId,
+            email,
+          },
+        },
+        update: {
+          status: "ACTIVE",
+        },
+        create: {
+          siteId,
+          email,
+          name,
+          status: "ACTIVE",
+        },
+      });
+    }
+
     const meta = getRequestMeta(req);
-    const session = await createUserSession({
-      userId: user.id,
-      ipAddress: meta.ipAddress,
-      userAgent: meta.userAgent,
-    });
 
     await prisma.auditLog.create({
       data: {
@@ -77,17 +93,15 @@ export async function POST(req: Request) {
       },
     });
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
-        message: "Đăng ký thành công.",
+        message: "Đăng ký thành công. Vui lòng xác thực email.",
         user,
       },
-      { status: 201 },
+      {
+        status: 201,
+      },
     );
-
-    setSessionCookie(response, session.token, session.expiresAt);
-
-    return response;
   } catch (error) {
     console.error("REGISTER_ERROR", error);
     return NextResponse.json({ message: "Đăng ký thất bại." }, { status: 500 });

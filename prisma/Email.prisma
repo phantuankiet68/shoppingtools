@@ -1,5 +1,9 @@
 enum EmailProvider {
   GOOGLE
+  RESEND
+  SENDGRID
+  MAILGUN
+  SMTP
 }
 
 enum EmailConnectionStatus {
@@ -8,36 +12,58 @@ enum EmailConnectionStatus {
   EXPIRED
 }
 
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+}
+
 model EmailProviderConfig {
-  id           String                @id @default(cuid())
-  siteId       String                @unique @map("site_id")
-  provider     EmailProvider         @default(GOOGLE)
-  email        String
-  name         String?
-  picture      String?
-  status       EmailConnectionStatus @default(CONNECTED)
-  accessToken  String                @db.Text
-  refreshToken String                @db.Text
-  expiresAt    DateTime              @map("expires_at")
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
-  site         Site                  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  siteId String @unique @map("site_id")
+
+  provider EmailProvider @default(GOOGLE)
+
+  email      String
+  senderName String? @map("sender_name")
+
+  name    String?
+  picture String?
+
+  status EmailConnectionStatus @default(CONNECTED)
+
+  accessTokenEncrypted  String @db.Text
+  refreshTokenEncrypted String @db.Text
+
+  expiresAt DateTime @map("expires_at")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@map("email_provider_configs")
 }
 
 model EmailTemplate {
-  id          String          @id @default(cuid())
-  siteId      String
-  name        String
-  subject     String
-  html        String          @db.Text
+  id String @id @default(cuid())
+
+  siteId String
+
+  name    String
+  subject String
+
+  html String @db.Text
+
   createdById String
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  site        Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  createdBy   User            @relation(fields: [createdById], references: [id])
-  campaigns   EmailCampaign[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site      Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  campaigns EmailCampaign[]
 
   @@index([siteId])
   @@map("email_templates")
@@ -53,35 +79,85 @@ enum EmailCampaignStatus {
 }
 
 model EmailCampaign {
-  id              String              @id @default(cuid())
-  siteId          String              @map("site_id")
-  templateId      String?             @map("template_id")
-  title           String
-  subject         String
-  content         String              @db.Text
-  status          EmailCampaignStatus @default(DRAFT)
-  scheduledAt     DateTime?           @map("scheduled_at")
-  startedAt       DateTime?           @map("started_at")
-  completedAt     DateTime?           @map("completed_at")
-  totalRecipients Int                 @default(0)
-  totalSent       Int                 @default(0)
-  totalOpened     Int                 @default(0)
-  totalClicked    Int                 @default(0)
-  createdById     String              @map("created_by_id")
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  site            Site                @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  template        EmailTemplate?      @relation(fields: [templateId], references: [id])
+  id String @id @default(cuid())
 
-  createdBy  User             @relation(fields: [createdById], references: [id])
+  siteId     String  @map("site_id")
+  templateId String? @map("template_id")
+
+  title   String
+  subject String
+
+  content String @db.Text
+
+  segment String?
+
+  status EmailCampaignStatus @default(DRAFT)
+
+  scheduledAt DateTime? @map("scheduled_at")
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  totalRecipients Int @default(0)
+
+  totalSent    Int @default(0)
+  totalOpened  Int @default(0)
+  totalClicked Int @default(0)
+
+  totalFailed  Int @default(0)
+  totalBounced Int @default(0)
+
+  createdById String @map("created_by_id")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site     Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  template EmailTemplate? @relation(fields: [templateId], references: [id])
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
   recipients EmailRecipient[]
+  jobs       EmailJob[]
 
   @@index([siteId])
   @@index([status])
   @@map("email_campaigns")
 }
 
+enum EmailJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model EmailJob {
+  id String @id @default(cuid())
+
+  campaignId String @map("campaign_id")
+
+  status EmailJobStatus @default(QUEUED)
+
+  totalItems Int @default(0)
+  processed  Int @default(0)
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  error String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@map("email_jobs")
+}
+
 enum EmailRecipientStatus {
+  QUEUED
+  PROCESSING
   PENDING
   SENT
   OPENED
@@ -92,24 +168,38 @@ enum EmailRecipientStatus {
 }
 
 model EmailRecipient {
-  id         String               @id @default(cuid())
-  campaignId String               @map("campaign_id")
-  userId     String?              @map("user_id")
-  email      String
-  name       String?
-  status     EmailRecipientStatus @default(PENDING)
-  messageId  String?              @map("message_id")
-  sentAt     DateTime?
-  openedAt   DateTime?
-  clickedAt  DateTime?
-  error      String?              @db.Text
-  createdAt  DateTime             @default(now())
-  campaign   EmailCampaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  id String @id @default(cuid())
+
+  campaignId String @map("campaign_id")
+
+  userId String? @map("user_id")
+
+  email String
+  name  String?
+
+  status EmailRecipientStatus @default(PENDING)
+
+  messageId String? @map("message_id")
+
+  retryCount Int @default(0)
+
+  sentAt    DateTime?
+  openedAt  DateTime?
+  clickedAt DateTime?
+
+  error String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   user User? @relation(fields: [userId], references: [id])
 
+  tracking EmailTracking[]
+
   @@index([campaignId])
   @@index([status])
+  @@index([email])
   @@map("email_recipients")
 }
 
@@ -120,21 +210,54 @@ enum EmailSubscriberStatus {
 }
 
 model EmailSubscriber {
-  id             String                @id @default(cuid())
-  siteId         String                @map("site_id")
-  userId         String?               @map("user_id")
-  email          String
-  name           String?
-  status         EmailSubscriberStatus @default(ACTIVE)
-  subscribedAt   DateTime              @default(now())
+  id String @id @default(cuid())
+
+  siteId String @map("site_id")
+
+  userId String? @map("user_id")
+
+  email String
+  name  String?
+
+  unsubscribeToken String @unique @default(cuid())
+
+  status EmailSubscriberStatus @default(ACTIVE)
+
+  subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?
-  createdAt      DateTime              @default(now())
-  site           Site                  @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  user           User?                 @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  site Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
 
   @@index([siteId])
   @@index([email])
   @@map("email_subscribers")
+}
+
+enum EmailTrackingEvent {
+  OPEN
+  CLICK
+}
+
+model EmailTracking {
+  id String @id @default(cuid())
+
+  recipientId String @map("recipient_id")
+
+  event EmailTrackingEvent
+
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+
+  createdAt DateTime @default(now())
+
+  recipient EmailRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId])
+  @@index([event])
+  @@map("email_tracking")
 }
 
 model EmailLog {
@@ -153,4 +276,72 @@ model EmailLog {
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId])
+  @@map("email_logs")
+}
+
+model EmailAnalyticsDaily {
+  id String @id @default(cuid())
+
+  siteId String @map("site_id")
+
+  date DateTime @db.Date
+
+  totalSubscribers Int @default(0)
+
+  newSubscribers Int @default(0)
+
+  unsubscribed Int @default(0)
+
+  campaignsSent Int @default(0)
+
+  emailsSent Int @default(0)
+
+  opens Int @default(0)
+
+  uniqueOpens Int @default(0)
+
+  clicks Int @default(0)
+
+  uniqueClicks Int @default(0)
+
+  failed Int @default(0)
+
+  bounced Int @default(0)
+
+  openRate Decimal? @db.Decimal(5, 2)
+
+  clickRate Decimal? @db.Decimal(5, 2)
+
+  bounceRate Decimal? @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, date])
+  @@index([siteId])
+  @@index([date])
+  @@map("email_analytics_daily")
+}
+
+model Subscriber {
+  id String @id @default(cuid())
+
+  siteId String @map("site_id")
+
+  email String
+
+  name String?
+
+  status SubscriberStatus @default(ACTIVE)
+
+  subscribedAt DateTime @default(now())
+
+  unsubscribedAt DateTime?
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, email])
+  @@map("subscribers")
 }

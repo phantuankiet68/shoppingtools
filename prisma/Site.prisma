@@ -52,7 +52,9 @@ model Site {
 
   emailSubscribers EmailSubscriber[]
 
-  emailLogs EmailLog[]
+  emailLogs             EmailLog[]
+  emailAnalyticsDailies EmailAnalyticsDaily[]
+  subscribers           Subscriber[]
 
   @@index([ownerUserId])
   @@index([workspaceId])
