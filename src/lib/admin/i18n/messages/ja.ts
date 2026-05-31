@@ -2280,6 +2280,24 @@ const ja = {
       },
     },
   },
+  email: {
+    dashboard: {
+      title: "メールマーケティング",
+      live: "稼働中",
+
+      meta: {
+        provider: "メールプロバイダー",
+        subscribers: "購読者",
+        campaigns: "メールキャンペーン",
+      },
+
+      tabs: {
+        provider: "プロバイダー",
+        subscribers: "購読者",
+        campaign: "キャンペーン",
+      },
+    },
+  },
 };
 
 export default ja;

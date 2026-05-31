@@ -2361,6 +2361,24 @@ const vi = {
       },
     },
   },
+  email: {
+    dashboard: {
+      title: "Email Marketing",
+      live: "Đang hoạt động",
+
+      meta: {
+        provider: "Nhà cung cấp Email",
+        subscribers: "Người đăng ký",
+        campaigns: "Chiến dịch Email",
+      },
+
+      tabs: {
+        provider: "Provider",
+        subscribers: "Subscribers",
+        campaign: "Campaign",
+      },
+    },
+  },
 };
 
 export default vi;

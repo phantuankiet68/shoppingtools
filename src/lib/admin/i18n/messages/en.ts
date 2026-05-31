@@ -2269,6 +2269,24 @@ const en = {
       },
     },
   },
+  email: {
+    dashboard: {
+      title: "Email Marketing",
+      live: "Live",
+
+      meta: {
+        provider: "Email Provider",
+        subscribers: "Subscribers",
+        campaigns: "Email Campaigns",
+      },
+
+      tabs: {
+        provider: "Provider",
+        subscribers: "Subscribers",
+        campaign: "Campaign",
+      },
+    },
+  },
 };
 
 export default en;

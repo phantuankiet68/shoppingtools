@@ -48,14 +48,59 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+    const providerConfig = await prisma.emailProviderConfig.findUnique({
+      where: {
+        siteId: site.id,
+      },
+      select: {
+        googleClientId: true,
+        googleClientSecretEncrypted: true,
+      },
+    });
 
-    if (!clientId || !redirectUri) {
+    if (!providerConfig) {
       return NextResponse.json(
         {
           success: false,
-          message: "Google OAuth configuration missing",
+          message: "Email provider configuration not found",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
+
+    if (!providerConfig.googleClientId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Google Client ID has not been configured",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    if (!providerConfig.googleClientSecretEncrypted) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Google Client Secret has not been configured",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+    if (!redirectUri) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "GOOGLE_REDIRECT_URI is missing",
         },
         {
           status: 500,
@@ -73,7 +118,7 @@ export async function GET(req: NextRequest) {
 
     const googleUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 
-    googleUrl.searchParams.set("client_id", clientId);
+    googleUrl.searchParams.set("client_id", providerConfig.googleClientId);
 
     googleUrl.searchParams.set("redirect_uri", redirectUri);
 
@@ -87,9 +132,11 @@ export async function GET(req: NextRequest) {
 
     googleUrl.searchParams.set("state", state);
 
-    console.log(googleUrl.toString());
-
-    console.log(process.env.GOOGLE_CLIENT_ID);
+    console.log("[EMAIL_CONNECT]", {
+      siteId: site.id,
+      siteName: site.name,
+      clientId: providerConfig.googleClientId,
+    });
 
     return NextResponse.redirect(googleUrl.toString());
   } catch (error) {

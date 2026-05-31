@@ -32,6 +32,10 @@ model EmailProviderConfig {
 
   status EmailConnectionStatus @default(CONNECTED)
 
+  googleClientId String? @db.Text
+
+  googleClientSecretEncrypted String? @db.Text
+
   accessTokenEncrypted  String @db.Text
   refreshTokenEncrypted String @db.Text
 
