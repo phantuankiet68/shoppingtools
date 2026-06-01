@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 
 import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
-
+import { useModal } from "@/components/admin/shared/common/modal";
 import styles from "@/styles/admin/email/provider.module.css";
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 
 type ProviderResponse = {
   success: boolean;
@@ -45,8 +46,13 @@ export default function EmailProviderTab() {
   const [provider, setProvider] = useState<ProviderResponse["provider"]>(null);
   const [showClientId, setShowClientId] = useState(false);
 
+  const { t } = useAdminI18n();
+
+  const modal = useModal();
+
   useEffect(() => {
     if (!currentSite?.id) {
+      modal.error(t("emailProvider.missingSiteTitle"), t("emailProvider.missingSiteMessage"));
       return;
     }
 
@@ -110,11 +116,11 @@ export default function EmailProviderTab() {
         throw new Error("SAVE_FAILED");
       }
 
-      alert("Google OAuth configuration saved successfully.");
+      modal.success(t("emailProvider.configurationSavedTitle"), t("emailProvider.configurationSavedMessage"));
     } catch (error) {
       console.error(error);
 
-      alert("Unable to save configuration.");
+      modal.error(t("emailProvider.saveFailedTitle"), t("emailProvider.saveFailedMessage"));
     } finally {
       setSaving(false);
     }
@@ -122,6 +128,7 @@ export default function EmailProviderTab() {
 
   const handleConnect = () => {
     if (!currentSite?.id) {
+      modal.error(t("emailProvider.missingSiteTitle"), t("emailProvider.missingSiteMessage"));
       return;
     }
 
@@ -130,12 +137,14 @@ export default function EmailProviderTab() {
 
   const handleDisconnect = async () => {
     if (!currentSite?.id) {
+      modal.error(t("emailProvider.missingSiteTitle"), t("emailProvider.missingSiteMessage"));
       return;
     }
 
     try {
-      setDisconnecting(true);
+      setProvider(null);
 
+      modal.success(t("emailProvider.disconnectedTitle"), t("emailProvider.disconnectedMessage"));
       const response = await fetch(`/api/admin/email/provider?siteId=${currentSite.id}`, {
         method: "DELETE",
       });
@@ -146,9 +155,7 @@ export default function EmailProviderTab() {
 
       setProvider(null);
     } catch (error) {
-      console.error(error);
-
-      alert("Unable to disconnect Gmail.");
+      modal.error(t("emailProvider.disconnectFailedTitle"), t("emailProvider.disconnectFailedMessage"));
     } finally {
       setDisconnecting(false);
     }
@@ -157,7 +164,7 @@ export default function EmailProviderTab() {
   const redirectUri = typeof window !== "undefined" ? `${window.location.origin}/api/admin/email/callback` : "";
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <div className={styles.loading}>{t("emailProvider.loading")}</div>;
   }
 
   return (
@@ -168,33 +175,28 @@ export default function EmailProviderTab() {
         <div className={styles.cardHeader}>
           <div className={styles.headerBadge}>
             <i className="bi bi-google"></i>
-            <span>Google Workspace Integration</span>
+            <span>
+              {" "}
+              {t("emailProvider.connectGmailWith")} {t("emailProvider.googleOAuth")}
+            </span>
           </div>
 
-          <h2>
-            Connect Gmail with
-            <span className={styles.gradientText}> Google OAuth 2.0</span>
-          </h2>
-
-          <p>
-            Configure Google Cloud, enable Gmail API, and generate OAuth credentials to securely send emails from your
-            application using your Google account.
-          </p>
+          <p>{t("emailProvider.guideDescription")}</p>
 
           <div className={styles.headerFeatures}>
             <div className={styles.feature}>
               <i className="bi bi-shield-check"></i>
-              <span>Secure Authentication</span>
+              <span>{t("emailProvider.secureAuthentication")}</span>
             </div>
 
             <div className={styles.feature}>
               <i className="bi bi-envelope-check"></i>
-              <span>Gmail API Ready</span>
+              <span>{t("emailProvider.gmailApiReady")}</span>
             </div>
 
             <div className={styles.feature}>
               <i className="bi bi-lightning-charge"></i>
-              <span>Setup in 5 Minutes</span>
+              <span>{t("emailProvider.setupInFiveMinutes")}</span>
             </div>
           </div>
         </div>
@@ -204,9 +206,9 @@ export default function EmailProviderTab() {
             <div className={styles.stepNumber}>1</div>
 
             <div className={styles.stepContent}>
-              <strong>Open Google Cloud Console</strong>
+              <strong>{t("emailProvider.step1Title")}</strong>
 
-              <p>Access Google Cloud Console and sign in with your Google account.</p>
+              <p>{t("emailProvider.step1Description")}</p>
 
               <a
                 href="https://console.cloud.google.com/"
@@ -214,7 +216,7 @@ export default function EmailProviderTab() {
                 rel="noopener noreferrer"
                 className={styles.link}
               >
-                Open Google Cloud Console →
+                {t("emailProvider.step1Link")} →
               </a>
             </div>
           </div>
@@ -223,19 +225,14 @@ export default function EmailProviderTab() {
             <div className={styles.stepNumber}>2</div>
 
             <div className={styles.stepContent}>
-              <strong>Create a New Project</strong>
+              <strong>{t("emailProvider.step2Title")}</strong>
 
-              <p>
-                Click the project selector in the top navigation bar and choose
-                <b> New Project</b>.
-              </p>
+              <p>{t("emailProvider.step2Description")}</p>
 
               <ul>
-                <li>Enter a project name</li>
-                <li>Select an organization (optional)</li>
-                <li>
-                  Click <b>Create</b>
-                </li>
+                <li>{t("emailProvider.step2Item1")}</li>
+                <li>{t("emailProvider.step2Item2")}</li>
+                <li>{t("emailProvider.step2Item3")}</li>
               </ul>
 
               <a
@@ -244,7 +241,7 @@ export default function EmailProviderTab() {
                 rel="noopener noreferrer"
                 className={styles.link}
               >
-                Create Project →
+                {t("emailProvider.step2Link")} →
               </a>
             </div>
           </div>
@@ -253,15 +250,15 @@ export default function EmailProviderTab() {
             <div className={styles.stepNumber}>3</div>
 
             <div className={styles.stepContent}>
-              <strong>Enable Gmail API</strong>
+              <strong>{t("emailProvider.step3Title")}</strong>
 
-              <p>Gmail API must be enabled before your application can send emails through Google OAuth.</p>
+              <p>{t("emailProvider.step3Description")}</p>
 
               <ul>
-                <li>Navigate to APIs & Services</li>
-                <li>Click Library</li>
-                <li>Search for Gmail API</li>
-                <li>Click Enable</li>
+                <li>{t("emailProvider.step3Item1")}</li>
+                <li>{t("emailProvider.step3Item2")}</li>
+                <li>{t("emailProvider.step3Item3")}</li>
+                <li>{t("emailProvider.step3Item4")}</li>
               </ul>
 
               <a
@@ -270,7 +267,7 @@ export default function EmailProviderTab() {
                 rel="noopener noreferrer"
                 className={styles.link}
               >
-                Enable Gmail API →
+                {t("emailProvider.step3Link")} →
               </a>
             </div>
           </div>
@@ -279,16 +276,16 @@ export default function EmailProviderTab() {
             <div className={styles.stepNumber}>4</div>
 
             <div className={styles.stepContent}>
-              <strong>Configure OAuth Consent Screen</strong>
+              <strong>{t("emailProvider.step4Title")}</strong>
 
-              <p>Configure the application information displayed to users during the Google login process.</p>
+              <p>{t("emailProvider.step4Description")}</p>
 
               <ul>
-                <li>Select External or Internal User Type</li>
-                <li>Add Application Name</li>
-                <li>Add Support Email</li>
-                <li>Add Developer Contact Email</li>
-                <li>Save and Continue</li>
+                <li>{t("emailProvider.step4Item1")}</li>
+                <li>{t("emailProvider.step4Item2")}</li>
+                <li>{t("emailProvider.step4Item3")}</li>
+                <li>{t("emailProvider.step4Item4")}</li>
+                <li>{t("emailProvider.step4Item5")}</li>
               </ul>
 
               <a
@@ -297,7 +294,7 @@ export default function EmailProviderTab() {
                 rel="noopener noreferrer"
                 className={styles.link}
               >
-                Configure Consent Screen →
+                {t("emailProvider.step4Link")} →
               </a>
             </div>
           </div>
@@ -306,15 +303,15 @@ export default function EmailProviderTab() {
             <div className={styles.stepNumber}>5</div>
 
             <div className={styles.stepContent}>
-              <strong>Create OAuth Client ID</strong>
+              <strong>{t("emailProvider.step5Title")}</strong>
 
-              <p>Create OAuth credentials that will be used by your application.</p>
+              <p>{t("emailProvider.step5Description")}</p>
 
               <ul>
-                <li>Go to APIs & Services → Credentials</li>
-                <li>Click Create Credentials</li>
-                <li>Select OAuth Client ID</li>
-                <li>Choose Web Application</li>
+                <li>{t("emailProvider.step5Item1")}</li>
+                <li>{t("emailProvider.step5Item2")}</li>
+                <li>{t("emailProvider.step5Item3")}</li>
+                <li>{t("emailProvider.step5Item4")}</li>
               </ul>
 
               <a
@@ -323,7 +320,7 @@ export default function EmailProviderTab() {
                 rel="noopener noreferrer"
                 className={styles.link}
               >
-                Open Credentials →
+                {t("emailProvider.step5Link")} →
               </a>
             </div>
           </div>
@@ -332,13 +329,13 @@ export default function EmailProviderTab() {
             <div className={styles.stepNumber}>6</div>
 
             <div className={styles.stepContent}>
-              <strong>Add Authorized Redirect URI</strong>
+              <strong>{t("emailProvider.step6Title")}</strong>
 
-              <p>Add the redirect URL below to the Authorized Redirect URIs section.</p>
+              <p>{t("emailProvider.step6Description")}</p>
 
               <code className={styles.codeBlock}>{redirectUri}</code>
 
-              <p>This URL is required so Google can redirect users back to your application after authentication.</p>
+              <p>{t("emailProvider.step6Note")}</p>
             </div>
           </div>
 
@@ -346,16 +343,16 @@ export default function EmailProviderTab() {
             <div className={styles.stepNumber}>7</div>
 
             <div className={styles.stepContent}>
-              <strong>Copy Credentials</strong>
+              <strong>{t("emailProvider.step7Title")}</strong>
 
-              <p>After creating the OAuth Client, copy the following values:</p>
+              <p>{t("emailProvider.step7Description")}</p>
 
               <ul>
-                <li>Client ID</li>
-                <li>Client Secret</li>
+                <li>{t("emailProvider.step7Item1")}</li>
+                <li>{t("emailProvider.step7Item2")}</li>
               </ul>
 
-              <p>Paste them into the Google Email Provider configuration in the Admin Panel and save your settings.</p>
+              <p>{t("emailProvider.step7Note")}</p>
             </div>
           </div>
         </div>
@@ -370,14 +367,14 @@ export default function EmailProviderTab() {
           </div>
 
           <div>
-            <h2>Google Provider Settings</h2>
+            <h2>{t("emailProvider.googleProviderSettings")}</h2>
 
-            <p>Configure OAuth credentials and connect your Gmail account.</p>
+            <p>{t("emailProvider.googleProviderDescription")}</p>
           </div>
         </div>
 
         <div className={styles.formGroup}>
-          <label>Google Client ID</label>
+          <label>{t("emailProvider.googleClientId")}</label>
 
           <div className={styles.inputWrapper}>
             <i className="bi bi-key"></i>
@@ -385,13 +382,13 @@ export default function EmailProviderTab() {
             <input
               value={showClientId ? googleClientId : maskClientId(googleClientId)}
               onChange={(e) => setGoogleClientId(e.target.value)}
-              placeholder="Enter Google Client ID"
+              placeholder={t("emailProvider.enterGoogleClientId")}
             />
           </div>
         </div>
 
         <div className={styles.formGroup}>
-          <label>Google Client Secret</label>
+          <label>{t("emailProvider.googleClientSecret")}</label>
 
           <div className={styles.inputWrapper}>
             <i className="bi bi-shield-lock"></i>
@@ -400,7 +397,7 @@ export default function EmailProviderTab() {
               type="password"
               value={googleClientSecret}
               onChange={(e) => setGoogleClientSecret(e.target.value)}
-              placeholder="Enter Google Client Secret"
+              placeholder={t("emailProvider.enterGoogleClientSecret")}
             />
           </div>
         </div>
@@ -409,12 +406,12 @@ export default function EmailProviderTab() {
           <button type="button" onClick={handleSaveSettings} disabled={saving} className={styles.saveButton}>
             <i className="bi bi-floppy"></i>
 
-            {saving ? "Saving..." : "Save Configuration"}
+            {saving ? t("emailProvider.saving") : t("emailProvider.saveConfiguration")}
           </button>
 
           <button type="button" onClick={handleConnect} className={styles.connectButton}>
             <i className="bi bi-link-45deg"></i>
-            Connect Gmail
+            {t("emailProvider.connectGmail")}
           </button>
         </div>
 
@@ -422,9 +419,9 @@ export default function EmailProviderTab() {
           <div className={styles.connectedCard}>
             <div className={styles.connectedHeader}>
               <div>
-                <h3>Connected Account</h3>
+                <h3>{t("emailProvider.connectedAccount")}</h3>
 
-                <p>Active Gmail provider connection</p>
+                <p>{t("emailProvider.activeConnection")}</p>
               </div>
 
               <span
@@ -441,7 +438,7 @@ export default function EmailProviderTab() {
                 <i className="bi bi-person"></i>
 
                 <div>
-                  <span>Name</span>
+                  <span>{t("emailProvider.name")}</span>
                   <strong>{provider.name}</strong>
                 </div>
               </div>
@@ -450,7 +447,7 @@ export default function EmailProviderTab() {
                 <i className="bi bi-envelope"></i>
 
                 <div>
-                  <span>Email</span>
+                  <span>{t("emailProvider.email")}</span>
                   <strong>{provider.email}</strong>
                 </div>
               </div>
@@ -459,12 +456,20 @@ export default function EmailProviderTab() {
             <button
               type="button"
               disabled={disconnecting}
-              onClick={handleDisconnect}
+              onClick={() =>
+                modal.confirmDelete(
+                  t("emailProvider.disconnectConfirmTitle"),
+                  t("emailProvider.disconnectConfirmMessage").replace("{email}", provider.email),
+                  () => {
+                    void handleDisconnect();
+                  },
+                )
+              }
               className={styles.disconnectButton}
             >
               <i className="bi bi-plug"></i>
 
-              {disconnecting ? "Disconnecting..." : "Disconnect Gmail"}
+              {disconnecting ? t("emailProvider.disconnecting") : t("emailProvider.disconnectGmail")}
             </button>
           </div>
         )}

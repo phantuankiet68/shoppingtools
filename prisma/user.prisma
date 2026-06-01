@@ -55,7 +55,6 @@ model User {
   facebookPosts          FacebookPost[]
   tiktokAuthors          TikTokAuthor[]
   tiktokPosts            TikTokPost[]
-  emailTemplates         EmailTemplate[]
   campaigns              EmailCampaign[]
   emailRecipients        EmailRecipient[]
   emailSubscribers       EmailSubscriber[]

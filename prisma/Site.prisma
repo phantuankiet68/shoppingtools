@@ -46,8 +46,6 @@ model Site {
 
   emailProviderConfig EmailProviderConfig?
 
-  emailTemplates EmailTemplate[]
-
   emailCampaigns EmailCampaign[]
 
   emailSubscribers EmailSubscriber[]

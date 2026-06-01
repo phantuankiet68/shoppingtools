@@ -237,3 +237,19 @@ div[aria-label="Shop Header Announcement"] > div {
   border-radius: 0 0 12px 12px !important;
   overflow: hidden;
 }
+.gjs-pn-views-container {
+  width: 230px !important;
+}
+
+.gjs-sm-property {
+  width: 100% !important;
+}
+
+.gjs-sm-field input,
+.gjs-sm-field select {
+  width: 100% !important;
+}
+
+.gjs-cv-canvas {
+  width: calc(100% - 230px);
+}

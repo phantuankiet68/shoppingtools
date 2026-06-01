@@ -131,6 +131,13 @@ const vi = {
     seo: "SEO",
     facebook: "Facebook",
     tiktok: "TikTok",
+    users: "Người dùng",
+    chat: "Trò chuyện",
+    template_email: "Mẫu Email",
+    history: "Lịch sử",
+    inventory: "Kho hàng",
+    "low-stock": "Sắp hết hàng",
+    list: "Danh sách tồn kho",
     aria: {
       chooseSite: "Chọn website",
       siteKind: "Loại website",
@@ -2378,6 +2385,197 @@ const vi = {
         campaign: "Campaign",
       },
     },
+    campaign: {
+      marketing: "EMAIL MARKETING",
+      title: "Trung tâm Email Campaign",
+
+      templates: "Mẫu Email",
+      subscribers: "Người đăng ký",
+
+      template: "Mẫu Email",
+      loadingTemplates: "Đang tải mẫu email...",
+
+      subject: "Tiêu đề",
+      subjectPlaceholder: "Tiêu đề email",
+
+      testEmail: "Email kiểm tra",
+      testEmailPlaceholder: "example@gmail.com",
+
+      sendTest: "Gửi thử",
+      sending: "Đang gửi...",
+      launch: "Gửi chiến dịch",
+
+      missingSiteTitle: "Thiếu website",
+      missingSiteMessage: "Vui lòng chọn website trước.",
+
+      validationTitle: "Lỗi xác thực",
+      validationTestEmail: "Vui lòng nhập địa chỉ email kiểm tra.",
+      validationSubject: "Vui lòng nhập tiêu đề email.",
+      validationContent: "Vui lòng nhập nội dung email.",
+
+      emailSentTitle: "Đã gửi email",
+      emailSentMessage: 'Email kiểm tra đã được gửi thành công tới "{email}".',
+
+      sendFailedTitle: "Gửi thất bại",
+      sendFailedMessage: "Không thể gửi email kiểm tra.",
+
+      launchTitle: "Gửi chiến dịch?",
+      launchMessage: 'Gửi "{subject}" tới {count} người đăng ký?',
+
+      completedTitle: "Hoàn thành chiến dịch",
+      failedTitle: "Chiến dịch thất bại",
+      failedMessage: "Không thể gửi chiến dịch.",
+
+      total: "Tổng",
+      success: "Thành công",
+      failed: "Thất bại",
+    },
+  },
+  emailProvider: {
+    loading: "Đang tải...",
+
+    missingSiteTitle: "Thiếu website",
+    missingSiteMessage: "Vui lòng chọn website trước.",
+
+    configurationSavedTitle: "Đã lưu cấu hình",
+    configurationSavedMessage: "Cấu hình Google OAuth đã được lưu thành công.",
+
+    saveFailedTitle: "Lưu thất bại",
+    saveFailedMessage: "Không thể lưu cấu hình Google OAuth.",
+
+    disconnectedTitle: "Đã ngắt kết nối",
+    disconnectedMessage: "Đã ngắt kết nối tài khoản Gmail thành công.",
+
+    disconnectFailedTitle: "Ngắt kết nối thất bại",
+    disconnectFailedMessage: "Không thể ngắt kết nối Gmail.",
+
+    disconnectConfirmTitle: "Ngắt kết nối Gmail?",
+    disconnectConfirmMessage: 'Ngắt kết nối tài khoản Gmail "{email}"? Hành động này sẽ xóa liên kết OAuth.',
+
+    workspaceIntegration: "Tích hợp Google Workspace",
+    connectGmailWith: "Kết nối Gmail với",
+    googleOAuth: "Google OAuth 2.0",
+
+    guideDescription:
+      "Cấu hình Google Cloud, kích hoạt Gmail API và tạo thông tin OAuth để gửi email an toàn bằng tài khoản Google.",
+
+    secureAuthentication: "Xác thực bảo mật",
+    gmailApiReady: "Sẵn sàng Gmail API",
+    setupInFiveMinutes: "Thiết lập trong 5 phút",
+
+    googleProviderSettings: "Cài đặt Google Provider",
+    googleProviderDescription: "Cấu hình OAuth và kết nối tài khoản Gmail.",
+
+    googleClientId: "Google Client ID",
+    googleClientSecret: "Google Client Secret",
+
+    enterGoogleClientId: "Nhập Google Client ID",
+    enterGoogleClientSecret: "Nhập Google Client Secret",
+
+    saveConfiguration: "Lưu cấu hình",
+    saving: "Đang lưu...",
+
+    connectGmail: "Kết nối Gmail",
+
+    connectedAccount: "Tài khoản đã kết nối",
+    activeConnection: "Kết nối Gmail đang hoạt động",
+
+    name: "Tên",
+    email: "Email",
+
+    disconnecting: "Đang ngắt kết nối...",
+    disconnectGmail: "Ngắt kết nối Gmail",
+
+    openGoogleCloudConsole: "Mở Google Cloud Console",
+    createNewProject: "Tạo dự án mới",
+    enableGmailApi: "Kích hoạt Gmail API",
+    configureConsentScreen: "Cấu hình OAuth Consent Screen",
+    createOAuthClientId: "Tạo OAuth Client ID",
+    addRedirectUri: "Thêm Redirect URI",
+    copyCredentials: "Sao chép thông tin xác thực",
+
+    step1Title: "Mở Google Cloud Console",
+    step1Description: "Truy cập Google Cloud Console và đăng nhập bằng tài khoản Google.",
+    step1Link: "Mở Google Cloud Console",
+
+    step2Title: "Tạo dự án mới",
+    step2Description: "Chọn trình quản lý dự án và tạo dự án mới.",
+    step2Item1: "Nhập tên dự án",
+    step2Item2: "Chọn tổ chức (không bắt buộc)",
+    step2Item3: "Nhấn Tạo",
+    step2Link: "Tạo dự án",
+
+    step3Title: "Kích hoạt Gmail API",
+    step3Description: "Gmail API phải được bật trước khi gửi email.",
+    step3Item1: "Mở APIs & Services",
+    step3Item2: "Chọn Library",
+    step3Item3: "Tìm Gmail API",
+    step3Item4: "Nhấn Enable",
+    step3Link: "Kích hoạt Gmail API",
+
+    step4Title: "Cấu hình OAuth Consent Screen",
+    step4Description: "Thiết lập thông tin hiển thị khi người dùng đăng nhập.",
+    step4Item1: "Chọn External hoặc Internal",
+    step4Item2: "Nhập tên ứng dụng",
+    step4Item3: "Thêm email hỗ trợ",
+    step4Item4: "Thêm email nhà phát triển",
+    step4Item5: "Lưu và tiếp tục",
+    step4Link: "Cấu hình Consent Screen",
+
+    step5Title: "Tạo OAuth Client ID",
+    step5Description: "Tạo thông tin OAuth cho ứng dụng.",
+    step5Item1: "Mở Credentials",
+    step5Item2: "Chọn Create Credentials",
+    step5Item3: "Chọn OAuth Client ID",
+    step5Item4: "Chọn Web Application",
+    step5Link: "Mở Credentials",
+
+    step6Title: "Thêm Redirect URI",
+    step6Description: "Thêm URL bên dưới vào Authorized Redirect URIs.",
+    step6Note: "Google sẽ chuyển hướng người dùng về ứng dụng qua URL này.",
+
+    step7Title: "Sao chép thông tin xác thực",
+    step7Description: "Sau khi tạo OAuth Client, sao chép các giá trị sau.",
+    step7Item1: "Client ID",
+    step7Item2: "Client Secret",
+    step7Note: "Dán các giá trị này vào phần cấu hình Email Provider và lưu lại.",
+  },
+  emailSubscribers: {
+    title: "Người đăng ký Email",
+    badge: "EMAIL MARKETING",
+
+    refresh: "Làm mới",
+    refreshing: "Đang làm mới...",
+
+    totalSubscribers: "Tổng người đăng ký",
+    totalSubscribersDesc: "Tăng trưởng người nhận bản tin",
+
+    activeUsers: "Người dùng hoạt động",
+    activeUsersDesc: "Đang nhận email",
+
+    inactiveUsers: "Người dùng không hoạt động",
+    inactiveUsersDesc: "Liên hệ đã hủy đăng ký",
+
+    filtered: "Đã lọc",
+
+    searchResults: "Kết quả tìm kiếm",
+    searchResultsDesc: "Số người đăng ký phù hợp",
+
+    searchPlaceholder: "Tìm kiếm theo tên hoặc email...",
+
+    subscriber: "Người đăng ký",
+    status: "Trạng thái",
+    subscribedDate: "Ngày đăng ký",
+
+    loadingSubscribers: "Đang tải danh sách người đăng ký...",
+
+    noSubscribersFound: "Không tìm thấy người đăng ký",
+    noSubscribersFoundDesc: "Hiện không có người đăng ký nào phù hợp với điều kiện tìm kiếm.",
+
+    unknownUser: "Người dùng không xác định",
+
+    active: "Đang hoạt động",
+    inactive: "Không hoạt động",
   },
 };
 

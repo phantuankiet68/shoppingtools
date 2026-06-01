@@ -119,11 +119,7 @@
 
 .cardHeader p {
   max-width: 760px;
-
-  margin-top: 14px;
-
   color: #64748b;
-
   font-size: 15px;
   line-height: 1.8;
 }
@@ -163,7 +159,6 @@
 }
 
 .cardHeader p {
-  margin-top: 10px;
   color: #64748b;
   font-size: 13px;
   line-height: 1.7;
@@ -360,10 +355,10 @@
 }
 
 .providerIcon {
-  width: 58px;
-  height: 58px;
+  width: 45px;
+  height: 45px;
 
-  border-radius: 18px;
+  border-radius: 12px;
 
   display: flex;
   align-items: center;
@@ -380,16 +375,16 @@
 .providerHeader h2 {
   margin: 0;
 
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
 
   color: #0f172a;
 }
 
 .providerHeader p {
   margin-top: 4px;
-
   color: #64748b;
+  font-size: 13px;
 }
 
 .formGroup {
@@ -536,7 +531,7 @@
   border-radius: 999px;
 
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .connected {

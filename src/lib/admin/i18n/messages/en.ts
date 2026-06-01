@@ -131,6 +131,9 @@ const en = {
     seo: "SEO",
     facebook: "Facebook",
     tiktok: "TikTok",
+    users: "Users",
+    chat: "Chat",
+    template_email: "Email Templates",
     aria: {
       chooseSite: "Choose website",
       siteKind: "Site type",
@@ -2286,6 +2289,197 @@ const en = {
         campaign: "Campaign",
       },
     },
+    campaign: {
+      marketing: "EMAIL MARKETING",
+      title: "Email Campaign Studio",
+
+      templates: "Templates",
+      subscribers: "Subscribers",
+
+      template: "Email Template",
+      loadingTemplates: "Loading templates...",
+
+      subject: "Subject",
+      subjectPlaceholder: "Email subject",
+
+      testEmail: "Test Email",
+      testEmailPlaceholder: "example@gmail.com",
+
+      sendTest: "Send Test",
+      sending: "Sending...",
+
+      launch: "Launch Campaign",
+
+      missingSiteTitle: "Missing Site",
+      missingSiteMessage: "Please select a site first.",
+
+      validationTitle: "Validation Error",
+      validationTestEmail: "Please enter a test email address.",
+      validationSubject: "Please enter an email subject.",
+      validationContent: "Please enter email content.",
+
+      emailSentTitle: "Email Sent",
+      emailSentMessage: 'Test email has been sent successfully to "{email}".',
+
+      sendFailedTitle: "Send Failed",
+      sendFailedMessage: "Unable to send test email.",
+
+      launchTitle: "Launch Campaign?",
+      launchMessage: 'Send "{subject}" to {count} subscribers?',
+
+      completedTitle: "Campaign Completed",
+      failedTitle: "Campaign Failed",
+      failedMessage: "Unable to send campaign.",
+
+      total: "Total",
+      success: "Success",
+      failed: "Failed",
+    },
+  },
+  emailProvider: {
+    loading: "Loading...",
+
+    missingSiteTitle: "Missing Site",
+    missingSiteMessage: "Please select a site first.",
+
+    configurationSavedTitle: "Configuration Saved",
+    configurationSavedMessage: "Google OAuth configuration saved successfully.",
+
+    saveFailedTitle: "Save Failed",
+    saveFailedMessage: "Unable to save Google OAuth configuration.",
+
+    disconnectedTitle: "Disconnected",
+    disconnectedMessage: "Gmail account disconnected successfully.",
+
+    disconnectFailedTitle: "Disconnect Failed",
+    disconnectFailedMessage: "Unable to disconnect Gmail.",
+
+    disconnectConfirmTitle: "Disconnect Gmail?",
+    disconnectConfirmMessage: 'Disconnect Gmail account "{email}"? This action will remove the OAuth connection.',
+
+    workspaceIntegration: "Google Workspace Integration",
+    connectGmailWith: "Connect Gmail with",
+    googleOAuth: "Google OAuth 2.0",
+
+    guideDescription:
+      "Configure Google Cloud, enable Gmail API, and generate OAuth credentials to securely send emails using your Google account.",
+
+    secureAuthentication: "Secure Authentication",
+    gmailApiReady: "Gmail API Ready",
+    setupInFiveMinutes: "Setup in 5 Minutes",
+
+    googleProviderSettings: "Google Provider Settings",
+    googleProviderDescription: "Configure OAuth credentials and connect your Gmail account.",
+
+    googleClientId: "Google Client ID",
+    googleClientSecret: "Google Client Secret",
+
+    enterGoogleClientId: "Enter Google Client ID",
+    enterGoogleClientSecret: "Enter Google Client Secret",
+
+    saveConfiguration: "Save Configuration",
+    saving: "Saving...",
+
+    connectGmail: "Connect Gmail",
+
+    connectedAccount: "Connected Account",
+    activeConnection: "Active Gmail provider connection",
+
+    name: "Name",
+    email: "Email",
+
+    disconnecting: "Disconnecting...",
+    disconnectGmail: "Disconnect Gmail",
+
+    openGoogleCloudConsole: "Open Google Cloud Console",
+    createNewProject: "Create a New Project",
+    enableGmailApi: "Enable Gmail API",
+    configureConsentScreen: "Configure OAuth Consent Screen",
+    createOAuthClientId: "Create OAuth Client ID",
+    addRedirectUri: "Add Authorized Redirect URI",
+    copyCredentials: "Copy Credentials",
+    step1Title: "Open Google Cloud Console",
+    step1Description: "Access Google Cloud Console and sign in with your Google account.",
+    step1Link: "Open Google Cloud Console",
+
+    step2Title: "Create a New Project",
+    step2Description: "Open the project manager and create a new project.",
+    step2Item1: "Enter a project name",
+    step2Item2: "Select an organization (optional)",
+    step2Item3: "Click Create",
+    step2Link: "Create Project",
+
+    step3Title: "Enable Gmail API",
+    step3Description: "Gmail API must be enabled before sending emails.",
+    step3Item1: "Open APIs & Services",
+    step3Item2: "Select Library",
+    step3Item3: "Search for Gmail API",
+    step3Item4: "Click Enable",
+    step3Link: "Enable Gmail API",
+
+    step4Title: "Configure OAuth Consent Screen",
+    step4Description: "Set up the information displayed when users sign in.",
+    step4Item1: "Select External or Internal",
+    step4Item2: "Enter Application Name",
+    step4Item3: "Add Support Email",
+    step4Item4: "Add Developer Contact Email",
+    step4Item5: "Save and Continue",
+    step4Link: "Configure Consent Screen",
+
+    step5Title: "Create OAuth Client ID",
+    step5Description: "Create OAuth credentials for your application.",
+    step5Item1: "Open Credentials",
+    step5Item2: "Click Create Credentials",
+    step5Item3: "Select OAuth Client ID",
+    step5Item4: "Choose Web Application",
+    step5Link: "Open Credentials",
+
+    step6Title: "Add Authorized Redirect URI",
+    step6Description: "Add the URL below to Authorized Redirect URIs.",
+    step6Note: "Google will redirect users back to your application using this URL.",
+
+    step7Title: "Copy Credentials",
+    step7Description: "After creating the OAuth Client, copy the following values.",
+    step7Item1: "Client ID",
+    step7Item2: "Client Secret",
+    step7Note: "Paste these values into the Email Provider configuration and save your settings.",
+  },
+  emailSubscribers: {
+    title: "Email Subscribers",
+    badge: "EMAIL MARKETING",
+
+    refresh: "Refresh",
+    refreshing: "Refreshing...",
+
+    totalSubscribers: "Total Subscribers",
+    totalSubscribersDesc: "Newsletter audience growth",
+
+    activeUsers: "Active Users",
+    activeUsersDesc: "Currently receiving emails",
+
+    inactiveUsers: "Inactive Users",
+    inactiveUsersDesc: "Unsubscribed contacts",
+
+    filtered: "Filtered",
+
+    searchResults: "Search Results",
+    searchResultsDesc: "Matching subscribers found",
+
+    searchPlaceholder: "Search subscribers by name or email...",
+
+    subscriber: "Subscriber",
+    status: "Status",
+    subscribedDate: "Subscribed Date",
+
+    loadingSubscribers: "Loading subscribers...",
+
+    noSubscribersFound: "No Subscribers Found",
+    noSubscribersFoundDesc: "There are currently no subscribers matching your search criteria.",
+
+    unknownUser: "Unknown User",
+
+    active: "Active",
+    inactive: "Inactive",
   },
 };
 

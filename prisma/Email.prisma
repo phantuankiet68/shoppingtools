@@ -51,25 +51,13 @@ model EmailProviderConfig {
 
 model EmailTemplate {
   id String @id @default(cuid())
-
-  siteId String
-
-  name    String
-  subject String
-
+  name String
+  image String?
   html String @db.Text
-
-  createdById String
-
+  isActive Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  site      Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  createdBy User @relation(fields: [createdById], references: [id])
-
   campaigns EmailCampaign[]
-
-  @@index([siteId])
   @@map("email_templates")
 }
 

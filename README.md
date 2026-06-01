@@ -38,51 +38,6 @@ npm run prisma:validate
 npm run prisma:migrate -- --name add_profile
 DATABASE_URL="mysql://root:@localhost:3306/shoppingtool"
 ABLY_API_KEY=xxxx:yyyy
-src/
-│
-├── app/ # App Router (Next 16)
-│ ├── (public)/
-│ ├── (admin)/
-│ │ ├── builder/
-│ │ ├── editor/
-│ │ └── layout.tsx
-│ │
-│ ├── api/
-│ │ └── v1/
-│ │
-│ ├── layout.tsx
-│ └── page.tsx
-│
-├── core/ # 🧠 Lowcode engine core
-│ ├── renderer/
-│ ├── registry/
-│ ├── schema/
-│ ├── runtime/
-│ └── hooks/
-│
-├── modules/ # Feature modules (business)
-│ ├── user/
-│ ├── product/
-│ └── dashboard/
-│
-├── components/ # Reusable UI components
-│ ├── ui/ # atomic (button, input, card)
-│ ├── blocks/ # composed blocks
-│ └── layout/
-│
-├── services/ # API client / server actions
-│ ├── api-client.ts
-│ └── server-actions/
-│
-├── store/ # Zustand / Redux / Jotai
-│
-├── lib/ # utils, helpers
-│
-├── config/ # system config
-│
-├── types/
-│
-└── styles/
 
 import { useSiteStore } from "@/store/site/site.store";
 const sites = useSiteStore((state) => state.sites);
@@ -266,6 +221,17 @@ và ghi lại toàn bộ file giúp ttôi nhé
 
 tôi đã tạo xong model TikTokAuthor và TikTokPost tiếp theo bạn hãy tạo các api liên quan giúp tôi nhé. nhưng đặt biệt cần check admin import { requireAdminAuthUser } from "@/lib/auth/auth"; await requireAdminAuthUser(); và nếu như enum sẽ được lấy từ @/generated/prisma
 
+Vậy bạn hãy sửa và thêm và ghi lại toàn bộ file nhé hiện tại tôi đã có
+import { useModal } from "@/components/admin/shared/common/modal";
+modal.success("Success", `Deleted “${current.name}” successfully.`);
+modal.error("Missing site", "Please select a site first.");
+onClick={() =>
+modal.confirmDelete(
+"Delete category?",
+`Delete “${active.name}”? This action cannot be undone.`,
+() => removeCategory(active.id),
+)
+}
 tôi muốn thêm phần message vi.ts en.ts ja.ts dựa vào các message ở file page.tsx. Hiện tại đang sử dụng bằng import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n(); Bạn hãy tạo message vi en ja và ghi lại toàn bộ file page.tsx hoàn chỉnh
 
 <div className={styles.barcodeWrap}>
@@ -282,8 +248,6 @@ Platform
 
 /api/platform/email/analytics
 
-/api/platform/email/providers
-
 Admin
 /api/admin/email/connect
 
@@ -298,6 +262,8 @@ Admin
 /api/admin/email/subscribers
 
 /api/admin/email/dashboard
+
+/api/platform/email/providers
 
 Giai đoạn 1 (Admin)
 ✅ Gmail OAuth
@@ -328,3 +294,4 @@ Giai đoạn 3 (Platform)
 ✅ Queue Management
 
 ✅ Email Logs
+Ghi lại 100% toàn bộ file hoàn chỉnh để copy-paste.

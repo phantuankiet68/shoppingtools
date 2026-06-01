@@ -249,8 +249,6 @@ export default function PaymentClient() {
 
           <div className={styles.filterActions}>
             <div className={styles.selectWrapper}>
-              <label>{t("payments.status")}</label>
-
               <select value={status} onChange={(e) => setStatus(e.target.value)} className={styles.select}>
                 <option value="">{t("payments.allStatus")}</option>
 
@@ -265,8 +263,6 @@ export default function PaymentClient() {
             </div>
 
             <div className={styles.selectWrapper}>
-              <label>{t("payments.method")}</label>
-
               <select value={method} onChange={(e) => setMethod(e.target.value)} className={styles.select}>
                 <option value="">{t("payments.allMethods")}</option>
 

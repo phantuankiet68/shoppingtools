@@ -130,6 +130,9 @@ const ja = {
     seo: "SEO設定",
     facebook: "Facebook管理",
     tiktok: "TikTok管理",
+    users: "ユーザー",
+    chat: "チャット",
+    template_email: "メールテンプレート",
     aria: {
       chooseSite: "サイトを選択",
       siteKind: "サイト種別",
@@ -2297,6 +2300,198 @@ const ja = {
         campaign: "キャンペーン",
       },
     },
+    campaign: {
+      marketing: "メールマーケティング",
+      title: "メールキャンペーン管理",
+
+      templates: "テンプレート",
+      subscribers: "購読者",
+
+      template: "メールテンプレート",
+      loadingTemplates: "テンプレートを読み込み中...",
+
+      subject: "件名",
+      subjectPlaceholder: "メール件名",
+
+      testEmail: "テストメール",
+      testEmailPlaceholder: "example@gmail.com",
+
+      sendTest: "テスト送信",
+      sending: "送信中...",
+
+      launch: "キャンペーン送信",
+
+      missingSiteTitle: "サイト未選択",
+      missingSiteMessage: "先にサイトを選択してください。",
+
+      validationTitle: "入力エラー",
+      validationTestEmail: "テストメールアドレスを入力してください。",
+      validationSubject: "メール件名を入力してください。",
+      validationContent: "メール内容を入力してください。",
+
+      emailSentTitle: "送信完了",
+      emailSentMessage: "テストメールを「{email}」へ送信しました。",
+
+      sendFailedTitle: "送信失敗",
+      sendFailedMessage: "テストメールを送信できませんでした。",
+
+      launchTitle: "キャンペーン送信",
+      launchMessage: "「{subject}」を {count} 人の購読者へ送信しますか？",
+
+      completedTitle: "キャンペーン完了",
+      failedTitle: "キャンペーン失敗",
+      failedMessage: "キャンペーンを送信できませんでした。",
+
+      total: "合計",
+      success: "成功",
+      failed: "失敗",
+    },
+  },
+  emailProvider: {
+    loading: "読み込み中...",
+
+    missingSiteTitle: "サイト未選択",
+    missingSiteMessage: "先にサイトを選択してください。",
+
+    configurationSavedTitle: "設定を保存しました",
+    configurationSavedMessage: "Google OAuth の設定を正常に保存しました。",
+
+    saveFailedTitle: "保存失敗",
+    saveFailedMessage: "Google OAuth 設定を保存できませんでした。",
+
+    disconnectedTitle: "切断完了",
+    disconnectedMessage: "Gmail アカウントの接続を解除しました。",
+
+    disconnectFailedTitle: "切断失敗",
+    disconnectFailedMessage: "Gmail の接続を解除できませんでした。",
+
+    disconnectConfirmTitle: "Gmail の接続を解除しますか？",
+    disconnectConfirmMessage:
+      "Gmail アカウント「{email}」の接続を解除しますか？この操作により OAuth 接続が削除されます。",
+
+    workspaceIntegration: "Google Workspace 連携",
+    connectGmailWith: "Gmail を",
+    googleOAuth: "Google OAuth 2.0",
+
+    guideDescription:
+      "Google Cloud の設定、Gmail API の有効化、OAuth 認証情報の作成を行い、安全にメール送信を実現します。",
+
+    secureAuthentication: "安全な認証",
+    gmailApiReady: "Gmail API 対応",
+    setupInFiveMinutes: "5分でセットアップ",
+
+    googleProviderSettings: "Google Provider 設定",
+    googleProviderDescription: "OAuth 認証情報を設定し Gmail アカウントを接続します。",
+
+    googleClientId: "Google Client ID",
+    googleClientSecret: "Google Client Secret",
+
+    enterGoogleClientId: "Google Client ID を入力してください",
+    enterGoogleClientSecret: "Google Client Secret を入力してください",
+
+    saveConfiguration: "設定を保存",
+    saving: "保存中...",
+
+    connectGmail: "Gmail を接続",
+
+    connectedAccount: "接続済みアカウント",
+    activeConnection: "有効な Gmail 接続",
+
+    name: "名前",
+    email: "メール",
+
+    disconnecting: "切断中...",
+    disconnectGmail: "Gmail の接続解除",
+
+    openGoogleCloudConsole: "Google Cloud Console を開く",
+    createNewProject: "新しいプロジェクトを作成",
+    enableGmailApi: "Gmail API を有効化",
+    configureConsentScreen: "OAuth 同意画面を設定",
+    createOAuthClientId: "OAuth Client ID を作成",
+    addRedirectUri: "リダイレクト URI を追加",
+    copyCredentials: "認証情報をコピー",
+    step1Title: "Google Cloud Console を開く",
+    step1Description: "Google Cloud Console にアクセスし、Google アカウントでログインします。",
+    step1Link: "Google Cloud Console を開く",
+
+    step2Title: "新しいプロジェクトを作成",
+    step2Description: "プロジェクト管理画面を開き、新しいプロジェクトを作成します。",
+    step2Item1: "プロジェクト名を入力",
+    step2Item2: "組織を選択（任意）",
+    step2Item3: "作成をクリック",
+    step2Link: "プロジェクトを作成",
+
+    step3Title: "Gmail API を有効化",
+    step3Description: "メール送信を行う前に Gmail API を有効化する必要があります。",
+    step3Item1: "APIs & Services を開く",
+    step3Item2: "Library を選択",
+    step3Item3: "Gmail API を検索",
+    step3Item4: "Enable をクリック",
+    step3Link: "Gmail API を有効化",
+
+    step4Title: "OAuth 同意画面を設定",
+    step4Description: "ユーザーのログイン時に表示される情報を設定します。",
+    step4Item1: "External または Internal を選択",
+    step4Item2: "アプリケーション名を入力",
+    step4Item3: "サポートメールを追加",
+    step4Item4: "開発者連絡先メールを追加",
+    step4Item5: "保存して続行",
+    step4Link: "同意画面を設定",
+
+    step5Title: "OAuth Client ID を作成",
+    step5Description: "アプリケーション用の OAuth 認証情報を作成します。",
+    step5Item1: "Credentials を開く",
+    step5Item2: "Create Credentials をクリック",
+    step5Item3: "OAuth Client ID を選択",
+    step5Item4: "Web Application を選択",
+    step5Link: "Credentials を開く",
+
+    step6Title: "リダイレクト URI を追加",
+    step6Description: "以下の URL を Authorized Redirect URIs に追加します。",
+    step6Note: "Google はこの URL を使用してユーザーをアプリケーションへ戻します。",
+
+    step7Title: "認証情報をコピー",
+    step7Description: "OAuth Client 作成後、以下の値をコピーしてください。",
+    step7Item1: "Client ID",
+    step7Item2: "Client Secret",
+    step7Note: "これらの値を Email Provider 設定に貼り付けて保存してください。",
+  },
+  emailSubscribers: {
+    title: "メール購読者",
+    badge: "メールマーケティング",
+
+    refresh: "更新",
+    refreshing: "更新中...",
+
+    totalSubscribers: "購読者総数",
+    totalSubscribersDesc: "ニュースレター購読者の増加",
+
+    activeUsers: "アクティブユーザー",
+    activeUsersDesc: "現在メールを受信中",
+
+    inactiveUsers: "非アクティブユーザー",
+    inactiveUsersDesc: "配信停止済みの連絡先",
+
+    filtered: "絞り込み",
+
+    searchResults: "検索結果",
+    searchResultsDesc: "一致した購読者数",
+
+    searchPlaceholder: "名前またはメールアドレスで検索...",
+
+    subscriber: "購読者",
+    status: "ステータス",
+    subscribedDate: "登録日",
+
+    loadingSubscribers: "購読者を読み込み中...",
+
+    noSubscribersFound: "購読者が見つかりません",
+    noSubscribersFoundDesc: "検索条件に一致する購読者は現在存在しません。",
+
+    unknownUser: "不明なユーザー",
+
+    active: "有効",
+    inactive: "無効",
   },
 };
 

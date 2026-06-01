@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
-
+import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
 import styles from "@/styles/admin/email/subscribers.module.css";
 
 type Subscriber = {
@@ -21,7 +21,7 @@ type SubscriberResponse = {
 
 export default function EmailSubscribersTab() {
   const { currentSite } = useAdminAuth();
-
+  const { t } = useAdminI18n();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
@@ -116,12 +116,14 @@ export default function EmailSubscribersTab() {
                 <div className={styles.headerIcon}>
                   <i className="bi bi-envelope-paper-heart-fill" />
                 </div>
-                EMAIL MARKETING
+
+                {t("emailSubscribers.badge")}
               </div>
 
-              <h2>Email Subscribers</h2>
+              <h2>{t("emailSubscribers.title")}</h2>
             </div>
           </div>
+
           <div className={styles.headerActions}>
             <button
               type="button"
@@ -131,10 +133,11 @@ export default function EmailSubscribersTab() {
             >
               <i className={`bi bi-arrow-repeat ${refreshing ? styles.spinning : ""}`} />
 
-              {refreshing ? "Refreshing..." : "Refresh"}
+              {refreshing ? t("emailSubscribers.refreshing") : t("emailSubscribers.refresh")}
             </button>
           </div>
         </div>
+
         <div className={styles.statsGrid}>
           <div className={`${styles.metricCard} ${styles.totalCard}`}>
             <div className={styles.metricGlow}></div>
@@ -152,9 +155,9 @@ export default function EmailSubscribersTab() {
             </div>
 
             <div className={styles.metricBody}>
-              <p>Total Subscribers</p>
+              <p>{t("emailSubscribers.totalSubscribers")}</p>
 
-              <small>Newsletter audience growth</small>
+              <small>{t("emailSubscribers.totalSubscribersDesc")}</small>
             </div>
 
             <div className={styles.metricProgress}>
@@ -178,9 +181,9 @@ export default function EmailSubscribersTab() {
             </div>
 
             <div className={styles.metricBody}>
-              <p>Active Users</p>
+              <p>{t("emailSubscribers.activeUsers")}</p>
 
-              <small>Currently receiving emails</small>
+              <small>{t("emailSubscribers.activeUsersDesc")}</small>
             </div>
 
             <div className={styles.metricProgress}>
@@ -204,9 +207,9 @@ export default function EmailSubscribersTab() {
             </div>
 
             <div className={styles.metricBody}>
-              <p>Inactive Users</p>
+              <p>{t("emailSubscribers.inactiveUsers")}</p>
 
-              <small>Unsubscribed contacts</small>
+              <small>{t("emailSubscribers.inactiveUsersDesc")}</small>
             </div>
 
             <div className={styles.metricProgress}>
@@ -226,14 +229,14 @@ export default function EmailSubscribersTab() {
 
             <span className={styles.metricTrend}>
               <i className="bi bi-funnel-fill" />
-              Filtered
+              {t("emailSubscribers.filtered")}
             </span>
           </div>
 
           <div className={styles.metricBody}>
-            <p>Search Results</p>
+            <p>{t("emailSubscribers.searchResults")}</p>
 
-            <small>Matching subscribers found</small>
+            <small>{t("emailSubscribers.searchResultsDesc")}</small>
           </div>
 
           <div className={styles.metricProgress}>
@@ -241,9 +244,6 @@ export default function EmailSubscribersTab() {
           </div>
         </div>
       </div>
-
-      {/* TABLE CARD */}
-
       <div className={styles.tableCard}>
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
@@ -253,7 +253,7 @@ export default function EmailSubscribersTab() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search subscribers by name or email..."
+              placeholder={t("emailSubscribers.searchPlaceholder")}
             />
           </div>
         </div>
@@ -262,9 +262,9 @@ export default function EmailSubscribersTab() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Subscriber</th>
-                <th>Status</th>
-                <th>Subscribed Date</th>
+                <th>{t("emailSubscribers.subscriber")}</th>
+                <th>{t("emailSubscribers.status")}</th>
+                <th>{t("emailSubscribers.subscribedDate")}</th>
               </tr>
             </thead>
 
@@ -274,7 +274,8 @@ export default function EmailSubscribersTab() {
                   <td colSpan={3} className={styles.loading}>
                     <div className={styles.loadingState}>
                       <i className="bi bi-arrow-repeat" />
-                      Loading subscribers...
+
+                      {t("emailSubscribers.loadingSubscribers")}
                     </div>
                   </td>
                 </tr>
@@ -284,9 +285,9 @@ export default function EmailSubscribersTab() {
                     <div className={styles.emptyState}>
                       <i className="bi bi-inbox" />
 
-                      <h3>No Subscribers Found</h3>
+                      <h3>{t("emailSubscribers.noSubscribersFound")}</h3>
 
-                      <p>There are currently no subscribers matching your search criteria.</p>
+                      <p>{t("emailSubscribers.noSubscribersFoundDesc")}</p>
                     </div>
                   </td>
                 </tr>
@@ -300,7 +301,7 @@ export default function EmailSubscribersTab() {
                         </div>
 
                         <div className={styles.userInfo}>
-                          <strong>{subscriber.name ?? "Unknown User"}</strong>
+                          <strong>{subscriber.name ?? t("emailSubscribers.unknownUser")}</strong>
 
                           <span>{subscriber.email}</span>
                         </div>
@@ -311,7 +312,9 @@ export default function EmailSubscribersTab() {
                       <span className={`${styles.statusBadge} ${styles[subscriber.status.toLowerCase()] || ""}`}>
                         <span className={styles.dot} />
 
-                        {subscriber.status}
+                        {subscriber.status.toLowerCase() === "active"
+                          ? t("emailSubscribers.active")
+                          : t("emailSubscribers.inactive")}
                       </span>
                     </td>
 
