@@ -3,7 +3,7 @@ export const API_ENDPOINTS = {
     CHANGE_PASSWORD: "/api/admin/user/change-password",
   },
   ADMIN: {
-    PROFILE: "/api/admin/system/profile",
+    PROFILE: "/api/admin/profile",
     GET_CLIENT_IP: "/api/admin/auth/me/get-client-ip",
   },
   COMMERCE: {

@@ -2493,6 +2493,99 @@ const ja = {
     active: "有効",
     inactive: "無効",
   },
+  profile: {
+    title: "プロフィール",
+    loading: "プロフィールを読み込み中...",
+
+    avatarModal: {
+      title: "アバターアップロード",
+      subtitle: "画像を1枚選択 • プレビュー可能",
+
+      dragDrop: "ここに画像をドラッグ＆ドロップ",
+      or: "または",
+      browse: "クリックして画像を選択",
+
+      preview: "プレビュー",
+      noImage: "画像がありません",
+
+      ready: "準備完了",
+      noFileSelected: "ファイル未選択",
+
+      remove: "削除",
+      upload: "アップロード",
+      uploading: "アップロード中...",
+
+      close: "閉じる",
+
+      onlyImage: "画像ファイルのみアップロードできます (PNG/JPG/WEBP)。",
+      imageTooLarge: "画像サイズが大きすぎます。最大5MBです。",
+      selectImage: "先に画像を選択してください。",
+      uploadFailed: "アップロードに失敗しました。",
+
+      previewAvatar: "アバタープレビュー",
+      currentAvatar: "現在のアバター",
+      dialogLabel: "アバターアップロード",
+    },
+    hero: {
+      title: "管理者プロフィール",
+      secureAccount: "セキュアアカウント",
+      profileManagement: "プロフィール管理",
+      verifiedUser: "認証済みユーザー",
+      saveChanges: "変更を保存",
+      saving: "保存中...",
+      avatar: "アバター",
+      cover: "カバー画像",
+    },
+    personal: {
+      title: "個人情報",
+      badge: "プロフィール",
+      firstName: "名",
+      lastName: "姓",
+      username: "ユーザー名",
+      email: "メールアドレス",
+      phone: "電話番号",
+      gender: "性別",
+      selectGender: "性別を選択",
+      male: "男性",
+      female: "女性",
+      other: "その他",
+      birthMonth: "誕生月",
+      birthDay: "誕生日",
+      birthYear: "誕生年",
+    },
+    store: {
+      title: "店舗情報",
+      badge: "販売者プロフィール",
+      shopName: "ショップ名",
+      shopSlug: "ショップスラッグ",
+      slogan: "スローガン",
+      website: "ウェブサイト",
+      websitePlaceholder: "https://yourshop.com",
+      logo: "店舗ロゴ",
+      uploadLogo: "ロゴをアップロード",
+      banner: "店舗バナー",
+      uploadBanner: "バナーをアップロード",
+      description: "店舗説明",
+      bio: "店舗紹介",
+      cover: "カバー画像",
+      uploadCover: "カバー画像をアップロード",
+    },
+    address: {
+      title: "住所情報",
+      badge: "所在地",
+
+      streetAddress: "住所",
+      streetAddressPlaceholder: "住所を入力してください...",
+
+      ward: "町域",
+      district: "地区",
+      city: "市区町村",
+      country: "国",
+
+      preview: "住所プレビュー",
+      noAddress: "住所情報がありません",
+    },
+  },
 };
 
 export default ja;

@@ -19,6 +19,7 @@ model Workspace {
   members      WorkspaceMember[]
   sites        Site[]
   accessPolicy WorkspaceAccessPolicy?
+  profiles     Profile[]
 
   @@index([ownerUserId])
   @@map("workspaces")

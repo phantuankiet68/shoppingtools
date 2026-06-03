@@ -20,7 +20,6 @@ model Site {
   updatedAt       DateTime         @updatedAt @map("updated_at")
   deletedAt       DateTime?        @map("deleted_at")
   owner           User             @relation("SiteOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
-  members         Profile[]        @relation("SiteProfile")
   customers       Customer[]
   addresses       Address[]
   menuItems       MenuItem[]

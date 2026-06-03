@@ -295,3 +295,27 @@ Giai đoạn 3 (Platform)
 
 ✅ Email Logs
 Ghi lại 100% toàn bộ file hoàn chỉnh để copy-paste.
+
+admin/profile/
+
+├── AdminProfileClient.tsx
+
+├── components/
+│ ├── HeroSection.tsx
+│ ├── StatsSection.tsx
+│ ├── PersonalInfoSection.tsx
+│ ├── StoreInfoSection.tsx
+│ ├── AddressInfoSection.tsx
+│ └── StatCard.tsx
+
+├── hooks/
+│ └── useAdminProfile.ts
+
+├── types/
+│ └── profile.ts
+
+├── constants/
+│ └── profile.ts
+
+└── utils/
+└── profile.mapper.ts

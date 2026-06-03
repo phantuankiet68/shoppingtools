@@ -2577,6 +2577,99 @@ const vi = {
     active: "Đang hoạt động",
     inactive: "Không hoạt động",
   },
+  profile: {
+    title: "Hồ sơ",
+    loading: "Đang tải thông tin hồ sơ...",
+
+    avatarModal: {
+      title: "Tải ảnh đại diện",
+      subtitle: "Chỉ chọn 1 ảnh • Có xem trước",
+
+      dragDrop: "Kéo & thả ảnh vào đây",
+      or: "hoặc",
+      browse: "Bấm để chọn ảnh",
+
+      preview: "Xem trước",
+      noImage: "Chưa có ảnh",
+
+      ready: "Sẵn sàng",
+      noFileSelected: "Chưa chọn ảnh",
+
+      remove: "Xóa",
+      upload: "Tải lên",
+      uploading: "Đang tải lên...",
+
+      close: "Đóng",
+
+      onlyImage: "Chỉ cho phép file ảnh (PNG/JPG/WEBP).",
+      imageTooLarge: "Ảnh quá lớn. Tối đa 5MB.",
+      selectImage: "Vui lòng chọn ảnh trước khi tải lên.",
+      uploadFailed: "Tải ảnh thất bại.",
+
+      previewAvatar: "Xem trước ảnh đại diện",
+      currentAvatar: "Ảnh đại diện hiện tại",
+      dialogLabel: "Tải ảnh đại diện",
+    },
+    hero: {
+      title: "Hồ sơ quản trị",
+      secureAccount: "Tài khoản bảo mật",
+      profileManagement: "Quản lý hồ sơ",
+      verifiedUser: "Người dùng đã xác thực",
+      saveChanges: "Lưu thay đổi",
+      saving: "Đang lưu...",
+      avatar: "Ảnh đại diện",
+      cover: "Ảnh bìa",
+    },
+    personal: {
+      title: "Thông tin cá nhân",
+      badge: "Hồ sơ",
+      firstName: "Tên",
+      lastName: "Họ",
+      username: "Tên đăng nhập",
+      email: "Email",
+      phone: "Số điện thoại",
+      gender: "Giới tính",
+      selectGender: "Chọn giới tính",
+      male: "Nam",
+      female: "Nữ",
+      other: "Khác",
+      birthMonth: "Tháng sinh",
+      birthDay: "Ngày sinh",
+      birthYear: "Năm sinh",
+    },
+    store: {
+      title: "Thông tin cửa hàng",
+      badge: "Hồ sơ người bán",
+      shopName: "Tên cửa hàng",
+      shopSlug: "Đường dẫn cửa hàng",
+      slogan: "Khẩu hiệu",
+      website: "Website",
+      websitePlaceholder: "https://yourshop.com",
+      logo: "Logo cửa hàng",
+      uploadLogo: "Tải logo",
+      banner: "Banner cửa hàng",
+      uploadBanner: "Tải banner",
+      description: "Mô tả cửa hàng",
+      bio: "Giới thiệu cửa hàng",
+      cover: "Ảnh bìa",
+      uploadCover: "Tải ảnh bìa",
+    },
+    address: {
+      title: "Thông tin địa chỉ",
+      badge: "Vị trí",
+
+      streetAddress: "Địa chỉ",
+      streetAddressPlaceholder: "Nhập địa chỉ của bạn...",
+
+      ward: "Phường/Xã",
+      district: "Quận/Huyện",
+      city: "Thành phố",
+      country: "Quốc gia",
+
+      preview: "Xem trước địa chỉ",
+      noAddress: "Chưa có thông tin địa chỉ",
+    },
+  },
 };
 
 export default vi;

@@ -2481,6 +2481,99 @@ const en = {
     active: "Active",
     inactive: "Inactive",
   },
+  profile: {
+    title: "Profile",
+    loading: "Loading profile...",
+
+    avatarModal: {
+      title: "Upload Avatar",
+      subtitle: "Select one image • Preview available",
+
+      dragDrop: "Drag & Drop image here",
+      or: "or",
+      browse: "Click to select image",
+
+      preview: "Preview",
+      noImage: "No image",
+
+      ready: "Ready",
+      noFileSelected: "No file selected",
+
+      remove: "Remove",
+      upload: "Upload",
+      uploading: "Uploading...",
+
+      close: "Close",
+
+      onlyImage: "Only image files are allowed (PNG/JPG/WEBP).",
+      imageTooLarge: "Image is too large. Maximum 5MB.",
+      selectImage: "Please select an image first.",
+      uploadFailed: "Upload failed.",
+
+      previewAvatar: "Avatar Preview",
+      currentAvatar: "Current Avatar",
+      dialogLabel: "Upload Avatar",
+    },
+    hero: {
+      title: "Admin Profile",
+      secureAccount: "Secure Account",
+      profileManagement: "Profile Management",
+      verifiedUser: "Verified User",
+      saveChanges: "Save Changes",
+      saving: "Saving...",
+      avatar: "Avatar",
+      cover: "Cover",
+    },
+    personal: {
+      title: "Personal Information",
+      badge: "Profile",
+      firstName: "First Name",
+      lastName: "Last Name",
+      username: "Username",
+      email: "Email",
+      phone: "Phone",
+      gender: "Gender",
+      selectGender: "Select gender",
+      male: "Male",
+      female: "Female",
+      other: "Other",
+      birthMonth: "Birth Month",
+      birthDay: "Birth Day",
+      birthYear: "Birth Year",
+    },
+    store: {
+      title: "Store Information",
+      badge: "Seller Profile",
+      shopName: "Shop Name",
+      shopSlug: "Shop Slug",
+      slogan: "Slogan",
+      website: "Website",
+      websitePlaceholder: "https://yourshop.com",
+      logo: "Store Logo",
+      uploadLogo: "Upload Logo",
+      banner: "Store Banner",
+      uploadBanner: "Upload Banner",
+      description: "Shop Description",
+      bio: "Store Bio",
+      cover: "Cover Image",
+      uploadCover: "Upload Cover",
+    },
+    address: {
+      title: "Address Information",
+      badge: "Location",
+
+      streetAddress: "Street Address",
+      streetAddressPlaceholder: "Enter your address...",
+
+      ward: "Ward",
+      district: "District",
+      city: "City",
+      country: "Country",
+
+      preview: "Location Preview",
+      noAddress: "No address information",
+    },
+  },
 };
 
 export default en;

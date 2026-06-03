@@ -108,7 +108,7 @@ export async function GET() {
 
     return NextResponse.json({ user: data });
   } catch (e) {
-    console.error("GET /api/admin/system/profile error:", e);
+    console.error("GET /api/admin/profile error:", e);
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 }
@@ -119,7 +119,7 @@ export async function PATCH(req: Request) {
     const user = await requireAdminAuthUser();
     userId = user.id;
   } catch (e) {
-    console.error("PATCH /api/admin/system/profile auth error:", e);
+    console.error("PATCH /api/admin/profile auth error:", e);
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 
@@ -276,7 +276,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ user, profile });
   } catch (e) {
-    console.error("PATCH /api/admin/system/profile error:", e);
+    console.error("PATCH /api/admin/profile error:", e);
     return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
   }
 }
@@ -287,7 +287,7 @@ export async function DELETE() {
     const user = await requireAdminAuthUser();
     userId = user.id;
   } catch (e) {
-    console.error("DELETE /api/admin/system/profile auth error:", e);
+    console.error("DELETE /api/admin/profile auth error:", e);
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 
@@ -295,7 +295,7 @@ export async function DELETE() {
     await prisma.profile.delete({ where: { userId } }).catch(() => null);
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error("DELETE /api/admin/system/profile error:", e);
+    console.error("DELETE /api/admin/profile error:", e);
     return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
   }
 }

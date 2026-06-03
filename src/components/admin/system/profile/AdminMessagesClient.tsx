@@ -328,7 +328,7 @@ export default function AdminMessagesClient() {
 
     (async () => {
       try {
-        const res = await fetch("/api/admin/system/profile", { cache: "no-store" });
+        const res = await fetch("/api/admin/profile", { cache: "no-store" });
         const json = await res.json();
         if (!res.ok || !json?.user?.id) throw new Error(json?.error || "Cannot load current user");
         if (!alive) return;

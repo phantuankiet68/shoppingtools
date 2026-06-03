@@ -50,14 +50,15 @@ model EmailProviderConfig {
 }
 
 model EmailTemplate {
-  id String @id @default(cuid())
-  name String
-  image String?
-  html String @db.Text
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String          @id @default(cuid())
+  name      String
+  image     String?
+  html      String          @db.Text
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
   campaigns EmailCampaign[]
+
   @@map("email_templates")
 }
 
