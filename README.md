@@ -234,6 +234,8 @@ modal.confirmDelete(
 }
 tôi muốn thêm phần message vi.ts en.ts ja.ts dựa vào các message ở file page.tsx. Hiện tại đang sử dụng bằng import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n(); Bạn hãy tạo message vi en ja và ghi lại toàn bộ file page.tsx hoàn chỉnh
 
+tôi muốn thêm phần message vi.ts en.ts ja.ts dựa vào các message ở đoạn code. Hiện tại đang sử dụng bằng import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider"; const { t } = useAdminI18n(); Bạn hãy tạo message vi en ja và ghi lại toàn bộ đoạn code hoàn chỉnh
+
 <div className={styles.barcodeWrap}>
   {product.barcode ? <BarcodeComponent value={product.barcode} /> : null}
 </div>
@@ -319,3 +321,5 @@ admin/profile/
 
 └── utils/
 └── profile.mapper.ts
+
+Bạn hãy chia ra AdminMessagesClient.tsx, components, hooks, types, constants, utils để dẽ maintain từ file AdminMessagesClient.tsx được không

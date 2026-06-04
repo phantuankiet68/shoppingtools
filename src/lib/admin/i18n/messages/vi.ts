@@ -2670,6 +2670,125 @@ const vi = {
       noAddress: "Chưa có thông tin địa chỉ",
     },
   },
+  adminChat: {
+    failedLoadConversations: "Không thể tải danh sách cuộc trò chuyện.",
+    failedLoadFriends: "Không thể tải danh sách bạn bè.",
+    failedLoadRequests: "Không thể tải lời mời kết bạn.",
+
+    acceptFailed: "Chấp nhận lời mời thất bại.",
+    requestSent: "Đã gửi lời mời kết bạn. Chờ đối phương chấp nhận.",
+    requestAccepted: "Đã chấp nhận lời mời kết bạn.",
+
+    sendRequestFailed: "Gửi lời mời kết bạn thất bại.",
+    cannotStartChat: "Không thể bắt đầu cuộc trò chuyện.",
+    missingConversationId: "Thiếu conversationId.",
+
+    userNotFound: "Không tìm thấy người dùng với email này.",
+    cannotAddSelf: "Bạn không thể tự kết bạn với chính mình.",
+    requestAlreadySent: "Bạn đã gửi lời mời trước đó.",
+    alreadyFriend: "Hai bạn đã là bạn bè rồi.",
+    blocked: "Không thể gửi lời mời (đã bị chặn).",
+    notFriend: "Bạn chưa kết bạn với người này (chỉ chat sau khi đã chấp nhận lời mời).",
+    failedLoadMessages: "Không thể tải tin nhắn.",
+    sendFailed: "Gửi tin nhắn thất bại.",
+
+    me: "Tôi",
+    user: "Người dùng",
+
+    ablySubscribeInboxFailed: "Đăng ký kênh inbox thất bại.",
+    ablySubscribeChatFailed: "Đăng ký kênh chat thất bại.",
+    chats: "Chats",
+    teamInbox: "Hộp thư nhóm",
+
+    newChatFriends: "Chat mới / Bạn bè",
+    refreshChats: "Làm mới cuộc trò chuyện",
+
+    friends: "Bạn bè",
+    requests: "Lời mời",
+    add: "Thêm",
+    close: "Đóng",
+
+    loadingFriends: "Đang tải danh sách bạn bè...",
+    noFriendsYet: "Chưa có bạn bè",
+    noFriendsDesc: "Vào mục Thêm để gửi lời mời hoặc kiểm tra mục Lời mời để chấp nhận kết bạn.",
+
+    chatWith: "Chat với",
+
+    incomingRequests: "Lời mời kết bạn",
+    incomingRequestsDesc: "Xem và phản hồi các lời mời kết bạn mới",
+
+    refreshRequests: "Làm mới lời mời",
+    loadingRequests: "Đang tải lời mời...",
+    noRequests: "Không có lời mời kết bạn nào.",
+
+    accept: "Chấp nhận",
+
+    addFriendByEmail: "Thêm bạn bằng email",
+    addFriendPlaceholder: "Nhập email để kết bạn (ví dụ: admin1@example.com)",
+
+    sendFriendRequest: "Gửi lời mời kết bạn",
+    sending: "Đang gửi...",
+
+    tip: "Người nhận phải vào tab Requests để Accept thì bạn mới chat được.",
+
+    searchChats: "Tìm kiếm cuộc trò chuyện...",
+    clear: "Xóa",
+
+    all: "Tất cả",
+    unread: "Chưa đọc",
+    pinned: "Đã ghim",
+
+    loadingChats: "Đang tải cuộc trò chuyện...",
+    noChats: "Chưa có cuộc trò chuyện",
+
+    pinnedTitle: "Đã ghim",
+    header: {
+      searchThread: "Tìm kiếm trong cuộc trò chuyện...",
+      noResults: "Không có kết quả",
+      resultOf: "{current} / {total}",
+
+      previous: "Trước",
+      next: "Tiếp",
+      closeSearch: "Đóng tìm kiếm",
+
+      workspace: "Không gian làm việc",
+      messages: "Tin nhắn",
+      members: "thành viên",
+
+      searchMessages: "Tìm kiếm tin nhắn",
+      info: "Thông tin",
+      addMember: "Thêm thành viên",
+      more: "Thêm",
+    },
+    thread: {
+      today: "Hôm nay",
+
+      loadingMessages: "Đang tải tin nhắn...",
+      noMessages: "Chưa có tin nhắn",
+
+      all: "Tất cả",
+
+      react: "Thả cảm xúc",
+      reply: "Trả lời",
+      more: "Thêm",
+    },
+    composer: {
+      messagePlaceholder: "Nhắn tin cho {chat}",
+
+      enter: "Enter",
+      toSend: "để gửi",
+
+      textColor: "Màu chữ",
+      emoji: "Biểu tượng cảm xúc",
+      mention: "Nhắc đến",
+      attachLink: "Đính kèm liên kết",
+
+      pasteLink: "Dán liên kết vào đây (https://...)",
+
+      send: "Gửi",
+      sending: "Đang gửi...",
+    },
+  },
 };
 
 export default vi;

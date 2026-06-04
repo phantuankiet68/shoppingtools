@@ -2586,6 +2586,111 @@ const ja = {
       noAddress: "住所情報がありません",
     },
   },
+  adminChat: {
+    failedLoadConversations: "チャット一覧の取得に失敗しました。",
+    failedLoadFriends: "友達一覧の取得に失敗しました。",
+    failedLoadRequests: "友達申請の取得に失敗しました。",
+
+    acceptFailed: "友達申請の承認に失敗しました。",
+    requestSent: "友達申請を送信しました。相手の承認をお待ちください。",
+    requestAccepted: "友達申請を承認しました。",
+
+    sendRequestFailed: "友達申請の送信に失敗しました。",
+    cannotStartChat: "チャットを開始できません。",
+    missingConversationId: "conversationId が見つかりません。",
+
+    userNotFound: "このメールアドレスのユーザーが見つかりません。",
+    cannotAddSelf: "自分自身を友達追加することはできません。",
+    requestAlreadySent: "すでに友達申請を送信しています。",
+    alreadyFriend: "すでに友達です。",
+    blocked: "友達申請を送信できません（ブロックされています）。",
+    notFriend: "まだ友達ではありません（承認後にチャット可能です）。",
+    failedLoadMessages: "メッセージの取得に失敗しました。",
+    sendFailed: "メッセージの送信に失敗しました。",
+
+    me: "自分",
+    user: "ユーザー",
+
+    ablySubscribeInboxFailed: "Inboxチャンネルの購読に失敗しました。",
+    ablySubscribeChatFailed: "チャットチャンネルの購読に失敗しました。",
+    chats: "チャット",
+    teamInbox: "チーム受信箱",
+    newChatFriends: "新しいチャット / 友達",
+    refreshChats: "チャットを更新",
+    friends: "友達",
+    requests: "リクエスト",
+    add: "追加",
+    close: "閉じる",
+    loadingFriends: "友達を読み込み中...",
+    noFriendsYet: "まだ友達がいません",
+    noFriendsDesc: "友達申請を送るには「追加」、申請を承認するには「リクエスト」を確認してください。",
+    chatWith: "チャットする",
+    incomingRequests: "友達申請",
+    incomingRequestsDesc: "新しい友達申請を確認して対応します",
+    refreshRequests: "申請を更新",
+    loadingRequests: "申請を読み込み中...",
+    noRequests: "友達申請はありません。",
+    accept: "承認",
+    addFriendByEmail: "メールで友達追加",
+    addFriendPlaceholder: "友達追加するメールアドレスを入力してください（例: admin1@example.com）",
+    sendFriendRequest: "友達申請を送信",
+    sending: "送信中...",
+    tip: "チャットするには、相手が「リクエスト」タブで承認する必要があります。",
+    searchChats: "チャットを検索...",
+    clear: "クリア",
+    all: "すべて",
+    unread: "未読",
+    pinned: "固定",
+    loadingChats: "チャットを読み込み中...",
+    noChats: "チャットはありません",
+    pinnedTitle: "固定済み",
+    header: {
+      searchThread: "このスレッド内を検索...",
+      noResults: "結果なし",
+      resultOf: "{current} / {total}",
+
+      previous: "前へ",
+      next: "次へ",
+      closeSearch: "検索を閉じる",
+
+      workspace: "ワークスペース",
+      messages: "メッセージ",
+      members: "メンバー",
+
+      searchMessages: "メッセージを検索",
+      info: "情報",
+      addMember: "メンバー追加",
+      more: "その他",
+    },
+    thread: {
+      today: "今日",
+
+      loadingMessages: "メッセージを読み込み中...",
+      noMessages: "まだメッセージはありません",
+
+      all: "全員",
+
+      react: "リアクション",
+      reply: "返信",
+      more: "その他",
+    },
+    composer: {
+      messagePlaceholder: "{chat} にメッセージ",
+
+      enter: "Enter",
+      toSend: "送信",
+
+      textColor: "文字色",
+      emoji: "絵文字",
+      mention: "メンション",
+      attachLink: "リンク添付",
+
+      pasteLink: "リンクを貼り付け (https://...)",
+
+      send: "送信",
+      sending: "送信中...",
+    },
+  },
 };
 
 export default ja;

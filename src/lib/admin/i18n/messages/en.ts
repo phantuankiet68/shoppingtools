@@ -2574,6 +2574,111 @@ const en = {
       noAddress: "No address information",
     },
   },
+  adminChat: {
+    failedLoadConversations: "Failed to load conversations.",
+    failedLoadFriends: "Failed to load friends.",
+    failedLoadRequests: "Failed to load friend requests.",
+
+    acceptFailed: "Failed to accept friend request.",
+    requestSent: "Friend request sent. Waiting for the other user to accept.",
+    requestAccepted: "Friend request accepted.",
+
+    sendRequestFailed: "Failed to send friend request.",
+    cannotStartChat: "Cannot start chat.",
+    missingConversationId: "Missing conversationId.",
+
+    userNotFound: "No user found with this email.",
+    cannotAddSelf: "You cannot send a friend request to yourself.",
+    requestAlreadySent: "You have already sent a friend request.",
+    alreadyFriend: "You are already friends.",
+    blocked: "Unable to send friend request (blocked).",
+    notFriend: "You are not friends with this user yet (chat is available only after acceptance).",
+    failedLoadMessages: "Failed to load messages.",
+    sendFailed: "Failed to send message.",
+
+    me: "Me",
+    user: "User",
+
+    ablySubscribeInboxFailed: "Failed to subscribe inbox channel.",
+    ablySubscribeChatFailed: "Failed to subscribe chat channel.",
+    chats: "Chats",
+    teamInbox: "Team Inbox",
+    newChatFriends: "New Chat / Friends",
+    refreshChats: "Refresh Chats",
+    friends: "Friends",
+    requests: "Requests",
+    add: "Add",
+    close: "Close",
+    loadingFriends: "Loading friends...",
+    noFriendsYet: "No friends yet",
+    noFriendsDesc: "Go to Add to send invitations or check Requests to accept new friends.",
+    chatWith: "Chat with",
+    incomingRequests: "Incoming Requests",
+    incomingRequestsDesc: "Review and respond to new friend invitations",
+    refreshRequests: "Refresh Requests",
+    loadingRequests: "Loading requests...",
+    noRequests: "No friend requests.",
+    accept: "Accept",
+    addFriendByEmail: "Add Friend by Email",
+    addFriendPlaceholder: "Enter email to add a friend (e.g. admin1@example.com)",
+    sendFriendRequest: "Send Friend Request",
+    sending: "Sending...",
+    tip: "The recipient must go to the Requests tab and accept the request before you can chat.",
+    searchChats: "Search chats...",
+    clear: "Clear",
+    all: "All",
+    unread: "Unread",
+    pinned: "Pinned",
+    loadingChats: "Loading chats...",
+    noChats: "No chats yet",
+    pinnedTitle: "Pinned",
+    header: {
+      searchThread: "Search in conversation...",
+      noResults: "No results found",
+      resultOf: "{current} / {total}",
+
+      previous: "Previous",
+      next: "Next",
+      closeSearch: "Close Search",
+
+      workspace: "Workspace",
+      messages: "Messages",
+      members: "Members",
+
+      searchMessages: "Search Messages",
+      info: "Info",
+      addMember: "Add Member",
+      more: "More",
+    },
+    thread: {
+      today: "今日",
+
+      loadingMessages: "メッセージを読み込み中...",
+      noMessages: "まだメッセージはありません",
+
+      all: "全員",
+
+      react: "リアクション",
+      reply: "返信",
+      more: "その他",
+    },
+    composer: {
+      messagePlaceholder: "Message {chat}",
+
+      enter: "Enter",
+      toSend: "to send",
+
+      textColor: "Text color",
+      emoji: "Emoji",
+      mention: "Mention",
+      attachLink: "Attach link",
+
+      pasteLink: "Paste link here (https://...)",
+
+      send: "Send",
+      sending: "Sending...",
+    },
+  },
 };
 
 export default en;

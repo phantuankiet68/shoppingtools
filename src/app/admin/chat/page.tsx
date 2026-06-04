@@ -8,7 +8,7 @@ const ChatBuilder = dynamic(() => import("@/components/admin/chat/AdminMessagesC
 export default function Page() {
   return (
     <main>
-      <AdminPageTitle title="Chat Builder" subtitle="Manage message" />
+      <AdminPageTitle title="Chat Builder" />
       <ChatBuilder />
     </main>
   );

@@ -82,6 +82,14 @@ const PROFILE_SELECT = {
   },
 } as const;
 
+function normalizeString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+
+  const trimmed = value.trim();
+
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function parseStatus(value?: string): ProfileStatus {
   switch (value?.toUpperCase()) {
     case "INACTIVE":
@@ -150,13 +158,18 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    if (body.username) {
+    const username = normalizeString(body.username);
+
+    if (username) {
       const existing = await prisma.profile.findFirst({
         where: {
-          username: body.username,
+          username,
           NOT: {
             userId: authUser.id,
           },
+        },
+        select: {
+          id: true,
         },
       });
 
@@ -171,14 +184,18 @@ export async function PATCH(req: NextRequest) {
         );
       }
     }
+    const shopSlug = normalizeString(body.shopSlug);
 
-    if (body.shopSlug) {
+    if (shopSlug) {
       const existing = await prisma.profile.findFirst({
         where: {
-          shopSlug: body.shopSlug,
+          shopSlug,
           NOT: {
             userId: authUser.id,
           },
+        },
+        select: {
+          id: true,
         },
       });
 
@@ -194,6 +211,62 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    const profileData = {
+      workspaceId,
+
+      firstName: normalizeString(body.firstName),
+      lastName: normalizeString(body.lastName),
+      username,
+
+      avatar: normalizeString(body.avatar),
+      banner: normalizeString(body.banner),
+
+      email: normalizeString(body.email),
+      phone: normalizeString(body.phone),
+      gender: normalizeString(body.gender),
+
+      dobMonth: normalizeString(body.dobMonth),
+      dobDay: body.dobDay ?? null,
+      dobYear: body.dobYear ?? null,
+
+      shopName: normalizeString(body.shopName),
+      shopSlug,
+      shopDescription: normalizeString(body.shopDescription),
+
+      slogan: normalizeString(body.slogan),
+      bio: normalizeString(body.bio),
+
+      address: normalizeString(body.address),
+      ward: normalizeString(body.ward),
+      district: normalizeString(body.district),
+      city: normalizeString(body.city),
+      country: normalizeString(body.country),
+
+      logo: normalizeString(body.logo),
+      cover: normalizeString(body.cover),
+
+      website: normalizeString(body.website),
+
+      facebook: normalizeString(body.facebook),
+      instagram: normalizeString(body.instagram),
+      tiktok: normalizeString(body.tiktok),
+      youtube: normalizeString(body.youtube),
+      linkedin: normalizeString(body.linkedin),
+
+      companyName: normalizeString(body.companyName),
+
+      taxCode: normalizeString(body.taxCode),
+
+      businessLicense: normalizeString(body.businessLicense),
+
+      locale: normalizeString(body.locale),
+      timezone: normalizeString(body.timezone),
+
+      twoFA: !!body.twoFA,
+
+      status: parseStatus(body.status),
+    };
+
     const profile = await prisma.profile.upsert({
       where: {
         userId: authUser.id,
@@ -201,69 +274,10 @@ export async function PATCH(req: NextRequest) {
 
       create: {
         userId: authUser.id,
-
-        workspaceId,
-
-        firstName: body.firstName ?? null,
-        lastName: body.lastName ?? null,
-        username: body.username ?? null,
-
-        avatar: body.avatar ?? null,
-        banner: body.banner ?? null,
-
-        email: body.email ?? null,
-        phone: body.phone ?? null,
-        gender: body.gender ?? null,
-
-        dobMonth: body.dobMonth ?? null,
-        dobDay: body.dobDay ?? null,
-        dobYear: body.dobYear ?? null,
-
-        shopName: body.shopName ?? null,
-        shopSlug: body.shopSlug ?? null,
-        shopDescription: body.shopDescription ?? null,
-
-        slogan: body.slogan ?? null,
-        bio: body.bio ?? null,
-
-        address: body.address ?? null,
-        ward: body.ward ?? null,
-        district: body.district ?? null,
-        city: body.city ?? null,
-        country: body.country ?? null,
-
-        logo: body.logo ?? null,
-        cover: body.cover ?? null,
-
-        website: body.website ?? null,
-
-        facebook: body.facebook ?? null,
-        instagram: body.instagram ?? null,
-        tiktok: body.tiktok ?? null,
-        youtube: body.youtube ?? null,
-        linkedin: body.linkedin ?? null,
-
-        companyName: body.companyName ?? null,
-
-        taxCode: body.taxCode ?? null,
-
-        businessLicense: body.businessLicense ?? null,
-
-        locale: body.locale ?? null,
-        timezone: body.timezone ?? null,
-
-        twoFA: !!body.twoFA,
-
-        status: parseStatus(body.status),
+        ...profileData,
       },
 
-      update: {
-        ...body,
-
-        workspaceId,
-
-        status: body.status !== undefined ? parseStatus(body.status) : undefined,
-      },
+      update: profileData,
 
       select: PROFILE_SELECT,
     });
