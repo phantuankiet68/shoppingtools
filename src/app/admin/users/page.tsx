@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/styles/admin/users/users.module.css";
+import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 
 type UserRole = "USER" | "ADMIN";
 type ProfileRole = "admin" | "staff" | "viewer";
@@ -186,8 +187,16 @@ export default function UsersClient() {
   const didInitRef = useRef(false);
   const inFlightRef = useRef(false);
 
+  const { user, currentSite } = useAdminAuth();
+  const siteId = currentSite?.id ?? "";
+
   async function loadList() {
     if (inFlightRef.current) return;
+
+    if (!siteId) {
+      setErr("Site chưa được chọn");
+      return;
+    }
 
     inFlightRef.current = true;
     setLoading(true);
@@ -195,19 +204,36 @@ export default function UsersClient() {
 
     try {
       const params = new URLSearchParams();
-      if (q.trim()) params.set("q", q.trim());
-      if (role) params.set("role", role);
-      if (active) params.set("isActive", active);
 
-      const res = await fetch(`/api/admin/users?${params.toString()}`, { cache: "no-store" });
-      const json = (await res.json().catch(() => ({}))) as ListRes & { error?: string };
-      if (!res.ok) throw new Error(json?.error || "Failed to load users");
+      params.set("siteId", siteId);
 
-      setItems(json.items || []);
-      setTotal(json.total || 0);
+      if (q.trim()) {
+        params.set("q", q.trim());
+      }
+
+      if (role) {
+        params.set("role", role);
+      }
+
+      if (active) {
+        params.set("isActive", active);
+      }
+
+      const res = await fetch(`/api/admin/users?${params.toString()}`, {
+        cache: "no-store",
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to load users");
+      }
+
+      setItems(json.items ?? []);
+      setTotal(json.total ?? 0);
       setChecked({});
-    } catch (e: any) {
-      setErr(e?.message || "Failed to load users");
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || "Failed to load users");
     } finally {
       setLoading(false);
       inFlightRef.current = false;
@@ -259,8 +285,8 @@ export default function UsersClient() {
       setEditRole(d.role);
       setEditIsActive(d.isActive);
       setEditProfile(d.profile ? { ...emptyProfile(), ...d.profile } : emptyProfile());
-    } catch (e: any) {
-      setErr(e?.message || "Failed to load user detail");
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || "Failed to load user detail");
     } finally {
       setDetailLoading(false);
     }
@@ -343,14 +369,14 @@ export default function UsersClient() {
                 },
                 updatedAt: new Date().toISOString(),
               }
-            : x
-        )
+            : x,
+        ),
       );
 
       setExpandedId(null);
       setDetail(null);
-    } catch (e: any) {
-      setErr(e?.message || "Update failed");
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || "Update failed");
     } finally {
       setBusy(false);
     }
@@ -376,10 +402,13 @@ export default function UsersClient() {
       }
 
       const payload = {
+        siteId,
+        name: `${createForm.firstName} ${createForm.lastName}`.trim(),
         email: createForm.email.trim(),
         password: createForm.password,
         role: createForm.role,
         isActive: !!createForm.isActive,
+
         profile: {
           firstName: createForm.firstName.trim() || null,
           lastName: createForm.lastName.trim() || null,
@@ -418,7 +447,7 @@ export default function UsersClient() {
       });
 
       await loadList(); // ✅ refresh list
-    } catch (e: any) {
+    } catch (e: unknown) {
       setCreateErr(e?.message || "Create failed");
     } finally {
       setCreateBusy(false);
@@ -490,12 +519,19 @@ export default function UsersClient() {
               setCreateOpen(true);
             }}
             disabled={busy}
-            title="Add new user">
+            title="Add new user"
+          >
             <i className="bi bi-person-plus" />
             Add User
           </button>
 
-          <button className={styles.secondaryAction} type="button" title="Refresh" onClick={loadList} disabled={loading || busy}>
+          <button
+            className={styles.secondaryAction}
+            type="button"
+            title="Refresh"
+            onClick={loadList}
+            disabled={loading || busy}
+          >
             <i className="bi bi-arrow-clockwise" />
             Refresh
           </button>
@@ -554,9 +590,19 @@ export default function UsersClient() {
 
                   return (
                     <Fragment key={u.id}>
-                      <tr className={cx(styles.row, isOpen && styles.rowActive)} onClick={() => openRow(u)} role="button" aria-label="Open user" style={{ cursor: "pointer" }}>
+                      <tr
+                        className={cx(styles.row, isOpen && styles.rowActive)}
+                        onClick={() => openRow(u)}
+                        role="button"
+                        aria-label="Open user"
+                        style={{ cursor: "pointer" }}
+                      >
                         <td className={styles.tdCheck} onClick={(e) => e.stopPropagation()}>
-                          <input type="checkbox" checked={!!checked[u.id]} onChange={(e) => setChecked((p) => ({ ...p, [u.id]: e.target.checked }))} />
+                          <input
+                            type="checkbox"
+                            checked={!!checked[u.id]}
+                            onChange={(e) => setChecked((p) => ({ ...p, [u.id]: e.target.checked }))}
+                          />
                         </td>
 
                         <td>
@@ -613,7 +659,12 @@ export default function UsersClient() {
                                 </div>
 
                                 <div className={styles.editorActions}>
-                                  <button type="button" className={styles.secondaryBtn} onClick={() => openRow(u)} disabled={busy}>
+                                  <button
+                                    type="button"
+                                    className={styles.secondaryBtn}
+                                    onClick={() => openRow(u)}
+                                    disabled={busy}
+                                  >
                                     Close
                                   </button>
                                   <button type="button" className={styles.primaryBtn} onClick={save} disabled={busy}>
@@ -635,11 +686,18 @@ export default function UsersClient() {
                                         <i className="bi bi-upload" />
                                         <label className={styles.uploadLabel}>
                                           Upload image
-                                          <input type="file" accept="image/*" className={styles.uploadInput} onChange={(e) => onPickImage(e.target.files?.[0] || null)} />
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            className={styles.uploadInput}
+                                            onChange={(e) => onPickImage(e.target.files?.[0] || null)}
+                                          />
                                         </label>
                                       </div>
 
-                                      <div className={styles.fileName}>{editImage ? "profile_picture" : "No image"}</div>
+                                      <div className={styles.fileName}>
+                                        {editImage ? "profile_picture" : "No image"}
+                                      </div>
                                     </div>
 
                                     <div className={styles.profileTopRight}>
@@ -649,7 +707,9 @@ export default function UsersClient() {
                                       </div>
                                       <div className={styles.miniMeta}>
                                         <div className={styles.miniMetaLabel}>Verified</div>
-                                        <div className={styles.miniMetaValue}>{detail?.emailVerifiedAt ? fmtDate(detail.emailVerifiedAt) : "—"}</div>
+                                        <div className={styles.miniMetaValue}>
+                                          {detail?.emailVerifiedAt ? fmtDate(detail.emailVerifiedAt) : "—"}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -658,27 +718,49 @@ export default function UsersClient() {
                                     {/* Names */}
                                     <div className={styles.field}>
                                       <label className={styles.label}>First name</label>
-                                      <input className={styles.input} value={editProfile.firstName ?? ""} onChange={(e) => setP("firstName", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.firstName ?? ""}
+                                        onChange={(e) => setP("firstName", e.target.value)}
+                                      />
                                     </div>
 
                                     <div className={styles.field}>
                                       <label className={styles.label}>Last name</label>
-                                      <input className={styles.input} value={editProfile.lastName ?? ""} onChange={(e) => setP("lastName", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.lastName ?? ""}
+                                        onChange={(e) => setP("lastName", e.target.value)}
+                                      />
                                     </div>
 
                                     <div className={styles.field}>
                                       <label className={styles.label}>Username</label>
-                                      <input className={styles.input} value={editProfile.username ?? ""} onChange={(e) => setP("username", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.username ?? ""}
+                                        onChange={(e) => setP("username", e.target.value)}
+                                      />
                                     </div>
 
                                     {/* User Role (USER/ADMIN) */}
                                     <div className={styles.field}>
                                       <label className={styles.label}>User role</label>
                                       <div className={styles.segment}>
-                                        <button type="button" className={cx(styles.segBtn, editRole === "ADMIN" && styles.segActive)} onClick={() => setEditRole("ADMIN")} disabled={busy}>
+                                        <button
+                                          type="button"
+                                          className={cx(styles.segBtn, editRole === "ADMIN" && styles.segActive)}
+                                          onClick={() => setEditRole("ADMIN")}
+                                          disabled={busy}
+                                        >
                                           ADMIN
                                         </button>
-                                        <button type="button" className={cx(styles.segBtn, editRole === "USER" && styles.segActive)} onClick={() => setEditRole("USER")} disabled={busy}>
+                                        <button
+                                          type="button"
+                                          className={cx(styles.segBtn, editRole === "USER" && styles.segActive)}
+                                          onClick={() => setEditRole("USER")}
+                                          disabled={busy}
+                                        >
                                           USER
                                         </button>
                                       </div>
@@ -688,10 +770,20 @@ export default function UsersClient() {
                                     <div className={styles.field}>
                                       <label className={styles.label}>Active</label>
                                       <div className={styles.segment}>
-                                        <button type="button" className={cx(styles.segBtn, editIsActive && styles.segActive)} onClick={() => setEditIsActive(true)} disabled={busy}>
+                                        <button
+                                          type="button"
+                                          className={cx(styles.segBtn, editIsActive && styles.segActive)}
+                                          onClick={() => setEditIsActive(true)}
+                                          disabled={busy}
+                                        >
                                           Active
                                         </button>
-                                        <button type="button" className={cx(styles.segBtn, !editIsActive && styles.segActive)} onClick={() => setEditIsActive(false)} disabled={busy}>
+                                        <button
+                                          type="button"
+                                          className={cx(styles.segBtn, !editIsActive && styles.segActive)}
+                                          onClick={() => setEditIsActive(false)}
+                                          disabled={busy}
+                                        >
                                           Disabled
                                         </button>
                                       </div>
@@ -700,7 +792,11 @@ export default function UsersClient() {
                                     {/* Profile role/status */}
                                     <div className={styles.field}>
                                       <label className={styles.label}>Profile role</label>
-                                      <select className={styles.input} value={editProfile.role} onChange={(e) => setP("role", e.target.value as any)}>
+                                      <select
+                                        className={styles.input}
+                                        value={editProfile.role}
+                                        onChange={(e) => setP("role", e.target.value as any)}
+                                      >
                                         <option value="admin">admin</option>
                                         <option value="staff">staff</option>
                                         <option value="viewer">viewer</option>
@@ -709,7 +805,11 @@ export default function UsersClient() {
 
                                     <div className={styles.field}>
                                       <label className={styles.label}>Account status</label>
-                                      <select className={styles.input} value={editProfile.status} onChange={(e) => setP("status", e.target.value as any)}>
+                                      <select
+                                        className={styles.input}
+                                        value={editProfile.status}
+                                        onChange={(e) => setP("status", e.target.value as any)}
+                                      >
                                         <option value="active">active</option>
                                         <option value="suspended">suspended</option>
                                       </select>
@@ -718,33 +818,58 @@ export default function UsersClient() {
                                     {/* Contact */}
                                     <div className={styles.fieldWide}>
                                       <label className={styles.label}>Backup email</label>
-                                      <input className={styles.input} value={editProfile.backupEmail ?? ""} onChange={(e) => setP("backupEmail", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.backupEmail ?? ""}
+                                        onChange={(e) => setP("backupEmail", e.target.value)}
+                                      />
                                     </div>
 
                                     <div className={styles.field}>
                                       <label className={styles.label}>Phone</label>
-                                      <input className={styles.input} value={editProfile.phone ?? ""} onChange={(e) => setP("phone", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.phone ?? ""}
+                                        onChange={(e) => setP("phone", e.target.value)}
+                                      />
                                     </div>
 
                                     <div className={styles.fieldWide}>
                                       <label className={styles.label}>Address</label>
-                                      <input className={styles.input} value={editProfile.address ?? ""} onChange={(e) => setP("address", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.address ?? ""}
+                                        onChange={(e) => setP("address", e.target.value)}
+                                      />
                                     </div>
 
                                     <div className={styles.field}>
                                       <label className={styles.label}>City</label>
-                                      <input className={styles.input} value={editProfile.city ?? ""} onChange={(e) => setP("city", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.city ?? ""}
+                                        onChange={(e) => setP("city", e.target.value)}
+                                      />
                                     </div>
 
                                     <div className={styles.field}>
                                       <label className={styles.label}>Country</label>
-                                      <input className={styles.input} value={editProfile.country ?? ""} onChange={(e) => setP("country", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.country ?? ""}
+                                        onChange={(e) => setP("country", e.target.value)}
+                                      />
                                     </div>
 
                                     {/* DOB */}
                                     <div className={styles.field}>
                                       <label className={styles.label}>DOB Month</label>
-                                      <input className={styles.input} value={editProfile.dobMonth ?? ""} onChange={(e) => setP("dobMonth", e.target.value)} placeholder="Feb" />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.dobMonth ?? ""}
+                                        onChange={(e) => setP("dobMonth", e.target.value)}
+                                        placeholder="Feb"
+                                      />
                                     </div>
 
                                     <div className={styles.field}>
@@ -764,7 +889,9 @@ export default function UsersClient() {
                                         className={styles.input}
                                         inputMode="numeric"
                                         value={editProfile.dobYear ?? ""}
-                                        onChange={(e) => setP("dobYear", e.target.value ? Number(e.target.value) : null)}
+                                        onChange={(e) =>
+                                          setP("dobYear", e.target.value ? Number(e.target.value) : null)
+                                        }
                                         placeholder="2018"
                                       />
                                     </div>
@@ -772,12 +899,20 @@ export default function UsersClient() {
                                     {/* About */}
                                     <div className={styles.fieldWide}>
                                       <label className={styles.label}>Slogan</label>
-                                      <input className={styles.input} value={editProfile.slogan ?? ""} onChange={(e) => setP("slogan", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.slogan ?? ""}
+                                        onChange={(e) => setP("slogan", e.target.value)}
+                                      />
                                     </div>
 
                                     <div className={styles.fieldWide}>
                                       <label className={styles.label}>Bio</label>
-                                      <input className={styles.input} value={editProfile.bio ?? ""} onChange={(e) => setP("bio", e.target.value)} />
+                                      <input
+                                        className={styles.input}
+                                        value={editProfile.bio ?? ""}
+                                        onChange={(e) => setP("bio", e.target.value)}
+                                      />
                                     </div>
                                   </div>
                                 </>
@@ -807,7 +942,13 @@ export default function UsersClient() {
                 Add User
               </div>
 
-              <button type="button" className={styles.modalClose} onClick={() => setCreateOpen(false)} disabled={createBusy} aria-label="Close">
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={() => setCreateOpen(false)}
+                disabled={createBusy}
+                aria-label="Close"
+              >
                 <i className="bi bi-x-lg" />
               </button>
             </div>
@@ -822,7 +963,12 @@ export default function UsersClient() {
             <div className={styles.modalGrid}>
               <div className={styles.fieldWide}>
                 <label className={styles.label}>Email</label>
-                <input className={styles.input} value={createForm.email} onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))} placeholder="user@email.com" />
+                <input
+                  className={styles.input}
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))}
+                  placeholder="user@email.com"
+                />
               </div>
 
               <div className={styles.fieldWide}>
@@ -838,7 +984,11 @@ export default function UsersClient() {
 
               <div className={styles.field}>
                 <label className={styles.label}>User role</label>
-                <select className={styles.input} value={createForm.role} onChange={(e) => setCreateForm((p) => ({ ...p, role: e.target.value as any }))}>
+                <select
+                  className={styles.input}
+                  value={createForm.role}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, role: e.target.value as any }))}
+                >
                   <option value="USER">USER</option>
                   <option value="ADMIN">ADMIN</option>
                 </select>
@@ -846,7 +996,11 @@ export default function UsersClient() {
 
               <div className={styles.field}>
                 <label className={styles.label}>Active</label>
-                <select className={styles.input} value={createForm.isActive ? "true" : "false"} onChange={(e) => setCreateForm((p) => ({ ...p, isActive: e.target.value === "true" }))}>
+                <select
+                  className={styles.input}
+                  value={createForm.isActive ? "true" : "false"}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, isActive: e.target.value === "true" }))}
+                >
                   <option value="true">Active</option>
                   <option value="false">Disabled</option>
                 </select>
@@ -854,37 +1008,66 @@ export default function UsersClient() {
 
               <div className={styles.field}>
                 <label className={styles.label}>First name</label>
-                <input className={styles.input} value={createForm.firstName} onChange={(e) => setCreateForm((p) => ({ ...p, firstName: e.target.value }))} />
+                <input
+                  className={styles.input}
+                  value={createForm.firstName}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, firstName: e.target.value }))}
+                />
               </div>
 
               <div className={styles.field}>
                 <label className={styles.label}>Last name</label>
-                <input className={styles.input} value={createForm.lastName} onChange={(e) => setCreateForm((p) => ({ ...p, lastName: e.target.value }))} />
+                <input
+                  className={styles.input}
+                  value={createForm.lastName}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, lastName: e.target.value }))}
+                />
               </div>
 
               <div className={styles.field}>
                 <label className={styles.label}>Username</label>
-                <input className={styles.input} value={createForm.username} onChange={(e) => setCreateForm((p) => ({ ...p, username: e.target.value }))} placeholder="unique" />
+                <input
+                  className={styles.input}
+                  value={createForm.username}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, username: e.target.value }))}
+                  placeholder="unique"
+                />
               </div>
 
               <div className={styles.field}>
                 <label className={styles.label}>Phone</label>
-                <input className={styles.input} value={createForm.phone} onChange={(e) => setCreateForm((p) => ({ ...p, phone: e.target.value }))} />
+                <input
+                  className={styles.input}
+                  value={createForm.phone}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, phone: e.target.value }))}
+                />
               </div>
 
               <div className={styles.field}>
                 <label className={styles.label}>City</label>
-                <input className={styles.input} value={createForm.city} onChange={(e) => setCreateForm((p) => ({ ...p, city: e.target.value }))} />
+                <input
+                  className={styles.input}
+                  value={createForm.city}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, city: e.target.value }))}
+                />
               </div>
 
               <div className={styles.field}>
                 <label className={styles.label}>Country</label>
-                <input className={styles.input} value={createForm.country} onChange={(e) => setCreateForm((p) => ({ ...p, country: e.target.value }))} />
+                <input
+                  className={styles.input}
+                  value={createForm.country}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, country: e.target.value }))}
+                />
               </div>
 
               <div className={styles.field}>
                 <label className={styles.label}>Profile role</label>
-                <select className={styles.input} value={createForm.profileRole} onChange={(e) => setCreateForm((p) => ({ ...p, profileRole: e.target.value as any }))}>
+                <select
+                  className={styles.input}
+                  value={createForm.profileRole}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, profileRole: e.target.value as any }))}
+                >
                   <option value="viewer">viewer</option>
                   <option value="staff">staff</option>
                   <option value="admin">admin</option>
@@ -893,7 +1076,11 @@ export default function UsersClient() {
 
               <div className={styles.field}>
                 <label className={styles.label}>Account status</label>
-                <select className={styles.input} value={createForm.profileStatus} onChange={(e) => setCreateForm((p) => ({ ...p, profileStatus: e.target.value as any }))}>
+                <select
+                  className={styles.input}
+                  value={createForm.profileStatus}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, profileStatus: e.target.value as any }))}
+                >
                   <option value="active">active</option>
                   <option value="suspended">suspended</option>
                 </select>
@@ -901,7 +1088,12 @@ export default function UsersClient() {
             </div>
 
             <div className={styles.modalActions}>
-              <button type="button" className={styles.secondaryBtn} onClick={() => setCreateOpen(false)} disabled={createBusy}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={() => setCreateOpen(false)}
+                disabled={createBusy}
+              >
                 Cancel
               </button>
               <button type="button" className={styles.primaryBtn} onClick={createUser} disabled={createBusy}>
@@ -910,7 +1102,13 @@ export default function UsersClient() {
             </div>
           </div>
 
-          <button className={styles.modalBackdropBtn} type="button" onClick={() => setCreateOpen(false)} aria-label="Close backdrop" disabled={createBusy} />
+          <button
+            className={styles.modalBackdropBtn}
+            type="button"
+            onClick={() => setCreateOpen(false)}
+            aria-label="Close backdrop"
+            disabled={createBusy}
+          />
         </div>
       ) : null}
     </div>

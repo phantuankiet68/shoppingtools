@@ -58,6 +58,7 @@ model User {
   campaigns              EmailCampaign[]
   emailRecipients        EmailRecipient[]
   emailSubscribers       EmailSubscriber[]
+  tasks                  Task[]
 
   @@index([systemRole])
   @@index([status])

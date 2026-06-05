@@ -1,0 +1,29 @@
+.wrapper {
+    background: white;
+
+    padding: 24px;
+
+    border-radius: 20px;
+
+    min-height: 850px;
+
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.wrapper :global(.fc) {
+    font-family: inherit;
+}
+
+.wrapper :global(.fc-toolbar-title) {
+    font-size: 22px;
+
+    font-weight: 700;
+}
+
+.wrapper :global(.fc-daygrid-event) {
+    border: none;
+
+    border-radius: 8px;
+
+    padding: 4px 6px;
+}

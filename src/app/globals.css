@@ -253,3 +253,10 @@ div[aria-label="Shop Header Announcement"] > div {
 .gjs-cv-canvas {
   width: calc(100% - 230px);
 }
+
+.taskBoardGrid{
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+   gap: 10px;
+}

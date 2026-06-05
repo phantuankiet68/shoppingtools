@@ -1,0 +1,123 @@
+'use client';
+
+import Image from 'next/image';
+
+import styles from '@/styles/platform/tasks/TaskCard.module.css';
+
+interface Props {
+    task: any;
+    onView?: (task: any) => void;
+}
+
+const priorityConfig = {
+    LOW: {
+        label: 'Low',
+        icon: 'bi-arrow-down-circle-fill',
+        className: 'low',
+    },
+    MEDIUM: {
+        label: 'Medium',
+        icon: 'bi-dash-circle-fill',
+        className: 'medium',
+    },
+    HIGH: {
+        label: 'High',
+        icon: 'bi-arrow-up-circle-fill',
+        className: 'high',
+    },
+    URGENT: {
+        label: 'Urgent',
+        icon: 'bi-fire',
+        className: 'urgent',
+    },
+};
+
+export default function TaskCard({ task, onView }: Props) {
+    const priority =
+        priorityConfig[task.priority as keyof typeof priorityConfig] || priorityConfig.MEDIUM;
+
+    return (
+        <div className={styles.card} onClick={() => onView?.(task)}>
+            {/* Cover */}
+
+            {task.imageUrl && (
+                <div className={styles.cover}>
+                    <Image
+                        src={task.imageUrl}
+                        alt={task.title}
+                        fill
+                        sizes="400px"
+                        className={styles.image}
+                    />
+                </div>
+            )}
+
+            {/* Top */}
+
+            <div className={styles.top}>
+                <span className={`${styles.priorityBadge} ${styles[priority.className]}`}>
+                    <i className={`bi ${priority.icon}`} />
+
+                    {priority.label}
+                </span>
+
+                <button className={styles.menuBtn}>
+                    <i className="bi bi-three-dots" />
+                </button>
+            </div>
+
+            {/* Title */}
+            <div className={styles.titleHeader}>
+                <h4 className={styles.title}>{task.title}</h4>
+                <div className={styles.meta}>
+                    <span>
+                        <i className="bi bi-calendar-event" />
+
+                        {new Date(task.startAt).toLocaleDateString()}
+                    </span>
+
+                    <span>
+                        <i className="bi bi-folder2-open" />
+
+                        {task.category || 'Task'}
+                    </span>
+                </div>
+            </div>
+
+            {/* Description */}
+
+            {task.description && <p className={styles.description}>{task.description}</p>}
+
+            {/* Meta */}
+
+            {/* Progress */}
+
+            <div className={styles.progressWrapper}>
+                <div className={styles.progressHeader}>
+                    <span>Progress</span>
+
+                    <strong>{task.progress || 0}%</strong>
+                </div>
+
+                <div className={styles.progress}>
+                    <div
+                        className={styles.fill}
+                        style={{
+                            width: `${task.progress || 0}%`,
+                        }}
+                    />
+                </div>
+            </div>
+
+            {/* Footer */}
+
+            <div className={styles.footer}>
+                <div className={styles.avatar}>
+                    <i className="bi bi-person-fill" />
+                </div>
+
+                <button className={styles.openBtn}>View Task</button>
+            </div>
+        </div>
+    );
+}

@@ -1,0 +1,35 @@
+.wrapper {
+    padding: 24px;
+}
+
+.board {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 24px;
+
+    align-items: flex-start;
+}
+
+.column {
+    background: #f8fafc;
+
+    border-radius: 16px;
+
+    min-height: 700px;
+
+    padding: 16px;
+}
+
+.card {
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 12px;
+
+    margin-bottom: 12px;
+
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}

@@ -1,0 +1,60 @@
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  OVERDUE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskCategory {
+  DEVELOPMENT
+  DESIGN
+  LEARNING
+  JOB_SEARCH
+  PERSONAL
+  OTHER
+}
+
+model Task {
+  id                      String       @id @default(cuid())
+  userId                  String
+  user                    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title                   String       @db.VarChar(255)
+  description             String?      @db.Text
+  imageUrl                String?
+  category                TaskCategory @default(DEVELOPMENT)
+  startAt                 DateTime
+  endAt                   DateTime
+  completedAt             DateTime?
+  progress                Int          @default(0)
+  status                  TaskStatus   @default(TODO)
+  priority                TaskPriority @default(MEDIUM)
+  estimatedMinutes        Int?
+  actualMinutes           Int?
+  remindBeforeMinutes     Int?         @default(15)
+  notificationSent        Boolean      @default(false)
+  overdueNotificationSent Boolean      @default(false)
+  totalPauseMinutes       Int          @default(0)
+  totalFocusMinutes       Int          @default(0)
+  color                   String?      @default("#6366F1")
+  order                   Int          @default(0)
+  isPinned                Boolean      @default(false)
+  isArchived              Boolean      @default(false)
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([startAt])
+  @@index([endAt])
+  @@index([createdAt])
+}

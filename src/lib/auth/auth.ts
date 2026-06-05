@@ -1,71 +1,108 @@
-import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
-import { SystemRole, UserStatus } from "@/generated/prisma";
+import crypto from 'crypto';
+import { cookies } from 'next/headers';
+
+import { prisma } from '@/lib/prisma';
+
+import { SystemRole, UserStatus } from '@/generated/prisma';
 
 function hashToken(rawToken: string) {
-  return crypto.createHash("sha256").update(rawToken).digest("hex");
+    return crypto.createHash('sha256').update(rawToken).digest('hex');
 }
 
 export type AdminAuthUser = {
-  id: string;
-  email: string;
-  systemRole: SystemRole;
-  status: UserStatus;
+    id: string;
+    email: string;
+    systemRole: SystemRole;
+    status: UserStatus;
 };
 
 export async function getAdminAuthUser(): Promise<AdminAuthUser | null> {
-  const cookieStore = await cookies();
-  const rawToken = cookieStore.get("admin_session")?.value;
-  if (!rawToken) return null;
+    try {
+        const cookieStore = await cookies();
 
-  const tokenHash = hashToken(rawToken);
+        const rawToken = cookieStore.get('admin_session')?.value;
 
-  const session = await prisma.userSession.findFirst({
-    where: {
-      refreshTokenHash: tokenHash,
-      revokedAt: null,
-      expiresAt: { gt: new Date() },
+        if (!rawToken) {
+            return null;
+        }
 
-      // ✅ FIX CHUẨN
-      user: {
-        is: {
-          systemRole: SystemRole.ADMIN,
-          status: UserStatus.ACTIVE,
-        },
-      },
-    },
-    select: {
-      id: true,
-      user: {
-        select: {
-          id: true,
-          email: true,
-          systemRole: true, // ✅ FIX
-          status: true,
-        },
-      },
-    },
-  });
+        const tokenHash = hashToken(rawToken);
 
-  const user = session?.user;
-  if (!user) return null;
+        const session = await prisma.userSession.findFirst({
+            where: {
+                refreshTokenHash: tokenHash,
 
-  await prisma.userSession.update({
-    where: { id: session.id },
-    data: { lastSeenAt: new Date() },
-  });
+                revokedAt: null,
 
-  return user;
+                expiresAt: {
+                    gt: new Date(),
+                },
+
+                user: {
+                    is: {
+                        systemRole: {
+                            in: [SystemRole.ADMIN, SystemRole.SUPER_ADMIN],
+                        },
+
+                        status: UserStatus.ACTIVE,
+                    },
+                },
+            },
+
+            select: {
+                id: true,
+
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        systemRole: true,
+                        status: true,
+                    },
+                },
+            },
+        });
+
+        if (!session?.user) {
+            return null;
+        }
+
+        await prisma.userSession.update({
+            where: {
+                id: session.id,
+            },
+
+            data: {
+                lastSeenAt: new Date(),
+            },
+        });
+
+        return session.user;
+    } catch (error) {
+        console.error('[AUTH_ERROR]', error);
+
+        return null;
+    }
 }
 
 export async function requireAdminAuthUser(): Promise<AdminAuthUser> {
-  const u = await getAdminAuthUser();
-  if (!u) throw new Error("UNAUTHORIZED");
-  return u;
+    const user = await getAdminAuthUser();
+
+    if (!user) {
+        throw new Error('UNAUTHORIZED');
+    }
+
+    return user;
 }
 
 export async function getAdminAuthUserId(): Promise<string | null> {
-  const u = await getAdminAuthUser();
-  return u?.id ?? null;
+    const user = await getAdminAuthUser();
+
+    return user?.id ?? null;
+}
+
+export async function isAdminAuthenticated(): Promise<boolean> {
+    const user = await getAdminAuthUser();
+
+    return !!user;
 }
