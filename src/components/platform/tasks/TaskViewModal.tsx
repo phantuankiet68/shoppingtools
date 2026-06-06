@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import styles from '@/styles/platform/tasks/TaskViewModal.module.css';
 
@@ -15,12 +15,65 @@ interface Props {
 
 export default function TaskViewModal({ open, task, onClose, onRefresh }: Props) {
     const [progress, setProgress] = useState(0);
-
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (task) {
             setProgress(task.progress ?? 0);
+        }
+    }, [task]);
+
+    const statusConfig = useMemo(() => {
+        switch (task?.status) {
+            case 'DONE':
+                return {
+                    label: 'Done',
+                    className: styles.done,
+                    icon: 'bi-check-circle-fill',
+                };
+
+            case 'IN_PROGRESS':
+                return {
+                    label: 'In Progress',
+                    className: styles.inProgress,
+                    icon: 'bi-arrow-repeat',
+                };
+
+            case 'OVERDUE':
+                return {
+                    label: 'Overdue',
+                    className: styles.overdue,
+                    icon: 'bi-exclamation-triangle-fill',
+                };
+
+            default:
+                return {
+                    label: 'Todo',
+                    className: styles.todo,
+                    icon: 'bi-list-task',
+                };
+        }
+    }, [task]);
+
+    const priorityConfig = useMemo(() => {
+        switch (task?.priority) {
+            case 'HIGH':
+                return {
+                    label: 'High',
+                    className: styles.highPriority,
+                };
+
+            case 'MEDIUM':
+                return {
+                    label: 'Medium',
+                    className: styles.mediumPriority,
+                };
+
+            default:
+                return {
+                    label: 'Low',
+                    className: styles.lowPriority,
+                };
         }
     }, [task]);
 
@@ -79,114 +132,156 @@ export default function TaskViewModal({ open, task, onClose, onRefresh }: Props)
                     <i className="bi bi-x-lg" />
                 </button>
 
-                {task.imageUrl && (
-                    <img src={task.imageUrl} alt={task.title} className={styles.image} />
-                )}
+                <div className={styles.hero}>
+                    <div className={styles.heroContent}>
+                        <div className={styles.badges}>
+                            <span className={`${styles.badge} ${statusConfig.className}`}>
+                                <i className={`bi ${statusConfig.icon}`} />
+                                {statusConfig.label}
+                            </span>
 
-                <div className={styles.content}>
-                    <div className={styles.titleRow}>
-                        <h2>{task.title}</h2>
-
-                        <span className={styles.statusBadge}>{task.status}</span>
-                    </div>
-
-                    <p className={styles.description}>{task.description || 'No description'}</p>
-
-                    <div className={styles.grid}>
-                        <div>
-                            <label>Priority</label>
-
-                            <span>{task.priority}</span>
+                            <span className={`${styles.badge} ${priorityConfig.className}`}>
+                                <i className="bi bi-lightning-charge-fill" />
+                                {priorityConfig.label}
+                            </span>
                         </div>
-
-                        <div>
-                            <label>Category</label>
-
-                            <span>{task.category}</span>
-                        </div>
-
-                        <div>
-                            <label>Pinned</label>
-
-                            <span>{task.isPinned ? 'Yes' : 'No'}</span>
-                        </div>
-
-                        <div>
-                            <label>Archived</label>
-
-                            <span>{task.isArchived ? 'Yes' : 'No'}</span>
+                        <div className={styles.headerInfo}>
+                            <h1 className={styles.title}>{task.title}</h1>
+                            <p className={styles.subtitle}>{task.category || 'Task Management'}</p>
                         </div>
                     </div>
 
-                    <div className={styles.timeRow}>
-                        <div>
-                            <label>Start Date</label>
+                    {task.imageUrl && (
+                        <img src={task.imageUrl} alt={task.title} className={styles.cover} />
+                    )}
+                </div>
 
-                            <p>{new Date(task.startAt).toLocaleString()}</p>
+                <div className={styles.body}>
+                    <div className={styles.left}>
+                        <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <i className="bi bi-card-text" />
+                                Description
+                            </div>
+
+                            <p className={styles.description}>
+                                {task.description || 'No description provided.'}
+                            </p>
                         </div>
+                        <div className={styles.infoCard}>
+                            <div className={styles.infoItem}>
+                                <i className="bi bi-calendar-event-fill" />
+                                <div>
+                                    <span>Start Date</span>
+                                    <strong>{new Date(task.startAt).toLocaleString()}</strong>
+                                </div>
+                            </div>
 
-                        <div>
-                            <label>Due Date</label>
-
-                            <p>{new Date(task.endAt).toLocaleString()}</p>
+                            <div className={styles.infoItem}>
+                                <i className="bi bi-flag-fill" />
+                                <div>
+                                    <span>Due Date</span>
+                                    <strong>{new Date(task.endAt).toLocaleString()}</strong>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <i className="bi bi-bar-chart-fill" />
+                                Progress Tracking
+                            </div>
 
-                    <div className={styles.progressSection}>
-                        <div className={styles.progressHeader}>
-                            <label>Progress</label>
+                            <div className={styles.progressTop}>
+                                <span>Current Progress</span>
 
-                            <strong>{progress}%</strong>
-                        </div>
+                                <strong>{progress}%</strong>
+                            </div>
 
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={progress}
-                            onChange={(e) => setProgress(Number(e.target.value))}
-                            className={styles.slider}
-                        />
+                            <div className={styles.progressBar}>
+                                <div
+                                    className={styles.progressFill}
+                                    style={{
+                                        width: `${progress}%`,
+                                    }}
+                                />
+                            </div>
 
-                        <div className={styles.progress}>
-                            <div
-                                className={styles.fill}
-                                style={{
-                                    width: `${progress}%`,
-                                }}
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={progress}
+                                onChange={(e) => setProgress(Number(e.target.value))}
+                                className={styles.slider}
                             />
                         </div>
                     </div>
 
-                    <div className={styles.actions}>
-                        <button
-                            className={styles.primaryBtn}
-                            disabled={loading}
-                            onClick={handleSaveProgress}
-                        >
-                            <i className="bi bi-check2-circle" />
-                            Save Progress
-                        </button>
+                    <div className={styles.right}>
+                        <div className={styles.metaGrid}>
+                            <div className={styles.metaCard}>
+                                <i className="bi bi-bookmark-fill" />
 
-                        <button
-                            className={styles.warningBtn}
-                            disabled={loading}
-                            onClick={handlePinTask}
-                        >
-                            <i className="bi bi-pin-angle-fill" />
+                                <span>Pinned</span>
 
-                            {task.isPinned ? 'Unpin Task' : 'Pin Task'}
-                        </button>
+                                <strong>{task.isPinned ? 'Yes' : 'No'}</strong>
+                            </div>
 
-                        <button
-                            className={styles.dangerBtn}
-                            disabled={loading}
-                            onClick={handleArchiveTask}
-                        >
-                            <i className="bi bi-archive-fill" />
+                            <div className={styles.metaCard}>
+                                <i className="bi bi-archive-fill" />
 
-                            {task.isArchived ? 'Restore Task' : 'Archive Task'}
-                        </button>
+                                <span>Archived</span>
+
+                                <strong>{task.isArchived ? 'Yes' : 'No'}</strong>
+                            </div>
+
+                            <div className={styles.metaCard}>
+                                <i className="bi bi-folder-fill" />
+
+                                <span>Category</span>
+
+                                <strong>{task.category || 'General'}</strong>
+                            </div>
+
+                            <div className={styles.metaCard}>
+                                <i className="bi bi-speedometer2" />
+
+                                <span>Status</span>
+
+                                <strong>{statusConfig.label}</strong>
+                            </div>
+                        </div>
+
+                        <div className={styles.actions}>
+                            <button
+                                className={styles.saveBtn}
+                                disabled={loading}
+                                onClick={handleSaveProgress}
+                            >
+                                <i className="bi bi-check2-circle" />
+                                Save Progress
+                            </button>
+
+                            <button
+                                className={styles.pinBtn}
+                                disabled={loading}
+                                onClick={handlePinTask}
+                            >
+                                <i className="bi bi-pin-angle-fill" />
+
+                                {task.isPinned ? 'Unpin Task' : 'Pin Task'}
+                            </button>
+
+                            <button
+                                className={styles.archiveBtn}
+                                disabled={loading}
+                                onClick={handleArchiveTask}
+                            >
+                                <i className="bi bi-archive-fill" />
+
+                                {task.isArchived ? 'Restore Task' : 'Archive Task'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

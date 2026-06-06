@@ -88,25 +88,38 @@
     flex-direction: column;
     gap: 15px;
     padding: 15px;
-    background: linear-gradient(180deg, #fafcff 0%, #f8fafc 100%);
 
+    min-height: 400px;
+
+    max-height: 72vh;
     overflow-y: auto;
+
+    background: linear-gradient(#fafcff 0%, #f8fafc 100%);
 }
 
+/* Chrome, Edge, Safari */
 .content::-webkit-scrollbar {
-    width: 8px;
-}
-
-.content::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-
-    border-radius: 999px;
+    width: 4px; /* nhỏ hơn */
 }
 
 .content::-webkit-scrollbar-track {
     background: transparent;
 }
 
+.content::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 999px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.7);
+}
+
+/* Firefox */
+.content {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
 /* =========================
    EMPTY
 ========================= */

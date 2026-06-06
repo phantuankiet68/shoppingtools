@@ -73,3 +73,21 @@ export async function archiveTask(id: string) {
 
     return res.json();
 }
+
+export async function updateTaskStatus(id: string, status: string) {
+    const response = await fetch(`/api/platform/tasks/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            status,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update task');
+    }
+
+    return response.json();
+}

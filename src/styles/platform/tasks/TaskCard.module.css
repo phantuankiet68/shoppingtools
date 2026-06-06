@@ -128,13 +128,19 @@
 /* =========================
    TITLE
 ========================= */
-
 .title {
+    color: var(--muted);
     margin: 0;
     font-size: 14px;
     font-weight: 700;
-    color: var(--muted);
     line-height: 1.5;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    min-width: 0;
+    width: 100%;
 }
 
 /* =========================
@@ -177,7 +183,7 @@
     gap: 6px;
     padding: 6px 10px;
     border-radius: 999px;
-    background: #f8fafc;
+    background: #d3e9ffbf;
     color: var(--muted);
     font-size: 12px;
     font-weight: 500;
@@ -185,8 +191,7 @@
 
 .titleHeader {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
 }
 
 .meta i {
@@ -218,7 +223,7 @@
 }
 
 .progressHeader strong {
-    color: #0f172a;
+    color: #1ec361;
 }
 
 .progress {
@@ -236,7 +241,7 @@
 
     border-radius: inherit;
 
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    background: var(--bg-primary);
 
     transition: width 0.4s ease;
 }
@@ -287,6 +292,11 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.25s ease;
+    display: flex;
+    gap: 5px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
 }
 
 .openBtn:hover {
@@ -320,4 +330,19 @@
     .openBtn {
         width: 100%;
     }
+}
+.cardDragging {
+    opacity: 0.9 !important;
+
+    z-index: 9999;
+
+    cursor: grabbing !important;
+
+    box-shadow:
+        0 20px 40px rgba(15, 23, 42, 0.25),
+        0 8px 16px rgba(15, 23, 42, 0.12);
+
+    transform: rotate(2deg);
+
+    border-color: #6366f1;
 }

@@ -1,23 +1,24 @@
 'use client';
 
+import { useDroppable } from '@dnd-kit/core';
+
 import TaskCard from './TaskCard';
 
 import styles from '@/styles/platform/tasks/TaskColumn.module.css';
 
 interface Props {
+    status: string;
     title: string;
     tasks: any[];
-
     icon: string;
     color: string;
-
     description: string;
-
     count: number;
     onViewTask: (task: any) => void;
 }
 
 export default function TaskColumn({
+    status,
     title,
     tasks,
     icon,
@@ -26,8 +27,12 @@ export default function TaskColumn({
     count,
     onViewTask,
 }: Props) {
+    const { setNodeRef, isOver } = useDroppable({
+        id: status,
+    });
+
     return (
-        <div className={styles.column}>
+        <div ref={setNodeRef} className={`${styles.column} ${isOver ? styles.columnActive : ''}`}>
             <div className={styles.header}>
                 <div className={styles.headerLeft}>
                     <div
@@ -49,7 +54,7 @@ export default function TaskColumn({
                 <div className={styles.count}>{count}</div>
             </div>
 
-            <div className={styles.content}>
+            <div ref={setNodeRef} data-status={status} className={styles.content}>
                 {tasks.length === 0 ? (
                     <div className={styles.empty}>
                         <div className={styles.emptyIcon}>
