@@ -1,6 +1,7 @@
 'use client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useModal } from '@/components/admin/shared/common/modal';
 
 import styles from '@/styles/platform/tasks/TaskViewModal.module.css';
 
@@ -16,6 +17,42 @@ interface Props {
 export default function TaskViewModal({ open, task, onClose, onRefresh }: Props) {
     const [progress, setProgress] = useState(0);
     const [loading, setLoading] = useState(false);
+
+    const [savingProgress, setSavingProgress] = useState(false);
+    const [pinningTask, setPinningTask] = useState(false);
+    const [archivingTask, setArchivingTask] = useState(false);
+
+    const modal = useModal();
+
+    const isLoading = savingProgress || pinningTask || archivingTask;
+
+    const handleClose = useCallback(async () => {
+        if (isLoading) {
+            return;
+        }
+
+        await onRefresh?.();
+
+        onClose();
+    }, [isLoading, onClose, onRefresh]);
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                handleClose();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [open, handleClose]);
 
     useEffect(() => {
         if (task) {
@@ -83,52 +120,74 @@ export default function TaskViewModal({ open, task, onClose, onRefresh }: Props)
 
     const handleSaveProgress = async () => {
         try {
-            setLoading(true);
+            setSavingProgress(true);
 
             await updateProgress(task.id, progress);
 
-            onRefresh?.();
+            modal.success('Success', 'Progress updated successfully.');
+
+            await onRefresh?.();
+
+            onClose();
         } catch (error) {
             console.error(error);
+
+            modal.error('Error', 'Failed to update progress.');
         } finally {
-            setLoading(false);
+            setSavingProgress(false);
         }
     };
 
     const handlePinTask = async () => {
         try {
-            setLoading(true);
+            setPinningTask(true);
 
             await pinTask(task.id);
 
-            onRefresh?.();
+            modal.success(
+                'Success',
+                task.isPinned ? 'Task unpinned successfully.' : 'Task pinned successfully.',
+            );
+
+            await onRefresh?.();
+
+            onClose();
         } catch (error) {
             console.error(error);
+
+            modal.error('Error', 'Failed to update task.');
         } finally {
-            setLoading(false);
+            setPinningTask(false);
         }
     };
 
     const handleArchiveTask = async () => {
         try {
-            setLoading(true);
+            setArchivingTask(true);
 
             await archiveTask(task.id);
 
-            onRefresh?.();
+            modal.success(
+                'Success',
+                task.isArchived ? 'Task restored successfully.' : 'Task archived successfully.',
+            );
+
+            await onRefresh?.();
 
             onClose();
         } catch (error) {
             console.error(error);
+
+            modal.error('Error', 'Failed to archive task.');
         } finally {
-            setLoading(false);
+            setArchivingTask(false);
         }
     };
 
     return (
         <div className={styles.overlay}>
             <div className={styles.modal}>
-                <button className={styles.closeBtn} onClick={onClose}>
+                <button className={styles.closeBtn} onClick={handleClose} disabled={isLoading}>
                     <i className="bi bi-x-lg" />
                 </button>
 
@@ -255,31 +314,56 @@ export default function TaskViewModal({ open, task, onClose, onRefresh }: Props)
                         <div className={styles.actions}>
                             <button
                                 className={styles.saveBtn}
-                                disabled={loading}
+                                disabled={savingProgress}
                                 onClick={handleSaveProgress}
                             >
-                                <i className="bi bi-check2-circle" />
-                                Save Progress
+                                {savingProgress ? (
+                                    <>
+                                        <i className="bi bi-arrow-repeat" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="bi bi-check2-circle" />
+                                        Save Progress
+                                    </>
+                                )}
                             </button>
 
                             <button
                                 className={styles.pinBtn}
-                                disabled={loading}
+                                disabled={pinningTask}
                                 onClick={handlePinTask}
                             >
-                                <i className="bi bi-pin-angle-fill" />
-
-                                {task.isPinned ? 'Unpin Task' : 'Pin Task'}
+                                {pinningTask ? (
+                                    <>
+                                        <i className="bi bi-arrow-repeat" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="bi bi-pin-angle-fill" />
+                                        {task.isPinned ? 'Unpin Task' : 'Pin Task'}
+                                    </>
+                                )}
                             </button>
 
                             <button
                                 className={styles.archiveBtn}
-                                disabled={loading}
+                                disabled={archivingTask}
                                 onClick={handleArchiveTask}
                             >
-                                <i className="bi bi-archive-fill" />
-
-                                {task.isArchived ? 'Restore Task' : 'Archive Task'}
+                                {archivingTask ? (
+                                    <>
+                                        <i className="bi bi-arrow-repeat" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="bi bi-archive-fill" />
+                                        {task.isArchived ? 'Restore Task' : 'Archive Task'}
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

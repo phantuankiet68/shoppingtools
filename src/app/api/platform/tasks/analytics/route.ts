@@ -1,264 +1,265 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
-import {
-  successResponse,
-  errorResponse,
-} from "@/lib/tasks/api-response";
+import { errorResponse, successResponse } from '@/lib/tasks/api-response';
 
-import { requireAdminAuthUser } from "@/lib/auth/auth";
+import { requireAdminAuthUser } from '@/lib/auth/auth';
 
 export async function GET() {
-  try {
-    const user = await requireAdminAuthUser();
+    try {
+        const user = await requireAdminAuthUser();
 
-    const now = new Date();
+        const now = new Date();
 
-    // =========================
-    // Today
-    // =========================
+        // =====================================
+        // Date Ranges
+        // =====================================
 
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
 
-    const endOfDay = new Date(now);
-    endOfDay.setHours(23, 59, 59, 999);
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23, 59, 59, 999);
 
-    // =========================
-    // Week
-    // =========================
+        const startOfWeek = new Date(now);
 
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(
-      now.getDate() - now.getDay()
-    );
-    startOfWeek.setHours(0, 0, 0, 0);
+        startOfWeek.setDate(now.getDate() - now.getDay());
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(
-      startOfWeek.getDate() + 6
-    );
-    endOfWeek.setHours(
-      23,
-      59,
-      59,
-      999
-    );
+        startOfWeek.setHours(0, 0, 0, 0);
 
-    // =========================
-    // Month
-    // =========================
+        const endOfWeek = new Date(startOfWeek);
 
-    const startOfMonth = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1
-    );
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-    const endOfMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-      999
-    );
+        endOfWeek.setHours(23, 59, 59, 999);
 
-    // =========================
-    // TODAY
-    // =========================
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const todayTasks =
-      await prisma.task.findMany({
-        where: {
-          userId: user.id,
-          isArchived: false,
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-          startAt: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
-        },
-      });
+        // =====================================
+        // Today Tasks
+        // =====================================
 
-    const todayTotal =
-      todayTasks.length;
+        const todayTasks = await prisma.task.findMany({
+            where: {
+                userId: user.id,
+                isArchived: false,
 
-    const todayCompleted =
-      todayTasks.filter(
-        (t) => t.status === "DONE"
-      ).length;
+                startAt: {
+                    gte: startOfDay,
+                    lte: endOfDay,
+                },
+            },
+        });
 
-    const todayInProgress =
-      todayTasks.filter(
-        (t) =>
-          t.status ===
-          "IN_PROGRESS"
-      ).length;
+        const todayTotal = todayTasks.length;
 
-    const todayOverdue =
-      todayTasks.filter(
-        (t) =>
-          t.status === "OVERDUE"
-      ).length;
+        const todayCompleted = todayTasks.filter((task) => task.status === 'DONE').length;
 
-    const todayCompletionRate =
-      todayTotal > 0
-        ? Number(
-            (
-              (todayCompleted /
-                todayTotal) *
-              100
-            ).toFixed(2)
-          )
-        : 0;
+        const todayInProgress = todayTasks.filter((task) => task.status === 'IN_PROGRESS').length;
 
-    // =========================
-    // WEEK
-    // =========================
+        const todayOverdue = todayTasks.filter((task) => task.status === 'OVERDUE').length;
 
-    const weekTasks =
-      await prisma.task.findMany({
-        where: {
-          userId: user.id,
-          isArchived: false,
+        const todayCompletionRate =
+            todayTotal > 0 ? Number(((todayCompleted / todayTotal) * 100).toFixed(2)) : 0;
 
-          startAt: {
-            gte: startOfWeek,
-            lte: endOfWeek,
-          },
-        },
-      });
+        // =====================================
+        // Week Tasks
+        // =====================================
 
-    const weekTotal =
-      weekTasks.length;
+        const weekTasks = await prisma.task.findMany({
+            where: {
+                userId: user.id,
+                isArchived: false,
 
-    const weekCompleted =
-      weekTasks.filter(
-        (t) => t.status === "DONE"
-      ).length;
+                startAt: {
+                    gte: startOfWeek,
+                    lte: endOfWeek,
+                },
+            },
+        });
 
-    const weekCompletionRate =
-      weekTotal > 0
-        ? Number(
-            (
-              (weekCompleted /
-                weekTotal) *
-              100
-            ).toFixed(2)
-          )
-        : 0;
+        const weekTotal = weekTasks.length;
 
-    // =========================
-    // MONTH
-    // =========================
+        const weekCompleted = weekTasks.filter((task) => task.status === 'DONE').length;
 
-    const monthTasks =
-      await prisma.task.findMany({
-        where: {
-          userId: user.id,
-          isArchived: false,
+        const weekCompletionRate =
+            weekTotal > 0 ? Number(((weekCompleted / weekTotal) * 100).toFixed(2)) : 0;
 
-          startAt: {
-            gte: startOfMonth,
-            lte: endOfMonth,
-          },
-        },
-      });
+        // =====================================
+        // Month Tasks
+        // =====================================
 
-    const monthTotal =
-      monthTasks.length;
+        const monthTasks = await prisma.task.findMany({
+            where: {
+                userId: user.id,
+                isArchived: false,
 
-    const monthCompleted =
-      monthTasks.filter(
-        (t) => t.status === "DONE"
-      ).length;
+                startAt: {
+                    gte: startOfMonth,
+                    lte: endOfMonth,
+                },
+            },
+        });
 
-    const monthCompletionRate =
-      monthTotal > 0
-        ? Number(
-            (
-              (monthCompleted /
-                monthTotal) *
-              100
-            ).toFixed(2)
-          )
-        : 0;
+        const monthTotal = monthTasks.length;
 
-    // =========================
-    // Focus Statistics
-    // =========================
+        const monthCompleted = monthTasks.filter((task) => task.status === 'DONE').length;
 
-    const focusStats =
-      await prisma.task.aggregate({
-        where: {
-          userId: user.id,
-          isArchived: false,
-        },
+        const monthInProgress = monthTasks.filter((task) => task.status === 'IN_PROGRESS').length;
 
-        _sum: {
-          estimatedMinutes: true,
-          actualMinutes: true,
-          totalPauseMinutes: true,
-          totalFocusMinutes: true,
-        },
-      });
+        const monthOverdue = monthTasks.filter((task) => task.status === 'OVERDUE').length;
 
-    return successResponse({
-      today: {
-        total: todayTotal,
-        completed:
-          todayCompleted,
-        inProgress:
-          todayInProgress,
-        overdue:
-          todayOverdue,
-        completionRate:
-          todayCompletionRate,
-      },
+        const monthCompletionRate =
+            monthTotal > 0 ? Number(((monthCompleted / monthTotal) * 100).toFixed(2)) : 0;
 
-      week: {
-        total: weekTotal,
-        completed:
-          weekCompleted,
-        completionRate:
-          weekCompletionRate,
-      },
+        // =====================================
+        // Focus Statistics
+        // =====================================
 
-      month: {
-        total: monthTotal,
-        completed:
-          monthCompleted,
-        completionRate:
-          monthCompletionRate,
-      },
+        const focusStats = await prisma.task.aggregate({
+            where: {
+                userId: user.id,
+                isArchived: false,
+            },
 
-      focus: {
-        estimatedMinutes:
-          focusStats._sum
-            .estimatedMinutes ?? 0,
+            _sum: {
+                estimatedMinutes: true,
+                actualMinutes: true,
+                totalPauseMinutes: true,
+                totalFocusMinutes: true,
+            },
+        });
 
-        actualMinutes:
-          focusStats._sum
-            .actualMinutes ?? 0,
+        const estimatedMinutes = focusStats._sum.estimatedMinutes ?? 0;
 
-        totalPauseMinutes:
-          focusStats._sum
-            .totalPauseMinutes ?? 0,
+        const actualMinutes = focusStats._sum.actualMinutes ?? 0;
 
-        totalFocusMinutes:
-          focusStats._sum
-            .totalFocusMinutes ?? 0,
-      },
-    });
-  } catch (error) {
-    console.error(error);
+        const totalPauseMinutes = focusStats._sum.totalPauseMinutes ?? 0;
 
-    return errorResponse(
-      error instanceof Error
-        ? error.message
-        : "Internal server error",
-      500
-    );
-  }
+        const totalFocusMinutes = focusStats._sum.totalFocusMinutes ?? 0;
+
+        const efficiency =
+            estimatedMinutes > 0
+                ? Number(((actualMinutes / estimatedMinutes) * 100).toFixed(2))
+                : 0;
+
+        // =====================================
+        // Last 6 Months Chart
+        // =====================================
+
+        const monthlyTasks = [];
+
+        const currentYear = now.getFullYear();
+
+        for (let month = 0; month < 12; month++) {
+            const start = new Date(currentYear, month, 1);
+
+            const end = new Date(currentYear, month + 1, 0, 23, 59, 59, 999);
+
+            const total = await prisma.task.count({
+                where: {
+                    userId: user.id,
+
+                    isArchived: false,
+
+                    startAt: {
+                        gte: start,
+                        lte: end,
+                    },
+                },
+            });
+
+            monthlyTasks.push({
+                month: start.toLocaleString('en-US', {
+                    month: 'short',
+                }),
+
+                total,
+            });
+        }
+        // =====================================
+        // Productivity Trend
+        // =====================================
+
+        const productivity = [
+            {
+                name: 'Today',
+                completion: todayCompletionRate,
+            },
+
+            {
+                name: 'Week',
+                completion: weekCompletionRate,
+            },
+
+            {
+                name: 'Month',
+                completion: monthCompletionRate,
+            },
+        ];
+
+        // =====================================
+        // Status Distribution
+        // =====================================
+
+        const statusDistribution = [
+            {
+                name: 'Completed',
+                value: monthCompleted,
+            },
+
+            {
+                name: 'In Progress',
+                value: monthInProgress,
+            },
+
+            {
+                name: 'Overdue',
+                value: monthOverdue,
+            },
+        ];
+
+        return successResponse({
+            today: {
+                total: todayTotal,
+                completed: todayCompleted,
+                inProgress: todayInProgress,
+                overdue: todayOverdue,
+                completionRate: todayCompletionRate,
+            },
+
+            week: {
+                total: weekTotal,
+                completed: weekCompleted,
+                completionRate: weekCompletionRate,
+            },
+
+            month: {
+                total: monthTotal,
+                completed: monthCompleted,
+                inProgress: monthInProgress,
+                overdue: monthOverdue,
+                completionRate: monthCompletionRate,
+            },
+
+            focus: {
+                estimatedMinutes,
+                actualMinutes,
+                totalPauseMinutes,
+                totalFocusMinutes,
+                efficiency,
+            },
+
+            monthlyTasks,
+
+            productivity,
+
+            statusDistribution,
+        });
+    } catch (error) {
+        console.error(error);
+
+        return errorResponse(error instanceof Error ? error.message : 'Internal server error', 500);
+    }
 }

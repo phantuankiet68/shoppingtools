@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import CreateTaskModal from '@/components/platform/tasks/CreateTaskModal';
 import TaskAnalytics from '@/components/platform/tasks/TaskAnalytics';
@@ -29,6 +29,26 @@ export default function AdminTaskClient() {
 
     const [openView, setOpenView] = useState(false);
 
+    const filteredTasks = useMemo(() => {
+        return tasks.filter((task) => {
+            const keyword = search.trim().toLowerCase();
+
+            const matchSearch =
+                !keyword ||
+                task.title?.toLowerCase().includes(keyword) ||
+                task.description?.toLowerCase().includes(keyword) ||
+                task.category?.toLowerCase().includes(keyword);
+
+            const matchPriority = !priority || task.priority === priority;
+
+            const matchCategory = !category || task.category === category;
+
+            const matchStatus = !status || task.status === status;
+
+            return matchSearch && matchPriority && matchCategory && matchStatus;
+        });
+    }, [tasks, search, priority, category, status]);
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -51,14 +71,21 @@ export default function AdminTaskClient() {
 
             {view === 'board' && (
                 <TaskBoard
-                    tasks={tasks}
+                    tasks={filteredTasks}
                     onViewTask={(task) => {
                         setSelectedTask(task);
                         setOpenView(true);
                     }}
                 />
             )}
-            {view === 'calendar' && <TaskCalendar />}
+            {view === 'calendar' && (
+                <TaskCalendar
+                    onViewTask={(task) => {
+                        setSelectedTask(task);
+                        setOpenView(true);
+                    }}
+                />
+            )}
             {view === 'analytics' && <TaskAnalytics />}
             <CreateTaskModal
                 open={openCreateModal}

@@ -1,74 +1,71 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
-import {
-  successResponse,
-  errorResponse,
-} from "@/lib/tasks/api-response";
+import { errorResponse, successResponse } from '@/lib/tasks/api-response';
 
-import { requireAdminAuthUser } from "@/lib/auth/auth";
+import { requireAdminAuthUser } from '@/lib/auth/auth';
 
 export async function GET() {
-  try {
-    const user = await requireAdminAuthUser();
+    try {
+        const user = await requireAdminAuthUser();
 
-    const tasks =
-      await prisma.task.findMany({
-        where: {
-          userId: user.id,
-          isArchived: false,
-        },
+        const tasks = await prisma.task.findMany({
+            where: {
+                userId: user.id,
+                isArchived: false,
+            },
 
-        select: {
-          id: true,
-          title: true,
-          startAt: true,
-          endAt: true,
-          status: true,
-          priority: true,
-          progress: true,
-          color: true,
-        },
+            select: {
+                id: true,
+                title: true,
+                description: true,
 
-        orderBy: {
-          startAt: "asc",
-        },
-      });
+                startAt: true,
+                endAt: true,
 
-    const events = tasks.map(
-      (task) => ({
-        id: task.id,
+                status: true,
+                priority: true,
+                progress: true,
 
-        title: task.title,
+                category: true,
+                color: true,
 
-        start: task.startAt,
+                createdAt: true,
+                updatedAt: true,
+            },
 
-        end: task.endAt,
+            orderBy: {
+                startAt: 'asc',
+            },
+        });
 
-        backgroundColor:
-          task.color,
+        const events = tasks.map((task) => ({
+            id: task.id,
 
-        borderColor:
-          task.color,
+            title: task.title,
 
-        extendedProps: {
-          status: task.status,
-          priority:
-            task.priority,
-          progress:
-            task.progress,
-        },
-      })
-    );
+            start: task.startAt,
 
-    return successResponse(events);
-  } catch (error) {
-    console.error(error);
+            end: task.endAt,
 
-    return errorResponse(
-      error instanceof Error
-        ? error.message
-        : "Internal server error",
-      500
-    );
-  }
+            backgroundColor: task.color,
+
+            borderColor: task.color,
+
+            extendedProps: {
+                task,
+
+                status: task.status,
+
+                priority: task.priority,
+
+                progress: task.progress,
+            },
+        }));
+
+        return successResponse(events);
+    } catch (error) {
+        console.error(error);
+
+        return errorResponse(error instanceof Error ? error.message : 'Internal server error', 500);
+    }
 }

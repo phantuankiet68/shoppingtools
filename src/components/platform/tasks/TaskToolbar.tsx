@@ -53,6 +53,21 @@ export default function TaskToolbar({
                         className={styles.search}
                     />
                 </div>
+                <div className={styles.selectGroup}>
+                    <i className="bi bi-kanban"></i>
+
+                    <select value={status} onChange={(e) => onStatusChange(e.target.value)}>
+                        <option value="">All Status</option>
+
+                        <option value="TODO">Todo</option>
+
+                        <option value="IN_PROGRESS">In Progress</option>
+
+                        <option value="DONE">Done</option>
+
+                        <option value="OVERDUE">Overdue</option>
+                    </select>
+                </div>
 
                 <div className={styles.selectGroup}>
                     <i className="bi bi-flag"></i>

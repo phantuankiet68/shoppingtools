@@ -1,29 +1,499 @@
-.wrapper {
-    background: white;
-
-    padding: 24px;
-
-    border-radius: 20px;
-
-    min-height: 850px;
-
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.wrapper :global(.fc) {
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 500px;
+    font-size: 15px;
+    color: #64748b;
+}
+
+/* =========================
+   Toolbar
+========================= */
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.searchInput {
+    width: 100%;
+    max-width: 420px;
+    min-width: 300px;
+    height: 46px;
+
+    border: 1px solid #dbe3ec;
+
+    border-radius: 12px;
+
+    padding: 0 16px;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition: all 0.25s ease;
+}
+
+.searchInput:focus {
+    border-color: #3b82f6;
+
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.viewSwitcher {
+    display: flex;
+    gap: 8px;
+}
+
+.viewSwitcher button {
+    height: 42px;
+    padding: 0 18px;
+    border: var(--bd-header);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    background: #ffffff;
+    color: #334155;
+    transition: all 0.25s ease;
+}
+
+.viewSwitcher button:hover {
+    background: #e2e8f0;
+}
+
+.viewSwitcher button:active {
+    transform: scale(0.98);
+}
+
+/* =========================
+   Legend
+========================= */
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    flex-wrap: wrap;
+
+    color: #475569;
+
+    font-size: 14px;
+}
+
+.legend div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.todoDot,
+.progressDot,
+.doneDot,
+.overdueDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+}
+
+.todoDot {
+    background: #64748b;
+}
+
+.progressDot {
+    background: #3b82f6;
+}
+
+.doneDot {
+    background: #22c55e;
+}
+
+.overdueDot {
+    background: #ef4444;
+}
+
+/* =========================
+   Calendar Card
+========================= */
+
+.calendarCard {
+    background: #fff;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    border: 1px solid #e5e7eb;
+    padding: 15px;
+
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================
+   FullCalendar Override
+========================= */
+
+.calendarCard :global(.fc) {
     font-family: inherit;
 }
 
-.wrapper :global(.fc-toolbar-title) {
-    font-size: 22px;
-
+.calendarCard :global(.fc-toolbar-title) {
+    font-size: 24px;
     font-weight: 700;
+    color: #0f172a;
 }
 
-.wrapper :global(.fc-daygrid-event) {
+.calendarCard :global(.fc-button) {
+    height: 40px;
+
+    min-width: 40px;
+
+    border-radius: 12px !important;
+
+    border: none !important;
+
+    background: #334155 !important;
+
+    color: white !important;
+
+    transition: all 0.25s ease;
+}
+
+.calendarCard :global(.fc-button:hover) {
+    transform: translateY(-1px);
+
+    background: #1e293b !important;
+}
+
+.calendarCard :global(.fc-button:hover) {
+    background: #1e293b !important;
+}
+
+.calendarCard :global(.fc-daygrid-day-number) {
+    color: #f97316;
+    font-weight: 600;
+}
+
+.calendarCard :global(.fc-scrollgrid) {
+    border-radius: 8px;
+    height: 65vh;
+    overflow: auto !important;
+}
+
+.calendarCard :global(.fc-col-header-cell) {
+    background: #f8fafc;
+
+    height: 52px;
+
+    font-weight: 700;
+
+    color: #334155;
+}
+.calendarCard :global(.fc-day-today) {
+    background: #eff6ff !important;
+}
+
+/* =========================
+   Today Highlight
+========================= */
+
+.today {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe) !important;
+}
+
+/* =========================
+   Event
+========================= */
+
+.eventCard {
+    padding: 8px;
+
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.95);
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    min-width: 100px;
+}
+
+.eventTitle {
+    font-size: 12px;
+
+    font-weight: 600;
+
+    line-height: 1.4;
+
+    color: #0f172a;
+
+    overflow: hidden;
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+
+    -webkit-box-orient: vertical;
+}
+
+.eventProgress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.progressBar {
+    flex: 1;
+
+    height: 6px;
+
+    border-radius: 999px;
+
+    overflow: hidden;
+
+    background: #e2e8f0;
+}
+
+.progressFill {
+    height: 100%;
+
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+
+    border-radius: inherit;
+}
+
+.eventProgress span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.eventBadge {
+    width: fit-content;
+
+    padding: 2px 8px;
+
+    border-radius: 999px;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    background: #f1f5f9;
+
+    color: #475569;
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 1024px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .searchInput {
+        max-width: 100%;
+    }
+
+    .viewSwitcher {
+        width: 100%;
+    }
+
+    .viewSwitcher button {
+        flex: 1;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .calendarCard {
+        padding: 12px;
+    }
+}
+.calendarCard :global(.fc-day-today) {
+    background: #eff6ff !important;
+}
+
+.calendarCard :global(.fc-day-today .fc-daygrid-day-number) {
+    background: var(--bg-primary);
+
+    color: white !important;
+    font-size: 14px !important;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 999px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.event {
+    display: flex;
+    align-items: center;
+
+    height: 24px;
+
+    padding: 0 8px;
+
+    border-radius: 6px;
+
+    color: #fff;
+
+    font-size: 12px;
+    font-weight: 400;
+
+    cursor: pointer;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+    min-width: 0;
+}
+
+.event {
+    display: flex;
+    align-items: center;
+
+    height: 24px;
+
+    padding: 0 8px;
+
+    border-radius: 6px;
+
+    overflow: hidden;
+}
+
+.eventText {
+    flex: 1;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+}
+.todo {
+    background: #64748b;
+}
+
+.in_progress {
+    background: #3b82f6;
+}
+
+.done {
+    background: #22c55e;
+}
+
+.overdue {
+    background: #ef4444;
+}
+.calendarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px 20px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 18px;
+}
+
+.headerLeft,
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.headerCenter {
+    font-size: 28px;
+    font-weight: 700;
+    color: #6291ff;
+}
+.iconButton {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 12px;
+    background: #91bdfa;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.iconButton:hover {
+    transform: translateY(-1px);
+}
+.todayButton {
+    height: 42px;
+
+    padding: 0 18px;
+
     border: none;
 
-    border-radius: 8px;
+    border-radius: 12px;
 
-    padding: 4px 6px;
+    background: var(--bg-primary);
+
+    color: white;
+    font-size: 14px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    cursor: pointer;
+}
+.headerRight button {
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--muted);
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.headerRight button:hover {
+    background: #f8fafc;
+}
+
+.activeView {
+    background: var(--bg-primary) !important;
+
+    color: white !important;
+
+    border-color: transparent !important;
 }
