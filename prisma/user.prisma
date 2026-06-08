@@ -13,6 +13,10 @@ model User {
   id              String     @id @default(cuid())
   email           String     @unique
   passwordHash    String     @map("password_hash")
+
+  siteId          String?    @map("site_id")
+  site            Site?      @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
   systemRole      SystemRole @default(CUSTOMER)
   status          UserStatus @default(ACTIVE)
   emailVerifiedAt DateTime?  @map("email_verified_at")
@@ -60,8 +64,10 @@ model User {
   emailSubscribers       EmailSubscriber[]
   tasks                  Task[]
 
+  @@index([siteId])
   @@index([systemRole])
   @@index([status])
+
   @@map("users")
 }
 

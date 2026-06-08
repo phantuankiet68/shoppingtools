@@ -53,6 +53,8 @@ model Site {
   emailAnalyticsDailies EmailAnalyticsDaily[]
   subscribers           Subscriber[]
 
+  users User[]
+
   @@index([ownerUserId])
   @@index([workspaceId])
   @@index([status])

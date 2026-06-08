@@ -282,3 +282,36 @@ Overdue Widget GET /api/admin/tasks/overdue
 Progress Bar PATCH /api/admin/tasks/progress/:id
 Pin Button PATCH /api/admin/tasks/:id/pin
 Archive Button PATCH /api/admin/tasks/:id/archive
+
+Basic - 59.000đ
+1 Website
+10 Products
+10 Categories
+10 Templates
+10 Brand
+10 Menus
+20 Users
+SEO Basic
+Analytics
+
+Standard - 129.000đ
+2 Websites
+30 Products
+30 Categories
+15 Templates
+15 Brands
+20 Menus
+50 Users
+SEO Basic
+Analytics
+
+Professional - 299.000đ
+3 Websites
+50 Products
+50 Categories
+30 Templates
+30 Brands
+30 Menus
+100 Users
+SEO Premium
+Analytics Advanced

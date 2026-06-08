@@ -5,12 +5,20 @@ model WorkspaceAccessPolicy {
   planCode String @default("BASIC") @map("plan_code")
 
   maxSites         Int @default(1) @map("max_sites")
-  maxPages         Int @default(10) @map("max_pages")
-  maxMenus         Int @default(3) @map("max_menus")
-  maxCategories    Int @default(20) @map("max_categories")
-  maxBrands        Int @default(20) @map("max_brands")
-  maxProducts      Int @default(100) @map("max_products")
+  maxPages         Int @default(50) @map("max_pages")
+  maxMenus         Int @default(10) @map("max_menus")
+  maxCategories    Int @default(10) @map("max_categories")
+  maxBrands        Int @default(10) @map("max_brands")
+  maxProducts      Int @default(20) @map("max_products")
+  maxUsers         Int @default(20) @map("max_users")
+  maxTemplates     Int @default(10) @map("max_templates")
   maxCustomDomains Int @default(1) @map("max_custom_domains")
+
+  allowSeoBasic    Boolean @default(true)  @map("allow_seo_basic")
+  allowSeoPremium  Boolean @default(false) @map("allow_seo_premium")
+
+  allowAnalytics         Boolean @default(true)  @map("allow_analytics")
+  allowAdvancedAnalytics Boolean @default(false) @map("allow_advanced_analytics")
 
   allowBlog      Boolean @default(true)
   allowEcommerce Boolean @default(false)
@@ -24,7 +32,7 @@ model WorkspaceAccessPolicy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId],references: [id],onDelete: Cascade)
 
   @@map("workspace_access_policies")
 }
