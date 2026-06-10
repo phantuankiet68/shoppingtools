@@ -105,11 +105,14 @@
 .down {
     color: #ef4444;
 }
+
 @media (max-width: 1600px) {
     .card {
-        min-width: 269px;
+        min-width: 258px;
+        padding: 10px;
     }
     .grid {
         margin-bottom: 10px;
+        gap: 12px;
     }
 }

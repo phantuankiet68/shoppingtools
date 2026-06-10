@@ -4,62 +4,77 @@ enum SiteStatus {
   SUSPENDED
 }
 
+enum WebsiteType {
+  landing
+  blog
+  ecommerce
+  booking
+  lms
+}
+
 model Site {
-  id              String           @id @default(cuid())
-  name            String
-  domain          String           @unique
-  type            WebsiteType      @default(ecommerce)
-  ownerUserId     String           @map("owner_user_id")
-  createdByUserId String?          @map("created_by_user_id")
-  workspaceId     String?          @map("workspace_id")
-  status          SiteStatus       @default(DRAFT)
-  isPublic        Boolean          @default(false) @map("is_public")
-  publishedAt     DateTime?        @map("published_at")
-  themeConfig     Json?            @map("theme_config")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
-  deletedAt       DateTime?        @map("deleted_at")
-  owner           User             @relation("SiteOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
-  customers       Customer[]
-  addresses       Address[]
-  menuItems       MenuItem[]
-  orders          Order[]
-  orderItems      OrderItem[]
-  payments        Payment[]
-  fulfillments    Fulfillment[]
-  pages           Page[]
-  products        Product[]
-  Brands          Brand[]
-  productVariants ProductVariant[]
-  Categories      Category[]
+    id              String           @id @default(cuid())
+    name            String
+    domain          String           @unique
+    type            WebsiteType      @default(ecommerce)
+    category        String?          @db.VarChar(100)
+    logoUrl         String?          @map("logo_url")
+    seoTitle        String?          @map("seo_title")
+    seoDescription  String?          @db.Text @map("seo_description")
+    faviconUrl      String?
+    contactEmail    String?
+    contactPhone    String?
+    ownerUserId     String           @map("owner_user_id")
+    createdByUserId String?          @map("created_by_user_id")
+    workspaceId     String?          @map("workspace_id")
+    status          SiteStatus       @default(DRAFT)
+    isPublic        Boolean          @default(false) @map("is_public")
+    publishedAt     DateTime?        @map("published_at")
+    themeConfig     Json?            @map("theme_config")
+    createdAt       DateTime         @default(now()) @map("created_at")
+    updatedAt       DateTime         @updatedAt @map("updated_at")
+    deletedAt       DateTime?        @map("deleted_at")
+    owner           User             @relation("SiteOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+    customers       Customer[]
+    addresses       Address[]
+    menuItems       MenuItem[]
+    orders          Order[]
+    orderItems      OrderItem[]
+    payments        Payment[]
+    fulfillments    Fulfillment[]
+    pages           Page[]
+    products        Product[]
+    Brands          Brand[]
+    productVariants ProductVariant[]
+    Categories      Category[]
 
-  storageIntegration StorageIntegration?
-  storageLogs        StorageLog[]
+    storageIntegration StorageIntegration?
+    storageLogs        StorageLog[]
 
-  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  createdBy      User?           @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  returnRequests ReturnRequest[]
+    createdBy      User?           @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+    returnRequests ReturnRequest[]
 
-  reviews Review[]
+    reviews Review[]
 
-  emailProviderConfig EmailProviderConfig?
+    emailProviderConfig EmailProviderConfig?
 
-  emailCampaigns EmailCampaign[]
+    emailCampaigns EmailCampaign[]
 
-  emailSubscribers EmailSubscriber[]
+    emailSubscribers EmailSubscriber[]
 
-  emailLogs             EmailLog[]
-  emailAnalyticsDailies EmailAnalyticsDaily[]
-  subscribers           Subscriber[]
+    emailLogs             EmailLog[]
+    emailAnalyticsDailies EmailAnalyticsDaily[]
+    subscribers           Subscriber[]
 
-  users User[]
+    users User[]
 
-  @@index([ownerUserId])
-  @@index([workspaceId])
-  @@index([status])
-  @@index([isPublic])
-  @@index([publishedAt])
-  @@index([type])
-  @@map("sites")
+    @@index([ownerUserId])
+    @@index([workspaceId])
+    @@index([status])
+    @@index([isPublic])
+    @@index([publishedAt])
+    @@index([type])
+    @@map("sites")
 }

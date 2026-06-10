@@ -211,6 +211,12 @@
 }
 @media (max-width: 1600px) {
     .card {
-        min-width: 267px;
+        min-width: 256px;
+        padding: 10px;
+    }
+    .name {
+        color: #1e293b;
+        font-size: 15px;
+        font-weight: 700;
     }
 }

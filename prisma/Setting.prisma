@@ -34,16 +34,6 @@ enum Timezone {
   America_Los_Angeles
 }
 
-enum WebsiteType {
-  landing
-  blog
-  company
-  ecommerce
-  booking
-  news
-  lms
-  directory
-}
 
 enum AdminPreset {
   minimal_admin

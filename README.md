@@ -283,35 +283,70 @@ Progress Bar PATCH /api/admin/tasks/progress/:id
 Pin Button PATCH /api/admin/tasks/:id/pin
 Archive Button PATCH /api/admin/tasks/:id/archive
 
-Basic - 59.000đ
-1 Website
-10 Products
-10 Categories
-10 Templates
-10 Brand
-10 Menus
-20 Users
-SEO Basic
-Analytics
+Đây là đang là sản phẩm web site cho thuê server để sử dụng tạo website từ template được tạo sẵn từ server của tôi. Bạn chỉ cần thêm site domain thì có thể sử dụng ấy
 
-Standard - 129.000đ
-2 Websites
-30 Products
-30 Categories
-15 Templates
-15 Brands
-20 Menus
-50 Users
-SEO Basic
-Analytics
+components/
+├── SiteForm.tsx
+├── SiteGeneralFields.tsx
+├── SiteSeoFields.tsx
+├── SitePublishFields.tsx
+├── SiteMetaInfo.tsx
+├── SiteTable.tsx
+└── SiteTableRow.tsx
 
-Professional - 299.000đ
-3 Websites
-50 Products
-50 Categories
-30 Templates
-30 Brands
-30 Menus
-100 Users
-SEO Premium
-Analytics Advanced
+hooks/
+├── useSiteForm.ts
+└── useSiteActions.ts
+
+types/
+└── site.ts
+
+utils/
+├── siteHelpers.ts
+└── siteValidation.ts
+
+constants/
+└── siteConstants.ts
+
+1. Landing
+   Company Profile
+   Personal Profile
+   Portfolio
+   Agency
+   Product
+   Service
+   Restaurant
+   Spa
+   Real Estate
+   Event
+
+2. Blog
+   Tech Blog
+   Travel Blog
+   Food Blog
+   News Blog
+   Personal Blog
+
+3. Ecommerce
+   Fashion
+   Electronics
+   Books
+   Digital Products
+   Food
+   Beauty
+
+4. Booking
+   Hotel
+   Homestay
+   Spa
+   Clinic
+   Restaurant
+   Gym
+   Car Rental
+5. LMS
+   Online Course
+   Japanese Learning
+   English Learning
+   School
+   Training Center
+   Exam Platform
