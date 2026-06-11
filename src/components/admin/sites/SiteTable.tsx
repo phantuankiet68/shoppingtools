@@ -30,11 +30,7 @@ export default function SiteTable({ items, activeId, t, setActiveId, setMode, on
 
                 <div>{t('sites.table.status')}</div>
 
-                <div>{t('sites.table.visibility')}</div>
-
                 <div>{t('sites.table.type')}</div>
-
-                <div>{t('sites.table.updated')}</div>
 
                 <div>{t('sites.table.action')}</div>
             </div>

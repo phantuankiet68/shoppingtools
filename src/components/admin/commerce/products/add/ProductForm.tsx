@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useModal } from "@/components/admin/shared/common/modal";
+import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
 import styles from "@/styles/admin/commerce/products/add/ProductForm.module.css";
 import Image from "next/image";
-import { useModal } from "@/components/admin/shared/common/modal";
-import { useSiteStore } from "@/store/site/site.store";
-import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 type ProductType = "PHYSICAL" | "DIGITAL" | "SERVICE";

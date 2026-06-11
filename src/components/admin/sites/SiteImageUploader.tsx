@@ -72,17 +72,33 @@ export default function SiteImageUploader({ type, value, disabled, onUploaded }:
                 </div>
             ) : (
                 <div className={styles.previewCard}>
-                    <img src={preview} alt={type} className={styles.previewImage} />
+                    <div className={styles.previewThumb}>
+                        <img src={preview} alt={type} className={styles.previewImage} />
+                    </div>
 
-                    <div className={styles.previewInfo}>
-                        <strong>{type}</strong>
+                    <div className={styles.previewContent}>
+                        <span className={styles.previewLabel}>
+                            {type === 'logo' ? 'Logo' : 'Favicon'}
+                        </span>
+
+                        <span className={styles.previewFile}>Image uploaded successfully</span>
 
                         <div className={styles.previewActions}>
-                            <button type="button" onClick={() => inputRef.current?.click()}>
+                            <button
+                                type="button"
+                                className={styles.changeBtn}
+                                onClick={() => inputRef.current?.click()}
+                            >
+                                <i className="bi bi-pencil-square" />
                                 Change
                             </button>
 
-                            <button type="button" onClick={() => setPreview('')}>
+                            <button
+                                type="button"
+                                className={styles.removeBtn}
+                                onClick={() => setPreview('')}
+                            >
+                                <i className="bi bi-trash3" />
                                 Remove
                             </button>
                         </div>

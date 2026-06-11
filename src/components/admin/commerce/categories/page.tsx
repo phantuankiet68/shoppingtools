@@ -1,15 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/styles/admin/commerce/categories/categories.module.css";
 import { useModal } from "@/components/admin/shared/common/modal";
 import { usePageFunctionKeys } from "@/components/admin/shared/hooks/usePageFunctionKeys";
+import styles from "@/styles/admin/commerce/categories/categories.module.css";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { CATEGORY_MESSAGES as _MESSAGES } from "@/features/commerce/categories/messages";
 import type { CategoryRow } from "@/services/commerce/categories/categories.service";
 import { slugify } from "@/services/commerce/categories/categories.service";
 import { useCategoriesStore } from "@/store/commerce/categories/categories.store";
-import { useSiteStore } from "@/store/site/site.store";
-import { CATEGORY_MESSAGES as _MESSAGES } from "@/features/commerce/categories/messages";
 
 import { ECOMMERCE_CATEGORY_PRESETS, WEBSITE_TYPES } from "@/constants/categories/index";
 

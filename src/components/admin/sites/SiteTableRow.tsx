@@ -4,8 +4,6 @@ import styles from '@/styles/admin/sites/sites.module.css';
 
 import { SiteLike } from '@/features/sites/types';
 
-import { formatDate } from '@/utils/sites/siteHelpers';
-
 type Props = {
     site: SiteLike;
 
@@ -70,25 +68,9 @@ export default function SiteTableRow({ site, activeId, t, setActiveId, setMode, 
                 </span>
             </div>
 
-            {/* Visibility */}
-
-            <div>
-                <span
-                    className={`${styles.visibilityBadge} ${
-                        site.isPublic ? styles.publicBadge : styles.privateBadge
-                    }`}
-                >
-                    {site.isPublic ? t('sites.table.public') : t('sites.table.private')}
-                </span>
-            </div>
-
             {/* Type */}
 
             <div className={styles.dateCell}>{site.type ? t(`sites.types.${site.type}`) : '-'}</div>
-
-            {/* Updated */}
-
-            <div className={styles.dateCell}>{formatDate(site.updatedAt || site.createdAt)}</div>
 
             {/* Actions */}
 
@@ -102,8 +84,6 @@ export default function SiteTableRow({ site, activeId, t, setActiveId, setMode, 
                     }}
                 >
                     <i className="bi bi-pencil-square" />
-
-                    <span className="no-width">{t('sites.table.edit')}</span>
                 </button>
 
                 <button
@@ -111,8 +91,6 @@ export default function SiteTableRow({ site, activeId, t, setActiveId, setMode, 
                     onClick={() => onDelete(site)}
                 >
                     <i className="bi bi-trash3" />
-
-                    <span className="no-width">{t('sites.table.delete')}</span>
                 </button>
             </div>
         </div>
