@@ -455,108 +455,26 @@ const en = {
         terms: 'Terms & Conditions',
         newItem: 'New Item',
         pageInspector: {
-            noDate: '(no date)',
-            loadSeoFailed: 'Failed to load SEO data.',
-            newPage: 'New page',
-            autoSeoCompleted: 'Auto SEO completed.',
-            saveSeoFailed: 'Failed to save SEO data.',
-            saveSeoSuccess: 'SEO saved successfully.',
-            saveSeoError: 'An error occurred while saving SEO.',
-            missingSite: 'Missing site',
-            currentSiteNotFound: 'Current site not found.',
-            missingTitle: 'Missing title',
-            pleaseEnterTitle: 'Please enter a title.',
-            missingSlug: 'Missing slug',
-            pleaseEnterSlug: 'Please enter a slug.',
-            syncPageFailed: 'Failed to sync page.',
-            syncPageSuccess: 'Page synced successfully.',
-            syncPageError: 'An error occurred while syncing page.',
-            deletePageTitle: 'Delete page',
-            deletePageConfirm: 'Are you sure you want to delete "{title}"?',
-            thisPage: 'this page',
-
+            untitledPage: 'Untitled Page',
+            updated: 'Updated',
             preview: 'Preview',
-            delete: 'Delete',
-            sync: 'Sync',
             edit: 'Edit',
             autoSeo: 'Auto SEO',
-            saving: 'Saving...',
-            saveSeo: 'Save SEO',
-            unpublish: 'Unpublish',
             publish: 'Publish',
+            unpublish: 'Unpublish',
+            delete: 'Delete',
+            saveSeo: 'Save SEO',
+            saving: 'Saving...',
+            autoSeoGenerating: 'Generating SEO...',
+            autoSeoCompleted: 'Auto SEO generated successfully.',
+            autoSeoFailed: 'Failed to generate SEO.',
 
-            untitled: 'Untitled',
-            path: 'Path',
-            status: 'Status',
-            published: 'Published',
-            draft: 'Draft',
-            updatedAt: 'Updated at',
-            emptyState: 'Select a page to inspect and edit its SEO settings.',
+            saveSeoSuccess: 'SEO saved successfully.',
+            saveSeoFailed: 'Failed to save SEO.',
 
-            metaTitle: 'Meta title',
-            metaTitleRange: '/ 60–70',
-            titlePlaceholder: 'Enter page title',
-            ogTitle: 'OG title',
-            twitterCard: 'Twitter card',
-            choices: 'Options',
-            noindex: 'noindex',
-            nofollow: 'nofollow',
-
-            metaDescription: 'Meta description',
-            metaDescriptionRange: '/ 150–160',
-            metaDescriptionPlaceholder: 'Enter meta description',
-            keywordsOptional: 'Keywords (optional)',
-            keywordsPlaceholder: 'keyword 1, keyword 2, keyword 3',
-            canonicalUrl: 'Canonical URL',
-            canonicalUrlPlaceholder: 'https://example.com/your-page',
-
-            ogDescription: 'OG description',
-            ogImageUrl: 'OG image URL',
-            ogImageHelper: 'Recommended image for social sharing',
-            ogImagePlaceholder: 'https://...',
-
-            sitemapChangefreq: 'Sitemap change frequency',
-            sitemapPriority: 'Sitemap priority',
-            structuredData: 'Structured data',
-            structuredDataPlaceholder:
-                '{"@context":"https://schema.org","@type":"WebPage","name":"..."}',
-
-            syncModalTitle: 'Create and sync page',
-            close: 'Close',
-            closeIcon: '✕',
-            site: 'Site',
-            currentSite: 'Current site',
-            usingCurrentSite: 'Using current site: "{site}"',
-            title: 'Title',
-            enterTitle: 'Enter title',
-            slug: 'Slug',
-            slugPlaceholder: 'profile',
-            slugHelper: 'Slug is used to generate the page path.',
-            pathPlaceholder: '/account/profile',
-            syncHintPrefix: 'This action will',
-            createAndSync: 'create and sync',
-            syncHintSuffix: 'the page to the current site using this payload:',
-            syncing: 'Syncing...',
-
-            yourSiteId: 'your-site-id',
-            yourTitle: 'Your title',
-            slugExample: 'profile',
-            pathExample: '/account/profile',
-
-            twitterCardOptions: {
-                summaryLargeImage: 'Summary large image',
-                summary: 'Summary',
-            },
-
-            changefreq: {
-                always: 'Always',
-                hourly: 'Hourly',
-                daily: 'Daily',
-                weekly: 'Weekly',
-                monthly: 'Monthly',
-                yearly: 'Yearly',
-                never: 'Never',
-            },
+            pagePublished: 'Page published successfully.',
+            pageUnpublished: 'Page unpublished successfully.',
+            pageDeleted: 'Page deleted successfully.',
         },
     },
     adminEmail: {
@@ -1044,30 +962,260 @@ const en = {
         },
     },
     seo: {
-        defaultTitle: 'Featured Products',
+        defaultTitle: 'New Page',
 
-        homeMetaTitle: '{siteName} - Easy Shopping, Beautiful Products & Great Prices',
-
-        homeMetaDescription:
-            'Explore {siteName} with beautiful products, affordable prices, smooth shopping experiences, and optimized performance across all devices.',
+        homeMetaTitle: '{siteName} | {category}',
 
         pageMetaTitle: '{title} | {siteName}',
 
-        pageMetaDescription:
-            'Discover {title} at {siteName}. Clear information, attractive visuals, smooth shopping experiences, and optimized conversions.',
+        homeOgTitle: '{siteName} | {category}',
 
-        homeOgTitle: '{siteName} | Amazing Deals Every Day',
+        pageOgTitle: '{title} | {siteName}',
 
-        pageOgTitle: '{title} - Discover Now at {siteName}',
+        healthScore: 'SEO Health Score',
+        healthScoreDescription: 'Improve metadata to increase search engine visibility.',
 
-        homeOgDescription:
-            'Shop faster with a beautiful interface, clear content, and exciting daily deals at {siteName}.',
+        googlePreview: 'Google Search Preview',
 
-        pageOgDescription:
-            'Discover {title} at {siteName} with highlighted information, engaging content, and an optimized shopping experience.',
+        pageTitlePlaceholder: 'Page Title',
+        metaDescriptionPlaceholder: 'Your meta description preview will appear here.',
 
-        keywords: 'online shopping, best price, deals, ecommerce',
+        metaInformation: 'Meta Information',
+
+        metaTitle: 'Meta Title',
+        metaDescription: 'Meta Description',
+
+        searchEngine: 'Search Engine',
+
+        focusKeyword: 'Focus Keyword',
+        canonicalUrl: 'Canonical URL',
+        robots: 'Robots',
+        ogType: 'OG Type',
+
+        website: 'Website',
+        article: 'Article',
+        profile: 'Profile',
+
+        openGraphPreview: 'Open Graph Preview',
+
+        noImage: 'No Image',
+
+        ogTitle: 'OG Title',
+        ogImageUrl: 'OG Image URL',
+        ogDescription: 'OG Description',
+        ogImageAlt: 'OG Image Alt',
+
+        ogTitlePlaceholder: 'Open Graph Title',
+        ogDescriptionPlaceholder: 'Open Graph description preview.',
+
+        sitemap: 'Sitemap',
+
+        always: 'Always',
+        hourly: 'Hourly',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        yearly: 'Yearly',
+        never: 'Never',
+
+        structuredData: 'Structured Data',
+        categories: {
+            companyProfile: {
+                keywords: 'company,business,corporate profile,business services',
+                description:
+                    'Discover company information, services, projects, and key capabilities.',
+                ogDescription: 'Learn more about the company and its featured services.',
+            },
+
+            personalProfile: {
+                keywords: 'personal portfolio,resume,personal profile,work experience',
+                description:
+                    'Explore personal profiles, skills, experience, and featured projects.',
+                ogDescription: 'View personal information and featured projects.',
+            },
+
+            portfolio: {
+                keywords: 'portfolio,projects,design,featured work',
+                description: 'Showcase projects, products, and outstanding achievements.',
+                ogDescription: 'Explore portfolio projects and featured work.',
+            },
+
+            agency: {
+                keywords: 'agency,marketing,design,digital services',
+                description: 'Providing creative solutions and professional services.',
+                ogDescription: 'Discover featured services and successful projects.',
+            },
+
+            product: {
+                keywords: 'product,solution,software,application',
+                description: 'Discover high-quality products and innovative solutions.',
+                ogDescription: 'Learn more about featured products.',
+            },
+
+            service: {
+                keywords: 'services,consulting,solutions,professional services',
+                description: 'Professional services delivered with high quality standards.',
+                ogDescription: 'Explore our featured services.',
+            },
+
+            restaurant: {
+                keywords: 'restaurant,cuisine,table reservation,delicious food',
+                description: 'Explore delicious menus and exceptional dining experiences.',
+                ogDescription: 'Reserve a table and enjoy amazing cuisine.',
+            },
+
+            spa: {
+                keywords: 'spa,skincare,massage,beauty',
+                description: 'Professional beauty care and relaxation services.',
+                ogDescription: 'Book a spa session and enjoy a relaxing experience.',
+            },
+
+            realEstate: {
+                keywords: 'real estate,property,home buying,apartment',
+                description: 'Real estate information, projects, and investment opportunities.',
+                ogDescription: 'Explore featured real estate projects.',
+            },
+
+            event: {
+                keywords: 'event,conference,workshop,event registration',
+                description: 'Event details and registration information.',
+                ogDescription: 'Discover upcoming featured events.',
+            },
+
+            techBlog: {
+                keywords: 'technology,programming,software,AI',
+                description: 'Latest technology news and technical insights.',
+                ogDescription: 'Explore technology articles and industry trends.',
+            },
+
+            travelBlog: {
+                keywords: 'travel,destination review,travel tips',
+                description: 'Sharing travel experiences and adventure stories.',
+                ogDescription: 'Discover exciting travel destinations.',
+            },
+
+            foodBlog: {
+                keywords: 'food,cooking recipes,cuisine',
+                description: 'Sharing delicious recipes and cooking tips.',
+                ogDescription: 'Explore the world of food and cuisine.',
+            },
+
+            newsBlog: {
+                keywords: 'news,current affairs,latest updates',
+                description: 'Latest news, updates, and important events.',
+                ogDescription: 'Stay updated with the latest information.',
+            },
+
+            personalBlog: {
+                keywords: 'personal blog,sharing,experience',
+                description: 'Sharing personal thoughts, stories, and experiences.',
+                ogDescription: 'Explore personal articles and experiences.',
+            },
+
+            fashion: {
+                keywords: 'fashion,clothing,fashion store',
+                description: 'Shop quality fashion products at affordable prices.',
+                ogDescription: 'Discover the latest fashion collections.',
+            },
+
+            electronics: {
+                keywords: 'electronics,technology,electronic devices',
+                description: 'Modern and genuine electronic products.',
+                ogDescription: 'Explore the latest technology products.',
+            },
+
+            books: {
+                keywords: 'books,ebooks,bookstore',
+                description: 'A diverse collection of books for every reader.',
+                ogDescription: 'Discover featured books and publications.',
+            },
+
+            digitalProducts: {
+                keywords: 'digital products,templates,ebooks,tools',
+                description: 'High-quality digital products and resources.',
+                ogDescription: 'Explore featured digital products.',
+            },
+
+            food: {
+                keywords: 'food,grocery,specialty foods',
+                description: 'Safe, quality food products for everyday needs.',
+                ogDescription: 'Discover delicious food products.',
+            },
+
+            beauty: {
+                keywords: 'beauty,cosmetics,skincare',
+                description: 'Beauty and skincare products for everyday care.',
+                ogDescription: 'Explore featured beauty products.',
+            },
+
+            hotel: {
+                keywords: 'hotel,hotel booking',
+                description: 'Book hotels quickly and conveniently.',
+                ogDescription: 'Find the perfect hotel for your trip.',
+            },
+
+            homestay: {
+                keywords: 'homestay,accommodation',
+                description: 'Book unique and comfortable homestay experiences.',
+                ogDescription: 'Discover attractive homestay options.',
+            },
+
+            clinic: {
+                keywords: 'clinic,doctor,healthcare',
+                description: 'Professional healthcare services and medical support.',
+                ogDescription: 'Book medical appointments with ease.',
+            },
+
+            gym: {
+                keywords: 'gym,fitness,workout',
+                description: 'Fitness center for health improvement and training.',
+                ogDescription: 'Explore fitness programs and training plans.',
+            },
+
+            carRental: {
+                keywords: 'car rental,travel car,vehicle hire',
+                description: 'Fast and convenient car rental services.',
+                ogDescription: 'Book rental cars at affordable prices.',
+            },
+
+            onlineCourse: {
+                keywords: 'online course,e-learning,online education',
+                description: 'Modern online learning platform for all learners.',
+                ogDescription: 'Explore high-quality online courses.',
+            },
+
+            japaneseLearning: {
+                keywords: 'japanese learning,jlpt,n5,n4,n3',
+                description: 'Learn Japanese from beginner to advanced levels.',
+                ogDescription: 'Explore Japanese language courses.',
+            },
+
+            englishLearning: {
+                keywords: 'english learning,ielts,toeic',
+                description: 'Improve your English skills effectively.',
+                ogDescription: 'Explore English language courses.',
+            },
+
+            school: {
+                keywords: 'school,education,academic programs',
+                description: 'High-quality educational environment and programs.',
+                ogDescription: 'Discover educational programs and opportunities.',
+            },
+
+            trainingCenter: {
+                keywords: 'training center,skills development,professional training',
+                description: 'Professional and specialized training programs.',
+                ogDescription: 'Explore training and development courses.',
+            },
+
+            examPlatform: {
+                keywords: 'online exam,test preparation,assessment platform',
+                description: 'Platform for online testing and exam preparation.',
+                ogDescription: 'Prepare effectively for exams and assessments.',
+            },
+        },
     },
+
     analytics: {
         monthlyRecapReport: 'Monthly Recap Report',
         targetIncome: 'Target Income',

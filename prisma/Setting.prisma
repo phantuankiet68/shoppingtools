@@ -34,7 +34,6 @@ enum Timezone {
   America_Los_Angeles
 }
 
-
 enum AdminPreset {
   minimal_admin
   content_admin

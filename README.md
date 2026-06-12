@@ -350,3 +350,13 @@ constants/
    School
    Training Center
    Exam Platform
+
+PageInspector
+│
+├── PageInspectorHeader
+│
+├── PageSEOForm
+│
+├── PageInspectorActions
+│
+└── SyncPageModal

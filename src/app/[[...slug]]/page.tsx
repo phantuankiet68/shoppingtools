@@ -1,178 +1,351 @@
-import { prisma } from "@/lib/prisma";
-import { headers } from "next/headers";
-import { notFound } from "next/navigation";
-import RenderBlocksPublic from "@/components/v1/themeplate/RenderBlocksPublic";
-import type { Block } from "@/lib/builder/pages/types";
+import RenderBlocksPublic from '@/components/v1/themeplate/RenderBlocksPublic';
+import type { Block } from '@/lib/pages/types';
+import { prisma } from '@/lib/prisma';
+import type { Metadata } from 'next';
+import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 function normalizePath(input?: string | null) {
-  if (!input) return "/";
+    if (!input) return '/';
 
-  let value = input.trim().toLowerCase();
+    let value = input.trim().toLowerCase();
 
-  if (!value.startsWith("/")) {
-    value = `/${value}`;
-  }
+    if (!value.startsWith('/')) {
+        value = `/${value}`;
+    }
 
-  if (value.length > 1 && value.endsWith("/")) {
-    value = value.slice(0, -1);
-  }
+    if (value.length > 1 && value.endsWith('/')) {
+        value = value.slice(0, -1);
+    }
 
-  return value || "/";
+    return value || '/';
 }
 
 function isSamePath(value: string | null | undefined, ...candidates: string[]) {
-  if (!value) return false;
-  const current = normalizePath(value);
-  return candidates.some((item) => normalizePath(item) === current);
+    if (!value) return false;
+    const current = normalizePath(value);
+    return candidates.some((item) => normalizePath(item) === current);
 }
 
 export default async function PageByPath({ params }: { params: Promise<{ slug?: string[] }> }) {
-  const { slug } = await params;
+    const { slug } = await params;
 
-  const segments = Array.isArray(slug) ? slug : [];
+    const segments = Array.isArray(slug) ? slug : [];
 
-  let path = normalizePath(segments.join("/"));
-  let productSlug: string | null = null;
+    let path = normalizePath(segments.join('/'));
+    let productSlug: string | null = null;
 
-  if (segments[0] === "product-detail") {
-    path = "/product-detail";
-    productSlug = segments[1] ?? null;
-  }
+    if (segments[0] === 'product-detail') {
+        path = '/product-detail';
+        productSlug = segments[1] ?? null;
+    }
 
-  const h = await headers();
-  const hostHeader = h.get("x-site-domain") ?? h.get("host") ?? "";
-  const domain = hostHeader.split(":")[0].toLowerCase();
+    const h = await headers();
+    const hostHeader = h.get('x-site-domain') ?? h.get('host') ?? '';
+    const domain = hostHeader.split(':')[0].toLowerCase();
 
-  if (!domain) {
-    notFound();
-  }
+    if (!domain) {
+        notFound();
+    }
 
-  const site = await prisma.site.findUnique({
-    where: { domain },
-    select: { id: true },
-  });
+    const site = await prisma.site.findUnique({
+        where: { domain },
+        select: { id: true },
+    });
 
-  if (!site) {
-    notFound();
-  }
+    if (!site) {
+        notFound();
+    }
 
-  const page =
-    path === "/"
-      ? await prisma.page.findFirst({
-          where: {
-            siteId: site.id,
-            status: "PUBLISHED",
-            OR: [{ path: "/" }],
-          },
-          select: {
+    const page =
+        path === '/'
+            ? await prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [{ path: '/' }],
+                  },
+                  select: {
+                      id: true,
+                      title: true,
+                      path: true,
+                      status: true,
+                      blocks: true,
+
+                      seo: {
+                          select: {
+                              metaTitle: true,
+                              metaDescription: true,
+                              canonicalUrl: true,
+
+                              robots: true,
+
+                              ogTitle: true,
+                              ogDescription: true,
+                              ogImage: true,
+                              ogImageAlt: true,
+                              ogType: true,
+
+                              structuredData: true,
+                          },
+                      },
+                  },
+              })
+            : await prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [{ path }, { path: path.replace(/^\//, '') }],
+                  },
+                  select: {
+                      id: true,
+                      title: true,
+                      path: true,
+                      status: true,
+                      blocks: true,
+
+                      seo: {
+                          select: {
+                              metaTitle: true,
+                              metaDescription: true,
+                              canonicalUrl: true,
+
+                              robots: true,
+
+                              ogTitle: true,
+                              ogDescription: true,
+                              ogImage: true,
+                              ogImageAlt: true,
+                              ogType: true,
+
+                              structuredData: true,
+                          },
+                      },
+                  },
+              });
+
+    if (!page) {
+        notFound();
+    }
+
+    const currentPath = normalizePath(page.path || path);
+
+    const isTopbarPage = isSamePath(currentPath, '/topbar', 'topbar');
+    const isHeaderPage = isSamePath(currentPath, '/header', 'header');
+    const isFooterPage = isSamePath(currentPath, '/footer', 'footer');
+    const isWidgetPage = isSamePath(currentPath, '/widget', 'widget');
+
+    const [topbarPage, headerPage, footerPage, widgetPage] = await Promise.all([
+        isTopbarPage
+            ? Promise.resolve(null)
+            : prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [{ path: '/topbar' }, { path: 'topbar' }],
+                  },
+                  select: { blocks: true },
+              }),
+
+        isHeaderPage
+            ? Promise.resolve(null)
+            : prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [{ path: '/header' }, { path: 'header' }],
+                  },
+                  select: { blocks: true },
+              }),
+
+        isFooterPage
+            ? Promise.resolve(null)
+            : prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [{ path: '/footer' }, { path: 'footer' }],
+                  },
+                  select: { blocks: true },
+              }),
+
+        isWidgetPage
+            ? Promise.resolve(null)
+            : prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [{ path: '/widget' }, { path: 'widget' }],
+                  },
+                  select: { blocks: true },
+              }),
+    ]);
+
+    const topbarBlocks = Array.isArray(topbarPage?.blocks) ? (topbarPage.blocks as Block[]) : [];
+
+    const headerBlocks = Array.isArray(headerPage?.blocks) ? (headerPage.blocks as Block[]) : [];
+
+    const pageBlocks = Array.isArray(page.blocks) ? (page.blocks as Block[]) : [];
+
+    const footerBlocks = Array.isArray(footerPage?.blocks) ? (footerPage.blocks as Block[]) : [];
+
+    const widgetBlocks = Array.isArray(widgetPage?.blocks) ? (widgetPage.blocks as Block[]) : [];
+
+    let mergedBlocks: Block[] = [];
+
+    if (isTopbarPage) {
+        mergedBlocks = pageBlocks;
+    } else if (isHeaderPage) {
+        mergedBlocks = [...topbarBlocks, ...pageBlocks];
+    } else if (isFooterPage) {
+        mergedBlocks = [...topbarBlocks, ...headerBlocks, ...pageBlocks];
+    } else if (isWidgetPage) {
+        mergedBlocks = [...topbarBlocks, ...headerBlocks, ...footerBlocks, ...pageBlocks];
+    } else {
+        mergedBlocks = [
+            ...topbarBlocks,
+            ...headerBlocks,
+            ...pageBlocks,
+            ...footerBlocks,
+            ...widgetBlocks,
+        ];
+    }
+
+    return (
+        <div suppressHydrationWarning>
+            {page.seo?.structuredData && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(page.seo.structuredData),
+                    }}
+                />
+            )}
+            <RenderBlocksPublic
+                blocks={mergedBlocks}
+                productSlug={productSlug}
+                currentPath={path}
+                rawSegments={segments}
+            />
+        </div>
+    );
+}
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug?: string[] }>;
+}): Promise<Metadata> {
+    const { slug } = await params;
+
+    const segments = Array.isArray(slug) ? slug : [];
+
+    let path = normalizePath(segments.join('/'));
+
+    if (segments[0] === 'product-detail') {
+        path = '/product-detail';
+    }
+
+    const h = await headers();
+
+    const hostHeader = h.get('x-site-domain') ?? h.get('host') ?? '';
+
+    const domain = hostHeader.split(':')[0].toLowerCase();
+
+    const site = await prisma.site.findUnique({
+        where: {
+            domain,
+        },
+        select: {
             id: true,
-            title: true,
-            path: true,
-            status: true,
-            blocks: true,
-          },
-        })
-      : await prisma.page.findFirst({
-          where: {
-            siteId: site.id,
-            status: "PUBLISHED",
-            OR: [{ path }, { path: path.replace(/^\//, "") }],
-          },
-          select: {
-            id: true,
-            title: true,
-            path: true,
-            status: true,
-            blocks: true,
-          },
-        });
+        },
+    });
 
-  if (!page) {
-    notFound();
-  }
+    if (!site) {
+        return {};
+    }
 
-  const currentPath = normalizePath(page.path || path);
+    const page =
+        path === '/'
+            ? await prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [{ path: '/' }],
+                  },
 
-  const isTopbarPage = isSamePath(currentPath, "/topbar", "topbar");
-  const isHeaderPage = isSamePath(currentPath, "/header", "header");
-  const isFooterPage = isSamePath(currentPath, "/footer", "footer");
-  const isWidgetPage = isSamePath(currentPath, "/widget", "widget");
+                  select: {
+                      title: true,
+                      seo: true,
+                  },
+              })
+            : await prisma.page.findFirst({
+                  where: {
+                      siteId: site.id,
+                      status: 'PUBLISHED',
+                      OR: [
+                          { path },
+                          {
+                              path: path.replace(/^\//, ''),
+                          },
+                      ],
+                  },
 
-  const [topbarPage, headerPage, footerPage, widgetPage] = await Promise.all([
-    isTopbarPage
-      ? Promise.resolve(null)
-      : prisma.page.findFirst({
-          where: {
-            siteId: site.id,
-            status: "PUBLISHED",
-            OR: [{ path: "/topbar" }, { path: "topbar" }],
-          },
-          select: { blocks: true },
-        }),
+                  select: {
+                      title: true,
+                      seo: true,
+                  },
+              });
 
-    isHeaderPage
-      ? Promise.resolve(null)
-      : prisma.page.findFirst({
-          where: {
-            siteId: site.id,
-            status: "PUBLISHED",
-            OR: [{ path: "/header" }, { path: "header" }],
-          },
-          select: { blocks: true },
-        }),
+    if (!page) {
+        return {};
+    }
 
-    isFooterPage
-      ? Promise.resolve(null)
-      : prisma.page.findFirst({
-          where: {
-            siteId: site.id,
-            status: "PUBLISHED",
-            OR: [{ path: "/footer" }, { path: "footer" }],
-          },
-          select: { blocks: true },
-        }),
+    const seo = page.seo;
 
-    isWidgetPage
-      ? Promise.resolve(null)
-      : prisma.page.findFirst({
-          where: {
-            siteId: site.id,
-            status: "PUBLISHED",
-            OR: [{ path: "/widget" }, { path: "widget" }],
-          },
-          select: { blocks: true },
-        }),
-  ]);
+    const robots = seo?.robots ?? 'index,follow';
 
-  const topbarBlocks = Array.isArray(topbarPage?.blocks) ? (topbarPage.blocks as Block[]) : [];
+    return {
+        title: seo?.metaTitle ?? page.title,
 
-  const headerBlocks = Array.isArray(headerPage?.blocks) ? (headerPage.blocks as Block[]) : [];
+        description: seo?.metaDescription ?? undefined,
 
-  const pageBlocks = Array.isArray(page.blocks) ? (page.blocks as Block[]) : [];
+        alternates: {
+            canonical: seo?.canonicalUrl ?? undefined,
+        },
 
-  const footerBlocks = Array.isArray(footerPage?.blocks) ? (footerPage.blocks as Block[]) : [];
+        robots: {
+            index: !robots.includes('noindex'),
 
-  const widgetBlocks = Array.isArray(widgetPage?.blocks) ? (widgetPage.blocks as Block[]) : [];
+            follow: !robots.includes('nofollow'),
+        },
 
-  let mergedBlocks: Block[] = [];
+        openGraph: {
+            title: seo?.ogTitle ?? seo?.metaTitle ?? page.title,
 
-  if (isTopbarPage) {
-    mergedBlocks = pageBlocks;
-  } else if (isHeaderPage) {
-    mergedBlocks = [...topbarBlocks, ...pageBlocks];
-  } else if (isFooterPage) {
-    mergedBlocks = [...topbarBlocks, ...headerBlocks, ...pageBlocks];
-  } else if (isWidgetPage) {
-    mergedBlocks = [...topbarBlocks, ...headerBlocks, ...footerBlocks, ...pageBlocks];
-  } else {
-    mergedBlocks = [...topbarBlocks, ...headerBlocks, ...pageBlocks, ...footerBlocks, ...widgetBlocks];
-  }
+            description: seo?.ogDescription ?? seo?.metaDescription ?? undefined,
 
-  return (
-    <div suppressHydrationWarning>
-      <RenderBlocksPublic blocks={mergedBlocks} productSlug={productSlug} currentPath={path} rawSegments={segments} />
-    </div>
-  );
+            images: seo?.ogImage
+                ? [
+                      {
+                          url: seo.ogImage,
+
+                          alt: seo?.ogImageAlt ?? page.title,
+                      },
+                  ]
+                : [],
+        },
+
+        twitter: {
+            card: 'summary_large_image',
+
+            title: seo?.ogTitle ?? seo?.metaTitle ?? page.title,
+
+            description: seo?.ogDescription ?? seo?.metaDescription ?? undefined,
+
+            images: seo?.ogImage ? [seo.ogImage] : [],
+        },
+    };
 }

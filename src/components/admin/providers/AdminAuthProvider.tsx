@@ -5,19 +5,47 @@ import { createContext, useContext } from 'react';
 
 export type Site = {
     id: string;
+
     name: string;
+
     domain: string;
+
+    category?: string | null;
+
+    seoTitle?: string | null;
+
+    seoDescription?: string | null;
+
+    logoUrl?: string | null;
+
+    faviconUrl?: string | null;
+
+    contactEmail?: string | null;
+
+    contactPhone?: string | null;
+
     ownerUserId: string;
+
     status: string;
+
     isPublic: boolean;
+
     publishedAt: string | null;
+
     themeConfig: unknown;
+
     seoDescDefault: string | null;
+
     createdAt: string;
+
     updatedAt: string;
+
     deletedAt: string | null;
+
     createdByUserId: string | null;
+
     workspaceId: string;
+
     type: string;
 };
 

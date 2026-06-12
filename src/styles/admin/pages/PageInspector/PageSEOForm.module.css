@@ -1,0 +1,379 @@
+.seoCard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    height: 82vh;
+    overflow: auto;
+
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #d1d5db transparent;
+}
+
+/* Chrome, Edge, Safari */
+.seoCard::-webkit-scrollbar {
+    width: 6px;
+}
+
+.seoCard::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.seoCard::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 999px;
+}
+
+.seoCard::-webkit-scrollbar-thumb:hover {
+    background: #c4c9d1;
+}
+
+.section,
+.scoreCard,
+.previewCard {
+    background: #ffffff;
+    border: var(--bd-header);
+    border-radius: 8px;
+    padding: 12px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.section:hover,
+.scoreCard:hover,
+.previewCard:hover {
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 4px 12px rgba(37, 99, 235, 0.08),
+        0 16px 40px rgba(37, 99, 235, 0.08);
+}
+
+/* ========================================
+   SCORE
+======================================== */
+
+.scoreCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.scoreTitle {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #4d88fd;
+}
+
+.scoreSubtitle {
+    margin-top: 3px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.scoreBadge {
+    min-width: 100px;
+    height: 42px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* ========================================
+   TITLES
+======================================== */
+
+.sectionTitle {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #4d88fd;
+}
+
+/* ========================================
+   GRID
+======================================== */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+/* ========================================
+   FIELD
+======================================== */
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.field:last-child {
+    margin-bottom: 0;
+}
+
+.fieldHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.fieldHeader label,
+.field label {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.fieldHeader span {
+    font-size: 13px;
+
+    color: #6b7280;
+}
+
+/* ========================================
+   INPUT
+======================================== */
+
+.input,
+.select,
+.textarea {
+    width: 100%;
+    border: var(--bd-header);
+    background: #ffffff;
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.input,
+.select {
+    height: 42px;
+    padding: 0 14px;
+}
+
+.textarea {
+    min-height: 120px;
+
+    padding: 14px;
+
+    resize: vertical;
+
+    line-height: 1.6;
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+    border-color: #93c5fd;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: none;
+
+    border-color: #2563eb;
+
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* ========================================
+   PROGRESS BAR
+======================================== */
+
+.progress {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progressBar {
+    height: 100%;
+    background: linear-gradient(90deg, #83aaff, #c3ddfd);
+    border-radius: inherit;
+    transition: width 0.3s ease;
+}
+
+/* ========================================
+   GOOGLE PREVIEW
+======================================== */
+.googlePreviewHeader {
+    display: flex;
+    gap: 10px;
+}
+.googlePreview {
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.googleTitle {
+    font-size: 15px;
+    color: #1a0dab;
+    margin-bottom: 3px;
+    cursor: pointer;
+}
+
+.googleUrl {
+    color: #188038;
+    font-size: 14px;
+    margin-bottom: 3px;
+    word-break: break-all;
+}
+
+.googleDescription {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ========================================
+   OPEN GRAPH
+======================================== */
+
+.ogPreview {
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    margin-bottom: 12px;
+}
+
+.ogImage {
+    height: 260px;
+
+    background: #f3f4f6;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+.ogImage img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.ogImage span {
+    color: #9ca3af;
+}
+
+.ogContent {
+    padding: 12px;
+}
+
+.ogContent strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 3px;
+    color: #1a0dab;
+    font-weight: 400;
+}
+
+.ogContent p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ========================================
+   STRUCTURED DATA
+======================================== */
+
+.codeEditor {
+    width: 100%;
+
+    min-height: 320px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 14px;
+
+    background: #f9fafb;
+
+    color: #111827;
+
+    padding: 18px;
+
+    resize: vertical;
+
+    line-height: 1.8;
+
+    font-size: 14px;
+
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.codeEditor:focus {
+    outline: none;
+
+    border-color: #2563eb;
+
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .scoreCard {
+        flex-direction: column;
+
+        gap: 20px;
+
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .section,
+    .previewCard,
+    .scoreCard {
+        padding: 18px;
+    }
+
+    .sectionTitle {
+        font-size: 16px;
+    }
+
+    .googleTitle {
+        font-size: 18px;
+    }
+
+    .ogImage {
+        height: 200px;
+    }
+
+    .scoreBadge {
+        width: 90px;
+        height: 90px;
+
+        font-size: 20px;
+    }
+}

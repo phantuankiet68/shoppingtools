@@ -1,6 +1,7 @@
 // src/store/useBuilderPagesStore.ts
 'use client';
 
+import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
 import type { PageRowWithSite, SiteFilter } from '@/services/pages/builderPages.service';
 import {
     deletePage,
@@ -24,7 +25,7 @@ export function useBuilderPagesStore(init: {
     siteId: SiteFilter;
     activeId: string | null;
 }) {
-    const PAGE_SIZE = 7;
+    const PAGE_SIZE = 9;
 
     const [pages, setPages] = useState<PageRowWithSite[]>([]);
     const [loading, setLoading] = useState(false);
@@ -36,11 +37,7 @@ export function useBuilderPagesStore(init: {
     const [page, setPage] = useState<number>(init.page);
     const [total, setTotal] = useState<number>(0);
     const [activeId, setActiveId] = useState<string | null>(init.activeId);
-
-    const sites = useSiteStore((state) => state.sites);
-    const sitesLoading = useSiteStore((state) => state.loading);
-    const sitesErr = useSiteStore((state) => state.err);
-    const loadSites = useSiteStore((state) => state.loadSites);
+    const { sites = [] } = useAdminAuth();
 
     const [siteId, setSiteIdState] = useState<SiteFilter>(init.siteId ?? 'all');
 
@@ -127,8 +124,6 @@ export function useBuilderPagesStore(init: {
             sortKey,
             sortDir,
             sites,
-            sitesLoading,
-            sitesErr,
             siteId,
             page,
             total,
@@ -143,8 +138,6 @@ export function useBuilderPagesStore(init: {
             setSiteId,
             setPage,
             setActiveId,
-
-            loadSites,
             loadPages,
             remove,
             dup,
@@ -160,8 +153,6 @@ export function useBuilderPagesStore(init: {
             sortKey,
             sortDir,
             sites,
-            sitesLoading,
-            sitesErr,
             siteId,
             page,
             total,
@@ -169,7 +160,6 @@ export function useBuilderPagesStore(init: {
             activeId,
             active,
             setSiteId,
-            loadSites,
             loadPages,
             remove,
             dup,

@@ -455,108 +455,26 @@ const ja = {
         terms: '利用規約',
         newItem: '新商品',
         pageInspector: {
-            noDate: '(日付なし)',
-            loadSeoFailed: 'SEOデータの読み込みに失敗しました。',
-            newPage: '新しいページ',
-            autoSeoCompleted: '自動SEOの生成が完了しました。',
-            saveSeoFailed: 'SEOデータの保存に失敗しました。',
-            saveSeoSuccess: 'SEOを保存しました。',
-            saveSeoError: 'SEOの保存中にエラーが発生しました。',
-            missingSite: 'サイトがありません',
-            currentSiteNotFound: '現在のサイトが見つかりません。',
-            missingTitle: 'タイトルがありません',
-            pleaseEnterTitle: 'タイトルを入力してください。',
-            missingSlug: 'スラッグがありません',
-            pleaseEnterSlug: 'スラッグを入力してください。',
-            syncPageFailed: 'ページの同期に失敗しました。',
-            syncPageSuccess: 'ページの同期が完了しました。',
-            syncPageError: 'ページ同期中にエラーが発生しました。',
-            deletePageTitle: 'ページを削除',
-            deletePageConfirm: '"{title}" を削除してもよろしいですか？',
-            thisPage: 'このページ',
-
+            untitledPage: '無題ページ',
+            updated: '更新',
             preview: 'プレビュー',
-            delete: '削除',
-            sync: '同期',
             edit: '編集',
             autoSeo: '自動SEO',
-            saving: '保存中...',
-            saveSeo: 'SEOを保存',
-            unpublish: '公開解除',
             publish: '公開',
+            unpublish: '公開停止',
+            delete: '削除',
+            saveSeo: 'SEO保存',
+            saving: '保存中...',
+            autoSeoGenerating: 'SEOを自動生成中...',
+            autoSeoCompleted: 'SEOメタデータが正常に自動生成されました。',
+            autoSeoFailed: 'SEOの自動生成に失敗しました。',
 
-            untitled: '無題',
-            path: 'パス',
-            status: '状態',
-            published: '公開済み',
-            draft: '下書き',
-            updatedAt: '更新日時',
-            emptyState: 'ページを選択して詳細とSEO設定を確認してください。',
+            saveSeoSuccess: 'SEOを正常に保存しました。',
+            saveSeoFailed: 'SEOの保存に失敗しました。',
 
-            metaTitle: 'メタタイトル',
-            metaTitleRange: '/ 60–70',
-            titlePlaceholder: 'ページタイトルを入力',
-            ogTitle: 'OGタイトル',
-            twitterCard: 'Twitterカード',
-            choices: 'オプション',
-            noindex: 'インデックス禁止',
-            nofollow: 'リンク追跡禁止',
-
-            metaDescription: 'メタディスクリプション',
-            metaDescriptionRange: '/ 150–160',
-            metaDescriptionPlaceholder: 'メタディスクリプションを入力',
-            keywordsOptional: 'キーワード（任意）',
-            keywordsPlaceholder: 'キーワード1, キーワード2, キーワード3',
-            canonicalUrl: '正規URL',
-            canonicalUrlPlaceholder: 'https://example.com/your-page',
-
-            ogDescription: 'OG説明',
-            ogImageUrl: 'OG画像URL',
-            ogImageHelper: 'SNS共有用の推奨画像',
-            ogImagePlaceholder: 'https://...',
-
-            sitemapChangefreq: 'Sitemap更新頻度',
-            sitemapPriority: 'Sitemap優先度',
-            structuredData: '構造化データ',
-            structuredDataPlaceholder:
-                '{"@context":"https://schema.org","@type":"WebPage","name":"..."}',
-
-            syncModalTitle: 'ページを作成して同期',
-            close: '閉じる',
-            closeIcon: '✕',
-            site: 'サイト',
-            currentSite: '現在のサイト',
-            usingCurrentSite: '現在のサイトを使用中: "{site}"',
-            title: 'タイトル',
-            enterTitle: 'タイトルを入力',
-            slug: 'スラッグ',
-            slugPlaceholder: 'profile',
-            slugHelper: 'スラッグはページパスの生成に使用されます。',
-            pathPlaceholder: '/account/profile',
-            syncHintPrefix: 'この操作でページを',
-            createAndSync: '作成して同期',
-            syncHintSuffix: 'します。送信されるペイロードは以下です:',
-            syncing: '同期中...',
-
-            yourSiteId: 'your-site-id',
-            yourTitle: 'Your title',
-            slugExample: 'profile',
-            pathExample: '/account/profile',
-
-            twitterCardOptions: {
-                summaryLargeImage: '大きな画像付き要約',
-                summary: '要約',
-            },
-
-            changefreq: {
-                always: '常時',
-                hourly: '毎時',
-                daily: '毎日',
-                weekly: '毎週',
-                monthly: '毎月',
-                yearly: '毎年',
-                never: 'なし',
-            },
+            pagePublished: 'ページを正常に公開しました。',
+            pageUnpublished: 'ページを正常に非公開にしました。',
+            pageDeleted: 'ページを正常に削除しました。',
         },
     },
     adminEmail: {
@@ -1053,30 +971,258 @@ const ja = {
         },
     },
     seo: {
-        defaultTitle: '注目の商品',
+        defaultTitle: '新しいページ',
 
-        homeMetaTitle: '{siteName} - 簡単ショッピング、美しい商品、お得な価格',
-
-        homeMetaDescription:
-            '{siteName}では、美しい商品、お得な価格、快適なショッピング体験をすべてのデバイスで提供しています。',
+        homeMetaTitle: '{siteName} | {category}',
 
         pageMetaTitle: '{title} | {siteName}',
 
-        pageMetaDescription:
-            '{siteName}で{title}をご覧ください。分かりやすい情報、美しいデザイン、快適なショッピング体験を提供します。',
+        homeOgTitle: '{siteName} | {category}',
 
-        homeOgTitle: '{siteName} | 毎日お得なキャンペーン',
+        pageOgTitle: '{title} | {siteName}',
 
-        pageOgTitle: '{title} - {siteName}で今すぐチェック',
+        healthScore: 'SEOスコア',
+        healthScoreDescription: '検索エンジンでの表示を向上させるためにメタデータを改善します。',
 
-        homeOgDescription:
-            '{siteName}では、美しいUI、分かりやすいコンテンツ、お得なキャンペーンで快適にお買い物できます。',
+        googlePreview: 'Google検索プレビュー',
 
-        pageOgDescription:
-            '{siteName}で{title}の魅力的な情報と最適化されたショッピング体験をご確認ください。',
+        pageTitlePlaceholder: 'ページタイトル',
+        metaDescriptionPlaceholder: 'メタディスクリプションのプレビューがここに表示されます。',
 
-        keywords: 'オンラインショッピング, お得, セール, ECサイト',
+        metaInformation: 'メタ情報',
+
+        metaTitle: 'メタタイトル',
+        metaDescription: 'メタディスクリプション',
+
+        searchEngine: '検索エンジン',
+
+        focusKeyword: 'フォーカスキーワード',
+        canonicalUrl: '正規URL',
+        robots: 'Robots',
+        ogType: 'OGタイプ',
+
+        website: 'Webサイト',
+        article: '記事',
+        profile: 'プロフィール',
+
+        openGraphPreview: 'Open Graphプレビュー',
+
+        noImage: '画像なし',
+
+        ogTitle: 'OGタイトル',
+        ogImageUrl: 'OG画像URL',
+        ogDescription: 'OG説明',
+        ogImageAlt: 'OG画像Alt',
+
+        ogTitlePlaceholder: 'Open Graphタイトル',
+        ogDescriptionPlaceholder: 'Open Graph説明のプレビュー。',
+
+        sitemap: 'サイトマップ',
+
+        always: '常時',
+        hourly: '毎時',
+        daily: '毎日',
+        weekly: '毎週',
+        monthly: '毎月',
+        yearly: '毎年',
+        never: 'なし',
+
+        structuredData: '構造化データ',
+        categories: {
+            companyProfile: {
+                keywords: '会社,企業,会社概要,企業サービス',
+                description: '企業情報、サービス、プロジェクト、実績をご紹介します。',
+                ogDescription: '企業と主要サービスについて詳しくご覧ください。',
+            },
+
+            personalProfile: {
+                keywords: 'ポートフォリオ,プロフィール,自己紹介,職務経歴',
+                description: 'プロフィール、スキル、経験、実績をご紹介します。',
+                ogDescription: 'プロフィールと実績をご覧ください。',
+            },
+
+            portfolio: {
+                keywords: 'ポートフォリオ,プロジェクト,デザイン,実績',
+                description: 'プロジェクトや成果物、実績を紹介します。',
+                ogDescription: 'ポートフォリオと実績をご覧ください。',
+            },
+
+            agency: {
+                keywords: '代理店,マーケティング,デザイン,デジタルサービス',
+                description: 'クリエイティブなソリューションと専門サービスを提供します。',
+                ogDescription: 'サービス内容と実績をご覧ください。',
+            },
+
+            product: {
+                keywords: '製品,ソリューション,ソフトウェア,アプリケーション',
+                description: '高品質な製品と革新的なソリューションをご紹介します。',
+                ogDescription: '注目の製品をご覧ください。',
+            },
+
+            service: {
+                keywords: 'サービス,コンサルティング,ソリューション,専門サービス',
+                description: '高品質で信頼性の高いサービスを提供します。',
+                ogDescription: '提供サービスの詳細をご覧ください。',
+            },
+
+            restaurant: {
+                keywords: 'レストラン,グルメ,予約,美味しい料理',
+                description: '魅力的なメニューと素晴らしい食体験をご提供します。',
+                ogDescription: 'お席を予約して美味しい料理をお楽しみください。',
+            },
+
+            spa: {
+                keywords: 'スパ,スキンケア,マッサージ,美容',
+                description: '美容とリラクゼーションのための専門サービスです。',
+                ogDescription: 'スパ体験を今すぐご予約ください。',
+            },
+
+            realEstate: {
+                keywords: '不動産,住宅,マンション,物件',
+                description: '不動産情報や投資機会をご紹介します。',
+                ogDescription: '注目の不動産プロジェクトをご覧ください。',
+            },
+
+            event: {
+                keywords: 'イベント,カンファレンス,ワークショップ,参加登録',
+                description: 'イベント情報と参加方法をご案内します。',
+                ogDescription: '開催予定のイベントをご覧ください。',
+            },
+
+            techBlog: {
+                keywords: 'テクノロジー,プログラミング,ソフトウェア,AI',
+                description: '最新の技術情報と業界ニュースをお届けします。',
+                ogDescription: '技術記事や最新トレンドをご覧ください。',
+            },
+
+            travelBlog: {
+                keywords: '旅行,観光地レビュー,旅行ガイド',
+                description: '旅行体験やおすすめスポットをご紹介します。',
+                ogDescription: '魅力的な旅行先を発見しましょう。',
+            },
+
+            foodBlog: {
+                keywords: '料理,グルメ,レシピ',
+                description: '美味しいレシピや食の情報を共有します。',
+                ogDescription: '食の世界をお楽しみください。',
+            },
+
+            newsBlog: {
+                keywords: 'ニュース,時事,最新情報',
+                description: '最新ニュースや重要な出来事をお届けします。',
+                ogDescription: '最新情報をチェックしましょう。',
+            },
+
+            personalBlog: {
+                keywords: '個人ブログ,体験談,共有',
+                description: '個人的な経験や考えを共有します。',
+                ogDescription: 'ブログ記事をご覧ください。',
+            },
+
+            fashion: {
+                keywords: 'ファッション,衣類,ファッションショップ',
+                description: '高品質なファッション商品をお手頃価格で提供します。',
+                ogDescription: '最新のファッションコレクションをご覧ください。',
+            },
+
+            electronics: {
+                keywords: '電子機器,テクノロジー,ガジェット',
+                description: '最新の電子機器とテクノロジー製品を提供します。',
+                ogDescription: '最新のテクノロジー製品をご覧ください。',
+            },
+
+            books: {
+                keywords: '書籍,電子書籍,書店',
+                description: '幅広いジャンルの書籍をご提供します。',
+                ogDescription: '注目の書籍をご覧ください。',
+            },
+
+            digitalProducts: {
+                keywords: 'デジタル商品,テンプレート,電子書籍,ツール',
+                description: '高品質なデジタル商品を提供します。',
+                ogDescription: '人気のデジタル商品をご覧ください。',
+            },
+
+            food: {
+                keywords: '食品,グルメ,特産品',
+                description: '安全で高品質な食品をご提供します。',
+                ogDescription: '魅力的な食品をご覧ください。',
+            },
+
+            beauty: {
+                keywords: '美容,化粧品,スキンケア',
+                description: '美容とスキンケアの商品をご紹介します。',
+                ogDescription: 'おすすめの美容商品をご覧ください。',
+            },
+
+            hotel: {
+                keywords: 'ホテル,宿泊予約',
+                description: '便利で簡単なホテル予約サービス。',
+                ogDescription: '旅行に最適なホテルを探しましょう。',
+            },
+
+            homestay: {
+                keywords: 'ホームステイ,宿泊施設',
+                description: 'ユニークなホームステイ体験をご提供します。',
+                ogDescription: '魅力的なホームステイをご覧ください。',
+            },
+
+            clinic: {
+                keywords: 'クリニック,医師,医療',
+                description: '専門的な医療サービスをご提供します。',
+                ogDescription: '簡単に診療予約ができます。',
+            },
+
+            gym: {
+                keywords: 'ジム,フィットネス,トレーニング',
+                description: '健康増進とトレーニングのための施設です。',
+                ogDescription: 'フィットネスプログラムをご覧ください。',
+            },
+
+            carRental: {
+                keywords: 'レンタカー,旅行用車両,カーシェア',
+                description: '便利で迅速なレンタカーサービス。',
+                ogDescription: 'お得な料金でレンタカーを予約できます。',
+            },
+
+            onlineCourse: {
+                keywords: 'オンライン講座,eラーニング,オンライン学習',
+                description: '現代的なオンライン学習プラットフォームです。',
+                ogDescription: '質の高いオンライン講座をご覧ください。',
+            },
+
+            japaneseLearning: {
+                keywords: '日本語学習,JLPT,N5,N4,N3',
+                description: '初級から上級まで日本語を学べます。',
+                ogDescription: '日本語コースをご覧ください。',
+            },
+
+            englishLearning: {
+                keywords: '英語学習,IELTS,TOEIC',
+                description: '英語力を効果的に向上させます。',
+                ogDescription: '英語コースをご覧ください。',
+            },
+
+            school: {
+                keywords: '学校,教育,学習プログラム',
+                description: '質の高い教育環境と学習プログラムを提供します。',
+                ogDescription: '教育プログラムをご覧ください。',
+            },
+
+            trainingCenter: {
+                keywords: '研修センター,スキル開発,職業訓練',
+                description: '専門的な研修プログラムをご提供します。',
+                ogDescription: '研修コースをご覧ください。',
+            },
+
+            examPlatform: {
+                keywords: 'オンライン試験,試験対策,学力評価',
+                description: 'オンライン試験と学習評価のためのプラットフォーム。',
+                ogDescription: '効率的に試験対策を行えます。',
+            },
+        },
     },
+
     analytics: {
         monthlyRecapReport: '月次レポート',
         targetIncome: '収益目標',

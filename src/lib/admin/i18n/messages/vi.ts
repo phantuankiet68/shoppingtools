@@ -460,108 +460,26 @@ const vi = {
         terms: 'Điều khoản & Điều kiện',
         newItem: 'Mục mới',
         pageInspector: {
-            noDate: '(không có ngày)',
-            loadSeoFailed: 'Không thể tải dữ liệu SEO.',
-            newPage: 'Trang mới',
-            autoSeoCompleted: 'Tạo SEO tự động thành công.',
-            saveSeoFailed: 'Không thể lưu dữ liệu SEO.',
-            saveSeoSuccess: 'Lưu SEO thành công.',
-            saveSeoError: 'Đã xảy ra lỗi khi lưu SEO.',
-            missingSite: 'Thiếu website',
-            currentSiteNotFound: 'Không tìm thấy website hiện tại.',
-            missingTitle: 'Thiếu tiêu đề',
-            pleaseEnterTitle: 'Vui lòng nhập tiêu đề.',
-            missingSlug: 'Thiếu slug',
-            pleaseEnterSlug: 'Vui lòng nhập slug.',
-            syncPageFailed: 'Không thể đồng bộ trang.',
-            syncPageSuccess: 'Đồng bộ trang thành công.',
-            syncPageError: 'Đã xảy ra lỗi khi đồng bộ trang.',
-            deletePageTitle: 'Xóa trang',
-            deletePageConfirm: 'Bạn có chắc muốn xóa "{title}" không?',
-            thisPage: 'trang này',
-
+            untitledPage: 'Trang chưa có tiêu đề',
+            updated: 'Cập nhật',
             preview: 'Xem trước',
-            delete: 'Xóa',
-            sync: 'Đồng bộ',
             edit: 'Chỉnh sửa',
             autoSeo: 'SEO tự động',
-            saving: 'Đang lưu...',
-            saveSeo: 'Lưu SEO',
-            unpublish: 'Gỡ xuất bản',
             publish: 'Xuất bản',
+            unpublish: 'Gỡ xuất bản',
+            delete: 'Xóa',
+            saveSeo: 'Lưu SEO',
+            saving: 'Đang lưu...',
+            autoSeoGenerating: 'Đang tạo SEO...',
+            autoSeoCompleted: 'Tạo SEO tự động thành công.',
+            autoSeoFailed: 'Không thể tạo SEO tự động.',
 
-            untitled: 'Chưa có tiêu đề',
-            path: 'Đường dẫn',
-            status: 'Trạng thái',
-            published: 'Đã xuất bản',
-            draft: 'Bản nháp',
-            updatedAt: 'Cập nhật lúc',
-            emptyState: 'Hãy chọn một trang để xem chi tiết và chỉnh SEO.',
+            saveSeoSuccess: 'Lưu SEO thành công.',
+            saveSeoFailed: 'Không thể lưu SEO.',
 
-            metaTitle: 'Meta title',
-            metaTitleRange: '/ 60–70',
-            titlePlaceholder: 'Nhập tiêu đề trang',
-            ogTitle: 'OG title',
-            twitterCard: 'Twitter card',
-            choices: 'Tùy chọn',
-            noindex: 'noindex',
-            nofollow: 'nofollow',
-
-            metaDescription: 'Meta description',
-            metaDescriptionRange: '/ 150–160',
-            metaDescriptionPlaceholder: 'Nhập mô tả meta',
-            keywordsOptional: 'Từ khóa (tùy chọn)',
-            keywordsPlaceholder: 'từ khóa 1, từ khóa 2, từ khóa 3',
-            canonicalUrl: 'Canonical URL',
-            canonicalUrlPlaceholder: 'https://example.com/your-page',
-
-            ogDescription: 'OG description',
-            ogImageUrl: 'URL ảnh OG',
-            ogImageHelper: 'Ảnh đề xuất khi chia sẻ mạng xã hội',
-            ogImagePlaceholder: 'https://...',
-
-            sitemapChangefreq: 'Tần suất cập nhật sitemap',
-            sitemapPriority: 'Độ ưu tiên sitemap',
-            structuredData: 'Structured data',
-            structuredDataPlaceholder:
-                '{"@context":"https://schema.org","@type":"WebPage","name":"..."}',
-
-            syncModalTitle: 'Tạo và đồng bộ trang',
-            close: 'Đóng',
-            closeIcon: '✕',
-            site: 'Website',
-            currentSite: 'Website hiện tại',
-            usingCurrentSite: 'Đang dùng website hiện tại: "{site}"',
-            title: 'Tiêu đề',
-            enterTitle: 'Nhập tiêu đề',
-            slug: 'Slug',
-            slugPlaceholder: 'profile',
-            slugHelper: 'Slug được dùng để tạo đường dẫn trang.',
-            pathPlaceholder: '/account/profile',
-            syncHintPrefix: 'Thao tác này sẽ',
-            createAndSync: 'tạo và đồng bộ',
-            syncHintSuffix: 'trang vào website hiện tại với payload sau:',
-            syncing: 'Đang đồng bộ...',
-
-            yourSiteId: 'site-id-cua-ban',
-            yourTitle: 'Tiêu đề của bạn',
-            slugExample: 'profile',
-            pathExample: '/account/profile',
-
-            twitterCardOptions: {
-                summaryLargeImage: 'Ảnh lớn',
-                summary: 'Tóm tắt',
-            },
-
-            changefreq: {
-                always: 'Luôn luôn',
-                hourly: 'Hàng giờ',
-                daily: 'Hàng ngày',
-                weekly: 'Hàng tuần',
-                monthly: 'Hàng tháng',
-                yearly: 'Hàng năm',
-                never: 'Không bao giờ',
-            },
+            pagePublished: 'Xuất bản trang thành công.',
+            pageUnpublished: 'Gỡ xuất bản trang thành công.',
+            pageDeleted: 'Xóa trang thành công.',
         },
     },
     adminEmail: {
@@ -1038,30 +956,259 @@ const vi = {
         },
     },
     seo: {
-        defaultTitle: 'Sản phẩm nổi bật',
+        defaultTitle: 'Trang mới',
 
-        homeMetaTitle: '{siteName} - Mua sắm dễ dàng, sản phẩm đẹp và giá tốt',
-
-        homeMetaDescription:
-            'Khám phá {siteName} với nhiều sản phẩm đẹp, giá tốt, dễ chọn mua và tối ưu trải nghiệm trên mọi thiết bị.',
+        homeMetaTitle: '{siteName} | {category}',
 
         pageMetaTitle: '{title} | {siteName}',
 
-        pageMetaDescription:
-            'Khám phá {title} tại {siteName}. Thông tin rõ ràng, hình ảnh đẹp, trải nghiệm mua sắm mượt mà và dễ chuyển đổi.',
+        homeOgTitle: '{siteName} | {category}',
 
-        homeOgTitle: '{siteName} | Ưu đãi hấp dẫn mỗi ngày',
+        pageOgTitle: '{title} | {siteName}',
+        healthScore: 'Điểm SEO',
+        healthScoreDescription:
+            'Cải thiện metadata để tăng khả năng hiển thị trên công cụ tìm kiếm.',
 
-        pageOgTitle: '{title} - Xem ngay tại {siteName}',
+        googlePreview: 'Xem trước Google Search',
 
-        homeOgDescription:
-            'Mua sắm nhanh hơn với giao diện đẹp, nội dung rõ ràng và nhiều ưu đãi hấp dẫn tại {siteName}.',
+        pageTitlePlaceholder: 'Tiêu đề trang',
+        metaDescriptionPlaceholder: 'Phần xem trước mô tả meta sẽ hiển thị tại đây.',
 
-        pageOgDescription:
-            'Xem ngay {title} tại {siteName} với thông tin nổi bật, nội dung hấp dẫn và trải nghiệm mua sắm tối ưu.',
+        metaInformation: 'Thông tin Meta',
 
-        keywords: 'mua online, giá tốt, ưu đãi, shopping online',
+        metaTitle: 'Meta Title',
+        metaDescription: 'Meta Description',
+
+        searchEngine: 'Công cụ tìm kiếm',
+
+        focusKeyword: 'Từ khóa chính',
+        canonicalUrl: 'Canonical URL',
+        robots: 'Robots',
+        ogType: 'Loại Open Graph',
+
+        website: 'Website',
+        article: 'Bài viết',
+        profile: 'Hồ sơ',
+
+        openGraphPreview: 'Xem trước Open Graph',
+
+        noImage: 'Không có ảnh',
+
+        ogTitle: 'OG Title',
+        ogImageUrl: 'OG Image URL',
+        ogDescription: 'OG Description',
+        ogImageAlt: 'OG Image Alt',
+
+        ogTitlePlaceholder: 'Tiêu đề Open Graph',
+        ogDescriptionPlaceholder: 'Xem trước mô tả Open Graph.',
+
+        sitemap: 'Sitemap',
+
+        always: 'Luôn luôn',
+        hourly: 'Hàng giờ',
+        daily: 'Hàng ngày',
+        weekly: 'Hàng tuần',
+        monthly: 'Hàng tháng',
+        yearly: 'Hàng năm',
+        never: 'Không bao giờ',
+
+        structuredData: 'Dữ liệu có cấu trúc',
+        categories: {
+            companyProfile: {
+                keywords: 'công ty,doanh nghiệp,giới thiệu công ty,dịch vụ doanh nghiệp',
+                description: 'Khám phá thông tin doanh nghiệp, dịch vụ, dự án và năng lực nổi bật.',
+                ogDescription: 'Tìm hiểu thêm về doanh nghiệp và các dịch vụ nổi bật.',
+            },
+
+            personalProfile: {
+                keywords:
+                    'portfolio cá nhân,hồ sơ cá nhân,giới thiệu bản thân,kinh nghiệm làm việc',
+                description: 'Khám phá hồ sơ cá nhân, kỹ năng, kinh nghiệm và các dự án nổi bật.',
+                ogDescription: 'Xem thông tin cá nhân và các dự án nổi bật.',
+            },
+
+            portfolio: {
+                keywords: 'portfolio,dự án,thiết kế,sản phẩm nổi bật',
+                description: 'Tổng hợp các dự án, sản phẩm và thành tựu nổi bật.',
+                ogDescription: 'Khám phá portfolio và các dự án nổi bật.',
+            },
+
+            agency: {
+                keywords: 'agency,marketing,thiết kế,dịch vụ số',
+                description: 'Cung cấp giải pháp sáng tạo và dịch vụ chuyên nghiệp.',
+                ogDescription: 'Khám phá các dịch vụ và dự án tiêu biểu.',
+            },
+
+            product: {
+                keywords: 'sản phẩm,giải pháp,phần mềm,ứng dụng',
+                description: 'Khám phá các sản phẩm và giải pháp chất lượng cao.',
+                ogDescription: 'Tìm hiểu các sản phẩm nổi bật.',
+            },
+
+            service: {
+                keywords: 'dịch vụ,tư vấn,giải pháp,dịch vụ chuyên nghiệp',
+                description: 'Cung cấp dịch vụ chuyên nghiệp với chất lượng cao.',
+                ogDescription: 'Khám phá các dịch vụ nổi bật.',
+            },
+
+            restaurant: {
+                keywords: 'nhà hàng,ẩm thực,đặt bàn,món ăn ngon',
+                description: 'Khám phá thực đơn hấp dẫn và trải nghiệm ẩm thực tuyệt vời.',
+                ogDescription: 'Đặt bàn và thưởng thức các món ăn hấp dẫn.',
+            },
+
+            spa: {
+                keywords: 'spa,chăm sóc da,massage,làm đẹp',
+                description: 'Dịch vụ chăm sóc sắc đẹp và thư giãn chuyên nghiệp.',
+                ogDescription: 'Đặt lịch spa và trải nghiệm thư giãn.',
+            },
+
+            realEstate: {
+                keywords: 'bất động sản,nhà đất,mua bán nhà,căn hộ',
+                description: 'Thông tin bất động sản, dự án và cơ hội đầu tư.',
+                ogDescription: 'Khám phá các dự án bất động sản nổi bật.',
+            },
+
+            event: {
+                keywords: 'sự kiện,hội nghị,workshop,đăng ký sự kiện',
+                description: 'Thông tin chi tiết và đăng ký tham gia sự kiện.',
+                ogDescription: 'Khám phá các sự kiện nổi bật.',
+            },
+
+            techBlog: {
+                keywords: 'công nghệ,lập trình,phần mềm,AI',
+                description: 'Tin tức và kiến thức công nghệ mới nhất.',
+                ogDescription: 'Khám phá các bài viết công nghệ.',
+            },
+
+            travelBlog: {
+                keywords: 'du lịch,review địa điểm,kinh nghiệm du lịch',
+                description: 'Chia sẻ kinh nghiệm và hành trình khám phá.',
+                ogDescription: 'Khám phá các địa điểm du lịch hấp dẫn.',
+            },
+
+            foodBlog: {
+                keywords: 'ẩm thực,món ăn,công thức nấu ăn',
+                description: 'Chia sẻ món ăn ngon và bí quyết nấu ăn.',
+                ogDescription: 'Khám phá thế giới ẩm thực.',
+            },
+
+            newsBlog: {
+                keywords: 'tin tức,thời sự,cập nhật mới',
+                description: 'Tin tức và sự kiện mới nhất.',
+                ogDescription: 'Cập nhật thông tin mới nhất.',
+            },
+
+            personalBlog: {
+                keywords: 'blog cá nhân,chia sẻ,kinh nghiệm',
+                description: 'Chia sẻ góc nhìn và kinh nghiệm cá nhân.',
+                ogDescription: 'Khám phá các bài viết cá nhân.',
+            },
+
+            fashion: {
+                keywords: 'thời trang,quần áo,shop thời trang',
+                description: 'Mua sắm thời trang chất lượng với giá tốt.',
+                ogDescription: 'Khám phá bộ sưu tập thời trang mới nhất.',
+            },
+
+            electronics: {
+                keywords: 'điện tử,công nghệ,thiết bị điện tử',
+                description: 'Thiết bị điện tử chính hãng và hiện đại.',
+                ogDescription: 'Khám phá các sản phẩm công nghệ mới nhất.',
+            },
+
+            books: {
+                keywords: 'sách,ebook,nhà sách',
+                description: 'Kho sách đa dạng cho mọi đối tượng.',
+                ogDescription: 'Khám phá các đầu sách nổi bật.',
+            },
+
+            digitalProducts: {
+                keywords: 'digital product,template,ebook,tool',
+                description: 'Các sản phẩm số chất lượng cao.',
+                ogDescription: 'Khám phá các sản phẩm số nổi bật.',
+            },
+
+            food: {
+                keywords: 'thực phẩm,đồ ăn,đặc sản',
+                description: 'Thực phẩm chất lượng và an toàn.',
+                ogDescription: 'Khám phá các sản phẩm thực phẩm hấp dẫn.',
+            },
+
+            beauty: {
+                keywords: 'mỹ phẩm,làm đẹp,chăm sóc da',
+                description: 'Mỹ phẩm và sản phẩm chăm sóc sắc đẹp.',
+                ogDescription: 'Khám phá sản phẩm làm đẹp nổi bật.',
+            },
+
+            hotel: {
+                keywords: 'khách sạn,đặt phòng',
+                description: 'Đặt phòng khách sạn nhanh chóng và tiện lợi.',
+                ogDescription: 'Khám phá khách sạn phù hợp cho chuyến đi.',
+            },
+
+            homestay: {
+                keywords: 'homestay,lưu trú',
+                description: 'Đặt homestay với trải nghiệm độc đáo.',
+                ogDescription: 'Khám phá homestay hấp dẫn.',
+            },
+
+            clinic: {
+                keywords: 'phòng khám,bác sĩ',
+                description: 'Dịch vụ chăm sóc sức khỏe chuyên nghiệp.',
+                ogDescription: 'Đặt lịch khám nhanh chóng.',
+            },
+
+            gym: {
+                keywords: 'gym,fitness',
+                description: 'Trung tâm luyện tập và nâng cao sức khỏe.',
+                ogDescription: 'Khám phá các chương trình luyện tập.',
+            },
+
+            carRental: {
+                keywords: 'thuê xe,xe du lịch',
+                description: 'Dịch vụ thuê xe nhanh chóng và tiện lợi.',
+                ogDescription: 'Đặt xe dễ dàng với chi phí hợp lý.',
+            },
+
+            onlineCourse: {
+                keywords: 'khóa học online,học trực tuyến',
+                description: 'Nền tảng học trực tuyến hiện đại.',
+                ogDescription: 'Khám phá các khóa học chất lượng.',
+            },
+
+            japaneseLearning: {
+                keywords: 'học tiếng nhật,jlpt,n5,n4,n3',
+                description: 'Học tiếng Nhật từ cơ bản đến nâng cao.',
+                ogDescription: 'Khám phá các khóa học tiếng Nhật.',
+            },
+
+            englishLearning: {
+                keywords: 'học tiếng anh,ielts,toeic',
+                description: 'Nâng cao kỹ năng tiếng Anh hiệu quả.',
+                ogDescription: 'Khám phá các khóa học tiếng Anh.',
+            },
+
+            school: {
+                keywords: 'trường học,giáo dục',
+                description: 'Môi trường học tập chất lượng cao.',
+                ogDescription: 'Khám phá chương trình đào tạo.',
+            },
+
+            trainingCenter: {
+                keywords: 'trung tâm đào tạo,kỹ năng',
+                description: 'Các chương trình đào tạo chuyên sâu.',
+                ogDescription: 'Khám phá các khóa học đào tạo.',
+            },
+
+            examPlatform: {
+                keywords: 'thi trực tuyến,luyện thi',
+                description: 'Nền tảng luyện thi và đánh giá năng lực.',
+                ogDescription: 'Luyện thi hiệu quả và chuyên nghiệp.',
+            },
+        },
     },
+
     analytics: {
         monthlyRecapReport: 'Báo cáo tổng kết tháng',
         targetIncome: 'Mục tiêu doanh thu',

@@ -1,136 +1,223 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { ChangeFreq, Prisma } from '@/generated/prisma';
+import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 
-type SEO = {
-  metaTitle: string;
-  metaDescription: string;
-  keywords: string;
-  canonicalUrl: string;
-  noindex: boolean;
-  nofollow: boolean;
-  ogTitle: string;
-  ogDescription: string;
-  ogImage: string;
-  twitterCard: "summary" | "summary_large_image";
-  sitemapChangefreq: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
-  sitemapPriority: number;
-  structuredData: string;
+type Params = {
+    params: Promise<{
+        id: string;
+    }>;
 };
 
 type SEOInput = {
-  metaTitle?: string | null;
-  metaDescription?: string | null;
-  keywords?: string | null;
-  canonicalUrl?: string | null;
-  noindex?: boolean | null;
-  nofollow?: boolean | null;
-  ogTitle?: string | null;
-  ogDescription?: string | null;
-  ogImage?: string | null;
-  twitterCard?: "summary" | "summary_large_image" | null;
-  sitemapChangefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never" | null;
-  sitemapPriority?: number | null;
-  structuredData?: string | null;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
 
-  // fallback sources từ Page
-  title?: string;
-  seoTitle?: string | null;
-  seoDesc?: string | null;
+    canonicalUrl?: string | null;
+
+    robots?: string | null;
+
+    focusKeyword?: string | null;
+
+    ogTitle?: string | null;
+    ogDescription?: string | null;
+    ogImage?: string | null;
+    ogImageAlt?: string | null;
+    ogType?: string | null;
+
+    sitemapPriority?: number | null;
+    sitemapChangefreq?: ChangeFreq | null;
+
+    structuredData?: Prisma.InputJsonValue | null;
 };
 
-type SEOBody = { seo: Partial<SEO> };
+type SEOBody = {
+    seo?: SEOInput;
+};
 
-function buildSeoResponse(input: SEOInput): SEO {
-  const baseTitle = input.seoTitle ?? input.title ?? "";
-  const baseDesc = input.seoDesc ?? "";
+function validateSeo(seo: SEOInput) {
+    if (seo.metaTitle && seo.metaTitle.length > 70) {
+        throw new Error('Meta title must not exceed 70 characters');
+    }
 
-  return {
-    metaTitle: input.metaTitle ?? baseTitle,
-    metaDescription: input.metaDescription ?? baseDesc,
-    keywords: input.keywords ?? "",
-    canonicalUrl: input.canonicalUrl ?? "",
-    noindex: input.noindex ?? false,
-    nofollow: input.nofollow ?? false,
-    ogTitle: input.ogTitle ?? input.metaTitle ?? baseTitle,
-    ogDescription: input.ogDescription ?? input.metaDescription ?? baseDesc,
-    ogImage: input.ogImage ?? "",
-    twitterCard: input.twitterCard ?? "summary_large_image",
-    sitemapChangefreq: input.sitemapChangefreq ?? "weekly",
-    sitemapPriority: typeof input.sitemapPriority === "number" ? input.sitemapPriority : 0.7,
-    structuredData: input.structuredData ?? "",
-  };
+    if (seo.metaDescription && seo.metaDescription.length > 160) {
+        throw new Error('Meta description must not exceed 160 characters');
+    }
+
+    if (
+        seo.sitemapPriority !== undefined &&
+        seo.sitemapPriority !== null &&
+        (seo.sitemapPriority < 0 || seo.sitemapPriority > 1)
+    ) {
+        throw new Error('Sitemap priority must be between 0 and 1');
+    }
 }
 
-function validateStructuredData(s?: string) {
-  const t = (s ?? "").trim();
-  if (!t) return;
-  JSON.parse(t); // throw nếu invalid
+function buildSeo(title: string, seo: SEOInput) {
+    return {
+        metaTitle: seo.metaTitle ?? title,
+
+        metaDescription: seo.metaDescription ?? null,
+
+        canonicalUrl: seo.canonicalUrl ?? null,
+
+        robots: seo.robots ?? 'index,follow',
+
+        focusKeyword: seo.focusKeyword ?? null,
+
+        ogTitle: seo.ogTitle ?? seo.metaTitle ?? title,
+
+        ogDescription: seo.ogDescription ?? seo.metaDescription ?? null,
+
+        ogImage: seo.ogImage ?? null,
+
+        ogImageAlt: seo.ogImageAlt ?? null,
+
+        ogType: seo.ogType ?? 'website',
+
+        sitemapPriority: seo.sitemapPriority ?? 0.8,
+
+        sitemapChangefreq: seo.sitemapChangefreq ?? ChangeFreq.weekly,
+
+        structuredData: seo.structuredData ?? Prisma.JsonNull,
+    };
 }
 
-export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  const { id: pageId } = await ctx.params;
+export async function GET(_req: NextRequest, { params }: Params) {
+    try {
+        const { id: pageId } = await params;
 
-  const page = await prisma.page.findUnique({
-    where: { id: pageId },
-    select: { id: true, title: true, seoTitle: true, seoDesc: true },
-  });
+        const page = await prisma.page.findFirst({
+            where: {
+                id: pageId,
+                deletedAt: null,
+            },
 
-  if (!page) return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
+            select: {
+                id: true,
+                title: true,
 
-  const pageSeo = await prisma.pageSEO.findUnique({
-    where: { pageId },
-  });
+                seo: true,
+            },
+        });
 
-  const seo = buildSeoResponse({
-    title: page.title,
-    seoTitle: page.seoTitle,
-    seoDesc: page.seoDesc,
-    ...(pageSeo as unknown as SEOInput),
-  });
+        if (!page) {
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: 'Page not found',
+                },
+                {
+                    status: 404,
+                },
+            );
+        }
 
-  return NextResponse.json({ ok: true, seo }, { status: 200 });
+        return NextResponse.json({
+            ok: true,
+            seo: page.seo ?? buildSeo(page.title, {}),
+        });
+    } catch (error) {
+        console.error('[SEO_GET_ERROR]', error);
+
+        return NextResponse.json(
+            {
+                ok: false,
+                error: error instanceof Error ? error.message : 'Internal Server Error',
+            },
+            {
+                status: 500,
+            },
+        );
+    }
 }
 
-export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  const { id: pageId } = await ctx.params;
+export async function POST(req: NextRequest, { params }: Params) {
+    try {
+        const { id: pageId } = await params;
 
-  const body = (await req.json().catch(() => null)) as SEOBody | null;
-  const s = body?.seo;
-  if (!s) return NextResponse.json({ ok: false, error: "seo required" }, { status: 400 });
+        const body = (await req.json()) as SEOBody;
 
-  try {
-    validateStructuredData(s.structuredData);
-  } catch {
-    return NextResponse.json({ ok: false, error: "structuredData is invalid JSON" }, { status: 400 });
-  }
+        if (!body.seo) {
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: 'seo is required',
+                },
+                {
+                    status: 400,
+                },
+            );
+        }
 
-  const page = await prisma.page.findUnique({
-    where: { id: pageId },
-    select: { id: true, title: true, seoTitle: true, seoDesc: true },
-  });
-  if (!page) return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
+        validateSeo(body.seo);
 
-  const normalized: SEO = buildSeoResponse({
-    title: page.title,
-    seoTitle: page.seoTitle,
-    seoDesc: page.seoDesc,
-    ...(s as SEOInput),
-  });
+        const page = await prisma.page.findFirst({
+            where: {
+                id: pageId,
+                deletedAt: null,
+            },
 
-  const saved = await prisma.pageSEO.upsert({
-    where: { pageId },
-    create: { pageId, ...normalized },
-    update: { ...normalized },
-  });
+            select: {
+                id: true,
+                title: true,
+            },
+        });
 
-  await prisma.page.update({
-    where: { id: pageId },
-    data: {
-      seoTitle: normalized.metaTitle || null,
-      seoDesc: normalized.metaDescription || null,
-    },
-    select: { id: true },
-  });
+        if (!page) {
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: 'Page not found',
+                },
+                {
+                    status: 404,
+                },
+            );
+        }
 
-  return NextResponse.json({ ok: true, seo: normalized }, { status: 200 });
+        const seoData = buildSeo(page.title, body.seo);
+
+        const saved = await prisma.pageSEO.upsert({
+            where: {
+                pageId,
+            },
+
+            create: {
+                pageId,
+                ...seoData,
+            },
+
+            update: seoData,
+        });
+
+        return NextResponse.json({
+            ok: true,
+            seo: saved,
+        });
+    } catch (error) {
+        console.error('[SEO_SAVE_ERROR]', error);
+
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: error.message,
+                    code: error.code,
+                },
+                {
+                    status: 500,
+                },
+            );
+        }
+
+        return NextResponse.json(
+            {
+                ok: false,
+                error: error instanceof Error ? error.message : 'Internal Server Error',
+            },
+            {
+                status: 500,
+            },
+        );
+    }
 }
