@@ -101,15 +101,37 @@ export function useSiteActions({
             if (!active) return;
 
             try {
+                const formData = new FormData();
+
+                formData.append('name', form.name);
+                formData.append('domain', form.domain);
+
+                formData.append('type', form.type);
+                formData.append('category', form.category);
+
+                formData.append('contactEmail', form.contactEmail);
+                formData.append('contactPhone', form.contactPhone);
+
+                formData.append('seoTitle', form.seoTitle);
+                formData.append('seoDescription', form.seoDescription);
+
+                formData.append('status', form.status);
+
+                formData.append('isPublic', String(form.isPublic));
+
+                formData.append('publishedAt', form.publishedAt || '');
+
+                if (form.logoFile) {
+                    formData.append('logo', form.logoFile);
+                }
+
+                if (form.faviconFile) {
+                    formData.append('favicon', form.faviconFile);
+                }
+
                 const response = await fetch(`/api/admin/sites/${active.id}`, {
                     method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ...form,
-                        publishedAt: form.publishedAt || null,
-                    }),
+                    body: formData,
                 });
 
                 const data = await response.json();

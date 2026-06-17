@@ -280,7 +280,6 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                     <div className={styles.metaGrid}>
                         <div className={styles.metaBox}>
                             <span>{t('sites.form.created')}</span>
-
                             <strong>{formatDate(active.createdAt)}</strong>
                         </div>
                     </div>

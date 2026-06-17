@@ -9,6 +9,38 @@ type Params = {
     params: Promise<{ id: string }>;
 };
 
+async function ensureDir(dir: string) {
+    await fs.mkdir(dir, {
+        recursive: true,
+    });
+}
+
+async function removeOldFiles(uploadDir: string, prefix: string) {
+    try {
+        const files = await fs.readdir(uploadDir);
+
+        const targets = files.filter((file) => file.toLowerCase().startsWith(prefix.toLowerCase()));
+
+        for (const file of targets) {
+            try {
+                await fs.unlink(path.join(uploadDir, file));
+            } catch {}
+        }
+    } catch {}
+}
+
+async function deleteFileByUrl(fileUrl?: string | null) {
+    if (!fileUrl) return;
+
+    try {
+        const filePath = path.join(process.cwd(), 'public', fileUrl.replace(/^\/+/, ''));
+
+        await fs.unlink(filePath);
+    } catch (error) {
+        console.error('DELETE FILE ERROR:', error);
+    }
+}
+
 export async function PATCH(req: NextRequest, { params }: Params) {
     try {
         const { id } = await params;
@@ -38,17 +70,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
         const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'sites', id);
 
-        await fs.mkdir(uploadDir, {
-            recursive: true,
-        });
+        await ensureDir(uploadDir);
 
         let logoUrl = existingSite.logoUrl;
         let faviconUrl = existingSite.faviconUrl;
 
-        if (logoFile && logoFile.size > 0) {
-            const ext = path.extname(logoFile.name) || '.png';
+        if (logoFile?.size) {
+            await removeOldFiles(uploadDir, 'logo');
 
-            const fileName = `logo-${Date.now()}${ext}`;
+            const ext = path.extname(logoFile.name).toLowerCase() || '.png';
+
+            const fileName = `logo${ext}`;
 
             await fs.writeFile(
                 path.join(uploadDir, fileName),
@@ -58,10 +90,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
             logoUrl = `/uploads/sites/${id}/${fileName}`;
         }
 
-        if (faviconFile && faviconFile.size > 0) {
-            const ext = path.extname(faviconFile.name) || '.png';
+        if (faviconFile?.size) {
+            await removeOldFiles(uploadDir, 'favicon');
 
-            const fileName = `favicon-${Date.now()}${ext}`;
+            const ext = path.extname(faviconFile.name).toLowerCase() || '.png';
+
+            const fileName = `favicon${ext}`;
 
             await fs.writeFile(
                 path.join(uploadDir, fileName),
@@ -89,7 +123,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
                 category: String(formData.get('category') ?? '') || null,
 
                 logoUrl,
-
                 faviconUrl,
 
                 contactEmail: String(formData.get('contactEmail') ?? '') || null,
@@ -127,7 +160,42 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     try {
         const { id } = await params;
 
+        const site = await prisma.site.findUnique({
+            where: { id },
+            select: {
+                logoUrl: true,
+                faviconUrl: true,
+            },
+        });
+
+        if (!site) {
+            return NextResponse.json(
+                {
+                    message: 'Site not found',
+                },
+                { status: 404 },
+            );
+        }
+
+        await deleteFileByUrl(site.logoUrl);
+
+        await deleteFileByUrl(site.faviconUrl);
+
         await prisma.$transaction(async (tx) => {
+            await tx.pageSEO.deleteMany({
+                where: {
+                    page: {
+                        siteId: id,
+                    },
+                },
+            });
+
+            await tx.page.deleteMany({
+                where: {
+                    siteId: id,
+                },
+            });
+
             await tx.menuItem.deleteMany({
                 where: {
                     siteId: id,
@@ -139,6 +207,13 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
                     id,
                 },
             });
+        });
+
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'sites', id);
+
+        await fs.rm(uploadDir, {
+            recursive: true,
+            force: true,
         });
 
         return NextResponse.json({

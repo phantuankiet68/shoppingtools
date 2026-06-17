@@ -64,7 +64,7 @@ const CreateSchema = z.object({
     workspaceId: z.string().optional(),
 });
 
-async function nextSiteId(prefix = 'sitea') {
+async function nextSiteId(prefix = crypto.randomUUID().replace(/-/g, '')) {
     const rows = await prisma.site.findMany({
         where: { id: { startsWith: prefix } },
         select: { id: true },
@@ -155,8 +155,6 @@ export async function POST(req: NextRequest) {
 
         const localeKey = locale === 'vi' || locale === 'en' || locale === 'ja' ? locale : 'en';
 
-        console.log('locale', locale);
-
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -230,7 +228,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const id = await nextSiteId('sitea');
+        const id = await nextSiteId(crypto.randomUUID().replace(/-/g, ''));
 
         let logoUrl: string | null = null;
         let faviconUrl: string | null = null;
