@@ -38,15 +38,11 @@ export default function SiteTableRow({ site, activeId, t, setActiveId, setMode, 
                 </div>
 
                 <div>
-                    <div className={styles.siteName}>{site.name}</div>
+                    <div className={styles.siteName}>{site.domain}</div>
 
                     <div className={styles.siteId}>#{site.id.slice(0, 8)}</div>
                 </div>
             </div>
-
-            {/* Domain */}
-
-            <div className={styles.domainCell}>{site.domain}</div>
 
             {/* Status */}
 
@@ -70,7 +66,9 @@ export default function SiteTableRow({ site, activeId, t, setActiveId, setMode, 
 
             {/* Type */}
 
-            <div className={styles.dateCell}>{site.type ? t(`sites.types.${site.type}`) : '-'}</div>
+            <div className={`${styles.dateCell} no-width`}>
+                {site.type ? t(`sites.types.${site.type}`) : '-'}
+            </div>
 
             {/* Actions */}
 

@@ -27,6 +27,316 @@ const vi = {
     },
 
     sites: {
+        menu: {
+            home: 'Trang chủ',
+            about: 'Giới thiệu',
+            aboutUs: 'Về chúng tôi',
+            aboutMe: 'Về tôi',
+            aboutEvent: 'Giới thiệu sự kiện',
+            aboutSchool: 'Giới thiệu trường',
+
+            services: 'Dịch vụ',
+            service: 'Dịch vụ',
+
+            portfolio: 'Hồ sơ năng lực',
+            projects: 'Dự án',
+
+            team: 'Đội ngũ',
+            careers: 'Tuyển dụng',
+            news: 'Tin tức',
+            latestNews: 'Tin mới nhất',
+
+            contact: 'Liên hệ',
+
+            experience: 'Kinh nghiệm',
+            skills: 'Kỹ năng',
+
+            blog: 'Blog',
+            articles: 'Bài viết',
+
+            categories: 'Danh mục',
+            tutorials: 'Hướng dẫn',
+            reviews: 'Đánh giá',
+            resources: 'Tài nguyên',
+
+            destinations: 'Điểm đến',
+            travelGuides: 'Cẩm nang du lịch',
+            experiences: 'Trải nghiệm',
+            gallery: 'Thư viện ảnh',
+            tips: 'Mẹo',
+
+            recipes: 'Công thức',
+            restaurants: 'Nhà hàng',
+
+            politics: 'Chính trị',
+            business: 'Kinh doanh',
+            technology: 'Công nghệ',
+            sports: 'Thể thao',
+            world: 'Thế giới',
+
+            blogPosts: 'Bài đăng',
+            lifeStories: 'Câu chuyện cuộc sống',
+
+            features: 'Tính năng',
+            benefits: 'Lợi ích',
+            pricing: 'Bảng giá',
+            faq: 'Câu hỏi thường gặp',
+
+            menu: 'Thực đơn',
+            reservation: 'Đặt bàn',
+            booking: 'Đặt lịch',
+
+            events: 'Sự kiện',
+            packages: 'Gói dịch vụ',
+
+            properties: 'Bất động sản',
+            propertyMap: 'Bản đồ bất động sản',
+            agents: 'Môi giới',
+
+            schedule: 'Lịch trình',
+            speakers: 'Diễn giả',
+            sponsors: 'Nhà tài trợ',
+            tickets: 'Vé',
+
+            testimonials: 'Khách hàng nói gì',
+            clients: 'Khách hàng',
+            caseStudies: 'Dự án tiêu biểu',
+
+            newArrivals: 'Hàng mới',
+            men: 'Nam',
+            women: 'Nữ',
+            collections: 'Bộ sưu tập',
+            sale: 'Khuyến mãi',
+            cart: 'Giỏ hàng',
+
+            products: 'Sản phẩm',
+            brands: 'Thương hiệu',
+            deals: 'Ưu đãi',
+            support: 'Hỗ trợ',
+
+            books: 'Sách',
+            authors: 'Tác giả',
+            bestSellers: 'Bán chạy',
+            newReleases: 'Sách mới',
+
+            software: 'Phần mềm',
+            templates: 'Mẫu giao diện',
+            downloads: 'Tải xuống',
+
+            popularItems: 'Món phổ biến',
+            offers: 'Ưu đãi',
+            delivery: 'Giao hàng',
+
+            skincare: 'Chăm sóc da',
+            makeup: 'Trang điểm',
+
+            rooms: 'Phòng',
+            suites: 'Suite',
+            facilities: 'Tiện nghi',
+
+            doctors: 'Bác sĩ',
+            departments: 'Khoa phòng',
+            appointment: 'Đặt lịch khám',
+
+            specialDishes: 'Món đặc biệt',
+
+            programs: 'Chương trình',
+            classes: 'Lớp học',
+            trainers: 'Huấn luyện viên',
+            membership: 'Thành viên',
+
+            vehicles: 'Xe',
+            locations: 'Địa điểm',
+            insurance: 'Bảo hiểm',
+
+            courses: 'Khóa học',
+            instructors: 'Giảng viên',
+            learningPath: 'Lộ trình học',
+            certificates: 'Chứng chỉ',
+
+            vocabulary: 'Từ vựng',
+            kanji: 'Kanji',
+            grammar: 'Ngữ pháp',
+            mockTests: 'Đề thi thử',
+
+            speaking: 'Luyện nói',
+            practiceTests: 'Bài kiểm tra',
+
+            teachers: 'Giáo viên',
+            admissions: 'Tuyển sinh',
+
+            schedules: 'Lịch học',
+            certifications: 'Chứng nhận',
+            corporateTraining: 'Đào tạo doanh nghiệp',
+
+            exams: 'Kỳ thi',
+            rankings: 'Xếp hạng',
+            results: 'Kết quả',
+
+            jlptCourses: 'Khóa học JLPT',
+            therapists: 'Chuyên viên trị liệu',
+        },
+        menuPath: {
+            home: '/',
+
+            about: '/gioi-thieu',
+            aboutUs: '/gioi-thieu',
+            aboutMe: '/ve-toi',
+
+            services: '/dich-vu',
+            projects: '/du-an',
+
+            team: '/doi-ngu',
+            careers: '/tuyen-dung',
+
+            news: '/tin-tuc',
+            contact: '/lien-he',
+
+            experience: '/kinh-nghiem',
+            skills: '/ky-nang',
+
+            portfolio: '/ho-so-nang-luc',
+            blog: '/blog',
+
+            testimonials: '/cam-nhan-khach-hang',
+
+            caseStudies: '/du-an-tieu-bieu',
+            clients: '/khach-hang',
+
+            pricing: '/bang-gia',
+
+            features: '/tinh-nang',
+            benefits: '/loi-ich',
+
+            reviews: '/danh-gia',
+            faq: '/cau-hoi-thuong-gap',
+
+            menu: '/thuc-don',
+            gallery: '/thu-vien-anh',
+
+            reservation: '/dat-ban',
+            events: '/su-kien',
+
+            packages: '/goi-dich-vu',
+            booking: '/dat-lich',
+
+            properties: '/bat-dong-san',
+            propertyMap: '/ban-do-bat-dong-san',
+            agents: '/chuyen-vien-tu-van',
+
+            aboutEvent: '/gioi-thieu-su-kien',
+            schedule: '/lich-trinh',
+
+            speakers: '/dien-gia',
+            sponsors: '/nha-tai-tro',
+
+            tickets: '/ve',
+            articles: '/bai-viet',
+            categories: '/danh-muc',
+            tutorials: '/huong-dan',
+            resources: '/tai-nguyen',
+
+            destinations: '/dia-diem',
+            travelGuides: '/cam-nang-du-lich',
+            experiences: '/trai-nghiem',
+            tips: '/meo-hay',
+
+            recipes: '/cong-thuc',
+            restaurants: '/nha-hang',
+
+            latestNews: '/tin-moi-nhat',
+            politics: '/chinh-tri',
+            business: '/kinh-doanh',
+            technology: '/cong-nghe',
+            sports: '/the-thao',
+            world: '/the-gioi',
+
+            blogPosts: '/bai-dang',
+            lifeStories: '/cau-chuyen-cuoc-song',
+            newArrivals: '/san-pham-moi',
+            men: '/nam',
+            women: '/nu',
+            collections: '/bo-suu-tap',
+            sale: '/khuyen-mai',
+            cart: '/gio-hang',
+
+            products: '/san-pham',
+            brands: '/thuong-hieu',
+            deals: '/uu-dai',
+            support: '/ho-tro',
+
+            books: '/sach',
+            authors: '/tac-gia',
+            bestSellers: '/ban-chay',
+            newReleases: '/moi-phat-hanh',
+
+            software: '/phan-mem',
+            templates: '/mau-giao-dien',
+            downloads: '/tai-xuong',
+
+            popularItems: '/mon-noi-bat',
+            offers: '/uu-dai',
+            delivery: '/giao-hang',
+
+            skincare: '/cham-soc-da',
+            makeup: '/trang-diem',
+
+            rooms: '/phong',
+            suites: '/phong-cao-cap',
+            facilities: '/tien-nghi',
+
+            therapists: '/chuyen-vien-tri-lieu',
+
+            doctors: '/bac-si',
+            departments: '/khoa-phong',
+            appointment: '/dat-lich-kham',
+
+            specialDishes: '/mon-dac-biet',
+
+            programs: '/chuong-trinh',
+            classes: '/lop-hoc',
+            trainers: '/huan-luyen-vien',
+            membership: '/hoi-vien',
+
+            vehicles: '/xe',
+            locations: '/dia-diem',
+            insurance: '/bao-hiem',
+
+            courses: '/khoa-hoc',
+            instructors: '/giang-vien',
+            learningPath: '/lo-trinh-hoc',
+            certificates: '/chung-chi',
+
+            vocabulary: '/tu-vung',
+            kanji: '/kanji',
+            grammar: '/ngu-phap',
+            mockTests: '/de-thi-thu',
+
+            speaking: '/luyen-noi',
+            practiceTests: '/bai-thi-thu',
+
+            teachers: '/giao-vien',
+            aboutSchool: '/gioi-thieu-truong',
+            admissions: '/tuyen-sinh',
+
+            schedules: '/lich-hoc',
+            certifications: '/chung-nhan',
+            corporateTraining: '/dao-tao-doanh-nghiep',
+
+            exams: '/ky-thi',
+            rankings: '/xep-hang',
+            results: '/ket-qua',
+
+            jlptCourses: '/khoa-hoc-jlpt',
+        },
+
+        type: {
+            landing: 'Trang giới thiệu',
+            blog: 'Blog',
+            ecommerce: 'Thương mại điện tử',
+            booking: 'Đặt lịch',
+            lms: 'Học trực tuyến',
+        },
         form: {
             title: 'Biểu mẫu Website',
             sub: 'Quản lý website của bạn',
@@ -42,6 +352,20 @@ const vi = {
             createSite: 'Tạo Website',
             saveChanges: 'Lưu thay đổi',
             selectSite: 'Chọn một website',
+            category: 'Danh mục',
+            selectCategory: 'Chọn danh mục',
+
+            contactEmail: 'Email liên hệ',
+            contactPhone: 'Số điện thoại',
+
+            seoTitle: 'Tiêu đề SEO',
+            seoDescription: 'Mô tả SEO',
+
+            logo: 'Logo',
+            favicon: 'Favicon',
+
+            defaultMenus: 'Menu mặc định',
+            defaultPages: 'Trang mặc định',
         },
 
         table: {
@@ -103,6 +427,81 @@ const vi = {
             success: 'Thành công',
         },
         status: { draft: 'Bản nháp', active: 'Hoạt động', suspended: 'Tạm khóa' },
+
+        category: {
+            'Company Profile': 'Hồ sơ công ty',
+            'Personal Profile': 'Hồ sơ cá nhân',
+            Portfolio: 'Hồ sơ năng lực',
+            Agency: 'Công ty dịch vụ',
+            Product: 'Sản phẩm',
+            Service: 'Dịch vụ',
+            Restaurant: 'Nhà hàng',
+            Spa: 'Spa',
+            'Real Estate': 'Bất động sản',
+            Event: 'Sự kiện',
+
+            'Tech Blog': 'Blog công nghệ',
+            'Travel Blog': 'Blog du lịch',
+            'Food Blog': 'Blog ẩm thực',
+            'News Blog': 'Blog tin tức',
+            'Personal Blog': 'Blog cá nhân',
+
+            Fashion: 'Thời trang',
+            Electronics: 'Điện tử',
+            Books: 'Sách',
+            'Digital Products': 'Sản phẩm số',
+            Food: 'Thực phẩm',
+            Beauty: 'Làm đẹp',
+
+            Hotel: 'Khách sạn',
+            Homestay: 'Homestay',
+            Clinic: 'Phòng khám',
+            Gym: 'Phòng tập',
+            'Car Rental': 'Thuê xe',
+
+            'Online Course': 'Khóa học trực tuyến',
+            'Japanese Learning': 'Học tiếng Nhật',
+            'English Learning': 'Học tiếng Anh',
+            School: 'Trường học',
+            'Training Center': 'Trung tâm đào tạo',
+            'Exam Platform': 'Nền tảng thi trực tuyến',
+        },
+        seo: {
+            landing: {
+                title: '{name} | Website {category}',
+                description:
+                    '{name} cung cấp dịch vụ {category} chuyên nghiệp với giao diện hiện đại và thân thiện trên mọi thiết bị.',
+            },
+
+            ecommerce: {
+                title: '{name} | Mua {category} Trực Tuyến',
+                description:
+                    'Mua sắm các sản phẩm {category} chất lượng cao với thanh toán an toàn và giao hàng nhanh chóng.',
+            },
+
+            blog: {
+                title: '{name} | {category}',
+                description: 'Khám phá các bài viết, kiến thức và cập nhật mới nhất về {category}.',
+            },
+
+            booking: {
+                title: '{name} | Đặt {category} Trực Tuyến',
+                description: 'Đặt lịch {category} trực tuyến nhanh chóng và thuận tiện.',
+            },
+
+            lms: {
+                title: '{name} | Nền Tảng Học {category}',
+                description:
+                    'Nền tảng học tập tương tác về {category} với khóa học, theo dõi tiến độ và đánh giá kết quả.',
+            },
+        },
+        upload: {
+            upload: 'Tải lên',
+            dragAndDrop: 'Kéo thả hoặc nhấn để chọn ảnh',
+            success: 'Tải ảnh thành công',
+            change: 'Thay đổi',
+            remove: 'Xóa',
+        },
     },
     menus: {
         dashboard: 'Bảng điều khiển',

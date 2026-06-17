@@ -27,6 +27,317 @@ const en = {
     },
 
     sites: {
+        menu: {
+            home: 'Home',
+            about: 'About',
+            aboutUs: 'About Us',
+            aboutMe: 'About Me',
+            aboutEvent: 'About Event',
+            aboutSchool: 'About School',
+
+            services: 'Services',
+            service: 'Service',
+
+            portfolio: 'Portfolio',
+            projects: 'Projects',
+
+            team: 'Team',
+            careers: 'Careers',
+            news: 'News',
+            latestNews: 'Latest News',
+
+            contact: 'Contact',
+
+            experience: 'Experience',
+            skills: 'Skills',
+
+            blog: 'Blog',
+            articles: 'Articles',
+
+            categories: 'Categories',
+            tutorials: 'Tutorials',
+            reviews: 'Reviews',
+            resources: 'Resources',
+
+            destinations: 'Destinations',
+            travelGuides: 'Travel Guides',
+            experiences: 'Experiences',
+            gallery: 'Gallery',
+            tips: 'Tips',
+
+            recipes: 'Recipes',
+            restaurants: 'Restaurants',
+
+            politics: 'Politics',
+            business: 'Business',
+            technology: 'Technology',
+            sports: 'Sports',
+            world: 'World',
+
+            blogPosts: 'Blog Posts',
+            lifeStories: 'Life Stories',
+
+            features: 'Features',
+            benefits: 'Benefits',
+            pricing: 'Pricing',
+            faq: 'FAQ',
+
+            menu: 'Menu',
+            reservation: 'Reservation',
+            booking: 'Booking',
+
+            events: 'Events',
+            packages: 'Packages',
+
+            properties: 'Properties',
+            propertyMap: 'Property Map',
+            agents: 'Agents',
+
+            schedule: 'Schedule',
+            speakers: 'Speakers',
+            sponsors: 'Sponsors',
+            tickets: 'Tickets',
+
+            testimonials: 'Testimonials',
+            clients: 'Clients',
+            caseStudies: 'Case Studies',
+
+            newArrivals: 'New Arrivals',
+            men: 'Men',
+            women: 'Women',
+            collections: 'Collections',
+            sale: 'Sale',
+            cart: 'Cart',
+
+            products: 'Products',
+            brands: 'Brands',
+            deals: 'Deals',
+            support: 'Support',
+
+            books: 'Books',
+            authors: 'Authors',
+            bestSellers: 'Best Sellers',
+            newReleases: 'New Releases',
+
+            software: 'Software',
+            templates: 'Templates',
+            downloads: 'Downloads',
+
+            popularItems: 'Popular Items',
+            offers: 'Offers',
+            delivery: 'Delivery',
+
+            skincare: 'Skincare',
+            makeup: 'Makeup',
+
+            rooms: 'Rooms',
+            suites: 'Suites',
+            facilities: 'Facilities',
+
+            doctors: 'Doctors',
+            departments: 'Departments',
+            appointment: 'Appointment',
+
+            specialDishes: 'Special Dishes',
+
+            programs: 'Programs',
+            classes: 'Classes',
+            trainers: 'Trainers',
+            membership: 'Membership',
+
+            vehicles: 'Vehicles',
+            locations: 'Locations',
+            insurance: 'Insurance',
+
+            courses: 'Courses',
+            instructors: 'Instructors',
+            learningPath: 'Learning Path',
+            certificates: 'Certificates',
+
+            vocabulary: 'Vocabulary',
+            kanji: 'Kanji',
+            grammar: 'Grammar',
+            mockTests: 'Mock Tests',
+
+            speaking: 'Speaking',
+            practiceTests: 'Practice Tests',
+
+            teachers: 'Teachers',
+            admissions: 'Admissions',
+
+            schedules: 'Schedules',
+            certifications: 'Certifications',
+            corporateTraining: 'Corporate Training',
+
+            exams: 'Exams',
+            rankings: 'Rankings',
+            results: 'Results',
+
+            jlptCourses: 'JLPT Courses',
+            therapists: 'Therapists',
+        },
+
+        menuPath: {
+            home: '/',
+
+            about: '/about',
+            aboutUs: '/about-us',
+            aboutMe: '/about-me',
+
+            services: '/services',
+            projects: '/projects',
+
+            team: '/team',
+            careers: '/careers',
+
+            news: '/news',
+            contact: '/contact',
+
+            experience: '/experience',
+            skills: '/skills',
+
+            portfolio: '/portfolio',
+            blog: '/blog',
+
+            testimonials: '/testimonials',
+
+            caseStudies: '/case-studies',
+            clients: '/clients',
+
+            pricing: '/pricing',
+
+            features: '/features',
+            benefits: '/benefits',
+
+            reviews: '/reviews',
+            faq: '/faq',
+
+            menu: '/menu',
+            gallery: '/gallery',
+
+            reservation: '/reservation',
+            events: '/events',
+
+            packages: '/packages',
+            booking: '/booking',
+
+            properties: '/properties',
+            propertyMap: '/property-map',
+            agents: '/agents',
+
+            aboutEvent: '/about-event',
+            schedule: '/schedule',
+
+            speakers: '/speakers',
+            sponsors: '/sponsors',
+
+            tickets: '/tickets',
+            articles: '/articles',
+            categories: '/categories',
+            tutorials: '/tutorials',
+            resources: '/resources',
+
+            destinations: '/destinations',
+            travelGuides: '/travel-guides',
+            experiences: '/experiences',
+            tips: '/tips',
+
+            recipes: '/recipes',
+            restaurants: '/restaurants',
+
+            latestNews: '/latest-news',
+            politics: '/politics',
+            business: '/business',
+            technology: '/technology',
+            sports: '/sports',
+            world: '/world',
+
+            blogPosts: '/posts',
+            lifeStories: '/life-stories',
+            newArrivals: '/new-arrivals',
+            men: '/men',
+            women: '/women',
+            collections: '/collections',
+            sale: '/sale',
+            cart: '/cart',
+
+            products: '/products',
+            brands: '/brands',
+            deals: '/deals',
+            support: '/support',
+
+            books: '/books',
+            authors: '/authors',
+            bestSellers: '/best-sellers',
+            newReleases: '/new-releases',
+
+            software: '/software',
+            templates: '/templates',
+            downloads: '/downloads',
+
+            popularItems: '/popular-items',
+            offers: '/offers',
+            delivery: '/delivery',
+
+            skincare: '/skincare',
+            makeup: '/makeup',
+
+            rooms: '/rooms',
+            suites: '/suites',
+            facilities: '/facilities',
+
+            therapists: '/therapists',
+
+            doctors: '/doctors',
+            departments: '/departments',
+            appointment: '/appointment',
+
+            specialDishes: '/special-dishes',
+
+            programs: '/programs',
+            classes: '/classes',
+            trainers: '/trainers',
+            membership: '/membership',
+
+            vehicles: '/vehicles',
+            locations: '/locations',
+            insurance: '/insurance',
+
+            courses: '/courses',
+            instructors: '/instructors',
+            learningPath: '/learning-path',
+            certificates: '/certificates',
+
+            vocabulary: '/vocabulary',
+            kanji: '/kanji',
+            grammar: '/grammar',
+            mockTests: '/mock-tests',
+
+            speaking: '/speaking',
+            practiceTests: '/practice-tests',
+
+            teachers: '/teachers',
+            aboutSchool: '/about-school',
+            admissions: '/admissions',
+
+            schedules: '/schedules',
+            certifications: '/certifications',
+            corporateTraining: '/corporate-training',
+
+            exams: '/exams',
+            rankings: '/rankings',
+            results: '/results',
+
+            jlptCourses: '/jlpt-courses',
+        },
+
+        type: {
+            landing: 'Landing Page',
+            blog: 'Blog',
+            ecommerce: 'Ecommerce',
+            booking: 'Booking',
+            lms: 'Learning Platform',
+        },
         form: {
             title: 'Site Form',
             sub: 'Manage your website',
@@ -42,6 +353,16 @@ const en = {
             createSite: 'Create Site',
             saveChanges: 'Save Changes',
             selectSite: 'Select a site',
+            category: 'Category',
+            selectCategory: 'Select Category',
+            contactEmail: 'Contact Email',
+            contactPhone: 'Contact Phone',
+            seoTitle: 'SEO Title',
+            seoDescription: 'SEO Description',
+            logo: 'Logo',
+            favicon: 'Favicon',
+            defaultMenus: 'Default Menus',
+            defaultPages: 'Default Pages',
         },
 
         table: {
@@ -103,6 +424,81 @@ const en = {
             success: 'Success',
         },
         status: { draft: 'DRAFT', active: 'ACTIVE', suspended: 'SUSPENDED' },
+
+        category: {
+            'Company Profile': 'Company Profile',
+            'Personal Profile': 'Personal Profile',
+            Portfolio: 'Portfolio',
+            Agency: 'Agency',
+            Product: 'Product',
+            Service: 'Service',
+            Restaurant: 'Restaurant',
+            Spa: 'Spa',
+            'Real Estate': 'Real Estate',
+            Event: 'Event',
+
+            'Tech Blog': 'Tech Blog',
+            'Travel Blog': 'Travel Blog',
+            'Food Blog': 'Food Blog',
+            'News Blog': 'News Blog',
+            'Personal Blog': 'Personal Blog',
+
+            Fashion: 'Fashion',
+            Electronics: 'Electronics',
+            Books: 'Books',
+            'Digital Products': 'Digital Products',
+            Food: 'Food',
+            Beauty: 'Beauty',
+
+            Hotel: 'Hotel',
+            Homestay: 'Homestay',
+            Clinic: 'Clinic',
+            Gym: 'Gym',
+            'Car Rental': 'Car Rental',
+
+            'Online Course': 'Online Course',
+            'Japanese Learning': 'Japanese Learning',
+            'English Learning': 'English Learning',
+            School: 'School',
+            'Training Center': 'Training Center',
+            'Exam Platform': 'Exam Platform',
+        },
+        seo: {
+            landing: {
+                title: '{name} | {category} Website',
+                description:
+                    '{name} provides professional {category} services with a modern and responsive website experience.',
+            },
+
+            ecommerce: {
+                title: '{name} | Buy {category} Online',
+                description:
+                    'Shop high-quality {category} products online with secure payment and fast delivery.',
+            },
+
+            blog: {
+                title: '{name} | {category}',
+                description: 'Read the latest articles, insights and updates about {category}.',
+            },
+
+            booking: {
+                title: '{name} | Online {category} Booking',
+                description: 'Book {category} services online quickly and conveniently.',
+            },
+
+            lms: {
+                title: '{name} | {category} Learning Platform',
+                description:
+                    'Interactive {category} learning platform with courses, progress tracking and assessments.',
+            },
+        },
+        upload: {
+            upload: 'Upload',
+            dragAndDrop: 'Drag & Drop or click to browse',
+            success: 'Image uploaded successfully',
+            change: 'Change',
+            remove: 'Remove',
+        },
     },
     menus: {
         dashboard: 'Dashboard',

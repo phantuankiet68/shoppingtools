@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { FormErrors, SiteFormMode, SiteFormState, SiteLike } from '@/features/sites/types';
 
-import { SEO_BY_TYPE, WEBSITE_CATEGORIES } from '@/constants/sites/siteConstants';
+import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
+import { WEBSITE_CATEGORIES } from '@/constants/sites/siteConstants';
 import { buildSiteForm, normalizeDomain } from '@/utils/sites/siteHelpers';
 
 import {
@@ -32,6 +33,8 @@ export function useSiteForm({ active, mode, t, onCreate, onSave }: UseSiteFormPr
 
     const [errors, setErrors] = useState<FormErrors>({});
 
+    const { tf } = useAdminI18n();
+
     useEffect(() => {
         setForm(buildSiteForm(active));
 
@@ -41,45 +44,62 @@ export function useSiteForm({ active, mode, t, onCreate, onSave }: UseSiteFormPr
     const updateField = useCallback(
         <K extends keyof SiteFormState>(key: K, value: SiteFormState[K]) => {
             setForm((prev) => {
-                // Khi đổi Website Type
                 if (key === 'type') {
                     const type = value as SiteFormState['type'];
 
                     const categories = WEBSITE_CATEGORIES[type] || [];
                     const category = categories[0] ?? '';
 
-                    const seoTemplate = SEO_BY_TYPE[type];
-
                     return {
                         ...prev,
                         type,
                         category,
-                        seoTitle: seoTemplate?.title(prev.name, category) ?? '',
-                        seoDescription: seoTemplate?.description(prev.name, category) ?? '',
+
+                        seoTitle: tf(`sites.seo.${type}.title`, {
+                            name: prev.name,
+                            category,
+                        }),
+
+                        seoDescription: tf(`sites.seo.${type}.description`, {
+                            name: prev.name,
+                            category,
+                        }),
                     };
                 }
                 if (key === 'category') {
                     const category = value as string;
 
-                    const seoTemplate = SEO_BY_TYPE[prev.type];
-
                     return {
                         ...prev,
                         category,
-                        seoTitle: seoTemplate?.title(prev.name, category) ?? '',
-                        seoDescription: seoTemplate?.description(prev.name, category) ?? '',
+
+                        seoTitle: tf(`sites.seo.${prev.type}.title`, {
+                            name: prev.name,
+                            category,
+                        }),
+
+                        seoDescription: tf(`sites.seo.${prev.type}.description`, {
+                            name: prev.name,
+                            category,
+                        }),
                     };
                 }
                 if (key === 'name') {
                     const name = value as string;
 
-                    const seoTemplate = SEO_BY_TYPE[prev.type];
-
                     return {
                         ...prev,
                         name,
-                        seoTitle: seoTemplate?.title(name, prev.category) ?? '',
-                        seoDescription: seoTemplate?.description(name, prev.category) ?? '',
+
+                        seoTitle: tf(`sites.seo.${prev.type}.title`, {
+                            name,
+                            category: prev.category,
+                        }),
+
+                        seoDescription: tf(`sites.seo.${prev.type}.description`, {
+                            name,
+                            category: prev.category,
+                        }),
                     };
                 }
 

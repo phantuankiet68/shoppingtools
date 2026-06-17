@@ -72,10 +72,6 @@ export function useSiteActions({
 
                 const data = await response.json().catch(() => ({}));
 
-                console.log('CREATE STATUS', response.status);
-
-                console.log('CREATE RESPONSE', data);
-
                 if (!response.ok) {
                     throw new Error(data.error || 'Create site failed');
                 }

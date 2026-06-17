@@ -1,8 +1,8 @@
 'use client';
 
-import { ChangeEvent, DragEvent, useEffect, useRef, useState } from 'react';
-
+import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 import styles from '@/styles/admin/sites/sites.module.css';
+import { ChangeEvent, DragEvent, useEffect, useRef, useState } from 'react';
 
 type Props = {
     type: 'logo' | 'favicon';
@@ -18,6 +18,8 @@ export default function SiteImageUploader({ type, value, disabled, onUploaded }:
     const inputRef = useRef<HTMLInputElement>(null);
 
     const [preview, setPreview] = useState(value || '');
+
+    const { t } = useAdminI18n();
 
     useEffect(() => {
         setPreview(value || '');
@@ -66,9 +68,12 @@ export default function SiteImageUploader({ type, value, disabled, onUploaded }:
                 >
                     <i className="bi bi-cloud-arrow-up" />
 
-                    <h4>Upload {type}</h4>
+                    <h4>
+                        {t('sites.upload.upload')}{' '}
+                        {type === 'logo' ? t('sites.form.logo') : t('sites.form.favicon')}
+                    </h4>
 
-                    <p>Drag & Drop or click to browse</p>
+                    <p>{t('sites.upload.dragAndDrop')}</p>
                 </div>
             ) : (
                 <div className={styles.previewCard}>
@@ -78,10 +83,10 @@ export default function SiteImageUploader({ type, value, disabled, onUploaded }:
 
                     <div className={styles.previewContent}>
                         <span className={styles.previewLabel}>
-                            {type === 'logo' ? 'Logo' : 'Favicon'}
+                            {type === 'logo' ? t('sites.form.logo') : t('sites.form.favicon')}
                         </span>
 
-                        <span className={styles.previewFile}>Image uploaded successfully</span>
+                        <span className={styles.previewFile}>{t('sites.upload.success')}</span>
 
                         <div className={styles.previewActions}>
                             <button
@@ -90,7 +95,8 @@ export default function SiteImageUploader({ type, value, disabled, onUploaded }:
                                 onClick={() => inputRef.current?.click()}
                             >
                                 <i className="bi bi-pencil-square" />
-                                Change
+
+                                {t('sites.upload.change')}
                             </button>
 
                             <button
@@ -99,7 +105,8 @@ export default function SiteImageUploader({ type, value, disabled, onUploaded }:
                                 onClick={() => setPreview('')}
                             >
                                 <i className="bi bi-trash3" />
-                                Remove
+
+                                {t('sites.upload.remove')}
                             </button>
                         </div>
                     </div>

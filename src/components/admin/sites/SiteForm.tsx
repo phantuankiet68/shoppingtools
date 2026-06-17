@@ -12,6 +12,8 @@ import { SiteFormMode, SiteFormState, SiteLike } from '@/features/sites/types';
 import { useSiteForm } from '@/hooks/sites/useSiteForm';
 import { formatDate } from '@/utils/sites/siteHelpers';
 
+import { getPageTemplate } from '@/utils/pages/pageHelpers';
+
 type Props = {
     active?: SiteLike | null;
 
@@ -25,7 +27,7 @@ type Props = {
 };
 
 const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
-    const { t } = useAdminI18n();
+    const { t, tf } = useAdminI18n();
 
     const { form, errors, updateField, resetForm, submit } = useSiteForm({
         active,
@@ -38,6 +40,8 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
     const categoryOptions = WEBSITE_CATEGORIES[form.type] || [];
 
     const menuPreview = MENU_TEMPLATES[form.type]?.[form.category] ?? [];
+
+    const pagePreview = getPageTemplate(form.type, form.category);
 
     return (
         <div className={styles.form}>
@@ -99,16 +103,20 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                             disabled={busy}
                             onChange={(e) => updateField('type', e.target.value as any)}
                         >
-                            <option value="landing">Landing</option>
-                            <option value="blog">Blog</option>
-                            <option value="ecommerce">Ecommerce</option>
-                            <option value="booking">Booking</option>
-                            <option value="lms">LMS</option>
+                            <option value="landing">{t('sites.type.landing')}</option>
+
+                            <option value="blog">{t('sites.type.blog')}</option>
+
+                            <option value="ecommerce">{t('sites.type.ecommerce')}</option>
+
+                            <option value="booking">{t('sites.type.booking')}</option>
+
+                            <option value="lms">{t('sites.type.lms')}</option>
                         </select>
                     </div>
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.label}>Category</label>
+                    <label className={styles.label}>{t('sites.form.category')}</label>
 
                     <div className={styles.selectWrap}>
                         <i className="bi bi-tags" />
@@ -118,11 +126,11 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                             value={form.category}
                             onChange={(e) => updateField('category', e.target.value)}
                         >
-                            <option value="">Select Category</option>
+                            <option value="">{t('sites.form.selectCategory')}</option>
 
                             {categoryOptions.map((item) => (
                                 <option key={item} value={item}>
-                                    {item}
+                                    {t(`sites.category.${item}`)}
                                 </option>
                             ))}
                         </select>
@@ -130,7 +138,7 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                 </div>
                 <div className={styles.formGrid}>
                     <div className={styles.formGroup}>
-                        <label className={styles.label}>Contact Email</label>
+                        <label className={styles.label}>{t('sites.form.contactEmail')}</label>
 
                         <div className={styles.inputWrap}>
                             <i className="bi bi-envelope" />
@@ -146,7 +154,7 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label className={styles.label}>Contact Phone</label>
+                        <label className={styles.label}>{t('sites.form.contactPhone')}</label>
 
                         <div className={styles.inputWrap}>
                             <i className="bi bi-telephone" />
@@ -173,15 +181,17 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                                     disabled={busy}
                                     onChange={(e) => updateField('status', e.target.value as any)}
                                 >
-                                    <option value="DRAFT">Draft</option>
-                                    <option value="ACTIVE">Active</option>
-                                    <option value="SUSPENDED">Suspended</option>
+                                    <option value="DRAFT">{t('sites.status.draft')}</option>
+
+                                    <option value="ACTIVE">{t('sites.status.active')}</option>
+
+                                    <option value="SUSPENDED">{t('sites.status.suspended')}</option>
                                 </select>
                             </div>
                         </div>
 
                         <div className={styles.formGroup}>
-                            <label className={styles.label}>Published At</label>
+                            <label className={styles.label}>{t('sites.form.publishedAt')}</label>
 
                             <div className={styles.inputWrap}>
                                 <i className="bi bi-calendar-event" />
@@ -208,19 +218,10 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                         <label htmlFor="is-public">{t('sites.form.publicSite')}</label>
                     </div>
                 </div>
-                {mode === 'edit' && active && (
-                    <div className={styles.metaGrid}>
-                        <div className={styles.metaBox}>
-                            <span>{t('sites.form.created')}</span>
-
-                            <strong>{formatDate(active.createdAt)}</strong>
-                        </div>
-                    </div>
-                )}
             </div>
             <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                    <label className={styles.label}>SEO Title</label>
+                    <label className={styles.label}>{t('sites.form.seoTitle')}</label>
 
                     <div className={styles.inputWrap}>
                         <i className="bi bi-card-heading" />
@@ -235,7 +236,7 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                 </div>
 
                 <div className={styles.formGroup}>
-                    <label className={styles.label}>SEO Description</label>
+                    <label className={styles.label}>{t('sites.form.seoDescription')}</label>
 
                     <div className={styles.textareaWrap}>
                         <i className="bi bi-text-paragraph" />
@@ -244,13 +245,13 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                             className={styles.textarea}
                             value={form.seoDescription}
                             disabled={busy}
-                            rows={4}
+                            rows={6}
                             onChange={(e) => updateField('seoDescription', e.target.value)}
                         />
                     </div>
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.label}>Logo</label>
+                    <label className={styles.label}>{t('sites.form.logo')}</label>
                     <SiteImageUploader
                         type="logo"
                         value={form.logoUrl}
@@ -263,7 +264,7 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                 </div>
 
                 <div className={styles.formGroup}>
-                    <label className={styles.label}>Favicon</label>
+                    <label className={styles.label}>{t('sites.form.favicon')}</label>
 
                     <SiteImageUploader
                         type="favicon"
@@ -275,21 +276,46 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                         }}
                     />
                 </div>
-                <div className={styles.formGroup}>
-                    <label className={styles.label}>Default Menus</label>
+                {mode === 'edit' && active && (
+                    <div className={styles.metaGrid}>
+                        <div className={styles.metaBox}>
+                            <span>{t('sites.form.created')}</span>
 
-                    <div className={styles.menuPreview}>
-                        {menuPreview.map((menu) => (
-                            <div key={menu.path} className={styles.menuPreviewItem}>
-                                <i className={`bi ${menu.icon}`} />
-
-                                <span>{menu.title}</span>
-                            </div>
-                        ))}
+                            <strong>{formatDate(active.createdAt)}</strong>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
             <div className={styles.formRow}>
+                <div className={styles.formGrid}>
+                    {/* Default Pages */}
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>{t('sites.form.defaultPages')}</label>
+
+                        <div className={styles.pagePreview}>
+                            {pagePreview.map((page) => (
+                                <div key={page.path} className={styles.menuPreviewItem}>
+                                    <i className="bi bi-file-earmark-text" />
+
+                                    <div className={styles.menuPreviewItemContent}>
+                                        <span>{page.title}</span>
+
+                                        <small>{page.path}</small>
+                                    </div>
+                                </div>
+                            ))}
+                            {menuPreview.map((menu) => (
+                                <div key={menu.path} className={styles.menuPreviewItem}>
+                                    <i className={`bi ${menu.icon}`} />
+
+                                    <span>{t(menu.title)}</span>
+
+                                    <small>{t(menu.path)}</small>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
                 <div className={styles.formActions}>
                     <button
                         type="button"

@@ -89,60 +89,28 @@ export default function SitesPage() {
         reachedSiteLimit,
     });
 
-    const handleCreateMode = useCallback(() => {
-        if (reachedSiteLimit) {
-            modal.error(
-                t('sites.messages.planLimitTitle'),
-                t('sites.messages.planLimitDesc').replace('{count}', String(maxSites)),
-            );
-
-            return;
-        }
-
-        setActiveId('');
-
-        setMode('create');
-    }, [reachedSiteLimit, maxSites, modal, setActiveId, t]);
-
     return (
         <div className={styles.shell}>
             <div className={styles.page}>
                 <aside className={styles.detail}>
                     <div className={styles.panel}>
                         <div className={styles.panelHeader}>
-                            <div>
-                                <div className={styles.panelTitle}>{t('sites.form.title')}</div>
+                            <div className={styles.panelTitle}>{t('sites.form.title')}</div>
 
-                                <div className={styles.panelSub}>
-                                    {t('sites.form.sub')} ({currentSiteCount}/{maxSites})
-                                </div>
+                            <div className={styles.panelSub}>
+                                {t('sites.form.sub')} ({currentSiteCount}/{maxSites})
                             </div>
-
-                            <button
-                                className={`${styles.newBtn} ${
-                                    reachedSiteLimit ? styles.newBtnDisabled : ''
-                                }`}
-                                onClick={handleCreateMode}
-                            >
-                                <i className="bi bi-plus-lg" />
-
-                                {t('sites.table.newSite')}
-                            </button>
                         </div>
 
                         <div className={styles.panelBody}>
-                            {mode === 'edit' && !active ? (
-                                <div className={styles.empty}>{t('sites.form.selectSite')}</div>
-                            ) : (
-                                <SiteForm
-                                    key={`${mode}-${active?.id ?? 'new'}`}
-                                    mode={mode}
-                                    active={active}
-                                    busy={busy}
-                                    onSave={handleSave}
-                                    onCreate={handleCreate}
-                                />
-                            )}
+                            <SiteForm
+                                key={`${mode}-${active?.id ?? 'new'}`}
+                                mode={mode}
+                                active={active}
+                                busy={busy}
+                                onSave={handleSave}
+                                onCreate={handleCreate}
+                            />
                         </div>
                     </div>
                 </aside>

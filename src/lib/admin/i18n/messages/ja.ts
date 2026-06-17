@@ -26,6 +26,317 @@ const ja = {
         dec: '12月',
     },
     sites: {
+        menu: {
+            home: 'ホーム',
+            about: '会社概要',
+            aboutUs: '私たちについて',
+            aboutMe: 'プロフィール',
+            aboutEvent: 'イベント概要',
+            aboutSchool: '学校紹介',
+
+            services: 'サービス',
+            service: 'サービス',
+
+            portfolio: 'ポートフォリオ',
+            projects: 'プロジェクト',
+
+            team: 'チーム',
+            careers: '採用情報',
+            news: 'ニュース',
+            latestNews: '最新ニュース',
+
+            contact: 'お問い合わせ',
+
+            experience: '経歴',
+            skills: 'スキル',
+
+            blog: 'ブログ',
+            articles: '記事',
+
+            categories: 'カテゴリー',
+            tutorials: 'チュートリアル',
+            reviews: 'レビュー',
+            resources: 'リソース',
+
+            destinations: '旅行先',
+            travelGuides: '旅行ガイド',
+            experiences: '体験',
+            gallery: 'ギャラリー',
+            tips: 'ヒント',
+
+            recipes: 'レシピ',
+            restaurants: 'レストラン',
+
+            politics: '政治',
+            business: 'ビジネス',
+            technology: 'テクノロジー',
+            sports: 'スポーツ',
+            world: '世界',
+
+            blogPosts: 'ブログ記事',
+            lifeStories: '人生の物語',
+
+            features: '機能',
+            benefits: 'メリット',
+            pricing: '料金',
+            faq: 'よくある質問',
+
+            menu: 'メニュー',
+            reservation: '予約',
+            booking: '予約',
+
+            events: 'イベント',
+            packages: 'プラン',
+
+            properties: '物件',
+            propertyMap: '物件マップ',
+            agents: 'エージェント',
+
+            schedule: 'スケジュール',
+            speakers: '登壇者',
+            sponsors: 'スポンサー',
+            tickets: 'チケット',
+
+            testimonials: 'お客様の声',
+            clients: '顧客',
+            caseStudies: '導入事例',
+
+            newArrivals: '新着商品',
+            men: 'メンズ',
+            women: 'レディース',
+            collections: 'コレクション',
+            sale: 'セール',
+            cart: 'カート',
+
+            products: '商品',
+            brands: 'ブランド',
+            deals: '特典',
+            support: 'サポート',
+
+            books: '書籍',
+            authors: '著者',
+            bestSellers: 'ベストセラー',
+            newReleases: '新刊',
+
+            software: 'ソフトウェア',
+            templates: 'テンプレート',
+            downloads: 'ダウンロード',
+
+            popularItems: '人気商品',
+            offers: 'キャンペーン',
+            delivery: '配送',
+
+            skincare: 'スキンケア',
+            makeup: 'メイクアップ',
+
+            rooms: '客室',
+            suites: 'スイート',
+            facilities: '施設',
+
+            doctors: '医師',
+            departments: '診療科',
+            appointment: '予約',
+
+            specialDishes: 'おすすめ料理',
+
+            programs: 'プログラム',
+            classes: 'クラス',
+            trainers: 'トレーナー',
+            membership: '会員',
+
+            vehicles: '車両',
+            locations: '店舗',
+            insurance: '保険',
+
+            courses: 'コース',
+            instructors: '講師',
+            learningPath: '学習パス',
+            certificates: '認定証',
+
+            vocabulary: '語彙',
+            kanji: '漢字',
+            grammar: '文法',
+            mockTests: '模擬試験',
+
+            speaking: '会話',
+            practiceTests: '練習テスト',
+
+            teachers: '教師',
+            admissions: '入学案内',
+
+            schedules: 'スケジュール',
+            certifications: '認定資格',
+            corporateTraining: '法人研修',
+
+            exams: '試験',
+            rankings: 'ランキング',
+            results: '結果',
+
+            jlptCourses: 'JLPTコース',
+            therapists: 'セラピスト',
+        },
+
+        menuPath: {
+            home: '/',
+
+            about: '/company',
+            aboutUs: '/company',
+            aboutMe: '/profile',
+
+            services: '/service',
+            projects: '/project',
+
+            team: '/team',
+            careers: '/recruit',
+
+            news: '/news',
+            contact: '/contact',
+
+            experience: '/experience',
+            skills: '/skills',
+
+            portfolio: '/portfolio',
+            blog: '/blog',
+
+            testimonials: '/testimonials',
+
+            caseStudies: '/case-study',
+            clients: '/clients',
+
+            pricing: '/pricing',
+
+            features: '/features',
+            benefits: '/benefits',
+
+            reviews: '/reviews',
+            faq: '/faq',
+
+            menu: '/menu',
+            gallery: '/gallery',
+
+            reservation: '/reservation',
+            events: '/events',
+
+            packages: '/packages',
+            booking: '/booking',
+
+            properties: '/properties',
+            propertyMap: '/property-map',
+            agents: '/agents',
+
+            aboutEvent: '/event',
+            schedule: '/schedule',
+
+            speakers: '/speakers',
+            sponsors: '/sponsors',
+
+            tickets: '/tickets',
+            articles: '/articles',
+            categories: '/categories',
+            tutorials: '/tutorials',
+            resources: '/resources',
+
+            destinations: '/destinations',
+            travelGuides: '/travel-guide',
+            experiences: '/experience',
+            tips: '/tips',
+
+            recipes: '/recipe',
+            restaurants: '/restaurant',
+
+            latestNews: '/latest-news',
+            politics: '/politics',
+            business: '/business',
+            technology: '/technology',
+            sports: '/sports',
+            world: '/world',
+
+            blogPosts: '/blog-posts',
+            lifeStories: '/life-stories',
+            newArrivals: '/new-arrivals',
+            men: '/men',
+            women: '/women',
+            collections: '/collections',
+            sale: '/sale',
+            cart: '/cart',
+
+            products: '/products',
+            brands: '/brands',
+            deals: '/deals',
+            support: '/support',
+
+            books: '/books',
+            authors: '/authors',
+            bestSellers: '/best-sellers',
+            newReleases: '/new-releases',
+
+            software: '/software',
+            templates: '/templates',
+            downloads: '/downloads',
+
+            popularItems: '/popular-items',
+            offers: '/offers',
+            delivery: '/delivery',
+
+            skincare: '/skincare',
+            makeup: '/makeup',
+
+            rooms: '/rooms',
+            suites: '/suites',
+            facilities: '/facilities',
+
+            therapists: '/therapists',
+
+            doctors: '/doctors',
+            departments: '/departments',
+            appointment: '/appointment',
+
+            specialDishes: '/special-dishes',
+
+            programs: '/programs',
+            classes: '/classes',
+            trainers: '/trainers',
+            membership: '/membership',
+
+            vehicles: '/vehicles',
+            locations: '/locations',
+            insurance: '/insurance',
+
+            courses: '/courses',
+            instructors: '/instructors',
+            learningPath: '/learning-path',
+            certificates: '/certificates',
+
+            vocabulary: '/vocabulary',
+            kanji: '/kanji',
+            grammar: '/grammar',
+            mockTests: '/mock-tests',
+
+            speaking: '/speaking',
+            practiceTests: '/practice-tests',
+
+            teachers: '/teachers',
+            aboutSchool: '/about-school',
+            admissions: '/admissions',
+
+            schedules: '/schedules',
+            certifications: '/certifications',
+            corporateTraining: '/corporate-training',
+
+            exams: '/exams',
+            rankings: '/rankings',
+            results: '/results',
+
+            jlptCourses: '/jlpt-courses',
+        },
+
+        type: {
+            landing: 'ランディングページ',
+            blog: 'ブログ',
+            ecommerce: 'ECサイト',
+            booking: '予約サイト',
+            lms: '学習プラットフォーム',
+        },
         form: {
             title: 'サイトフォーム',
             sub: 'ウェブサイトを管理',
@@ -33,7 +344,6 @@ const ja = {
             domain: 'ドメイン',
             websiteType: 'ウェブサイトタイプ',
             status: 'ステータス',
-            publishedAt: '公開日',
             publicSite: '公開サイト',
             created: '作成日',
             updated: '更新日',
@@ -41,6 +351,22 @@ const ja = {
             createSite: 'サイト作成',
             saveChanges: '変更を保存',
             selectSite: 'サイトを選択してください',
+            category: 'カテゴリー',
+            selectCategory: 'カテゴリーを選択',
+
+            contactEmail: '連絡先メール',
+            contactPhone: '電話番号',
+
+            publishedAt: '公開日時',
+
+            seoTitle: 'SEOタイトル',
+            seoDescription: 'SEO説明',
+
+            logo: 'ロゴ',
+            favicon: 'ファビコン',
+
+            defaultMenus: 'デフォルトメニュー',
+            defaultPages: 'デフォルトページ',
         },
 
         table: {
@@ -102,6 +428,79 @@ const ja = {
             success: '成功',
         },
         status: { draft: '下書き', active: '公開中', suspended: '停止中' },
+        category: {
+            'Company Profile': '会社概要',
+            'Personal Profile': '個人プロフィール',
+            Portfolio: 'ポートフォリオ',
+            Agency: 'エージェンシー',
+            Product: '商品',
+            Service: 'サービス',
+            Restaurant: 'レストラン',
+            Spa: 'スパ',
+            'Real Estate': '不動産',
+            Event: 'イベント',
+
+            'Tech Blog': '技術ブログ',
+            'Travel Blog': '旅行ブログ',
+            'Food Blog': 'グルメブログ',
+            'News Blog': 'ニュースブログ',
+            'Personal Blog': '個人ブログ',
+
+            Fashion: 'ファッション',
+            Electronics: '家電',
+            Books: '書籍',
+            'Digital Products': 'デジタル商品',
+            Food: '食品',
+            Beauty: '美容',
+
+            Hotel: 'ホテル',
+            Homestay: 'ホームステイ',
+            Clinic: 'クリニック',
+            Gym: 'ジム',
+            'Car Rental': 'レンタカー',
+
+            'Online Course': 'オンラインコース',
+            'Japanese Learning': '日本語学習',
+            'English Learning': '英語学習',
+            School: '学校',
+            'Training Center': '研修センター',
+            'Exam Platform': '試験プラットフォーム',
+        },
+        seo: {
+            landing: {
+                title: '{name} | {category} Webサイト',
+                description:
+                    '{name} は最新でレスポンシブな Web サイトを通じて、専門的な {category} サービスを提供します。',
+            },
+
+            ecommerce: {
+                title: '{name} | {category} をオンライン購入',
+                description: '高品質な {category} 商品を安全な決済と迅速な配送で購入できます。',
+            },
+
+            blog: {
+                title: '{name} | {category}',
+                description: '{category} に関する最新の記事や情報をご覧ください。',
+            },
+
+            booking: {
+                title: '{name} | {category} オンライン予約',
+                description: '{category} サービスをオンラインで簡単に予約できます。',
+            },
+
+            lms: {
+                title: '{name} | {category} 学習プラットフォーム',
+                description:
+                    'コース、進捗管理、評価機能を備えた {category} 学習プラットフォームです。',
+            },
+        },
+        upload: {
+            upload: 'アップロード',
+            dragAndDrop: 'ドラッグ＆ドロップまたはクリックして選択',
+            success: '画像のアップロードが完了しました',
+            change: '変更',
+            remove: '削除',
+        },
     },
     menus: {
         dashboard: 'ダッシュボード',

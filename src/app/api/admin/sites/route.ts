@@ -3,10 +3,23 @@ import { getCurrentSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import { getMenuTemplate } from '@/utils/menus/menuHelpers';
 import fs from 'fs/promises';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { z } from 'zod';
+
+import en from '@/lib/admin/i18n/messages/en';
+import ja from '@/lib/admin/i18n/messages/ja';
+import vi from '@/lib/admin/i18n/messages/vi';
+
+import { resolveMenuValue } from '@/utils/menus/menuResolver';
+
 export const dynamic = 'force-dynamic';
+
+function buildSlug(path: string) {
+    if (path === '/') return 'home';
+
+    return path.replace(/^\/+/, '').replace(/\/+/g, '-').toLowerCase();
+}
 
 const CreateSchema = z.object({
     name: z
@@ -134,9 +147,15 @@ export async function GET() {
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const session = await getCurrentSession();
+
+        const locale = req.cookies.get('admin-locale')?.value;
+
+        const localeKey = locale === 'vi' || locale === 'en' || locale === 'ja' ? locale : 'en';
+
+        console.log('locale', locale);
 
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -250,6 +269,19 @@ export async function POST(req: Request) {
 
         const menus = getMenuTemplate(parsed.data.type, parsed.data.category);
 
+        const messagesMap = {
+            vi,
+            en,
+            ja,
+        } as const;
+        const messages = messagesMap[localeKey];
+
+        const resolvedMenus = menus.map((menu) => ({
+            ...menu,
+            title: resolveMenuValue(messages, menu.title),
+            path: resolveMenuValue(messages, menu.path),
+        }));
+
         const result = await prisma.$transaction(async (tx) => {
             const site = await tx.site.create({
                 data: {
@@ -299,9 +331,30 @@ export async function POST(req: Request) {
                 },
             });
 
+            const systemPages = [
+                {
+                    title: 'Header',
+                    slug: 'header',
+                    path: '/header',
+                    sortOrder: 0,
+                },
+                {
+                    title: 'Footer',
+                    slug: 'footer',
+                    path: '/footer',
+                    sortOrder: 1,
+                },
+                {
+                    title: '404',
+                    slug: '404',
+                    path: '/404',
+                    sortOrder: 2,
+                },
+            ];
+
             if (menus.length > 0) {
                 await tx.menuItem.createMany({
-                    data: menus.map((menu, index) => ({
+                    data: resolvedMenus.map((menu, index) => ({
                         siteId: site.id,
                         title: menu.title,
                         path: menu.path,
@@ -310,6 +363,41 @@ export async function POST(req: Request) {
                         sortOrder: index + 1,
                         visible: true,
                     })),
+                });
+            }
+
+            const pages = [
+                ...systemPages,
+                ...resolvedMenus.map((menu, index) => ({
+                    title: menu.title,
+                    slug: buildSlug(menu.path),
+                    path: menu.path,
+                    sortOrder: index + 10,
+                })),
+            ];
+
+            for (const page of pages) {
+                await tx.page.create({
+                    data: {
+                        siteId: site.id,
+
+                        title: page.title,
+                        slug: page.slug,
+                        path: page.path,
+
+                        status: 'DRAFT',
+
+                        sortOrder: page.sortOrder,
+
+                        seo: {
+                            create: {
+                                metaTitle: page.title,
+                                ogTitle: page.title,
+                                metaDescription: `${page.title} page`,
+                                ogDescription: `${page.title} page`,
+                            },
+                        },
+                    },
                 });
             }
 

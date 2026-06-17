@@ -25,13 +25,8 @@ export default function SiteTable({ items, activeId, t, setActiveId, setMode, on
         <div className={styles.tableWrap}>
             <div className={styles.tableHeader}>
                 <div>{t('sites.table.site')}</div>
-
-                <div>{t('sites.table.domain')}</div>
-
                 <div>{t('sites.table.status')}</div>
-
-                <div>{t('sites.table.type')}</div>
-
+                <div className="no-width">{t('sites.table.type')}</div>
                 <div>{t('sites.table.action')}</div>
             </div>
 
