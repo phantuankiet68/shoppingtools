@@ -5,23 +5,18 @@ import { createContext, useContext } from 'react';
 
 export type Site = {
     id: string;
-
     name: string;
-
     domain: string;
 
     category?: string | null;
 
     seoTitle?: string | null;
-
     seoDescription?: string | null;
 
     logoUrl?: string | null;
-
     faviconUrl?: string | null;
 
     contactEmail?: string | null;
-
     contactPhone?: string | null;
 
     ownerUserId: string;
@@ -37,9 +32,7 @@ export type Site = {
     seoDescDefault: string | null;
 
     createdAt: string;
-
     updatedAt: string;
-
     deletedAt: string | null;
 
     createdByUserId: string | null;
@@ -99,10 +92,11 @@ export type AdminAuthData = {
         role: string;
         tier: string;
 
-        accessPolicy: WorkspaceAccessPolicy;
+        accessPolicy: WorkspaceAccessPolicy | null;
     } | null;
 
     sites: Site[];
+
     currentSite: Site | null;
 
     memberships: Membership[];
@@ -112,22 +106,24 @@ export type AdminAuthData = {
    CONTEXT
 ========================= */
 
-const AdminAuthContext = createContext<AdminAuthData | undefined>(undefined);
+type AdminAuthContextValue = AdminAuthData | null;
 
-export function AdminAuthProvider({
-    value,
-    children,
-}: {
-    value: AdminAuthData;
+const AdminAuthContext = createContext<AdminAuthContextValue | undefined>(undefined);
+
+type AdminAuthProviderProps = {
+    value: AdminAuthData | null;
     children: ReactNode;
-}) {
+};
+
+export function AdminAuthProvider({ value, children }: AdminAuthProviderProps) {
     return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
 
 export function useAdminAuth() {
     const context = useContext(AdminAuthContext);
 
-    if (!context) {
+    // Không có Provider
+    if (context === undefined) {
         throw new Error('useAdminAuth must be used within AdminAuthProvider');
     }
 
@@ -135,13 +131,19 @@ export function useAdminAuth() {
 }
 
 export function useAdminUser() {
-    return useAdminAuth().user;
+    const auth = useAdminAuth();
+
+    return auth?.user ?? null;
 }
 
 export function useAdminSites() {
-    return useAdminAuth().sites;
+    const auth = useAdminAuth();
+
+    return auth?.sites ?? [];
 }
 
 export function useCurrentSite() {
-    return useAdminAuth().currentSite;
+    const auth = useAdminAuth();
+
+    return auth?.currentSite ?? null;
 }

@@ -1,32 +1,31 @@
 import 'server-only';
-import { headers } from 'next/headers';
+
 import type { AdminAuthData } from '@/components/admin/providers/AdminAuthProvider';
 
+import { getCurrentSession } from '@/lib/auth/session';
+
 export async function getAdminAuth(): Promise<AdminAuthData | null> {
-  const h = await headers();
-  const host = h.get('host');
+    const session = await getCurrentSession();
 
-  if (!host) {
-    throw new Error('Missing host header');
-  }
+    if (!session) {
+        return null;
+    }
 
-  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const cookie = h.get('cookie') ?? '';
+    return {
+        user: {
+            id: session.user.id,
+            name: session.user.name ?? '',
+            email: session.user.email,
+            image: session.user.image,
+            systemRole: session.user.systemRole,
+            roleLabel: session.user.roleLabel,
+        },
 
-  const res = await fetch(`${protocol}://${host}/api/admin/auth/me`, {
-    method: 'GET',
-    headers: { cookie },
-    cache: 'no-store',
-  });
+        currentWorkspace: session.currentWorkspace,
 
-  // ✅ FIX ở đây
-  if (res.status === 401) {
-    return null;
-  }
+        sites: [],
+        currentSite: null,
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch admin auth: ${res.status}`);
-  }
-
-  return res.json();
+        memberships: session.memberships,
+    };
 }

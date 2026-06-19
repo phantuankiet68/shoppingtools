@@ -1,366 +1,426 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useRef, useEffect, useState } from "react";
-import styles from "@/styles/admin/layouts/Topbar.module.css";
-import { useAdminLayoutStore } from "@/store/layout/layouta/index";
-import { FunctionKeyBar, type FunctionKeyCode } from "@/components/admin/shared/layout/function-keys";
-import { useFunctionKeysContext } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
-import { useAdminUser } from "@/components/admin/providers/AdminAuthProvider";
-import AdminLocaleSwitcher from "@/components/admin/layouts/AdminLocaleSwitcher";
+import AdminLocaleSwitcher from '@/components/admin/layouts/AdminLocaleSwitcher';
+import { useAdminUser } from '@/components/admin/providers/AdminAuthProvider';
+import {
+    FunctionKeyBar,
+    type FunctionKeyCode,
+} from '@/components/admin/shared/layout/function-keys';
+import { useFunctionKeysContext } from '@/components/admin/shared/layout/function-keys/FunctionKeysProvider';
+import { useAdminLayoutStore } from '@/store/layout/layouta/index';
+import styles from '@/styles/admin/layouts/Topbar.module.css';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 
 type Props = {
-  meta: {
-    title: string;
-    subtitle?: string | null;
-  };
+    meta: {
+        title: string;
+        subtitle?: string | null;
+    };
 
-  onLogout: () => void | Promise<void>;
+    onLogout: () => void | Promise<void>;
 };
 
 type NotificationItem = {
-  id: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  type: string;
-  createdAt: string;
+    id: string;
+    title: string;
+    message: string;
+    isRead: boolean;
+    type: string;
+    createdAt: string;
 };
 
 export default function Topbar({ meta, onLogout }: Props) {
-  const { sidebarOpen, toggleSidebar, user, userMenuOpen, setUserMenuOpen, notiOpen, setNotiOpen } =
-    useAdminLayoutStore();
+    const {
+        sidebarOpen,
+        toggleSidebar,
+        user,
+        userMenuOpen,
+        setUserMenuOpen,
+        notiOpen,
+        setNotiOpen,
+    } = useAdminLayoutStore();
 
-  const { items, actions } = useFunctionKeysContext();
+    const { items, actions } = useFunctionKeysContext();
 
-  const adminUser = useAdminUser();
+    const adminUser = useAdminUser();
 
-  const isSystemAdmin = adminUser.systemRole?.toUpperCase() === "ADMIN";
+    const isSystemAdmin = adminUser?.systemRole?.toUpperCase() === 'ADMIN';
 
-  const [searchValue, setSearchValue] = useState("");
+    const [searchValue, setSearchValue] = useState('');
 
-  const [chatOpen, setChatOpen] = useState(false);
+    const [chatOpen, setChatOpen] = useState(false);
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  const userMenuRef = useRef<HTMLDivElement | null>(null);
+    const userMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const notiRef = useRef<HTMLDivElement | null>(null);
+    const notiRef = useRef<HTMLDivElement | null>(null);
 
-  const chatRef = useRef<HTMLDivElement | null>(null);
+    const chatRef = useRef<HTMLDivElement | null>(null);
 
-  const unreadCount = notifications.filter((x) => !x.isRead).length;
+    const unreadCount = notifications.filter((x) => !x.isRead).length;
 
-  const loadNotifications = async () => {
-    try {
-      const response = await fetch("/api/admin/notifications");
+    const loadNotifications = async () => {
+        try {
+            const response = await fetch('/api/admin/notifications');
 
-      const result = await response.json();
+            const result = await response.json();
 
-      if (!result.success) return;
+            if (!result.success) return;
 
-      setNotifications(result.data || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    loadNotifications();
-  }, []);
-
-  useEffect(() => {
-    function onDocMouseDown(e: MouseEvent) {
-      const t = e.target as Node;
-
-      if (userMenuRef.current && !userMenuRef.current.contains(t)) {
-        setUserMenuOpen(false);
-      }
-
-      if (notiRef.current && !notiRef.current.contains(t)) {
-        setNotiOpen(false);
-      }
-
-      if (chatRef.current && !chatRef.current.contains(t)) {
-        setChatOpen(false);
-      }
-    }
-
-    function onEsc(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
-
-      setUserMenuOpen(false);
-      setNotiOpen(false);
-      setChatOpen(false);
-    }
-
-    document.addEventListener("mousedown", onDocMouseDown);
-
-    document.addEventListener("keydown", onEsc);
-
-    return () => {
-      document.removeEventListener("mousedown", onDocMouseDown);
-
-      document.removeEventListener("keydown", onEsc);
+            setNotifications(result.data || []);
+        } catch (err) {
+            console.error(err);
+        }
     };
-  }, [setNotiOpen, setUserMenuOpen]);
 
-  const handleLogoutClick = async () => {
-    setUserMenuOpen(false);
+    useEffect(() => {
+        loadNotifications();
+    }, []);
 
-    await onLogout();
-  };
+    useEffect(() => {
+        function onDocMouseDown(e: MouseEvent) {
+            const t = e.target as Node;
 
-  const handleFunctionClick = (key: FunctionKeyCode) => {
-    actions[key]?.();
-  };
+            if (userMenuRef.current && !userMenuRef.current.contains(t)) {
+                setUserMenuOpen(false);
+            }
 
-  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+            if (notiRef.current && !notiRef.current.contains(t)) {
+                setNotiOpen(false);
+            }
 
-    if (!searchValue.trim()) return;
-  };
+            if (chatRef.current && !chatRef.current.contains(t)) {
+                setChatOpen(false);
+            }
+        }
 
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      await fetch(`/api/admin/notifications/${id}`, {
-        method: "PATCH",
-      });
+        function onEsc(e: KeyboardEvent) {
+            if (e.key !== 'Escape') return;
 
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                isRead: true,
-              }
-            : item,
-        ),
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
+            setUserMenuOpen(false);
+            setNotiOpen(false);
+            setChatOpen(false);
+        }
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await fetch("/api/admin/notifications/read-all", {
-        method: "PATCH",
-      });
+        document.addEventListener('mousedown', onDocMouseDown);
 
-      setNotifications((prev) =>
-        prev.map((item) => ({
-          ...item,
-          isRead: true,
-        })),
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
+        document.addEventListener('keydown', onEsc);
 
-  return (
-    <header className={styles.topbar}>
-      <div className={styles.topbarShell}>
-        <div className={styles.topbarLeft}>
-          <button
-            className={styles.sidebarToggle}
-            type="button"
-            onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
-            aria-expanded={sidebarOpen}
-          >
-            <i className={`bi ${sidebarOpen ? "bi-text-indent-right" : "bi-list"}`} />
-          </button>
-        </div>
+        return () => {
+            document.removeEventListener('mousedown', onDocMouseDown);
 
-        <div className={styles.topbarCenter}>
-          {isSystemAdmin ? (
-            <form className={styles.topbarSearch} onSubmit={handleSearchSubmit}>
-              <span className={styles.topbarSearchIcon}>
-                <i className="bi bi-search" />
-              </span>
+            document.removeEventListener('keydown', onEsc);
+        };
+    }, [setNotiOpen, setUserMenuOpen]);
 
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                className={styles.topbarSearchInput}
-                placeholder="Search"
-                aria-label="Search help and features"
-              />
+    const handleLogoutClick = async () => {
+        setUserMenuOpen(false);
 
-              <button type="submit" className={styles.topbarSearchVisual} aria-label="Submit search" title="Search">
-                <img src="/assets/images/iconSearch.png" alt="" className={styles.topbarSearchImage} />
-              </button>
-            </form>
-          ) : (
-            <FunctionKeyBar items={items} onClick={handleFunctionClick} />
-          )}
-        </div>
+        await onLogout();
+    };
 
-        <AdminLocaleSwitcher />
+    const handleFunctionClick = (key: FunctionKeyCode) => {
+        actions[key]?.();
+    };
 
-        <div className={styles.topbarRight}>
-          {isSystemAdmin && (
-            <>
-              <div className={styles.quickActions}>
-                <div className={styles.chatWrap} ref={chatRef}>
-                  <button
-                    className={styles.iconBtn}
-                    type="button"
-                    aria-label="Open chats"
-                    aria-haspopup="menu"
-                    aria-expanded={chatOpen}
-                    onClick={() => setChatOpen((prev) => !prev)}
-                  >
-                    <i className="bi bi-chat-dots" />
-                    <span className={styles.chatBadge}>5</span>
-                  </button>
-                </div>
+    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
 
-                <Link href="/admin/settings" className={styles.iconBtn} aria-label="Settings" title="Settings">
-                  <i className="bi bi-gear" />
-                </Link>
-              </div>
-            </>
-          )}
+        if (!searchValue.trim()) return;
+    };
 
-          <div className={styles.notiWrap} ref={notiRef}>
-            <button
-              className={styles.iconBtn}
-              type="button"
-              aria-label="Notifications"
-              aria-haspopup="menu"
-              aria-expanded={notiOpen}
-              onClick={async () => {
-                if (!notiOpen) {
-                  await loadNotifications();
-                }
+    const handleMarkAsRead = async (id: string) => {
+        try {
+            await fetch(`/api/admin/notifications/${id}`, {
+                method: 'PATCH',
+            });
 
-                setNotiOpen(!notiOpen);
-              }}
-            >
-              <i className="bi bi-bell" />
+            setNotifications((prev) =>
+                prev.map((item) =>
+                    item.id === id
+                        ? {
+                              ...item,
+                              isRead: true,
+                          }
+                        : item,
+                ),
+            );
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-              {unreadCount > 0 && <span className={styles.chatBadge}>{unreadCount}</span>}
-            </button>
+    const handleMarkAllAsRead = async () => {
+        try {
+            await fetch('/api/admin/notifications/read-all', {
+                method: 'PATCH',
+            });
 
-            {notiOpen && (
-              <div className={styles.dropdownCard} role="menu" aria-label="Notifications menu">
-                <div className={styles.dropdownHeader}>
-                  <div>
-                    <div className={styles.dropdownTitle}>Notifications</div>
+            setNotifications((prev) =>
+                prev.map((item) => ({
+                    ...item,
+                    isRead: true,
+                })),
+            );
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-                    <div className={styles.dropdownSubtitle}>{unreadCount} unread notifications</div>
-                  </div>
-
-                  <button className={styles.textButton} type="button" onClick={handleMarkAllAsRead}>
-                    Mark all
-                  </button>
-                </div>
-
-                <div className={styles.notificationList}>
-                  {notifications.length === 0 ? (
-                    <div className={styles.emptyNotification}>No notifications yet</div>
-                  ) : (
-                    notifications.map((item) => (
-                      <button
-                        key={item.id}
-                        className={`${styles.notificationItem} ${!item.isRead ? styles.notificationUnread : ""}`}
+    return (
+        <header className={styles.topbar}>
+            <div className={styles.topbarShell}>
+                <div className={styles.topbarLeft}>
+                    <button
+                        className={styles.sidebarToggle}
                         type="button"
-                        onClick={() => handleMarkAsRead(item.id)}
-                      >
-                        <span className={`${styles.notificationAccent} ${styles[`accent_${item.type}`] || ""}`} />
-
-                        <span className={styles.notificationContent}>
-                          <span className={styles.notificationTitle}>{item.title}</span>
-
-                          <span className={styles.notificationDesc}>{item.message}</span>
-
-                          <span className={styles.notificationMeta}>{new Date(item.createdAt).toLocaleString()}</span>
-                        </span>
-
-                        {!item.isRead && <span className={styles.unreadDot} />}
-                      </button>
-                    ))
-                  )}
+                        onClick={toggleSidebar}
+                        aria-label="Toggle sidebar"
+                        aria-expanded={sidebarOpen}
+                    >
+                        <i className={`bi ${sidebarOpen ? 'bi-text-indent-right' : 'bi-list'}`} />
+                    </button>
                 </div>
 
-                <div className={styles.dropdownFooter}>
-                  <button className={styles.ghostInlineBtn} type="button" onClick={handleMarkAllAsRead}>
-                    <i className="bi bi-check2" />
-                    Mark all as read
-                  </button>
+                <div className={styles.topbarCenter}>
+                    {isSystemAdmin ? (
+                        <form className={styles.topbarSearch} onSubmit={handleSearchSubmit}>
+                            <span className={styles.topbarSearchIcon}>
+                                <i className="bi bi-search" />
+                            </span>
+
+                            <input
+                                type="text"
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                className={styles.topbarSearchInput}
+                                placeholder="Search"
+                                aria-label="Search help and features"
+                            />
+
+                            <button
+                                type="submit"
+                                className={styles.topbarSearchVisual}
+                                aria-label="Submit search"
+                                title="Search"
+                            >
+                                <img
+                                    src="/assets/images/iconSearch.png"
+                                    alt=""
+                                    className={styles.topbarSearchImage}
+                                />
+                            </button>
+                        </form>
+                    ) : (
+                        <FunctionKeyBar items={items} onClick={handleFunctionClick} />
+                    )}
                 </div>
-              </div>
-            )}
-          </div>
 
-          <div className={styles.userMenu} ref={userMenuRef}>
-            <button
-              className={styles.userTrigger}
-              type="button"
-              aria-label="User menu"
-              aria-haspopup="menu"
-              aria-expanded={userMenuOpen}
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-            >
-              <div className={styles.avatarWrap}>
-                <div className={styles.avatar}>{user?.name?.charAt(0)?.toUpperCase() ?? "A"}</div>
+                <AdminLocaleSwitcher />
 
-                <span className={styles.onlineDot} />
-              </div>
+                <div className={styles.topbarRight}>
+                    {isSystemAdmin && (
+                        <>
+                            <div className={styles.quickActions}>
+                                <div className={styles.chatWrap} ref={chatRef}>
+                                    <button
+                                        className={styles.iconBtn}
+                                        type="button"
+                                        aria-label="Open chats"
+                                        aria-haspopup="menu"
+                                        aria-expanded={chatOpen}
+                                        onClick={() => setChatOpen((prev) => !prev)}
+                                    >
+                                        <i className="bi bi-chat-dots" />
+                                        <span className={styles.chatBadge}>5</span>
+                                    </button>
+                                </div>
 
-              <div className={styles.userInfo}>
-                <div className={styles.userName}>{user?.name ?? "admin"}</div>
+                                <Link
+                                    href="/admin/settings"
+                                    className={styles.iconBtn}
+                                    aria-label="Settings"
+                                    title="Settings"
+                                >
+                                    <i className="bi bi-gear" />
+                                </Link>
+                            </div>
+                        </>
+                    )}
 
-                <div className={styles.userRole}>{user?.role ?? "Admin"}</div>
-              </div>
+                    <div className={styles.notiWrap} ref={notiRef}>
+                        <button
+                            className={styles.iconBtn}
+                            type="button"
+                            aria-label="Notifications"
+                            aria-haspopup="menu"
+                            aria-expanded={notiOpen}
+                            onClick={async () => {
+                                if (!notiOpen) {
+                                    await loadNotifications();
+                                }
 
-              <span className={styles.chevron}>
-                <i className={`bi bi-chevron-down ${userMenuOpen ? styles.chevronOpen : ""}`} />
-              </span>
-            </button>
+                                setNotiOpen(!notiOpen);
+                            }}
+                        >
+                            <i className="bi bi-bell" />
 
-            {userMenuOpen && (
-              <div className={styles.userDropdown} role="menu" aria-label="User options">
-                <Link
-                  className={styles.dropdownItem}
-                  href="/admin/profile"
-                  role="menuitem"
-                  onClick={() => setUserMenuOpen(false)}
-                >
-                  <i className="bi bi-person" />
-                  <span>Profile</span>
-                </Link>
+                            {unreadCount > 0 && (
+                                <span className={styles.chatBadge}>{unreadCount}</span>
+                            )}
+                        </button>
 
-                <Link
-                  className={styles.dropdownItem}
-                  href="/admin/settings"
-                  role="menuitem"
-                  onClick={() => setUserMenuOpen(false)}
-                >
-                  <i className="bi bi-gear" />
-                  <span>Settings</span>
-                </Link>
+                        {notiOpen && (
+                            <div
+                                className={styles.dropdownCard}
+                                role="menu"
+                                aria-label="Notifications menu"
+                            >
+                                <div className={styles.dropdownHeader}>
+                                    <div>
+                                        <div className={styles.dropdownTitle}>Notifications</div>
 
-                <div className={styles.dropdownDivider} />
+                                        <div className={styles.dropdownSubtitle}>
+                                            {unreadCount} unread notifications
+                                        </div>
+                                    </div>
 
-                <button
-                  type="button"
-                  className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
-                  role="menuitem"
-                  onClick={handleLogoutClick}
-                >
-                  <i className="bi bi-box-arrow-right" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
-  );
+                                    <button
+                                        className={styles.textButton}
+                                        type="button"
+                                        onClick={handleMarkAllAsRead}
+                                    >
+                                        Mark all
+                                    </button>
+                                </div>
+
+                                <div className={styles.notificationList}>
+                                    {notifications.length === 0 ? (
+                                        <div className={styles.emptyNotification}>
+                                            No notifications yet
+                                        </div>
+                                    ) : (
+                                        notifications.map((item) => (
+                                            <button
+                                                key={item.id}
+                                                className={`${styles.notificationItem} ${!item.isRead ? styles.notificationUnread : ''}`}
+                                                type="button"
+                                                onClick={() => handleMarkAsRead(item.id)}
+                                            >
+                                                <span
+                                                    className={`${styles.notificationAccent} ${styles[`accent_${item.type}`] || ''}`}
+                                                />
+
+                                                <span className={styles.notificationContent}>
+                                                    <span className={styles.notificationTitle}>
+                                                        {item.title}
+                                                    </span>
+
+                                                    <span className={styles.notificationDesc}>
+                                                        {item.message}
+                                                    </span>
+
+                                                    <span className={styles.notificationMeta}>
+                                                        {new Date(item.createdAt).toLocaleString()}
+                                                    </span>
+                                                </span>
+
+                                                {!item.isRead && (
+                                                    <span className={styles.unreadDot} />
+                                                )}
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className={styles.dropdownFooter}>
+                                    <button
+                                        className={styles.ghostInlineBtn}
+                                        type="button"
+                                        onClick={handleMarkAllAsRead}
+                                    >
+                                        <i className="bi bi-check2" />
+                                        Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className={styles.userMenu} ref={userMenuRef}>
+                        <button
+                            className={styles.userTrigger}
+                            type="button"
+                            aria-label="User menu"
+                            aria-haspopup="menu"
+                            aria-expanded={userMenuOpen}
+                            onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        >
+                            <div className={styles.avatarWrap}>
+                                <div className={styles.avatar}>
+                                    {user?.name?.charAt(0)?.toUpperCase() ?? 'A'}
+                                </div>
+
+                                <span className={styles.onlineDot} />
+                            </div>
+
+                            <div className={styles.userInfo}>
+                                <div className={styles.userName}>{user?.name ?? 'admin'}</div>
+
+                                <div className={styles.userRole}>{user?.role ?? 'Admin'}</div>
+                            </div>
+
+                            <span className={styles.chevron}>
+                                <i
+                                    className={`bi bi-chevron-down ${userMenuOpen ? styles.chevronOpen : ''}`}
+                                />
+                            </span>
+                        </button>
+
+                        {userMenuOpen && (
+                            <div
+                                className={styles.userDropdown}
+                                role="menu"
+                                aria-label="User options"
+                            >
+                                <Link
+                                    className={styles.dropdownItem}
+                                    href="/admin/profile"
+                                    role="menuitem"
+                                    onClick={() => setUserMenuOpen(false)}
+                                >
+                                    <i className="bi bi-person" />
+                                    <span>Profile</span>
+                                </Link>
+
+                                <Link
+                                    className={styles.dropdownItem}
+                                    href="/admin/settings"
+                                    role="menuitem"
+                                    onClick={() => setUserMenuOpen(false)}
+                                >
+                                    <i className="bi bi-gear" />
+                                    <span>Settings</span>
+                                </Link>
+
+                                <div className={styles.dropdownDivider} />
+
+                                <button
+                                    type="button"
+                                    className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                                    role="menuitem"
+                                    onClick={handleLogoutClick}
+                                >
+                                    <i className="bi bi-box-arrow-right" />
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </header>
+    );
 }

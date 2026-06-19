@@ -12,11 +12,9 @@ const MAX_FAIL = 3;
 const LOCK_SECONDS = 10;
 
 export default function AdminLoginPage() {
-     const router = useRouter();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const nextUrl = useMemo(() => searchParams.get('next') || '/admin', [searchParams]);
-
-console.log("ADMIN LOGIN RENDER");
     const [form, setForm] = useState<FormState>({ email: '', password: '' });
     const [showPw, setShowPw] = useState(false);
 
@@ -310,4 +308,3 @@ console.log("ADMIN LOGIN RENDER");
         </div>
     );
 }
-

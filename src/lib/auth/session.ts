@@ -1,10 +1,8 @@
 import { SystemRole, type AccessTier } from '@/generated/prisma';
-import { verifyAdminAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
 import { createHash } from 'crypto';
 import { cookies } from 'next/headers';
 
-const ACCESS_TOKEN_COOKIE = 'admin_access_token';
 const SESSION_COOKIE = 'admin_session';
 
 function hashSessionToken(token: string): string {
@@ -115,30 +113,26 @@ export async function getCurrentSession(): Promise<AdminSession> {
     try {
         const cookieStore = await cookies();
 
-        const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
         const rawSessionToken = cookieStore.get(SESSION_COOKIE)?.value ?? null;
 
-        if (!accessToken || !rawSessionToken) {
-            return null;
-        }
-
-        const payload = await verifyAdminAccessToken(accessToken);
-
-        if (!payload || payload.status !== 'ACTIVE' || payload.systemRole !== 'ADMIN') {
+        if (!rawSessionToken) {
             return null;
         }
 
         const refreshTokenHash = hashSessionToken(rawSessionToken);
+
         const now = new Date();
 
         const dbSession = await prisma.userSession.findFirst({
             where: {
-                userId: payload.sub,
                 refreshTokenHash,
                 revokedAt: null,
-                expiresAt: { gt: now },
+                expiresAt: {
+                    gt: now,
+                },
             },
             select: {
+                id: true,
                 userId: true,
             },
         });
@@ -147,10 +141,20 @@ export async function getCurrentSession(): Promise<AdminSession> {
             return null;
         }
 
+        await prisma.userSession
+            .update({
+                where: {
+                    id: dbSession.id,
+                },
+                data: {
+                    lastSeenAt: new Date(),
+                },
+            })
+            .catch(() => {});
+
         const user = await prisma.user.findUnique({
             where: {
                 id: dbSession.userId,
-                systemRole: 'ADMIN',
             },
             select: {
                 id: true,
@@ -163,13 +167,15 @@ export async function getCurrentSession(): Promise<AdminSession> {
                 createdAt: true,
                 updatedAt: true,
                 profile: true,
+
                 memberships: {
                     orderBy: {
-                        createdAt: 'asc',
+                        createdAt: 'desc',
                     },
                     select: {
                         role: true,
                         tier: true,
+
                         workspace: {
                             select: {
                                 id: true,
@@ -209,7 +215,11 @@ export async function getCurrentSession(): Promise<AdminSession> {
             },
         });
 
-        if (!user || user.systemRole !== 'ADMIN') {
+        if (
+            !user ||
+            user.status !== 'ACTIVE' ||
+            (user.systemRole !== 'ADMIN' && user.systemRole !== 'SUPER_ADMIN')
+        ) {
             return null;
         }
 
@@ -233,17 +243,23 @@ export async function getCurrentSession(): Promise<AdminSession> {
                   role: firstMembership.role,
                   tier: firstMembership.tier,
 
-                  accessPolicy: user.memberships[0]?.workspace.accessPolicy ?? null,
+                  accessPolicy: firstMembership.accessPolicy,
               }
             : null;
 
         return {
             user: {
                 id: user.id,
+
                 name:
                     user.profile && typeof user.profile === 'object' && 'name' in user.profile
-                        ? ((user.profile as { name?: string | null }).name ?? null)
+                        ? ((
+                              user.profile as {
+                                  name?: string | null;
+                              }
+                          ).name ?? null)
                         : null,
+
                 email: user.email,
                 image: user.image ?? null,
                 systemRole: user.systemRole,
@@ -255,11 +271,13 @@ export async function getCurrentSession(): Promise<AdminSession> {
                 roleLabel: getRoleLabel(user.systemRole),
                 profile: user.profile ?? null,
             },
+
             currentWorkspace,
             memberships,
         };
     } catch (error) {
         console.error('getCurrentSession error:', error);
+
         return null;
     }
 }
