@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
+
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
 import { ModalProvider } from "@/components/admin/shared/common/modal";
 import { FunctionKeysProvider } from "@/components/admin/shared/layout/function-keys/FunctionKeysProvider";
 import { AdminAuthProvider } from "@/components/admin/providers/AdminAuthProvider";
 import { AdminI18nProvider } from "@/components/admin/providers/AdminI18nProvider";
+
 import { getAdminAuth } from "@/lib/admin/get-admin-auth";
 import { getAdminI18n } from "@/lib/admin/i18n/get-admin-i18n";
 
@@ -17,12 +20,9 @@ export default async function AdminLayout({
     getAdminI18n(),
   ]);
 
-  const safeAdminAuth = {
-    ...adminAuth,
-    site: adminAuth?.site ?? null,
-    currentWorkspace: adminAuth?.currentWorkspace ?? null,
-    memberships: adminAuth?.memberships ?? [],
-  };
+  if (!adminAuth) {
+    redirect("/admin/login");
+  }
 
   return (
     <AdminAuthProvider value={adminAuth}>

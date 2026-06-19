@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false,
-  allowedDevOrigins: ["sitea.test", "*.test"],
+  allowedDevOrigins: [
+    "kbuilder.io.vn",
+    "https://kbuilder.io.vn",
+    "112.213.88.148",
+  ],
 };
 
 export default nextConfig;
