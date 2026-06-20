@@ -1,14 +1,16 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const ShippingBuilder = dynamic(() => import("@/components/admin/settings/shipping/page"), { ssr: false });
+import AdminPageTitle from '@/components/admin/layouts/AdminPageTitle';
+import dynamic from 'next/dynamic';
+const ShippingBuilder = dynamic(() => import('@/components/admin/settings/shipping/page'), {
+    ssr: false,
+});
 
 export default function Page() {
-  return (
-    <main>
-      <AdminPageTitle title="Shipping Builder" subtitle="Manage Shipping" />
-      <ShippingBuilder />
-    </main>
-  );
+    return (
+        <main>
+            <AdminPageTitle title="Shipping Builder" />
+            <ShippingBuilder />
+        </main>
+    );
 }

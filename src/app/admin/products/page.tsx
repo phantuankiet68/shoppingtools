@@ -1,13 +1,13 @@
-"use client";
-import dynamic from "next/dynamic";
-import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const ProductBuilder = dynamic(() => import("@/components/admin/products/page"), { ssr: false });
+'use client';
+import AdminPageTitle from '@/components/admin/layouts/AdminPageTitle';
+import dynamic from 'next/dynamic';
+const ProductBuilder = dynamic(() => import('@/components/admin/products/page'), { ssr: false });
 
 export default function Page() {
-  return (
-    <main>
-      <AdminPageTitle title="Product Builder" subtitle="Build and manage products with flexible options" />
-      <ProductBuilder />
-    </main>
-  );
+    return (
+        <main>
+            <AdminPageTitle title="Product Builder" />
+            <ProductBuilder />
+        </main>
+    );
 }

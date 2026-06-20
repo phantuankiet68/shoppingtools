@@ -1,33 +1,37 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
-export async function ensureIntegration(userId: string) {
-  const existing = await prisma.storageIntegration.findUnique({ where: { userId } });
-  if (existing) return existing;
+export async function ensureIntegration(siteId: string) {
+    const existing = await prisma.storageIntegration.findUnique({
+        where: { siteId },
+    });
 
-  return prisma.storageIntegration.create({
-    data: {
-      userId,
-      provider: "R2",
-      status: "DISCONNECTED",
+    if (existing) return existing;
 
-      publicBaseUrl: "https://cdn.yourdomain.com",
-      rootPrefix: "uploads/",
-      privateByDefault: true,
-      signedUrlEnabled: true,
-      signedUrlTtlSeconds: 900,
+    return prisma.storageIntegration.create({
+        data: {
+            siteId,
 
-      maxUploadMb: 50,
-      allowedMime: "image/*,application/pdf",
-      enableImageOptimization: true,
+            provider: 'R2',
+            status: 'DISCONNECTED',
 
-      localDir: "./public/uploads",
+            publicBaseUrl: 'https://cdn.yourdomain.com',
+            rootPrefix: 'uploads/',
+            privateByDefault: true,
+            signedUrlEnabled: true,
+            signedUrlTtlSeconds: 900,
 
-      region: "auto",
-      bucket: "my-app-bucket",
-      endpointUrl: "https://<accountid>.r2.cloudflarestorage.com",
+            maxUploadMb: 50,
+            allowedMime: 'image/*,application/pdf',
+            enableImageOptimization: true,
 
-      cacheControl: "public,max-age=31536000,immutable",
-      purgeEnabled: false,
-    },
-  });
+            localDir: './public/uploads',
+
+            region: 'auto',
+            bucket: 'my-app-bucket',
+            endpointUrl: 'https://<accountid>.r2.cloudflarestorage.com',
+
+            cacheControl: 'public,max-age=31536000,immutable',
+            purgeEnabled: false,
+        },
+    });
 }

@@ -29,9 +29,8 @@ function detectTemplateGroup(page?: PageRowWithSite | null): TemplateGroup {
 
     const title = normalizeText(page.title);
 
-    const slug = normalizeText(page.slug);
-
-    const path = normalizeText(page.path);
+    const slug = normalizeText((page as any).slug);
+    const path = normalizeText((page as any).path);
 
     if (
         title === 'topbar' ||

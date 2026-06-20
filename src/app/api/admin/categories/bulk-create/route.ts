@@ -1,43 +1,43 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/prisma";
-import { requireAdminAuthUser } from "@/lib/auth/auth";
+import { requireAdminAuthUser } from '@/lib/auth/auth';
+import { prisma } from '@/lib/prisma';
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
 
 type BulkCategoryInput = {
-  tempId?: string;
-  parentTempId?: string | null;
-  name: string;
-  slug: string;
-  sortOrder?: number | null;
+    tempId?: string;
+    parentTempId?: string | null;
+    name: string;
+    slug: string;
+    sortOrder?: number | null;
 };
 
 /* -------------------------------------------------------------------------- */
 /*                                   UTILS                                    */
 /* -------------------------------------------------------------------------- */
 function slugify(input: string) {
-  return String(input ?? "")
-    .toLowerCase()
-    .trim()
-    .normalize("NFKC")
-    .replace(/\s+/g, "-")
-    .replace(/[^\p{L}\p{N}-]/gu, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+    return String(input ?? '')
+        .toLowerCase()
+        .trim()
+        .normalize('NFKC')
+        .replace(/\s+/g, '-')
+        .replace(/[^\p{L}\p{N}-]/gu, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 function jsonError(message: string, status = 400) {
-  return NextResponse.json(
-    {
-      error: message,
-    },
-    {
-      status,
-    },
-  );
+    return NextResponse.json(
+        {
+            error: message,
+        },
+        {
+            status,
+        },
+    );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -45,143 +45,147 @@ function jsonError(message: string, status = 400) {
 /* -------------------------------------------------------------------------- */
 
 export async function POST(req: Request) {
-  try {
-    await requireAdminAuthUser();
+    try {
+        await requireAdminAuthUser();
 
-    const contentType = req.headers.get("content-type") ?? "";
+        const contentType = req.headers.get('content-type') ?? '';
 
-    if (!contentType.includes("application/json")) {
-      return jsonError("Content-Type must be application/json", 415);
-    }
-
-    const body: unknown = await req.json().catch(() => null);
-
-    if (!body || typeof body !== "object") {
-      return jsonError("Invalid JSON body");
-    }
-
-    const data = body as Record<string, unknown>;
-
-    /* SITE */
-
-    const siteId = String(data.siteId ?? "").trim();
-
-    if (!siteId) {
-      return jsonError("Site ID is required");
-    }
-
-    /* CATEGORIES */
-
-    const categories = Array.isArray(data.categories) ? (data.categories as BulkCategoryInput[]) : [];
-
-    if (!categories.length) {
-      return jsonError("Categories are required");
-    }
-
-    /* CREATE */
-
-    const created = await prisma.$transaction(async (tx) => {
-      const tempIdMap = new Map<string, string>();
-
-      const results = [];
-
-      for (const category of categories) {
-        const name = String(category.name ?? "").trim();
-
-        if (!name) {
-          continue;
+        if (!contentType.includes('application/json')) {
+            return jsonError('Content-Type must be application/json', 415);
         }
 
-        const slug = slugify(category.slug || name);
+        const body: unknown = await req.json().catch(() => null);
 
-        if (!slug) {
-          continue;
+        if (!body || typeof body !== 'object') {
+            return jsonError('Invalid JSON body');
         }
 
-        /* PARENT */
+        const data = body as Record<string, unknown>;
 
-        let parentId: string | null = null;
+        /* SITE */
 
-        if (category.parentTempId) {
-          parentId = tempIdMap.get(category.parentTempId) ?? null;
+        const siteId = String(data.siteId ?? '').trim();
+
+        if (!siteId) {
+            return jsonError('Site ID is required');
         }
 
-        /* EXISTING */
+        /* CATEGORIES */
 
-        const existing = await tx.Category.findFirst({
-          where: {
-            siteId,
-            slug,
-          },
+        const categories = Array.isArray(data.categories)
+            ? (data.categories as BulkCategoryInput[])
+            : [];
 
-          select: {
-            id: true,
-          },
-        });
-
-        if (existing) {
-          if (category.tempId) {
-            tempIdMap.set(category.tempId, existing.id);
-          }
-
-          results.push({
-            id: existing.id,
-            slug,
-            existed: true,
-          });
-
-          continue;
+        if (!categories.length) {
+            return jsonError('Categories are required');
         }
 
         /* CREATE */
 
-        const createdCategory = await tx.Category.create({
-          data: {
-            siteId,
+        const created = await prisma.$transaction(async (tx) => {
+            const tempIdMap = new Map<string, string>();
 
-            name,
+            const results = [];
 
-            slug,
+            for (const category of categories) {
+                const name = String(category.name ?? '').trim();
 
-            parentId,
+                if (!name) {
+                    continue;
+                }
 
-            sortOrder: Number.isFinite(Number(category.sortOrder)) ? Math.trunc(Number(category.sortOrder)) : 10,
-          },
+                const slug = slugify(category.slug || name);
 
-          select: {
-            id: true,
-            slug: true,
-          },
+                if (!slug) {
+                    continue;
+                }
+
+                /* PARENT */
+
+                let parentId: string | null = null;
+
+                if (category.parentTempId) {
+                    parentId = tempIdMap.get(category.parentTempId) ?? null;
+                }
+
+                /* EXISTING */
+
+                const existing = await tx.category.findFirst({
+                    where: {
+                        siteId,
+                        slug,
+                    },
+
+                    select: {
+                        id: true,
+                    },
+                });
+
+                if (existing) {
+                    if (category.tempId) {
+                        tempIdMap.set(category.tempId, existing.id);
+                    }
+
+                    results.push({
+                        id: existing.id,
+                        slug,
+                        existed: true,
+                    });
+
+                    continue;
+                }
+
+                /* CREATE */
+
+                const createdCategory = await tx.category.create({
+                    data: {
+                        siteId,
+
+                        name,
+
+                        slug,
+
+                        parentId,
+
+                        sortOrder: Number.isFinite(Number(category.sortOrder))
+                            ? Math.trunc(Number(category.sortOrder))
+                            : 10,
+                    },
+
+                    select: {
+                        id: true,
+                        slug: true,
+                    },
+                });
+
+                /* MAP TEMP ID */
+
+                if (category.tempId) {
+                    tempIdMap.set(category.tempId, createdCategory.id);
+                }
+
+                results.push({
+                    id: createdCategory.id,
+                    slug: createdCategory.slug,
+                    existed: false,
+                });
+            }
+
+            return results;
         });
 
-        /* MAP TEMP ID */
+        return NextResponse.json(
+            {
+                items: created,
+                total: created.length,
+            },
+            {
+                status: 201,
+            },
+        );
+    } catch (error) {
+        console.error(error);
 
-        if (category.tempId) {
-          tempIdMap.set(category.tempId, createdCategory.id);
-        }
-
-        results.push({
-          id: createdCategory.id,
-          slug: createdCategory.slug,
-          existed: false,
-        });
-      }
-
-      return results;
-    });
-
-    return NextResponse.json(
-      {
-        items: created,
-        total: created.length,
-      },
-      {
-        status: 201,
-      },
-    );
-  } catch (error) {
-    console.error(error);
-
-    return jsonError("Bulk create failed", 500);
-  }
+        return jsonError('Bulk create failed', 500);
+    }
 }

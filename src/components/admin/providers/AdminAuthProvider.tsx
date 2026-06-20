@@ -119,17 +119,15 @@ export function AdminAuthProvider({ value, children }: AdminAuthProviderProps) {
     return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
 
-export function useAdminAuth() {
+export function useAdminAuth(): AdminAuthData {
     const context = useContext(AdminAuthContext);
 
-    // Không có Provider
-    if (context === undefined) {
+    if (!context) {
         throw new Error('useAdminAuth must be used within AdminAuthProvider');
     }
 
     return context;
 }
-
 export function useAdminUser() {
     const auth = useAdminAuth();
 

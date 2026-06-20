@@ -1,5 +1,6 @@
 'use client';
 
+import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
 import { useModal } from '@/components/admin/shared/common/modal';
 import { usePageFunctionKeys } from '@/components/admin/shared/hooks/usePageFunctionKeys';
 import {
@@ -49,15 +50,14 @@ const statusMeta: Record<CustomerStatus, { label: string; icon: string }> = {
 
 export default function CustomersPage() {
     const modal = useModal();
+    const { currentSite, sites, currentWorkspace } = useAdminAuth();
 
-    const selectedSiteId = useSiteStore((state) => state.siteId);
-    const sites = useSiteStore((state) => state.sites);
-    const sitesLoading = useSiteStore((state) => state.loading);
-    const sitesError = useSiteStore((state) => state.err);
-    const setSelectedSiteId = useSiteStore((state) => state.setSiteId);
-    const hydrateFromStorage = useSiteStore((state) => state.hydrateFromStorage);
-    const loadSites = useSiteStore((state) => state.loadSites);
-
+    const [selectedSiteId, setSelectedSiteId] = useState(currentSite?.id ?? '');
+    useEffect(() => {
+        if (currentSite?.id) {
+            setSelectedSiteId(currentSite.id);
+        }
+    }, [currentSite?.id]);
     const customerStore = useCustomerStore(
         useShallow((state: CustomerStore) => ({
             siteId: state.siteId,
@@ -167,11 +167,6 @@ export default function CustomersPage() {
     const [formTagInput, setFormTagInput] = useState('');
     const [formNote, setFormNote] = useState('');
     const [submittingForm, setSubmittingForm] = useState(false);
-
-    useEffect(() => {
-        hydrateFromStorage();
-        void loadSites();
-    }, [hydrateFromStorage, loadSites]);
 
     useEffect(() => {
         if (!selectedSiteId || selectedSiteId === siteId) return;
@@ -982,20 +977,16 @@ export default function CustomersPage() {
                             <select
                                 value={selectedSiteId || ''}
                                 onChange={(event) => setSelectedSiteId(event.target.value)}
-                                disabled={sitesLoading}
                                 style={{
                                     background: 'transparent',
                                     border: 'none',
                                     outline: 'none',
                                     color: 'inherit',
                                     fontWeight: 400,
-                                    cursor: sitesLoading ? 'not-allowed' : 'pointer',
                                     maxWidth: 240,
                                 }}
                             >
-                                <option value="">
-                                    {sitesLoading ? 'Loading sites...' : 'Select site'}
-                                </option>
+                                <option value="">Chọn site</option>
 
                                 {sites.map((site) => (
                                     <option key={site.id} value={site.id}>
@@ -1003,10 +994,6 @@ export default function CustomersPage() {
                                     </option>
                                 ))}
                             </select>
-
-                            {sitesError ? (
-                                <span style={{ marginLeft: 8, opacity: 0.8 }}>({sitesError})</span>
-                            ) : null}
                         </div>
                     </div>
 

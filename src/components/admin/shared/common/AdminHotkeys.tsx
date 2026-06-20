@@ -1,9 +1,5 @@
-"use client";
-
-import usePageFunctionKeys from "@/components/admin/shared/hooks/usePageFunctionKeys";
+'use client';
 
 export default function AdminHotkeys() {
-  usePageFunctionKeys();
-
-  return null;
+    return null;
 }

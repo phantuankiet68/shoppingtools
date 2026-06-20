@@ -1,691 +1,721 @@
-"use client";
-
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+'use client';
 
 import {
-  ECOMMERCE_HEADER_FULL,
-  INTERNAL_PAGE_SETS,
-  TEMPLATE_ALLOWED_BY_SITE,
-  LANDING_PAGE_IDS,
-} from "@/constants/ecommerce.menu";
+    createContext,
+    useCallback,
+    useContext,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+} from 'react';
 
-import { fetchMenuItems, saveMenuTree, type DbMenuItem } from "@/services/menus/menuItems.service";
+import {
+    ECOMMERCE_HEADER_FULL,
+    INTERNAL_PAGE_SETS,
+    LANDING_PAGE_IDS,
+    TEMPLATE_ALLOWED_BY_SITE,
+} from '@/constants/ecommerce.menu';
 
-import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";
+import { fetchMenuItems, saveMenuTree, type DbMenuItem } from '@/services/menus/menuItems.service';
 
-export type MenuSetKey = "home" | "v1";
+import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 
-export type SiteKind = "ecommerce" | "landing" | "blog" | "booking" | "news" | "lms";
+export type MenuSetKey = 'home' | 'v1';
 
-export type TemplateKey = "header" | "sidebar" | "mega" | "drawer";
+export type SiteKind = 'ecommerce' | 'landing' | 'blog' | 'booking' | 'news' | 'lms';
 
-export type MenuLocale = "en" | "vi" | "ja";
+export type TemplateKey = 'header' | 'sidebar' | 'mega' | 'drawer';
+
+export type MenuLocale = 'en' | 'vi' | 'ja';
 
 export type InternalPage = {
-  id: string;
+    id: string;
 
-  paths: Record<MenuLocale, string>;
+    paths: Record<MenuLocale, string>;
 
-  labelKey: string;
+    labelKey: string;
 
-  icon?: string;
+    icon?: string;
 
-  aliases?: string[];
+    aliases?: string[];
 
-  tags?: string[];
+    tags?: string[];
 };
 
 export type TemplateAllowed = {
-  [template in TemplateKey]?:
-    | string[]
-    | {
-        home: string[];
-        dashboard?: string[];
-      };
+    [template in TemplateKey]?:
+        | string[]
+        | {
+              home: string[];
+              dashboard?: string[];
+          };
 };
 
 export type BuilderMenuItem = {
-  id: string;
+    id: string;
 
-  title: string;
+    title: string;
 
-  icon?: string | null;
+    icon?: string | null;
 
-  visible?: boolean;
+    visible?: boolean;
 
-  linkType: "external" | "internal" | "scheduled";
+    linkType: 'external' | 'internal' | 'scheduled';
 
-  externalUrl?: string;
+    externalUrl?: string;
 
-  newTab?: boolean;
+    newTab?: boolean;
 
-  internalPageId?: string | null;
+    internalPageId?: string | null;
 
-  rawPath?: string | null;
+    rawPath?: string | null;
 
-  schedules?: Array<{
-    when: string;
-    url: string;
-  }>;
+    schedules?: Array<{
+        when: string;
+        url: string;
+    }>;
 
-  children?: BuilderMenuItem[];
-  isLocal?: boolean;
+    children?: BuilderMenuItem[];
+    isLocal?: boolean;
 };
 
 type DbTreeNode = DbMenuItem & {
-  children: DbTreeNode[];
+    children: DbTreeNode[];
 };
 
 type MenuState = {
-  home: BuilderMenuItem[];
-  v1: BuilderMenuItem[];
+    home: BuilderMenuItem[];
+    v1: BuilderMenuItem[];
 };
 
-const LS_KEY = "menu_builder_v2_dualsets";
+const LS_KEY = 'menu_builder_v2_dualsets';
 
 export const ECOM_CATEGORY_PRESETS = {
-  level1: ["Fashion", "Electronics", "Home Appliances", "Books"],
+    level1: ['Fashion', 'Electronics', 'Home Appliances', 'Books'],
 
-  level2ByL1: {
-    Fashion: ["Shirt", "Jeans", "Shoes", "Accessories"],
+    level2ByL1: {
+        Fashion: ['Shirt', 'Jeans', 'Shoes', 'Accessories'],
 
-    Electronics: ["TV", "Phone", "Laptop", "Headphones"],
+        Electronics: ['TV', 'Phone', 'Laptop', 'Headphones'],
 
-    "Home Appliances": ["Air Fryer", "Rice Cooker", "Air Purifier", "Vacuum Cleaner"],
+        'Home Appliances': ['Air Fryer', 'Rice Cooker', 'Air Purifier', 'Vacuum Cleaner'],
 
-    Books: ["New Books", "Business", "Skills", "Children"],
-  },
+        Books: ['New Books', 'Business', 'Skills', 'Children'],
+    },
 } as const;
 
 type Ctx = {
-  siteKind: SiteKind;
+    siteKind: SiteKind;
 
-  setSiteKind: (k: SiteKind) => void;
+    setSiteKind: (k: SiteKind) => void;
 
-  templateKey: TemplateKey;
+    templateKey: TemplateKey;
 
-  setTemplateKey: (k: TemplateKey) => void;
+    setTemplateKey: (k: TemplateKey) => void;
 
-  menus: MenuState;
+    menus: MenuState;
 
-  setMenus: React.Dispatch<React.SetStateAction<MenuState>>;
+    setMenus: React.Dispatch<React.SetStateAction<MenuState>>;
 
-  currentSet: MenuSetKey;
+    currentSet: MenuSetKey;
 
-  setCurrentSet: (k: MenuSetKey) => void;
+    setCurrentSet: (k: MenuSetKey) => void;
 
-  activeMenu: BuilderMenuItem[];
+    activeMenu: BuilderMenuItem[];
 
-  setActiveMenu: (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) => void;
+    setActiveMenu: (
+        next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[]),
+    ) => void;
 
-  addBlankItem: () => void;
+    addBlankItem: () => void;
 
-  buildHref: (it: BuilderMenuItem, now: Date) => string;
+    buildHref: (it: BuilderMenuItem, now: Date) => string;
 
-  TEMPLATE_ALLOWED: TemplateAllowed;
+    TEMPLATE_ALLOWED: TemplateAllowed;
 
-  INTERNAL_PAGES: InternalPage[];
+    INTERNAL_PAGES: InternalPage[];
 
-  loadFromServer: (setKey: MenuSetKey, siteId?: string, maxMenus?: number) => Promise<void>;
+    loadFromServer: (setKey: MenuSetKey, siteId?: string, maxMenus?: number) => Promise<void>;
 
-  saveToServer: (setKey: MenuSetKey, siteId?: string, maxMenus?: number) => Promise<void>;
+    saveToServer: (setKey: MenuSetKey, siteId?: string, maxMenus?: number) => Promise<void>;
 
-  generateMenusBySiteKind: (kind: SiteKind, maxMenus?: number) => void;
+    generateMenusBySiteKind: (kind: SiteKind, maxMenus?: number) => void;
 
-  findItem: (id: string, setKey?: MenuSetKey) => BuilderMenuItem | null;
+    findItem: (id: string, setKey?: MenuSetKey) => BuilderMenuItem | null;
 
-  removeItemById: (id: string, setKey?: MenuSetKey) => [BuilderMenuItem | null, BuilderMenuItem[]];
+    removeItemById: (
+        id: string,
+        setKey?: MenuSetKey,
+    ) => [BuilderMenuItem | null, BuilderMenuItem[]];
 };
 
 const MenuCtx = createContext<Ctx | null>(null);
 
 function uid() {
-  return Math.random().toString(36).slice(2, 9);
+    return Math.random().toString(36).slice(2, 9);
 }
 
 function normalizePath(value?: string | null): string | null {
-  if (!value) return null;
+    if (!value) return null;
 
-  let result = value.trim();
+    let result = value.trim();
 
-  result = result.split("#")[0].split("?")[0];
+    result = result.split('#')[0].split('?')[0];
 
-  if (result.length > 1 && result.endsWith("/")) {
-    result = result.slice(0, -1);
-  }
+    if (result.length > 1 && result.endsWith('/')) {
+        result = result.slice(0, -1);
+    }
 
-  return result;
+    return result;
 }
 
 function buildTree(rows: DbMenuItem[]): DbTreeNode[] {
-  const byId = new Map<string, DbTreeNode>();
+    const byId = new Map<string, DbTreeNode>();
 
-  const roots: DbTreeNode[] = [];
+    const roots: DbTreeNode[] = [];
 
-  const sorted = rows.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
+    const sorted = rows
+        .slice()
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.title.localeCompare(b.title));
 
-  for (const row of sorted) {
-    byId.set(row.id, {
-      ...row,
-      children: [],
-    });
-  }
-
-  for (const node of byId.values()) {
-    if (node.parentId && byId.has(node.parentId)) {
-      byId.get(node.parentId)!.children.push(node);
-    } else {
-      roots.push(node);
+    for (const row of sorted) {
+        byId.set(row.id, {
+            ...row,
+            children: [],
+        });
     }
-  }
 
-  return roots;
+    for (const node of byId.values()) {
+        if (node.parentId && byId.has(node.parentId)) {
+            byId.get(node.parentId)!.children.push(node);
+        } else {
+            roots.push(node);
+        }
+    }
+
+    return roots;
 }
 
 function getPagePath(page: InternalPage, locale: MenuLocale): string {
-  return page.paths[locale] ?? page.paths.en ?? "/";
+    return page.paths[locale] ?? page.paths.en ?? '/';
 }
 
 function inferLinkFromPath(path: string | null | undefined, internalPages: InternalPage[]) {
-  const rawPath = path ?? null;
+    const rawPath = path ?? null;
 
-  const normalizedPath = normalizePath(path);
+    const normalizedPath = normalizePath(path);
 
-  if (!normalizedPath) {
+    if (!normalizedPath) {
+        return {
+            linkType: 'internal' as const,
+
+            rawPath,
+        };
+    }
+
+    if (/^https?:\/\//i.test(normalizedPath)) {
+        return {
+            linkType: 'external' as const,
+
+            externalUrl: rawPath ?? undefined,
+
+            rawPath,
+        };
+    }
+
+    const internalPageId = internalPages.find((page) =>
+        Object.values(page.paths).some((p) => normalizePath(p) === normalizedPath),
+    )?.id;
+
+    if (internalPageId) {
+        return {
+            linkType: 'internal' as const,
+
+            internalPageId,
+
+            rawPath,
+        };
+    }
+
     return {
-      linkType: "internal" as const,
+        linkType: 'internal' as const,
 
-      rawPath,
+        internalPageId: undefined,
+
+        rawPath,
     };
-  }
-
-  if (/^https?:\/\//i.test(normalizedPath)) {
-    return {
-      linkType: "external" as const,
-
-      externalUrl: rawPath ?? undefined,
-
-      rawPath,
-    };
-  }
-
-  const internalPageId = internalPages.find((page) =>
-    Object.values(page.paths).some((p) => normalizePath(p) === normalizedPath),
-  )?.id;
-
-  if (internalPageId) {
-    return {
-      linkType: "internal" as const,
-
-      internalPageId,
-
-      rawPath,
-    };
-  }
-
-  return {
-    linkType: "internal" as const,
-
-    internalPageId: undefined,
-
-    rawPath,
-  };
 }
 
 function mapDbTreeToBuilder(
-  nodes: DbTreeNode[],
-  internalPages: InternalPage[],
-  locale: MenuLocale,
-  t: (key: string) => string,
+    nodes: DbTreeNode[],
+    internalPages: InternalPage[],
+    locale: MenuLocale,
+    t: (key: string) => string,
 ): BuilderMenuItem[] {
-  const walk = (node: DbTreeNode): BuilderMenuItem => {
-    const inferred = inferLinkFromPath(node.path, internalPages);
+    const walk = (node: DbTreeNode): BuilderMenuItem => {
+        const inferred = inferLinkFromPath(node.path, internalPages);
 
-    const matchedPage = inferred.internalPageId
-      ? internalPages.find((page) => page.id === inferred.internalPageId)
-      : undefined;
+        const matchedPage = inferred.internalPageId
+            ? internalPages.find((page) => page.id === inferred.internalPageId)
+            : undefined;
 
-    const isInternal = inferred.linkType === "internal" && !!matchedPage;
+        const isInternal = inferred.linkType === 'internal' && !!matchedPage;
 
-    return {
-      id: node.id,
+        return {
+            id: node.id,
 
-      title: isInternal ? t(matchedPage.labelKey) : node.title,
+            title: isInternal ? t(matchedPage.labelKey) : node.title,
 
-      icon: node.icon ?? matchedPage?.icon ?? undefined,
+            icon: node.icon ?? matchedPage?.icon ?? undefined,
 
-      visible: node.visible ?? true,
+            visible: node.visible ?? true,
 
-      linkType: inferred.linkType,
+            linkType: inferred.linkType,
 
-      externalUrl: inferred.externalUrl,
+            externalUrl: inferred.externalUrl,
 
-      internalPageId: inferred.internalPageId,
+            internalPageId: inferred.internalPageId,
 
-      rawPath: isInternal ? getPagePath(matchedPage, locale) : (inferred.rawPath ?? node.path ?? null),
+            rawPath: isInternal
+                ? getPagePath(matchedPage, locale)
+                : (inferred.rawPath ?? node.path ?? null),
 
-      schedules: [],
+            schedules: [],
 
-      children: node.children?.map(walk) ?? [],
+            children: node.children?.map(walk) ?? [],
+        };
     };
-  };
 
-  return nodes.map(walk);
+    return nodes.map(walk);
 }
 
 function resolvePathFromBuilder(
-  item: BuilderMenuItem,
-  internalPages: InternalPage[],
-  locale: MenuLocale,
+    item: BuilderMenuItem,
+    internalPages: InternalPage[],
+    locale: MenuLocale,
 ): string | null {
-  const rawPath = typeof item.rawPath === "string" ? item.rawPath.trim() : "";
+    const rawPath = typeof item.rawPath === 'string' ? item.rawPath.trim() : '';
 
-  if (rawPath) {
-    return normalizePath(rawPath);
-  }
+    if (rawPath) {
+        return normalizePath(rawPath);
+    }
 
-  if (item.linkType === "external") {
-    return item.externalUrl?.trim() ?? null;
-  }
+    if (item.linkType === 'external') {
+        return item.externalUrl?.trim() ?? null;
+    }
 
-  if (item.linkType === "internal") {
-    const page = item.internalPageId
-      ? internalPages.find((candidate) => candidate.id === item.internalPageId)
-      : undefined;
+    if (item.linkType === 'internal') {
+        const page = item.internalPageId
+            ? internalPages.find((candidate) => candidate.id === item.internalPageId)
+            : undefined;
 
-    return page ? normalizePath(getPagePath(page, locale)) : null;
-  }
+        return page ? normalizePath(getPagePath(page, locale)) : null;
+    }
 
-  return null;
+    return null;
 }
 
 function flattenBuilderToDb(
-  tree: BuilderMenuItem[],
-  setKey: MenuSetKey,
-  internalPages: InternalPage[],
-  locale: MenuLocale,
+    tree: BuilderMenuItem[],
+    setKey: MenuSetKey,
+    internalPages: InternalPage[],
+    locale: MenuLocale,
 ) {
-  const output: any[] = [];
+    const output: any[] = [];
 
-  const walk = (nodes: BuilderMenuItem[], parentId: string | null) => {
-    nodes.forEach((node, index) => {
-      output.push({
-        id: node.id,
+    const walk = (nodes: BuilderMenuItem[], parentId: string | null) => {
+        nodes.forEach((node, index) => {
+            output.push({
+                id: node.id,
 
-        parentId,
+                parentId,
 
-        title: node.title,
+                title: node.title,
 
-        path: resolvePathFromBuilder(node, internalPages, locale),
+                path: resolvePathFromBuilder(node, internalPages, locale),
 
-        icon: node.icon ?? null,
+                icon: node.icon ?? null,
 
-        sortOrder: index + 1,
+                sortOrder: index + 1,
 
-        visible: node.visible ?? true,
+                visible: node.visible ?? true,
 
-        setKey,
-      });
+                setKey,
+            });
 
-      if (node.children?.length) {
-        walk(node.children, node.id);
-      }
-    });
-  };
+            if (node.children?.length) {
+                walk(node.children, node.id);
+            }
+        });
+    };
 
-  walk(tree, null);
+    walk(tree, null);
 
-  return output;
+    return output;
 }
 
-function createInternalMenuItem(page: InternalPage, locale: MenuLocale, t: (key: string) => string): BuilderMenuItem {
-  return {
-    id: uid(),
+function createInternalMenuItem(
+    page: InternalPage,
+    locale: MenuLocale,
+    t: (key: string) => string,
+): BuilderMenuItem {
+    return {
+        id: uid(),
 
-    title: t(page.labelKey),
+        title: t(page.labelKey),
 
-    icon: page.icon ?? "",
+        icon: page.icon ?? '',
 
-    visible: true,
+        visible: true,
 
-    linkType: "internal",
+        linkType: 'internal',
 
-    externalUrl: "",
+        externalUrl: '',
 
-    newTab: false,
+        newTab: false,
 
-    internalPageId: page.id,
+        internalPageId: page.id,
 
-    rawPath: getPagePath(page, locale),
+        rawPath: getPagePath(page, locale),
 
-    schedules: [],
+        schedules: [],
 
-    children: [],
-  };
+        children: [],
+    };
 }
 
 function buildMenuFromPageIds(
-  pageIds: readonly string[],
-  pages: InternalPage[],
-  locale: MenuLocale,
-  t: (key: string) => string,
+    pageIds: readonly string[],
+    pages: InternalPage[],
+    locale: MenuLocale,
+    t: (key: string) => string,
 ): BuilderMenuItem[] {
-  return pageIds
-    .map((pageId) => {
-      const match = pages.find((page) => page.id === pageId);
+    return pageIds
+        .map((pageId) => {
+            const match = pages.find((page) => page.id === pageId);
 
-      return match ? createInternalMenuItem(match, locale, t) : null;
-    })
-    .filter(Boolean) as BuilderMenuItem[];
+            return match ? createInternalMenuItem(match, locale, t) : null;
+        })
+        .filter(Boolean) as BuilderMenuItem[];
 }
 
-function buildDefaultMenusBySiteKind(kind: SiteKind, locale: MenuLocale, t: (key: string) => string): MenuState {
-  const pages = INTERNAL_PAGE_SETS[kind] ?? [];
+function buildDefaultMenusBySiteKind(
+    kind: SiteKind,
+    locale: MenuLocale,
+    t: (key: string) => string,
+): MenuState {
+    const pages = INTERNAL_PAGE_SETS[kind] ?? [];
 
-  switch (kind) {
-    case "ecommerce":
-      return {
-        home: buildMenuFromPageIds(ECOMMERCE_HEADER_FULL, pages, locale, t),
+    switch (kind) {
+        case 'ecommerce':
+            return {
+                home: buildMenuFromPageIds(ECOMMERCE_HEADER_FULL, pages, locale, t),
 
-        v1: [],
-      };
+                v1: [],
+            };
 
-    default:
-      return {
-        home: buildMenuFromPageIds(LANDING_PAGE_IDS, pages, locale, t),
+        default:
+            return {
+                home: buildMenuFromPageIds(LANDING_PAGE_IDS, pages, locale, t),
 
-        v1: [],
-      };
-  }
+                v1: [],
+            };
+    }
 }
 
 export function MenuStoreProvider({ children }: { children: ReactNode }) {
-  const [siteKind, setSiteKind] = useState<SiteKind>("ecommerce");
+    const [siteKind, setSiteKind] = useState<SiteKind>('ecommerce');
 
-  const [templateKey, setTemplateKey] = useState<TemplateKey>("header");
+    const [templateKey, setTemplateKey] = useState<TemplateKey>('header');
 
-  const [menus, setMenus] = useState<MenuState>({
-    home: [],
-    v1: [],
-  });
+    const [menus, setMenus] = useState<MenuState>({
+        home: [],
+        v1: [],
+    });
 
-  const [currentSet, setCurrentSet] = useState<MenuSetKey>("home");
+    const [currentSet, setCurrentSet] = useState<MenuSetKey>('home');
 
-  const { t, locale } = useAdminI18n();
+    const { t, locale } = useAdminI18n();
 
-  const currentLocale = (locale ?? "en") as MenuLocale;
+    const currentLocale = (locale ?? 'en') as MenuLocale;
 
-  const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind] ?? [], [siteKind]);
+    const INTERNAL_PAGES = useMemo(() => INTERNAL_PAGE_SETS[siteKind] ?? [], [siteKind]);
 
-  const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind] ?? {}, [siteKind]);
+    const TEMPLATE_ALLOWED = useMemo(() => TEMPLATE_ALLOWED_BY_SITE[siteKind] ?? {}, [siteKind]);
 
-  const inflightRef = useRef<AbortController | null>(null);
+    const inflightRef = useRef<AbortController | null>(null);
 
-  const inflightKeyRef = useRef("");
+    const inflightKeyRef = useRef('');
 
-  const loadedKeyRef = useRef("");
+    const loadedKeyRef = useRef('');
 
-  const activeMenu = useMemo(() => menus[currentSet] ?? [], [menus, currentSet]);
+    const activeMenu = useMemo(() => menus[currentSet] ?? [], [menus, currentSet]);
 
-  const setActiveMenu = useCallback(
-    (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) => {
-      setMenus((prev) => ({
-        ...prev,
+    const setActiveMenu = useCallback(
+        (next: BuilderMenuItem[] | ((prev: BuilderMenuItem[]) => BuilderMenuItem[])) => {
+            setMenus((prev) => ({
+                ...prev,
 
-        [currentSet]: typeof next === "function" ? next(prev[currentSet] ?? []) : next,
-      }));
-    },
-    [currentSet],
-  );
+                [currentSet]: typeof next === 'function' ? next(prev[currentSet] ?? []) : next,
+            }));
+        },
+        [currentSet],
+    );
 
-  const addBlankItem = useCallback(() => {
-    const firstPage = INTERNAL_PAGES[0];
+    const addBlankItem = useCallback(() => {
+        const firstPage = INTERNAL_PAGES[0];
 
-    const item: BuilderMenuItem = {
-      id: uid(),
+        const item: BuilderMenuItem = {
+            id: uid(),
 
-      title: t("pages.newItem"),
+            title: t('pages.newItem'),
 
-      icon: "",
+            icon: '',
 
-      visible: true,
+            visible: true,
 
-      linkType: "internal",
+            linkType: 'internal',
 
-      externalUrl: "",
+            externalUrl: '',
 
-      newTab: false,
+            newTab: false,
 
-      internalPageId: firstPage?.id ?? null,
+            internalPageId: firstPage?.id ?? null,
 
-      rawPath: firstPage ? getPagePath(firstPage, currentLocale) : "/",
+            rawPath: firstPage ? getPagePath(firstPage, currentLocale) : '/',
 
-      schedules: [],
+            schedules: [],
 
-      children: [],
-    };
+            children: [],
+        };
 
-    setActiveMenu((prev) => [...prev, item]);
-  }, [INTERNAL_PAGES, currentLocale, setActiveMenu, t]);
+        setActiveMenu((prev) => [...prev, item]);
+    }, [INTERNAL_PAGES, currentLocale, setActiveMenu, t]);
 
-  const buildHref = useCallback((item: BuilderMenuItem, now: Date) => {
-    if (item.linkType === "external") {
-      return item.externalUrl ?? "";
-    }
-
-    if (item.linkType === "internal") {
-      return item.rawPath ?? "";
-    }
-
-    return "";
-  }, []);
-
-  const generateMenusBySiteKind = useCallback(
-    (kind: SiteKind, maxMenus = Number.MAX_SAFE_INTEGER) => {
-      const generatedMenus = buildDefaultMenusBySiteKind(kind, currentLocale, t);
-
-      setMenus({
-        home: generatedMenus.home.slice(0, maxMenus),
-
-        v1: generatedMenus.v1.slice(0, maxMenus),
-      });
-
-      setCurrentSet("home");
-    },
-    [currentLocale, t],
-  );
-
-  const findItem = useCallback(
-    (id: string, setKey?: MenuSetKey) => {
-      const root = menus[setKey ?? currentSet] ?? [];
-
-      const walk = (nodes: BuilderMenuItem[]): BuilderMenuItem | null => {
-        for (const node of nodes) {
-          if (node.id === id) {
-            return node;
-          }
-
-          const found = node.children?.length ? walk(node.children) : null;
-
-          if (found) return found;
+    const buildHref = useCallback((item: BuilderMenuItem, now: Date) => {
+        if (item.linkType === 'external') {
+            return item.externalUrl ?? '';
         }
 
-        return null;
-      };
-
-      return walk(root);
-    },
-    [menus, currentSet],
-  );
-
-  const removeItemById = useCallback(
-    (id: string, setKey?: MenuSetKey) => {
-      const root = menus[setKey ?? currentSet] ?? [];
-
-      let removed: BuilderMenuItem | null = null;
-
-      const removeWalk = (nodes: BuilderMenuItem[]): BuilderMenuItem[] => {
-        const nextNodes: BuilderMenuItem[] = [];
-
-        for (const node of nodes) {
-          if (node.id === id) {
-            removed = node;
-            continue;
-          }
-
-          nextNodes.push({
-            ...node,
-
-            children: node.children?.length ? removeWalk(node.children) : [],
-          });
+        if (item.linkType === 'internal') {
+            return item.rawPath ?? '';
         }
 
-        return nextNodes;
-      };
+        return '';
+    }, []);
 
-      return [removed, removeWalk(root)] as [BuilderMenuItem | null, BuilderMenuItem[]];
-    },
-    [menus, currentSet],
-  );
+    const generateMenusBySiteKind = useCallback(
+        (kind: SiteKind, maxMenus = Number.MAX_SAFE_INTEGER) => {
+            const generatedMenus = buildDefaultMenusBySiteKind(kind, currentLocale, t);
 
-  const loadFromServer = useCallback(
-    async (setKey: MenuSetKey, siteId?: string, maxMenus = Number.MAX_SAFE_INTEGER) => {
-      const requestKey = `${setKey}|${siteId ?? ""}|${siteKind}|${currentLocale}`;
+            setMenus({
+                home: generatedMenus.home.slice(0, maxMenus),
 
-      if (inflightRef.current && inflightKeyRef.current === requestKey) {
-        return;
-      }
+                v1: generatedMenus.v1.slice(0, maxMenus),
+            });
 
-      inflightRef.current?.abort();
+            setCurrentSet('home');
+        },
+        [currentLocale, t],
+    );
 
-      const controller = new AbortController();
+    const findItem = useCallback(
+        (id: string, setKey?: MenuSetKey) => {
+            const root = menus[setKey ?? currentSet] ?? [];
 
-      inflightRef.current = controller;
+            const walk = (nodes: BuilderMenuItem[]): BuilderMenuItem | null => {
+                for (const node of nodes) {
+                    if (node.id === id) {
+                        return node;
+                    }
 
-      inflightKeyRef.current = requestKey;
+                    const found = node.children?.length ? walk(node.children) : null;
 
-      try {
-        const rows = await fetchMenuItems({
-          setKey,
-          siteId,
-          page: 1,
-          size: 1000,
-          signal: controller.signal,
-        });
+                    if (found) return found;
+                }
 
-        const treeDb = buildTree(rows);
+                return null;
+            };
 
-        const builderTree = mapDbTreeToBuilder(treeDb, INTERNAL_PAGES, currentLocale, t).slice(0, maxMenus);
+            return walk(root);
+        },
+        [menus, currentSet],
+    );
 
-        setMenus((prev) => ({
-          ...prev,
+    const removeItemById = useCallback(
+        (id: string, setKey?: MenuSetKey) => {
+            const root = menus[setKey ?? currentSet] ?? [];
 
-          [setKey]: builderTree,
-        }));
+            let removed: BuilderMenuItem | null = null;
 
-        loadedKeyRef.current = requestKey;
-      } catch (error) {
-        if ((error as Error)?.name === "AbortError") {
-          return;
-        }
+            const removeWalk = (nodes: BuilderMenuItem[]): BuilderMenuItem[] => {
+                const nextNodes: BuilderMenuItem[] = [];
 
-        throw error;
-      } finally {
-        if (inflightRef.current === controller) {
-          inflightRef.current = null;
+                for (const node of nodes) {
+                    if (node.id === id) {
+                        removed = node;
+                        continue;
+                    }
 
-          inflightKeyRef.current = "";
-        }
-      }
-    },
-    [INTERNAL_PAGES, siteKind, currentLocale, t],
-  );
+                    nextNodes.push({
+                        ...node,
 
-  const saveToServer = useCallback(
-    async (setKey: MenuSetKey, siteId?: string, maxMenus = Number.MAX_SAFE_INTEGER) => {
-      const treeToSave = (menus[setKey] ?? []).slice(0, maxMenus);
+                        children: node.children?.length ? removeWalk(node.children) : [],
+                    });
+                }
 
-      const items = flattenBuilderToDb(treeToSave, setKey, INTERNAL_PAGES, currentLocale);
+                return nextNodes;
+            };
 
-      await saveMenuTree({
-        setKey,
-        siteId,
-        items,
-      });
+            return [removed, removeWalk(root)] as [BuilderMenuItem | null, BuilderMenuItem[]];
+        },
+        [menus, currentSet],
+    );
 
-      loadedKeyRef.current = `${setKey}|${siteId ?? ""}|${siteKind}|${currentLocale}`;
-    },
-    [menus, INTERNAL_PAGES, currentLocale, siteKind],
-  );
+    const loadFromServer = useCallback(
+        async (setKey: MenuSetKey, siteId?: string, maxMenus = Number.MAX_SAFE_INTEGER) => {
+            const requestKey = `${setKey}|${siteId ?? ''}|${siteKind}|${currentLocale}`;
 
-  const value = useMemo<Ctx>(
-    () => ({
-      siteKind,
+            if (inflightRef.current && inflightKeyRef.current === requestKey) {
+                return;
+            }
 
-      setSiteKind,
+            inflightRef.current?.abort();
 
-      templateKey,
+            const controller = new AbortController();
 
-      setTemplateKey,
+            inflightRef.current = controller;
 
-      menus,
+            inflightKeyRef.current = requestKey;
 
-      setMenus,
+            try {
+                const rows = await fetchMenuItems({
+                    setKey,
+                    siteId,
+                    page: 1,
+                    size: 1000,
+                    signal: controller.signal,
+                });
 
-      currentSet,
+                const treeDb = buildTree(rows);
 
-      setCurrentSet,
+                const builderTree = mapDbTreeToBuilder(
+                    treeDb,
+                    INTERNAL_PAGES,
+                    currentLocale,
+                    t,
+                ).slice(0, maxMenus);
 
-      activeMenu,
+                setMenus((prev) => ({
+                    ...prev,
 
-      setActiveMenu,
+                    [setKey]: builderTree,
+                }));
 
-      addBlankItem,
+                loadedKeyRef.current = requestKey;
+            } catch (error) {
+                if ((error as Error)?.name === 'AbortError') {
+                    return;
+                }
 
-      buildHref,
+                throw error;
+            } finally {
+                if (inflightRef.current === controller) {
+                    inflightRef.current = null;
 
-      TEMPLATE_ALLOWED,
+                    inflightKeyRef.current = '';
+                }
+            }
+        },
+        [INTERNAL_PAGES, siteKind, currentLocale, t],
+    );
 
-      INTERNAL_PAGES,
+    const saveToServer = useCallback(
+        async (setKey: MenuSetKey, siteId?: string, maxMenus = Number.MAX_SAFE_INTEGER) => {
+            const treeToSave = (menus[setKey] ?? []).slice(0, maxMenus);
 
-      loadFromServer,
+            const items = flattenBuilderToDb(treeToSave, setKey, INTERNAL_PAGES, currentLocale);
 
-      saveToServer,
+            await saveMenuTree({
+                setKey,
+                siteId,
+                items,
+            });
 
-      generateMenusBySiteKind,
+            loadedKeyRef.current = `${setKey}|${siteId ?? ''}|${siteKind}|${currentLocale}`;
+        },
+        [menus, INTERNAL_PAGES, currentLocale, siteKind],
+    );
 
-      findItem,
+    const value = useMemo<Ctx>(
+        () => ({
+            siteKind,
 
-      removeItemById,
-    }),
-    [
-      siteKind,
-      templateKey,
-      menus,
-      currentSet,
-      activeMenu,
-      setActiveMenu,
-      addBlankItem,
-      buildHref,
-      TEMPLATE_ALLOWED,
-      INTERNAL_PAGES,
-      loadFromServer,
-      saveToServer,
-      generateMenusBySiteKind,
-      findItem,
-      removeItemById,
-    ],
-  );
+            setSiteKind,
 
-  return <MenuCtx.Provider value={value}>{children}</MenuCtx.Provider>;
+            templateKey,
+
+            setTemplateKey,
+
+            menus,
+
+            setMenus,
+
+            currentSet,
+
+            setCurrentSet,
+
+            activeMenu,
+
+            setActiveMenu,
+
+            addBlankItem,
+
+            buildHref,
+
+            TEMPLATE_ALLOWED,
+
+            INTERNAL_PAGES,
+
+            loadFromServer,
+
+            saveToServer,
+
+            generateMenusBySiteKind,
+
+            findItem,
+
+            removeItemById,
+        }),
+        [
+            siteKind,
+            templateKey,
+            menus,
+            currentSet,
+            activeMenu,
+            setActiveMenu,
+            addBlankItem,
+            buildHref,
+            TEMPLATE_ALLOWED,
+            INTERNAL_PAGES,
+            loadFromServer,
+            saveToServer,
+            generateMenusBySiteKind,
+            findItem,
+            removeItemById,
+        ],
+    );
+
+    return <MenuCtx.Provider value={value}>{children}</MenuCtx.Provider>;
 }
 
 export function useMenuStore() {
-  const context = useContext(MenuCtx);
+    const context = useContext(MenuCtx);
 
-  if (!context) {
-    throw new Error("useMenuStore must be used inside <MenuStoreProvider>");
-  }
+    if (!context) {
+        throw new Error('useMenuStore must be used inside <MenuStoreProvider>');
+    }
 
-  return context;
+    return context;
 }

@@ -1,91 +1,91 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import type { BuilderMenuItem } from "@/components/admin/builder/menus/state/useMenuStore";
+import type { BuilderMenuItem } from '@/components/admin/menus/state/useMenuStore';
+import { create } from 'zustand';
 
 type ScheduleRow = { when: string; url: string };
 
 type DraftUpdater = BuilderMenuItem | ((prev: BuilderMenuItem) => BuilderMenuItem);
 
 type State = {
-  draft: BuilderMenuItem | null;
-  saving: boolean;
-  pathInput: string;
-  copied: boolean;
-  setDraft: (updater: DraftUpdater) => void;
-  setSaving: (v: boolean) => void;
-  setPathInput: (v: string) => void;
-  setCopied: (v: boolean) => void;
-  initFromItem: (item: BuilderMenuItem, initialPath: string) => void;
-  reset: () => void;
-  addScheduleRow: () => void;
-  delScheduleRow: (idx: number) => void;
+    draft: BuilderMenuItem | null;
+    saving: boolean;
+    pathInput: string;
+    copied: boolean;
+    setDraft: (updater: DraftUpdater) => void;
+    setSaving: (v: boolean) => void;
+    setPathInput: (v: string) => void;
+    setCopied: (v: boolean) => void;
+    initFromItem: (item: BuilderMenuItem, initialPath: string) => void;
+    reset: () => void;
+    addScheduleRow: () => void;
+    delScheduleRow: (idx: number) => void;
 };
 
 export const useEditOffcanvasStore = create<State>((set, get) => ({
-  draft: null,
-  saving: false,
-  pathInput: "",
-  copied: false,
+    draft: null,
+    saving: false,
+    pathInput: '',
+    copied: false,
 
-  setDraft: (updater) => {
-    const current = get().draft;
+    setDraft: (updater) => {
+        const current = get().draft;
 
-    if (!current) {
-      if (typeof updater === "function") return;
-      set({ draft: updater });
-      return;
-    }
+        if (!current) {
+            if (typeof updater === 'function') return;
+            set({ draft: updater });
+            return;
+        }
 
-    if (typeof updater === "function") {
-      const next = updater(current);
-      set({ draft: next });
-    } else {
-      set({ draft: updater });
-    }
-  },
+        if (typeof updater === 'function') {
+            const next = updater(current);
+            set({ draft: next });
+        } else {
+            set({ draft: updater });
+        }
+    },
 
-  setSaving: (v) => set({ saving: v }),
-  setPathInput: (v) => set({ pathInput: v }),
-  setCopied: (v) => set({ copied: v }),
+    setSaving: (v) => set({ saving: v }),
+    setPathInput: (v) => set({ pathInput: v }),
+    setCopied: (v) => set({ copied: v }),
 
-  initFromItem: (item, initialPath) =>
-    set({
-      draft: item,
-      pathInput: initialPath,
-      copied: false,
-    }),
+    initFromItem: (item, initialPath) =>
+        set({
+            draft: item,
+            pathInput: initialPath,
+            copied: false,
+        }),
 
-  reset: () =>
-    set({
-      draft: null,
-      saving: false,
-      pathInput: "",
-      copied: false,
-    }),
+    reset: () =>
+        set({
+            draft: null,
+            saving: false,
+            pathInput: '',
+            copied: false,
+        }),
 
-  addScheduleRow: () => {
-    const d = get().draft;
-    if (!d) return;
-    const row: ScheduleRow = { when: "", url: "" };
-    set({
-      draft: {
-        ...d,
-        schedules: [...(d.schedules || []), row],
-      },
-    });
-  },
+    addScheduleRow: () => {
+        const d = get().draft;
+        if (!d) return;
+        const row: ScheduleRow = { when: '', url: '' };
+        set({
+            draft: {
+                ...d,
+                schedules: [...(d.schedules || []), row],
+            },
+        });
+    },
 
-  delScheduleRow: (idx) => {
-    const d = get().draft;
-    if (!d) return;
-    const next = [...(d.schedules || [])];
-    next.splice(idx, 1);
-    set({
-      draft: {
-        ...d,
-        schedules: next,
-      },
-    });
-  },
+    delScheduleRow: (idx) => {
+        const d = get().draft;
+        if (!d) return;
+        const next = [...(d.schedules || [])];
+        next.splice(idx, 1);
+        set({
+            draft: {
+                ...d,
+                schedules: next,
+            },
+        });
+    },
 }));
