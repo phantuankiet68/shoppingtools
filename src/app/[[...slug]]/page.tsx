@@ -52,7 +52,13 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
 
     const site = await prisma.site.findUnique({
         where: { domain },
-        select: { id: true },
+        select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+            faviconUrl: true,
+            domain: true,
+        },
     });
 
     if (!site) {
@@ -225,6 +231,7 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
             )}
             <RenderBlocksPublic
                 blocks={mergedBlocks}
+                siteId={site.id}
                 productSlug={productSlug}
                 currentPath={path}
                 rawSegments={segments}

@@ -186,8 +186,8 @@
 }
 
 .statIcon {
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
     border-radius: 8px;
     display: grid;
     place-items: center;
@@ -227,11 +227,12 @@
 }
 
 .statValue {
-    font-size: 20px;
+    font-size: 18px;
     line-height: 1;
     font-weight: 900;
     letter-spacing: -0.04em;
     color: #eb7419;
+    margin-bottom: 5px;
 }
 
 .statLabel {

@@ -324,33 +324,6 @@ export default function ControlsPalette({
 
     return (
         <div className={styles.wrap}>
-            <div className={styles.head}>
-                <div className={styles.tabs}>
-                    <button className={`${styles.tab} ${styles.tabActive}`} type="button">
-                        <i className="bi bi-grid-3x3-gap me-1" /> Templates
-                    </button>
-                </div>
-
-                <div className={styles.headTools}>
-                    <button
-                        className={styles.ghostBtn}
-                        onClick={expandAllTemplates}
-                        title="Expand templates"
-                        type="button"
-                    >
-                        <i className="bi bi-arrows-expand" />
-                    </button>
-                    <button
-                        className={styles.ghostBtn}
-                        onClick={collapseAll}
-                        title="Collapse templates"
-                        type="button"
-                    >
-                        <i className="bi bi-arrows-collapse" />
-                    </button>
-                </div>
-            </div>
-
             <div className={styles.searchBox}>
                 <i className={`bi bi-search ${styles.searchIcon}`} />
                 <input

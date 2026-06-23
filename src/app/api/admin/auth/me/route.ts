@@ -44,6 +44,7 @@ export async function GET(req: Request) {
                     id: true,
                     name: true,
                     domain: true,
+                    type: true,
                     category: true,
                     logoUrl: true,
                     faviconUrl: true,
@@ -86,13 +87,6 @@ export async function GET(req: Request) {
 
                     allowAnalytics: true,
                     allowAdvancedAnalytics: true,
-
-                    allowBlog: true,
-                    allowEcommerce: true,
-                    allowBooking: true,
-                    allowNews: true,
-                    allowLms: true,
-                    allowDirectory: true,
                 },
             });
         }

@@ -7,38 +7,17 @@ import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
 import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 import { useModal } from '@/components/admin/shared/common/modal';
 import { usePageFunctionKeys } from '@/components/admin/shared/hooks/usePageFunctionKeys';
-import { MENU_MESSAGES as M } from '@/features/menus/messages';
 import { flattenTriples } from '@/lib/menu/deriveTitleSlugPath';
 import { syncPagesFromMenu } from '@/services/menus/menuBuilder.service';
 import { useMenuBuilderUIStore } from '@/store/menus/useMenuBuilderUIStore';
 import styles from '@/styles/admin/menus/menu.module.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-const SITE_KIND_OPTIONS: {
-    value: SiteKind;
-    label: string;
-}[] = [
-    { value: 'ecommerce', label: 'eCommerce' },
-    { value: 'landing', label: 'Landing' },
-    { value: 'blog', label: 'Blog' },
-    { value: 'booking', label: 'Booking' },
-    { value: 'news', label: 'News' },
-    { value: 'lms', label: 'Lms' },
-];
-
-type SiteItem = {
-    id: string;
-    name: string;
-    domain: string;
-    type?: SiteKind;
-};
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export default function MenuBuilder() {
     const modal = useModal();
     const { t } = useAdminI18n();
-    const { sites: authSites, currentWorkspace } = useAdminAuth();
+    const { currentSite, sites, currentWorkspace } = useAdminAuth();
     const [q, setQ] = useState('');
-    const latestLoadId = useRef(0);
 
     const {
         currentSet,
@@ -54,17 +33,9 @@ export default function MenuBuilder() {
         generateMenusBySiteKind,
     } = useMenuStore();
 
-    const {
-        saving,
-        loading,
-        refreshing,
-        sites,
-        selectedSiteId,
-        setSaving,
-        setLoading,
-        setSites,
-        setSelectedSiteId,
-    } = useMenuBuilderUIStore();
+    const { saving, loading, refreshing, setSaving, setLoading } = useMenuBuilderUIStore();
+
+    const [selectedSiteId, setSelectedSiteId] = useState(currentSite?.id ?? '');
     const workspacePolicy = (currentWorkspace as any)?.accessPolicy;
     const maxMenus = workspacePolicy?.maxMenus ?? Number.MAX_SAFE_INTEGER;
     const countMenus = useCallback((items: any[]): number => {
@@ -84,53 +55,33 @@ export default function MenuBuilder() {
     const remainingMenus = Math.max(maxMenus - currentMenuCount, 0);
     const isMenuLimitReached = currentMenuCount >= maxMenus;
 
-    useEffect(() => {
-        if (!authSites?.length) {
-            setSites([]);
-            return;
-        }
-        const mapped: SiteItem[] = authSites.map((s) => ({
-            id: s.id,
-            name: s.name,
-            domain: s.domain,
-            type: s.type as SiteKind,
-        }));
-        setSites(mapped);
-    }, [authSites, setSites]);
-
-    useEffect(() => {
-        if (!sites.length) return;
-        if (!selectedSiteId) {
-            setSelectedSiteId(sites[0].id);
-        }
-    }, [sites, selectedSiteId, setSelectedSiteId]);
-
-    const selectedSite = useMemo<SiteItem | undefined>(() => {
+    const selectedSite = useMemo(() => {
         return sites.find((s) => s.id === selectedSiteId);
     }, [sites, selectedSiteId]);
 
     useEffect(() => {
+        if (!selectedSiteId) {
+            return;
+        }
+
+        void loadFromServer(currentSet, selectedSiteId, maxMenus);
+    }, [selectedSiteId, currentSet]);
+
+    useEffect(() => {
         if (!selectedSite?.type) return;
-        setSiteKind(selectedSite.type);
+        setSiteKind(selectedSite.type as SiteKind);
     }, [selectedSite?.type, setSiteKind]);
 
     useEffect(() => {
-        if (!selectedSiteId) return;
-        const loadId = ++latestLoadId.current;
-        (async () => {
-            try {
-                setLoading(true);
-                await loadFromServer(currentSet, selectedSiteId, maxMenus);
-            } catch (e) {
-                console.error(e);
-                modal.error((e as Error)?.message ?? M.error.unknown);
-            } finally {
-                if (loadId === latestLoadId.current) {
-                    setLoading(false);
-                }
-            }
-        })();
-    }, [currentSet, selectedSiteId, maxMenus, loadFromServer, setLoading, modal]);
+        if (currentSite?.id && currentSite.id !== selectedSiteId) {
+            setSelectedSiteId(currentSite.id);
+            return;
+        }
+
+        if (sites.length > 0 && !sites.some((s) => s.id === selectedSiteId)) {
+            setSelectedSiteId(sites[0].id);
+        }
+    }, [currentSite?.id, selectedSiteId, sites]);
 
     const handleAddMenu = useCallback(() => {
         if (currentMenuCount >= maxMenus) {
@@ -212,25 +163,22 @@ export default function MenuBuilder() {
                             className={`${styles.formSelectSm} ${styles.selectStyled}`}
                             value={selectedSiteId}
                             onChange={(e) => setSelectedSiteId(e.target.value)}
+                            disabled={sites.length === 0}
                         >
-                            {sites.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.domain}
-                                </option>
-                            ))}
+                            {sites.length === 0 ? (
+                                <option value="">No site available</option>
+                            ) : (
+                                sites.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name || s.domain}
+                                    </option>
+                                ))
+                            )}
                         </select>
                     </div>
 
                     <div className={styles.inline}>
                         <i className="bi bi-layers" />
-                        <input
-                            className={`${styles.formSelectSm} ${styles.selectStyled}`}
-                            value={
-                                SITE_KIND_OPTIONS.find((item) => item.value === siteKind)?.label ||
-                                ''
-                            }
-                            readOnly
-                        />
                         <button
                             className={`${styles.btn} ${styles.btnOutlineSecondary}`}
                             onClick={handleAutoCreateMenu}

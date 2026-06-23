@@ -9,6 +9,7 @@ export type Site = {
     domain: string;
 
     category?: string | null;
+    type?: string | null;
 
     seoTitle?: string | null;
     seoDescription?: string | null;
@@ -19,27 +20,25 @@ export type Site = {
     contactEmail?: string | null;
     contactPhone?: string | null;
 
-    ownerUserId: string;
+    ownerUserId?: string | null;
 
-    status: string;
+    status?: string | null;
 
-    isPublic: boolean;
+    isPublic?: boolean;
 
-    publishedAt: string | null;
+    publishedAt?: string | null;
 
-    themeConfig: unknown;
+    themeConfig?: unknown;
 
-    seoDescDefault: string | null;
+    seoDescDefault?: string | null;
 
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+    deletedAt?: string | null;
 
-    createdByUserId: string | null;
+    createdByUserId?: string | null;
 
-    workspaceId: string;
-
-    type: string;
+    workspaceId?: string | null;
 };
 
 export type Membership = {
@@ -66,13 +65,6 @@ export type WorkspaceAccessPolicy = {
 
     allowAnalytics: boolean;
     allowAdvancedAnalytics: boolean;
-
-    allowBlog: boolean;
-    allowEcommerce: boolean;
-    allowBooking: boolean;
-    allowNews: boolean;
-    allowLms: boolean;
-    allowDirectory: boolean;
 };
 
 export type AdminAuthData = {

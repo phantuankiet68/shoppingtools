@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
                 ? {}
                 : {
                       isActive: true,
+                      isPublic: true,
                   }),
 
             ...(includeArchived
@@ -91,21 +92,18 @@ export async function GET(request: NextRequest) {
                                   mode: 'insensitive',
                               },
                           },
-
                           {
                               code: {
                                   contains: q,
                                   mode: 'insensitive',
                               },
                           },
-
                           {
                               kind: {
                                   contains: q,
                                   mode: 'insensitive',
                               },
                           },
-
                           {
                               category: {
                                   name: {
@@ -118,28 +116,14 @@ export async function GET(request: NextRequest) {
                   }
                 : {}),
 
-            ...(tier || siteType
+            ...(tier
                 ? {
                       category: {
-                          ...(tier
-                              ? {
-                                    minTier: tier,
-                                }
-                              : {}),
-
-                          ...(siteType
-                              ? {
-                                    name: {
-                                        contains: siteType,
-                                        mode: 'insensitive',
-                                    },
-                                }
-                              : {}),
+                          minTier: tier,
                       },
                   }
                 : {}),
         };
-
         const rows = await prisma.templateCatalog.findMany({
             where,
 

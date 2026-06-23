@@ -120,6 +120,8 @@ import { SHOP_DETAIL_SPLIT } from '@/components/admin/shared/templates/sections/
 import { SHOP_DETAIL_TICKER } from '@/components/admin/shared/templates/sections/Detail/DetailTicker';
 import { SHOP_DETAIL_UTILITY } from '@/components/admin/shared/templates/sections/Detail/DetailUtility';
 
+import { HEADER_BASIC_01 } from '@/components/admin/shared/templates/services/headers/header-service-01';
+
 export const BASIC: RegItem[] = [];
 
 export const REGISTRY_HOME: RegItem[] = [
@@ -239,6 +241,8 @@ export const REGISTRY_HOME: RegItem[] = [
     SHOP_DETAIL_SPLIT,
     SHOP_DETAIL_TICKER,
     SHOP_DETAIL_UTILITY,
+
+    HEADER_BASIC_01,
 ];
 
 export const REGISTRY: RegItem[] = [...BASIC, ...REGISTRY_HOME];

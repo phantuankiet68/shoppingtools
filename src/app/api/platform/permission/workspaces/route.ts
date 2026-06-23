@@ -31,14 +31,6 @@ function getPolicyByTier(tier: string) {
 
                 allowAnalytics: true,
                 allowAdvancedAnalytics: true,
-
-                allowBlog: true,
-                allowEcommerce: true,
-                allowBooking: true,
-                allowNews: true,
-                allowLms: true,
-                allowDirectory: true,
-
                 hiddenMenuKeys: [],
             };
 
@@ -61,13 +53,6 @@ function getPolicyByTier(tier: string) {
                 allowAnalytics: true,
                 allowAdvancedAnalytics: false,
 
-                allowBlog: true,
-                allowEcommerce: true,
-                allowBooking: false,
-                allowNews: false,
-                allowLms: false,
-                allowDirectory: false,
-
                 hiddenMenuKeys: [],
             };
 
@@ -89,14 +74,6 @@ function getPolicyByTier(tier: string) {
 
                 allowAnalytics: true,
                 allowAdvancedAnalytics: false,
-
-                allowBlog: true,
-                allowEcommerce: false,
-                allowBooking: false,
-                allowNews: false,
-                allowLms: false,
-                allowDirectory: false,
-
                 hiddenMenuKeys: [],
             };
     }

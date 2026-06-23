@@ -285,28 +285,52 @@ Archive Button PATCH /api/admin/tasks/:id/archive
 
 Đây là đang là sản phẩm web site cho thuê server để sử dụng tạo website từ template được tạo sẵn từ server của tôi. Bạn chỉ cần thêm site domain thì có thể sử dụng ấy
 
-components/
-├── SiteForm.tsx
-├── SiteGeneralFields.tsx
-├── SiteSeoFields.tsx
-├── SitePublishFields.tsx
-├── SiteMetaInfo.tsx
-├── SiteTable.tsx
-└── SiteTableRow.tsx
+Hiện tại page component platform/menus đang code rất nhiều và khó maintain được bạn có thể là front end developer cới 10 năm kình nghiệp làm việc hãy tách
+components/platform/menus
+hooks/platform/menus
+features/platform/types/menus
+utils/platform/menus
+constants/platform/menus
 
-hooks/
-├── useSiteForm.ts
-└── useSiteActions.ts
-
-types/
-└── site.ts
-
-utils/
-├── siteHelpers.ts
-└── siteValidation.ts
-
-constants/
-└── siteConstants.ts
+src/
+├── app/
+│ └── platform/
+│ └── menus/
+│ └── page.tsx
+│
+├── components/
+│ └── platform/
+│ └── menus/
+│ ├── MenuPage.tsx
+│ ├── MenuToolbar.tsx
+│ ├── MenuTable.tsx
+│ └── MenuModal.tsx
+│
+├── hooks/
+│ └── platform/
+│ └── menus/
+│ ├── useMenus.ts
+│ └── useMenuActions.ts
+│
+├── features/
+│ └── platform/
+│ └── types/
+│ └── menus/
+│ └── menu.ts
+│
+├── constants/
+│ └── platform/
+│ └── menus/
+│ └── menuConstants.ts
+│
+└── utils/
+└── platform/
+└── menus/
+└── menuUtils.ts
+Đầu tiên hãy tách file └── utils/
+└── platform/
+└── menus/
+└── menuUtils.ts trước nhé. đi từ file để kỹ lưỡng hơn xíu
 
 1. Landing
    Company Profile

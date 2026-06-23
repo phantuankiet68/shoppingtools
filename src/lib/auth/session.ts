@@ -60,13 +60,6 @@ export type AdminCurrentWorkspace = {
 
         allowAnalytics: boolean;
         allowAdvancedAnalytics: boolean;
-
-        allowBlog: boolean;
-        allowEcommerce: boolean;
-        allowBooking: boolean;
-        allowNews: boolean;
-        allowLms: boolean;
-        allowDirectory: boolean;
     } | null;
 } | null;
 
@@ -93,13 +86,6 @@ export type AdminMembership = {
 
         allowAnalytics: boolean;
         allowAdvancedAnalytics: boolean;
-
-        allowBlog: boolean;
-        allowEcommerce: boolean;
-        allowBooking: boolean;
-        allowNews: boolean;
-        allowLms: boolean;
-        allowDirectory: boolean;
     } | null;
 };
 
@@ -199,13 +185,6 @@ export async function getCurrentSession(): Promise<AdminSession> {
 
                                         allowAnalytics: true,
                                         allowAdvancedAnalytics: true,
-
-                                        allowBlog: true,
-                                        allowEcommerce: true,
-                                        allowBooking: true,
-                                        allowNews: true,
-                                        allowLms: true,
-                                        allowDirectory: true,
                                     },
                                 },
                             },

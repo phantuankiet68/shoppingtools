@@ -20,13 +20,6 @@ model WorkspaceAccessPolicy {
   allowAnalytics         Boolean @default(true) @map("allow_analytics")
   allowAdvancedAnalytics Boolean @default(false) @map("allow_advanced_analytics")
 
-  allowBlog      Boolean @default(true)
-  allowEcommerce Boolean @default(false)
-  allowBooking   Boolean @default(false)
-  allowNews      Boolean @default(false)
-  allowLms       Boolean @default(false)
-  allowDirectory Boolean @default(false)
-
   hiddenMenuKeys String[] @default([])
 
   createdAt DateTime @default(now())

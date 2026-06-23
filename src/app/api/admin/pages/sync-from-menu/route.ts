@@ -102,16 +102,24 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ ok: true, siteId, count: results.length, pages: results });
     } catch (e: any) {
+        console.error('SYNC PAGE ERROR:', {
+            code: e?.code,
+            meta: e?.meta,
+            message: e?.message,
+        });
+
         if (e?.code === 'P2002') {
             return NextResponse.json(
                 {
                     ok: false,
-                    error: `Unique constraint failed on: ${e?.meta?.target || 'unknown'}`,
+                    code: e.code,
+                    meta: e.meta,
+                    error: e.message,
                 },
                 { status: 409 },
             );
         }
-        console.error('POST /api/pages/sync-from-menu error:', e);
+
         return NextResponse.json(
             { ok: false, error: e?.message || 'Internal Server Error' },
             { status: 500 },

@@ -220,7 +220,7 @@ export default function NewTemplateModal({
                     ? `/api/platform/templates/${initialData?.id}`
                     : '/api/platform/templates',
                 {
-                    method: isEditMode ? 'PUT' : 'POST',
+                    method: isEditMode ? 'PATCH' : 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },

@@ -17,39 +17,6 @@ type UpdateSitePayload = {
 function normalizeDomain(value: string) {
     return value.trim().toLowerCase();
 }
-
-function isAllowedWebsiteType(
-    type: WebsiteType,
-    policy: {
-        allowBlog: boolean;
-        allowEcommerce: boolean;
-        allowBooking: boolean;
-        allowNews: boolean;
-        allowLms: boolean;
-        allowDirectory: boolean;
-    },
-) {
-    switch (type) {
-        case 'landing':
-            return true;
-
-        case 'blog':
-            return policy.allowBlog;
-
-        case 'ecommerce':
-            return policy.allowEcommerce;
-
-        case 'booking':
-            return policy.allowBooking;
-
-        case 'lms':
-            return policy.allowLms;
-
-        default:
-            return false;
-    }
-}
-
 export async function GET(_: NextRequest, { params }: Context) {
     try {
         const { workspaceId, id } = await params;
@@ -110,36 +77,13 @@ export async function PUT(req: NextRequest, { params }: Context) {
 
         const workspace = await prisma.workspace.findUnique({
             where: { id: workspaceId },
-            include: {
-                accessPolicy: {
-                    select: {
-                        allowBlog: true,
-                        allowEcommerce: true,
-                        allowBooking: true,
-                        allowNews: true,
-                        allowLms: true,
-                        allowDirectory: true,
-                    },
-                },
-            },
         });
 
         if (!workspace) {
             return NextResponse.json({ message: 'Workspace not found' }, { status: 404 });
         }
 
-        if (!workspace.accessPolicy) {
-            return NextResponse.json({ message: 'Workspace policy not found' }, { status: 404 });
-        }
-
         const nextType = body.type ?? existingSite.type;
-
-        if (!isAllowedWebsiteType(nextType, workspace.accessPolicy)) {
-            return NextResponse.json(
-                { message: `Workspace is not allowed to use ${nextType} sites` },
-                { status: 403 },
-            );
-        }
 
         const data: {
             name?: string;

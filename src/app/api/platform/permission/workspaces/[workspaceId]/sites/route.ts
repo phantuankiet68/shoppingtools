@@ -21,38 +21,6 @@ function normalizeDomain(value: string) {
     return value.trim().toLowerCase();
 }
 
-function isAllowedWebsiteType(
-    type: WebsiteType,
-    policy: {
-        allowBlog: boolean;
-        allowEcommerce: boolean;
-        allowBooking: boolean;
-        allowNews: boolean;
-        allowLms: boolean;
-        allowDirectory: boolean;
-    },
-) {
-    switch (type) {
-        case 'landing':
-            return true;
-
-        case 'blog':
-            return policy.allowBlog;
-
-        case 'ecommerce':
-            return policy.allowEcommerce;
-
-        case 'booking':
-            return policy.allowBooking;
-
-        case 'lms':
-            return policy.allowLms;
-
-        default:
-            return false;
-    }
-}
-
 const siteSelect = {
     id: true,
     name: true,
@@ -120,33 +88,10 @@ export async function POST(req: NextRequest, { params }: Context) {
 
         const workspace = await prisma.workspace.findUnique({
             where: { id: workspaceId },
-            include: {
-                accessPolicy: {
-                    select: {
-                        allowBlog: true,
-                        allowEcommerce: true,
-                        allowBooking: true,
-                        allowNews: true,
-                        allowLms: true,
-                        allowDirectory: true,
-                    },
-                },
-            },
         });
 
         if (!workspace) {
             return NextResponse.json({ message: 'Workspace not found' }, { status: 404 });
-        }
-
-        if (!workspace.accessPolicy) {
-            return NextResponse.json({ message: 'Workspace policy not found' }, { status: 404 });
-        }
-
-        if (!isAllowedWebsiteType(type, workspace.accessPolicy)) {
-            return NextResponse.json(
-                { message: `Workspace is not allowed to create ${type} sites` },
-                { status: 403 },
-            );
         }
 
         const existingDomain = await prisma.site.findFirst({
