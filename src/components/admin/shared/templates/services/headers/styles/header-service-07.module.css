@@ -1,0 +1,523 @@
+.topbar {
+    background: #0f172a;
+    color: #fff;
+    font-size: 13px;
+}
+
+.topbarContainer {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    min-height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.topbarLeft {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.contactItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.topbarCenter {
+    flex: 1;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.salesButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    text-decoration: none;
+    color: #fff;
+
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.salesButton:hover {
+    opacity: 0.8;
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    background: rgba(255, 255, 255, 0.92);
+
+    backdrop-filter: blur(16px);
+
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    min-height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    text-decoration: none;
+
+    flex-shrink: 0;
+}
+
+.brand img {
+    border-radius: 12px;
+}
+
+.brand span {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.navItem {
+    position: relative;
+}
+
+.navLink {
+    color: var(--muted);
+    border-radius: 8px;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.25s;
+    display: flex;
+}
+
+.navLink:hover {
+    background: #f8fafc;
+    color: #2563eb;
+}
+
+.megaMenu {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0px;
+    width: 620px;
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12);
+    animation: fadeIn 0.25s ease;
+}
+
+.megaMenu::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 10%;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-left: 1px solid rgba(15, 23, 42, 0.08);
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    transform: translateX(-50%) rotate(45deg);
+    z-index: 100;
+}
+
+.megaSidebar {
+    padding: 15px;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.megaBadge {
+    display: inline-flex;
+    width: fit-content;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.megaSidebar h3 {
+    margin: 0 0 5px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.megaSidebar p {
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.sidebarLink {
+    margin-top: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.megaGrid {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 12px;
+
+    padding: 15px;
+}
+.megaCard {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.25s ease;
+}
+
+.megaCard:hover {
+    background: #f8fafc;
+
+    transform: translateY(-2px);
+}
+.megaCard h4 {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.megaCard p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+.cardIcon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #dbeafe, #eff6ff);
+    color: #2563eb;
+    font-size: 20px;
+}
+
+.cardContent {
+    flex: 1;
+}
+
+.cardContent h4 {
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cardContent p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+.cardArrow {
+    opacity: 0;
+
+    transition: 0.25s;
+
+    color: #2563eb;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+.rightSide {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 260px;
+
+    height: 46px;
+
+    padding: 0 14px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    transition: all 0.3s ease;
+}
+
+.searchBox:focus-within {
+    border-color: #2563eb;
+
+    background: white;
+
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+.searchBox svg {
+    color: var(--muted);
+}
+
+.searchBox input {
+    flex: 1;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    font-size: 14px;
+}
+
+.authActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.loginBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    height: 46px;
+    padding: 0 18px;
+
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+
+    background: #ffffff;
+    color: #475569;
+
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+
+    transition: all 0.25s ease;
+}
+
+.loginBtn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+
+    transform: translateY(-1px);
+}
+
+.loginBtn i {
+    font-size: 18px;
+}
+
+.registerBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    height: 46px;
+    padding: 0 22px;
+
+    border-radius: 12px;
+    letter-spacing: 1;
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+
+    box-shadow:
+        0 10px 25px rgba(37, 99, 235, 0.25),
+        0 4px 10px rgba(79, 70, 229, 0.15);
+
+    transition: all 0.25s ease;
+}
+
+.registerBtn:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 15px 35px rgba(37, 99, 235, 0.35),
+        0 6px 15px rgba(79, 70, 229, 0.2);
+}
+
+.registerBtn i:first-child {
+    font-size: 16px;
+}
+
+.registerBtn i:last-child {
+    font-size: 16px;
+    transition: transform 0.25s ease;
+}
+
+.registerBtn:hover i:last-child {
+    transform: translateX(4px);
+}
+
+.mobileButton {
+    display: none;
+
+    background: none;
+
+    border: none;
+
+    cursor: pointer;
+
+    color: #0f172a;
+}
+
+.mobileMenu {
+    display: none;
+}
+
+.mobileItem {
+    display: block;
+
+    padding: 14px 20px;
+
+    text-decoration: none;
+
+    color: #334155;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mobileCta {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin: 16px;
+
+    height: 48px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    color: white;
+
+    font-weight: 700;
+
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+}
+
+@media (max-width: 992px) {
+    .nav,
+    .rightSide {
+        display: none;
+    }
+
+    .mobileButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobileMenu {
+        display: block;
+
+        background: white;
+
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .topbarCenter {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .topbarContainer {
+        padding: 0 16px;
+    }
+
+    .container {
+        padding: 0 16px;
+    }
+
+    .topbarLeft {
+        gap: 12px;
+    }
+
+    .contactItem span {
+        display: none;
+    }
+
+    .brand span {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .salesButton span {
+        display: none;
+    }
+
+    .container {
+        min-height: 72px;
+    }
+}

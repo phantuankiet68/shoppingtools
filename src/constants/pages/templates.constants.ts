@@ -28,7 +28,16 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
 
     tpl('tpl-header', 'Header', [
         'HeaderAnnouncement',
-        'HEADER_BASIC_01',
+        'HeaderService01',
+        'HeaderService02',
+        'HeaderService03',
+        'HeaderService04',
+        'HeaderService05',
+        'HeaderService06',
+        'HeaderService07',
+        'HeaderService08',
+        'HeaderService09',
+
         'HeaderCentered',
         'HeaderClassic',
         'HeaderCompact',

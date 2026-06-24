@@ -63,25 +63,6 @@ function DesignHeader({ title, setTitle, device = 'desktop', setDevice, selected
                     </div>
                 </div>
             </div>
-
-            <div className={cls.right}>
-                <div className={cls.deviceGroup} role="group" aria-label="Device">
-                    {(['desktop', 'tablet', 'mobile'] as const).map((d) => (
-                        <button
-                            key={d}
-                            type="button"
-                            className={`${cls.deviceBtn} ${device === d ? cls.deviceActive : ''}`}
-                            onClick={() => setDevice?.(d)}
-                            title={d}
-                            aria-pressed={device === d}
-                        >
-                            <i
-                                className={`bi ${d === 'desktop' ? 'bi-display' : d === 'tablet' ? 'bi-tablet' : 'bi-phone'}`}
-                            />
-                        </button>
-                    ))}
-                </div>
-            </div>
         </div>
     );
 }

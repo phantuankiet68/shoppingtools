@@ -42,7 +42,6 @@
         background 0.25s ease;
     height: 91vh;
     overflow: auto;
-    max-width: 100%;
     border: 1.5px dashed #d6dbe4;
 }
 

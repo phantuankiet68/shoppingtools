@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react';
 export interface SiteInfo {
     id: string;
     name: string;
-    code?: string;
-    domain?: string;
-    logoUrl?: string;
-    faviconUrl?: string;
-    description?: string;
-    siteType?: string;
+    domain?: string | null;
+    logoUrl?: string | null;
+    faviconUrl?: string | null;
+    seoTitle?: string | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
 }
 
 export function useSite(siteId?: string) {

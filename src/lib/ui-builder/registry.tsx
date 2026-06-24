@@ -121,6 +121,14 @@ import { SHOP_DETAIL_TICKER } from '@/components/admin/shared/templates/sections
 import { SHOP_DETAIL_UTILITY } from '@/components/admin/shared/templates/sections/Detail/DetailUtility';
 
 import { HEADER_BASIC_01 } from '@/components/admin/shared/templates/services/headers/header-service-01';
+import { HEADER_BASIC_02 } from '@/components/admin/shared/templates/services/headers/header-service-02';
+import { HEADER_BASIC_03 } from '@/components/admin/shared/templates/services/headers/header-service-03';
+import { HEADER_BASIC_04 } from '@/components/admin/shared/templates/services/headers/header-service-04';
+import { HEADER_BASIC_05 } from '@/components/admin/shared/templates/services/headers/header-service-05';
+import { HEADER_BASIC_06 } from '@/components/admin/shared/templates/services/headers/header-service-06';
+import { HEADER_BASIC_07 } from '@/components/admin/shared/templates/services/headers/header-service-07';
+import { HEADER_BASIC_08 } from '@/components/admin/shared/templates/services/headers/header-service-08';
+import { HEADER_BASIC_09 } from '@/components/admin/shared/templates/services/headers/header-service-09';
 
 export const BASIC: RegItem[] = [];
 
@@ -243,6 +251,14 @@ export const REGISTRY_HOME: RegItem[] = [
     SHOP_DETAIL_UTILITY,
 
     HEADER_BASIC_01,
+    HEADER_BASIC_02,
+    HEADER_BASIC_03,
+    HEADER_BASIC_04,
+    HEADER_BASIC_05,
+    HEADER_BASIC_06,
+    HEADER_BASIC_07,
+    HEADER_BASIC_08,
+    HEADER_BASIC_09,
 ];
 
 export const REGISTRY: RegItem[] = [...BASIC, ...REGISTRY_HOME];

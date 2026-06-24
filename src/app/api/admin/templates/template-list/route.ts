@@ -43,6 +43,22 @@ function parseTier(value: string | null): AccessTier | null {
     return null;
 }
 
+function getAllowedTiers(tier: AccessTier): AccessTier[] {
+    switch (tier) {
+        case 'BASIC':
+            return ['BASIC'];
+
+        case 'NORMAL':
+            return ['BASIC', 'NORMAL'];
+
+        case 'PRO':
+            return ['BASIC', 'NORMAL', 'PRO'];
+
+        default:
+            return [];
+    }
+}
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
@@ -119,11 +135,14 @@ export async function GET(request: NextRequest) {
             ...(tier
                 ? {
                       category: {
-                          minTier: tier,
+                          minTier: {
+                              in: getAllowedTiers(tier),
+                          },
                       },
                   }
                 : {}),
         };
+
         const rows = await prisma.templateCatalog.findMany({
             where,
 

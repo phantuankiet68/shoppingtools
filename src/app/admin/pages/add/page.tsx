@@ -477,54 +477,61 @@ export default function UiBuilderAddPage() {
                         </main>
                         {showEditorModal && (
                             <div
-                                className={styles.modalPanel}
-                                onClick={(e) => e.stopPropagation()}
-                                role="dialog"
-                                aria-modal="true"
-                                aria-label={t('builderAdd.aria.builderEditor')}
+                                className={styles.modalOverlay}
+                                onClick={() => setShowEditorModal(false)}
                             >
-                                <div className={styles.modalHeader}>
-                                    <h3 className={styles.modalTitle}>
-                                        {t('builderAdd.titles.pageEditor')}
-                                    </h3>
-                                    <button
-                                        type="button"
-                                        className={styles.modalClose}
-                                        onClick={() => setShowEditorModal(false)}
-                                        aria-label={t('builderAdd.actions.closeModal')}
-                                    >
-                                        <i className="bi bi-x-lg" />
-                                    </button>
-                                </div>
+                                <div
+                                    className={styles.modalPanel}
+                                    onClick={(e) => e.stopPropagation()}
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-label={t('builderAdd.aria.builderEditor')}
+                                >
+                                    <div className={styles.modalHeader}>
+                                        <h3 className={styles.modalTitle}>
+                                            {t('builderAdd.titles.pageEditor')}
+                                        </h3>
+                                        <button
+                                            type="button"
+                                            className={styles.modalClose}
+                                            onClick={() => setShowEditorModal(false)}
+                                            aria-label={t('builderAdd.actions.closeModal')}
+                                        >
+                                            <i className="bi bi-x-lg" />
+                                        </button>
+                                    </div>
 
-                                <div className={styles.modalBody}>
-                                    <DesignHeader
-                                        title={state.title}
-                                        setTitle={(v) => dispatch({ type: 'setTitle', title: v })}
-                                        path={effectivePath}
-                                        saving={state.saving}
-                                        saved={!state.saving}
-                                        publishing={state.publishing}
-                                        onSave={savePage}
-                                        onPublish={publishPage}
-                                        onPreview={openPreview}
-                                        onRefresh={handleRefresh}
-                                        device={state.device}
-                                        setDevice={(d) =>
-                                            dispatch({ type: 'setDevice', device: d })
-                                        }
-                                        sites={[]}
-                                        selectedSiteId={String(siteId)}
-                                        onChangeSite={() => {}}
-                                        disableSiteSelect
-                                    />
+                                    <div className={styles.modalBody}>
+                                        <DesignHeader
+                                            title={state.title}
+                                            setTitle={(v) =>
+                                                dispatch({ type: 'setTitle', title: v })
+                                            }
+                                            path={effectivePath}
+                                            saving={state.saving}
+                                            saved={!state.saving}
+                                            publishing={state.publishing}
+                                            onSave={savePage}
+                                            onPublish={publishPage}
+                                            onPreview={openPreview}
+                                            onRefresh={handleRefresh}
+                                            device={state.device}
+                                            setDevice={(d) =>
+                                                dispatch({ type: 'setDevice', device: d })
+                                            }
+                                            sites={[]}
+                                            selectedSiteId={String(siteId)}
+                                            onChangeSite={() => {}}
+                                            disableSiteSelect
+                                        />
 
-                                    <Inspector
-                                        active={active}
-                                        move={move}
-                                        remove={remove}
-                                        updateActive={updateActive}
-                                    />
+                                        <Inspector
+                                            active={active}
+                                            move={move}
+                                            remove={remove}
+                                            updateActive={updateActive}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}

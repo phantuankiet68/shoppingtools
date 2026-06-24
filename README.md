@@ -1,9 +1,4 @@
-https://access.pavietnam.vn/cai-dat-bao-mat
-
-//Back pink beautifull
-linear-gradient(90deg, rgba(109, 40, 217, 0.06), #ec48990a), #ffffff8c
-//Back yellow beautifull
-linear-gradient(#fff7edfa, #fffffff0)
+Hiện tại header-service-06.tsx đang là file mẫu template header normal . Tôi đang sử dụng next 16 và css module. tôi muốn bạn là front-end developer với 8 năm kinh nghiệm. Bạn hãy tạo header-service-07.tsx và header-service-07.module.css theo phong cách pro sẽ có bao gôm topbar header và search ngoài ra có thể thêm nút đăng ký đăng nhập sales. Bạn hãy tạo header-service-07.tsx dựa trên cấu trúc mẫu header-service-06.tsx đã có site có menu và có export const HEADER_BASIC_06: RegItem với phần kind, label , defaults, inspector Nhầm mục đích thao tạc chỉnh sửa nội dung
 
 Email Password
 superadmin@example.com

@@ -1,0 +1,284 @@
+.topBar {
+    background: linear-gradient(90deg, #95d6ef, #38519d);
+
+    color: white;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.topBarContent {
+    max-width: 1440px;
+
+    height: 44px;
+
+    margin: 0 auto;
+    padding: 0 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 16px;
+}
+
+.topBarBadge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, 0.12);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.topBarText {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.topBarAction {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    color: #fbbf24;
+
+    text-decoration: none;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    transition: 0.2s ease;
+}
+
+.header {
+    background: #ffffff;
+    border-bottom: 1px solid #ececec;
+}
+
+.container {
+    max-width: 1600px;
+
+    height: 68px;
+
+    margin: 0 auto;
+    padding: 0 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.brandName {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.navLink {
+    position: relative;
+
+    padding: 6px 0;
+
+    color: #111;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+.navLink::after {
+    content: '';
+
+    position: absolute;
+
+    left: 0;
+    bottom: -6px;
+
+    width: 100%;
+    height: 2px;
+
+    background: #111827;
+
+    transform: scaleX(0);
+    transform-origin: left;
+
+    transition: transform 0.25s ease;
+}
+
+.navLink:hover::after {
+    transform: scaleX(1);
+}
+.searchBox {
+    flex: 1;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    width: 50%;
+    transition: all 0.2s ease;
+}
+
+.searchBox {
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.searchBox:hover {
+    background: #eeeeee;
+}
+
+.searchBox:focus-within {
+    background: #ffffff;
+    border-color: #f6dbdb;
+}
+
+.searchInput {
+    border: none;
+    background: transparent;
+    outline: none;
+
+    width: 100%;
+
+    font-size: 14px;
+    font-weight: 500;
+    color: #111;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.loginButton,
+.signupButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    text-decoration: none;
+
+    color: #111;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    transition: all 0.2s ease;
+}
+
+.loginButton:hover,
+.signupButton:hover {
+    opacity: 0.65;
+}
+
+.loginButton i,
+.signupButton i {
+    font-size: 16px;
+}
+
+.primaryButton {
+    padding: 10px 20px;
+
+    border: 1px solid #111;
+    border-radius: 12px;
+
+    color: #111;
+    text-decoration: none;
+    font-weight: 600;
+
+    transition: 0.2s;
+}
+
+.primaryButton:hover {
+    background: #111;
+    color: #fff;
+}
+
+.mobileToggle {
+    display: none;
+
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.mobileMenu {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    .nav,
+    .searchBox,
+    .actions {
+        display: none;
+    }
+
+    .mobileToggle {
+        display: block;
+    }
+
+    .mobileMenu {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        padding: 20px;
+
+        border-top: 1px solid #ececec;
+        background: #fff;
+    }
+
+    .mobileLink,
+    .mobilePrimary,
+    .mobileSecondary {
+        text-decoration: none;
+    }
+
+    .mobilePrimary {
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+
+        background: #111;
+        color: #fff;
+    }
+
+    .mobileSecondary {
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+
+        background: #f5f5f5;
+        color: #111;
+    }
+}

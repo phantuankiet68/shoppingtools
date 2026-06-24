@@ -159,19 +159,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     height: 42px;
     padding: 0 18px;
-
     border-radius: 10px;
-
     background: #2563eb;
     color: #ffffff;
-
     text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
-
+    font-weight: 500;
     transition:
         background 0.2s ease,
         transform 0.2s ease;
@@ -186,20 +181,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     height: 42px;
     padding: 0 18px;
-
     border: 1px solid #d1d5db;
     border-radius: 10px;
-
     background: #ffffff;
-    color: #374151;
-
+    color: var(--muted);
     text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
-
+    font-weight: 500;
     transition:
         border-color 0.2s ease,
         color 0.2s ease;

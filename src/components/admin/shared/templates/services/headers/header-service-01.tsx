@@ -149,8 +149,8 @@ export function HeaderService01({
 }
 
 export const HEADER_BASIC_01: RegItem = {
-    kind: 'HeaderBasic01',
-    label: 'Header Basic 01',
+    kind: 'HeaderService01',
+    label: 'Header Service 01',
 
     defaults: {
         brandHref: '/',
