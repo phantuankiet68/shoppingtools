@@ -1,11 +1,16 @@
-// app/api/pages/sync-from-menu/route.ts
+// app/api/admin/pages/sync-from-menu/route.ts
+
 import type { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-type InItem = { title: string; slug: string; path?: string };
+type InItem = {
+    title: string;
+    slug: string;
+    path?: string;
+};
 
 type Body = {
     items: InItem[];
@@ -14,93 +19,221 @@ type Body = {
 
 function normalizeSlug(raw: string) {
     const s = (raw || '').trim();
-    if (!s || s === '/') return '/';
+
+    if (!s || s === '/') {
+        return '/';
+    }
+
     return s.replace(/^\/+/, '').replace(/\/+$/, '');
 }
-function ensureLeadingSlash(p: string) {
-    const s = (p || '').trim();
-    if (!s) return '/';
+
+function ensureLeadingSlash(path: string) {
+    const s = (path || '').trim();
+
+    if (!s) {
+        return '/';
+    }
+
     return s.startsWith('/') ? s : `/${s}`;
 }
+
 function pathFromSlug(slug: string) {
     return slug === '/' ? '/' : `/${slug}`;
 }
 
 async function resolveSiteId(req: Request, hinted?: string): Promise<string> {
     if (hinted) {
-        const ok = await prisma.site.findUnique({
-            where: { id: hinted },
-            select: { id: true },
+        const site = await prisma.site.findUnique({
+            where: {
+                id: hinted,
+            },
+            select: {
+                id: true,
+            },
         });
-        if (ok?.id) return ok.id;
+
+        if (site?.id) {
+            return site.id;
+        }
     }
 
-    const host = req.headers.get('host')?.split(':')[0] || '';
+    const host = req.headers.get('host')?.split(':')[0];
+
     if (host) {
-        const byDomain = await prisma.site.findUnique({
-            where: { domain: host },
-            select: { id: true },
+        const site = await prisma.site.findUnique({
+            where: {
+                domain: host,
+            },
+            select: {
+                id: true,
+            },
         });
-        if (byDomain?.id) return byDomain.id;
+
+        if (site?.id) {
+            return site.id;
+        }
     }
 
-    const first = await prisma.site.findFirst({
-        orderBy: { createdAt: 'asc' },
-        select: { id: true },
+    const firstSite = await prisma.site.findFirst({
+        orderBy: {
+            createdAt: 'asc',
+        },
+        select: {
+            id: true,
+        },
     });
-    if (!first?.id) throw new Error('No Site found. Please seed Site first.');
-    return first.id;
+
+    if (!firstSite?.id) {
+        throw new Error('No Site found. Please seed Site first.');
+    }
+
+    return firstSite.id;
 }
 
 export async function POST(req: Request) {
     try {
-        const { items, siteId: hintedSiteId } = (await req.json()) as Body;
+        const body = (await req.json()) as Body;
 
-        if (!Array.isArray(items)) {
+        if (!Array.isArray(body.items)) {
             return NextResponse.json(
-                { ok: false, error: 'Invalid payload: items must be an array' },
-                { status: 400 },
+                {
+                    ok: false,
+                    error: 'Invalid payload: items must be an array',
+                },
+                {
+                    status: 400,
+                },
             );
         }
 
-        const siteId = await resolveSiteId(req, hintedSiteId);
+        const siteId = await resolveSiteId(req, body.siteId);
 
-        const results: Array<{ id: string; slug: string; path: string; title: string }> = [];
+        const normalizedItems = body.items
+            .filter((item) => item?.title && item?.slug)
+            .map((item) => {
+                const slug = normalizeSlug(item.slug);
 
-        for (const it of items) {
-            if (!it?.title || !it?.slug) continue;
-
-            const slug = normalizeSlug(it.slug);
-            const title = String(it.title).trim();
-            if (!title) continue;
-
-            const path = ensureLeadingSlash(it.path || pathFromSlug(slug));
-
-            const createData: Prisma.PageCreateInput = {
-                site: { connect: { id: siteId } },
-                title,
-                slug,
-                path,
-                status: 'DRAFT',
-                blocks: [] as Prisma.JsonArray,
-            };
-
-            const updateData: Prisma.PageUpdateInput = {
-                title,
-                path,
-            };
-
-            const page = await prisma.page.upsert({
-                where: { siteId_slug: { siteId, slug } }, // @@unique([siteId, slug])
-                create: createData,
-                update: updateData,
-                select: { id: true, slug: true, path: true, title: true },
+                return {
+                    title: String(item.title).trim(),
+                    slug,
+                    path: ensureLeadingSlash(item.path || pathFromSlug(slug)),
+                };
             });
 
-            results.push(page);
+        if (normalizedItems.length === 0) {
+            return NextResponse.json({
+                ok: true,
+                siteId,
+                count: 0,
+                pages: [],
+            });
         }
 
-        return NextResponse.json({ ok: true, siteId, count: results.length, pages: results });
+        const pathCounter = new Map<string, number>();
+
+        for (const item of normalizedItems) {
+            pathCounter.set(item.path, (pathCounter.get(item.path) || 0) + 1);
+        }
+
+        const duplicatePaths = [...pathCounter.entries()]
+            .filter(([, count]) => count > 1)
+            .map(([path]) => path);
+
+        if (duplicatePaths.length > 0) {
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: `Duplicate paths detected: ${duplicatePaths.join(', ')}`,
+                },
+                {
+                    status: 400,
+                },
+            );
+        }
+
+        const pages = await prisma.$transaction(async (tx) => {
+            const results: Array<{
+                id: string;
+                title: string;
+                slug: string;
+                path: string;
+            }> = [];
+
+            for (const item of normalizedItems) {
+                const existingPage = await tx.page.findFirst({
+                    where: {
+                        siteId,
+                        path: item.path,
+                    },
+                    select: {
+                        id: true,
+                    },
+                });
+
+                let page;
+
+                if (existingPage) {
+                    page = await tx.page.update({
+                        where: {
+                            id: existingPage.id,
+                        },
+                        data: {
+                            title: item.title,
+                            slug: item.slug,
+                            path: item.path,
+                        },
+                        select: {
+                            id: true,
+                            title: true,
+                            slug: true,
+                            path: true,
+                        },
+                    });
+                } else {
+                    page = await tx.page.create({
+                        data: {
+                            site: {
+                                connect: {
+                                    id: siteId,
+                                },
+                            },
+                            title: item.title,
+                            slug: item.slug,
+                            path: item.path,
+                            status: 'DRAFT',
+                            blocks: [] as Prisma.JsonArray,
+                        },
+                        select: {
+                            id: true,
+                            title: true,
+                            slug: true,
+                            path: true,
+                        },
+                    });
+                }
+
+                results.push(page);
+            }
+
+            await tx.page.deleteMany({
+                where: {
+                    siteId,
+                    status: 'DRAFT',
+                    path: {
+                        notIn: normalizedItems.map((item) => item.path),
+                    },
+                },
+            });
+
+            return results;
+        });
+
+        return NextResponse.json({
+            ok: true,
+            siteId,
+            count: pages.length,
+            pages,
+        });
     } catch (e: any) {
         console.error('SYNC PAGE ERROR:', {
             code: e?.code,
@@ -114,15 +247,22 @@ export async function POST(req: Request) {
                     ok: false,
                     code: e.code,
                     meta: e.meta,
-                    error: e.message,
+                    error: 'Duplicate page path detected.',
                 },
-                { status: 409 },
+                {
+                    status: 409,
+                },
             );
         }
 
         return NextResponse.json(
-            { ok: false, error: e?.message || 'Internal Server Error' },
-            { status: 500 },
+            {
+                ok: false,
+                error: e?.message || 'Internal Server Error',
+            },
+            {
+                status: 500,
+            },
         );
     }
 }
