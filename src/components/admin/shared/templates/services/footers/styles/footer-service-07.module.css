@@ -1,0 +1,535 @@
+/* ── Root ── */
+.footer {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #fff3e0 0%, #ffe0b2 40%, #fff8f0 100%);
+    color: var(--f07-text-dark);
+    --f07-amber-50: #fff8f0;
+    --f07-amber-100: #fef0d8;
+    --f07-amber-200: #fddcaa;
+    --f07-amber-300: #fbc97a;
+    --f07-amber-400: #f9a825;
+    --f07-amber-500: #f57c00;
+    --f07-amber-600: #e65100;
+    --f07-text-dark: #1a0f00;
+    --f07-text-mid: #4a3320;
+    --f07-text-muted: #7a6050;
+    --f07-white: #ffffff;
+    --f07-radius-sm: 8px;
+    --f07-radius-md: 14px;
+    --f07-radius-lg: 24px;
+    --f07-shadow: 0 4px 24px rgba(245, 124, 0, 0.12);
+    --f07-transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Decorative blobs ── */
+.blob1,
+.blob2 {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(72px);
+    pointer-events: none;
+    will-change: transform;
+    animation: float 14s ease-in-out infinite alternate;
+}
+
+.blob1 {
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, rgba(251, 140, 0, 0.22) 0%, transparent 70%);
+    top: -100px;
+    right: -80px;
+    animation-duration: 14s;
+}
+
+.blob2 {
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(255, 167, 38, 0.18) 0%, transparent 70%);
+    bottom: 60px;
+    left: -60px;
+    animation-duration: 18s;
+    animation-delay: -4s;
+}
+
+@keyframes float {
+    from {
+        transform: translate(0, 0) scale(1);
+    }
+    to {
+        transform: translate(20px, -30px) scale(1.06);
+    }
+}
+
+/* ── Container ── */
+.container {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 64px 40px 40px;
+}
+
+/* ── Scroll reveal ── */
+.fadeUp {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+        opacity 0.6s ease calc(var(--delay, 0ms)),
+        transform 0.6s ease calc(var(--delay, 0ms));
+}
+
+.visible .fadeUp {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── CTA Banner ── */
+.ctaBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    background: linear-gradient(135deg, var(--f07-amber-500) 0%, var(--f07-amber-600) 100%);
+    border-radius: var(--f07-radius-lg);
+    padding: 40px 48px;
+    box-shadow: 0 8px 40px rgba(230, 81, 0, 0.28);
+    flex-wrap: wrap;
+}
+
+.ctaContent {
+    flex: 1;
+    min-width: 240px;
+}
+
+.ctaTitle {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--f07-white);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.ctaDesc {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0;
+    max-width: 400px;
+    line-height: 1.6;
+}
+
+.ctaForm {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.input {
+    height: 48px;
+    padding: 0 18px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--f07-radius-sm);
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--f07-white);
+    font-size: 0.9rem;
+    width: 240px;
+    outline: none;
+    transition:
+        border-color var(--f07-transition),
+        background var(--f07-transition);
+    backdrop-filter: blur(8px);
+}
+
+.input::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.input:focus {
+    border-color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.ctaButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 24px;
+    background: var(--f07-white);
+    color: var(--f07-amber-600);
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--f07-radius-sm);
+    cursor: pointer;
+    transition:
+        transform var(--f07-transition),
+        box-shadow var(--f07-transition);
+    white-space: nowrap;
+}
+
+.ctaButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.ctaButton i {
+    transition: transform var(--f07-transition);
+}
+
+.ctaButton:hover i {
+    transform: translateX(4px);
+}
+
+.successMsg {
+    display: flex;
+    align-items: center;
+    color: var(--f07-white);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ── Divider ── */
+.divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(245, 124, 0, 0.25), transparent);
+    margin: 40px 0;
+}
+
+/* ── Main Grid ── */
+.grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.4fr;
+    gap: 48px;
+}
+
+/* ── Brand column ── */
+.brand {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.brandLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.logoWrapper {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--f07-white);
+    box-shadow: 0 2px 12px rgba(245, 124, 0, 0.2);
+}
+
+.logo {
+    object-fit: contain;
+}
+
+.siteName {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--f07-text-dark);
+    letter-spacing: -0.01em;
+}
+
+.tagline {
+    font-size: 0.9rem;
+    color: var(--f07-text-mid);
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ── Socials ── */
+.socials {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.socialIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(245, 124, 0, 0.1);
+    color: var(--f07-amber-600);
+    font-size: 1rem;
+    text-decoration: none;
+    transition:
+        background var(--f07-transition),
+        color var(--f07-transition),
+        transform var(--f07-transition);
+}
+
+.socialIcon:hover {
+    background: var(--f07-amber-500);
+    color: var(--f07-white);
+    transform: translateY(-3px);
+}
+
+/* ── Nav columns ── */
+.navCol {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.colHeading {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--f07-amber-600);
+    margin: 0 0 4px;
+}
+
+.navList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: var(--f07-text-mid);
+    text-decoration: none;
+    padding: 6px 0;
+    transition:
+        color var(--f07-transition),
+        gap var(--f07-transition);
+}
+
+.navLink i {
+    font-size: 0.7rem;
+    opacity: 0;
+    transition:
+        opacity var(--f07-transition),
+        transform var(--f07-transition);
+}
+
+.navLink:hover {
+    color: var(--f07-amber-600);
+    gap: 10px;
+}
+
+.navLink:hover i {
+    opacity: 1;
+    transform: translateX(2px);
+}
+
+/* ── Contact column ── */
+.contactCol {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.contactList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.contactItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: var(--f07-text-mid);
+    text-decoration: none;
+    line-height: 1.5;
+    transition: color var(--f07-transition);
+}
+
+a.contactItem:hover {
+    color: var(--f07-amber-600);
+}
+
+.contactIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(245, 124, 0, 0.1);
+    color: var(--f07-amber-500);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    transition: background var(--f07-transition);
+}
+
+a.contactItem:hover .contactIcon {
+    background: rgba(245, 124, 0, 0.2);
+}
+
+.blogPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(245, 124, 0, 0.1);
+    color: var(--f07-amber-600);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: var(--f07-radius-sm);
+    text-decoration: none;
+    width: fit-content;
+    transition:
+        background var(--f07-transition),
+        color var(--f07-transition),
+        transform var(--f07-transition);
+}
+
+.blogPill:hover {
+    background: var(--f07-amber-500);
+    color: var(--f07-white);
+    transform: translateY(-2px);
+}
+
+/* ── Bottom bar ── */
+.bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.copyright {
+    font-size: 0.82rem;
+    color: var(--f07-text-muted);
+}
+
+.bottomLinks {
+    display: flex;
+    gap: 24px;
+}
+
+.bottomLinks a {
+    font-size: 0.82rem;
+    color: var(--f07-text-muted);
+    text-decoration: none;
+    transition: color var(--f07-transition);
+}
+
+.bottomLinks a:hover {
+    color: var(--f07-amber-600);
+}
+
+.toTop {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 16px;
+    border: 1.5px solid rgba(245, 124, 0, 0.35);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--f07-amber-600);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background var(--f07-transition),
+        color var(--f07-transition),
+        border-color var(--f07-transition),
+        transform var(--f07-transition);
+}
+
+.toTop:hover {
+    background: var(--f07-amber-500);
+    color: var(--f07-white);
+    border-color: var(--f07-amber-500);
+    transform: translateY(-2px);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+    }
+
+    .brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 40px 20px 28px;
+    }
+
+    .ctaBanner {
+        flex-direction: column;
+        padding: 28px 24px;
+    }
+
+    .ctaTitle {
+        font-size: 1.35rem;
+    }
+
+    .input {
+        width: 100%;
+    }
+
+    .ctaForm {
+        width: 100%;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .bottom {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+    .blob1,
+    .blob2 {
+        animation: none;
+    }
+
+    .fadeUp {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .ctaButton,
+    .navLink,
+    .socialIcon,
+    .toTop,
+    .blogPill {
+        transition: none;
+    }
+}

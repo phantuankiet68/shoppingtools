@@ -97,14 +97,6 @@ export async function assertCanCreateProductCategory(workspaceId: string) {
 export async function assertCanCreateProduct(workspaceId: string) {
     const policy = await getPolicy(workspaceId);
 
-    if (!policy.allowEcommerce) {
-        throw new WorkspaceLimitError(
-            'Ecommerce is not enabled for this workspace',
-            'ECOMMERCE_DISABLED',
-            403,
-        );
-    }
-
     const totalProducts = await prisma.product.count({
         where: {
             site: { workspaceId },

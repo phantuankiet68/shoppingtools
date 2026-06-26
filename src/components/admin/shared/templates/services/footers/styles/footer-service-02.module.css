@@ -1,0 +1,379 @@
+.footer {
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    padding: 80px 0 30px;
+}
+
+.container {
+    width: min(1280px, calc(100% - 48px));
+    margin: 0 auto;
+}
+
+/* ===========================
+   Newsletter
+=========================== */
+
+.newsletter {
+    margin-bottom: 32px;
+}
+
+.newsletterContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+
+    background: linear-gradient(135deg, #eef6ff 0%, #f8fbff 100%);
+    border: 1px solid #dbeafe;
+    border-radius: 16px;
+
+    padding: 32px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+
+    border-radius: 999px;
+    background: #2563eb;
+    color: #fff;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    margin-bottom: 18px;
+}
+
+.newsletterContent h2 {
+    font-size: 36px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+}
+
+.newsletterContent p {
+    color: #64748b;
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 520px;
+}
+
+.newsletterForm {
+    display: flex;
+    gap: 16px;
+    min-width: 420px;
+}
+
+.input {
+    flex: 1;
+    height: 56px;
+
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+
+    background: #fff;
+
+    padding: 0 18px;
+
+    font-size: 15px;
+
+    transition: 0.25s;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.subscribeButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 56px;
+
+    padding: 0 28px;
+
+    border-radius: 14px;
+
+    background: #2563eb;
+    color: #fff;
+
+    text-decoration: none;
+
+    font-weight: 600;
+
+    transition: 0.25s;
+}
+
+.subscribeButton:hover {
+    background: #1d4ed8;
+}
+
+/* ===========================
+ Main
+=========================== */
+
+.mainGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.2fr;
+    gap: 60px;
+    padding-bottom: 32px;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+
+    text-decoration: none;
+
+    margin-bottom: 15px;
+}
+
+.logoWrapper {
+    width: 58px;
+    height: 58px;
+
+    position: relative;
+    overflow: hidden;
+
+    border-radius: 16px;
+
+    background: #fff;
+    border: 1px solid #e5e7eb;
+}
+
+.logo {
+    object-fit: contain;
+    padding: 8px;
+}
+
+.brand h3 {
+    font-size: 24px;
+    color: #0f172a;
+    margin-bottom: 6px;
+}
+
+.brand span {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.description {
+    color: #64748b;
+    line-height: 1.8;
+    margin-bottom: 15px;
+    max-width: 420px;
+}
+
+/* ===========================
+ Social
+=========================== */
+
+.socials {
+    display: flex;
+    gap: 14px;
+}
+
+.socials a {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 12px;
+
+    background: #fff;
+    border: 1px solid #e5e7eb;
+
+    color: #475569;
+
+    text-decoration: none;
+
+    transition: 0.25s;
+}
+
+.socials a:hover {
+    color: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-2px);
+}
+
+/* ===========================
+ Links
+=========================== */
+
+.linksColumn h4,
+.contactColumn h4 {
+    font-size: 18px;
+    color: #0f172a;
+
+    margin-bottom: 8px;
+}
+
+.linksColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.linksColumn a {
+    color: #64748b;
+
+    text-decoration: none;
+
+    transition: 0.2s;
+}
+
+.linksColumn a:hover {
+    color: #2563eb;
+    padding-left: 6px;
+}
+
+/* ===========================
+ Contact
+=========================== */
+
+.contactColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.contactColumn a,
+.contactColumn div {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    color: #64748b;
+    text-decoration: none;
+    line-height: 1.6;
+}
+
+.contactColumn i {
+    color: #2563eb;
+    font-size: 18px;
+    margin-top: 2px;
+}
+
+/* ===========================
+ Bottom
+=========================== */
+
+.bottomBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border-top: 1px solid #e5e7eb;
+
+    padding-top: 28px;
+}
+
+.bottomBar span {
+    color: #64748b;
+}
+
+.bottomLinks {
+    display: flex;
+    gap: 28px;
+}
+
+.bottomLinks a {
+    color: #64748b;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.bottomLinks a:hover {
+    color: #2563eb;
+}
+
+/* ===========================
+ Responsive
+=========================== */
+
+@media (max-width: 1200px) {
+    .newsletterContent {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .newsletterForm {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .mainGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 48px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: calc(100% - 32px);
+    }
+
+    .footer {
+        padding-top: 56px;
+    }
+
+    .newsletterContent {
+        padding: 32px;
+    }
+
+    .newsletterContent h2 {
+        font-size: 28px;
+    }
+
+    .newsletterForm {
+        flex-direction: column;
+    }
+
+    .subscribeButton {
+        width: 100%;
+    }
+
+    .mainGrid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .bottomBar {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .bottomLinks {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .newsletterContent {
+        padding: 24px;
+    }
+
+    .newsletterContent h2 {
+        font-size: 24px;
+    }
+
+    .brand {
+        align-items: flex-start;
+    }
+
+    .logoWrapper {
+        width: 52px;
+        height: 52px;
+    }
+}

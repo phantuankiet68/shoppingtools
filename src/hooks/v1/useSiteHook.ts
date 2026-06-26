@@ -9,6 +9,7 @@ export interface SiteInfo {
     logoUrl?: string | null;
     faviconUrl?: string | null;
     seoTitle?: string | null;
+    seoDescription?: string | null;
     contactEmail?: string | null;
     contactPhone?: string | null;
 }

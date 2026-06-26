@@ -237,7 +237,7 @@ function HeaderService07({
     );
 }
 
-export const HEADER_BASIC_07: RegItem = {
+export const HEADER_SERVICE_07: RegItem = {
     kind: 'HeaderService07',
 
     label: 'Header Service 07',

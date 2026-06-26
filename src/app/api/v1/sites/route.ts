@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
                 logoUrl: true,
                 faviconUrl: true,
                 seoTitle: true,
+                seoDescription: true,
                 contactEmail: true,
                 contactPhone: true,
             },

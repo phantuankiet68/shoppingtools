@@ -241,7 +241,7 @@ function HeaderService08({
     );
 }
 
-export const HEADER_BASIC_08: RegItem = {
+export const HEADER_SERVICE_08: RegItem = {
     kind: 'HeaderService08',
 
     label: 'Header Service 08 Enterprise',
