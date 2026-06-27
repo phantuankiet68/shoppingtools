@@ -80,23 +80,11 @@ export async function POST(req: Request) {
 
         const body = await req.json().catch(() => ({}));
 
-        const confirmEmail = String(body.confirmEmail ?? '')
-            .trim()
-            .toLowerCase();
-
         const currentPassword = String(body.currentPassword ?? '');
 
         const newPassword = String(body.newPassword ?? '');
 
         const signOutAll = Boolean(body.signOutAll);
-
-        if (!confirmEmail) {
-            return bad('confirmEmail is required');
-        }
-
-        if (confirmEmail !== session.user.email.toLowerCase()) {
-            return bad('Email confirmation does not match your account email');
-        }
 
         if (!currentPassword) {
             return bad('Current password is required');
