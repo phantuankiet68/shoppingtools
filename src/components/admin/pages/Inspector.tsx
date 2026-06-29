@@ -80,7 +80,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
     );
 
     const isImageField = React.useCallback((field: InspectorField) => {
-        return field.kind === 'text' && field.key === 'logoSrc';
+        return field.kind === 'image';
     }, []);
 
     if (!active) {
@@ -125,7 +125,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                         {reg.inspector.map((field: InspectorField) => {
                             const value = props[field.key];
 
-                            if (isImageField(field)) {
+                            if (field.kind === 'image') {
                                 const imageSrc = typeof value === 'string' ? value : '';
                                 const isUploading = uploadingKey === field.key;
 

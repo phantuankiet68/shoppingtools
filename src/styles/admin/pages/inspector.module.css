@@ -143,7 +143,6 @@
 }
 .fieldUpload {
     width: 100%;
-    min-width: 460px;
 }
 /* inputs */
 .input,
@@ -158,7 +157,6 @@
     min-width: 190px;
 }
 .textarea {
-    min-width: 460px;
     min-height: 250px;
     resize: vertical;
     outline: none;

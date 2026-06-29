@@ -255,7 +255,7 @@
     border: var(--bd-header);
     background: #fff;
     border-radius: 6px;
-    width: min(320px, 100%);
+    width: min(437px, 100%);
     min-height: 91vh;
     overflow: auto;
     position: fixed;

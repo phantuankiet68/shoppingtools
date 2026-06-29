@@ -46,13 +46,7 @@
     overflow: hidden;
     background: var(--bg);
     color: var(--t1);
-    font-family:
-        'Inter',
-        -apple-system,
-        BlinkMacSystemFont,
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    font-feature-settings: 'cv11', 'ss01';
+    margin-top: 50px;
 }
 
 /* ─── ::before — SVG noise texture overlay ─── */
@@ -103,9 +97,9 @@
 .wrap {
     position: relative;
     z-index: 1;
-    max-width: 1320px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 80px 52px 48px;
+    padding: 24px;
 }
 
 /* ═══════════════════════════════════════════════

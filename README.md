@@ -2,6 +2,8 @@ Hiện tại header-service-06.tsx đang là file mẫu template header normal .
 
 Hiện tại FooterService06 đã ok rồi Bây h cái cần nhất là FooterService07 cái này thuộc dạng pro Hơn FooterService06hoàn toàn được không có thể backgrounnd sẽ là màu cam nhạt và có animation Kiểu phong cách tương tự như này nhưng background màu cam nhạt. Tôi đang sử dụng next 16 và css module. tôi muốn bạn là front-end developer với 15 năm kinh nghiệm. Bạn hãy tạo footer-service-07.tsx theo phong cách mới mẽ và chuyên nghiệp mang tính thẩm mĩ .Bạn hãy tạo file code footer-service-07.tsx dựa trên cấu trúc mẫu footer-service-06 đã có site có menu và có export const FOOTER_SERVICE_06: RegItem với phần kind, label , defaults, inspector Nhầm mục đích thao tạc chỉnh sửa nội dung. Lưu ý không sử dụng icon từ lucide-react mà sử dụng icon bootstrapt nhé.
 
+TỪ FooterService01 Bạn có thể tạo giúp tôi HeroService01 tương tự giống ảnh. Tôi đang sử dụng next 16 và css module. tôi muốn bạn là front-end developer với 15 năm kinh nghiệm. Bạn hãy tạo hero-service-01.tsx theo phong cách mới mẽ và chuyên nghiệp mang tính thẩm mĩ dựa trên cấu trúc mẫu footer-service-01 export const FOOTER_SERVICE_06: RegItem với phần kind, label , defaults, inspector Nhầm mục đích thao tạc chỉnh sửa nội dung. Lưu ý không sử dụng icon từ lucide-react mà sử dụng icon bootstrapt nhé.
+
 Email Password
 superadmin@example.com
 phantuankiet@123
@@ -290,44 +292,38 @@ utils/platform/menus
 constants/platform/menus
 
 src/
-├── app/
-│ └── platform/
-│ └── menus/
-│ └── page.tsx
+└── components/
+└── admin/
+└── settings/
+├── AdminSettingClient.tsx
+├── styles/
+│ ├── admin-setting.module.css
+│ ├── menu.module.css
+│ ├── content.module.css
+│ ├── password.module.css
+│ ├── domain.module.css
+│ ├── security.module.css
+│ ├── layout.module.css
+│ └── language.module.css
 │
-├── components/
-│ └── platform/
-│ └── menus/
-│ ├── MenuPage.tsx
-│ ├── MenuToolbar.tsx
-│ ├── MenuTable.tsx
-│ └── MenuModal.tsx
+├── SidebarMenu.tsx
 │
-├── hooks/
-│ └── platform/
-│ └── menus/
-│ ├── useMenus.ts
-│ └── useMenuActions.ts
+├── tabs/
+│ ├── PasswordTab.tsx
+│ ├── DomainTab.tsx
+│ ├── SecurityTab.tsx
+│ ├── LayoutTab.tsx
+│ └── LanguageTab.tsx
 │
-├── features/
-│ └── platform/
-│ └── types/
-│ └── menus/
-│ └── menu.ts
-│
-├── constants/
-│ └── platform/
-│ └── menus/
-│ └── menuConstants.ts
-│
-└── utils/
-└── platform/
-└── menus/
-└── menuUtils.ts
-Đầu tiên hãy tách file └── utils/
-└── platform/
-└── menus/
-└── menuUtils.ts trước nhé. đi từ file để kỹ lưỡng hơn xíu
+└── types.ts
+
+features/settings/types.ts
+components/settings/LanguageTab.tsx
+components/settings/LayoutTab.tsx
+components/settings/SecurityTab.tsx
+components/settings/DomainTab.tsx
+components/settings/PasswordTab.tsx
+components/settings/Sidebar.tsx
 
 1. Landing
    Company Profile
