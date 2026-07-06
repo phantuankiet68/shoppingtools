@@ -1,6 +1,10 @@
 import React from 'react';
 
-export type FieldKind = 'text' | 'textarea' | 'number' | 'check' | 'select' | 'image';
+export type FieldKind = 'text' | 'textarea' | 'number' | 'check' | 'select' | 'image' | 'toggle';
+export type SelectOption = {
+    label: string;
+    value: string;
+};
 
 export type InspectorField =
     | {
@@ -25,7 +29,7 @@ export type InspectorField =
           key: string;
           label: string;
           kind: 'select';
-          options: string[];
+          options: SelectOption[];
       }
     | {
           key: string;
@@ -41,6 +45,13 @@ export type InspectorField =
           kind: 'image';
           folder?: string; // upload folder (optional)
           accept?: string; // image/* (optional)
+      }
+    | {
+          key: string;
+          label: string;
+          kind: 'toggle';
+          leftLabel?: string;
+          rightLabel?: string;
       };
 
 export type Slots = {

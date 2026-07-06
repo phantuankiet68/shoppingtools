@@ -25,6 +25,16 @@ import { HERO_SERVICE_01 } from '@/components/admin/shared/templates/services/he
 
 import { SHOWCASE_SERVICE_01 } from '@/components/admin/shared/templates/services/showcase/showcase-service-01';
 
+import { BENEFIT_SERVICE_01 } from '@/components/admin/shared/templates/services/benefits/benefit-service-01';
+
+import { PRICING_SERVICE_01 } from '@/components/admin/shared/templates/services/pricing/pricing-service-01';
+
+import { PORTFOLIO_SERVICE_01 } from '@/components/admin/shared/templates/services/portfolios/portfolio-service-01';
+
+import { TESTIMONIAL_SERVICE_01 } from '@/components/admin/shared/templates/services/testimonials/testimonial-service-01';
+
+import { CONTACT_SERVICE_01 } from '@/components/admin/shared/templates/services/contacts/contact-service-01';
+
 export const BASIC: RegItem[] = [];
 
 export const REGISTRY_HOME: RegItem[] = [
@@ -48,6 +58,11 @@ export const REGISTRY_HOME: RegItem[] = [
     FOOTER_SERVICE_09,
     HERO_SERVICE_01,
     SHOWCASE_SERVICE_01,
+    BENEFIT_SERVICE_01,
+    PRICING_SERVICE_01,
+    PORTFOLIO_SERVICE_01,
+    TESTIMONIAL_SERVICE_01,
+    CONTACT_SERVICE_01,
 ];
 
 export const REGISTRY: RegItem[] = [...BASIC, ...REGISTRY_HOME];

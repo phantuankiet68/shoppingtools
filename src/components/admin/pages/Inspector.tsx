@@ -309,9 +309,9 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                 updateActive({ [field.key]: e.target.value })
                                             }
                                         >
-                                            {field.options?.map((opt: string) => (
-                                                <option key={opt} value={opt}>
-                                                    {opt}
+                                            {field.options.map((opt) => (
+                                                <option key={opt.value} value={opt.value}>
+                                                    {opt.label}
                                                 </option>
                                             ))}
                                         </select>
@@ -329,6 +329,37 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                 updateActive({ [field.key]: e.target.checked })
                                             }
                                         />
+                                    </Row>
+                                );
+                            }
+                            if (field.kind === 'toggle') {
+                                return (
+                                    <Row key={field.key} label={field.label}>
+                                        <div className={cls.toggle}>
+                                            <button
+                                                type="button"
+                                                className={!value ? cls.toggleActive : ''}
+                                                onClick={() =>
+                                                    updateActive({
+                                                        [field.key]: false,
+                                                    })
+                                                }
+                                            >
+                                                {field.leftLabel ?? 'Left'}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className={value ? cls.toggleActive : ''}
+                                                onClick={() =>
+                                                    updateActive({
+                                                        [field.key]: true,
+                                                    })
+                                                }
+                                            >
+                                                {field.rightLabel ?? 'Right'}
+                                            </button>
+                                        </div>
                                     </Row>
                                 );
                             }

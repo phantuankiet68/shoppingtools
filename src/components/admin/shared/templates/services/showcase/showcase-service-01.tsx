@@ -7,7 +7,6 @@ import type { RegItem } from '@/lib/ui-builder/types';
 import { useMemo } from 'react';
 export interface ShowcaseService01Props {
     title?: string;
-    subtitle?: string;
 
     card1Image?: string;
     card1Title?: string;
@@ -89,9 +88,6 @@ function ShowcaseCardItem({ card, index }: { card: ShowcaseCard; index: number }
 
 export function ShowcaseService01({
     title = 'Why Choose Kbuilder',
-
-    subtitle = 'Everything you need to design, customize and publish professional websites using an intuitive drag & drop builder.',
-
     card1Image = '/assets/images/showcase/visual-builder.jpg',
     card1Title = 'Visual Drag & Drop',
     card1Description = 'Create beautiful websites visually with a real-time editing canvas. No coding required.',
@@ -186,8 +182,6 @@ export function ShowcaseService01({
                     </span>
 
                     <h2>{title}</h2>
-
-                    <p>{subtitle}</p>
                 </div>
 
                 {/* Feature Grid */}
@@ -262,10 +256,6 @@ export const SHOWCASE_SERVICE_01: RegItem = {
 
     defaults: {
         title: 'Everything You Need To Build Modern Websites',
-
-        subtitle:
-            'Kbuilder helps you build beautiful websites with drag & drop editing, reusable components, responsive templates and one-click publishing.',
-
         // Card 1
         card1Image: '/assets/images/feature-add.png',
         card1Title: 'Visual Drag & Drop',
@@ -299,11 +289,6 @@ export const SHOWCASE_SERVICE_01: RegItem = {
             key: 'title',
             label: 'Section Title',
             kind: 'text',
-        },
-        {
-            key: 'subtitle',
-            label: 'Section Description',
-            kind: 'textarea',
         },
 
         // Card 1
@@ -401,7 +386,6 @@ export const SHOWCASE_SERVICE_01: RegItem = {
         return (
             <ShowcaseService01
                 title={data.title}
-                subtitle={data.subtitle}
                 card1Image={data.card1Image}
                 card1Title={data.card1Title}
                 card1Description={data.card1Description}

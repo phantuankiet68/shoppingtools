@@ -34,6 +34,8 @@
         "bcryptjs": "^3.0.3",
         "bootstrap-icons": "^1.13.1",
         "cookie": "^1.1.1",
+        "embla-carousel-autoplay": "^8.6.0",
+        "embla-carousel-react": "^8.6.0",
         "grapesjs": "^0.23.1",
         "grapesjs-preset-newsletter": "^1.0.2",
         "jose": "^6.2.2",

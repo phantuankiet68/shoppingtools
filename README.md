@@ -4,6 +4,8 @@ Hiện tại FooterService06 đã ok rồi Bây h cái cần nhất là FooterSe
 
 TỪ FooterService01 Bạn có thể tạo giúp tôi HeroService01 tương tự giống ảnh. Tôi đang sử dụng next 16 và css module. tôi muốn bạn là front-end developer với 15 năm kinh nghiệm. Bạn hãy tạo hero-service-01.tsx theo phong cách mới mẽ và chuyên nghiệp mang tính thẩm mĩ dựa trên cấu trúc mẫu footer-service-01 export const FOOTER_SERVICE_06: RegItem với phần kind, label , defaults, inspector Nhầm mục đích thao tạc chỉnh sửa nội dung. Lưu ý không sử dụng icon từ lucide-react mà sử dụng icon bootstrapt nhé.
 
+TỪ BenefitService01 Bạn có thể tạo giúp tôi TestimonialService01 tương tự giống ảnh. Tôi đang sử dụng next 16 và css module. tôi muốn bạn là front-end developer với 15 năm kinh nghiệm. Bạn hãy tạo testimonial-service-01.tsx theo phong cách mới mẽ và chuyên nghiệp mang tính thẩm mĩ dựa trên cấu trúc mẫu testimonial-service-01 export const BENEFIT_SERVICE_01: RegItem với phần kind, label , defaults, inspector Nhầm mục đích thao tạc chỉnh sửa nội dung. Lưu ý không sử dụng icon từ lucide-react mà sử dụng icon bootstrapt nhé. Hẫy tạo design giống với hình ảnh nhé
+
 Email Password
 superadmin@example.com
 phantuankiet@123
@@ -380,3 +382,10 @@ PageInspector
 
 https://kb.pavietnam.vn/hd-su-dung-cloud-server-cho-nguoi-moi-bat-dau.html
 https://access.pavietnam.vn/dang-nhap
+
+hero-service-01 Gây ấn tượng đầu tiên Tiêu đề, mô tả, CTA
+features-service-01 Giới thiệu tính năng Drag & Drop, AI Builder, SEO...
+benefit-service-01 Giải thích người dùng được gì Tiết kiệm thời gian, tăng doanh thu, không cần biết code
+pricing-cta-service-01 Giá + CTA $297, Enroll Now
+testimonial-service-01 Đánh giá khách hàng Review
+faq-service-01 Câu hỏi thường gặp FAQ

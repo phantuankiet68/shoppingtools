@@ -50,7 +50,7 @@
 }
 
 .heading h2 {
-    font-size: clamp(2.4rem, 5vw, 3.2rem);
+    font-size: clamp(2.4rem, 5vw, 2.4rem);
     line-height: 1.08;
     font-weight: 800;
     color: #101828;
@@ -679,10 +679,6 @@
 }
 
 @media (max-width: 576px) {
-    .heading h2 {
-        font-size: 2rem;
-    }
-
     .content h3 {
         font-size: 1.3rem;
     }
