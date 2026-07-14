@@ -1,7 +1,6 @@
 'use client';
 
 import styles from '@/components/admin/shared/templates/services/heros/styles/hero-service-01.module.css';
-import { useSite } from '@/hooks/v1/useSiteHook';
 import type { RegItem } from '@/lib/ui-builder/types';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -11,8 +10,6 @@ import { useEffect, useRef, useState } from 'react';
    Types
 ───────────────────────────────────────────────── */
 export interface HeroService01Props {
-    siteId?: string;
-
     badge?: string;
     badgeHref?: string;
 
@@ -95,7 +92,6 @@ function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
    Component
 ───────────────────────────────────────────────── */
 export function HeroService01({
-    siteId,
     badge = '🚀 Kbuilder AI Website Builder',
     badgeHref = '#',
 
@@ -123,11 +119,8 @@ export function HeroService01({
     imageSrc = '/assets/images/hero.png',
     imageAlt = 'Kbuilder Website Builder',
 }: HeroService01Props) {
-    const site = useSite(siteId);
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
-
-    const siteName = site?.name ?? 'Nexora';
 
     const headlineLines = headline.split('\n');
 
@@ -172,7 +165,6 @@ export function HeroService01({
 
                             <span className={styles.headlineAccent}>{headlineAccent}</span>
                         </h1>
-
                         <p className={styles.sub}>{subheadline}</p>
                     </div>
 
@@ -211,55 +203,6 @@ export function HeroService01({
                             </div>
                         ))}
                     </div>
-
-                    {/* Stats */}
-
-                    <div
-                        className={`${styles.stats} ${styles.r}`}
-                        style={{ '--i': 4 } as React.CSSProperties}
-                    >
-                        {[
-                            {
-                                value: stat1Value,
-                                label: stat1Label,
-                            },
-                            {
-                                value: stat2Value,
-                                label: stat2Label,
-                            },
-                            {
-                                value: stat3Value,
-                                label: stat3Label,
-                            },
-                        ].map((item) => (
-                            <div key={item.label} className={styles.stat}>
-                                <strong>
-                                    <Counter to={Number(item.value.replace(/\D/g, ''))} />
-
-                                    <p>{item.value.replace(/\d/g, '') || '+'}</p>
-                                </strong>
-
-                                <span>{item.label}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Bottom Card */}
-
-                    <div
-                        className={`${styles.highlightCard} ${styles.r}`}
-                        style={{ '--i': 5 } as React.CSSProperties}
-                    >
-                        <div className={styles.highlightIcon}>
-                            <i className="bi bi-stars"></i>
-                        </div>
-
-                        <div>
-                            <strong>AI Powered Builder</strong>
-
-                            <p>Build, customize and publish your website in under 10 minutes.</p>
-                        </div>
-                    </div>
                 </div>
                 <div className={styles.heroVisual}>
                     <Image
@@ -270,57 +213,58 @@ export function HeroService01({
                         priority
                         className={styles.heroImage}
                     />
+                    <div className={styles.overlay}>
+                        {/* Top Right */}
 
-                    {/* Top Right */}
+                        <div className={`${styles.floatingCard} ${styles.topRight}`}>
+                            <div className={styles.avatarStack}>
+                                <span />
+                                <span />
+                                <span />
+                            </div>
 
-                    <div className={`${styles.floatingCard} ${styles.topRight}`}>
-                        <div className={styles.avatarStack}>
-                            <span />
-                            <span />
-                            <span />
+                            <div className={styles.successText}>
+                                <strong>+12 New Members</strong>
+
+                                <p>Joined this week</p>
+                            </div>
                         </div>
 
-                        <div>
-                            <strong>+12 New Members</strong>
+                        {/* Bottom Left */}
 
-                            <p>Joined this week</p>
+                        <div className={`${styles.floatingCard} ${styles.bottomLeft}`}>
+                            <div className={styles.successIcon}>
+                                <i className="bi bi-check-lg" />
+                            </div>
+
+                            <div className={styles.successText}>
+                                <strong>Website Published</strong>
+
+                                <p>mycompany.com</p>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Bottom Left */}
+                        {/* Floating Badge */}
 
-                    <div className={`${styles.floatingCard} ${styles.bottomLeft}`}>
-                        <div className={styles.successIcon}>
-                            <i className="bi bi-check-lg" />
+                        <div className={`${styles.badgeFloat} ${styles.centerRight}`}>
+                            <i className="bi bi-lightning-charge-fill" />
+                            AI Generated
                         </div>
 
-                        <div>
-                            <strong>Website Published</strong>
+                        {/* Live Activity */}
 
-                            <p>mycompany.com</p>
-                        </div>
-                    </div>
+                        <div className={styles.activityBar}>
+                            <div className={styles.activityTrack}>
+                                <span>🚀 Hero Section Updated</span>
 
-                    {/* Floating Badge */}
+                                <span>🎨 New Template Imported</span>
 
-                    <div className={`${styles.badgeFloat} ${styles.centerRight}`}>
-                        <i className="bi bi-lightning-charge-fill" />
-                        AI Generated
-                    </div>
+                                <span>🌐 Domain Connected</span>
 
-                    {/* Live Activity */}
+                                <span>⚡ Website Published</span>
 
-                    <div className={styles.activityBar}>
-                        <div className={styles.activityTrack}>
-                            <span>🚀 Hero Section Updated</span>
-
-                            <span>🎨 New Template Imported</span>
-
-                            <span>🌐 Domain Connected</span>
-
-                            <span>⚡ Website Published</span>
-
-                            <span>🤖 AI Generated Content</span>
+                                <span>🤖 AI Generated Content</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -390,7 +334,6 @@ export const HERO_SERVICE_01: RegItem = {
         const d = props as Record<string, any>;
         return (
             <HeroService01
-                siteId={d.siteId}
                 badge={d.badge}
                 badgeHref={d.badgeHref}
                 headline={d.headline}

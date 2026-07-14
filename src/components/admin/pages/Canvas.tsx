@@ -5,6 +5,7 @@ import { REGISTRY } from '@/lib/ui-builder/registry';
 import cls from '@/styles/admin/pages/canvas.module.css';
 import React from 'react';
 type Device = 'desktop' | 'tablet' | 'mobile';
+const DESKTOP_VIEWPORT_WIDTH = 1400;
 
 type SectionChildrenMap = Map<string, Block[]>;
 type RowChildrenMap = Map<string, Map<number, Block[]>>;
@@ -259,6 +260,11 @@ type Props = {
 
 export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, device }: Props) {
     const [dragOver, setDragOver] = React.useState(false);
+    const [viewportScale, setViewportScale] = React.useState(1);
+    const [viewportHeight, setViewportHeight] = React.useState(0);
+    const canvasRef = React.useRef<HTMLDivElement>(null);
+    const viewportRef = React.useRef<HTMLDivElement>(null);
+
     const dragRafRef = React.useRef<number | null>(null);
     const dragDesiredRef = React.useRef(false);
 
@@ -276,6 +282,53 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
             if (dragRafRef.current != null) cancelAnimationFrame(dragRafRef.current);
         };
     }, []);
+    React.useEffect(() => {
+        const canvas = canvasRef.current;
+        const viewport = viewportRef.current;
+
+        if (!canvas || !viewport) return;
+
+        let frameId: number | null = null;
+
+        const updateViewport = () => {
+            if (device !== 'desktop') {
+                setViewportScale(1);
+                setViewportHeight(0);
+                return;
+            }
+
+            const availableWidth = Math.max(0, canvas.clientWidth - 16);
+
+            const nextScale = Math.min(1, availableWidth / DESKTOP_VIEWPORT_WIDTH);
+
+            setViewportScale(nextScale);
+
+            setViewportHeight(viewport.scrollHeight * nextScale);
+        };
+
+        const scheduleUpdate = () => {
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId);
+            }
+
+            frameId = window.requestAnimationFrame(updateViewport);
+        };
+
+        scheduleUpdate();
+
+        const resizeObserver = new ResizeObserver(scheduleUpdate);
+
+        resizeObserver.observe(canvas);
+        resizeObserver.observe(viewport);
+
+        return () => {
+            resizeObserver.disconnect();
+
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId);
+            }
+        };
+    }, [device, blocks.length]);
 
     const registryMap = React.useMemo(() => buildRegistryMap(), []);
     const { sectionChildren, rowChildren, rowColCounts } = React.useMemo(
@@ -319,6 +372,7 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
         <div className={`card ${cls.card}`}>
             <div className="card-body p-0">
                 <div
+                    ref={canvasRef}
                     className={`${cls.canvas} ${dragOver ? cls.canvasDropping : ''}`}
                     onDragOver={(e) => {
                         e.preventDefault();
@@ -351,9 +405,37 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
                             </div>
                         </div>
                     )}
-                    <div className={cls.viewportOuter}>
+                    <div
+                        className={cls.viewportOuter}
+                        style={
+                            device === 'desktop'
+                                ? {
+                                      width: '100%',
+                                      height: viewportHeight || undefined,
+                                  }
+                                : undefined
+                        }
+                    >
                         <div
-                            className={`${cls.viewport} ${device === 'desktop' ? cls.viewportDesktop : device === 'tablet' ? cls.viewportTablet : cls.viewportMobile}`}
+                            ref={viewportRef}
+                            className={`${cls.viewport} ${
+                                device === 'desktop'
+                                    ? cls.viewportDesktop
+                                    : device === 'tablet'
+                                      ? cls.viewportTablet
+                                      : cls.viewportMobile
+                            }`}
+                            style={
+                                device === 'desktop'
+                                    ? {
+                                          transform: `scale(${viewportScale})`,
+                                          transformOrigin: 'top left',
+                                          marginLeft: `calc((100% - ${
+                                              DESKTOP_VIEWPORT_WIDTH * viewportScale
+                                          }px) / 2)`,
+                                      }
+                                    : undefined
+                            }
                         >
                             <div className={cls.grid}>
                                 {rootBlocks.map((b, idx) => {
@@ -387,6 +469,7 @@ export default function Canvas({ blocks, activeId, setActiveId, onDrop, move, de
                                                             >
                                                                 <i className="bi bi-arrow-up" />
                                                             </button>
+
                                                             <button
                                                                 type="button"
                                                                 className={`${cls.ftBtn} ${cls.ftGhost}`}

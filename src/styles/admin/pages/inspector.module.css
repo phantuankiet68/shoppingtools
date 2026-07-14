@@ -157,7 +157,7 @@
     min-width: 190px;
 }
 .textarea {
-    min-height: 250px;
+    min-height: 150px;
     resize: vertical;
     outline: none;
 

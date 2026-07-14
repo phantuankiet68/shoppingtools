@@ -2,32 +2,40 @@
 .card {
     overflow: hidden;
 }
-
 .viewportOuter {
-    display: flex;
-    justify-content: center;
+    position: relative;
+    width: 100%;
+    min-width: 0;
 }
 
 .viewport {
-    width: 100%;
+    position: relative;
     transition:
         max-width 0.2s ease,
         width 0.2s ease;
 }
 
-/* Desktop ~ 1440 / 1200 */
+/* Desktop */
 .viewportDesktop {
-    width: 100%;
+    width: 1400px;
+    min-width: 1400px;
+    max-width: none;
 }
 
-/* iPad ~ 834 */
+/* iPad */
 .viewportTablet {
+    width: 834px;
+    min-width: 834px;
     max-width: 834px;
+    margin-inline: auto;
 }
 
-/* Mobile ~ 390–430 */
+/* Mobile */
 .viewportMobile {
+    width: 430px;
+    min-width: 430px;
     max-width: 430px;
+    margin-inline: auto;
 }
 
 /* === Canvas host === */

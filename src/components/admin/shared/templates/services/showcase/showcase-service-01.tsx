@@ -6,8 +6,6 @@ import styles from '@/components/admin/shared/templates/services/showcase/styles
 import type { RegItem } from '@/lib/ui-builder/types';
 import { useMemo } from 'react';
 export interface ShowcaseService01Props {
-    title?: string;
-
     card1Image?: string;
     card1Title?: string;
     card1Description?: string;
@@ -30,7 +28,6 @@ export interface ShowcaseService01Props {
 }
 
 interface ShowcaseCard {
-    image: string;
     title: string;
     description: string;
     href: string;
@@ -41,69 +38,57 @@ interface ShowcaseCard {
 function ShowcaseCardItem({ card, index }: { card: ShowcaseCard; index: number }) {
     return (
         <article className={styles.card}>
-            <Link href={card.href} className={styles.imageWrapper}>
-                <Image
-                    src={card.image}
-                    alt={card.title}
-                    width={640}
-                    height={420}
-                    className={styles.image}
-                />
+            <span className={styles.glow}></span>
 
-                <span className={styles.number}>{(index + 1).toString().padStart(2, '0')}</span>
-            </Link>
-
-            <div className={styles.content}>
-                <div className={styles.top}>
-                    <div className={styles.category}>
-                        <i className={card.icon} />
-                        {card.badge}
+            <div className={styles.header}>
+                <div className={styles.category}>
+                    <div className={styles.iconBox}>
+                        <i className={card.icon}></i>
                     </div>
 
-                    <span className={styles.badgeNew}>Core</span>
+                    <span>{card.badge}</span>
                 </div>
 
+                <span className={styles.core}>Core</span>
+            </div>
+
+            <div className={styles.body}>
                 <h3>{card.title}</h3>
 
                 <p>{card.description}</p>
+            </div>
 
-                <div className={styles.tags}>
-                    {card.tags.map((tag) => (
-                        <span key={tag}>{tag}</span>
-                    ))}
-                </div>
+            <div className={styles.tags}>
+                {card.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                ))}
+            </div>
 
-                <div className={styles.cardFooter}>
-                    <Link href={card.href} className={styles.button}>
-                        Learn More
-                        <i className="bi bi-arrow-right" />
-                    </Link>
+            <div className={styles.footer}>
+                <Link href={card.href} className={styles.button}>
+                    Learn More
+                    <i className="bi bi-arrow-up-right"></i>
+                </Link>
 
-                    <span className={styles.indexLabel}>0{index + 1} Feature</span>
-                </div>
+                <span className={styles.index}>{String(index + 1).padStart(2, '0')}</span>
             </div>
         </article>
     );
 }
 
 export function ShowcaseService01({
-    title = 'Why Choose Kbuilder',
-    card1Image = '/assets/images/showcase/visual-builder.jpg',
     card1Title = 'Visual Drag & Drop',
     card1Description = 'Create beautiful websites visually with a real-time editing canvas. No coding required.',
     card1Href = '#',
 
-    card2Image = '/assets/images/showcase/templates.jpg',
     card2Title = 'Premium Templates',
     card2Description = 'Launch faster using professionally designed responsive website templates.',
     card2Href = '#',
 
-    card3Image = '/assets/images/showcase/components.jpg',
     card3Title = 'Reusable Components',
     card3Description = 'Reuse sections, layouts and blocks across unlimited pages and projects.',
     card3Href = '#',
 
-    card4Image = '/assets/images/showcase/domain.jpg',
     card4Title = 'Publish Anywhere',
     card4Description = 'Connect your own domain and publish websites worldwide in minutes.',
     card4Href = '#',
@@ -111,7 +96,6 @@ export function ShowcaseService01({
     const cards = useMemo<ShowcaseCard[]>(
         () => [
             {
-                image: card1Image,
                 title: card1Title,
                 description: card1Description,
                 href: card1Href,
@@ -120,7 +104,6 @@ export function ShowcaseService01({
                 tags: ['Drag & Drop', 'Canvas', 'No Code'],
             },
             {
-                image: card2Image,
                 title: card2Title,
                 description: card2Description,
                 href: card2Href,
@@ -129,7 +112,6 @@ export function ShowcaseService01({
                 tags: ['Responsive', 'SEO', 'Modern UI'],
             },
             {
-                image: card3Image,
                 title: card3Title,
                 description: card3Description,
                 href: card3Href,
@@ -138,7 +120,6 @@ export function ShowcaseService01({
                 tags: ['Reusable', 'Flexible', 'Fast'],
             },
             {
-                image: card4Image,
                 title: card4Title,
                 description: card4Description,
                 href: card4Href,
@@ -148,22 +129,18 @@ export function ShowcaseService01({
             },
         ],
         [
-            card1Image,
             card1Title,
             card1Description,
             card1Href,
 
-            card2Image,
             card2Title,
             card2Description,
             card2Href,
 
-            card3Image,
             card3Title,
             card3Description,
             card3Href,
 
-            card4Image,
             card4Title,
             card4Description,
             card4Href,
@@ -173,19 +150,6 @@ export function ShowcaseService01({
     return (
         <section className={styles.section}>
             <div className={styles.container}>
-                {/* Header */}
-
-                <div className={styles.heading}>
-                    <span className={styles.badge}>
-                        <i className="bi bi-stars" />
-                        Why Choose Kbuilder
-                    </span>
-
-                    <h2>{title}</h2>
-                </div>
-
-                {/* Feature Grid */}
-
                 <div className={styles.grid}>
                     {cards.map((card, index) => (
                         <ShowcaseCardItem key={card.title} card={card} index={index} />
@@ -256,28 +220,23 @@ export const SHOWCASE_SERVICE_01: RegItem = {
 
     defaults: {
         title: 'Everything You Need To Build Modern Websites',
-        // Card 1
-        card1Image: '/assets/images/feature-add.png',
         card1Title: 'Visual Drag & Drop',
         card1Description:
             'Design every page visually with an intuitive editing canvas. No coding skills required.',
         card1Href: '/builder',
 
         // Card 2
-        card2Image: '/assets/images/feature-add.png',
         card2Title: 'Premium Templates',
         card2Description:
             'Choose from professionally designed templates and launch your website in minutes.',
         card2Href: '/templates',
 
         // Card 3
-        card3Image: '/assets/images/feature-add.png',
         card3Title: 'Reusable Components',
         card3Description: 'Reuse headers, footers, sections and layouts across unlimited projects.',
         card3Href: '/components',
 
         // Card 4
-        card4Image: '/assets/images/feature-add.png',
         card4Title: 'Custom Domain & Publish',
         card4Description:
             'Connect your own domain and publish your website securely with one click.',
@@ -292,11 +251,6 @@ export const SHOWCASE_SERVICE_01: RegItem = {
         },
 
         // Card 1
-        {
-            key: 'card1Image',
-            label: 'Visual Builder Image',
-            kind: 'image',
-        },
         {
             key: 'card1Title',
             label: 'Visual Builder Title',
@@ -315,11 +269,6 @@ export const SHOWCASE_SERVICE_01: RegItem = {
 
         // Card 2
         {
-            key: 'card2Image',
-            label: 'Templates Image',
-            kind: 'image',
-        },
-        {
             key: 'card2Title',
             label: 'Templates Title',
             kind: 'text',
@@ -337,11 +286,6 @@ export const SHOWCASE_SERVICE_01: RegItem = {
 
         // Card 3
         {
-            key: 'card3Image',
-            label: 'Components Image',
-            kind: 'image',
-        },
-        {
             key: 'card3Title',
             label: 'Components Title',
             kind: 'text',
@@ -358,11 +302,6 @@ export const SHOWCASE_SERVICE_01: RegItem = {
         },
 
         // Card 4
-        {
-            key: 'card4Image',
-            label: 'Publish Image',
-            kind: 'image',
-        },
         {
             key: 'card4Title',
             label: 'Publish Title',
@@ -385,20 +324,15 @@ export const SHOWCASE_SERVICE_01: RegItem = {
 
         return (
             <ShowcaseService01
-                title={data.title}
-                card1Image={data.card1Image}
                 card1Title={data.card1Title}
                 card1Description={data.card1Description}
                 card1Href={data.card1Href}
-                card2Image={data.card2Image}
                 card2Title={data.card2Title}
                 card2Description={data.card2Description}
                 card2Href={data.card2Href}
-                card3Image={data.card3Image}
                 card3Title={data.card3Title}
                 card3Description={data.card3Description}
                 card3Href={data.card3Href}
-                card4Image={data.card4Image}
                 card4Title={data.card4Title}
                 card4Description={data.card4Description}
                 card4Href={data.card4Href}

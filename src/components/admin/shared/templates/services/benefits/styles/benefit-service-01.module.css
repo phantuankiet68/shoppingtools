@@ -744,7 +744,6 @@
     display: block;
     border-radius: 32px;
     object-fit: cover;
-    box-shadow: 0 35px 80px rgba(15, 23, 42, 0.12);
     padding: 20px;
 }
 

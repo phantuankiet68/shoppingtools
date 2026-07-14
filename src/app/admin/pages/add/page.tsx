@@ -8,6 +8,7 @@ import { usePageFunctionKeys } from '@/components/admin/shared/hooks/usePageFunc
 import styles from '@/styles/admin/pages/add.module.css';
 import { useParams, useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useRef } from 'react';
+import { useAdminLayoutStore } from '@/store/layout/layouta/index';
 
 import type { Block, DropMeta } from '@/lib/pages/types';
 import { REGISTRY } from '@/lib/ui-builder/registry';
@@ -42,7 +43,7 @@ export default function UiBuilderAddPage() {
     const sp = useSearchParams();
     const { t } = useAdminI18n();
     const { currentSite, currentWorkspace } = useAdminAuth();
-
+    const setCollapsed = useAdminLayoutStore((state) => state.setCollapsed);
     const siteId = currentSite?.id ?? '';
     const siteDomain = currentSite?.domain ?? '';
     const siteType = currentSite?.type ?? '';
@@ -66,6 +67,24 @@ export default function UiBuilderAddPage() {
         guardTimeoutRef.current = window.setTimeout(() => setGuardMsg(''), ms);
     }, []);
 
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 1600px)');
+
+        const previousCollapsed = useAdminLayoutStore.getState().collapsed;
+
+        const handleSidebarResponsive = () => {
+            setCollapsed(mediaQuery.matches);
+        };
+
+        handleSidebarResponsive();
+
+        mediaQuery.addEventListener('change', handleSidebarResponsive);
+
+        return () => {
+            mediaQuery.removeEventListener('change', handleSidebarResponsive);
+            setCollapsed(previousCollapsed);
+        };
+    }, [setCollapsed]);
     useEffect(() => {
         return () => {
             if (guardTimeoutRef.current) window.clearTimeout(guardTimeoutRef.current);
