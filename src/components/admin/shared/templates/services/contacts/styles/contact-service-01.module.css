@@ -504,7 +504,40 @@
 .mapDirections:hover {
     background: var(--teal-800);
 }
+.formHeading {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 
+.formHeading h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.formHeading p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.newsletterHeading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.newsletterHeading h3 {
+    margin: 0;
+}
+
+.newsletterHeading p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #64748b;
+}
 /* ─────────────────────────────────────────────────
    Responsive
 ───────────────────────────────────────────────── */

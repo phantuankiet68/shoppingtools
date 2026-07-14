@@ -34,8 +34,24 @@ type RouteParams = {
     locale?: 'en';
 };
 
+type SpecialTemplateGroup = 'Topbar' | 'Header' | 'Footer' | 'Sidebar';
+
 function normalizeText(value?: string | null) {
     return (value || '').trim().toUpperCase();
+}
+
+function getSpecialTemplateGroupFromPath(path?: string | null): SpecialTemplateGroup | null {
+    const normalized = (path || '')
+        .trim()
+        .toLowerCase()
+        .replace(/^\/+|\/+$/g, '');
+
+    if (normalized === 'topbar') return 'Topbar';
+    if (normalized === 'header') return 'Header';
+    if (normalized === 'footer') return 'Footer';
+    if (normalized === 'sidebar') return 'Sidebar';
+
+    return null;
 }
 
 export default function UiBuilderAddPage() {
@@ -125,26 +141,28 @@ export default function UiBuilderAddPage() {
     );
 
     const filteredRegistry = useMemo(() => {
-        if (!templateGroup) return REGISTRY;
-
-        const groupKey = normalizeText(templateGroup);
+        const specialGroup = getSpecialTemplateGroupFromPath(effectivePath);
 
         return REGISTRY.filter((item) => {
             const kind = normalizeText(item.kind);
 
-            if (kind.includes(groupKey)) return true;
+            const itemSpecialGroup: SpecialTemplateGroup | null = kind.startsWith('TOPBAR')
+                ? 'Topbar'
+                : kind.startsWith('HEADER')
+                  ? 'Header'
+                  : kind.startsWith('FOOTER')
+                    ? 'Footer'
+                    : kind.startsWith('SIDEBAR')
+                      ? 'Sidebar'
+                      : null;
 
-            if (templateId && kind.includes(normalizeText(templateId.replace(/^tpl-/, '')))) {
-                return true;
+            if (specialGroup) {
+                return itemSpecialGroup === specialGroup;
             }
 
-            if (templateName && kind.includes(normalizeText(templateName))) {
-                return true;
-            }
-
-            return false;
+            return itemSpecialGroup === null;
         });
-    }, [templateGroup, templateId, templateName]);
+    }, [effectivePath]);
 
     useEffect(() => {
         const ac = new AbortController();
@@ -481,6 +499,7 @@ export default function UiBuilderAddPage() {
                                 templateGroup={templateGroup}
                                 tier={tier}
                                 siteType={siteType}
+                                path={effectivePath}
                             />
                         </aside>
 

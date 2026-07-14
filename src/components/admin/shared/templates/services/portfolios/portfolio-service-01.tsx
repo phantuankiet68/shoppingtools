@@ -29,77 +29,64 @@ export interface PortfolioService01Props {
     headlineAccent?: string;
     subheadline?: string;
 
+    filterAllText?: string;
+    detailText?: string;
+
+    ctaDescription?: string;
     ctaText?: string;
     ctaHref?: string;
 
-    items?: PortfolioItem[];
+    // Portfolio 1
+    item1Image?: string;
+    item1ImageAlt?: string;
+    item1Category?: string;
+    item1Title?: string;
+    item1Description?: string;
+    item1Href?: string;
+
+    // Portfolio 2
+    item2Image?: string;
+    item2ImageAlt?: string;
+    item2Category?: string;
+    item2Title?: string;
+    item2Description?: string;
+    item2Href?: string;
+
+    // Portfolio 3
+    item3Image?: string;
+    item3ImageAlt?: string;
+    item3Category?: string;
+    item3Title?: string;
+    item3Description?: string;
+    item3Href?: string;
+
+    // Portfolio 4
+    item4Image?: string;
+    item4ImageAlt?: string;
+    item4Category?: string;
+    item4Title?: string;
+    item4Description?: string;
+    item4Href?: string;
+
+    // Portfolio 5
+    item5Image?: string;
+    item5ImageAlt?: string;
+    item5Category?: string;
+    item5Title?: string;
+    item5Description?: string;
+    item5Href?: string;
+
+    // Portfolio 6
+    item6Image?: string;
+    item6ImageAlt?: string;
+    item6Category?: string;
+    item6Title?: string;
+    item6Description?: string;
+    item6Href?: string;
 
     showFilters?: boolean;
     showCta?: boolean;
 }
-
-const DEFAULT_ITEMS: PortfolioItem[] = [
-    {
-        id: 'p1',
-        imageUrl: '/assets/portfolio/landing-01.jpg',
-        imageAlt: 'Modern SaaS Landing Page',
-        category: 'Landing Page',
-        title: 'AI SaaS Platform',
-        description: 'Modern landing page designed to maximize conversions.',
-        size: 'tall',
-        href: '#',
-    },
-    {
-        id: 'p2',
-        imageUrl: '/assets/portfolio/blog-01.jpg',
-        imageAlt: 'Technology Blog Website',
-        category: 'Blog',
-        title: 'Tech Insights',
-        description: 'A clean and responsive blog for creators and publishers.',
-        size: 'normal',
-        href: '#',
-    },
-    {
-        id: 'p3',
-        imageUrl: '/assets/portfolio/ecommerce-01.jpg',
-        imageAlt: 'Fashion Ecommerce Website',
-        category: 'E-commerce',
-        title: 'Fashion Store',
-        description: 'Complete online store with shopping cart and secure checkout.',
-        size: 'normal',
-        href: '#',
-    },
-    {
-        id: 'p4',
-        imageUrl: '/assets/portfolio/booking-01.jpg',
-        imageAlt: 'Hotel Booking Website',
-        category: 'Booking',
-        title: 'Hotel Reservation',
-        description: 'Online booking system with real-time availability.',
-        size: 'wide',
-        href: '#',
-    },
-    {
-        id: 'p5',
-        imageUrl: '/assets/portfolio/lms-01.jpg',
-        imageAlt: 'Online Learning Platform',
-        category: 'LMS',
-        title: 'Online Academy',
-        description: 'Learning platform with courses, lessons, and student dashboard.',
-        size: 'normal',
-        href: '#',
-    },
-    {
-        id: 'p6',
-        imageUrl: '/assets/portfolio/landing-02.jpg',
-        imageAlt: 'Corporate Business Website',
-        category: 'Business',
-        title: 'Corporate Website',
-        description: 'Professional company website with modern branding and responsive design.',
-        size: 'normal',
-        href: '#',
-    },
-];
 
 /* ─────────────────────────────────────────────────
    Hook
@@ -165,23 +152,142 @@ export function PortfolioService01({
     headline = 'Build Professional Websites',
     headlineAccent = '10x Faster',
     subheadline = 'Generate beautiful websites with AI, customize every section visually, and publish instantly with your own domain and secure hosting.',
+
+    filterAllText = 'Tất cả',
+    detailText = 'Xem chi tiết',
+
+    ctaDescription = 'Bạn muốn biết thêm về dịch vụ của chúng tôi?',
     ctaText = 'Start Building',
     ctaHref = '/services',
-    items = DEFAULT_ITEMS,
+
+    // Item 1
+    item1Image = '/assets/portfolio/landing-01.jpg',
+    item1ImageAlt = 'Modern SaaS Landing Page',
+    item1Category = 'Landing Page',
+    item1Title = 'AI SaaS Platform',
+    item1Description = 'Modern landing page designed to maximize conversions.',
+    item1Href = '#',
+
+    // Item 2
+    item2Image = '/assets/portfolio/blog-01.jpg',
+    item2ImageAlt = 'Technology Blog Website',
+    item2Category = 'Blog',
+    item2Title = 'Tech Insights',
+    item2Description = 'A clean and responsive blog for creators and publishers.',
+    item2Href = '#',
+
+    // Item 3
+    item3Image = '/assets/portfolio/ecommerce-01.jpg',
+    item3ImageAlt = 'Fashion Ecommerce Website',
+    item3Category = 'E-commerce',
+    item3Title = 'Fashion Store',
+    item3Description = 'Complete online store with shopping cart and secure checkout.',
+    item3Href = '#',
+
+    // Item 4
+    item4Image = '/assets/portfolio/booking-01.jpg',
+    item4ImageAlt = 'Hotel Booking Website',
+    item4Category = 'Booking',
+    item4Title = 'Hotel Reservation',
+    item4Description = 'Online booking system with real-time availability.',
+    item4Href = '#',
+
+    // Item 5
+    item5Image = '/assets/portfolio/lms-01.jpg',
+    item5ImageAlt = 'Online Learning Platform',
+    item5Category = 'LMS',
+    item5Title = 'Online Academy',
+    item5Description = 'Learning platform with courses, lessons, and student dashboard.',
+    item5Href = '#',
+
+    // Item 6
+    item6Image = '/assets/portfolio/landing-02.jpg',
+    item6ImageAlt = 'Corporate Business Website',
+    item6Category = 'Business',
+    item6Title = 'Corporate Website',
+    item6Description = 'Professional company website with modern branding and responsive design.',
+    item6Href = '#',
+
     showFilters = true,
     showCta = true,
 }: PortfolioService01Props) {
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
-
+    const items: PortfolioItem[] = [
+        {
+            id: 'p1',
+            imageUrl: item1Image,
+            imageAlt: item1ImageAlt,
+            category: item1Category,
+            title: item1Title,
+            description: item1Description,
+            size: 'tall',
+            href: item1Href,
+        },
+        {
+            id: 'p2',
+            imageUrl: item2Image,
+            imageAlt: item2ImageAlt,
+            category: item2Category,
+            title: item2Title,
+            description: item2Description,
+            size: 'normal',
+            href: item2Href,
+        },
+        {
+            id: 'p3',
+            imageUrl: item3Image,
+            imageAlt: item3ImageAlt,
+            category: item3Category,
+            title: item3Title,
+            description: item3Description,
+            size: 'normal',
+            href: item3Href,
+        },
+        {
+            id: 'p4',
+            imageUrl: item4Image,
+            imageAlt: item4ImageAlt,
+            category: item4Category,
+            title: item4Title,
+            description: item4Description,
+            size: 'wide',
+            href: item4Href,
+        },
+        {
+            id: 'p5',
+            imageUrl: item5Image,
+            imageAlt: item5ImageAlt,
+            category: item5Category,
+            title: item5Title,
+            description: item5Description,
+            size: 'normal',
+            href: item5Href,
+        },
+        {
+            id: 'p6',
+            imageUrl: item6Image,
+            imageAlt: item6ImageAlt,
+            category: item6Category,
+            title: item6Title,
+            description: item6Description,
+            size: 'normal',
+            href: item6Href,
+        },
+    ];
     /* Filter state */
-    const allCategories = ['Tất cả', ...Array.from(new Set(items.map((i) => i.category)))];
-    const [activeFilter, setActiveFilter] = useState('Tất cả');
-    const [hoveredId, setHoveredId] = useState<string | null>(null);
+    const allCategories = [
+        filterAllText,
+        ...Array.from(new Set(items.map((item) => item.category))),
+    ];
+
+    const [activeFilter, setActiveFilter] = useState(filterAllText);
 
     const filtered =
-        activeFilter === 'Tất cả' ? items : items.filter((i) => i.category === activeFilter);
-
+        activeFilter === filterAllText
+            ? items
+            : items.filter((item) => item.category === activeFilter);
+    const [hoveredId, setHoveredId] = useState<string | null>(null);
     /* Determine grid cell class */
     function sizeClass(item: PortfolioItem) {
         if (item.size === 'tall') return styles.cellTall;
@@ -227,9 +333,9 @@ export function PortfolioService01({
                         >
                             {allCategories.map((cat) => {
                                 const count =
-                                    cat === 'All'
+                                    cat === filterAllText
                                         ? items.length
-                                        : items.filter((i) => i.category === cat).length;
+                                        : items.filter((item) => item.category === cat).length;
 
                                 const active = activeFilter === cat;
 
@@ -260,7 +366,7 @@ export function PortfolioService01({
                             <div className={styles.bottomCtaInner}>
                                 <div className={styles.bottomCtaCopy}>
                                     <i className="bi bi-stars" />
-                                    <span>Bạn muốn biết thêm về dịch vụ của chúng tôi?</span>
+                                    <span>{ctaDescription}</span>
                                 </div>
                                 <Link href={ctaHref} className={styles.bottomCtaLink}>
                                     {ctaText}
@@ -312,7 +418,7 @@ export function PortfolioService01({
                                         )}
                                         {item.href && (
                                             <Link href={item.href} className={styles.hoverLink}>
-                                                Xem chi tiết
+                                                {detailText}
                                                 <i className="bi bi-arrow-up-right" />
                                             </Link>
                                         )}
@@ -348,41 +454,325 @@ export const PORTFOLIO_SERVICE_01: RegItem = {
         headlineAccent: '10x Faster',
         subheadline:
             'Generate beautiful websites with AI, customize every section visually, and publish instantly with your own domain and secure hosting.',
+
+        filterAllText: 'Tất cả',
+        detailText: 'Xem chi tiết',
+
+        ctaDescription: 'Bạn muốn biết thêm về dịch vụ của chúng tôi?',
         ctaText: 'Start Building',
         ctaHref: '/services',
+
+        // Item 1
+        item1Image: '/assets/portfolio/landing-01.jpg',
+        item1ImageAlt: 'Modern SaaS Landing Page',
+        item1Category: 'Landing Page',
+        item1Title: 'AI SaaS Platform',
+        item1Description: 'Modern landing page designed to maximize conversions.',
+        item1Href: '#',
+
+        // Item 2
+        item2Image: '/assets/portfolio/blog-01.jpg',
+        item2ImageAlt: 'Technology Blog Website',
+        item2Category: 'Blog',
+        item2Title: 'Tech Insights',
+        item2Description: 'A clean and responsive blog for creators and publishers.',
+        item2Href: '#',
+
+        // Item 3
+        item3Image: '/assets/portfolio/ecommerce-01.jpg',
+        item3ImageAlt: 'Fashion Ecommerce Website',
+        item3Category: 'E-commerce',
+        item3Title: 'Fashion Store',
+        item3Description: 'Complete online store with shopping cart and secure checkout.',
+        item3Href: '#',
+
+        // Item 4
+        item4Image: '/assets/portfolio/booking-01.jpg',
+        item4ImageAlt: 'Hotel Booking Website',
+        item4Category: 'Booking',
+        item4Title: 'Hotel Reservation',
+        item4Description: 'Online booking system with real-time availability.',
+        item4Href: '#',
+
+        // Item 5
+        item5Image: '/assets/portfolio/lms-01.jpg',
+        item5ImageAlt: 'Online Learning Platform',
+        item5Category: 'LMS',
+        item5Title: 'Online Academy',
+        item5Description: 'Learning platform with courses, lessons, and student dashboard.',
+        item5Href: '#',
+
+        // Item 6
+        item6Image: '/assets/portfolio/landing-02.jpg',
+        item6ImageAlt: 'Corporate Business Website',
+        item6Category: 'Business',
+        item6Title: 'Corporate Website',
+        item6Description:
+            'Professional company website with modern branding and responsive design.',
+        item6Href: '#',
+
         showFilters: true,
         showCta: true,
-        items: DEFAULT_ITEMS,
     },
 
     inspector: [
         { key: 'eyebrow', label: 'Eyebrow', kind: 'text' },
         { key: 'headline', label: 'Headline', kind: 'text' },
-        { key: 'headlineAccent', label: 'Headline Accent', kind: 'text' },
-        { key: 'subheadline', label: 'Subheadline', kind: 'text' },
-        { key: 'ctaText', label: 'CTA Text', kind: 'text' },
-        { key: 'ctaHref', label: 'CTA Link', kind: 'text' },
-        { key: 'showFilters', label: 'Show Filter Tabs', kind: 'toggle' },
-        { key: 'showCta', label: 'Show CTA', kind: 'toggle' },
+        {
+            key: 'headlineAccent',
+            label: 'Headline Accent',
+            kind: 'text',
+        },
+        {
+            key: 'subheadline',
+            label: 'Subheadline',
+            kind: 'textarea',
+        },
+
+        {
+            key: 'filterAllText',
+            label: 'Filter All Text',
+            kind: 'text',
+        },
+        {
+            key: 'detailText',
+            label: 'Detail Button Text',
+            kind: 'text',
+        },
+
+        {
+            key: 'ctaDescription',
+            label: 'CTA Description',
+            kind: 'textarea',
+        },
+        {
+            key: 'ctaText',
+            label: 'CTA Text',
+            kind: 'text',
+        },
+        {
+            key: 'ctaHref',
+            label: 'CTA Link',
+            kind: 'text',
+        },
+
+        // Item 1
+        {
+            key: 'item1Image',
+            label: 'Portfolio 1 Image',
+            kind: 'image',
+            folder: 'services/portfolios',
+            accept: 'image/*',
+        },
+        {
+            key: 'item1ImageAlt',
+            label: 'Portfolio 1 Image Alt',
+            kind: 'text',
+        },
+        {
+            key: 'item1Category',
+            label: 'Portfolio 1 Category',
+            kind: 'text',
+        },
+        {
+            key: 'item1Title',
+            label: 'Portfolio 1 Title',
+            kind: 'text',
+        },
+        {
+            key: 'item1Description',
+            label: 'Portfolio 1 Description',
+            kind: 'textarea',
+        },
+        {
+            key: 'item1Href',
+            label: 'Portfolio 1 Link',
+            kind: 'text',
+        },
+
+        // Item 2
+        {
+            key: 'item2Image',
+            label: 'Portfolio 2 Image',
+            kind: 'image',
+            folder: 'services/portfolios',
+            accept: 'image/*',
+        },
+        {
+            key: 'item2ImageAlt',
+            label: 'Portfolio 2 Image Alt',
+            kind: 'text',
+        },
+        {
+            key: 'item2Category',
+            label: 'Portfolio 2 Category',
+            kind: 'text',
+        },
+        {
+            key: 'item2Title',
+            label: 'Portfolio 2 Title',
+            kind: 'text',
+        },
+        {
+            key: 'item2Description',
+            label: 'Portfolio 2 Description',
+            kind: 'textarea',
+        },
+        {
+            key: 'item2Href',
+            label: 'Portfolio 2 Link',
+            kind: 'text',
+        },
+
+        // Item 3
+        {
+            key: 'item3Image',
+            label: 'Portfolio 3 Image',
+            kind: 'image',
+            folder: 'services/portfolios',
+            accept: 'image/*',
+        },
+        {
+            key: 'item3ImageAlt',
+            label: 'Portfolio 3 Image Alt',
+            kind: 'text',
+        },
+        {
+            key: 'item3Category',
+            label: 'Portfolio 3 Category',
+            kind: 'text',
+        },
+        {
+            key: 'item3Title',
+            label: 'Portfolio 3 Title',
+            kind: 'text',
+        },
+        {
+            key: 'item3Description',
+            label: 'Portfolio 3 Description',
+            kind: 'textarea',
+        },
+        {
+            key: 'item3Href',
+            label: 'Portfolio 3 Link',
+            kind: 'text',
+        },
+
+        // Item 4
+        {
+            key: 'item4Image',
+            label: 'Portfolio 4 Image',
+            kind: 'image',
+            folder: 'services/portfolios',
+            accept: 'image/*',
+        },
+        {
+            key: 'item4ImageAlt',
+            label: 'Portfolio 4 Image Alt',
+            kind: 'text',
+        },
+        {
+            key: 'item4Category',
+            label: 'Portfolio 4 Category',
+            kind: 'text',
+        },
+        {
+            key: 'item4Title',
+            label: 'Portfolio 4 Title',
+            kind: 'text',
+        },
+        {
+            key: 'item4Description',
+            label: 'Portfolio 4 Description',
+            kind: 'textarea',
+        },
+        {
+            key: 'item4Href',
+            label: 'Portfolio 4 Link',
+            kind: 'text',
+        },
+
+        // Item 5
+        {
+            key: 'item5Image',
+            label: 'Portfolio 5 Image',
+            kind: 'image',
+            folder: 'services/portfolios',
+            accept: 'image/*',
+        },
+        {
+            key: 'item5ImageAlt',
+            label: 'Portfolio 5 Image Alt',
+            kind: 'text',
+        },
+        {
+            key: 'item5Category',
+            label: 'Portfolio 5 Category',
+            kind: 'text',
+        },
+        {
+            key: 'item5Title',
+            label: 'Portfolio 5 Title',
+            kind: 'text',
+        },
+        {
+            key: 'item5Description',
+            label: 'Portfolio 5 Description',
+            kind: 'textarea',
+        },
+        {
+            key: 'item5Href',
+            label: 'Portfolio 5 Link',
+            kind: 'text',
+        },
+
+        // Item 6
+        {
+            key: 'item6Image',
+            label: 'Portfolio 6 Image',
+            kind: 'image',
+            folder: 'services/portfolios',
+            accept: 'image/*',
+        },
+        {
+            key: 'item6ImageAlt',
+            label: 'Portfolio 6 Image Alt',
+            kind: 'text',
+        },
+        {
+            key: 'item6Category',
+            label: 'Portfolio 6 Category',
+            kind: 'text',
+        },
+        {
+            key: 'item6Title',
+            label: 'Portfolio 6 Title',
+            kind: 'text',
+        },
+        {
+            key: 'item6Description',
+            label: 'Portfolio 6 Description',
+            kind: 'textarea',
+        },
+        {
+            key: 'item6Href',
+            label: 'Portfolio 6 Link',
+            kind: 'text',
+        },
+
+        {
+            key: 'showFilters',
+            label: 'Show Filter Tabs',
+            kind: 'toggle',
+        },
+        {
+            key: 'showCta',
+            label: 'Show CTA',
+            kind: 'toggle',
+        },
     ],
 
-    render: (props) => {
-        const d = props as Record<string, any>;
-        return (
-            <PortfolioService01
-                siteId={d.siteId}
-                eyebrow={d.eyebrow}
-                headline={d.headline}
-                headlineAccent={d.headlineAccent}
-                subheadline={d.subheadline}
-                ctaText={d.ctaText}
-                ctaHref={d.ctaHref}
-                showFilters={d.showFilters}
-                showCta={d.showCta}
-                items={d.items}
-            />
-        );
-    },
+    render: (props) => <PortfolioService01 {...(props as unknown as PortfolioService01Props)} />,
 };
 
 export default PortfolioService01;

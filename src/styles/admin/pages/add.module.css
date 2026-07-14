@@ -343,3 +343,9 @@
     font-size: 11px;
     opacity: 0.6;
 }
+
+@media screen and (max-width: 1600px) {
+    .modalPanel {
+        min-height: 100vh;
+    }
+}

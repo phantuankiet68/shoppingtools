@@ -305,8 +305,8 @@
     }
 }
 
-@media (max-width: 1540px) {
+@media (max-width: 1600px) {
     .canvas {
-        height: 87.5vh;
+        height: 90vh;
     }
 }

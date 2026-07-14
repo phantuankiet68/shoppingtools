@@ -2,7 +2,7 @@
 
 import styles from '@/components/admin/shared/templates/services/testimonials/styles/testimonial-service-01.module.css';
 import type { RegItem } from '@/lib/ui-builder/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 
@@ -26,44 +26,37 @@ export interface TestimonialService01Props {
     headline?: string;
     headlineAccent?: string;
     subheadline?: string;
-    testimonials?: TestimonialItem[];
-}
 
-const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
-    {
-        id: 'michael-chen',
-        avatar: 'https://i.pravatar.cc/200?img=13',
-        name: 'Michael Chen',
-        role: 'Manager, Chen & Associates',
-        website: 'https://chenassociates.com',
-        websiteLabel: 'chenassociates.com',
-        quote: 'The onboarding process was smooth, and the customer support team was incredibly helpful. We were up and running within days, not weeks.',
-        rating: 5,
-        accentColor: '#0EA5E9',
-    },
-    {
-        id: 'emily-rodriguez',
-        avatar: 'https://i.pravatar.cc/200?img=32',
-        name: 'Emily Rodriguez',
-        role: 'Founder, Rodriguez Marketing',
-        website: 'https://rodriguezmarketing.com',
-        websiteLabel: 'rodriguezmarketing.com',
-        quote: 'The automation features have transformed how we handle client projects. What used to take hours now happens automatically in the background.',
-        rating: 5,
-        accentColor: '#10B981',
-    },
-    {
-        id: 'david-park',
-        avatar: 'https://i.pravatar.cc/200?img=14',
-        name: 'David Park',
-        role: 'Founder, Park Consulting',
-        website: 'https://parkconsulting.co',
-        websiteLabel: 'parkconsulting.co',
-        quote: 'The reporting dashboard gives us insights we never had before. Decision making is faster and backed by real data now.',
-        rating: 5,
-        accentColor: '#F59E0B',
-    },
-];
+    exploreText?: string;
+    verifiedText?: string;
+
+    // Testimonial 1
+    testimonial1Avatar?: string;
+    testimonial1Name?: string;
+    testimonial1Role?: string;
+    testimonial1Website?: string;
+    testimonial1WebsiteLabel?: string;
+    testimonial1Quote?: string;
+    testimonial1Rating?: number;
+
+    // Testimonial 2
+    testimonial2Avatar?: string;
+    testimonial2Name?: string;
+    testimonial2Role?: string;
+    testimonial2Website?: string;
+    testimonial2WebsiteLabel?: string;
+    testimonial2Quote?: string;
+    testimonial2Rating?: number;
+
+    // Testimonial 3
+    testimonial3Avatar?: string;
+    testimonial3Name?: string;
+    testimonial3Role?: string;
+    testimonial3Website?: string;
+    testimonial3WebsiteLabel?: string;
+    testimonial3Quote?: string;
+    testimonial3Rating?: number;
+}
 
 /* ─────────────────────────────────────────────────
    Hook
@@ -89,10 +82,12 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.05) {
 }
 
 function Stars({ rating = 5 }: { rating?: number }) {
+    const safeRating = Math.max(0, Math.min(5, rating));
+
     return (
-        <div className={styles.stars} aria-label={`${rating} out of 5 stars`}>
+        <div className={styles.stars} aria-label={`${safeRating} out of 5 stars`}>
             {Array.from({ length: 5 }).map((_, i) => (
-                <i key={i} className={i < rating ? 'bi bi-star-fill' : 'bi bi-star'} />
+                <i key={i} className={i < safeRating ? 'bi bi-star-fill' : 'bi bi-star'} />
             ))}
         </div>
     );
@@ -106,10 +101,101 @@ export function TestimonialService01({
     headline = 'Professional Websites',
     headlineAccent = 'Made Simple',
     subheadline = 'See how other small businesses are transforming their operations with our software.',
-    testimonials = DEFAULT_TESTIMONIALS,
+
+    exploreText = 'Explore All Features',
+    verifiedText = 'Verified Customer',
+
+    // Testimonial 1
+    testimonial1Avatar = 'https://i.pravatar.cc/200?img=13',
+    testimonial1Name = 'Michael Chen',
+    testimonial1Role = 'Manager, Chen & Associates',
+    testimonial1Website = 'https://chenassociates.com',
+    testimonial1WebsiteLabel = 'chenassociates.com',
+    testimonial1Quote = 'The onboarding process was smooth, and the customer support team was incredibly helpful. We were up and running within days, not weeks.',
+    testimonial1Rating = 5,
+
+    // Testimonial 2
+    testimonial2Avatar = 'https://i.pravatar.cc/200?img=32',
+    testimonial2Name = 'Emily Rodriguez',
+    testimonial2Role = 'Founder, Rodriguez Marketing',
+    testimonial2Website = 'https://rodriguezmarketing.com',
+    testimonial2WebsiteLabel = 'rodriguezmarketing.com',
+    testimonial2Quote = 'The automation features have transformed how we handle client projects. What used to take hours now happens automatically in the background.',
+    testimonial2Rating = 5,
+
+    // Testimonial 3
+    testimonial3Avatar = 'https://i.pravatar.cc/200?img=14',
+    testimonial3Name = 'David Park',
+    testimonial3Role = 'Founder, Park Consulting',
+    testimonial3Website = 'https://parkconsulting.co',
+    testimonial3WebsiteLabel = 'parkconsulting.co',
+    testimonial3Quote = 'The reporting dashboard gives us insights we never had before. Decision making is faster and backed by real data now.',
+    testimonial3Rating = 5,
 }: TestimonialService01Props) {
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
+    const testimonials = useMemo<TestimonialItem[]>(
+        () => [
+            {
+                id: 'testimonial-1',
+                avatar: testimonial1Avatar,
+                name: testimonial1Name,
+                role: testimonial1Role,
+                website: testimonial1Website,
+                websiteLabel: testimonial1WebsiteLabel,
+                quote: testimonial1Quote,
+                rating: testimonial1Rating,
+                accentColor: '#0EA5E9',
+            },
+            {
+                id: 'testimonial-2',
+                avatar: testimonial2Avatar,
+                name: testimonial2Name,
+                role: testimonial2Role,
+                website: testimonial2Website,
+                websiteLabel: testimonial2WebsiteLabel,
+                quote: testimonial2Quote,
+                rating: testimonial2Rating,
+                accentColor: '#10B981',
+            },
+            {
+                id: 'testimonial-3',
+                avatar: testimonial3Avatar,
+                name: testimonial3Name,
+                role: testimonial3Role,
+                website: testimonial3Website,
+                websiteLabel: testimonial3WebsiteLabel,
+                quote: testimonial3Quote,
+                rating: testimonial3Rating,
+                accentColor: '#F59E0B',
+            },
+        ],
+        [
+            testimonial1Avatar,
+            testimonial1Name,
+            testimonial1Role,
+            testimonial1Website,
+            testimonial1WebsiteLabel,
+            testimonial1Quote,
+            testimonial1Rating,
+
+            testimonial2Avatar,
+            testimonial2Name,
+            testimonial2Role,
+            testimonial2Website,
+            testimonial2WebsiteLabel,
+            testimonial2Quote,
+            testimonial2Rating,
+
+            testimonial3Avatar,
+            testimonial3Name,
+            testimonial3Role,
+            testimonial3Website,
+            testimonial3WebsiteLabel,
+            testimonial3Quote,
+            testimonial3Rating,
+        ],
+    );
     const [emblaRef] = useEmblaCarousel(
         {
             loop: true,
@@ -145,7 +231,7 @@ export function TestimonialService01({
                         </h2>
                         <p className={styles.sub}>{subheadline}</p>
                         <button className={styles.button}>
-                            Explore All Features
+                            {exploreText}
                             <i className="bi bi-arrow-right" />
                         </button>
                     </div>
@@ -181,8 +267,7 @@ export function TestimonialService01({
                                                         className={styles.website}
                                                     >
                                                         <i className="bi bi-globe2" />
-                                                        {t.websiteLabel ??
-                                                            new URL(t.website).hostname}
+                                                        {t.websiteLabel || t.website}
                                                     </a>
                                                 )}
                                             </div>
@@ -216,7 +301,7 @@ export function TestimonialService01({
                                 className={styles.website}
                             >
                                 <i className="bi bi-globe2" />
-                                {selected.websiteLabel}
+                                {selected.websiteLabel || selected.website}
                             </a>
                         )}
                     </div>
@@ -233,7 +318,7 @@ export function TestimonialService01({
 
                         <div className={styles.badge}>
                             <i className="bi bi-patch-check-fill" />
-                            Verified Customer
+                            {verifiedText}
                         </div>
                     </div>
                 </div>
@@ -255,28 +340,195 @@ export const TESTIMONIAL_SERVICE_01: RegItem = {
         headlineAccent: 'Made Simple',
         subheadline:
             'See how other small businesses are transforming their operations with our software.',
-        testimonials: DEFAULT_TESTIMONIALS,
+
+        exploreText: 'Explore All Features',
+        verifiedText: 'Verified Customer',
+
+        // Testimonial 1
+        testimonial1Avatar: 'https://i.pravatar.cc/200?img=13',
+        testimonial1Name: 'Michael Chen',
+        testimonial1Role: 'Manager, Chen & Associates',
+        testimonial1Website: 'https://chenassociates.com',
+        testimonial1WebsiteLabel: 'chenassociates.com',
+        testimonial1Quote:
+            'The onboarding process was smooth, and the customer support team was incredibly helpful. We were up and running within days, not weeks.',
+        testimonial1Rating: 5,
+
+        // Testimonial 2
+        testimonial2Avatar: 'https://i.pravatar.cc/200?img=32',
+        testimonial2Name: 'Emily Rodriguez',
+        testimonial2Role: 'Founder, Rodriguez Marketing',
+        testimonial2Website: 'https://rodriguezmarketing.com',
+        testimonial2WebsiteLabel: 'rodriguezmarketing.com',
+        testimonial2Quote:
+            'The automation features have transformed how we handle client projects. What used to take hours now happens automatically in the background.',
+        testimonial2Rating: 5,
+
+        // Testimonial 3
+        testimonial3Avatar: 'https://i.pravatar.cc/200?img=14',
+        testimonial3Name: 'David Park',
+        testimonial3Role: 'Founder, Park Consulting',
+        testimonial3Website: 'https://parkconsulting.co',
+        testimonial3WebsiteLabel: 'parkconsulting.co',
+        testimonial3Quote:
+            'The reporting dashboard gives us insights we never had before. Decision making is faster and backed by real data now.',
+        testimonial3Rating: 5,
     },
 
     inspector: [
-        { key: 'eyebrow', label: 'Eyebrow', kind: 'text' },
-        { key: 'headline', label: 'Headline', kind: 'text' },
-        { key: 'headlineAccent', label: 'headlineAccent', kind: 'text' },
-        { key: 'subheadline', label: 'Subheadline', kind: 'text' },
+        {
+            key: 'eyebrow',
+            label: 'Eyebrow',
+            kind: 'text',
+        },
+        {
+            key: 'headline',
+            label: 'Headline',
+            kind: 'text',
+        },
+        {
+            key: 'headlineAccent',
+            label: 'Headline Accent',
+            kind: 'text',
+        },
+        {
+            key: 'subheadline',
+            label: 'Subheadline',
+            kind: 'textarea',
+        },
+
+        {
+            key: 'exploreText',
+            label: 'Explore Button Text',
+            kind: 'text',
+        },
+        {
+            key: 'verifiedText',
+            label: 'Verified Text',
+            kind: 'text',
+        },
+
+        // Testimonial 1
+        {
+            key: 'testimonial1Avatar',
+            label: 'Testimonial 1 Avatar',
+            kind: 'image',
+            folder: 'services/testimonials',
+            accept: 'image/*',
+        },
+        {
+            key: 'testimonial1Name',
+            label: 'Testimonial 1 Name',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial1Role',
+            label: 'Testimonial 1 Role',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial1Website',
+            label: 'Testimonial 1 Website',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial1WebsiteLabel',
+            label: 'Testimonial 1 Website Label',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial1Quote',
+            label: 'Testimonial 1 Quote',
+            kind: 'textarea',
+        },
+        {
+            key: 'testimonial1Rating',
+            label: 'Testimonial 1 Rating',
+            kind: 'number',
+        },
+
+        // Testimonial 2
+        {
+            key: 'testimonial2Avatar',
+            label: 'Testimonial 2 Avatar',
+            kind: 'image',
+            folder: 'services/testimonials',
+            accept: 'image/*',
+        },
+        {
+            key: 'testimonial2Name',
+            label: 'Testimonial 2 Name',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial2Role',
+            label: 'Testimonial 2 Role',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial2Website',
+            label: 'Testimonial 2 Website',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial2WebsiteLabel',
+            label: 'Testimonial 2 Website Label',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial2Quote',
+            label: 'Testimonial 2 Quote',
+            kind: 'textarea',
+        },
+        {
+            key: 'testimonial2Rating',
+            label: 'Testimonial 2 Rating',
+            kind: 'number',
+        },
+
+        // Testimonial 3
+        {
+            key: 'testimonial3Avatar',
+            label: 'Testimonial 3 Avatar',
+            kind: 'image',
+            folder: 'services/testimonials',
+            accept: 'image/*',
+        },
+        {
+            key: 'testimonial3Name',
+            label: 'Testimonial 3 Name',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial3Role',
+            label: 'Testimonial 3 Role',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial3Website',
+            label: 'Testimonial 3 Website',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial3WebsiteLabel',
+            label: 'Testimonial 3 Website Label',
+            kind: 'text',
+        },
+        {
+            key: 'testimonial3Quote',
+            label: 'Testimonial 3 Quote',
+            kind: 'textarea',
+        },
+        {
+            key: 'testimonial3Rating',
+            label: 'Testimonial 3 Rating',
+            kind: 'number',
+        },
     ],
 
-    render: (props) => {
-        const d = props as Record<string, any>;
-        return (
-            <TestimonialService01
-                siteId={d.siteId}
-                eyebrow={d.eyebrow}
-                headline={d.headline}
-                subheadline={d.subheadline}
-                testimonials={d.testimonials}
-            />
-        );
-    },
+    render: (props) => (
+        <TestimonialService01 {...(props as unknown as TestimonialService01Props)} />
+    ),
 };
 
 export default TestimonialService01;

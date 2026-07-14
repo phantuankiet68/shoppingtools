@@ -26,12 +26,19 @@ export interface HeroService01Props {
 
     trustText?: string;
 
-    stat1Value?: string;
-    stat1Label?: string;
-    stat2Value?: string;
-    stat2Label?: string;
-    stat3Value?: string;
-    stat3Label?: string;
+    memberValue?: string;
+    memberText?: string;
+
+    publishTitle?: string;
+    publishDomain?: string;
+
+    aiBadgeText?: string;
+
+    activityText1?: string;
+    activityText2?: string;
+    activityText3?: string;
+    activityText4?: string;
+    activityText5?: string;
 
     imageSrc: string;
     imageAlt: string;
@@ -94,10 +101,8 @@ function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
 export function HeroService01({
     badge = '🚀 Kbuilder AI Website Builder',
     badgeHref = '#',
-
     headline = 'Build Stunning Websites\nWithout Writing Code',
     headlineAccent = 'Launch in Just 10 Minutes',
-
     subheadline = 'Design visually with our drag-and-drop canvas, customize professional templates, connect your own domain, and publish a fully responsive website in minutes.',
 
     primaryCtaText = 'Start Building Free',
@@ -108,29 +113,32 @@ export function HeroService01({
 
     trustText = 'No Coding Required · Custom Domain Support · Publish in 10 Minutes',
 
-    stat1Value = '120',
-    stat1Label = 'Premium Templates',
+    memberValue = '+12 New Members',
+    memberText = 'Joined this week',
 
-    stat2Value = '500',
-    stat2Label = 'Drag & Drop Components',
+    publishTitle = 'Website Published',
+    publishDomain = 'mycompany.com',
 
-    stat3Value = '10',
-    stat3Label = 'Minutes to Launch',
+    aiBadgeText = 'AI Generated',
+
+    activityText1 = '🚀 Hero Section Updated',
+    activityText2 = '🎨 New Template Imported',
+    activityText3 = '🌐 Domain Connected',
+    activityText4 = '⚡ Website Published',
+    activityText5 = '🤖 AI Generated Content',
+
     imageSrc = '/assets/images/hero.png',
     imageAlt = 'Kbuilder Website Builder',
 }: HeroService01Props) {
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
-
     const headlineLines = headline.split('\n');
-
     return (
         <section
             ref={rootRef}
             className={`${styles.root} ${inView ? styles.inView : ''}`}
             aria-label="Hero"
         >
-            {/* ── Background layers ── */}
             <div className={styles.bgGrid} aria-hidden="true" />
             <div className={styles.orbA} aria-hidden="true" />
             <div className={styles.orbB} aria-hidden="true" />
@@ -145,13 +153,10 @@ export function HeroService01({
                         style={{ '--i': 0 } as React.CSSProperties}
                     >
                         <span className={styles.badgeDot}></span>
-
                         <span>{badge}</span>
-
                         <i className="bi bi-arrow-right-short"></i>
                     </a>
 
-                    {/* Hero */}
                     <div
                         className={`${styles.heroTitle} ${styles.r}`}
                         style={{ '--i': 1 } as React.CSSProperties}
@@ -162,21 +167,16 @@ export function HeroService01({
                                     {line}
                                 </span>
                             ))}
-
                             <span className={styles.headlineAccent}>{headlineAccent}</span>
                         </h1>
                         <p className={styles.sub}>{subheadline}</p>
                     </div>
-
-                    {/* CTA */}
-
                     <div
                         className={`${styles.ctaRow} ${styles.r}`}
                         style={{ '--i': 2 } as React.CSSProperties}
                     >
                         <Link href={primaryCtaHref} className={styles.btnPrimary}>
                             <span>{primaryCtaText}</span>
-
                             <i className="bi bi-arrow-right"></i>
                         </Link>
 
@@ -184,13 +184,9 @@ export function HeroService01({
                             <span className={styles.playRing}>
                                 <i className="bi bi-play-fill"></i>
                             </span>
-
                             <span>{secondaryCtaText}</span>
                         </Link>
                     </div>
-
-                    {/* Feature Pills */}
-
                     <div
                         className={`${styles.features} ${styles.r}`}
                         style={{ '--i': 3 } as React.CSSProperties}
@@ -198,7 +194,6 @@ export function HeroService01({
                         {trustText.split(' · ').map((item) => (
                             <div key={item} className={styles.feature}>
                                 <i className="bi bi-check-circle-fill"></i>
-
                                 <span>{item}</span>
                             </div>
                         ))}
@@ -214,56 +209,37 @@ export function HeroService01({
                         className={styles.heroImage}
                     />
                     <div className={styles.overlay}>
-                        {/* Top Right */}
-
                         <div className={`${styles.floatingCard} ${styles.topRight}`}>
                             <div className={styles.avatarStack}>
                                 <span />
                                 <span />
                                 <span />
                             </div>
-
                             <div className={styles.successText}>
-                                <strong>+12 New Members</strong>
-
-                                <p>Joined this week</p>
+                                <strong>{memberValue}</strong>
+                                <p>{memberText}</p>
                             </div>
                         </div>
-
-                        {/* Bottom Left */}
-
                         <div className={`${styles.floatingCard} ${styles.bottomLeft}`}>
                             <div className={styles.successIcon}>
                                 <i className="bi bi-check-lg" />
                             </div>
-
                             <div className={styles.successText}>
-                                <strong>Website Published</strong>
-
-                                <p>mycompany.com</p>
+                                <strong>{publishTitle}</strong>
+                                <p>{publishDomain}</p>
                             </div>
                         </div>
-
-                        {/* Floating Badge */}
-
                         <div className={`${styles.badgeFloat} ${styles.centerRight}`}>
                             <i className="bi bi-lightning-charge-fill" />
-                            AI Generated
+                            {aiBadgeText}
                         </div>
-
-                        {/* Live Activity */}
-
                         <div className={styles.activityBar}>
                             <div className={styles.activityTrack}>
-                                <span>🚀 Hero Section Updated</span>
-
-                                <span>🎨 New Template Imported</span>
-
-                                <span>🌐 Domain Connected</span>
-
-                                <span>⚡ Website Published</span>
-
-                                <span>🤖 AI Generated Content</span>
+                                <span>{activityText1}</span>
+                                <span>{activityText2}</span>
+                                <span>{activityText3}</span>
+                                <span>{activityText4}</span>
+                                <span>{activityText5}</span>
                             </div>
                         </div>
                     </div>
@@ -298,14 +274,19 @@ export const HERO_SERVICE_01: RegItem = {
 
         trustText: 'No Coding Required · Custom Domain · Publish in 10 Minutes',
 
-        stat1Value: '150',
-        stat1Label: 'Premium Templates',
+        memberValue: '+12 New Members',
+        memberText: 'Joined this week',
 
-        stat2Value: '500',
-        stat2Label: 'Reusable Components',
+        publishTitle: 'Website Published',
+        publishDomain: 'mycompany.com',
 
-        stat3Value: '10',
-        stat3Label: 'Minutes to Launch',
+        aiBadgeText: 'AI Generated',
+
+        activityText1: '🚀 Hero Section Updated',
+        activityText2: '🎨 New Template Imported',
+        activityText3: '🌐 Domain Connected',
+        activityText4: '⚡ Website Published',
+        activityText5: '🤖 AI Generated Content',
 
         imageSrc: '/assets/images/hero.png',
         imageAlt: 'Kbuilder Website Builder',
@@ -314,24 +295,118 @@ export const HERO_SERVICE_01: RegItem = {
     inspector: [
         { key: 'badge', label: 'Badge Text', kind: 'text' },
         { key: 'badgeHref', label: 'Badge Link', kind: 'text' },
-        { key: 'headline', label: 'Headline', kind: 'text' },
-        { key: 'headlineAccent', label: 'Headline Accent', kind: 'text' },
-        { key: 'subheadline', label: 'Subheadline', kind: 'text' },
-        { key: 'primaryCtaText', label: 'Primary CTA Text', kind: 'text' },
-        { key: 'primaryCtaHref', label: 'Primary CTA Href', kind: 'text' },
-        { key: 'secondaryCtaText', label: 'Secondary CTA Text', kind: 'text' },
-        { key: 'secondaryCtaHref', label: 'Secondary CTA Href', kind: 'text' },
-        { key: 'trustText', label: 'Trust Text', kind: 'text' },
-        { key: 'stat1Value', label: 'Stat 1 Value', kind: 'text' },
-        { key: 'stat1Label', label: 'Stat 1 Label', kind: 'text' },
-        { key: 'stat2Value', label: 'Stat 2 Value', kind: 'text' },
-        { key: 'stat2Label', label: 'Stat 2 Label', kind: 'text' },
-        { key: 'stat3Value', label: 'Stat 3 Value', kind: 'text' },
-        { key: 'stat3Label', label: 'Stat 3 Label', kind: 'text' },
+
+        { key: 'headline', label: 'Headline', kind: 'textarea' },
+        {
+            key: 'headlineAccent',
+            label: 'Headline Accent',
+            kind: 'text',
+        },
+        {
+            key: 'subheadline',
+            label: 'Subheadline',
+            kind: 'textarea',
+        },
+
+        {
+            key: 'primaryCtaText',
+            label: 'Primary CTA Text',
+            kind: 'text',
+        },
+        {
+            key: 'primaryCtaHref',
+            label: 'Primary CTA Link',
+            kind: 'text',
+        },
+
+        {
+            key: 'secondaryCtaText',
+            label: 'Secondary CTA Text',
+            kind: 'text',
+        },
+        {
+            key: 'secondaryCtaHref',
+            label: 'Secondary CTA Link',
+            kind: 'text',
+        },
+
+        {
+            key: 'trustText',
+            label: 'Trust Text',
+            kind: 'textarea',
+        },
+
+        {
+            key: 'memberValue',
+            label: 'Member Value',
+            kind: 'text',
+        },
+        {
+            key: 'memberText',
+            label: 'Member Description',
+            kind: 'text',
+        },
+
+        {
+            key: 'publishTitle',
+            label: 'Publish Title',
+            kind: 'text',
+        },
+        {
+            key: 'publishDomain',
+            label: 'Publish Domain',
+            kind: 'text',
+        },
+
+        {
+            key: 'aiBadgeText',
+            label: 'AI Badge Text',
+            kind: 'text',
+        },
+
+        {
+            key: 'activityText1',
+            label: 'Activity Text 1',
+            kind: 'text',
+        },
+        {
+            key: 'activityText2',
+            label: 'Activity Text 2',
+            kind: 'text',
+        },
+        {
+            key: 'activityText3',
+            label: 'Activity Text 3',
+            kind: 'text',
+        },
+        {
+            key: 'activityText4',
+            label: 'Activity Text 4',
+            kind: 'text',
+        },
+        {
+            key: 'activityText5',
+            label: 'Activity Text 5',
+            kind: 'text',
+        },
+
+        {
+            key: 'imageSrc',
+            label: 'Hero Image',
+            kind: 'image',
+            folder: 'services/heros',
+            accept: 'image/*',
+        },
+        {
+            key: 'imageAlt',
+            label: 'Image Alt',
+            kind: 'text',
+        },
     ],
 
     render: (props) => {
         const d = props as Record<string, any>;
+
         return (
             <HeroService01
                 badge={d.badge}
@@ -344,12 +419,16 @@ export const HERO_SERVICE_01: RegItem = {
                 secondaryCtaText={d.secondaryCtaText}
                 secondaryCtaHref={d.secondaryCtaHref}
                 trustText={d.trustText}
-                stat1Value={d.stat1Value}
-                stat1Label={d.stat1Label}
-                stat2Value={d.stat2Value}
-                stat2Label={d.stat2Label}
-                stat3Value={d.stat3Value}
-                stat3Label={d.stat3Label}
+                memberValue={d.memberValue}
+                memberText={d.memberText}
+                publishTitle={d.publishTitle}
+                publishDomain={d.publishDomain}
+                aiBadgeText={d.aiBadgeText}
+                activityText1={d.activityText1}
+                activityText2={d.activityText2}
+                activityText3={d.activityText3}
+                activityText4={d.activityText4}
+                activityText5={d.activityText5}
                 imageSrc={d.imageSrc}
                 imageAlt={d.imageAlt}
             />

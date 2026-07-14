@@ -15,10 +15,8 @@ type Props = {
     templateGroup?: string | null;
     tier?: string | null;
     siteType?: string | null;
+    path?: string | null;
 };
-
-type RegistryKind = string;
-type SpecialTemplateGroup = 'Topbar' | 'Header' | 'Footer' | 'Sidebar';
 
 type TemplateApiItem = {
     id: string;
@@ -57,6 +55,19 @@ type BuilderTemplate = {
     previewImageUrl: string | null;
 };
 
+type TemplateGroupHome =
+    | 'Topbar'
+    | 'Header'
+    | 'Footer'
+    | 'Sidebar'
+    | 'Hero'
+    | 'Showcase'
+    | 'Benefit'
+    | 'Pricing'
+    | 'Portfolio'
+    | 'Testimonial'
+    | 'Contact';
+
 function normalizeText(value?: string | null) {
     return (value || '').trim().toLowerCase();
 }
@@ -71,22 +82,64 @@ function getSpecialTemplateGroup(value?: string | null): SpecialTemplateGroup | 
 
     return null;
 }
+type SpecialTemplateGroup = 'Topbar' | 'Header' | 'Footer' | 'Sidebar';
 
-function inferGroupFromKind(kind?: string | null): string | null {
+function getSpecialTemplateGroupFromPath(path?: string | null): SpecialTemplateGroup | null {
+    const normalized = (path || '')
+        .trim()
+        .toLowerCase()
+        .replace(/^\/+|\/+$/g, '');
+
+    if (normalized === 'topbar') return 'Topbar';
+    if (normalized === 'header') return 'Header';
+    if (normalized === 'footer') return 'Footer';
+    if (normalized === 'sidebar') return 'Sidebar';
+
+    return null;
+}
+
+function inferGroupFromKind(kind?: string | null): TemplateGroupHome | null {
     const normalized = normalizeText(kind);
 
     if (normalized.startsWith('topbar')) return 'Topbar';
     if (normalized.startsWith('header')) return 'Header';
     if (normalized.startsWith('footer')) return 'Footer';
     if (normalized.startsWith('sidebar')) return 'Sidebar';
+
     if (normalized.startsWith('hero')) return 'Hero';
-    if (normalized.startsWith('section')) return 'Section';
-    if (normalized.startsWith('detail')) return 'Detail';
-    if (normalized.startsWith('product')) return 'Product';
+    if (normalized.startsWith('showcase')) return 'Showcase';
+    if (normalized.startsWith('benefit')) return 'Benefit';
+    if (normalized.startsWith('pricing')) return 'Pricing';
+    if (normalized.startsWith('portfolio')) return 'Portfolio';
+    if (normalized.startsWith('testimonial')) return 'Testimonial';
+    if (normalized.startsWith('contact')) return 'Contact';
 
     return null;
 }
 
+const TEMPLATE_GROUPS_BY_PATH: Record<string, TemplateGroupHome[]> = {
+    '/': ['Hero', 'Showcase', 'Benefit', 'Pricing', 'Portfolio', 'Testimonial', 'Contact'],
+
+    '/home': ['Hero', 'Showcase', 'Benefit', 'Pricing', 'Portfolio', 'Testimonial', 'Contact'],
+
+    '/topbar': ['Topbar'],
+
+    '/header': ['Header'],
+
+    '/footer': ['Footer'],
+
+    '/sidebar': ['Sidebar'],
+};
+
+function normalizePath(value?: string | null) {
+    const normalized = (value || '').trim().toLowerCase();
+
+    if (!normalized || normalized === '/' || normalized === '/home') {
+        return '/';
+    }
+
+    return `/${normalized.replace(/^\/+|\/+$/g, '')}`;
+}
 function filterTemplates({
     templates,
     query,
@@ -140,6 +193,7 @@ export default function ControlsPalette({
     templateGroup,
     tier,
     siteType,
+    path,
 }: Props) {
     const sourceRegistry = React.useMemo(() => registry ?? REGISTRY, [registry]);
 
@@ -158,10 +212,13 @@ export default function ControlsPalette({
     const { currentSite, currentWorkspace } = useAdminAuth();
 
     const q = search.trim().toLowerCase();
-    const specialTemplateGroup = React.useMemo(
-        () => getSpecialTemplateGroup(templateGroup),
-        [templateGroup],
-    );
+    const normalizedPath = React.useMemo(() => {
+        return normalizePath(path);
+    }, [path]);
+
+    const allowedTemplateGroups = React.useMemo<TemplateGroupHome[]>(() => {
+        return TEMPLATE_GROUPS_BY_PATH[normalizedPath] ?? [];
+    }, [normalizedPath]);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -217,7 +274,6 @@ export default function ControlsPalette({
                             : [];
 
                         const primaryKind = item.kind ?? children[0] ?? null;
-                        const inferredGroup = inferGroupFromKind(primaryKind);
                         return {
                             id: item.code || item.id,
 
@@ -263,10 +319,6 @@ export default function ControlsPalette({
     }, [tier, siteType]);
 
     const templatesFiltered = React.useMemo(() => {
-        const siteCategory = currentSite?.category?.trim().toLowerCase() ?? '';
-
-        const workspaceTier = currentWorkspace?.tier?.trim().toUpperCase() ?? '';
-
         const tierRank = {
             BASIC: 1,
             NORMAL: 2,
@@ -274,7 +326,10 @@ export default function ControlsPalette({
         };
 
         const baseTemplates = templates.filter((tpl) => {
-            const groupMatched = !specialTemplateGroup || tpl.group === specialTemplateGroup;
+            const templateGroup = tpl.group as TemplateGroupHome | null;
+
+            const groupMatched =
+                templateGroup !== null && allowedTemplateGroups.includes(templateGroup);
 
             const categoryMatched =
                 normalizeText(tpl.categoryName) === normalizeText(currentSite?.category);
@@ -299,7 +354,14 @@ export default function ControlsPalette({
             ...tpl,
             children: Array.from(new Set(tpl.children)),
         }));
-    }, [specialTemplateGroup, templates, q, registryByKind]);
+    }, [
+        allowedTemplateGroups,
+        templates,
+        q,
+        registryByKind,
+        currentSite?.category,
+        currentWorkspace?.tier,
+    ]);
 
     const templateIds = React.useMemo(
         () => templatesFiltered.map((t) => t.id),

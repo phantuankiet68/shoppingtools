@@ -26,20 +26,42 @@ export interface ContactService01Props {
 
     formTitle?: string;
     formSubtitle?: string;
+
+    emailLabel?: string;
+    emailPlaceholder?: string;
+
+    phoneLabel?: string;
+    phonePlaceholder?: string;
+
+    nameLabel?: string;
+    namePlaceholder?: string;
+
+    messageLabel?: string;
+    messagePlaceholder?: string;
+
     formButtonText?: string;
+    formSuccessText?: string;
 
     newsletterTitle?: string;
     newsletterSubtitle?: string;
+    newsletterPlaceholder?: string;
     newsletterButtonText?: string;
 
-    contactInfo?: ContactInfoItem[];
+    // Contact 1
+    contact1Label?: string;
+    contact1Value?: string;
+    contact1Description?: string;
 
-    mapEmbedSrc?: string;
-    mapCardTitle?: string;
-    mapCardRating?: string;
-    mapCardReviews?: string;
+    // Contact 2
+    contact2Label?: string;
+    contact2Value?: string;
+    contact2Description?: string;
+
+    // Contact 3
+    contact3Label?: string;
+    contact3Value?: string;
+    contact3Description?: string;
 }
-
 /* ─────────────────────────────────────────────────
    Default data
 ───────────────────────────────────────────────── */
@@ -104,22 +126,67 @@ export function ContactService01({
 
     formTitle = 'Send us a message',
     formSubtitle = "We'd love to hear from you.",
+
+    emailLabel = 'Email',
+    emailPlaceholder = 'you@company.com',
+
+    phoneLabel = 'Phone',
+    phonePlaceholder = '+84 000 000 000',
+
+    nameLabel = 'Name',
+    namePlaceholder = 'Your full name',
+
+    messageLabel = 'Message',
+    messagePlaceholder = 'Tell us a bit about your project...',
+
     formButtonText = 'Send Message',
+    formSuccessText = 'Message Sent',
 
     newsletterTitle = 'Our Newsletter',
     newsletterSubtitle = 'Product tips, new templates and release notes — delivered straight to your inbox, once a month.',
+    newsletterPlaceholder = 'Enter your email',
     newsletterButtonText = 'Subscribe',
 
-    contactInfo = DEFAULT_CONTACT_INFO,
+    contact1Label = 'Call Us',
+    contact1Value = '(+84) 765 665 991',
+    contact1Description = 'Mon – Fri, 8:00 to 17:00',
 
-    mapEmbedSrc = 'https://www.google.com/maps?q=Ho+Chi+Minh+City&output=embed',
-    mapCardTitle = 'Kbuilder HQ',
-    mapCardRating = '4.9',
-    mapCardReviews = '320 reviews',
+    contact2Label = 'Email Us',
+    contact2Value = 'hello@kbuilder.io',
+    contact2Description = 'We reply within 24 hours',
+
+    contact3Label = 'Visit Us',
+    contact3Value = 'District 1, Ho Chi Minh City',
+    contact3Description = 'Our office is open for walk-ins',
 }: ContactService01Props) {
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
-
+    const contactInfo: ContactInfoItem[] = [
+        {
+            id: 'phone',
+            icon: 'telephone-fill',
+            label: contact1Label,
+            value: contact1Value,
+            description: contact1Description,
+            accentColor: '#6366F1',
+        },
+        {
+            id: 'email',
+            icon: 'envelope-fill',
+            label: contact2Label,
+            value: contact2Value,
+            description: contact2Description,
+            accentColor: '#0EA5E9',
+        },
+        {
+            id: 'address',
+            icon: 'geo-alt-fill',
+            label: contact3Label,
+            value: contact3Value,
+            description: contact3Description,
+            accentColor: '#F59E0B',
+        },
+    ];
     const [formState, setFormState] = useState({ email: '', phone: '', name: '', message: '' });
     const [newsletterEmail, setNewsletterEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
@@ -162,29 +229,38 @@ export function ContactService01({
                     >
                         <div className={styles.headerRow}>
                             <span className={styles.badge}>{eyebrow}</span>
+
                             <h2>
                                 {headline} <span className={styles.accent}>{headlineAccent}</span>
                             </h2>
+
                             <p className={styles.sub}>{subheadline}</p>
+                        </div>
+
+                        <div className={styles.formHeading}>
+                            <h3>{formTitle}</h3>
+                            <p>{formSubtitle}</p>
                         </div>
 
                         <form className={styles.form} onSubmit={handleSubmit}>
                             <div className={styles.formRow}>
                                 <label className={styles.field}>
-                                    <span>Email</span>
+                                    <span>{emailLabel}</span>
+
                                     <input
                                         type="email"
-                                        placeholder="you@company.com"
+                                        placeholder={emailPlaceholder}
                                         value={formState.email}
                                         onChange={handleFormChange('email')}
                                         required
                                     />
                                 </label>
                                 <label className={styles.field}>
-                                    <span>Phone</span>
+                                    <span>{phoneLabel}</span>
+
                                     <input
                                         type="tel"
-                                        placeholder="+84 000 000 000"
+                                        placeholder={phonePlaceholder}
                                         value={formState.phone}
                                         onChange={handleFormChange('phone')}
                                     />
@@ -192,10 +268,11 @@ export function ContactService01({
                             </div>
 
                             <label className={styles.field}>
-                                <span>Name</span>
+                                <span>{nameLabel}</span>
+
                                 <input
                                     type="text"
-                                    placeholder="Your full name"
+                                    placeholder={namePlaceholder}
                                     value={formState.name}
                                     onChange={handleFormChange('name')}
                                     required
@@ -203,9 +280,10 @@ export function ContactService01({
                             </label>
 
                             <label className={styles.field}>
-                                <span>Message</span>
+                                <span>{messageLabel}</span>
+
                                 <textarea
-                                    placeholder="Tell us a bit about your project..."
+                                    placeholder={messagePlaceholder}
                                     rows={4}
                                     value={formState.message}
                                     onChange={handleFormChange('message')}
@@ -214,7 +292,7 @@ export function ContactService01({
                             </label>
 
                             <button type="submit" className={styles.formButton}>
-                                {submitted ? 'Message Sent' : formButtonText}
+                                {submitted ? formSuccessText : formButtonText}
                                 <i className={`bi ${submitted ? 'bi-check2' : 'bi-send-fill'}`} />
                             </button>
                         </form>
@@ -228,12 +306,16 @@ export function ContactService01({
                             <span className={styles.newsletterIcon}>
                                 <i className="bi bi-envelope-paper-fill" />
                             </span>
-                            <h3>{newsletterTitle}</h3>
+
+                            <div className={styles.newsletterHeading}>
+                                <h3>{newsletterTitle}</h3>
+                                <p>{newsletterSubtitle}</p>
+                            </div>
                         </div>
                         <form className={styles.newsletterForm} onSubmit={handleNewsletterSubmit}>
                             <input
                                 type="email"
-                                placeholder="Enter your email"
+                                placeholder={newsletterPlaceholder}
                                 value={newsletterEmail}
                                 onChange={(e) => setNewsletterEmail(e.target.value)}
                                 required
@@ -296,60 +378,206 @@ export const CONTACT_SERVICE_01: RegItem = {
         headlineAccent: 'great together.',
         subheadline:
             'Have a question about Kbuilder, need a demo, or just want to say hi? Fill out the form and our team will get back to you shortly.',
+
         formTitle: 'Send us a message',
         formSubtitle: "We'd love to hear from you.",
+
+        emailLabel: 'Email',
+        emailPlaceholder: 'you@company.com',
+
+        phoneLabel: 'Phone',
+        phonePlaceholder: '+84 000 000 000',
+
+        nameLabel: 'Name',
+        namePlaceholder: 'Your full name',
+
+        messageLabel: 'Message',
+        messagePlaceholder: 'Tell us a bit about your project...',
+
         formButtonText: 'Send Message',
+        formSuccessText: 'Message Sent',
+
         newsletterTitle: 'Our Newsletter',
         newsletterSubtitle:
             'Product tips, new templates and release notes — delivered straight to your inbox, once a month.',
+        newsletterPlaceholder: 'Enter your email',
         newsletterButtonText: 'Subscribe',
-        contactInfo: DEFAULT_CONTACT_INFO,
-        mapEmbedSrc: 'https://www.google.com/maps?q=Ho+Chi+Minh+City&output=embed',
-        mapCardTitle: 'Kbuilder HQ',
-        mapCardRating: '4.9',
-        mapCardReviews: '320 reviews',
+
+        contact1Label: 'Call Us',
+        contact1Value: '(+84) 765 665 991',
+        contact1Description: 'Mon – Fri, 8:00 to 17:00',
+
+        contact2Label: 'Email Us',
+        contact2Value: 'hello@kbuilder.io',
+        contact2Description: 'We reply within 24 hours',
+
+        contact3Label: 'Visit Us',
+        contact3Value: 'District 1, Ho Chi Minh City',
+        contact3Description: 'Our office is open for walk-ins',
     },
 
     inspector: [
-        { key: 'eyebrow', label: 'Eyebrow', kind: 'text' },
-        { key: 'headline', label: 'Headline', kind: 'text' },
-        { key: 'headlineAccent', label: 'Headline Accent', kind: 'text' },
-        { key: 'subheadline', label: 'Subheadline', kind: 'text' },
-        { key: 'formTitle', label: 'Form Title', kind: 'text' },
-        { key: 'formSubtitle', label: 'Form Subtitle', kind: 'text' },
-        { key: 'formButtonText', label: 'Form Button Text', kind: 'text' },
-        { key: 'newsletterTitle', label: 'Newsletter Title', kind: 'text' },
-        { key: 'newsletterSubtitle', label: 'Newsletter Subtitle', kind: 'text' },
-        { key: 'newsletterButtonText', label: 'Newsletter Button Text', kind: 'text' },
-        { key: 'mapEmbedSrc', label: 'Map Embed URL', kind: 'text' },
-        { key: 'mapCardTitle', label: 'Map Card Title', kind: 'text' },
-        { key: 'mapCardRating', label: 'Map Card Rating', kind: 'text' },
-        { key: 'mapCardReviews', label: 'Map Card Reviews', kind: 'text' },
+        {
+            key: 'eyebrow',
+            label: 'Eyebrow',
+            kind: 'text',
+        },
+        {
+            key: 'headline',
+            label: 'Headline',
+            kind: 'text',
+        },
+        {
+            key: 'headlineAccent',
+            label: 'Headline Accent',
+            kind: 'text',
+        },
+        {
+            key: 'subheadline',
+            label: 'Subheadline',
+            kind: 'textarea',
+        },
+
+        {
+            key: 'formTitle',
+            label: 'Form Title',
+            kind: 'text',
+        },
+        {
+            key: 'formSubtitle',
+            label: 'Form Subtitle',
+            kind: 'textarea',
+        },
+
+        {
+            key: 'emailLabel',
+            label: 'Email Label',
+            kind: 'text',
+        },
+        {
+            key: 'emailPlaceholder',
+            label: 'Email Placeholder',
+            kind: 'text',
+        },
+
+        {
+            key: 'phoneLabel',
+            label: 'Phone Label',
+            kind: 'text',
+        },
+        {
+            key: 'phonePlaceholder',
+            label: 'Phone Placeholder',
+            kind: 'text',
+        },
+
+        {
+            key: 'nameLabel',
+            label: 'Name Label',
+            kind: 'text',
+        },
+        {
+            key: 'namePlaceholder',
+            label: 'Name Placeholder',
+            kind: 'text',
+        },
+
+        {
+            key: 'messageLabel',
+            label: 'Message Label',
+            kind: 'text',
+        },
+        {
+            key: 'messagePlaceholder',
+            label: 'Message Placeholder',
+            kind: 'textarea',
+        },
+
+        {
+            key: 'formButtonText',
+            label: 'Form Button Text',
+            kind: 'text',
+        },
+        {
+            key: 'formSuccessText',
+            label: 'Form Success Text',
+            kind: 'text',
+        },
+
+        {
+            key: 'newsletterTitle',
+            label: 'Newsletter Title',
+            kind: 'text',
+        },
+        {
+            key: 'newsletterSubtitle',
+            label: 'Newsletter Subtitle',
+            kind: 'textarea',
+        },
+        {
+            key: 'newsletterPlaceholder',
+            label: 'Newsletter Placeholder',
+            kind: 'text',
+        },
+        {
+            key: 'newsletterButtonText',
+            label: 'Newsletter Button Text',
+            kind: 'text',
+        },
+
+        // Contact 1
+        {
+            key: 'contact1Label',
+            label: 'Contact 1 Label',
+            kind: 'text',
+        },
+        {
+            key: 'contact1Value',
+            label: 'Contact 1 Value',
+            kind: 'text',
+        },
+        {
+            key: 'contact1Description',
+            label: 'Contact 1 Description',
+            kind: 'textarea',
+        },
+
+        // Contact 2
+        {
+            key: 'contact2Label',
+            label: 'Contact 2 Label',
+            kind: 'text',
+        },
+        {
+            key: 'contact2Value',
+            label: 'Contact 2 Value',
+            kind: 'text',
+        },
+        {
+            key: 'contact2Description',
+            label: 'Contact 2 Description',
+            kind: 'textarea',
+        },
+
+        // Contact 3
+        {
+            key: 'contact3Label',
+            label: 'Contact 3 Label',
+            kind: 'text',
+        },
+        {
+            key: 'contact3Value',
+            label: 'Contact 3 Value',
+            kind: 'text',
+        },
+        {
+            key: 'contact3Description',
+            label: 'Contact 3 Description',
+            kind: 'textarea',
+        },
     ],
 
-    render: (props) => {
-        const d = props as Record<string, any>;
-        return (
-            <ContactService01
-                siteId={d.siteId}
-                eyebrow={d.eyebrow}
-                headline={d.headline}
-                headlineAccent={d.headlineAccent}
-                subheadline={d.subheadline}
-                formTitle={d.formTitle}
-                formSubtitle={d.formSubtitle}
-                formButtonText={d.formButtonText}
-                newsletterTitle={d.newsletterTitle}
-                newsletterSubtitle={d.newsletterSubtitle}
-                newsletterButtonText={d.newsletterButtonText}
-                contactInfo={d.contactInfo}
-                mapEmbedSrc={d.mapEmbedSrc}
-                mapCardTitle={d.mapCardTitle}
-                mapCardRating={d.mapCardRating}
-                mapCardReviews={d.mapCardReviews}
-            />
-        );
-    },
+    render: (props) => <ContactService01 {...(props as unknown as ContactService01Props)} />,
 };
 
 export default ContactService01;

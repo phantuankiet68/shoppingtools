@@ -451,8 +451,6 @@
 
     border: none;
 
-    background: none;
-
     border-radius: 999px;
 
     padding: 10px 14px;
@@ -468,4 +466,9 @@
     color: white;
 
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+@media screen and (max-width: 1600px) {
+    .sectionBody {
+        height: 70vh;
+    }
 }
