@@ -24,9 +24,6 @@ export interface ContactService01Props {
     headlineAccent?: string;
     subheadline?: string;
 
-    formTitle?: string;
-    formSubtitle?: string;
-
     emailLabel?: string;
     emailPlaceholder?: string;
 
@@ -123,9 +120,6 @@ export function ContactService01({
     headline = "Let's build something",
     headlineAccent = 'great together.',
     subheadline = 'Have a question about Kbuilder, need a demo, or just want to say hi? Fill out the form and our team will get back to you shortly.',
-
-    formTitle = 'Send us a message',
-    formSubtitle = "We'd love to hear from you.",
 
     emailLabel = 'Email',
     emailPlaceholder = 'you@company.com',
@@ -235,11 +229,6 @@ export function ContactService01({
                             </h2>
 
                             <p className={styles.sub}>{subheadline}</p>
-                        </div>
-
-                        <div className={styles.formHeading}>
-                            <h3>{formTitle}</h3>
-                            <p>{formSubtitle}</p>
                         </div>
 
                         <form className={styles.form} onSubmit={handleSubmit}>
@@ -379,9 +368,6 @@ export const CONTACT_SERVICE_01: RegItem = {
         subheadline:
             'Have a question about Kbuilder, need a demo, or just want to say hi? Fill out the form and our team will get back to you shortly.',
 
-        formTitle: 'Send us a message',
-        formSubtitle: "We'd love to hear from you.",
-
         emailLabel: 'Email',
         emailPlaceholder: 'you@company.com',
 
@@ -435,17 +421,6 @@ export const CONTACT_SERVICE_01: RegItem = {
         {
             key: 'subheadline',
             label: 'Subheadline',
-            kind: 'textarea',
-        },
-
-        {
-            key: 'formTitle',
-            label: 'Form Title',
-            kind: 'text',
-        },
-        {
-            key: 'formSubtitle',
-            label: 'Form Subtitle',
             kind: 'textarea',
         },
 

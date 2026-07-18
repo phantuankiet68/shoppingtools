@@ -83,15 +83,12 @@ export const MENU_TEMPLATES: Record<WebsiteType, Record<string, MenuTemplateItem
 
         Service: [
             { title: 'sites.menu.home', path: 'sites.menuPath.home', icon: 'bi-house' },
-            { title: 'sites.menu.services', path: 'sites.menuPath.services', icon: 'bi-briefcase' },
+            { title: 'sites.menu.service', path: 'sites.menuPath.service', icon: 'bi-briefcase' },
+            { title: 'sites.menu.project', path: 'sites.menuPath.project', icon: 'bi-kanban' },
+            { title: 'sites.menu.about', path: 'sites.menuPath.about', icon: 'bi-heart' },
             { title: 'sites.menu.pricing', path: 'sites.menuPath.pricing', icon: 'bi-cash-stack' },
-            { title: 'sites.menu.portfolio', path: 'sites.menuPath.portfolio', icon: 'bi-images' },
-            {
-                title: 'sites.menu.testimonials',
-                path: 'sites.menuPath.testimonials',
-                icon: 'bi-chat-quote',
-            },
-            { title: 'sites.menu.faq', path: 'sites.menuPath.faq', icon: 'bi-question-circle' },
+            { title: 'sites.menu.blog', path: 'sites.menuPath.blog', icon: 'bi-journal' },
+            { title: 'sites.menu.news', path: 'sites.menuPath.news', icon: 'bi-newspaper' },
             { title: 'sites.menu.contact', path: 'sites.menuPath.contact', icon: 'bi-envelope' },
         ],
 

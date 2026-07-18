@@ -40,6 +40,7 @@ const en = {
 
             portfolio: 'Portfolio',
             projects: 'Projects',
+            project: 'Project',
 
             team: 'Team',
             careers: 'Careers',
@@ -185,7 +186,9 @@ const en = {
             aboutMe: '/about-me',
 
             services: '/services',
+            service: '/service',
             projects: '/projects',
+            project: '/project',
 
             team: '/team',
             careers: '/careers',

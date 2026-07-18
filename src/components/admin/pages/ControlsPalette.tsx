@@ -42,7 +42,7 @@ type BuilderTemplate = {
 
     label: string;
 
-    group: string | null;
+    groups: TemplateGroupHome[];
 
     categoryName: string | null;
 
@@ -66,54 +66,37 @@ type TemplateGroupHome =
     | 'Pricing'
     | 'Portfolio'
     | 'Testimonial'
-    | 'Contact';
-
+    | 'Contact'
+    | 'Service'
+    | 'PricingPage'
+    | 'Project';
 function normalizeText(value?: string | null) {
     return (value || '').trim().toLowerCase();
-}
-
-function getSpecialTemplateGroup(value?: string | null): SpecialTemplateGroup | null {
-    const normalized = normalizeText(value);
-
-    if (normalized === 'topbar') return 'Topbar';
-    if (normalized === 'header') return 'Header';
-    if (normalized === 'footer') return 'Footer';
-    if (normalized === 'sidebar') return 'Sidebar';
-
-    return null;
-}
-type SpecialTemplateGroup = 'Topbar' | 'Header' | 'Footer' | 'Sidebar';
-
-function getSpecialTemplateGroupFromPath(path?: string | null): SpecialTemplateGroup | null {
-    const normalized = (path || '')
-        .trim()
-        .toLowerCase()
-        .replace(/^\/+|\/+$/g, '');
-
-    if (normalized === 'topbar') return 'Topbar';
-    if (normalized === 'header') return 'Header';
-    if (normalized === 'footer') return 'Footer';
-    if (normalized === 'sidebar') return 'Sidebar';
-
-    return null;
 }
 
 function inferGroupFromKind(kind?: string | null): TemplateGroupHome | null {
     const normalized = normalizeText(kind);
 
-    if (normalized.startsWith('topbar')) return 'Topbar';
-    if (normalized.startsWith('header')) return 'Header';
-    if (normalized.startsWith('footer')) return 'Footer';
-    if (normalized.startsWith('sidebar')) return 'Sidebar';
+    const normalizedKind = normalized.replace(/[_\s]+/g, '-');
 
-    if (normalized.startsWith('hero')) return 'Hero';
-    if (normalized.startsWith('showcase')) return 'Showcase';
-    if (normalized.startsWith('benefit')) return 'Benefit';
-    if (normalized.startsWith('pricing')) return 'Pricing';
-    if (normalized.startsWith('portfolio')) return 'Portfolio';
-    if (normalized.startsWith('testimonial')) return 'Testimonial';
-    if (normalized.startsWith('contact')) return 'Contact';
+    if (normalizedKind.includes('pricing-page') || normalizedKind.includes('pricingpage')) {
+        return 'PricingPage';
+    }
 
+    if (normalizedKind.startsWith('topbar')) return 'Topbar';
+    if (normalizedKind.startsWith('header')) return 'Header';
+    if (normalizedKind.startsWith('footer')) return 'Footer';
+    if (normalizedKind.startsWith('sidebar')) return 'Sidebar';
+
+    if (normalizedKind.startsWith('hero')) return 'Hero';
+    if (normalizedKind.startsWith('showcase')) return 'Showcase';
+    if (normalizedKind.startsWith('benefit')) return 'Benefit';
+    if (normalizedKind.startsWith('pricing')) return 'Pricing';
+    if (normalizedKind.startsWith('portfolio')) return 'Portfolio';
+    if (normalizedKind.startsWith('testimonial')) return 'Testimonial';
+    if (normalizedKind.startsWith('contact')) return 'Contact';
+    if (normalizedKind.startsWith('service')) return 'Service';
+    if (normalizedKind.startsWith('project')) return 'Project';
     return null;
 }
 
@@ -122,12 +105,13 @@ const TEMPLATE_GROUPS_BY_PATH: Record<string, TemplateGroupHome[]> = {
 
     '/home': ['Hero', 'Showcase', 'Benefit', 'Pricing', 'Portfolio', 'Testimonial', 'Contact'],
 
+    '/service': ['Service', 'Contact'],
+    '/pricing': ['PricingPage'],
+    '/project': ['Project'],
+
     '/topbar': ['Topbar'],
-
     '/header': ['Header'],
-
     '/footer': ['Footer'],
-
     '/sidebar': ['Sidebar'],
 };
 
@@ -274,12 +258,21 @@ export default function ControlsPalette({
                             : [];
 
                         const primaryKind = item.kind ?? children[0] ?? null;
+
+                        const groups = Array.from(
+                            new Set(
+                                children
+                                    .map((kind) => inferGroupFromKind(kind))
+                                    .filter((group): group is TemplateGroupHome => group !== null),
+                            ),
+                        );
+
                         return {
                             id: item.code || item.id,
 
                             label: item.label,
 
-                            group: inferGroupFromKind(primaryKind),
+                            groups,
 
                             categoryName: item.category?.name ?? null,
 
@@ -326,10 +319,7 @@ export default function ControlsPalette({
         };
 
         const baseTemplates = templates.filter((tpl) => {
-            const templateGroup = tpl.group as TemplateGroupHome | null;
-
-            const groupMatched =
-                templateGroup !== null && allowedTemplateGroups.includes(templateGroup);
+            const groupMatched = tpl.groups.some((group) => allowedTemplateGroups.includes(group));
 
             const categoryMatched =
                 normalizeText(tpl.categoryName) === normalizeText(currentSite?.category);
@@ -344,12 +334,23 @@ export default function ControlsPalette({
             return groupMatched && categoryMatched && tierMatched;
         });
 
+        const pathTemplates = baseTemplates
+            .map((tpl) => ({
+                ...tpl,
+
+                children: tpl.children.filter((kind) => {
+                    const group = inferGroupFromKind(kind);
+
+                    return group !== null && allowedTemplateGroups.includes(group);
+                }),
+            }))
+            .filter((tpl) => tpl.children.length > 0);
+
         const raw = filterTemplates({
-            templates: baseTemplates,
+            templates: pathTemplates,
             query: q,
             registryByKind,
         });
-
         return raw.map((tpl) => ({
             ...tpl,
             children: Array.from(new Set(tpl.children)),

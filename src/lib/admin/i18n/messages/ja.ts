@@ -39,7 +39,7 @@ const ja = {
 
             portfolio: 'ポートフォリオ',
             projects: 'プロジェクト',
-
+            project: 'プロジェクト',
             team: 'チーム',
             careers: '採用情報',
             news: 'ニュース',
@@ -184,7 +184,9 @@ const ja = {
             aboutMe: '/profile',
 
             services: '/service',
+            service: '/service',
             projects: '/project',
+            project: '/project',
 
             team: '/team',
             careers: '/recruit',

@@ -69,4 +69,7 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     tpl('tpl-portfolio', 'Portfolio', ['PortfolioService01']),
     tpl('tpl-testimonial', 'Testimonial', ['TestimonialService01']),
     tpl('tpl-contact', 'Contact', ['ContactService01']),
+    tpl('tpl-service', 'Service', ['Service01']),
+    tpl('tpl-pricing-page', 'Pricing Page', ['Pricing01']),
+    tpl('tpl-project-page', 'Project Page', ['Project01']),
 ] as const;

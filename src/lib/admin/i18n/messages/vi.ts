@@ -40,6 +40,7 @@ const vi = {
 
             portfolio: 'Hồ sơ năng lực',
             projects: 'Dự án',
+            project: 'Dự án',
 
             team: 'Đội ngũ',
             careers: 'Tuyển dụng',
@@ -184,7 +185,9 @@ const vi = {
             aboutMe: '/ve-toi',
 
             services: '/dich-vu',
+            service: '/dich-vu',
             projects: '/du-an',
+            project: '/du-an',
 
             team: '/doi-ngu',
             careers: '/tuyen-dung',

@@ -77,17 +77,17 @@
     width: fit-content;
     margin-bottom: 22px;
     padding: 8px 16px;
-    font-size: 12px;
+    font-size: 1.2rem;
     font-weight: 700;
     display: inline-flex;
 }
 
 .headerRow h2 {
-    font-size: clamp(32px, 4vw, 44px);
+    font-size: clamp(3.2rem, 4vw, 4.4rem);
     line-height: 1.15;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin: 0 0 16px;
+    margin: 0 0 1.6rem;
 }
 
 .accent {
@@ -98,7 +98,7 @@
 }
 
 .sub {
-    font-size: 16px;
+    font-size: 1.6rem;
     line-height: 1.65;
     color: var(--muted);
     margin: 0;
@@ -150,7 +150,7 @@
 }
 
 .cardHeadline h3 {
-    font-size: 32px;
+    font-size: 3.2rem;
     font-weight: 800;
     background: linear-gradient(135deg, #2563eb 0%, #6366f1 50%, #0ea5e9 100%);
     -webkit-text-fill-color: transparent;
@@ -160,7 +160,7 @@
 }
 
 .cardHeadline p {
-    font-size: 16px;
+    font-size: 1.6rem;
     color: var(--muted);
     margin: 0;
 }
@@ -184,7 +184,7 @@
 }
 
 .field span {
-    font-size: 15px;
+    font-size: 1.5rem;
     font-weight: 500;
     color: var(--muted);
     letter-spacing: 0.04em;
@@ -195,7 +195,7 @@
     border: 1px solid rgba(53, 97, 93, 0.18);
     border-radius: 999px;
     padding: 13px 16px;
-    font-size: 14px;
+    font-size: 1.4rem;
     color: var(--ink);
     resize: none;
     transition:
@@ -207,7 +207,7 @@
     border: 1px solid rgba(53, 97, 93, 0.18);
     border-radius: 20px;
     padding: 13px 16px;
-    font-size: 14px;
+    font-size: 1.4rem;
     color: var(--ink);
     resize: none;
     transition:
@@ -238,7 +238,7 @@
     border-radius: 999px;
     background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
     color: #ffffff;
-    font-size: 14px;
+    font-size: 1.4rem;
     font-weight: 600;
     cursor: pointer;
     transition:
@@ -252,7 +252,7 @@
 }
 
 .formButton i {
-    font-size: 13px;
+    font-size: 1.3rem;
 }
 
 /* ─────────────────────────────────────────────────
@@ -265,7 +265,9 @@
     flex-direction: column;
     border-radius: var(--radius-lg);
     padding: 40px;
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    background:
+        radial-gradient(circle at 50% 40%, #9587ff33, #0000 45%),
+        linear-gradient(135deg, #edf4ff, #eeeaff);
 }
 
 .newsletterCard::after {
@@ -281,25 +283,26 @@
 }
 
 .newsletterIcon {
-    width: 46px;
-    height: 46px;
+    width: 55px;
+    height: 55px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    font-size: 18px;
+    background: #ffffff;
+    color: #9b5af0;
+    font-size: 1.8rem;
 }
 
 .newsletterCard h3 {
-    font-size: 32px;
-    font-weight: 700;
-    color: #ffffff;
+    letter-spacing: -0.025em;
+    color: #26374d;
+    margin: 0;
+    font-size: 1.6rem;
 }
 
 .newsletterCard p {
-    font-size: 18px;
+    font-size: 1.5rem;
     line-height: 1.6;
     flex: 1;
 }
@@ -315,15 +318,15 @@
 .newsletterForm input {
     width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.08);
+    background: #ffffff;
     border-radius: var(--radius-sm);
-    padding: 13px 16px;
-    font-size: 14px;
-    color: #ffffff;
+    padding: 16px;
+    font-size: 1.5rem;
+    color: var(--muted);
 }
 
 .newsletterForm input::placeholder {
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--muted);
 }
 
 .newsletterForm input:focus {
@@ -336,12 +339,12 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 13px 22px;
+    padding: 16px 22px;
     border: none;
     border-radius: 999px;
     background: #ffffff;
     color: var(--teal-900);
-    font-size: 14px;
+    font-size: 1.5rem;
     font-weight: 700;
     cursor: pointer;
     transition:
@@ -383,25 +386,25 @@
     align-items: center;
     justify-content: center;
     border-radius: 13px;
-    font-size: 18px;
+    font-size: 1.8rem;
 }
 
 .infoBody h4 {
-    font-size: 15px;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--ink);
     margin: 0 0 4px;
 }
 
 .infoValue {
-    font-size: 14px;
+    font-size: 1.4rem;
     font-weight: 600;
     color: var(--teal-900);
     margin: 0 0 4px;
 }
 
 .infoDesc {
-    font-size: 13px;
+    font-size: 1.3rem;
     color: var(--muted);
     margin: 0;
     line-height: 1.5;
@@ -456,11 +459,11 @@
     border-radius: 11px;
     background: var(--sage-100);
     color: var(--teal-900);
-    font-size: 15px;
+    font-size: 1.5rem;
 }
 
 .mapCardHead h4 {
-    font-size: 14px;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--ink);
     margin: 0 0 3px;
@@ -470,13 +473,13 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 12px;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #d97706;
 }
 
 .mapRating i {
-    font-size: 11px;
+    font-size: 1.1rem;
 }
 
 .mapReviews {
@@ -494,7 +497,7 @@
     border-radius: 999px;
     background: var(--teal-900);
     color: #ffffff;
-    font-size: 12px;
+    font-size: 1.2rem;
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
@@ -512,13 +515,13 @@
 
 .formHeading h3 {
     margin: 0;
-    font-size: 20px;
+    font-size: 1.8rem;
     font-weight: 700;
 }
 
 .formHeading p {
     margin: 0;
-    font-size: 14px;
+    font-size: 1.4rem;
     color: #64748b;
 }
 
@@ -534,7 +537,7 @@
 
 .newsletterHeading p {
     margin: 0;
-    font-size: 13px;
+    font-size: 1.4rem;
     line-height: 1.5;
     color: #64748b;
 }
