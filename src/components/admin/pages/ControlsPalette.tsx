@@ -69,7 +69,9 @@ type TemplateGroupHome =
     | 'Contact'
     | 'Service'
     | 'PricingPage'
-    | 'Project';
+    | 'Project'
+    | 'About'
+    | 'Blog';
 function normalizeText(value?: string | null) {
     return (value || '').trim().toLowerCase();
 }
@@ -97,6 +99,8 @@ function inferGroupFromKind(kind?: string | null): TemplateGroupHome | null {
     if (normalizedKind.startsWith('contact')) return 'Contact';
     if (normalizedKind.startsWith('service')) return 'Service';
     if (normalizedKind.startsWith('project')) return 'Project';
+    if (normalizedKind.startsWith('about')) return 'About';
+    if (normalizedKind.startsWith('blog')) return 'Blog';
     return null;
 }
 
@@ -108,6 +112,8 @@ const TEMPLATE_GROUPS_BY_PATH: Record<string, TemplateGroupHome[]> = {
     '/service': ['Service', 'Contact'],
     '/pricing': ['PricingPage'],
     '/project': ['Project'],
+    '/about': ['About', 'Contact'],
+    '/blog': ['Blog', 'Contact'],
 
     '/topbar': ['Topbar'],
     '/header': ['Header'],

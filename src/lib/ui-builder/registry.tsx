@@ -41,6 +41,10 @@ import { PRICING_PAGE_01 } from '@/components/admin/shared/templates/services/pr
 
 import { PROJECT_PAGE_01 } from '@/components/admin/shared/templates/services/project/project-01';
 
+import { ABOUT_PAGE_01 } from '@/components/admin/shared/templates/services/about/about-01';
+
+import { BLOG_PAGE_01 } from '@/components/admin/shared/templates/services/blog/blog-01';
+
 export const BASIC: RegItem[] = [];
 
 export const REGISTRY_HOME: RegItem[] = [
@@ -72,6 +76,8 @@ export const REGISTRY_HOME: RegItem[] = [
     SERVICE_01,
     PRICING_PAGE_01,
     PROJECT_PAGE_01,
+    ABOUT_PAGE_01,
+    BLOG_PAGE_01,
 ];
 
 export const REGISTRY: RegItem[] = [...BASIC, ...REGISTRY_HOME];
