@@ -58,23 +58,12 @@ export default function PageInspectorHeader({
                     <h1 className={styles.title}>
                         {title || t('pages.pageInspector.untitledPage')}
                     </h1>
-
-                    <span
-                        className={`${styles.badge} ${
-                            isPublished ? styles.badgePublished : styles.badgeDraft
-                        }`}
-                    >
-                        {status}
-                    </span>
+                    <span>{path}</span>
                 </div>
 
                 <div className={styles.meta}>
-                    <span>{path}</span>
-
                     {updatedText && (
                         <>
-                            <span className={styles.separator}>•</span>
-
                             <span>
                                 {t('pages.pageInspector.updated')} {updatedText}
                             </span>

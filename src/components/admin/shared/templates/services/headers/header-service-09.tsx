@@ -1,38 +1,66 @@
 'use client';
 
-import styles from '@/components/admin/shared/templates/services/headers/styles/header-service-09.module.css';
-import { useSite } from '@/hooks/v1/useSiteHook';
-import type { RegItem } from '@/lib/ui-builder/types';
-
-import { ChevronDown, Headphones, Mail, Menu, Phone, Search, ShieldCheck, X } from 'lucide-react';
-
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import styles from '@/components/admin/shared/templates/services/headers/styles/header-service-09.module.css';
+import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
+import { useSite } from '@/hooks/v1/useSiteHook';
 
+import type { RegItem } from '@/lib/ui-builder/types';
+const LOCALES = [
+    {
+        value: 'en',
+        label: 'English',
+        description: 'United States',
+        flag: '/flags/us.png',
+    },
+    {
+        value: 'vi',
+        label: 'Tiếng Việt',
+        description: 'Việt Nam',
+        flag: '/flags/vn.png',
+    },
+    {
+        value: 'ja',
+        label: '日本語',
+        description: 'Japan',
+        flag: '/flags/jp.png',
+    },
+];
 export type ServiceNavItem = {
     label: string;
     href: string;
     icon?: string | null;
+    badge?: string;
     description?: string;
     children?: ServiceNavItem[];
 };
 
 export interface HeaderService09Props {
     siteId?: string;
-
-    announcementText?: string;
-
-    loginText?: string;
+    supportLabel?: LocalizedText;
+    supportPhone?: string;
+    wishlistText?: LocalizedText;
+    wishlistHref?: string;
+    checkoutText?: LocalizedText;
+    checkoutHref?: string;
+    logo?: string;
+    logoTitle?: LocalizedText;
+    loginTitle?: LocalizedText;
+    loginSubtitle?: LocalizedText;
     loginHref?: string;
-
-    registerText?: string;
-    registerHref?: string;
-
-    salesText?: string;
-    salesHref?: string;
-
-    searchPlaceholder?: string;
+    offerTitle?: LocalizedText;
+    offerSubtitle?: LocalizedText;
+    offerHref?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+    showTopbar?: boolean;
+    showOfferCard?: boolean;
+    showCheckout?: boolean;
+    showLogin?: boolean;
 }
 
 function useSiteMenus(siteId?: string) {
@@ -57,29 +85,134 @@ function useSiteMenus(siteId?: string) {
     return menus;
 }
 
-function HeaderService09({
-    siteId,
+export const DEFAULT_PROPS: Required<HeaderService09Props> = {
+    siteId: '',
 
-    announcementText = 'Trusted by enterprise customers worldwide',
+    supportLabel: {
+        sourceLocale: 'en',
+        default: 'Need Help?',
+        translations: {
+            vi: 'Cần hỗ trợ?',
+            ja: 'サポートが必要ですか？',
+        },
+    },
 
-    loginText = 'Login',
-    loginHref = '/login',
+    supportPhone: '023-444-6666-5678',
 
-    registerText = 'Start Free Trial',
-    registerHref = '/register',
+    wishlistText: {
+        sourceLocale: 'en',
+        default: 'Wishlist',
+        translations: {
+            vi: 'Yêu thích',
+            ja: 'お気に入り',
+        },
+    },
 
-    salesText = 'Talk To Sales',
-    salesHref = '/contact',
+    wishlistHref: '/wishlist',
 
-    searchPlaceholder = 'Search products, solutions, services...',
-}: HeaderService09Props) {
+    checkoutText: {
+        sourceLocale: 'en',
+        default: 'Checkout',
+        translations: {
+            vi: 'Thanh toán',
+            ja: 'チェックアウト',
+        },
+    },
+
+    checkoutHref: '/checkout',
+
+    logo: '/assets/images/logo.png',
+
+    logoTitle: {
+        sourceLocale: 'en',
+        default: 'ETRO STORES',
+        translations: {
+            vi: 'ETRO STORES',
+            ja: 'ETRO STORES',
+        },
+    },
+
+    loginTitle: {
+        sourceLocale: 'en',
+        default: 'Login',
+        translations: {
+            vi: 'Đăng nhập',
+            ja: 'ログイン',
+        },
+    },
+
+    loginSubtitle: {
+        sourceLocale: 'en',
+        default: 'Welcome Guest',
+        translations: {
+            vi: 'Chào mừng Quý khách',
+            ja: 'ようこそ、ゲスト様',
+        },
+    },
+
+    loginHref: '/login',
+
+    offerTitle: {
+        sourceLocale: 'en',
+        default: 'Developer Docs',
+        translations: {
+            vi: 'Tài liệu dành cho lập trình viên',
+            ja: '開発者向けドキュメント',
+        },
+    },
+
+    offerSubtitle: {
+        sourceLocale: 'en',
+        default: 'Documentation',
+        translations: {
+            vi: 'Tài liệu hướng dẫn',
+            ja: 'ドキュメント',
+        },
+    },
+
+    offerHref: '/docs',
+
+    primaryColor: '#7C3AED',
+    secondaryColor: '#EC4899',
+    accentColor: '#FF8A00',
+
+    showTopbar: true,
+    showOfferCard: true,
+    showCheckout: true,
+    showLogin: true,
+};
+function HeaderService09(props: HeaderService09Props) {
+    const {
+        siteId,
+        supportLabel,
+        supportPhone,
+        wishlistText,
+        wishlistHref,
+        checkoutText,
+        checkoutHref,
+        logo,
+        logoTitle,
+        loginTitle,
+        loginSubtitle,
+        loginHref,
+        offerTitle,
+        offerSubtitle,
+        offerHref,
+        primaryColor,
+        secondaryColor,
+        accentColor,
+        showTopbar,
+        showOfferCard,
+        showCheckout,
+        showLogin,
+    } = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
     const site = useSite(siteId);
-
     const menus = useSiteMenus(siteId);
 
     const [mobileOpen, setMobileOpen] = useState(false);
-
-    const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
     const [mounted, setMounted] = useState(false);
 
@@ -87,248 +220,474 @@ function HeaderService09({
         setMounted(true);
     }, []);
 
-    const siteLogo = site?.logoUrl || '/assets/images/logo.png';
-    const siteName = site?.name || 'KBuilder';
+    const pathname = usePathname();
+
+    const siteLogo = site?.logoUrl || logo || '/assets/images/logo.png';
+    const isActive = (href: string) => {
+        if (href === '/') {
+            return pathname === '/';
+        }
+
+        return pathname === href || pathname.startsWith(`${href}/`);
+    };
+
+    const [languageOpen, setLanguageOpen] = useState(false);
+
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
+
+        return localStorage.getItem('locale') ?? 'en';
+    });
+
+    const currentLocale = LOCALES.find((item) => item.value === selectedLocale) ?? LOCALES[0];
+
+    const languageRef = useRef<HTMLDivElement>(null);
+
+    const siteName = site?.name ?? getLocalizedValue(logoTitle, selectedLocale);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (languageRef.current && !languageRef.current.contains(event.target as Node)) {
+                setLanguageOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+    useEffect(() => {
+        function onEscape(e: KeyboardEvent) {
+            if (e.key === 'Escape') {
+                setLanguageOpen(false);
+            }
+        }
+
+        document.addEventListener('keydown', onEscape);
+
+        return () => {
+            document.removeEventListener('keydown', onEscape);
+        };
+    }, []);
 
     return (
-        <>
-            <div className={styles.topbar}>
-                <div className={styles.topbarContainer}>
-                    <div className={styles.topbarLeft}>
-                        <span>
-                            <Phone size={14} />
-                            {site?.contactPhone || '+84 123 456 789'}
-                        </span>
+        <header
+            className={`${styles.header} ${styles.sticky}`}
+            style={
+                {
+                    '--primary': primaryColor,
+                    '--secondary': secondaryColor,
+                    '--accent': accentColor,
+                } as React.CSSProperties
+            }
+        >
+            {showTopbar && (
+                <div className={styles.topbar}>
+                    <div className={styles.container}>
+                        <div className={styles.topbarLeft}>
+                            <span>
+                                <i className="bi bi-headset" />
+                                {getLocalizedValue(supportLabel, selectedLocale)} {supportPhone}
+                            </span>
 
-                        <span>
-                            <Mail size={14} />
-                            {site?.contactEmail || 'support@company.com'}
-                        </span>
-                    </div>
+                            <span className={styles.separator} />
 
-                    <div className={styles.topbarCenter}>
-                        <ShieldCheck size={14} />
-                        {announcementText}
-                    </div>
+                            <div ref={languageRef} className={styles.languageWrapper}>
+                                <button
+                                    type="button"
+                                    className={styles.languageButton}
+                                    onClick={() => setLanguageOpen((prev) => !prev)}
+                                >
+                                    <Image
+                                        src={currentLocale.flag}
+                                        alt={currentLocale.label}
+                                        width={32}
+                                        height={22}
+                                        className={styles.flag}
+                                    />
 
-                    <div className={styles.topbarRight}>
-                        <div className={styles.liveBadge}>
-                            <span />
-                            Online Support
+                                    <span className={styles.languageLabel}>
+                                        {currentLocale.label}
+                                    </span>
+
+                                    <i
+                                        className={`bi ${
+                                            languageOpen ? 'bi-chevron-up' : 'bi-chevron-down'
+                                        }`}
+                                    />
+                                </button>
+
+                                {languageOpen && (
+                                    <div className={styles.languageMenu}>
+                                        {LOCALES.map((item) => {
+                                            const active = item.value === selectedLocale;
+
+                                            return (
+                                                <button
+                                                    key={item.value}
+                                                    type="button"
+                                                    className={`${styles.languageItem} ${
+                                                        active ? styles.languageItemActive : ''
+                                                    }`}
+                                                    onClick={() => {
+                                                        setSelectedLocale(item.value);
+                                                        localStorage.setItem('locale', item.value);
+
+                                                        window.dispatchEvent(
+                                                            new CustomEvent('locale-change', {
+                                                                detail: item.value,
+                                                            }),
+                                                        );
+
+                                                        setLanguageOpen(false);
+                                                    }}
+                                                >
+                                                    <div className={styles.languageItemLeft}>
+                                                        <Image
+                                                            src={item.flag}
+                                                            alt={item.label}
+                                                            width={32}
+                                                            height={22}
+                                                            className={styles.flag}
+                                                        />
+
+                                                        <div>
+                                                            <strong>{item.label}</strong>
+                                                        </div>
+                                                    </div>
+
+                                                    {active && <i className="bi bi-check2" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <span className={styles.separator} />
                         </div>
+
+                        <div className={styles.topbarRight}>
+                            <Link href={wishlistHref}>
+                                <i className="bi bi-heart" />
+                                {getLocalizedValue(wishlistText, selectedLocale)}
+                            </Link>
+
+                            <Link href={checkoutHref}>
+                                <i className="bi bi-bag" />
+                                {getLocalizedValue(checkoutText, selectedLocale)}
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ================= MIDDLE ================= */}
+
+            <div className={styles.middle}>
+                <div className={styles.container}>
+                    {/* Logo */}
+
+                    <Link href="/" className={styles.logo}>
+                        <Image
+                            src={siteLogo}
+                            alt={siteName}
+                            width={60}
+                            height={60}
+                            className={styles.logoImage}
+                            unoptimized
+                        />
+                    </Link>
+
+                    {/* Search */}
+                    <nav className={styles.menu}>
+                        {menus.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`${styles.menuItem} ${
+                                    isActive(item.href) ? styles.active : ''
+                                }`}
+                            >
+                                {item.label}
+
+                                {!!item.badge && (
+                                    <span
+                                        className={`${styles.badge} ${
+                                            item.badge === 'HOT' ? styles.hot : styles.new
+                                        }`}
+                                    >
+                                        {item.badge}
+                                    </span>
+                                )}
+                            </Link>
+                        ))}
+                    </nav>
+
+                    {/* Right */}
+
+                    <div className={styles.rightArea}>
+                        {showOfferCard && (
+                            <Link href={offerHref} className={styles.offerCard}>
+                                <div className={styles.offerIcon}>
+                                    <i className="bi bi-gift" />
+                                </div>
+
+                                <div className={styles.offerContent}>
+                                    <strong>
+                                        {getLocalizedValue(offerSubtitle, selectedLocale)}
+                                    </strong>
+                                    <span>{getLocalizedValue(offerTitle, selectedLocale)}</span>
+                                </div>
+
+                                <i className="bi bi-chevron-right" />
+                            </Link>
+                        )}
+
+                        {showLogin && (
+                            <Link href={loginHref} className={styles.login}>
+                                <div className={styles.avatar}>
+                                    <i className="bi bi-person" />
+                                </div>
+
+                                <div>
+                                    <strong>{getLocalizedValue(loginTitle, selectedLocale)}</strong>
+
+                                    <span>{getLocalizedValue(loginSubtitle, selectedLocale)}</span>
+                                </div>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
 
-            <header className={styles.header}>
-                <div className={styles.container}>
-                    <div className={styles.headerTop}>
-                        <Link href="/" className={styles.brand}>
-                            <Image
-                                src={siteLogo}
-                                alt={siteName}
-                                width={48}
-                                height={37}
-                                unoptimized
-                                className={styles.logo}
-                            />
+            {/* ================= MOBILE BUTTON ================= */}
 
-                            <div className={styles.brandInfo}>
-                                <strong>{siteName}</strong>
-                                <span>Enterprise Solutions</span>
-                            </div>
-                        </Link>
+            <button
+                type="button"
+                className={styles.mobileButton}
+                onClick={() => setMobileOpen(!mobileOpen)}
+            >
+                <i className={`bi ${mobileOpen ? 'bi-x-lg' : 'bi-list'}`} />
+            </button>
 
-                        <div className={styles.searchBox}>
-                            <Search size={18} />
-                            <input type="text" placeholder={searchPlaceholder} />
-                        </div>
+            {/* ================= MOBILE MENU ================= */}
 
-                        <Link href={salesHref} className={styles.salesBtn}>
-                            <Headphones size={16} />
-                            {salesText}
-                        </Link>
-                    </div>
-
-                    <div className={styles.headerBottom}>
-                        <nav className={styles.nav}>
-                            {menus.map((item) => (
-                                <div
-                                    key={item.label}
-                                    className={styles.navItem}
-                                    onMouseEnter={() => setActiveMenu(item.label)}
-                                    onMouseLeave={() => setActiveMenu(null)}
-                                >
-                                    <Link href={item.href} className={styles.navLink}>
-                                        {item.label}
-
-                                        {!!item.children?.length && <ChevronDown size={14} />}
-                                    </Link>
-
-                                    {!!item.children?.length && activeMenu === item.label && (
-                                        <div className={styles.megaMenu}>
-                                            <div className={styles.megaHeader}>
-                                                <div className={styles.headerContent}>
-                                                    <span className={styles.headerBadge}>
-                                                        Explore
-                                                    </span>
-
-                                                    <div>
-                                                        <h3>{item.label}</h3>
-
-                                                        <p>
-                                                            Discover premium solutions and services
-                                                            designed to accelerate your business
-                                                            growth.
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <Link
-                                                    href={item.href}
-                                                    className={styles.viewAllBtn}
-                                                >
-                                                    View All →
-                                                </Link>
-                                            </div>
-
-                                            <div className={styles.megaCards}>
-                                                {item.children.map((child) => (
-                                                    <Link
-                                                        key={`${child.label}-${child.href}`}
-                                                        href={child.href}
-                                                        className={styles.megaCard}
-                                                    >
-                                                        <div className={styles.cardIcon}>
-                                                            {child.label.charAt(0)}
-                                                        </div>
-
-                                                        <div>
-                                                            <h4>{child.label}</h4>
-
-                                                            <p>
-                                                                {child.description ||
-                                                                    'Professional solution'}
-                                                            </p>
-                                                        </div>
-                                                    </Link>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </nav>
-
-                        <div className={styles.actions}>
-                            <Link href={loginHref} className={styles.loginBtn}>
-                                {loginText}
-                            </Link>
-
-                            <Link href={registerHref} className={styles.registerBtn}>
-                                {registerText}
-                            </Link>
-                        </div>
-                    </div>
-
-                    <button
-                        type="button"
-                        className={styles.mobileButton}
-                        onClick={() => setMobileOpen(!mobileOpen)}
-                    >
-                        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-                </div>
-                {mounted && mobileOpen && (
-                    <div className={styles.mobileMenu}>
+            {mounted && mobileOpen && (
+                <div className={styles.mobileMenu}>
+                    <div className={styles.mobileNav}>
                         {menus.map((item) => (
                             <Link
                                 key={`${item.label}-${item.href}`}
                                 href={item.href}
                                 className={styles.mobileItem}
+                                onClick={() => setMobileOpen(false)}
                             >
-                                {item.label}
+                                <span>{item.label}</span>
+
+                                {!!item.badge && (
+                                    <span
+                                        className={`${styles.badge} ${
+                                            item.badge === 'HOT' ? styles.hot : styles.new
+                                        }`}
+                                    >
+                                        {item.badge}
+                                    </span>
+                                )}
                             </Link>
                         ))}
-
-                        <Link href={salesHref} className={styles.mobileSales}>
-                            {salesText}
-                        </Link>
-
-                        <Link href={registerHref} className={styles.mobileCta}>
-                            {registerText}
-                        </Link>
                     </div>
-                )}
-            </header>
-        </>
+
+                    <div className={styles.mobileActions}>
+                        <Link href={wishlistHref}>
+                            <i className="bi bi-heart" />
+                            {getLocalizedValue(wishlistText, selectedLocale)}
+                        </Link>
+
+                        {showCheckout && (
+                            <Link href={checkoutHref}>
+                                <i className="bi bi-bag" />
+                                {getLocalizedValue(checkoutText, selectedLocale)}
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            )}
+        </header>
     );
 }
 
+function createTopbarInspector(): RegItem['inspector'] {
+    return [
+        {
+            key: 'supportLabel',
+            label: 'Support Label',
+            kind: 'localized-text',
+        },
+
+        {
+            key: 'supportPhone',
+            label: 'Support Phone',
+            kind: 'text',
+        },
+
+        {
+            key: 'wishlistText',
+            label: 'Wishlist Text',
+            kind: 'localized-text',
+        },
+
+        {
+            key: 'checkoutText',
+            label: 'Checkout Text',
+            kind: 'localized-text',
+        },
+    ];
+}
+
+function createLogoInspector(): RegItem['inspector'] {
+    return [
+        {
+            key: 'logoTitle',
+            label: 'Logo Title',
+            kind: 'localized-text',
+        },
+        {
+            key: 'logo',
+            label: 'Logo',
+            kind: 'image',
+            folder: 'logos',
+        },
+    ];
+}
+
+function createLoginInspector(): RegItem['inspector'] {
+    return [
+        {
+            key: 'loginTitle',
+            label: 'Login Title',
+            kind: 'localized-text',
+        },
+
+        {
+            key: 'loginSubtitle',
+            label: 'Login Subtitle',
+            kind: 'localized-text',
+        },
+
+        {
+            key: 'loginHref',
+            label: 'Login Url',
+            kind: 'text',
+        },
+    ];
+}
+
+function createOfferInspector(): RegItem['inspector'] {
+    return [
+        {
+            key: 'offerTitle',
+            label: 'Offer Title',
+            kind: 'localized-text',
+        },
+
+        {
+            key: 'offerSubtitle',
+            label: 'Offer Subtitle',
+            kind: 'localized-text',
+        },
+
+        {
+            key: 'offerHref',
+            label: 'Offer Url',
+            kind: 'text',
+        },
+    ];
+}
+
+function createThemeInspector(): RegItem['inspector'] {
+    return [
+        {
+            key: 'primaryColor',
+            label: 'Primary Color',
+            kind: 'text',
+        },
+
+        {
+            key: 'secondaryColor',
+            label: 'Secondary Color',
+            kind: 'text',
+        },
+
+        {
+            key: 'accentColor',
+            label: 'Accent Color',
+            kind: 'text',
+        },
+    ];
+}
+
+function createLayoutInspector(): RegItem['inspector'] {
+    return [
+        {
+            key: 'showTopbar',
+            label: 'Show Topbar',
+            kind: 'check',
+        },
+
+        {
+            key: 'showOfferCard',
+            label: 'Show Offer Card',
+            kind: 'check',
+        },
+
+        {
+            key: 'showWishlist',
+            label: 'Show Wishlist',
+            kind: 'check',
+        },
+
+        {
+            key: 'showCheckout',
+            label: 'Show Checkout',
+            kind: 'check',
+        },
+
+        {
+            key: 'showLogin',
+            label: 'Show Login',
+            kind: 'check',
+        },
+    ];
+}
+
+function createInspector(): RegItem['inspector'] {
+    return [
+        ...createTopbarInspector(),
+
+        ...createLoginInspector(),
+
+        ...createOfferInspector(),
+
+        ...createThemeInspector(),
+
+        ...createLayoutInspector(),
+
+        ...createLogoInspector(),
+    ];
+}
 export const HEADER_SERVICE_09: RegItem = {
     kind: 'HeaderService09',
 
     label: 'Header Service 09',
 
-    defaults: {
-        announcementText: 'Trusted by enterprise customers worldwide',
+    defaults: DEFAULT_PROPS,
 
-        salesText: 'Talk To Sales',
-        salesHref: '/contact',
+    inspector: createInspector(),
 
-        loginText: 'Login',
-        loginHref: '/login',
-
-        registerText: 'Start Free Trial',
-        registerHref: '/register',
-
-        searchPlaceholder: 'Search products, solutions, services...',
-    },
-
-    inspector: [
-        {
-            key: 'announcementText',
-            label: 'Announcement',
-            kind: 'text',
-        },
-        {
-            key: 'salesText',
-            label: 'Sales Text',
-            kind: 'text',
-        },
-        {
-            key: 'salesHref',
-            label: 'Sales URL',
-            kind: 'text',
-        },
-        {
-            key: 'loginText',
-            label: 'Login Text',
-            kind: 'text',
-        },
-        {
-            key: 'loginHref',
-            label: 'Login URL',
-            kind: 'text',
-        },
-        {
-            key: 'registerText',
-            label: 'Register Text',
-            kind: 'text',
-        },
-        {
-            key: 'registerHref',
-            label: 'Register URL',
-            kind: 'text',
-        },
-        {
-            key: 'searchPlaceholder',
-            label: 'Search Placeholder',
-            kind: 'text',
-        },
-    ],
-
-    render: (props) => <HeaderService09 {...(props as Record<string, any>)} />,
+    render: (props) => <HeaderService09 {...(props as HeaderService09Props)} />,
 };
-
-export default HeaderService09;

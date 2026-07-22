@@ -113,7 +113,7 @@
 .sectionTitle {
     font-weight: 400;
     color: var(--text);
-    font-size: 13px;
+    font-size: 1.4rem;
     margin-bottom: 5px;
 }
 .sectionBody {
@@ -122,27 +122,38 @@
 
 /* labeled row */
 .row {
-    gap: 5px;
-    width: 100%;
-    flex-direction: column;
+    gap: 15px;
+    align-items: center;
     display: flex;
+    padding: 6px 0;
 }
 .rowLabel {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 1.3rem;
+    border: 1px solid #e8ecff;
+    border-radius: 10px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: #eef3ff;
+    min-width: 130px;
+    color: #5372f3;
 }
 .rowField {
     min-width: 0;
 }
 
 .rowStack {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    gap: 15px;
     padding: 6px 0;
+    display: flex;
+    align-items: center;
 }
 .fieldUpload {
     width: 100%;
+    min-height: 180px;
+    min-width: 300px;
 }
 /* inputs */
 .input,
@@ -311,6 +322,7 @@
     color: #1163e7;
     padding: 6px 10px;
     border-radius: 10px;
+    font-size: 1.5rem;
 }
 .btnGhost:hover {
     background: #f7f8fe;
@@ -322,6 +334,7 @@
     padding: 6px 12px;
     border-radius: 10px;
     margin-left: auto;
+    font-size: 1.5rem;
 }
 .btnDanger:hover {
     filter: brightness(0.98);
@@ -398,12 +411,13 @@
     scrollbar-color: #85abf7 transparent;
     background: #fafbff;
     border-radius: 6px;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 10px;
     height: 63vh;
-    padding: 8px;
+    padding: 20px;
     display: flex;
     overflow: auto;
+    margin-top: 15px;
 }
 
 /* Chrome / Edge / Safari */
@@ -469,6 +483,6 @@
 }
 @media screen and (max-width: 1600px) {
     .sectionBody {
-        height: 70vh;
+        height: 74vh;
     }
 }

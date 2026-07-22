@@ -5,7 +5,8 @@ import { REGISTRY } from '@/lib/ui-builder/registry';
 import type { InspectorField } from '@/lib/ui-builder/types';
 import cls from '@/styles/admin/pages/inspector.module.css';
 import React from 'react';
-
+import type { LocalizedText } from '@/lib/ui-builder/localization';
+import LocalizedTextField from '@/components/admin/shared/inspector/LocalizedTextField';
 type Props = {
     active: Block | null;
     move: (dir: -1 | 1) => void;
@@ -105,17 +106,6 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
     return (
         <div className={cls.panel}>
-            <div className={cls.header}>
-                <div className={cls.headerLeft}>
-                    <div className={cls.blockIcon} />
-                    <div className={cls.blockTitle}>{reg?.label ?? active.kind}</div>
-                </div>
-                <div className={cls.headerTools}>
-                    <button type="button" className={cls.kebab} title="More">
-                        <i className="bi bi-three-dots" />
-                    </button>
-                </div>
-            </div>
             {reg?.inspector && reg.inspector.length > 0 && (
                 <div className={cls.section}>
                     <div className={cls.sectionHeadSimple}>
@@ -258,6 +248,21 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                             value={(value as string) ?? ''}
                                             onChange={(e) =>
                                                 updateActive({ [field.key]: e.target.value })
+                                            }
+                                        />
+                                    </Row>
+                                );
+                            }
+
+                            if (field.kind === 'localized-text') {
+                                return (
+                                    <Row key={field.key} label={field.label} stack>
+                                        <LocalizedTextField
+                                            value={value as LocalizedText}
+                                            onChange={(v) =>
+                                                updateActive({
+                                                    [field.key]: v,
+                                                })
                                             }
                                         />
                                     </Row>

@@ -34,8 +34,7 @@
     background: #ffffff;
     border: var(--bd-header);
     border-radius: 8px;
-    padding: 12px;
-
+    padding: 15px;
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease,
@@ -60,15 +59,15 @@
 
 .scoreTitle {
     margin: 0;
-    font-size: 16px;
+    font-size: 1.4rem;
     font-weight: 500;
     color: #4d88fd;
 }
 
 .scoreSubtitle {
-    margin-top: 3px;
+    margin-top: 6px;
     color: #6b7280;
-    font-size: 14px;
+    font-size: 1.3rem;
 }
 
 .scoreBadge {
@@ -89,10 +88,10 @@
 ======================================== */
 
 .sectionTitle {
-    margin: 0 0 6px;
-    font-size: 16px;
+    font-size: 1.4rem;
     font-weight: 500;
     color: #4d88fd;
+    margin-bottom: 12px;
 }
 
 /* ========================================
@@ -124,17 +123,17 @@
     justify-content: space-between;
     align-items: center;
     margin-top: 12px;
+    margin-bottom: 8px;
 }
 
 .fieldHeader label,
 .field label {
-    font-size: 14px;
+    font-size: 1.4rem;
     color: var(--muted);
 }
 
 .fieldHeader span {
-    font-size: 13px;
-
+    font-size: 1.3rem;
     color: #6b7280;
 }
 
@@ -150,13 +149,13 @@
     background: #ffffff;
     border-radius: 8px;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 1.3rem;
     transition: all 0.2s ease;
 }
 
 .input,
 .select {
-    height: 42px;
+    height: 45px;
     padding: 0 14px;
 }
 
@@ -216,12 +215,13 @@
     background: #fafafa;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 12px;
+    padding: 15px;
+    margin-top: 12px;
 }
 
 .googleTitle {
-    font-size: 15px;
-    color: #1a0dab;
+    font-size: 1.4rem;
+    color: var(--muted);
     margin-bottom: 3px;
     cursor: pointer;
 }
@@ -229,13 +229,13 @@
 .googleUrl {
     color: #188038;
     font-size: 14px;
-    margin-bottom: 3px;
+    margin-bottom: 6px;
     word-break: break-all;
 }
 
 .googleDescription {
     color: var(--muted);
-    font-size: 14px;
+    font-size: 1.3rem;
     line-height: 1.6;
 }
 
@@ -248,7 +248,7 @@
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     background: #ffffff;
-    margin-bottom: 12px;
+    margin: 12px 0;
 }
 
 .ogImage {
@@ -272,6 +272,7 @@
 
 .ogImage span {
     color: #9ca3af;
+    font-size: 1.4rem;
 }
 
 .ogContent {
@@ -280,7 +281,7 @@
 
 .ogContent strong {
     display: block;
-    font-size: 15px;
+    font-size: 1.4rem;
     margin-bottom: 3px;
     color: #1a0dab;
     font-weight: 400;
@@ -289,7 +290,7 @@
 .ogContent p {
     margin: 0;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 1.3rem;
     line-height: 1.6;
 }
 

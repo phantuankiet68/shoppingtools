@@ -1,6 +1,14 @@
 import React from 'react';
 
-export type FieldKind = 'text' | 'textarea' | 'number' | 'check' | 'select' | 'image' | 'toggle';
+export type FieldKind =
+    | 'text'
+    | 'textarea'
+    | 'number'
+    | 'check'
+    | 'toggle'
+    | 'select'
+    | 'image'
+    | 'localized-text';
 export type SelectOption = {
     label: string;
     value: string;
@@ -43,8 +51,8 @@ export type InspectorField =
           key: string;
           label: string;
           kind: 'image';
-          folder?: string; // upload folder (optional)
-          accept?: string; // image/* (optional)
+          folder?: string;
+          accept?: string;
       }
     | {
           key: string;
@@ -52,6 +60,11 @@ export type InspectorField =
           kind: 'toggle';
           leftLabel?: string;
           rightLabel?: string;
+      }
+    | {
+          key: string;
+          label: string;
+          kind: 'localized-text';
       };
 
 export type Slots = {

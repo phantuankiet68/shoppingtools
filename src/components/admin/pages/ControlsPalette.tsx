@@ -115,6 +115,8 @@ const TEMPLATE_GROUPS_BY_PATH: Record<string, TemplateGroupHome[]> = {
     '/about': ['About', 'Contact'],
     '/blog': ['Blog', 'Contact'],
 
+    '/contact': ['Contact'],
+
     '/topbar': ['Topbar'],
     '/header': ['Header'],
     '/footer': ['Footer'],
