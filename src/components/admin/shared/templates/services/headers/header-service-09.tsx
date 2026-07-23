@@ -274,6 +274,54 @@ function HeaderService09(props: HeaderService09Props) {
         };
     }, []);
 
+    const MENU_TRANSLATIONS = {
+        '/': {
+            vi: 'Trang chủ',
+            ja: 'ホーム',
+        },
+
+        '/service': {
+            vi: 'Dịch vụ',
+            ja: 'サービス',
+        },
+
+        '/project': {
+            vi: 'Dự án',
+            ja: 'プロジェクト',
+        },
+
+        '/about': {
+            vi: 'Giới thiệu',
+            ja: '会社概要',
+        },
+
+        '/pricing': {
+            vi: 'Bảng giá',
+            ja: '料金',
+        },
+
+        '/blog': {
+            vi: 'Blog',
+            ja: 'ブログ',
+        },
+
+        '/contact': {
+            vi: 'Liên hệ',
+            ja: 'お問い合わせ',
+        },
+    } as const;
+
+    function getMenuLabel(href: string, fallback: string, locale: string) {
+        if (locale === 'en') {
+            return fallback;
+        }
+
+        return (
+            MENU_TRANSLATIONS[href as keyof typeof MENU_TRANSLATIONS]?.[locale as 'vi' | 'ja'] ??
+            fallback
+        );
+    }
+
     return (
         <header
             className={`${styles.header} ${styles.sticky}`}
@@ -413,7 +461,7 @@ function HeaderService09(props: HeaderService09Props) {
                                     isActive(item.href) ? styles.active : ''
                                 }`}
                             >
-                                {item.label}
+                                {getMenuLabel(item.href, item.label, selectedLocale)}
 
                                 {!!item.badge && (
                                     <span
@@ -427,7 +475,6 @@ function HeaderService09(props: HeaderService09Props) {
                             </Link>
                         ))}
                     </nav>
-
                     {/* Right */}
 
                     <div className={styles.rightArea}>
@@ -487,7 +534,7 @@ function HeaderService09(props: HeaderService09Props) {
                                 className={styles.mobileItem}
                                 onClick={() => setMobileOpen(false)}
                             >
-                                <span>{item.label}</span>
+                                <span>{getMenuLabel(item.href, item.label, selectedLocale)}</span>
 
                                 {!!item.badge && (
                                     <span
