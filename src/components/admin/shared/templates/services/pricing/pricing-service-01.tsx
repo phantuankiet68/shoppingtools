@@ -1,280 +1,747 @@
 'use client';
 
-import { useMemo } from 'react';
-import type { RegItem } from '@/lib/ui-builder/types';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+
+import type { InspectorField, RegItem } from '@/lib/ui-builder/types';
+import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 
 import styles from '@/components/admin/shared/templates/services/pricing/styles/pricing-service-01.module.css';
-export interface PricingService01Props {
-    heroTitle?: string;
-    heroDescription?: string;
-
-    stat1Value?: string;
-    stat1Label?: string;
-
-    stat2Value?: string;
-    stat2Label?: string;
-
-    stat3Value?: string;
-    stat3Label?: string;
-
-    testimonialText?: string;
-    testimonialName?: string;
-    testimonialRole?: string;
-
-    pricingBadge?: string;
-    pricingTitle?: string;
-    pricingSubtitle?: string;
-
-    monthlyText?: string;
-    yearlyText?: string;
-
-    plan1Name?: string;
-    plan1Websites?: string;
-    plan1Price?: number;
-    plan1ButtonText?: string;
-
-    plan2Name?: string;
-    plan2Websites?: string;
-    plan2Price?: number;
-    plan2Badge?: string;
-    plan2ButtonText?: string;
-
-    plan3Name?: string;
-    plan3Websites?: string;
-    plan3Price?: number;
-    plan3ButtonText?: string;
-
-    priceSuffix?: string;
-
-    feature1Item1?: string;
-    feature1Item2?: string;
-    feature1Item3?: string;
-    feature1Item4?: string;
-    feature1Item5?: string;
-    feature1Item6?: string;
-    feature1Item7?: string;
-    feature1Item8?: string;
-    feature1Item9?: string;
-    feature1Item10?: string;
-
-    feature2Item1?: string;
-    feature2Item2?: string;
-    feature2Item3?: string;
-    feature2Item4?: string;
-    feature2Item5?: string;
-    feature2Item6?: string;
-    feature2Item7?: string;
-    feature2Item8?: string;
-    feature2Item9?: string;
-    feature2Item10?: string;
-
-    feature3Item1?: string;
-    feature3Item2?: string;
-    feature3Item3?: string;
-    feature3Item4?: string;
-    feature3Item5?: string;
-    feature3Item6?: string;
-    feature3Item7?: string;
-    feature3Item8?: string;
-    feature3Item9?: string;
-    feature3Item10?: string;
-}
 
 type PricingCard = {
-    plan: string;
-    websites: string;
+    plan: LocalizedText;
+    websites: LocalizedText;
     price: number;
     featured?: boolean;
-    badge?: string;
-    buttonText: string;
-    features: string[];
+    badge?: LocalizedText;
+    buttonText: LocalizedText;
+    features: LocalizedText[];
 };
 
-export function PricingService01({
-    heroTitle = 'Start saving your money',
-    heroDescription = 'Choose plan that works best for you, feel free to contact us if you need more details. Everything is optimized for your growth.',
+export interface PricingService01Props {
+    heroTitle?: LocalizedText;
+    heroDescription?: LocalizedText;
 
-    stat1Value = '30%',
-    stat1Label = 'Cost saving',
+    stat1Value?: LocalizedText;
+    stat1Label?: LocalizedText;
 
-    stat2Value = '24/7',
-    stat2Label = 'Support',
+    stat2Value?: LocalizedText;
+    stat2Label?: LocalizedText;
 
-    stat3Value = '+10k',
-    stat3Label = 'Users',
+    stat3Value?: LocalizedText;
+    stat3Label?: LocalizedText;
 
-    testimonialText = 'Fantastic, totally blown away with my savings',
-    testimonialName = 'Roland Stevens',
-    testimonialRole = 'Freelancer',
+    testimonialText?: LocalizedText;
+    testimonialName?: LocalizedText;
+    testimonialRole?: LocalizedText;
 
-    pricingBadge = 'Pricing',
-    pricingTitle = 'Simple, transparent pricing',
-    pricingSubtitle = 'No contracts. No surprise fees.',
+    pricingBadge?: LocalizedText;
+    pricingTitle?: LocalizedText;
+    pricingSubtitle?: LocalizedText;
 
-    monthlyText = 'Monthly',
-    yearlyText = 'Yearly',
+    monthlyText?: LocalizedText;
+    yearlyText?: LocalizedText;
 
-    plan1Name = 'Basic',
-    plan1Websites = '1 Website',
-    plan1Price = 5,
-    plan1ButtonText = 'Start trial',
+    plan1Name?: LocalizedText;
+    plan1Websites?: LocalizedText;
+    plan1Price?: number;
+    plan1ButtonText?: LocalizedText;
 
-    plan2Name = 'Standard',
-    plan2Websites = '2 Websites',
-    plan2Price = 10,
-    plan2Badge = '🔥 Popular',
-    plan2ButtonText = 'Start trial',
+    plan2Name?: LocalizedText;
+    plan2Websites?: LocalizedText;
+    plan2Price?: number;
+    plan2Badge?: LocalizedText;
+    plan2ButtonText?: LocalizedText;
 
-    plan3Name = 'Professional',
-    plan3Websites = '3 Websites',
-    plan3Price = 20,
-    plan3ButtonText = 'Start trial',
+    plan3Name?: LocalizedText;
+    plan3Websites?: LocalizedText;
+    plan3Price?: number;
+    plan3ButtonText?: LocalizedText;
 
-    priceSuffix = '/month',
+    priceSuffix?: LocalizedText;
 
-    feature1Item1 = '1 Website',
-    feature1Item2 = 'Up to 10 Pages',
-    feature1Item3 = 'Free SSL Certificate',
-    feature1Item4 = 'Custom Domain',
-    feature1Item5 = 'Drag & Drop Builder',
-    feature1Item6 = 'Responsive Design',
-    feature1Item7 = 'Built-in SEO',
-    feature1Item8 = 'Analytics Dashboard',
-    feature1Item9 = 'Fast Cloud Hosting',
-    feature1Item10 = 'Email Support',
+    feature1Item1?: LocalizedText;
+    feature1Item2?: LocalizedText;
+    feature1Item3?: LocalizedText;
+    feature1Item4?: LocalizedText;
+    feature1Item5?: LocalizedText;
+    feature1Item6?: LocalizedText;
+    feature1Item7?: LocalizedText;
+    feature1Item8?: LocalizedText;
+    feature1Item9?: LocalizedText;
+    feature1Item10?: LocalizedText;
 
-    feature2Item1 = '2 Websites',
-    feature2Item2 = 'Up to 15 Pages',
-    feature2Item3 = 'Free SSL Certificate',
-    feature2Item4 = 'Custom Domain',
-    feature2Item5 = 'Premium Templates',
-    feature2Item6 = 'Drag & Drop Builder',
-    feature2Item7 = 'Analytics Dashboard',
-    feature2Item8 = 'Daily Backup',
-    feature2Item9 = 'Faster Performance',
-    feature2Item10 = 'Priority Support',
+    feature2Item1?: LocalizedText;
+    feature2Item2?: LocalizedText;
+    feature2Item3?: LocalizedText;
+    feature2Item4?: LocalizedText;
+    feature2Item5?: LocalizedText;
+    feature2Item6?: LocalizedText;
+    feature2Item7?: LocalizedText;
+    feature2Item8?: LocalizedText;
+    feature2Item9?: LocalizedText;
+    feature2Item10?: LocalizedText;
 
-    feature3Item1 = '3 Websites',
-    feature3Item2 = 'Up to 30 Pages',
-    feature3Item3 = 'Free SSL Certificate',
-    feature3Item4 = 'Unlimited Custom Domains',
-    feature3Item5 = 'All Premium Templates',
-    feature3Item6 = 'Advanced Analytics',
-    feature3Item7 = 'Premium SEO',
-    feature3Item8 = 'Daily Backup',
-    feature3Item9 = 'API Access',
-    feature3Item10 = 'Premium Support',
-}: PricingService01Props) {
-    const cards = useMemo<PricingCard[]>(
-        () => [
-            {
-                plan: plan1Name,
-                websites: plan1Websites,
-                price: plan1Price,
-                buttonText: plan1ButtonText,
-                features: [
-                    feature1Item1,
-                    feature1Item2,
-                    feature1Item3,
-                    feature1Item4,
-                    feature1Item5,
-                    feature1Item6,
-                    feature1Item7,
-                    feature1Item8,
-                    feature1Item9,
-                    feature1Item10,
-                ],
-            },
-            {
-                plan: plan2Name,
-                websites: plan2Websites,
-                price: plan2Price,
-                featured: true,
-                badge: plan2Badge,
-                buttonText: plan2ButtonText,
-                features: [
-                    feature2Item1,
-                    feature2Item2,
-                    feature2Item3,
-                    feature2Item4,
-                    feature2Item5,
-                    feature2Item6,
-                    feature2Item7,
-                    feature2Item8,
-                    feature2Item9,
-                    feature2Item10,
-                ],
-            },
-            {
-                plan: plan3Name,
-                websites: plan3Websites,
-                price: plan3Price,
-                buttonText: plan3ButtonText,
-                features: [
-                    feature3Item1,
-                    feature3Item2,
-                    feature3Item3,
-                    feature3Item4,
-                    feature3Item5,
-                    feature3Item6,
-                    feature3Item7,
-                    feature3Item8,
-                    feature3Item9,
-                    feature3Item10,
-                ],
-            },
-        ],
-        [
+    feature3Item1?: LocalizedText;
+    feature3Item2?: LocalizedText;
+    feature3Item3?: LocalizedText;
+    feature3Item4?: LocalizedText;
+    feature3Item5?: LocalizedText;
+    feature3Item6?: LocalizedText;
+    feature3Item7?: LocalizedText;
+    feature3Item8?: LocalizedText;
+    feature3Item9?: LocalizedText;
+    feature3Item10?: LocalizedText;
+}
+
+export const DEFAULT_PROPS: Required<PricingService01Props> = {
+    heroTitle: {
+        sourceLocale: 'en',
+        default: 'Start saving your money',
+        translations: {
+            vi: 'Bắt đầu tiết kiệm chi phí của bạn',
+            ja: 'コスト削減を始めましょう',
+        },
+    },
+
+    heroDescription: {
+        sourceLocale: 'en',
+        default:
+            'Choose the plan that works best for your business. Scale confidently with transparent pricing and powerful website building tools.',
+        translations: {
+            vi: 'Chọn gói phù hợp nhất với doanh nghiệp của bạn. Mở rộng dễ dàng với mức giá minh bạch và bộ công cụ xây dựng website mạnh mẽ.',
+            ja: 'ビジネスに最適なプランを選択し、透明な料金と強力なWebサイト構築ツールで安心して成長できます。',
+        },
+    },
+
+    stat1Value: {
+        sourceLocale: 'en',
+        default: '30%',
+        translations: {
+            vi: '30%',
+            ja: '30%',
+        },
+    },
+
+    stat1Label: {
+        sourceLocale: 'en',
+        default: 'Cost Saving',
+        translations: {
+            vi: 'Tiết kiệm chi phí',
+            ja: 'コスト削減',
+        },
+    },
+
+    stat2Value: {
+        sourceLocale: 'en',
+        default: '24/7',
+        translations: {
+            vi: '24/7',
+            ja: '24/7',
+        },
+    },
+
+    stat2Label: {
+        sourceLocale: 'en',
+        default: 'Support',
+        translations: {
+            vi: 'Hỗ trợ',
+            ja: 'サポート',
+        },
+    },
+
+    stat3Value: {
+        sourceLocale: 'en',
+        default: '+10K',
+        translations: {
+            vi: '+10K',
+            ja: '+10K',
+        },
+    },
+
+    stat3Label: {
+        sourceLocale: 'en',
+        default: 'Active Users',
+        translations: {
+            vi: 'Người dùng',
+            ja: 'アクティブユーザー',
+        },
+    },
+
+    testimonialText: {
+        sourceLocale: 'en',
+        default:
+            'Fantastic platform! We reduced development costs and launched our websites much faster than before.',
+        translations: {
+            vi: 'Nền tảng thật tuyệt! Chúng tôi đã giảm đáng kể chi phí phát triển và triển khai website nhanh hơn trước rất nhiều.',
+            ja: '素晴らしいプラットフォームです。開発コストを削減し、以前よりもはるかに早くWebサイトを公開できました。',
+        },
+    },
+
+    testimonialName: {
+        sourceLocale: 'en',
+        default: 'Roland Stevens',
+        translations: {
+            vi: 'Roland Stevens',
+            ja: 'Roland Stevens',
+        },
+    },
+
+    testimonialRole: {
+        sourceLocale: 'en',
+        default: 'Freelancer',
+        translations: {
+            vi: 'Freelancer',
+            ja: 'フリーランサー',
+        },
+    },
+
+    pricingBadge: {
+        sourceLocale: 'en',
+        default: 'Pricing',
+        translations: {
+            vi: 'Bảng giá',
+            ja: '料金プラン',
+        },
+    },
+
+    pricingTitle: {
+        sourceLocale: 'en',
+        default: 'Simple, transparent pricing',
+        translations: {
+            vi: 'Bảng giá đơn giản và minh bạch',
+            ja: 'シンプルで分かりやすい料金体系',
+        },
+    },
+
+    pricingSubtitle: {
+        sourceLocale: 'en',
+        default: 'No contracts. No surprise fees.',
+        translations: {
+            vi: 'Không hợp đồng. Không chi phí ẩn.',
+            ja: '契約不要。追加料金もありません。',
+        },
+    },
+
+    monthlyText: {
+        sourceLocale: 'en',
+        default: 'Monthly',
+        translations: {
+            vi: 'Theo tháng',
+            ja: '月額',
+        },
+    },
+
+    yearlyText: {
+        sourceLocale: 'en',
+        default: 'Yearly',
+        translations: {
+            vi: 'Theo năm',
+            ja: '年額',
+        },
+    },
+
+    plan1Name: {
+        sourceLocale: 'en',
+        default: 'Basic',
+        translations: {
+            vi: 'Cơ bản',
+            ja: 'ベーシック',
+        },
+    },
+
+    plan1Websites: {
+        sourceLocale: 'en',
+        default: '1 Website',
+        translations: {
+            vi: '1 Website',
+            ja: '1サイト',
+        },
+    },
+
+    plan1Price: 5,
+
+    plan1ButtonText: {
+        sourceLocale: 'en',
+        default: 'Start Trial',
+        translations: {
+            vi: 'Dùng thử',
+            ja: '無料で始める',
+        },
+    },
+    plan2Name: {
+        sourceLocale: 'en',
+        default: 'Standard',
+        translations: {
+            vi: 'Tiêu chuẩn',
+            ja: 'スタンダード',
+        },
+    },
+
+    plan2Websites: {
+        sourceLocale: 'en',
+        default: '2 Websites',
+        translations: {
+            vi: '2 Website',
+            ja: '2サイト',
+        },
+    },
+
+    plan2Price: 10,
+
+    plan2Badge: {
+        sourceLocale: 'en',
+        default: '🔥 Popular',
+        translations: {
+            vi: '🔥 Phổ biến',
+            ja: '🔥 人気',
+        },
+    },
+
+    plan2ButtonText: {
+        sourceLocale: 'en',
+        default: 'Start Trial',
+        translations: {
+            vi: 'Dùng thử',
+            ja: '無料で始める',
+        },
+    },
+
+    plan3Name: {
+        sourceLocale: 'en',
+        default: 'Professional',
+        translations: {
+            vi: 'Chuyên nghiệp',
+            ja: 'プロフェッショナル',
+        },
+    },
+
+    plan3Websites: {
+        sourceLocale: 'en',
+        default: '3 Websites',
+        translations: {
+            vi: '3 Website',
+            ja: '3サイト',
+        },
+    },
+
+    plan3Price: 20,
+
+    plan3ButtonText: {
+        sourceLocale: 'en',
+        default: 'Start Trial',
+        translations: {
+            vi: 'Dùng thử',
+            ja: '無料で始める',
+        },
+    },
+
+    priceSuffix: {
+        sourceLocale: 'en',
+        default: '/month',
+        translations: {
+            vi: '/tháng',
+            ja: '/月',
+        },
+    },
+    feature1Item1: {
+        sourceLocale: 'en',
+        default: '1 Website',
+        translations: {
+            vi: '1 Website',
+            ja: '1サイト',
+        },
+    },
+
+    feature1Item2: {
+        sourceLocale: 'en',
+        default: 'Up to 10 Pages',
+        translations: {
+            vi: 'Tối đa 10 trang',
+            ja: '最大10ページ',
+        },
+    },
+
+    feature1Item3: {
+        sourceLocale: 'en',
+        default: 'Free SSL Certificate',
+        translations: {
+            vi: 'Chứng chỉ SSL miễn phí',
+            ja: '無料SSL証明書',
+        },
+    },
+
+    feature1Item4: {
+        sourceLocale: 'en',
+        default: 'Custom Domain',
+        translations: {
+            vi: 'Tên miền riêng',
+            ja: '独自ドメイン',
+        },
+    },
+
+    feature1Item5: {
+        sourceLocale: 'en',
+        default: 'Drag & Drop Builder',
+        translations: {
+            vi: 'Trình xây dựng kéo thả',
+            ja: 'ドラッグ＆ドロップビルダー',
+        },
+    },
+
+    feature1Item6: {
+        sourceLocale: 'en',
+        default: 'Responsive Design',
+        translations: {
+            vi: 'Thiết kế Responsive',
+            ja: 'レスポンシブデザイン',
+        },
+    },
+
+    feature1Item7: {
+        sourceLocale: 'en',
+        default: 'Built-in SEO',
+        translations: {
+            vi: 'SEO tích hợp',
+            ja: 'SEO機能内蔵',
+        },
+    },
+
+    feature1Item8: {
+        sourceLocale: 'en',
+        default: 'Analytics Dashboard',
+        translations: {
+            vi: 'Bảng điều khiển phân tích',
+            ja: '分析ダッシュボード',
+        },
+    },
+
+    feature1Item9: {
+        sourceLocale: 'en',
+        default: 'Fast Cloud Hosting',
+        translations: {
+            vi: 'Cloud Hosting tốc độ cao',
+            ja: '高速クラウドホスティング',
+        },
+    },
+
+    feature1Item10: {
+        sourceLocale: 'en',
+        default: 'Email Support',
+        translations: {
+            vi: 'Hỗ trợ qua Email',
+            ja: 'メールサポート',
+        },
+    },
+    feature2Item1: {
+        sourceLocale: 'en',
+        default: '2 Websites',
+        translations: {
+            vi: '2 Website',
+            ja: '2サイト',
+        },
+    },
+
+    feature2Item2: {
+        sourceLocale: 'en',
+        default: 'Up to 15 Pages',
+        translations: {
+            vi: 'Tối đa 15 trang',
+            ja: '最大15ページ',
+        },
+    },
+
+    feature2Item3: {
+        sourceLocale: 'en',
+        default: 'Free SSL Certificate',
+        translations: {
+            vi: 'Chứng chỉ SSL miễn phí',
+            ja: '無料SSL証明書',
+        },
+    },
+
+    feature2Item4: {
+        sourceLocale: 'en',
+        default: 'Custom Domain',
+        translations: {
+            vi: 'Tên miền riêng',
+            ja: '独自ドメイン',
+        },
+    },
+
+    feature2Item5: {
+        sourceLocale: 'en',
+        default: 'Premium Templates',
+        translations: {
+            vi: 'Mẫu giao diện cao cấp',
+            ja: 'プレミアムテンプレート',
+        },
+    },
+
+    feature2Item6: {
+        sourceLocale: 'en',
+        default: 'Drag & Drop Builder',
+        translations: {
+            vi: 'Trình xây dựng kéo thả',
+            ja: 'ドラッグ＆ドロップビルダー',
+        },
+    },
+
+    feature2Item7: {
+        sourceLocale: 'en',
+        default: 'Analytics Dashboard',
+        translations: {
+            vi: 'Bảng điều khiển phân tích',
+            ja: '分析ダッシュボード',
+        },
+    },
+
+    feature2Item8: {
+        sourceLocale: 'en',
+        default: 'Daily Backup',
+        translations: {
+            vi: 'Sao lưu hằng ngày',
+            ja: '毎日のバックアップ',
+        },
+    },
+
+    feature2Item9: {
+        sourceLocale: 'en',
+        default: 'Faster Performance',
+        translations: {
+            vi: 'Hiệu suất cao hơn',
+            ja: 'より高速なパフォーマンス',
+        },
+    },
+
+    feature2Item10: {
+        sourceLocale: 'en',
+        default: 'Priority Support',
+        translations: {
+            vi: 'Hỗ trợ ưu tiên',
+            ja: '優先サポート',
+        },
+    },
+    feature3Item1: {
+        sourceLocale: 'en',
+        default: '3 Websites',
+        translations: {
+            vi: '3 Website',
+            ja: '3サイト',
+        },
+    },
+
+    feature3Item2: {
+        sourceLocale: 'en',
+        default: 'Up to 30 Pages',
+        translations: {
+            vi: 'Tối đa 30 trang',
+            ja: '最大30ページ',
+        },
+    },
+
+    feature3Item3: {
+        sourceLocale: 'en',
+        default: 'Free SSL Certificate',
+        translations: {
+            vi: 'Chứng chỉ SSL miễn phí',
+            ja: '無料SSL証明書',
+        },
+    },
+
+    feature3Item4: {
+        sourceLocale: 'en',
+        default: 'Unlimited Custom Domains',
+        translations: {
+            vi: 'Tên miền tùy chỉnh không giới hạn',
+            ja: '独自ドメイン無制限',
+        },
+    },
+
+    feature3Item5: {
+        sourceLocale: 'en',
+        default: 'All Premium Templates',
+        translations: {
+            vi: 'Toàn bộ mẫu giao diện cao cấp',
+            ja: 'すべてのプレミアムテンプレート',
+        },
+    },
+
+    feature3Item6: {
+        sourceLocale: 'en',
+        default: 'Advanced Analytics',
+        translations: {
+            vi: 'Phân tích nâng cao',
+            ja: '高度な分析機能',
+        },
+    },
+
+    feature3Item7: {
+        sourceLocale: 'en',
+        default: 'Premium SEO',
+        translations: {
+            vi: 'SEO nâng cao',
+            ja: 'プレミアムSEO',
+        },
+    },
+
+    feature3Item8: {
+        sourceLocale: 'en',
+        default: 'Daily Backup',
+        translations: {
+            vi: 'Sao lưu hằng ngày',
+            ja: '毎日のバックアップ',
+        },
+    },
+
+    feature3Item9: {
+        sourceLocale: 'en',
+        default: 'API Access',
+        translations: {
+            vi: 'Truy cập API',
+            ja: 'APIアクセス',
+        },
+    },
+
+    feature3Item10: {
+        sourceLocale: 'en',
+        default: 'Premium Support',
+        translations: {
+            vi: 'Hỗ trợ cao cấp',
+            ja: 'プレミアムサポート',
+        },
+    },
+};
+
+export function PricingService01(props: PricingService01Props) {
+    const mergedProps: Required<PricingService01Props> = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
+
+    const {
+        heroTitle,
+        heroDescription,
+
+        stat1Value,
+        stat1Label,
+
+        stat2Value,
+        stat2Label,
+
+        stat3Value,
+        stat3Label,
+
+        testimonialText,
+        testimonialName,
+        testimonialRole,
+
+        pricingBadge,
+        pricingTitle,
+        pricingSubtitle,
+
+        monthlyText,
+        yearlyText,
+
+        plan1Name,
+        plan1Websites,
+        plan1Price,
+        plan1ButtonText,
+
+        plan2Name,
+        plan2Websites,
+        plan2Price,
+        plan2Badge,
+        plan2ButtonText,
+
+        plan3Name,
+        plan3Websites,
+        plan3Price,
+        plan3ButtonText,
+
+        priceSuffix,
+    } = mergedProps;
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
+
+        return localStorage.getItem('locale') ?? 'en';
+    });
+
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            setSelectedLocale(customEvent.detail);
+        };
+
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
+
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
+
+    function createPricingCard(
+        plan: LocalizedText,
+        websites: LocalizedText,
+        price: number,
+        buttonText: LocalizedText,
+        features: LocalizedText[],
+        featured = false,
+        badge?: LocalizedText,
+    ): PricingCard {
+        return {
+            plan,
+            websites,
+            price,
+            buttonText,
+            features,
+            featured,
+            badge,
+        };
+    }
+    function createPlanFeatures(
+        prefix: 1 | 2 | 3,
+        props: Required<PricingService01Props>,
+    ): LocalizedText[] {
+        return Array.from(
+            { length: 10 },
+            (_, i) =>
+                props[
+                    `feature${prefix}Item${i + 1}` as keyof PricingService01Props
+                ] as LocalizedText,
+        );
+    }
+    const cards = [
+        createPricingCard(
             plan1Name,
             plan1Websites,
             plan1Price,
             plan1ButtonText,
+            createPlanFeatures(1, mergedProps),
+        ),
 
+        createPricingCard(
             plan2Name,
             plan2Websites,
             plan2Price,
-            plan2Badge,
             plan2ButtonText,
+            createPlanFeatures(2, mergedProps),
+            true,
+            plan2Badge,
+        ),
 
+        createPricingCard(
             plan3Name,
             plan3Websites,
             plan3Price,
             plan3ButtonText,
+            createPlanFeatures(3, mergedProps),
+        ),
+    ];
 
-            feature1Item1,
-            feature1Item2,
-            feature1Item3,
-            feature1Item4,
-            feature1Item5,
-            feature1Item6,
-            feature1Item7,
-            feature1Item8,
-            feature1Item9,
-            feature1Item10,
-
-            feature2Item1,
-            feature2Item2,
-            feature2Item3,
-            feature2Item4,
-            feature2Item5,
-            feature2Item6,
-            feature2Item7,
-            feature2Item8,
-            feature2Item9,
-            feature2Item10,
-
-            feature3Item1,
-            feature3Item2,
-            feature3Item3,
-            feature3Item4,
-            feature3Item5,
-            feature3Item6,
-            feature3Item7,
-            feature3Item8,
-            feature3Item9,
-            feature3Item10,
-        ],
-    );
+    const t = (value: LocalizedText) => getLocalizedValue(value, selectedLocale);
 
     return (
         <section className={styles.pricing}>
@@ -285,24 +752,27 @@ export function PricingService01({
                             <i className="bi bi-stars" />
                         </div>
 
-                        <h2 className={styles.heroTitle}>{heroTitle}</h2>
+                        <h2 className={styles.heroTitle}>{t(heroTitle)}</h2>
 
-                        <p className={styles.heroDesc}>{heroDescription}</p>
+                        <p className={styles.heroDesc}>{t(heroDescription)}</p>
 
                         <div className={styles.statsRow}>
                             <div className={styles.statBox}>
-                                <div className={styles.statNumber}>{stat1Value}</div>
-                                <div className={styles.statLabel}>{stat1Label}</div>
+                                <div className={styles.statNumber}>{t(stat1Value)}</div>
+
+                                <div className={styles.statLabel}>{t(stat1Label)}</div>
                             </div>
 
                             <div className={styles.statBox}>
-                                <div className={styles.statNumber}>{stat2Value}</div>
-                                <div className={styles.statLabel}>{stat2Label}</div>
+                                <div className={styles.statNumber}>{t(stat2Value)}</div>
+
+                                <div className={styles.statLabel}>{t(stat2Label)}</div>
                             </div>
 
                             <div className={styles.statBox}>
-                                <div className={styles.statNumber}>{stat3Value}</div>
-                                <div className={styles.statLabel}>{stat3Label}</div>
+                                <div className={styles.statNumber}>{t(stat3Value)}</div>
+
+                                <div className={styles.statLabel}>{t(stat3Label)}</div>
                             </div>
                         </div>
 
@@ -311,15 +781,21 @@ export function PricingService01({
                                 <i className="bi bi-chat-quote-fill" />
                             </div>
 
-                            <p className={styles.testimonialText}>“{testimonialText}”</p>
+                            <p className={styles.testimonialText}>“{t(testimonialText)}”</p>
 
                             <div className={styles.testimonialUser}>
-                                <div className={styles.avatar} />
-
+                                <div className={styles.avatar}>
+                                    <Image
+                                        src="/assets/images/avatar.png"
+                                        alt="Avatar"
+                                        fill
+                                        sizes="64px"
+                                        className={styles.avatarImage}
+                                    />
+                                </div>
                                 <div className={styles.userInfo}>
-                                    <div className={styles.userName}>{testimonialName}</div>
-
-                                    <div className={styles.userRole}>{testimonialRole}</div>
+                                    <div className={styles.userName}>{t(testimonialName)}</div>
+                                    <div className={styles.userRole}>{t(testimonialRole)}</div>
                                 </div>
                             </div>
                         </div>
@@ -329,11 +805,9 @@ export function PricingService01({
                 <div className={styles.rightPanel}>
                     <div className={styles.header}>
                         <div className={styles.headerLeft}>
-                            <span className={styles.badge}>{pricingBadge}</span>
-
-                            <h2 className={styles.title}>{pricingTitle}</h2>
-
-                            <p className={styles.subtitle}>{pricingSubtitle}</p>
+                            <span className={styles.badge}>{t(pricingBadge)}</span>
+                            <h2 className={styles.title}>{t(pricingTitle)}</h2>
+                            <p className={styles.subtitle}>{t(pricingSubtitle)}</p>
                         </div>
 
                         <div className={styles.headerRight}>
@@ -342,19 +816,13 @@ export function PricingService01({
                                     type="button"
                                     className={`${styles.toggleBtn} ${styles.active}`}
                                 >
-                                    {monthlyText}
+                                    {t(monthlyText)}
                                 </button>
 
                                 <button type="button" className={styles.toggleBtn}>
-                                    {yearlyText}
+                                    {t(yearlyText)}
                                 </button>
                             </div>
-                        </div>
-                    </div>
-
-                    <div className={styles.progressWrap}>
-                        <div className={styles.progressTrack}>
-                            <span className={styles.progressThumb} />
                         </div>
                     </div>
 
@@ -362,36 +830,48 @@ export function PricingService01({
                     <div className={styles.grid}>
                         {cards.map((card) => (
                             <div
-                                key={card.plan}
-                                className={[styles.card, card.featured ? styles.featured : '']
+                                key={card.plan.default}
+                                className={[styles.card, card.featured && styles.featured]
                                     .filter(Boolean)
                                     .join(' ')}
                             >
-                                {card.badge && <span className={styles.badge}>{card.badge}</span>}
+                                <div className={styles.glow} />
+
+                                {card.badge && (
+                                    <div className={styles.badge}>🔥 {t(card.badge)}</div>
+                                )}
 
                                 <div className={styles.cardHeader}>
-                                    <span className={styles.plan}>{card.plan}</span>
+                                    <span className={styles.plan}>{t(card.plan)}</span>
 
-                                    <h3 className={styles.planTitle}>{card.websites}</h3>
+                                    <h3>{t(card.websites)}</h3>
 
                                     <div className={styles.price}>
-                                        <span className={styles.currency}>$</span>
+                                        <span>$</span>
+
                                         {card.price}
-                                        <small>{priceSuffix}</small>
+
+                                        <small>{t(priceSuffix)}</small>
                                     </div>
                                 </div>
 
+                                <div className={styles.divider} />
+
                                 <ul className={styles.featureList}>
                                     {card.features.map((feature, index) => (
-                                        <li key={`${card.plan}-${index}`}>
-                                            <i className="bi bi-check-circle-fill" />
-                                            <span>{feature}</span>
+                                        <li key={index}>
+                                            <div className={styles.icon}>
+                                                <i className="bi bi-check2" />
+                                            </div>
+
+                                            <span>{t(feature)}</span>
                                         </li>
                                     ))}
                                 </ul>
 
-                                <button type="button" className={styles.button}>
-                                    {card.buttonText}
+                                <button className={styles.button}>
+                                    {t(card.buttonText)}
+
                                     <i className="bi bi-arrow-right" />
                                 </button>
                             </div>
@@ -402,267 +882,73 @@ export function PricingService01({
         </section>
     );
 }
-const BASIC_FEATURES = [
-    '1 Website',
-    'Up to 10 Pages',
-    'Free SSL Certificate',
-    'Custom Domain',
-    'Drag & Drop Builder',
-    'Responsive Design',
-    'Built-in SEO',
-    'Analytics Dashboard',
-    'Fast Cloud Hosting',
-    'Email Support',
-] as const;
 
-const STANDARD_FEATURES = [
-    '2 Websites',
-    'Up to 15 Pages',
-    'Free SSL Certificate',
-    'Custom Domain',
-    'Premium Templates',
-    'Drag & Drop Builder',
-    'Analytics Dashboard',
-    'Daily Backup',
-    'Faster Performance',
-    'Priority Support',
-] as const;
-
-const PROFESSIONAL_FEATURES = [
-    '3 Websites',
-    'Up to 30 Pages',
-    'Free SSL Certificate',
-    'Unlimited Custom Domains',
-    'All Premium Templates',
-    'Advanced Analytics',
-    'Premium SEO',
-    'Daily Backup',
-    'API Access',
-    'Premium Support',
-] as const;
-
-function createDefaults() {
-    const defaults: Record<string, unknown> = {
-        heroTitle: 'Start saving your money',
-        heroDescription:
-            'Choose plan that works best for you, feel free to contact us if you need more details. Everything is optimized for your growth.',
-
-        stat1Value: '30%',
-        stat1Label: 'Cost saving',
-
-        stat2Value: '24/7',
-        stat2Label: 'Support',
-
-        stat3Value: '+10k',
-        stat3Label: 'Users',
-
-        testimonialText: 'Fantastic, totally blown away with my savings',
-        testimonialName: 'Roland Stevens',
-        testimonialRole: 'Freelancer',
-
-        pricingBadge: 'Pricing',
-        pricingTitle: 'Simple, transparent pricing',
-        pricingSubtitle: 'No contracts. No surprise fees.',
-
-        monthlyText: 'Monthly',
-        yearlyText: 'Yearly',
-
-        plan1Name: 'Basic',
-        plan1Websites: '1 Website',
-        plan1Price: 5,
-        plan1ButtonText: 'Start trial',
-
-        plan2Name: 'Standard',
-        plan2Websites: '2 Websites',
-        plan2Price: 10,
-        plan2Badge: '🔥 Popular',
-        plan2ButtonText: 'Start trial',
-
-        plan3Name: 'Professional',
-        plan3Websites: '3 Websites',
-        plan3Price: 20,
-        plan3ButtonText: 'Start trial',
-
-        priceSuffix: '/month',
+function createLocalizedTextField(key: keyof PricingService01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
     };
-
-    [BASIC_FEATURES, STANDARD_FEATURES, PROFESSIONAL_FEATURES].forEach((features, planIndex) => {
-        features.forEach((feature, featureIndex) => {
-            defaults[`feature${planIndex + 1}Item${featureIndex + 1}`] = feature;
-        });
-    });
-
-    return defaults;
 }
+
+function createNumberField(key: keyof PricingService01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'number',
+    };
+}
+
 function createInspector(): RegItem['inspector'] {
     return [
-        {
-            key: 'heroTitle',
-            label: 'Hero Title',
-            kind: 'text',
-        },
-        {
-            key: 'heroDescription',
-            label: 'Hero Description',
-            kind: 'textarea',
-        },
+        createLocalizedTextField('heroTitle', 'Hero Title'),
+        createLocalizedTextField('heroDescription', 'Hero Description'),
 
-        {
-            key: 'stat1Value',
-            label: 'Stat 1 Value',
-            kind: 'text',
-        },
-        {
-            key: 'stat1Label',
-            label: 'Stat 1 Label',
-            kind: 'text',
-        },
+        createLocalizedTextField('stat1Value', 'Stat 1 Value'),
+        createLocalizedTextField('stat1Label', 'Stat 1 Label'),
 
-        {
-            key: 'stat2Value',
-            label: 'Stat 2 Value',
-            kind: 'text',
-        },
-        {
-            key: 'stat2Label',
-            label: 'Stat 2 Label',
-            kind: 'text',
-        },
+        createLocalizedTextField('stat2Value', 'Stat 2 Value'),
+        createLocalizedTextField('stat2Label', 'Stat 2 Label'),
 
-        {
-            key: 'stat3Value',
-            label: 'Stat 3 Value',
-            kind: 'text',
-        },
-        {
-            key: 'stat3Label',
-            label: 'Stat 3 Label',
-            kind: 'text',
-        },
+        createLocalizedTextField('stat3Value', 'Stat 3 Value'),
+        createLocalizedTextField('stat3Label', 'Stat 3 Label'),
 
-        {
-            key: 'testimonialText',
-            label: 'Testimonial Text',
-            kind: 'textarea',
-        },
-        {
-            key: 'testimonialName',
-            label: 'Testimonial Name',
-            kind: 'text',
-        },
-        {
-            key: 'testimonialRole',
-            label: 'Testimonial Role',
-            kind: 'text',
-        },
+        createLocalizedTextField('testimonialText', 'Testimonial Text'),
+        createLocalizedTextField('testimonialName', 'Testimonial Name'),
+        createLocalizedTextField('testimonialRole', 'Testimonial Role'),
 
-        {
-            key: 'pricingBadge',
-            label: 'Pricing Badge',
-            kind: 'text',
-        },
-        {
-            key: 'pricingTitle',
-            label: 'Pricing Title',
-            kind: 'text',
-        },
-        {
-            key: 'pricingSubtitle',
-            label: 'Pricing Subtitle',
-            kind: 'text',
-        },
+        createLocalizedTextField('pricingBadge', 'Pricing Badge'),
+        createLocalizedTextField('pricingTitle', 'Pricing Title'),
+        createLocalizedTextField('pricingSubtitle', 'Pricing Subtitle'),
 
-        {
-            key: 'monthlyText',
-            label: 'Monthly Text',
-            kind: 'text',
-        },
-        {
-            key: 'yearlyText',
-            label: 'Yearly Text',
-            kind: 'text',
-        },
+        createLocalizedTextField('monthlyText', 'Monthly Text'),
+        createLocalizedTextField('yearlyText', 'Yearly Text'),
 
-        {
-            key: 'plan1Name',
-            label: 'Plan 1 Name',
-            kind: 'text',
-        },
-        {
-            key: 'plan1Websites',
-            label: 'Plan 1 Websites',
-            kind: 'text',
-        },
-        {
-            key: 'plan1Price',
-            label: 'Plan 1 Price',
-            kind: 'number',
-        },
-        {
-            key: 'plan1ButtonText',
-            label: 'Plan 1 Button Text',
-            kind: 'text',
-        },
+        createLocalizedTextField('plan1Name', 'Plan 1 Name'),
+        createLocalizedTextField('plan1Websites', 'Plan 1 Websites'),
+        createNumberField('plan1Price', 'Plan 1 Price'),
+        createLocalizedTextField('plan1ButtonText', 'Plan 1 Button'),
 
-        {
-            key: 'plan2Name',
-            label: 'Plan 2 Name',
-            kind: 'text',
-        },
-        {
-            key: 'plan2Websites',
-            label: 'Plan 2 Websites',
-            kind: 'text',
-        },
-        {
-            key: 'plan2Price',
-            label: 'Plan 2 Price',
-            kind: 'number',
-        },
-        {
-            key: 'plan2Badge',
-            label: 'Plan 2 Badge',
-            kind: 'text',
-        },
-        {
-            key: 'plan2ButtonText',
-            label: 'Plan 2 Button Text',
-            kind: 'text',
-        },
+        createLocalizedTextField('plan2Name', 'Plan 2 Name'),
+        createLocalizedTextField('plan2Websites', 'Plan 2 Websites'),
+        createNumberField('plan2Price', 'Plan 2 Price'),
+        createLocalizedTextField('plan2Badge', 'Plan 2 Badge'),
+        createLocalizedTextField('plan2ButtonText', 'Plan 2 Button'),
 
-        {
-            key: 'plan3Name',
-            label: 'Plan 3 Name',
-            kind: 'text',
-        },
-        {
-            key: 'plan3Websites',
-            label: 'Plan 3 Websites',
-            kind: 'text',
-        },
-        {
-            key: 'plan3Price',
-            label: 'Plan 3 Price',
-            kind: 'number',
-        },
-        {
-            key: 'plan3ButtonText',
-            label: 'Plan 3 Button Text',
-            kind: 'text',
-        },
+        createLocalizedTextField('plan3Name', 'Plan 3 Name'),
+        createLocalizedTextField('plan3Websites', 'Plan 3 Websites'),
+        createNumberField('plan3Price', 'Plan 3 Price'),
+        createLocalizedTextField('plan3ButtonText', 'Plan 3 Button'),
 
-        {
-            key: 'priceSuffix',
-            label: 'Price Suffix',
-            kind: 'text',
-        },
+        createLocalizedTextField('priceSuffix', 'Price Suffix'),
 
         ...Array.from({ length: 3 }, (_, plan) =>
-            Array.from({ length: 10 }, (_, feature) => ({
-                key: `feature${plan + 1}Item${feature + 1}`,
-                label: `Plan ${plan + 1} • Feature ${feature + 1}`,
-                kind: 'text' as const,
-            })),
+            Array.from({ length: 10 }, (_, feature) =>
+                createLocalizedTextField(
+                    `feature${plan + 1}Item${feature + 1}` as keyof PricingService01Props,
+                    `Plan ${plan + 1} • Feature ${feature + 1}`,
+                ),
+            ),
         ).flat(),
     ];
 }
@@ -671,7 +957,7 @@ export const PRICING_SERVICE_01: RegItem = {
 
     label: 'Pricing Service 01',
 
-    defaults: createDefaults(),
+    defaults: DEFAULT_PROPS,
 
     inspector: createInspector(),
 

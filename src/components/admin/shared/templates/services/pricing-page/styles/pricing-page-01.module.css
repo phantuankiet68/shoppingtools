@@ -1,7 +1,5 @@
 .section {
     width: 100%;
-    padding: 32px 16px;
-
     background:
         radial-gradient(circle at 50% 20%, rgba(82, 118, 255, 0.055), transparent 34%), #ffffff;
 }
@@ -15,25 +13,69 @@
 /* =========================
    HEADING
 ========================= */
+.headingSection {
+    position: relative;
+    width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Breadcrumb */
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1;
+    padding: 32px 0 0 0;
+}
+
+.breadcrumb i {
+    color: #cbd5e1;
+    font-size: 8px;
+}
+
+.breadcrumbItem {
+    color: #94a3b8;
+
+    transition: color 0.2s ease;
+}
+
+.breadcrumbItem:hover {
+    color: #475569;
+}
+
+.breadcrumbCurrent {
+    color: #2563eb;
+}
+
+/* =========================
+   HEADING
+========================= */
 
 .heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 50px;
+    margin-bottom: 32px;
+    margin-top: 32px;
 }
 
 .heading h2 {
+    -webkit-text-fill-color: transparent;
+    color: #0000;
+    background: linear-gradient(90deg, #5d63ff 0%, #8d5dff 35%, #b46bff 70%, #ff7bd5 100%);
+    -webkit-background-clip: text;
     margin: 0;
-    letter-spacing: -0.05em;
-    font-size: 4.5rem;
+    font-size: 3.2rem;
     font-weight: 800;
-    line-height: 1.5;
-    color: #172238;
+    line-height: 1.2;
 }
 
 .heading p {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     line-height: 1.6;
     color: #78889e;
 }
@@ -109,7 +151,7 @@
 .pricingGrid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 22px;
+    gap: 15px;
 
     align-items: stretch;
 }
@@ -203,7 +245,7 @@
         linear-gradient(135deg, #8eb9ff, #d1b5f5);
 
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 
@@ -224,7 +266,7 @@
 
     height: 100%;
 
-    padding: 32px 28px;
+    padding: 24px;
 }
 
 .planHeaderTop {
@@ -264,7 +306,7 @@
 .planInfo h3 {
     margin: 0;
 
-    font-size: 18px;
+    font-size: 1.6rem;
     line-height: 1.2;
     letter-spacing: -0.025em;
 
@@ -285,7 +327,7 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding-top: 24px;
+    padding-top: 15px;
 }
 
 .price {
@@ -303,7 +345,7 @@
 }
 
 .price strong {
-    font-size: 50px;
+    font-size: 3.5rem;
     line-height: 1;
     letter-spacing: -0.055em;
 
@@ -317,7 +359,7 @@
 }
 
 .customPrice {
-    font-size: 32px;
+    font-size: 2.5rem;
     line-height: 1.1;
     letter-spacing: -0.04em;
 
@@ -327,7 +369,7 @@
 .comingSoon {
     margin-top: 7px;
 
-    font-size: 11px;
+    font-size: 1.3rem;
     font-weight: 500;
 
     color: #7c8ba0;
@@ -366,7 +408,6 @@
     border-radius: 9px;
     background: transparent;
     font-size: 1.4rem;
-    font-weight: 700;
     color: var(--tone);
     cursor: pointer;
     transition:
@@ -506,16 +547,22 @@
     padding: 8px 14px;
     border: 1px solid rgba(79, 70, 229, 0.1);
     border-radius: 999px;
-    background: rgba(79, 70, 229, 0.07);
-    color: #4f46e5;
+    background: #ffffff;
     font-size: 13px;
-    font-weight: 700;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
 }
 
 .eyebrow i {
-    font-size: 14px;
+    color: #fff;
+    background:
+        radial-gradient(circle at 50% 40%, #9587ff33, #0000 45%),
+        linear-gradient(135deg, #8eb9ff, #d1b5f5);
+    border-radius: 50%;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    font-size: 1.3rem;
 }
 
 .title {
@@ -592,8 +639,8 @@
 .plan {
     position: relative;
     flex-direction: column;
-    gap: 7px;
-    padding: 30px 20px;
+    gap: 5px;
+    padding: 35px 20px;
 }
 
 .plan:last-child {
@@ -613,7 +660,7 @@
 
 .plan strong {
     color: var(--muted);
-    font-size: 19px;
+    font-size: 1.6rem;
 }
 
 .planDescription {
@@ -652,7 +699,7 @@
         linear-gradient(135deg, #8eb9ff, #d1b5f5);
     color: #ffffff;
     font-size: 1.2rem;
-    font-weight: 800;
+    font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     transform: translateX(-50%);
@@ -676,8 +723,8 @@
     align-items: center;
     gap: 10px;
     padding: 17px 20px;
-    color: #172033;
-    font-size: 14px;
+    color: var(--muted);
+    font-size: 1.4rem;
 }
 
 .groupTitle i {
@@ -710,8 +757,7 @@
     padding: 18px 30px;
     border-right: 1px solid #edf0f6;
     color: #172033;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 1.4rem;
 }
 
 .infoIcon {
@@ -741,7 +787,6 @@
 
 .primaryText {
     color: #4f46e5;
-    font-weight: 700;
 }
 
 .successText {
@@ -755,7 +800,7 @@
     justify-content: center;
     width: 25px;
     height: 25px;
-    border: 2px solid currentColor;
+    border: 1px solid currentColor;
     border-radius: 50%;
     color: #4f46e5;
     font-size: 12px;
@@ -932,10 +977,6 @@
     filter: blur(130px);
     transform: translateX(-50%);
     pointer-events: none;
-}
-
-.eyebrow i {
-    font-size: 20px;
 }
 
 .title {
@@ -1141,8 +1182,8 @@
     background: transparent;
     color: #101828;
     font: inherit;
-    font-size: 1.8rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 600;
     line-height: 1.45;
     text-align: left;
     cursor: pointer;

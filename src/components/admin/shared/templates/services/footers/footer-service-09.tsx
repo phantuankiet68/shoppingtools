@@ -2,11 +2,11 @@
 
 import styles from '@/components/admin/shared/templates/services/footers/styles/footer-service-09.module.css';
 import { useSite } from '@/hooks/v1/useSiteHook';
-import type { RegItem } from '@/lib/ui-builder/types';
+import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
+import type { InspectorField, RegItem } from '@/lib/ui-builder/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
-
+import { useEffect, useMemo, useRef, useState } from 'react';
 /* ─────────────────────────────────────────────────
    Types
 ───────────────────────────────────────────────── */
@@ -18,20 +18,36 @@ export type FooterNavItem = {
 
 export interface FooterService09Props {
     siteId?: string;
-
-    address?: string;
-    tagline?: string;
-
-    ctaTitle?: string;
-    ctaDescription?: string;
-    ctaButtonText?: string;
+    address?: LocalizedText;
+    tagline?: LocalizedText;
+    ctaTitle?: LocalizedText;
+    ctaDescription?: LocalizedText;
+    ctaButtonText?: LocalizedText;
     ctaButtonHref?: string;
-
+    newsletterBadge?: LocalizedText;
+    subscriberCount?: LocalizedText;
+    subscriberText?: LocalizedText;
+    subscribeLabel?: LocalizedText;
+    subscribeTitle?: LocalizedText;
+    subscribePlaceholder?: LocalizedText;
+    subscribeLoadingText?: LocalizedText;
+    subscribeSuccessTitle?: LocalizedText;
+    subscribeSuccessDescription?: LocalizedText;
+    subscribeButtonText?: LocalizedText;
+    subscribeNote?: LocalizedText;
+    companyTitle?: LocalizedText;
+    resourcesTitle?: LocalizedText;
+    contactTitle?: LocalizedText;
+    mobileAppsTitle?: LocalizedText;
+    privacyText?: LocalizedText;
+    termsText?: LocalizedText;
+    cookiesText?: LocalizedText;
+    languageLabel?: LocalizedText;
+    copyrightText?: LocalizedText;
     appStoreHref?: string;
     googlePlayHref?: string;
     showAppDownload?: boolean;
 }
-
 /* ─────────────────────────────────────────────────
    Hooks
 ───────────────────────────────────────────────── */
@@ -72,388 +88,841 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.06) {
     return inView;
 }
 
+export const DEFAULT_PROPS: Required<FooterService09Props> = {
+    siteId: '',
+
+    address: {
+        sourceLocale: 'en',
+        default: 'Ho Chi Minh City, Vietnam',
+        translations: {
+            vi: 'Thành phố Hồ Chí Minh, Việt Nam',
+            ja: 'ベトナム・ホーチミン市',
+        },
+    },
+
+    tagline: {
+        sourceLocale: 'en',
+        default:
+            'We craft digital products that perform as well as they look — built for scale, designed for humans.',
+        translations: {
+            vi: 'Chúng tôi tạo ra các sản phẩm số đẹp mắt, hiệu quả và sẵn sàng mở rộng cho doanh nghiệp.',
+            ja: '美しさと実用性を兼ね備えた、拡張性の高いデジタルプロダクトを提供します。',
+        },
+    },
+
+    ctaTitle: {
+        sourceLocale: 'en',
+        default: 'Get the inside edge',
+        translations: {
+            vi: 'Đón đầu xu hướng',
+            ja: '最新情報を手に入れよう',
+        },
+    },
+
+    ctaDescription: {
+        sourceLocale: 'en',
+        default: 'Weekly insights on product design, engineering, AI and modern web development.',
+        translations: {
+            vi: 'Nhận những chia sẻ hàng tuần về thiết kế sản phẩm, AI và phát triển website hiện đại.',
+            ja: 'プロダクトデザイン、AI、最新のWeb開発に関する情報を毎週お届けします。',
+        },
+    },
+
+    ctaButtonText: {
+        sourceLocale: 'en',
+        default: 'Join the list',
+        translations: {
+            vi: 'Tham gia ngay',
+            ja: '今すぐ登録',
+        },
+    },
+
+    ctaButtonHref: '/contact',
+
+    newsletterBadge: {
+        sourceLocale: 'en',
+        default: 'Weekly Newsletter',
+        translations: {
+            vi: 'Bản tin hàng tuần',
+            ja: '週間ニュースレター',
+        },
+    },
+
+    subscriberCount: {
+        sourceLocale: 'en',
+        default: '2,000+',
+        translations: {
+            vi: '2.000+',
+            ja: '2,000+',
+        },
+    },
+
+    subscriberText: {
+        sourceLocale: 'en',
+        default: 'developers already joined',
+        translations: {
+            vi: 'lập trình viên đã tham gia',
+            ja: '人以上の開発者が参加しています',
+        },
+    },
+
+    subscribeLabel: {
+        sourceLocale: 'en',
+        default: 'Join our community',
+        translations: {
+            vi: 'Tham gia cộng đồng',
+            ja: 'コミュニティへ参加',
+        },
+    },
+
+    subscribeTitle: {
+        sourceLocale: 'en',
+        default: 'Stay ahead of the trend',
+        translations: {
+            vi: 'Luôn dẫn đầu xu hướng',
+            ja: '常にトレンドの先へ',
+        },
+    },
+
+    subscribePlaceholder: {
+        sourceLocale: 'en',
+        default: 'Enter your email',
+        translations: {
+            vi: 'Nhập địa chỉ email',
+            ja: 'メールアドレスを入力',
+        },
+    },
+
+    subscribeLoadingText: {
+        sourceLocale: 'en',
+        default: 'Joining...',
+        translations: {
+            vi: 'Đang đăng ký...',
+            ja: '登録中...',
+        },
+    },
+
+    subscribeSuccessTitle: {
+        sourceLocale: 'en',
+        default: 'Welcome aboard!',
+        translations: {
+            vi: 'Chào mừng bạn!',
+            ja: 'ご登録ありがとうございます！',
+        },
+    },
+
+    subscribeSuccessDescription: {
+        sourceLocale: 'en',
+        default: 'Thanks for subscribing. Check your inbox for the next issue.',
+        translations: {
+            vi: 'Cảm ơn bạn đã đăng ký. Hãy kiểm tra hộp thư để nhận bản tin tiếp theo.',
+            ja: 'ご登録ありがとうございます。次回のニュースレターをメールでお届けします。',
+        },
+    },
+
+    subscribeButtonText: {
+        sourceLocale: 'en',
+        default: 'Join Newsletter',
+        translations: {
+            vi: 'Đăng ký nhận tin',
+            ja: 'ニュースレター登録',
+        },
+    },
+
+    subscribeNote: {
+        sourceLocale: 'en',
+        default: 'No spam. Unsubscribe anytime.',
+        translations: {
+            vi: 'Không spam. Có thể hủy đăng ký bất cứ lúc nào.',
+            ja: 'スパムは送りません。いつでも配信停止できます。',
+        },
+    },
+
+    companyTitle: {
+        sourceLocale: 'en',
+        default: 'Company',
+        translations: {
+            vi: 'Công ty',
+            ja: '会社情報',
+        },
+    },
+
+    resourcesTitle: {
+        sourceLocale: 'en',
+        default: 'Resources',
+        translations: {
+            vi: 'Tài nguyên',
+            ja: 'リソース',
+        },
+    },
+
+    contactTitle: {
+        sourceLocale: 'en',
+        default: 'Contact',
+        translations: {
+            vi: 'Liên hệ',
+            ja: 'お問い合わせ',
+        },
+    },
+
+    mobileAppsTitle: {
+        sourceLocale: 'en',
+        default: 'Mobile Apps',
+        translations: {
+            vi: 'Ứng dụng di động',
+            ja: 'モバイルアプリ',
+        },
+    },
+
+    privacyText: {
+        sourceLocale: 'en',
+        default: 'Privacy',
+        translations: {
+            vi: 'Chính sách bảo mật',
+            ja: 'プライバシー',
+        },
+    },
+
+    termsText: {
+        sourceLocale: 'en',
+        default: 'Terms',
+        translations: {
+            vi: 'Điều khoản',
+            ja: '利用規約',
+        },
+    },
+
+    cookiesText: {
+        sourceLocale: 'en',
+        default: 'Cookies',
+        translations: {
+            vi: 'Cookie',
+            ja: 'Cookie',
+        },
+    },
+
+    languageLabel: {
+        sourceLocale: 'en',
+        default: 'English',
+        translations: {
+            vi: 'Tiếng Việt',
+            ja: '日本語',
+        },
+    },
+
+    copyrightText: {
+        sourceLocale: 'en',
+        default: 'All rights reserved.',
+        translations: {
+            vi: 'Đã đăng ký bản quyền.',
+            ja: '無断転載を禁じます。',
+        },
+    },
+
+    appStoreHref: '#',
+
+    googlePlayHref: '#',
+
+    showAppDownload: true,
+};
+
 /* ─────────────────────────────────────────────────
    Component
 ───────────────────────────────────────────────── */
-export function FooterService09({
-    siteId,
-    address = 'Ho Chi Minh City, Vietnam',
-    tagline = 'We craft digital products that perform as well as they look — built for scale, designed for humans.',
-    ctaTitle = 'Get the inside edge',
-    ctaDescription = 'Weekly insights on product design, engineering, and whats moving the industry. No filler, just signal.',
-    ctaButtonText = 'Join the list',
-    appStoreHref = '#',
-    googlePlayHref = '#',
-    showAppDownload = true,
-}: FooterService09Props) {
+export function FooterService09(props: FooterService09Props) {
+    const mergedProps: Required<FooterService09Props> = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
+
+    const {
+        siteId,
+        address,
+        tagline,
+        ctaTitle,
+        ctaDescription,
+        ctaButtonText,
+        ctaButtonHref,
+        newsletterBadge,
+        subscriberCount,
+        subscriberText,
+        subscribeLabel,
+        subscribeTitle,
+        subscribePlaceholder,
+        subscribeLoadingText,
+        subscribeSuccessTitle,
+        subscribeSuccessDescription,
+        subscribeButtonText,
+        subscribeNote,
+        companyTitle,
+        resourcesTitle,
+        contactTitle,
+        mobileAppsTitle,
+        privacyText,
+        termsText,
+        cookiesText,
+        languageLabel,
+        copyrightText,
+        appStoreHref,
+        googlePlayHref,
+        showAppDownload,
+    } = mergedProps;
+
     const site = useSite(siteId);
+
     const menus = useSiteMenus(siteId);
+
     const rootRef = useRef<HTMLElement>(null);
+
     const inView = useInView(rootRef);
 
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
+
+        return localStorage.getItem('locale') ?? 'en';
+    });
+
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            setSelectedLocale(customEvent.detail);
+        };
+
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
+
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
+
+    const t = (value: LocalizedText) => getLocalizedValue(value, selectedLocale);
+
     const [email, setEmail] = useState('');
-    const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'done'>('idle');
+
+    const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'success'>('idle');
 
     const siteLogo = site?.logoUrl ?? '/assets/images/logo.png';
+
     const siteName = site?.name ?? 'Website';
 
-    const half = Math.ceil(menus.length / 2);
-    const companyMenus = menus.slice(0, half);
-    const resourceMenus = menus.slice(half);
+    const { companyMenus, resourceMenus } = useMemo(() => {
+        const half = Math.ceil(menus.length / 2);
 
-    const handleSub = async () => {
+        return {
+            companyMenus: menus.slice(0, half),
+            resourceMenus: menus.slice(half),
+        };
+    }, [menus]);
+
+    const handleSubscribe = async () => {
         if (!email.trim() || subStatus !== 'idle') return;
+
         setSubStatus('loading');
-        await new Promise((r) => setTimeout(r, 800));
-        setSubStatus('done');
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        setSubStatus('success');
+
         setEmail('');
     };
 
-    const socials = [
+    const AVATARS = [
+        {
+            src: '/assets/images/avatar-1.png',
+            alt: 'Community member 1',
+        },
+        {
+            src: '/assets/images/avatar-2.png',
+            alt: 'Community member 2',
+        },
+        {
+            src: '/assets/images/avatar-3.png',
+            alt: 'Community member 3',
+        },
+        {
+            src: '/assets/images/avatar-4.png',
+            alt: 'Community member 4',
+        },
+    ];
+
+    const SOCIALS = [
         { id: 'facebook', label: 'Facebook' },
         { id: 'instagram', label: 'Instagram' },
         { id: 'linkedin', label: 'LinkedIn' },
         { id: 'youtube', label: 'YouTube' },
-        { id: 'twitter-x', label: 'X / Twitter' },
         { id: 'tiktok', label: 'TikTok' },
     ];
 
+    const MENU_TRANSLATIONS = {
+        '/': {
+            vi: 'Trang chủ',
+            ja: 'ホーム',
+        },
+
+        '/service': {
+            vi: 'Dịch vụ',
+            ja: 'サービス',
+        },
+
+        '/project': {
+            vi: 'Dự án',
+            ja: 'プロジェクト',
+        },
+
+        '/about': {
+            vi: 'Giới thiệu',
+            ja: '会社概要',
+        },
+
+        '/pricing': {
+            vi: 'Bảng giá',
+            ja: '料金',
+        },
+
+        '/blog': {
+            vi: 'Blog',
+            ja: 'ブログ',
+        },
+
+        '/contact': {
+            vi: 'Liên hệ',
+            ja: 'お問い合わせ',
+        },
+    } as const;
+
+    function getMenuLabel(href: string, fallback: string, locale: string) {
+        if (locale === 'en') {
+            return fallback;
+        }
+
+        return (
+            MENU_TRANSLATIONS[href as keyof typeof MENU_TRANSLATIONS]?.[locale as 'vi' | 'ja'] ??
+            fallback
+        );
+    }
+
     return (
         <footer ref={rootRef} className={`${styles.root} ${inView ? styles.inView : ''}`}>
-            {/* noise + orbs are CSS ::before / ::after on .root */}
-
             <div className={styles.wrap}>
-                {/* ═══════════════════════════════════════
-                    TOP: CTA newsletter
-                ═══════════════════════════════════════ */}
-                <section
-                    className={`${styles.cta} ${styles.r}`}
-                    style={{ '--i': 0 } as React.CSSProperties}
-                >
-                    {/* animated gradient ring — done with CSS @property on .cta::before */}
+                <section className={styles.newsletter}>
+                    <div className={styles.newsletterGlow} />
 
-                    <div className={styles.ctaLeft}>
-                        <span className={styles.pill}>
-                            <i className="bi bi-stars" />
-                            Newsletter
-                        </span>
-                        <h2 className={styles.ctaH}>{ctaTitle}</h2>
-                        <p className={styles.ctaP}>{ctaDescription}</p>
-                    </div>
+                    <div className={styles.newsletterGrid}>
+                        <div className={styles.newsletterContent}>
+                            <span className={styles.newsletterBadge}>
+                                <i className="bi bi-stars" />
+                                {t(newsletterBadge)}
+                            </span>
 
-                    <div className={styles.ctaRight}>
-                        {subStatus === 'done' ? (
-                            <div className={styles.subDone}>
-                                <span className={styles.subDoneIcon}>
-                                    <i className="bi bi-check-lg" />
+                            <h2 className={styles.newsletterTitle}>{t(ctaTitle)}</h2>
+
+                            <p className={styles.newsletterDescription}>{t(ctaDescription)}</p>
+
+                            <div className={styles.subscriberRow}>
+                                <div className={styles.avatarGroup}>
+                                    {AVATARS.map((avatar) => (
+                                        <div key={avatar.src} className={styles.avatar}>
+                                            <Image
+                                                src={avatar.src}
+                                                alt={avatar.alt}
+                                                fill
+                                                sizes="44px"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className={styles.subscriberText}>
+                                    <strong>{t(subscriberCount)}</strong>
+
+                                    <span>{t(subscriberText)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={styles.newsletterVisual}>
+                            <div className={styles.visualCircle} />
+
+                            <div className={styles.visualCard}>
+                                <div className={styles.visualIcon}>
+                                    <i className="bi bi-envelope-paper-heart-fill" />
+                                </div>
+
+                                <div className={styles.visualMail}>
+                                    <div className={styles.mailLine} />
+                                    <div className={styles.mailLine} />
+                                    <div className={styles.mailLineSmall} />
+                                </div>
+                            </div>
+
+                            {[
+                                {
+                                    icon: 'bi-send-fill',
+                                    className: styles.floatIcon1,
+                                },
+                                {
+                                    icon: 'bi-lightning-charge-fill',
+                                    className: styles.floatIcon2,
+                                },
+                                {
+                                    icon: 'bi-stars',
+                                    className: styles.floatIcon3,
+                                },
+                            ].map((item) => (
+                                <span key={item.icon} className={item.className}>
+                                    <i className={`bi ${item.icon}`} />
                                 </span>
-                                <div>
-                                    <strong>You're in!</strong>
-                                    <p>Expect something worth reading in your inbox soon.</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className={styles.subForm}>
-                                <div className={styles.inputWrap}>
-                                    <i className="bi bi-envelope" />
-                                    <input
-                                        type="email"
-                                        className={styles.subInput}
-                                        placeholder="your@email.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSub()}
-                                        disabled={subStatus === 'loading'}
-                                    />
-                                </div>
-                                <button
-                                    className={`${styles.subBtn} ${subStatus === 'loading' ? styles.subLoading : ''}`}
-                                    onClick={handleSub}
-                                    disabled={subStatus === 'loading'}
-                                >
-                                    {subStatus === 'loading' ? (
-                                        <span className={styles.spinner} />
-                                    ) : (
-                                        <>
-                                            {ctaButtonText} <i className="bi bi-arrow-right" />
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        )}
+                            ))}
+                        </div>
 
-                        <p className={styles.subNote}>
-                            <i className="bi bi-lock-fill" />
-                            We respect your privacy. Unsubscribe at any time.
-                        </p>
+                        <div className={styles.subscribeCard}>
+                            <span className={styles.subscribeLabel}>{t(subscribeLabel)}</span>
+
+                            <h3 className={styles.subscribeTitle}>{t(subscribeTitle)}</h3>
+
+                            {subStatus === 'success' ? (
+                                <div className={styles.subscribeSuccess}>
+                                    <div className={styles.successIcon}>
+                                        <i className="bi bi-check-lg" />
+                                    </div>
+
+                                    <div>
+                                        <strong>{t(subscribeSuccessTitle)}</strong>
+
+                                        <p>{t(subscribeSuccessDescription)}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className={styles.inputGroup}>
+                                        <i className="bi bi-envelope-fill" />
+
+                                        <input
+                                            type="email"
+                                            placeholder={t(subscribePlaceholder)}
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            onKeyDown={(e) =>
+                                                e.key === 'Enter' && handleSubscribe()
+                                            }
+                                            disabled={subStatus === 'loading'}
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className={styles.subscribeButton}
+                                        disabled={subStatus === 'loading'}
+                                        onClick={handleSubscribe}
+                                    >
+                                        {subStatus === 'loading' ? (
+                                            <>
+                                                <span className={styles.spinner} />
+
+                                                {t(subscribeLoadingText)}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {t(subscribeButtonText)}
+
+                                                <i className="bi bi-arrow-right" />
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <p className={styles.subscribeNote}>
+                                        <i className="bi bi-shield-check" />
+
+                                        {t(subscribeNote)}
+                                    </p>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </section>
-
-                {/* separator */}
-                <div className={styles.sep} />
-
-                {/* ═══════════════════════════════════════
-                    MIDDLE: main info grid
-                ═══════════════════════════════════════ */}
-                <div className={styles.grid}>
-                    {/* ── Brand column ── */}
-                    <div
-                        className={`${styles.brandCol} ${styles.r}`}
-                        style={{ '--i': 1 } as React.CSSProperties}
-                    >
-                        <Link href="/" className={styles.brandMark}>
-                            <span className={styles.logoRing}>
-                                <div className={styles.logoBox}>
-                                    <Image
-                                        src={siteLogo}
-                                        alt={siteName}
-                                        fill
-                                        sizes="44px"
-                                        className={styles.logoImg}
-                                    />
-                                </div>
+                <section className={styles.footerMain}>
+                    <article className={styles.brandCard}>
+                        <Link href="/" className={styles.brandLogo}>
+                            <span className={styles.logoWrapper}>
+                                <Image
+                                    src={siteLogo}
+                                    alt={siteName}
+                                    fill
+                                    sizes="56px"
+                                    className={styles.logoImage}
+                                />
                             </span>
-                            <span className={styles.brandName}>{siteName}</span>
+
+                            <span className={styles.brandTitle}>{siteName}</span>
                         </Link>
 
-                        <p className={styles.brandTagline}>{site?.seoDescription ?? tagline}</p>
+                        <p className={styles.brandDescription}>
+                            {site?.seoDescription ?? t(tagline)}
+                        </p>
 
-                        {/* ── Socials ── */}
-                        <div className={styles.socialGrid}>
-                            {socials.map(({ id, label }) => (
+                        <div className={styles.socialList}>
+                            {SOCIALS.map(({ id, label }) => (
                                 <a
                                     key={id}
                                     href="#"
+                                    className={styles.socialButton}
                                     aria-label={label}
-                                    className={styles.socialBtn}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                 >
                                     <i className={`bi bi-${id}`} />
                                 </a>
                             ))}
                         </div>
-                    </div>
+                    </article>
 
-                    {/* ── Company nav ── */}
-                    {companyMenus.length > 0 && (
-                        <nav
-                            className={`${styles.navCol} ${styles.r}`}
-                            style={{ '--i': 2 } as React.CSSProperties}
-                            aria-label="Company"
-                        >
-                            <p className={styles.navHead}>Company</p>
-                            <ul className={styles.navUl}>
+                    <div className={styles.footerCards}>
+                        {/* Company */}
+
+                        <article className={styles.footerCard}>
+                            <span className={styles.cardLabel}>{t(companyTitle)}</span>
+
+                            <ul className={styles.footerLinks}>
                                 {companyMenus.map((item) => (
                                     <li key={item.href}>
-                                        <Link href={item.href} className={styles.navA}>
-                                            <span className={styles.navArrow}>
-                                                <i className="bi bi-arrow-right-short" />
-                                            </span>
-                                            {item.label}
+                                        <Link href={item.href} className={styles.footerLink}>
+                                            {getMenuLabel(item.href, item.label, selectedLocale)}
+                                            <i className="bi bi-arrow-right-short" />
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
-                        </nav>
-                    )}
+                        </article>
 
-                    {/* ── Resources nav ── */}
-                    {resourceMenus.length > 0 && (
-                        <nav
-                            className={`${styles.navCol} ${styles.r}`}
-                            style={{ '--i': 3 } as React.CSSProperties}
-                            aria-label="Resources"
-                        >
-                            <p className={styles.navHead}>Resources</p>
-                            <ul className={styles.navUl}>
+                        {/* Resources */}
+
+                        <article className={styles.footerCard}>
+                            <span className={styles.cardLabel}>{t(resourcesTitle)}</span>
+
+                            <ul className={styles.footerLinks}>
                                 {resourceMenus.map((item) => (
                                     <li key={item.href}>
-                                        <Link href={item.href} className={styles.navA}>
-                                            <span className={styles.navArrow}>
-                                                <i className="bi bi-arrow-right-short" />
-                                            </span>
-                                            {item.label}
+                                        <Link href={item.href} className={styles.footerLink}>
+                                            {getMenuLabel(item.href, item.label, selectedLocale)}
+                                            <i className="bi bi-arrow-right-short" />
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
-                        </nav>
-                    )}
+                        </article>
 
-                    {/* ── Contact ── */}
-                    <div
-                        className={`${styles.contactCol} ${styles.r}`}
-                        style={{ '--i': 4 } as React.CSSProperties}
-                    >
-                        <p className={styles.navHead}>Contact</p>
+                        {/* Contact */}
 
-                        <ul className={styles.contactUl}>
-                            {site?.contactPhone && (
-                                <li>
+                        <article className={styles.footerCard}>
+                            <span className={styles.cardLabel}>{t(contactTitle)}</span>
+
+                            <div className={styles.contactList}>
+                                {site?.contactPhone && (
                                     <a
                                         href={`tel:${site.contactPhone}`}
                                         className={styles.contactItem}
                                     >
-                                        <span className={styles.cIcon}>
-                                            <i className="bi bi-telephone-fill" />
-                                        </span>
+                                        <i className="bi bi-telephone-fill" />
+
                                         <span>{site.contactPhone}</span>
                                     </a>
-                                </li>
-                            )}
-                            {site?.contactEmail && (
-                                <li>
+                                )}
+
+                                {site?.contactEmail && (
                                     <a
                                         href={`mailto:${site.contactEmail}`}
                                         className={styles.contactItem}
                                     >
-                                        <span className={styles.cIcon}>
-                                            <i className="bi bi-envelope-fill" />
-                                        </span>
+                                        <i className="bi bi-envelope-fill" />
+
                                         <span>{site.contactEmail}</span>
                                     </a>
-                                </li>
-                            )}
-                            <li>
+                                )}
+
                                 <div className={styles.contactItem}>
-                                    <span className={styles.cIcon}>
-                                        <i className="bi bi-geo-alt-fill" />
-                                    </span>
-                                    <span>{address}</span>
+                                    <i className="bi bi-geo-alt-fill" />
+
+                                    <span>{t(address)}</span>
                                 </div>
-                            </li>
-                        </ul>
-
-                        <Link href="/blog" className={styles.blogBtn}>
-                            <i className="bi bi-journal-richtext" />
-                            <span>Latest articles</span>
-                            <i className="bi bi-arrow-up-right" />
-                        </Link>
-                    </div>
-                    {/* ── App Download ── */}
-                    {showAppDownload && (
-                        <div className={styles.appBlock}>
-                            <span className={styles.appBlockLabel}>
-                                <i className="bi bi-phone" /> Available on mobile
-                            </span>
-
-                            <div className={styles.appBadges}>
-                                <a
-                                    href={googlePlayHref}
-                                    className={styles.appBadge}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label="Get it on Google Play"
-                                >
-                                    <i className={`bi bi-google-play ${styles.appIcon}`} />
-                                    <span className={styles.appBadgeText}>
-                                        <small>Get it on</small>
-                                        Google Play
-                                    </span>
-                                    <i className={`bi bi-arrow-up-right ${styles.appArrow}`} />
-                                </a>
-
-                                <a
-                                    href={appStoreHref}
-                                    className={styles.appBadge}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label="Download on the App Store"
-                                >
-                                    <i className={`bi bi-apple ${styles.appIcon}`} />
-                                    <span className={styles.appBadgeText}>
-                                        <small>Download on the</small>
-                                        App Store
-                                    </span>
-                                    <i className={`bi bi-arrow-up-right ${styles.appArrow}`} />
-                                </a>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        </article>
 
-                {/* ═══════════════════════════════════════
-                    BOTTOM BAR
-                ═══════════════════════════════════════ */}
-                <div className={styles.bottomSep} />
+                        {/* Mobile Apps */}
 
-                <div className={styles.bottom}>
-                    <span className={styles.copy}>
-                        © {new Date().getFullYear()} {siteName}. All rights reserved.
-                    </span>
+                        {showAppDownload && (
+                            <article className={styles.footerCard}>
+                                <span className={styles.cardLabel}>{t(mobileAppsTitle)}</span>
 
-                    <nav className={styles.legal} aria-label="Legal">
-                        <Link href="/privacy">Privacy Policy</Link>
-                        <span className={styles.dot} />
-                        <Link href="/terms">Terms of Use</Link>
-                        <span className={styles.dot} />
-                        <Link href="/cookies">Cookie Settings</Link>
+                                <div className={styles.appButtons}>
+                                    <a href={googlePlayHref} className={styles.storeButton}>
+                                        <i className="bi bi-google-play" />
+
+                                        <div>
+                                            <small>Get it on</small>
+
+                                            <strong>Google Play</strong>
+                                        </div>
+
+                                        <i className="bi bi-arrow-up-right" />
+                                    </a>
+
+                                    <a href={appStoreHref} className={styles.storeButton}>
+                                        <i className="bi bi-apple" />
+
+                                        <div>
+                                            <small>Download on</small>
+
+                                            <strong>App Store</strong>
+                                        </div>
+
+                                        <i className="bi bi-arrow-up-right" />
+                                    </a>
+                                </div>
+                            </article>
+                        )}
+                    </div>
+                </section>
+                <div className={styles.footerBottom}>
+                    <div className={styles.footerBottomLeft}>
+                        <span className={styles.copyright}>
+                            © {new Date().getFullYear()} {siteName}. {t(copyrightText)}
+                        </span>
+                    </div>
+
+                    <nav className={styles.footerLegal} aria-label="Legal">
+                        <Link href="/privacy">{t(privacyText)}</Link>
+
+                        <span />
+
+                        <Link href="/terms">{t(termsText)}</Link>
+
+                        <span />
+
+                        <Link href="/cookies">{t(cookiesText)}</Link>
                     </nav>
 
-                    <button
-                        className={styles.topBtn}
-                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                        aria-label="Back to top"
-                    >
-                        <i className="bi bi-chevron-up" />
-                        <span>Top</span>
-                    </button>
+                    <div className={styles.footerBottomRight}>
+                        <button type="button" className={styles.languageButton}>
+                            <i className="bi bi-globe2" />
+
+                            {t(languageLabel)}
+                        </button>
+
+                        <button
+                            type="button"
+                            className={styles.topButton}
+                            onClick={() =>
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth',
+                                })
+                            }
+                            aria-label="Back to top"
+                        >
+                            <i className="bi bi-arrow-up" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </footer>
     );
 }
 
+function createLocalizedTextField(key: keyof FooterService09Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
+    };
+}
+
+function createTextField(key: keyof FooterService09Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'text',
+    };
+}
+
+function createCheckField(key: keyof FooterService09Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'check',
+    };
+}
+
+function createInspector(): InspectorField[] {
+    return [
+        createLocalizedTextField('address', 'Address'),
+
+        createLocalizedTextField('tagline', 'Brand Tagline'),
+
+        createLocalizedTextField('ctaTitle', 'Newsletter Title'),
+
+        createLocalizedTextField('ctaDescription', 'Newsletter Description'),
+
+        createLocalizedTextField('newsletterBadge', 'Newsletter Badge'),
+
+        createLocalizedTextField('subscriberCount', 'Subscriber Count'),
+
+        createLocalizedTextField('subscriberText', 'Subscriber Text'),
+
+        createLocalizedTextField('subscribeLabel', 'Subscribe Label'),
+
+        createLocalizedTextField('subscribeTitle', 'Subscribe Title'),
+
+        createLocalizedTextField('subscribePlaceholder', 'Email Placeholder'),
+
+        createLocalizedTextField('subscribeButtonText', 'Subscribe Button'),
+
+        createLocalizedTextField('subscribeLoadingText', 'Loading Text'),
+
+        createLocalizedTextField('subscribeSuccessTitle', 'Success Title'),
+
+        createLocalizedTextField('subscribeSuccessDescription', 'Success Description'),
+
+        createLocalizedTextField('subscribeNote', 'Subscribe Note'),
+
+        createLocalizedTextField('companyTitle', 'Company Title'),
+
+        createLocalizedTextField('resourcesTitle', 'Resources Title'),
+
+        createLocalizedTextField('contactTitle', 'Contact Title'),
+
+        createLocalizedTextField('mobileAppsTitle', 'Apps Title'),
+
+        createLocalizedTextField('privacyText', 'Privacy'),
+
+        createLocalizedTextField('termsText', 'Terms'),
+
+        createLocalizedTextField('cookiesText', 'Cookies'),
+
+        createLocalizedTextField('languageLabel', 'Language'),
+
+        createLocalizedTextField('copyrightText', 'Copyright'),
+
+        createTextField('ctaButtonHref', 'CTA Button URL'),
+
+        createTextField('googlePlayHref', 'Google Play URL'),
+
+        createTextField('appStoreHref', 'App Store URL'),
+
+        createCheckField('showAppDownload', 'Show Mobile Apps'),
+    ];
+}
 /* ─────────────────────────────────────────────────
    Registry
 ───────────────────────────────────────────────── */
 export const FOOTER_SERVICE_09: RegItem = {
     kind: 'FooterService09',
+
     label: 'Footer Service 09',
 
-    defaults: {
-        address: 'Ho Chi Minh City, Vietnam',
-        tagline:
-            'We craft digital products that perform as well as they look — built for scale, designed for humans.',
-        ctaTitle: 'Get the inside edge',
-        ctaDescription:
-            'Weekly insights on product design, engineering, and what moving the industry. No filler, just signal.',
-        ctaButtonText: 'Join the list',
-        ctaButtonHref: '/contact',
-        appStoreHref: '#',
-        googlePlayHref: '#',
-        showAppDownload: true,
-    },
+    defaults: DEFAULT_PROPS,
 
-    inspector: [
-        { key: 'address', label: 'Address', kind: 'text' },
-        { key: 'tagline', label: 'Brand Tagline', kind: 'text' },
-        { key: 'ctaTitle', label: 'CTA Title', kind: 'text' },
-        { key: 'ctaDescription', label: 'CTA Description', kind: 'text' },
-        { key: 'ctaButtonText', label: 'CTA Button Text', kind: 'text' },
-        { key: 'ctaButtonHref', label: 'CTA Button Href', kind: 'text' },
-        { key: 'googlePlayHref', label: 'Google Play URL', kind: 'text' },
-        { key: 'appStoreHref', label: 'App Store URL', kind: 'text' },
-    ],
+    inspector: createInspector(),
 
-    render: (props) => {
-        const d = props as Record<string, any>;
-        return (
-            <FooterService09
-                siteId={d.siteId}
-                address={d.address}
-                tagline={d.tagline}
-                ctaTitle={d.ctaTitle}
-                ctaDescription={d.ctaDescription}
-                ctaButtonText={d.ctaButtonText}
-                ctaButtonHref={d.ctaButtonHref}
-                googlePlayHref={d.googlePlayHref}
-                appStoreHref={d.appStoreHref}
-                showAppDownload={d.showAppDownload}
-            />
-        );
-    },
+    render: (props) => <FooterService09 {...(props as FooterService09Props)} />,
 };
 
 export default FooterService09;

@@ -7,11 +7,21 @@ import cls from '@/styles/admin/pages/inspector.module.css';
 import React from 'react';
 import type { LocalizedText } from '@/lib/ui-builder/localization';
 import LocalizedTextField from '@/components/admin/shared/inspector/LocalizedTextField';
+import ArrayField from '@/components/admin/shared/inspector/ArrayField';
+
 type Props = {
     active: Block | null;
     move: (dir: -1 | 1) => void;
     remove: () => void;
     updateActive: (patch: Record<string, unknown>) => void;
+};
+
+export type ArrayInspectorField = {
+    key: string;
+    label: string;
+    kind: 'array';
+    itemLabel?: string;
+    fields: InspectorField[];
 };
 
 export default React.memo(function Inspector({ active, move, remove, updateActive }: Props) {
@@ -365,6 +375,21 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                 {field.rightLabel ?? 'Right'}
                                             </button>
                                         </div>
+                                    </Row>
+                                );
+                            }
+                            if (field.kind === 'array') {
+                                return (
+                                    <Row key={field.key} label={field.label} stack>
+                                        <ArrayField
+                                            field={field}
+                                            value={value}
+                                            onChange={(v) =>
+                                                updateActive({
+                                                    [field.key]: v,
+                                                })
+                                            }
+                                        />
                                     </Row>
                                 );
                             }

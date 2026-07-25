@@ -1,226 +1,1171 @@
 'use client';
+
 import styles from '@/components/admin/shared/templates/services/service/styles/service-01.module.css';
-import type { RegItem } from '@/lib/ui-builder/types';
+import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
+import type { InspectorField, RegItem } from '@/lib/ui-builder/types';
+import Image from 'next/image';
 import Link from 'next/link';
-export interface Service01Props {
-    siteId?: string;
-    pathName?: string;
-    // Getting Started
-    introEyebrow?: string;
-    introTitle?: string;
-    introTitleAccent?: string;
-    introDescription?: string;
+import { useEffect, useRef, useState, useMemo } from 'react';
 
-    // Visual Card
-    visualEyebrow?: string;
-    visualTitle?: string;
-    visualTitleAccent?: string;
-    visualDescription?: string;
-
-    brandName?: string;
-    brandDescription?: string;
-
-    flow1Title?: string;
-    flow1Description?: string;
-
-    flow2Title?: string;
-    flow2Description?: string;
-
-    flow3Title?: string;
-    flow3Description?: string;
-
-    securityText?: string;
-    noCodeText?: string;
-
-    // How It Works
-    stepsEyebrow?: string;
-    stepsCountText?: string;
-
-    step1Number?: string;
-    step1Label?: string;
-    step1Title?: string;
-    step1Description?: string;
-
-    step2Number?: string;
-    step2Label?: string;
-    step2Title?: string;
-    step2Description?: string;
-
-    step3Number?: string;
-    step3Label?: string;
-    step3Title?: string;
-    step3Description?: string;
-
-    stepsButtonText?: string;
-
-    // Setup Map
-    zoomText?: string;
-
-    mapStartTitle?: string;
-    mapStartDescription?: string;
-
-    selfSetupTitle?: string;
-
-    selfItem1Title?: string;
-    selfItem1Description?: string;
-
-    selfItem2Title?: string;
-    selfItem2Description?: string;
-
-    selfItem3Title?: string;
-    selfItem3Description?: string;
-
-    serviceSetupTitle?: string;
-
-    serviceItem1Title?: string;
-    serviceItem1Description?: string;
-
-    serviceItem2Title?: string;
-    serviceItem2Description?: string;
-
-    serviceItem3Title?: string;
-    serviceItem3Description?: string;
-
-    readyTitle?: string;
-    readyDescription?: string;
-
-    selfMapLabel?: string;
-    serviceMapLabel?: string;
-    readyMapLabel?: string;
-
-    selfSetupLabel?: string;
-    selfSetupCardTitle?: string;
-    selfSetupCardTitleAccent?: string;
-    selfSetupCardDescription?: string;
-    selfSetupPrimaryText?: string;
-    selfSetupSecondaryText?: string;
-    selfSetupLinkText?: string;
-    selfSetupHref?: string;
-
-    serviceSetupLabel?: string;
-    serviceSetupCardTitle?: string;
-    serviceSetupCardTitleAccent?: string;
-    serviceSetupCardDescription?: string;
-    serviceSetupPrimaryText?: string;
-    serviceSetupSecondaryText?: string;
-    serviceSetupLinkText?: string;
-    serviceSetupHref?: string;
-
-    templateBadgeText?: string;
-    pagesBadgeText?: string;
-    menuBadgeText?: string;
-
-    // Features
-    featuresTabText?: string;
-    builderTabText?: string;
-    featuresButtonText?: string;
-
-    feature1Title?: string;
-    feature1Description?: string;
-    feature1Item1Label?: string;
-    feature1Item1Value?: string;
-    feature1Item2Label?: string;
-    feature1Item2Value?: string;
-
-    feature2Title?: string;
-    feature2Description?: string;
-    feature2Item1Label?: string;
-    feature2Item1Value?: string;
-    feature2Item2Label?: string;
-    feature2Item2Value?: string;
-
-    feature3Title?: string;
-    feature3Description?: string;
-    feature3Item1Label?: string;
-    feature3Item1Value?: string;
-    feature3Item2Label?: string;
-    feature3Item2Value?: string;
-
-    feature4Title?: string;
-    feature4Description?: string;
-    feature4Item1Label?: string;
-    feature4Item1Value?: string;
-    feature4Item2Label?: string;
-    feature4Item2Value?: string;
-
-    // Visual Text
-    templateReadyText?: string;
-
-    pageHomeText?: string;
-    pageServicesText?: string;
-    pageAboutText?: string;
-    menuReadyText?: string;
-
-    websiteText?: string;
-    liveText?: string;
-    domainText?: string;
-    domainConnectedText?: string;
-}
 type SetupItem = {
     icon: string;
-    title: string;
-    description: string;
+    title: LocalizedText;
+    description: LocalizedText;
 };
 
 type SetupNodeProps = {
-    title: string;
+    title: LocalizedText;
     icon: string;
     x: number;
     y: number;
     accent?: 'blue' | 'green';
     items: SetupItem[];
+
+    t: (value: LocalizedText) => string;
 };
 
 type SetupStep = {
-    number: string;
-    label: string;
-    title: string;
-    description: string;
+    number: LocalizedText;
+    label: LocalizedText;
+    title: LocalizedText;
+    description: LocalizedText;
 };
 
 type FeatureItem = {
-    label: string;
-    value: string;
+    label: LocalizedText;
+    value: LocalizedText;
 };
 
 type FeatureCard = {
     icon: string;
-    title: string;
-    description: string;
+    title: LocalizedText;
+    description: LocalizedText;
     items: FeatureItem[];
     visual: 'builder' | 'templates' | 'pages' | 'publish';
 };
+
 type PagesVisualProps = {
-    homeText: string;
-    servicesText: string;
-    aboutText: string;
-    menuReadyText: string;
+    homeText: LocalizedText;
+    servicesText: LocalizedText;
+    aboutText: LocalizedText;
+    menuReadyText: LocalizedText;
+    t: (value: LocalizedText) => string;
 };
 
 type PublishVisualProps = {
-    websiteText: string;
-    liveText: string;
-    domainText: string;
-    domainConnectedText: string;
+    websiteText: LocalizedText;
+    liveText: LocalizedText;
+    domainText: LocalizedText;
+    domainConnectedText: LocalizedText;
+    t: (value: LocalizedText) => string;
 };
 
 type FeatureVisualProps = {
     type: FeatureCard['visual'];
+    templateReadyText: LocalizedText;
 
-    templateReadyText: string;
+    pageHomeText: LocalizedText;
+    pageServicesText: LocalizedText;
+    pageAboutText: LocalizedText;
+    menuReadyText: LocalizedText;
 
-    pageHomeText: string;
-    pageServicesText: string;
-    pageAboutText: string;
-    menuReadyText: string;
+    websiteText: LocalizedText;
+    liveText: LocalizedText;
+    domainText: LocalizedText;
+    domainConnectedText: LocalizedText;
+    t: (value: LocalizedText) => string;
+};
+export interface Service01Props {
+    siteId?: string;
 
-    websiteText: string;
-    liveText: string;
-    domainText: string;
-    domainConnectedText: string;
+    pathName?: LocalizedText;
+
+    // Hero
+    visualEyebrow?: LocalizedText;
+    visualTitle?: LocalizedText;
+    visualTitleAccent?: LocalizedText;
+    visualDescription?: LocalizedText;
+
+    securityText?: LocalizedText;
+    noCodeText?: LocalizedText;
+
+    stepsCountText?: LocalizedText;
+
+    step1Number?: LocalizedText;
+    step1Label?: LocalizedText;
+    step1Title?: LocalizedText;
+    step1Description?: LocalizedText;
+
+    step2Number?: LocalizedText;
+    step2Label?: LocalizedText;
+    step2Title?: LocalizedText;
+    step2Description?: LocalizedText;
+
+    step3Number?: LocalizedText;
+    step3Label?: LocalizedText;
+    step3Title?: LocalizedText;
+    step3Description?: LocalizedText;
+
+    stepsButtonText?: LocalizedText;
+
+    // Setup Map
+    zoomText?: LocalizedText;
+
+    mapStartTitle?: LocalizedText;
+    mapStartDescription?: LocalizedText;
+
+    selfSetupTitle?: LocalizedText;
+
+    selfItem1Title?: LocalizedText;
+    selfItem1Description?: LocalizedText;
+
+    selfItem2Title?: LocalizedText;
+    selfItem2Description?: LocalizedText;
+
+    selfItem3Title?: LocalizedText;
+    selfItem3Description?: LocalizedText;
+
+    serviceSetupTitle?: LocalizedText;
+
+    serviceItem1Title?: LocalizedText;
+    serviceItem1Description?: LocalizedText;
+
+    serviceItem2Title?: LocalizedText;
+    serviceItem2Description?: LocalizedText;
+
+    serviceItem3Title?: LocalizedText;
+    serviceItem3Description?: LocalizedText;
+
+    readyTitle?: LocalizedText;
+    readyDescription?: LocalizedText;
+
+    selfMapLabel?: LocalizedText;
+    serviceMapLabel?: LocalizedText;
+    readyMapLabel?: LocalizedText;
+
+    // Cards
+    selfSetupLabel?: LocalizedText;
+    selfSetupCardTitle?: LocalizedText;
+    selfSetupCardTitleAccent?: LocalizedText;
+    selfSetupCardDescription?: LocalizedText;
+    selfSetupPrimaryText?: LocalizedText;
+    selfSetupSecondaryText?: LocalizedText;
+    selfSetupLinkText?: LocalizedText;
+    selfSetupHref?: string;
+
+    serviceSetupLabel?: LocalizedText;
+    serviceSetupCardTitle?: LocalizedText;
+    serviceSetupCardTitleAccent?: LocalizedText;
+    serviceSetupCardDescription?: LocalizedText;
+    serviceSetupPrimaryText?: LocalizedText;
+    serviceSetupSecondaryText?: LocalizedText;
+    serviceSetupLinkText?: LocalizedText;
+    serviceSetupHref?: string;
+
+    templateBadgeText?: LocalizedText;
+    pagesBadgeText?: LocalizedText;
+    menuBadgeText?: LocalizedText;
+
+    // Features
+    featuresTabText?: LocalizedText;
+    builderTabText?: LocalizedText;
+    featuresButtonText?: LocalizedText;
+
+    feature1Title?: LocalizedText;
+    feature1Description?: LocalizedText;
+    feature1Item1Label?: LocalizedText;
+    feature1Item1Value?: LocalizedText;
+    feature1Item2Label?: LocalizedText;
+    feature1Item2Value?: LocalizedText;
+
+    feature2Title?: LocalizedText;
+    feature2Description?: LocalizedText;
+    feature2Item1Label?: LocalizedText;
+    feature2Item1Value?: LocalizedText;
+    feature2Item2Label?: LocalizedText;
+    feature2Item2Value?: LocalizedText;
+
+    feature3Title?: LocalizedText;
+    feature3Description?: LocalizedText;
+    feature3Item1Label?: LocalizedText;
+    feature3Item1Value?: LocalizedText;
+    feature3Item2Label?: LocalizedText;
+    feature3Item2Value?: LocalizedText;
+
+    feature4Title?: LocalizedText;
+    feature4Description?: LocalizedText;
+    feature4Item1Label?: LocalizedText;
+    feature4Item1Value?: LocalizedText;
+    feature4Item2Label?: LocalizedText;
+    feature4Item2Value?: LocalizedText;
+
+    // Feature Visual
+    templateReadyText?: LocalizedText;
+
+    pageHomeText?: LocalizedText;
+    pageServicesText?: LocalizedText;
+    pageAboutText?: LocalizedText;
+    menuReadyText?: LocalizedText;
+
+    websiteText?: LocalizedText;
+    liveText?: LocalizedText;
+    domainText?: LocalizedText;
+    domainConnectedText?: LocalizedText;
+
+    browserPreviewImage?: string;
+    mobilePreviewImage?: string;
+    analyticsPreviewImage?: string;
+    plantPreviewImage?: string;
+}
+
+export const DEFAULT_PROPS: Required<Service01Props> = {
+    siteId: '',
+
+    pathName: {
+        sourceLocale: 'en',
+        default: 'Service',
+        translations: {
+            vi: 'Dịch vụ',
+            ja: 'サービス',
+        },
+    },
+    /* ==========================================
+       Hero
+    ========================================== */
+
+    visualEyebrow: {
+        sourceLocale: 'en',
+        default: 'WEBSITE BUILDER',
+        translations: {
+            vi: 'TRÌNH XÂY DỰNG WEBSITE',
+            ja: 'WEBサイトビルダー',
+        },
+    },
+
+    visualTitle: {
+        sourceLocale: 'en',
+        default: 'Build your website.',
+        translations: {
+            vi: 'Xây dựng website của bạn.',
+            ja: 'Webサイトを作成。',
+        },
+    },
+
+    visualTitleAccent: {
+        sourceLocale: 'en',
+        default: 'We make starting simple.',
+        translations: {
+            vi: 'Chúng tôi giúp bạn bắt đầu dễ dàng.',
+            ja: 'スタートをもっとシンプルに。',
+        },
+    },
+
+    visualDescription: {
+        sourceLocale: 'en',
+        default: 'Ready-made templates, guided setup, and everything you need to launch.',
+        translations: {
+            vi: 'Mẫu website sẵn sàng, hướng dẫn thiết lập và mọi thứ bạn cần để đưa website vào hoạt động.',
+            ja: '豊富なテンプレート、ガイド付きセットアップ、公開に必要なすべてを提供します。',
+        },
+    },
+
+    /* ==========================================
+       Hero Badges
+    ========================================== */
+
+    securityText: {
+        sourceLocale: 'en',
+        default: 'Free security setup',
+        translations: {
+            vi: 'Thiết lập bảo mật miễn phí',
+            ja: '無料セキュリティ設定',
+        },
+    },
+
+    noCodeText: {
+        sourceLocale: 'en',
+        default: 'No coding required',
+        translations: {
+            vi: 'Không cần lập trình',
+            ja: 'コーディング不要',
+        },
+    },
+
+    /* ==========================================
+       Steps
+    ========================================== */
+
+    stepsCountText: {
+        sourceLocale: 'en',
+        default: '03 STEPS',
+        translations: {
+            vi: '03 BƯỚC',
+            ja: '3ステップ',
+        },
+    },
+
+    step1Number: {
+        sourceLocale: 'en',
+        default: '01',
+        translations: {
+            vi: '01',
+            ja: '01',
+        },
+    },
+
+    step1Label: {
+        sourceLocale: 'en',
+        default: 'Self-Guided Setup',
+        translations: {
+            vi: 'Tự thiết lập',
+            ja: 'セルフセットアップ',
+        },
+    },
+
+    step1Title: {
+        sourceLocale: 'en',
+        default: 'Build with our guided website builder',
+        translations: {
+            vi: 'Xây dựng website với trình hướng dẫn trực quan',
+            ja: 'ガイド付きビルダーでWebサイトを作成',
+        },
+    },
+
+    step1Description: {
+        sourceLocale: 'en',
+        default:
+            'Connect your domain, receive your account, and customize your website using ready-made templates.',
+        translations: {
+            vi: 'Kết nối tên miền, nhận tài khoản và tùy chỉnh website bằng các mẫu có sẵn.',
+            ja: 'ドメインを接続し、アカウントを受け取り、テンプレートを使ってWebサイトをカスタマイズします。',
+        },
+    },
+
+    step2Number: {
+        sourceLocale: 'en',
+        default: '02',
+        translations: {
+            vi: '02',
+            ja: '02',
+        },
+    },
+
+    step2Label: {
+        sourceLocale: 'en',
+        default: 'Setup Service',
+        translations: {
+            vi: 'Dịch vụ thiết lập',
+            ja: 'セットアップサービス',
+        },
+    },
+
+    step2Title: {
+        sourceLocale: 'en',
+        default: 'Let us prepare your website for you',
+        translations: {
+            vi: 'Để chúng tôi chuẩn bị website cho bạn',
+            ja: 'Webサイトの準備は私たちにお任せください',
+        },
+    },
+
+    step2Description: {
+        sourceLocale: 'en',
+        default:
+            'We prepare your initial template, pages, and navigation so you can start editing right away.',
+        translations: {
+            vi: 'Chúng tôi chuẩn bị sẵn giao diện, trang và menu để bạn có thể chỉnh sửa ngay.',
+            ja: 'テンプレート・ページ・メニューを準備し、すぐに編集を開始できます。',
+        },
+    },
+
+    step3Number: {
+        sourceLocale: 'en',
+        default: '03',
+        translations: {
+            vi: '03',
+            ja: '03',
+        },
+    },
+
+    step3Label: {
+        sourceLocale: 'en',
+        default: 'Ready to Customize',
+        translations: {
+            vi: 'Sẵn sàng tùy chỉnh',
+            ja: 'カスタマイズ準備完了',
+        },
+    },
+
+    step3Title: {
+        sourceLocale: 'en',
+        default: 'Edit your content and publish',
+        translations: {
+            vi: 'Chỉnh sửa nội dung và xuất bản',
+            ja: 'コンテンツを編集して公開',
+        },
+    },
+
+    step3Description: {
+        sourceLocale: 'en',
+        default:
+            'Update text, images, pages, and menus with our visual builder — no coding required.',
+        translations: {
+            vi: 'Cập nhật văn bản, hình ảnh, trang và menu bằng trình chỉnh sửa trực quan mà không cần lập trình.',
+            ja: 'ビジュアルエディターでテキスト・画像・ページ・メニューを簡単に更新できます。',
+        },
+    },
+
+    stepsButtonText: {
+        sourceLocale: 'en',
+        default: 'Explore how Kbuilder works',
+        translations: {
+            vi: 'Khám phá cách Kbuilder hoạt động',
+            ja: 'Kbuilderの仕組みを見る',
+        },
+    },
+    /* ==========================================
+       Setup Map
+    ========================================== */
+
+    zoomText: {
+        sourceLocale: 'en',
+        default: '100%',
+        translations: {
+            vi: '100%',
+            ja: '100%',
+        },
+    },
+
+    mapStartTitle: {
+        sourceLocale: 'en',
+        default: 'Choose how to start',
+        translations: {
+            vi: 'Chọn cách bắt đầu',
+            ja: '開始方法を選択',
+        },
+    },
+
+    mapStartDescription: {
+        sourceLocale: 'en',
+        default: 'Pick the setup option that works for you',
+        translations: {
+            vi: 'Lựa chọn phương thức thiết lập phù hợp với bạn.',
+            ja: '自分に合ったセットアップ方法を選択してください。',
+        },
+    },
+
+    /* ==========================================
+       Self Setup
+    ========================================== */
+
+    selfSetupTitle: {
+        sourceLocale: 'en',
+        default: 'Build It Yourself',
+        translations: {
+            vi: 'Tự xây dựng',
+            ja: '自分で構築',
+        },
+    },
+
+    selfItem1Title: {
+        sourceLocale: 'en',
+        default: 'Connect Your Domain',
+        translations: {
+            vi: 'Kết nối tên miền',
+            ja: 'ドメイン接続',
+        },
+    },
+
+    selfItem1Description: {
+        sourceLocale: 'en',
+        default: 'Provide the domain details needed for setup.',
+        translations: {
+            vi: 'Cung cấp thông tin tên miền để bắt đầu thiết lập.',
+            ja: 'セットアップに必要なドメイン情報を入力します。',
+        },
+    },
+
+    selfItem2Title: {
+        sourceLocale: 'en',
+        default: 'Free Security Setup',
+        translations: {
+            vi: 'Thiết lập bảo mật miễn phí',
+            ja: '無料セキュリティ設定',
+        },
+    },
+
+    selfItem2Description: {
+        sourceLocale: 'en',
+        default: 'We configure SSL and website security for free.',
+        translations: {
+            vi: 'Chúng tôi cấu hình SSL và bảo mật website hoàn toàn miễn phí.',
+            ja: 'SSLとWebサイトのセキュリティを無料で設定します。',
+        },
+    },
+
+    selfItem3Title: {
+        sourceLocale: 'en',
+        default: 'Receive Your Account',
+        translations: {
+            vi: 'Nhận tài khoản',
+            ja: 'アカウント受領',
+        },
+    },
+
+    selfItem3Description: {
+        sourceLocale: 'en',
+        default: 'Get access and follow our setup guide.',
+        translations: {
+            vi: 'Nhận tài khoản và làm theo hướng dẫn thiết lập.',
+            ja: 'アカウントを受け取り、セットアップガイドに従います。',
+        },
+    },
+
+    /* ==========================================
+       Done-for-you Setup
+    ========================================== */
+
+    serviceSetupTitle: {
+        sourceLocale: 'en',
+        default: 'Done-for-You Setup',
+        translations: {
+            vi: 'Thiết lập trọn gói',
+            ja: 'セットアップ代行',
+        },
+    },
+
+    serviceItem1Title: {
+        sourceLocale: 'en',
+        default: 'Template Ready',
+        translations: {
+            vi: 'Template sẵn sàng',
+            ja: 'テンプレート準備完了',
+        },
+    },
+
+    serviceItem1Description: {
+        sourceLocale: 'en',
+        default: 'A website template is added for you.',
+        translations: {
+            vi: 'Website mẫu đã được tạo sẵn.',
+            ja: 'Webサイトテンプレートを用意します。',
+        },
+    },
+
+    serviceItem2Title: {
+        sourceLocale: 'en',
+        default: 'Pages Created',
+        translations: {
+            vi: 'Trang đã tạo',
+            ja: 'ページ作成済み',
+        },
+    },
+
+    serviceItem2Description: {
+        sourceLocale: 'en',
+        default: 'Essential website pages are prepared.',
+        translations: {
+            vi: 'Các trang quan trọng đã được chuẩn bị.',
+            ja: '必要なページを準備します。',
+        },
+    },
+
+    serviceItem3Title: {
+        sourceLocale: 'en',
+        default: 'Menu Configured',
+        translations: {
+            vi: 'Menu đã cấu hình',
+            ja: 'メニュー設定済み',
+        },
+    },
+
+    serviceItem3Description: {
+        sourceLocale: 'en',
+        default: 'Navigation structure is ready to use.',
+        translations: {
+            vi: 'Cấu trúc menu đã sẵn sàng sử dụng.',
+            ja: 'ナビゲーション構造を準備します。',
+        },
+    },
+
+    /* ==========================================
+       Ready
+    ========================================== */
+
+    readyTitle: {
+        sourceLocale: 'en',
+        default: 'Ready to Edit',
+        translations: {
+            vi: 'Sẵn sàng chỉnh sửa',
+            ja: '編集準備完了',
+        },
+    },
+
+    readyDescription: {
+        sourceLocale: 'en',
+        default: 'Customize your content and publish.',
+        translations: {
+            vi: 'Tùy chỉnh nội dung và xuất bản website.',
+            ja: 'コンテンツを編集して公開します。',
+        },
+    },
+
+    selfMapLabel: {
+        sourceLocale: 'en',
+        default: 'Self Setup',
+        translations: {
+            vi: 'Tự thiết lập',
+            ja: 'セルフセットアップ',
+        },
+    },
+
+    serviceMapLabel: {
+        sourceLocale: 'en',
+        default: 'Setup Service',
+        translations: {
+            vi: 'Dịch vụ thiết lập',
+            ja: 'セットアップサービス',
+        },
+    },
+
+    readyMapLabel: {
+        sourceLocale: 'en',
+        default: 'Ready to Customize',
+        translations: {
+            vi: 'Sẵn sàng tùy chỉnh',
+            ja: 'カスタマイズ準備完了',
+        },
+    },
+    /* ==========================================
+       Self Setup Card
+    ========================================== */
+
+    selfSetupLabel: {
+        sourceLocale: 'en',
+        default: 'OPTION 01',
+        translations: {
+            vi: 'LỰA CHỌN 01',
+            ja: 'オプション 01',
+        },
+    },
+
+    selfSetupCardTitle: {
+        sourceLocale: 'en',
+        default: 'Build It',
+        translations: {
+            vi: 'Tự xây dựng',
+            ja: '自分で構築',
+        },
+    },
+
+    selfSetupCardTitleAccent: {
+        sourceLocale: 'en',
+        default: 'Yourself',
+        translations: {
+            vi: 'Website',
+            ja: '自分で',
+        },
+    },
+
+    selfSetupCardDescription: {
+        sourceLocale: 'en',
+        default:
+            'Launch quickly with our visual website builder and customize every section without writing code.',
+        translations: {
+            vi: 'Khởi tạo website nhanh chóng với trình chỉnh sửa trực quan và tùy chỉnh mọi thành phần mà không cần lập trình.',
+            ja: 'ビジュアルエディターで簡単にWebサイトを構築できます。',
+        },
+    },
+
+    selfSetupPrimaryText: {
+        sourceLocale: 'en',
+        default: 'Visual Builder',
+        translations: {
+            vi: 'Trình chỉnh sửa trực quan',
+            ja: 'ビジュアルビルダー',
+        },
+    },
+
+    selfSetupSecondaryText: {
+        sourceLocale: 'en',
+        default: 'Ready-made Templates',
+        translations: {
+            vi: 'Template có sẵn',
+            ja: 'テンプレート',
+        },
+    },
+
+    selfSetupLinkText: {
+        sourceLocale: 'en',
+        default: 'Start Building',
+        translations: {
+            vi: 'Bắt đầu xây dựng',
+            ja: '作成を開始',
+        },
+    },
+
+    selfSetupHref: '/builder',
+
+    /* ==========================================
+       Done-for-you Card
+    ========================================== */
+
+    serviceSetupLabel: {
+        sourceLocale: 'en',
+        default: 'OPTION 02',
+        translations: {
+            vi: 'LỰA CHỌN 02',
+            ja: 'オプション 02',
+        },
+    },
+
+    serviceSetupCardTitle: {
+        sourceLocale: 'en',
+        default: 'Let Us',
+        translations: {
+            vi: 'Để chúng tôi',
+            ja: '私たちが',
+        },
+    },
+
+    serviceSetupCardTitleAccent: {
+        sourceLocale: 'en',
+        default: 'Prepare It',
+        translations: {
+            vi: 'Chuẩn bị giúp bạn',
+            ja: '準備します',
+        },
+    },
+
+    serviceSetupCardDescription: {
+        sourceLocale: 'en',
+        default:
+            'Our team prepares your website structure, pages, menus and design so you can immediately focus on editing content.',
+        translations: {
+            vi: 'Đội ngũ của chúng tôi chuẩn bị sẵn giao diện, trang và menu để bạn chỉ cần chỉnh sửa nội dung.',
+            ja: 'ページ・メニュー・デザインを準備し、すぐに編集を開始できます。',
+        },
+    },
+
+    serviceSetupPrimaryText: {
+        sourceLocale: 'en',
+        default: 'Website Ready',
+        translations: {
+            vi: 'Website sẵn sàng',
+            ja: 'Webサイト準備完了',
+        },
+    },
+
+    serviceSetupSecondaryText: {
+        sourceLocale: 'en',
+        default: 'Professional Setup',
+        translations: {
+            vi: 'Thiết lập chuyên nghiệp',
+            ja: 'プロフェッショナル設定',
+        },
+    },
+
+    serviceSetupLinkText: {
+        sourceLocale: 'en',
+        default: 'Request Setup',
+        translations: {
+            vi: 'Yêu cầu thiết lập',
+            ja: 'セットアップ依頼',
+        },
+    },
+
+    serviceSetupHref: '/contact',
+
+    /* ==========================================
+       Visual Badge
+    ========================================== */
+
+    templateBadgeText: {
+        sourceLocale: 'en',
+        default: 'Templates',
+        translations: {
+            vi: 'Template',
+            ja: 'テンプレート',
+        },
+    },
+
+    pagesBadgeText: {
+        sourceLocale: 'en',
+        default: 'Pages',
+        translations: {
+            vi: 'Trang',
+            ja: 'ページ',
+        },
+    },
+
+    menuBadgeText: {
+        sourceLocale: 'en',
+        default: 'Menus',
+        translations: {
+            vi: 'Menu',
+            ja: 'メニュー',
+        },
+    },
+
+    /* ==========================================
+       Features Header
+    ========================================== */
+
+    featuresTabText: {
+        sourceLocale: 'en',
+        default: 'Features',
+        translations: {
+            vi: 'Tính năng',
+            ja: '機能',
+        },
+    },
+
+    builderTabText: {
+        sourceLocale: 'en',
+        default: 'Builder',
+        translations: {
+            vi: 'Builder',
+            ja: 'ビルダー',
+        },
+    },
+
+    featuresButtonText: {
+        sourceLocale: 'en',
+        default: 'Explore Features',
+        translations: {
+            vi: 'Khám phá tính năng',
+            ja: '機能を見る',
+        },
+    },
+
+    /* ==========================================
+       Feature 01
+    ========================================== */
+
+    feature1Title: {
+        sourceLocale: 'en',
+        default: 'Visual Builder',
+        translations: {
+            vi: 'Trình chỉnh sửa trực quan',
+            ja: 'ビジュアルビルダー',
+        },
+    },
+
+    feature1Description: {
+        sourceLocale: 'en',
+        default:
+            'Edit every part of your website visually with an intuitive drag-and-drop builder.',
+        translations: {
+            vi: 'Chỉnh sửa mọi thành phần của website bằng trình kéo thả trực quan.',
+            ja: 'ドラッグ＆ドロップでWebサイトを簡単に編集できます。',
+        },
+    },
+
+    feature1Item1Label: {
+        sourceLocale: 'en',
+        default: 'Drag & Drop',
+        translations: {
+            vi: 'Kéo & Thả',
+            ja: 'ドラッグ＆ドロップ',
+        },
+    },
+
+    feature1Item1Value: {
+        sourceLocale: 'en',
+        default: 'Edit sections visually',
+        translations: {
+            vi: 'Chỉnh sửa từng section',
+            ja: 'セクションを視覚的に編集',
+        },
+    },
+
+    feature1Item2Label: {
+        sourceLocale: 'en',
+        default: 'No Code',
+        translations: {
+            vi: 'Không cần code',
+            ja: 'コード不要',
+        },
+    },
+
+    feature1Item2Value: {
+        sourceLocale: 'en',
+        default: 'Anyone can build websites',
+        translations: {
+            vi: 'Ai cũng có thể xây dựng website',
+            ja: '誰でもWebサイトを作成可能',
+        },
+    },
+
+    /* ==========================================
+       Feature 02
+    ========================================== */
+
+    feature2Title: {
+        sourceLocale: 'en',
+        default: 'Ready-made Templates',
+        translations: {
+            vi: 'Template có sẵn',
+            ja: 'テンプレート',
+        },
+    },
+
+    feature2Description: {
+        sourceLocale: 'en',
+        default: 'Choose from modern responsive templates and launch your website faster.',
+        translations: {
+            vi: 'Lựa chọn hàng trăm template hiện đại và responsive.',
+            ja: 'モダンなレスポンシブテンプレートを利用できます。',
+        },
+    },
+
+    feature2Item1Label: {
+        sourceLocale: 'en',
+        default: 'Responsive',
+        translations: {
+            vi: 'Responsive',
+            ja: 'レスポンシブ',
+        },
+    },
+
+    feature2Item1Value: {
+        sourceLocale: 'en',
+        default: 'Desktop, Tablet & Mobile',
+        translations: {
+            vi: 'Desktop, Tablet và Mobile',
+            ja: 'PC・タブレット・スマホ対応',
+        },
+    },
+
+    feature2Item2Label: {
+        sourceLocale: 'en',
+        default: 'Professional',
+        translations: {
+            vi: 'Chuyên nghiệp',
+            ja: 'プロ品質',
+        },
+    },
+
+    feature2Item2Value: {
+        sourceLocale: 'en',
+        default: 'Beautiful website layouts',
+        translations: {
+            vi: 'Giao diện đẹp mắt',
+            ja: '高品質レイアウト',
+        },
+    },
+
+    /* ==========================================
+       Feature 03
+    ========================================== */
+
+    feature3Title: {
+        sourceLocale: 'en',
+        default: 'Pages & Navigation',
+        translations: {
+            vi: 'Trang & Menu',
+            ja: 'ページとメニュー',
+        },
+    },
+
+    feature3Description: {
+        sourceLocale: 'en',
+        default: 'Create pages and organize your website navigation in just a few clicks.',
+        translations: {
+            vi: 'Quản lý trang và menu một cách trực quan.',
+            ja: 'ページとナビゲーションを簡単に管理できます。',
+        },
+    },
+
+    feature3Item1Label: {
+        sourceLocale: 'en',
+        default: 'Unlimited Pages',
+        translations: {
+            vi: 'Không giới hạn trang',
+            ja: 'ページ無制限',
+        },
+    },
+
+    feature3Item1Value: {
+        sourceLocale: 'en',
+        default: 'Organize your content',
+        translations: {
+            vi: 'Quản lý nội dung dễ dàng',
+            ja: 'コンテンツ整理',
+        },
+    },
+
+    feature3Item2Label: {
+        sourceLocale: 'en',
+        default: 'Navigation',
+        translations: {
+            vi: 'Menu điều hướng',
+            ja: 'ナビゲーション',
+        },
+    },
+
+    feature3Item2Value: {
+        sourceLocale: 'en',
+        default: 'Smart menu management',
+        translations: {
+            vi: 'Quản lý menu thông minh',
+            ja: 'スマートメニュー管理',
+        },
+    },
+
+    /* ==========================================
+       Feature 04
+    ========================================== */
+
+    feature4Title: {
+        sourceLocale: 'en',
+        default: 'Publish & Deploy',
+        translations: {
+            vi: 'Xuất bản Website',
+            ja: '公開・デプロイ',
+        },
+    },
+
+    feature4Description: {
+        sourceLocale: 'en',
+        default: 'Publish your website instantly with custom domains and secure hosting.',
+        translations: {
+            vi: 'Xuất bản website chỉ với một cú nhấp chuột.',
+            ja: 'ワンクリックでWebサイトを公開できます。',
+        },
+    },
+
+    feature4Item1Label: {
+        sourceLocale: 'en',
+        default: 'Custom Domain',
+        translations: {
+            vi: 'Tên miền riêng',
+            ja: '独自ドメイン',
+        },
+    },
+
+    feature4Item1Value: {
+        sourceLocale: 'en',
+        default: 'Connect your own domain',
+        translations: {
+            vi: 'Kết nối tên miền riêng',
+            ja: '独自ドメイン接続',
+        },
+    },
+
+    feature4Item2Label: {
+        sourceLocale: 'en',
+        default: 'Cloud Hosting',
+        translations: {
+            vi: 'Cloud Hosting',
+            ja: 'クラウドホスティング',
+        },
+    },
+
+    feature4Item2Value: {
+        sourceLocale: 'en',
+        default: 'Fast & secure deployment',
+        translations: {
+            vi: 'Triển khai nhanh và an toàn',
+            ja: '高速・安全な公開',
+        },
+    },
+
+    /* ==========================================
+       Feature Visual
+    ========================================== */
+
+    templateReadyText: {
+        sourceLocale: 'en',
+        default: 'Ready to Use',
+        translations: {
+            vi: 'Sẵn sàng sử dụng',
+            ja: 'すぐに利用可能',
+        },
+    },
+
+    pageHomeText: {
+        sourceLocale: 'en',
+        default: 'Home',
+        translations: {
+            vi: 'Trang chủ',
+            ja: 'ホーム',
+        },
+    },
+
+    pageServicesText: {
+        sourceLocale: 'en',
+        default: 'Services',
+        translations: {
+            vi: 'Dịch vụ',
+            ja: 'サービス',
+        },
+    },
+
+    pageAboutText: {
+        sourceLocale: 'en',
+        default: 'About',
+        translations: {
+            vi: 'Giới thiệu',
+            ja: '会社概要',
+        },
+    },
+
+    menuReadyText: {
+        sourceLocale: 'en',
+        default: 'Navigation Ready',
+        translations: {
+            vi: 'Menu sẵn sàng',
+            ja: 'メニュー準備完了',
+        },
+    },
+
+    websiteText: {
+        sourceLocale: 'en',
+        default: 'Website',
+        translations: {
+            vi: 'Website',
+            ja: 'Webサイト',
+        },
+    },
+
+    liveText: {
+        sourceLocale: 'en',
+        default: 'Live',
+        translations: {
+            vi: 'Đang hoạt động',
+            ja: '公開中',
+        },
+    },
+
+    domainText: {
+        sourceLocale: 'en',
+        default: 'yourdomain.com',
+        translations: {
+            vi: 'tenmiencuaban.com',
+            ja: 'yourdomain.jp',
+        },
+    },
+
+    domainConnectedText: {
+        sourceLocale: 'en',
+        default: 'Domain Connected',
+        translations: {
+            vi: 'Tên miền đã kết nối',
+            ja: 'ドメイン接続済み',
+        },
+    },
+
+    browserPreviewImage: '/assets/images/browser-preview.png',
+
+    mobilePreviewImage: '/assets/images/mobile-preview.png',
+
+    analyticsPreviewImage: '/assets/images/analytics-card.png',
+
+    plantPreviewImage: '/assets/images/plant.png',
 };
 
-function SetupNode({ title, icon, x, y, accent = 'blue', items }: SetupNodeProps) {
+function SetupNode({ title, icon, x, y, accent = 'blue', items, t }: SetupNodeProps) {
     return (
         <div
             className={styles.serverNode}
@@ -234,19 +1179,19 @@ function SetupNode({ title, icon, x, y, accent = 'blue', items }: SetupNodeProps
                     <i className={`bi ${icon}`} />
                 </div>
 
-                <span>{title}</span>
+                <span>{t(title)}</span>
             </div>
 
             <div className={styles.nodeItems}>
-                {items.map((item) => (
-                    <div key={item.title} className={styles.serverItem}>
+                {items.map((item, index) => (
+                    <div key={`${item.icon}-${index}`} className={styles.serverItem}>
                         <div className={styles.serverIcon}>
                             <i className={`bi ${item.icon}`} />
                         </div>
 
                         <div className={styles.serverInfo}>
-                            <strong>{item.title}</strong>
-                            <span>{item.description}</span>
+                            <strong>{t(item.title)}</strong>
+                            <span>{t(item.description)}</span>
                         </div>
                     </div>
                 ))}
@@ -296,7 +1241,13 @@ function BuilderVisual() {
         </div>
     );
 }
-function TemplatesVisual({ readyText }: { readyText: string }) {
+function TemplatesVisual({
+    readyText,
+    t,
+}: {
+    readyText: LocalizedText;
+    t: (value: LocalizedText) => string;
+}) {
     return (
         <div className={styles.templatesVisual}>
             <div className={`${styles.templateCard} ${styles.templateBack}`}>
@@ -328,12 +1279,12 @@ function TemplatesVisual({ readyText }: { readyText: string }) {
 
             <div className={styles.templateCount}>
                 <i className="bi bi-grid-fill" />
-                {readyText}
+                {t(readyText)}
             </div>
         </div>
     );
 }
-function PagesVisual({ homeText, servicesText, aboutText, menuReadyText }: PagesVisualProps) {
+function PagesVisual({ homeText, servicesText, aboutText, menuReadyText, t }: PagesVisualProps) {
     return (
         <div className={styles.pagesVisual}>
             <div className={styles.pageWindow}>
@@ -357,17 +1308,17 @@ function PagesVisual({ homeText, servicesText, aboutText, menuReadyText }: Pages
                     <div className={styles.pageList}>
                         <div>
                             <i className="bi bi-house-door-fill" />
-                            {homeText}
+                            {t(homeText)}
                         </div>
 
                         <div>
                             <i className="bi bi-window" />
-                            {servicesText}
+                            {t(servicesText)}
                         </div>
 
                         <div>
                             <i className="bi bi-file-earmark" />
-                            {aboutText}
+                            {t(aboutText)}
                         </div>
                     </div>
                 </div>
@@ -375,7 +1326,7 @@ function PagesVisual({ homeText, servicesText, aboutText, menuReadyText }: Pages
 
             <div className={styles.menuBadge}>
                 <i className="bi bi-list" />
-                {menuReadyText}
+                {t(menuReadyText)}
             </div>
         </div>
     );
@@ -386,16 +1337,17 @@ function PublishVisual({
     liveText,
     domainText,
     domainConnectedText,
+    t,
 }: PublishVisualProps) {
     return (
         <div className={styles.publishVisual}>
             <div className={styles.publishWindow}>
                 <div className={styles.publishHeader}>
-                    <span>{websiteText}</span>
+                    <span>{t(websiteText)}</span>
 
                     <div className={styles.liveBadge}>
                         <span />
-                        {liveText}
+                        {t(liveText)}
                     </div>
                 </div>
 
@@ -405,8 +1357,8 @@ function PublishVisual({
                     </div>
 
                     <div>
-                        <strong>{domainText}</strong>
-                        <span>{domainConnectedText}</span>
+                        <strong>{t(domainText)}</strong>
+                        <span>{t(domainConnectedText)}</span>
                     </div>
                 </div>
 
@@ -425,6 +1377,7 @@ function PublishVisual({
         </div>
     );
 }
+
 function FeatureVisual({
     type,
     templateReadyText,
@@ -436,18 +1389,20 @@ function FeatureVisual({
     liveText,
     domainText,
     domainConnectedText,
+    t,
 }: FeatureVisualProps) {
     if (type === 'builder') {
         return <BuilderVisual />;
     }
 
     if (type === 'templates') {
-        return <TemplatesVisual readyText={templateReadyText} />;
+        return <TemplatesVisual readyText={templateReadyText} t={t} />;
     }
 
     if (type === 'pages') {
         return (
             <PagesVisual
+                t={t}
                 homeText={pageHomeText}
                 servicesText={pageServicesText}
                 aboutText={pageAboutText}
@@ -458,6 +1413,7 @@ function FeatureVisual({
 
     return (
         <PublishVisual
+            t={t}
             websiteText={websiteText}
             liveText={liveText}
             domainText={domainText}
@@ -465,235 +1421,171 @@ function FeatureVisual({
         />
     );
 }
-export function Service01({
-    pathName = 'Service',
 
-    visualEyebrow = 'WEBSITE BUILDER',
-    visualTitle = 'Build your website.',
-    visualTitleAccent = 'We make starting simple.',
-    visualDescription = 'Ready-made templates, guided setup, and everything you need to launch.',
+function createSetupStep(index: 1 | 2 | 3, props: Required<Service01Props>): SetupStep {
+    return {
+        number: props[`step${index}Number`],
+        label: props[`step${index}Label`],
+        title: props[`step${index}Title`],
+        description: props[`step${index}Description`],
+    };
+}
 
-    brandName = 'Kbuilder',
-    brandDescription = 'Website Builder',
+function createFeatureCard(
+    index: 1 | 2 | 3 | 4,
+    icon: string,
+    visual: FeatureCard['visual'],
+    props: Required<Service01Props>,
+): FeatureCard {
+    return {
+        icon,
+        visual,
+        title: props[`feature${index}Title`],
+        description: props[`feature${index}Description`],
 
-    flow1Title = 'Self-Guided',
-    flow1Description = 'Build with guidance',
+        items: [
+            {
+                label: props[`feature${index}Item1Label`],
+                value: props[`feature${index}Item1Value`],
+            },
+            {
+                label: props[`feature${index}Item2Label`],
+                value: props[`feature${index}Item2Value`],
+            },
+        ],
+    };
+}
+export function Service01(props: Service01Props) {
+    const mergedProps = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
 
-    flow2Title = 'Setup Service',
-    flow2Description = 'We prepare it for you',
+    const {
+        pathName,
 
-    flow3Title = 'Edit & Publish',
-    flow3Description = 'Customize and go live',
+        visualEyebrow,
+        visualTitle,
+        visualTitleAccent,
+        visualDescription,
 
-    securityText = 'Free security setup',
-    noCodeText = 'No coding required',
+        securityText,
+        noCodeText,
+        stepsCountText,
 
-    stepsEyebrow = 'HOW IT WORKS',
-    stepsCountText = '03 STEPS',
+        stepsButtonText,
 
-    step1Number = '01',
-    step1Label = 'Self-Guided Setup',
-    step1Title = 'Build with our guided website builder',
-    step1Description = 'Connect your domain, receive your account, and customize your website using ready-made templates.',
+        zoomText,
 
-    step2Number = '02',
-    step2Label = 'Setup Service',
-    step2Title = 'Let us prepare your website for you',
-    step2Description = 'We prepare your initial template, pages, and navigation so you can start editing right away.',
+        mapStartTitle,
+        mapStartDescription,
 
-    step3Number = '03',
-    step3Label = 'Ready to Customize',
-    step3Title = 'Edit your content and publish',
-    step3Description = 'Update text, images, pages, and menus with our visual builder — no coding required.',
+        selfSetupTitle,
 
-    stepsButtonText = 'Explore how Kbuilder works',
+        selfItem1Title,
+        selfItem1Description,
 
-    zoomText = '100%',
+        selfItem2Title,
+        selfItem2Description,
 
-    mapStartTitle = 'Choose how to start',
-    mapStartDescription = 'Pick the setup option that works for you',
+        selfItem3Title,
+        selfItem3Description,
 
-    selfSetupTitle = 'Build It Yourself',
+        serviceSetupTitle,
 
-    selfItem1Title = 'Connect Your Domain',
-    selfItem1Description = 'Provide the domain details needed for setup',
+        serviceItem1Title,
+        serviceItem1Description,
 
-    selfItem2Title = 'Free Security Setup',
-    selfItem2Description = 'We configure SSL and website security for free',
+        serviceItem2Title,
+        serviceItem2Description,
 
-    selfItem3Title = 'Receive Your Account',
-    selfItem3Description = 'Get access and follow our setup guide',
+        serviceItem3Title,
+        serviceItem3Description,
 
-    serviceSetupTitle = 'Done-for-You Setup',
+        readyTitle,
+        readyDescription,
 
-    serviceItem1Title = 'Template Ready',
-    serviceItem1Description = 'A website template is added for you',
+        selfMapLabel,
+        serviceMapLabel,
+        readyMapLabel,
 
-    serviceItem2Title = 'Pages Created',
-    serviceItem2Description = 'Essential website pages are prepared',
+        selfSetupLabel,
+        selfSetupCardTitle,
+        selfSetupCardTitleAccent,
+        selfSetupCardDescription,
+        selfSetupPrimaryText,
+        selfSetupSecondaryText,
+        selfSetupLinkText,
+        selfSetupHref,
 
-    serviceItem3Title = 'Menu Configured',
-    serviceItem3Description = 'Navigation structure is ready to use',
+        serviceSetupLabel,
+        serviceSetupCardTitle,
+        serviceSetupCardTitleAccent,
+        serviceSetupCardDescription,
+        serviceSetupPrimaryText,
+        serviceSetupSecondaryText,
+        serviceSetupLinkText,
+        serviceSetupHref,
 
-    readyTitle = 'Ready to Edit',
-    readyDescription = 'Customize your content and publish',
+        templateBadgeText,
+        pagesBadgeText,
+        menuBadgeText,
 
-    selfMapLabel = 'Self Setup',
-    serviceMapLabel = 'Setup Service',
-    readyMapLabel = 'Ready to customize',
+        featuresTabText,
+        builderTabText,
+        featuresButtonText,
 
-    selfSetupLabel = 'SELF-GUIDED SETUP',
-    selfSetupCardTitle = 'Build your website',
-    selfSetupCardTitleAccent = 'with our guided editor',
-    selfSetupCardDescription = 'Connect your domain, receive your account and customize a ready-made website with step-by-step guidance.',
-    selfSetupPrimaryText = 'Start Building',
-    selfSetupSecondaryText = 'How it works',
-    selfSetupLinkText = 'Explore features',
-    selfSetupHref = '#features',
+        templateReadyText,
 
-    serviceSetupLabel = 'SETUP SERVICE',
-    serviceSetupCardTitle = 'Let us prepare your',
-    serviceSetupCardTitleAccent = 'website for you',
-    serviceSetupCardDescription = 'We prepare your template, pages and navigation so you can start editing your content right away.',
-    serviceSetupPrimaryText = 'Get Setup Help',
-    serviceSetupSecondaryText = 'View process',
-    serviceSetupLinkText = 'Learn more',
-    serviceSetupHref = '#features',
+        pageHomeText,
+        pageServicesText,
+        pageAboutText,
+        menuReadyText,
 
-    templateBadgeText = 'Template',
-    pagesBadgeText = 'Pages',
-    menuBadgeText = 'Menu',
+        websiteText,
+        liveText,
+        domainText,
+        domainConnectedText,
+        browserPreviewImage,
+        mobilePreviewImage,
+        analyticsPreviewImage,
+        plantPreviewImage,
+    } = mergedProps;
 
-    featuresTabText = 'Features',
-    builderTabText = 'Website Builder',
-    featuresButtonText = 'Explore all features',
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
 
-    feature1Title = 'Visual Builder',
-    feature1Description = 'Edit your website visually without writing code.',
-    feature1Item1Label = 'Edit',
-    feature1Item1Value = 'Text, images and sections',
-    feature1Item2Label = 'Build',
-    feature1Item2Value = 'Drag and customize content',
+        return localStorage.getItem('locale') ?? 'en';
+    });
 
-    feature2Title = 'Ready Templates',
-    feature2Description = 'Start faster with professionally prepared layouts.',
-    feature2Item1Label = 'Templates',
-    feature2Item1Value = 'Ready-made website designs',
-    feature2Item2Label = 'Sections',
-    feature2Item2Value = 'Reusable content blocks',
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            setSelectedLocale(customEvent.detail);
+        };
 
-    feature3Title = 'Pages & Navigation',
-    feature3Description = 'Manage your website structure from one place.',
-    feature3Item1Label = 'Pages',
-    feature3Item1Value = 'Create and organize pages',
-    feature3Item2Label = 'Menu',
-    feature3Item2Value = 'Configure website navigation',
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
 
-    feature4Title = 'Publish & Manage',
-    feature4Description = 'Launch your website and keep everything updated.',
-    feature4Item1Label = 'Domain',
-    feature4Item1Value = 'Connect your own domain',
-    feature4Item2Label = 'Publish',
-    feature4Item2Value = 'Update your website anytime',
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
 
-    templateReadyText = 'Ready to use',
+    const t = (value: LocalizedText) => getLocalizedValue(value, selectedLocale);
 
-    pageHomeText = 'Home',
-    pageServicesText = 'Services',
-    pageAboutText = 'About',
-    menuReadyText = 'Menu ready',
-
-    websiteText = 'Website',
-    liveText = 'Live',
-    domainText = 'yourdomain.com',
-    domainConnectedText = 'Domain connected',
-}: Service01Props) {
-    const setupSteps: SetupStep[] = [
-        {
-            number: step1Number,
-            label: step1Label,
-            title: step1Title,
-            description: step1Description,
-        },
-        {
-            number: step2Number,
-            label: step2Label,
-            title: step2Title,
-            description: step2Description,
-        },
-        {
-            number: step3Number,
-            label: step3Label,
-            title: step3Title,
-            description: step3Description,
-        },
+    const setupSteps = [
+        createSetupStep(1, mergedProps),
+        createSetupStep(2, mergedProps),
+        createSetupStep(3, mergedProps),
     ];
 
     const features: FeatureCard[] = [
-        {
-            icon: 'bi-cursor-fill',
-            title: feature1Title,
-            description: feature1Description,
-            visual: 'builder',
-            items: [
-                {
-                    label: feature1Item1Label,
-                    value: feature1Item1Value,
-                },
-                {
-                    label: feature1Item2Label,
-                    value: feature1Item2Value,
-                },
-            ],
-        },
-        {
-            icon: 'bi-grid-1x2-fill',
-            title: feature2Title,
-            description: feature2Description,
-            visual: 'templates',
-            items: [
-                {
-                    label: feature2Item1Label,
-                    value: feature2Item1Value,
-                },
-                {
-                    label: feature2Item2Label,
-                    value: feature2Item2Value,
-                },
-            ],
-        },
-        {
-            icon: 'bi-window-stack',
-            title: feature3Title,
-            description: feature3Description,
-            visual: 'pages',
-            items: [
-                {
-                    label: feature3Item1Label,
-                    value: feature3Item1Value,
-                },
-                {
-                    label: feature3Item2Label,
-                    value: feature3Item2Value,
-                },
-            ],
-        },
-        {
-            icon: 'bi-rocket-takeoff-fill',
-            title: feature4Title,
-            description: feature4Description,
-            visual: 'publish',
-            items: [
-                {
-                    label: feature4Item1Label,
-                    value: feature4Item1Value,
-                },
-                {
-                    label: feature4Item2Label,
-                    value: feature4Item2Value,
-                },
-            ],
-        },
+        createFeatureCard(1, 'bi-cursor-fill', 'builder', mergedProps),
+        createFeatureCard(2, 'bi-grid-1x2-fill', 'templates', mergedProps),
+        createFeatureCard(3, 'bi-window-stack', 'pages', mergedProps),
+        createFeatureCard(4, 'bi-rocket-takeoff-fill', 'publish', mergedProps),
     ];
     return (
         <>
@@ -705,115 +1597,163 @@ export function Service01({
                                 Home
                             </Link>
                             <i className="bi bi-chevron-right" />
-                            <span className={styles.breadcrumbCurrent}>{pathName}</span>
+                            <span className={styles.breadcrumbCurrent}>{t(pathName)}</span>
                         </nav>
                     </div>
 
-                    <div className={styles.content}>
-                        <div className={styles.visualCard}>
-                            <div className={styles.visualGlow} />
+                    <div className={styles.showcaseLayout}>
+                        <div className={styles.showcasePanel}>
+                            <div className={styles.showcaseGlowPurple} />
+                            <div className={styles.showcaseGlowPink} />
 
-                            <div className={styles.visualContent}>
-                                <span className={styles.visualEyebrow}>{visualEyebrow}</span>
+                            <div className={styles.showcaseHero}>
+                                <span className={styles.showcaseBadge}>
+                                    <i className="bi bi-lightning-charge-fill" />
+                                    {t(visualEyebrow)}
+                                </span>
 
-                                <h3 className={styles.visualTitle}>
-                                    {visualTitle}
+                                <h2 className={styles.showcaseHeading}>
+                                    {t(visualTitle)}
                                     <br />
-                                    <span>{visualTitleAccent}</span>
-                                </h3>
+                                    <span>{t(visualTitleAccent)}</span>
+                                </h2>
 
-                                <p className={styles.visualDescription}>{visualDescription}</p>
+                                <p className={styles.showcaseLead}>{t(visualDescription)}</p>
                             </div>
 
-                            <div className={styles.flow}>
-                                <div className={styles.brandNode}>
-                                    <div className={styles.brandIcon}>
-                                        <i className="bi bi-grid-fill" />
-                                    </div>
-
-                                    <div>
-                                        <strong>{brandName}</strong>
-                                        <span>{brandDescription}</span>
-                                    </div>
+                            <div className={styles.workspacePreview}>
+                                {/* Browser Preview */}
+                                <div className={styles.workspaceBrowser}>
+                                    <Image
+                                        src={browserPreviewImage}
+                                        alt="Website Builder"
+                                        fill
+                                        priority
+                                        sizes="(max-width:768px) 100vw, 70vw"
+                                        className={styles.workspaceImage}
+                                    />
                                 </div>
 
-                                <svg
-                                    className={styles.flowLines}
-                                    viewBox="0 0 260 170"
-                                    preserveAspectRatio="none"
-                                >
-                                    <path d="M20 85 C90 85 95 25 180 25" />
-                                    <path d="M20 85 C90 85 95 85 180 85" />
-                                    <path d="M20 85 C90 85 95 145 180 145" />
-                                </svg>
-
-                                <div className={`${styles.flowNode} ${styles.flowNodeOne}`}>
-                                    <span className={styles.flowDot} />
-
-                                    <div>
-                                        <strong>{flow1Title}</strong>
-                                        <span>{flow1Description}</span>
-                                    </div>
+                                {/* Mobile Preview */}
+                                <div className={styles.workspaceMobile}>
+                                    <Image
+                                        src={mobilePreviewImage}
+                                        alt="Mobile Preview"
+                                        fill
+                                        sizes="240px"
+                                        className={styles.workspaceImage}
+                                    />
                                 </div>
 
-                                <div className={`${styles.flowNode} ${styles.flowNodeTwo}`}>
-                                    <span className={styles.flowDot} />
-
-                                    <div>
-                                        <strong>{flow2Title}</strong>
-                                        <span>{flow2Description}</span>
-                                    </div>
+                                {/* Analytics */}
+                                <div className={styles.workspaceAnalytics}>
+                                    <Image
+                                        src={analyticsPreviewImage}
+                                        alt="Analytics"
+                                        fill
+                                        sizes="320px"
+                                        className={styles.workspaceImage}
+                                    />
                                 </div>
 
-                                <div className={`${styles.flowNode} ${styles.flowNodeThree}`}>
-                                    <span className={styles.flowDot} />
-
-                                    <div>
-                                        <strong>{flow3Title}</strong>
-                                        <span>{flow3Description}</span>
-                                    </div>
+                                {/* Floating Plant */}
+                                <div className={styles.workspacePlant}>
+                                    <Image
+                                        src={plantPreviewImage}
+                                        alt="Plant"
+                                        fill
+                                        sizes="180px"
+                                        className={styles.workspaceImage}
+                                    />
                                 </div>
                             </div>
 
-                            <div className={styles.cardFooter}>
+                            <div className={styles.featureRibbon}>
                                 <span>
                                     <i className="bi bi-shield-check" />
-                                    {securityText}
+                                    {t(securityText)}
                                 </span>
 
                                 <span>
                                     <i className="bi bi-code-slash" />
-                                    {noCodeText}
+                                    {t(noCodeText)}
+                                </span>
+
+                                <span>
+                                    <i className="bi bi-lightning-charge" />
+                                    Launch in minutes
                                 </span>
                             </div>
                         </div>
 
-                        <div className={styles.steps}>
-                            <div className={styles.stepsHeader}>
-                                <span>{stepsEyebrow}</span>
-                                <span>{stepsCountText}</span>
+                        {/* ========================= RIGHT ========================= */}
+
+                        <div className={styles.processPanel}>
+                            <div className={styles.processHeader}>
+                                <h2 className={styles.processHeading}>
+                                    <span className={styles.processCount}>{t(stepsCountText)}</span>
+
+                                    <span className={styles.processTitle}>Simple Steps</span>
+
+                                    <i className="bi bi-stars" />
+                                </h2>
                             </div>
 
-                            {setupSteps.map((step) => (
-                                <article key={step.number} className={styles.step}>
-                                    <div className={styles.stepMeta}>
-                                        <span className={styles.stepNumber}>{step.number}</span>
+                            <div className={styles.processTimeline}>
+                                {setupSteps.map((step, index) => {
+                                    const icons = [
+                                        'bi bi-ui-checks-grid',
+                                        'bi bi-gear-fill',
+                                        'bi bi-rocket-takeoff-fill',
+                                    ];
 
-                                        <span className={styles.stepLabel}>{step.label}</span>
-                                    </div>
+                                    return (
+                                        <article key={index} className={styles.processCard}>
+                                            <span
+                                                className={`${styles.timelineDot} ${
+                                                    styles[`timelineDot${index + 1}`]
+                                                }`}
+                                            />
 
-                                    <h3>{step.title}</h3>
+                                            <div
+                                                className={`${styles.processThumb} ${
+                                                    styles[`processThumb${index + 1}`]
+                                                }`}
+                                            >
+                                                <div className={styles.processThumbInner}>
+                                                    <i className={icons[index]} />
+                                                </div>
+                                            </div>
 
-                                    <p>{step.description}</p>
+                                            <div className={styles.processContent}>
+                                                <span
+                                                    className={`${styles.processLabel} ${
+                                                        styles[`processLabel${index + 1}`]
+                                                    }`}
+                                                >
+                                                    {t(step.label)}
+                                                </span>
 
-                                    <div className={styles.stepArrow}>
-                                        <i className="bi bi-arrow-up-right" />
-                                    </div>
-                                </article>
-                            ))}
+                                                <h3>{t(step.title)}</h3>
 
-                            <button type="button" className={styles.viewButton}>
-                                {stepsButtonText}
+                                                <p>{t(step.description)}</p>
+                                            </div>
+
+                                            <button type="button" className={styles.processAction}>
+                                                <i className="bi bi-arrow-right" />
+                                            </button>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+
+                            <button type="button" className={styles.processButton}>
+                                <span className={styles.processButtonIcon}>
+                                    <i className="bi bi-stars" />
+                                </span>
+
+                                <span>{t(stepsButtonText)}</span>
+
                                 <i className="bi bi-arrow-right" />
                             </button>
                         </div>
@@ -832,7 +1772,7 @@ export function Service01({
 
                         <div className={styles.zoomControl}>
                             <button type="button">−</button>
-                            <strong>{zoomText}</strong>
+                            <strong>{t(zoomText)}</strong>
                             <button type="button">+</button>
                         </div>
                     </div>
@@ -843,28 +1783,23 @@ export function Service01({
                             viewBox="0 0 1400 560"
                             preserveAspectRatio="none"
                         >
-                            {/* Kbuilder → Choose setup */}
                             <path d="M700 78 L700 125" className={styles.greenLine} />
 
-                            {/* Choose setup → Self setup */}
                             <path
                                 d="M575 157 C480 157 500 255 420 255"
                                 className={styles.blueLine}
                             />
 
-                            {/* Choose setup → Done for you */}
                             <path
                                 d="M825 157 C920 157 900 255 1000 255"
                                 className={styles.pinkLine}
                             />
 
-                            {/* Self setup → Ready */}
                             <path
                                 d="M420 400 C420 470 500 480 590 480"
                                 className={styles.blueLine}
                             />
 
-                            {/* Done for you → Ready */}
                             <path
                                 d="M1000 400 C1000 470 900 480 810 480"
                                 className={styles.pinkLine}
@@ -883,8 +1818,8 @@ export function Service01({
                             </div>
 
                             <div className={styles.nodeContent}>
-                                <strong>{mapStartTitle}</strong>
-                                <span>{mapStartDescription}</span>
+                                <strong>{t(mapStartTitle)}</strong>
+                                <span>{t(mapStartDescription)}</span>
                             </div>
                         </div>
 
@@ -911,6 +1846,7 @@ export function Service01({
                                     description: selfItem3Description,
                                 },
                             ]}
+                            t={t}
                         />
 
                         <SetupNode
@@ -936,6 +1872,7 @@ export function Service01({
                                     description: serviceItem3Description,
                                 },
                             ]}
+                            t={t}
                         />
 
                         {/* Ready */}
@@ -943,16 +1880,16 @@ export function Service01({
                             <i className="bi bi-pencil-square" />
 
                             <div className={styles.nodeContent}>
-                                <strong>{readyTitle}</strong>
-                                <span>{readyDescription}</span>
+                                <strong>{t(readyTitle)}</strong>
+                                <span>{t(readyDescription)}</span>
                             </div>
                         </div>
 
-                        <div className={styles.selfLabel}>{selfMapLabel}</div>
+                        <div className={styles.selfLabel}>{t(selfMapLabel)}</div>
 
-                        <div className={styles.serviceLabel}>{serviceMapLabel}</div>
+                        <div className={styles.serviceLabel}>{t(serviceMapLabel)}</div>
 
-                        <div className={styles.readyLabel}>{readyMapLabel}</div>
+                        <div className={styles.readyLabel}>{t(readyMapLabel)}</div>
                     </div>
                 </div>
             </section>
@@ -962,21 +1899,21 @@ export function Service01({
                         <div className={styles.setupGrid}>
                             <article className={`${styles.setupCard} ${styles.selfSetup}`}>
                                 <div className={styles.setupContent}>
-                                    <span className={styles.setupLabel}>{selfSetupLabel}</span>
+                                    <span className={styles.setupLabel}>{t(selfSetupLabel)}</span>
 
                                     <h3>
-                                        {selfSetupCardTitle}
+                                        {t(selfSetupCardTitle)}
                                         <br />
-                                        {selfSetupCardTitleAccent}
+                                        {t(selfSetupCardTitleAccent)}
                                     </h3>
 
-                                    <p>{selfSetupCardDescription}</p>
+                                    <p>{t(selfSetupCardDescription)}</p>
 
                                     <div className={styles.setupActions}>
-                                        <button type="button">{selfSetupPrimaryText}</button>
+                                        <button type="button">{t(selfSetupPrimaryText)}</button>
 
                                         <button type="button" className={styles.secondaryButton}>
-                                            {selfSetupSecondaryText}
+                                            {t(selfSetupSecondaryText)}
                                         </button>
                                     </div>
                                 </div>
@@ -1019,25 +1956,27 @@ export function Service01({
 
                             <article className={`${styles.setupCard} ${styles.setupService}`}>
                                 <div className={styles.setupContent}>
-                                    <span className={styles.setupLabel}>{serviceSetupLabel}</span>
+                                    <span className={styles.setupLabel}>
+                                        {t(serviceSetupLabel)}
+                                    </span>
 
                                     <h3>
-                                        {serviceSetupCardTitle}
+                                        {t(serviceSetupCardTitle)}
                                         <br />
-                                        {serviceSetupCardTitleAccent}
+                                        {t(serviceSetupCardTitleAccent)}
                                     </h3>
 
-                                    <p>{serviceSetupCardDescription}</p>
+                                    <p>{t(serviceSetupCardDescription)}</p>
 
                                     <div className={styles.setupActions}>
-                                        <button type="button">{serviceSetupPrimaryText}</button>
+                                        <button type="button">{t(serviceSetupPrimaryText)}</button>
 
                                         <button type="button" className={styles.secondaryButton}>
-                                            {serviceSetupSecondaryText}
+                                            {t(serviceSetupSecondaryText)}
                                         </button>
 
                                         <a href={serviceSetupHref}>
-                                            {serviceSetupLinkText}
+                                            {t(serviceSetupLinkText)}
                                             <i className="bi bi-arrow-up-right" />
                                         </a>
                                     </div>
@@ -1073,21 +2012,21 @@ export function Service01({
                                         className={`${styles.serviceBadge} ${styles.serviceBadgeOne}`}
                                     >
                                         <i className="bi bi-grid-1x2-fill" />
-                                        {templateBadgeText}
+                                        {t(templateBadgeText)}
                                     </div>
 
                                     <div
                                         className={`${styles.serviceBadge} ${styles.serviceBadgeTwo}`}
                                     >
                                         <i className="bi bi-file-earmark" />
-                                        {pagesBadgeText}
+                                        {t(pagesBadgeText)}
                                     </div>
 
                                     <div
                                         className={`${styles.serviceBadge} ${styles.serviceBadgeThree}`}
                                     >
                                         <i className="bi bi-list" />
-                                        {menuBadgeText}
+                                        {t(menuBadgeText)}
                                     </div>
                                 </div>
                             </article>
@@ -1097,20 +2036,20 @@ export function Service01({
                     <div id="features" className={styles.featuresSection}>
                         <div className={styles.featuresHeader}>
                             <div className={styles.featureTabs}>
-                                <span className={styles.activeTab}>{featuresTabText}</span>
+                                <span className={styles.activeTab}>{t(featuresTabText)}</span>
 
-                                <span>{builderTabText}</span>
+                                <span>{t(builderTabText)}</span>
                             </div>
 
                             <button type="button">
-                                {featuresButtonText}
+                                {t(featuresButtonText)}
                                 <i className="bi bi-arrow-right" />
                             </button>
                         </div>
 
                         <div className={styles.featureGrid}>
-                            {features.map((feature) => (
-                                <article key={feature.title} className={styles.featureCard}>
+                            {features.map((feature, featureIndex) => (
+                                <article key={featureIndex} className={styles.featureCard}>
                                     <div className={styles.featureVisual}>
                                         <FeatureVisual
                                             type={feature.visual}
@@ -1123,6 +2062,7 @@ export function Service01({
                                             liveText={liveText}
                                             domainText={domainText}
                                             domainConnectedText={domainConnectedText}
+                                            t={t}
                                         />
                                     </div>
 
@@ -1132,17 +2072,17 @@ export function Service01({
                                                 <i className={`bi ${feature.icon}`} />
                                             </div>
 
-                                            <h3>{feature.title}</h3>
+                                            <h3>{t(feature.title)}</h3>
                                         </div>
 
-                                        <p>{feature.description}</p>
+                                        <p>{t(feature.description)}</p>
 
                                         <div className={styles.featureItems}>
-                                            {feature.items.map((item) => (
-                                                <div key={item.label}>
-                                                    <strong>{item.label}</strong>
+                                            {feature.items.map((item, itemIndex) => (
+                                                <div key={itemIndex}>
+                                                    <strong>{t(item.label)}</strong>
 
-                                                    <span>{item.value}</span>
+                                                    <span>{t(item.value)}</span>
 
                                                     <i className="bi bi-arrow-up-right" />
                                                 </div>
@@ -1159,311 +2099,233 @@ export function Service01({
     );
 }
 
-const textField = (key: string, label: string): RegItem['inspector'][number] => ({
-    key,
-    label,
-    kind: 'text',
-});
+function createTextField(key: keyof Service01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
+    };
+}
 
-const textareaField = (key: string, label: string): RegItem['inspector'][number] => ({
-    key,
-    label,
-    kind: 'textarea',
-});
+function createTextareaField(key: keyof Service01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
+    };
+}
+
+function createImageField(key: keyof Service01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'image',
+        folder: 'services',
+        accept: 'image/*',
+    };
+}
+
+function createHeroInspector(): InspectorField[] {
+    return [
+        createTextField('visualEyebrow', 'Visual Eyebrow'),
+        createTextField('visualTitle', 'Visual Title'),
+        createTextField('visualTitleAccent', 'Visual Title Accent'),
+        createTextareaField('visualDescription', 'Visual Description'),
+    ];
+}
+
+function createSummaryInspector(): InspectorField[] {
+    return [
+        createTextField('securityText', 'Security Text'),
+        createTextField('noCodeText', 'No Code Text'),
+        createTextField('stepsCountText', 'Steps Count Text'),
+    ];
+}
+
+function createStepInspector(index: 1 | 2 | 3): InspectorField[] {
+    return [
+        createTextField(`step${index}Number`, `Step ${index} Number`),
+
+        createTextField(`step${index}Label`, `Step ${index} Label`),
+
+        createTextField(`step${index}Title`, `Step ${index} Title`),
+
+        createTextareaField(`step${index}Description`, `Step ${index} Description`),
+    ];
+}
+function createMapInspector(): InspectorField[] {
+    return [
+        createTextField('zoomText', 'Zoom Text'),
+
+        createTextField('mapStartTitle', 'Map Start Title'),
+        createTextareaField('mapStartDescription', 'Map Start Description'),
+
+        createTextField('readyTitle', 'Ready Title'),
+        createTextareaField('readyDescription', 'Ready Description'),
+
+        createTextField('selfMapLabel', 'Self Map Label'),
+        createTextField('serviceMapLabel', 'Service Map Label'),
+        createTextField('readyMapLabel', 'Ready Map Label'),
+    ];
+}
+
+function createSetupItemInspector(prefix: 'self' | 'service', index: 1 | 2 | 3): InspectorField[] {
+    return [
+        createTextField(
+            `${prefix}Item${index}Title`,
+            `${prefix === 'self' ? 'Self' : 'Service'} Item ${index} Title`,
+        ),
+
+        createTextareaField(
+            `${prefix}Item${index}Description`,
+            `${prefix === 'self' ? 'Self' : 'Service'} Item ${index} Description`,
+        ),
+    ];
+}
+
+function createSetupInspector(): InspectorField[] {
+    return [
+        createTextField('selfSetupTitle', 'Self Setup Title'),
+
+        ...createSetupItemInspector('self', 1),
+        ...createSetupItemInspector('self', 2),
+        ...createSetupItemInspector('self', 3),
+
+        createTextField('serviceSetupTitle', 'Service Setup Title'),
+
+        ...createSetupItemInspector('service', 1),
+        ...createSetupItemInspector('service', 2),
+        ...createSetupItemInspector('service', 3),
+    ];
+}
+
+function createSetupCardInspector(type: 'self' | 'service'): InspectorField[] {
+    const title = type === 'self' ? 'Self' : 'Service';
+
+    return [
+        createTextField(`${type}SetupLabel`, `${title} Setup Label`),
+
+        createTextField(`${type}SetupCardTitle`, `${title} Setup Card Title`),
+
+        createTextField(`${type}SetupCardTitleAccent`, `${title} Setup Card Title Accent`),
+
+        createTextareaField(`${type}SetupCardDescription`, `${title} Setup Card Description`),
+
+        createTextField(`${type}SetupPrimaryText`, `${title} Setup Primary Button`),
+
+        createTextField(`${type}SetupSecondaryText`, `${title} Setup Secondary Button`),
+
+        createTextField(`${type}SetupLinkText`, `${title} Setup Link Text`),
+
+        createTextField(`${type}SetupHref`, `${title} Setup Link`),
+    ];
+}
+
+function createVisualInspector(): InspectorField[] {
+    return [
+        createTextField('templateBadgeText', 'Template Badge Text'),
+        createTextField('pagesBadgeText', 'Pages Badge Text'),
+        createTextField('menuBadgeText', 'Menu Badge Text'),
+    ];
+}
+
+function createFeatureSectionInspector(): InspectorField[] {
+    return [
+        createTextField('featuresTabText', 'Features Tab Text'),
+        createTextField('builderTabText', 'Builder Tab Text'),
+        createTextField('featuresButtonText', 'Features Button Text'),
+    ];
+}
+
+function createFeatureInspector(index: 1 | 2 | 3 | 4): InspectorField[] {
+    return [
+        createTextField(`feature${index}Title`, `Feature ${index} Title`),
+
+        createTextareaField(`feature${index}Description`, `Feature ${index} Description`),
+
+        createTextField(`feature${index}Item1Label`, `Feature ${index} Item 1 Label`),
+
+        createTextField(`feature${index}Item1Value`, `Feature ${index} Item 1 Value`),
+
+        createTextField(`feature${index}Item2Label`, `Feature ${index} Item 2 Label`),
+
+        createTextField(`feature${index}Item2Value`, `Feature ${index} Item 2 Value`),
+    ];
+}
+
+function createPublishInspector(): InspectorField[] {
+    return [
+        createTextField('templateReadyText', 'Template Ready Text'),
+
+        createTextField('pageHomeText', 'Page Home Text'),
+        createTextField('pageServicesText', 'Page Services Text'),
+        createTextField('pageAboutText', 'Page About Text'),
+        createTextField('menuReadyText', 'Menu Ready Text'),
+
+        createTextField('websiteText', 'Website Text'),
+        createTextField('liveText', 'Live Text'),
+        createTextField('domainText', 'Domain Text'),
+        createTextField('domainConnectedText', 'Domain Connected Text'),
+    ];
+}
+
+function createInspector(): InspectorField[] {
+    return [
+        // Hero
+        ...createHeroInspector(),
+        // Summary
+        ...createSummaryInspector(),
+
+        // Steps
+        ...createStepInspector(1),
+        ...createStepInspector(2),
+        ...createStepInspector(3),
+
+        createTextField('stepsButtonText', 'Steps Button Text'),
+
+        // Map
+        ...createMapInspector(),
+
+        // Setup
+        ...createSetupInspector(),
+
+        // Setup Cards
+        ...createSetupCardInspector('self'),
+        ...createSetupCardInspector('service'),
+
+        // Visual
+        ...createVisualInspector(),
+
+        // Feature Section
+        ...createFeatureSectionInspector(),
+
+        // Feature Cards
+        ...createFeatureInspector(1),
+        ...createFeatureInspector(2),
+        ...createFeatureInspector(3),
+        ...createFeatureInspector(4),
+
+        // Publish
+        ...createPublishInspector(),
+
+        createImageField('browserPreviewImage', 'Browser Preview'),
+
+        createImageField('mobilePreviewImage', 'Mobile Preview'),
+
+        createImageField('analyticsPreviewImage', 'Analytics Card'),
+
+        createImageField('plantPreviewImage', 'Plant Image'),
+    ];
+}
 
 export const SERVICE_01: RegItem = {
     kind: 'Service01',
 
     label: 'Service 01',
 
-    defaults: {
-        pathName: 'Service',
-        introEyebrow: 'GETTING STARTED',
-        introTitle: 'Start Your Website',
-        introTitleAccent: 'Your Way',
-        introDescription:
-            'Choose how you want to get started. Build with our guided editor or let us prepare the initial website structure for you.',
+    defaults: DEFAULT_PROPS,
 
-        visualEyebrow: 'WEBSITE BUILDER',
-        visualTitle: 'Build your website.',
-        visualTitleAccent: 'We make starting simple.',
-        visualDescription: 'Ready-made templates, guided setup, and everything you need to launch.',
-
-        brandName: 'Kbuilder',
-        brandDescription: 'Website Builder',
-
-        flow1Title: 'Self-Guided',
-        flow1Description: 'Build with guidance',
-        flow2Title: 'Setup Service',
-        flow2Description: 'We prepare it for you',
-        flow3Title: 'Edit & Publish',
-        flow3Description: 'Customize and go live',
-
-        securityText: 'Free security setup',
-        noCodeText: 'No coding required',
-
-        stepsEyebrow: 'HOW IT WORKS',
-        stepsCountText: '03 STEPS',
-
-        step1Number: '01',
-        step1Label: 'Self-Guided Setup',
-        step1Title: 'Build with our guided website builder',
-        step1Description:
-            'Connect your domain, receive your account, and customize your website using ready-made templates.',
-
-        step2Number: '02',
-        step2Label: 'Setup Service',
-        step2Title: 'Let us prepare your website for you',
-        step2Description:
-            'We prepare your initial template, pages, and navigation so you can start editing right away.',
-
-        step3Number: '03',
-        step3Label: 'Ready to Customize',
-        step3Title: 'Edit your content and publish',
-        step3Description:
-            'Update text, images, pages, and menus with our visual builder — no coding required.',
-
-        stepsButtonText: 'Explore how Kbuilder works',
-
-        zoomText: '100%',
-
-        mapStartTitle: 'Choose how to start',
-        mapStartDescription: 'Pick the setup option that works for you',
-
-        selfSetupTitle: 'Build It Yourself',
-
-        selfItem1Title: 'Connect Your Domain',
-        selfItem1Description: 'Provide the domain details needed for setup',
-        selfItem2Title: 'Free Security Setup',
-        selfItem2Description: 'We configure SSL and website security for free',
-        selfItem3Title: 'Receive Your Account',
-        selfItem3Description: 'Get access and follow our setup guide',
-
-        serviceSetupTitle: 'Done-for-You Setup',
-
-        serviceItem1Title: 'Template Ready',
-        serviceItem1Description: 'A website template is added for you',
-        serviceItem2Title: 'Pages Created',
-        serviceItem2Description: 'Essential website pages are prepared',
-        serviceItem3Title: 'Menu Configured',
-        serviceItem3Description: 'Navigation structure is ready to use',
-
-        readyTitle: 'Ready to Edit',
-        readyDescription: 'Customize your content and publish',
-
-        selfMapLabel: 'Self Setup',
-        serviceMapLabel: 'Setup Service',
-        readyMapLabel: 'Ready to customize',
-        setupNote: 'Two simple ways to launch your website',
-
-        selfSetupLabel: 'SELF-GUIDED SETUP',
-        selfSetupCardTitle: 'Build your website',
-        selfSetupCardTitleAccent: 'with our guided editor',
-        selfSetupCardDescription:
-            'Connect your domain, receive your account and customize a ready-made website with step-by-step guidance.',
-        selfSetupPrimaryText: 'Start Building',
-        selfSetupSecondaryText: 'How it works',
-        selfSetupLinkText: 'Explore features',
-        selfSetupHref: '#features',
-
-        serviceSetupLabel: 'SETUP SERVICE',
-        serviceSetupCardTitle: 'Let us prepare your',
-        serviceSetupCardTitleAccent: 'website for you',
-        serviceSetupCardDescription:
-            'We prepare your template, pages and navigation so you can start editing your content right away.',
-        serviceSetupPrimaryText: 'Get Setup Help',
-        serviceSetupSecondaryText: 'View process',
-        serviceSetupLinkText: 'Learn more',
-        serviceSetupHref: '#features',
-
-        templateBadgeText: 'Template',
-        pagesBadgeText: 'Pages',
-        menuBadgeText: 'Menu',
-
-        featuresTabText: 'Features',
-        builderTabText: 'Website Builder',
-        featuresButtonText: 'Explore all features',
-
-        feature1Title: 'Visual Builder',
-        feature1Description: 'Edit your website visually without writing code.',
-        feature1Item1Label: 'Edit',
-        feature1Item1Value: 'Text, images and sections',
-        feature1Item2Label: 'Build',
-        feature1Item2Value: 'Drag and customize content',
-
-        feature2Title: 'Ready Templates',
-        feature2Description: 'Start faster with professionally prepared layouts.',
-        feature2Item1Label: 'Templates',
-        feature2Item1Value: 'Ready-made website designs',
-        feature2Item2Label: 'Sections',
-        feature2Item2Value: 'Reusable content blocks',
-
-        feature3Title: 'Pages & Navigation',
-        feature3Description: 'Manage your website structure from one place.',
-        feature3Item1Label: 'Pages',
-        feature3Item1Value: 'Create and organize pages',
-        feature3Item2Label: 'Menu',
-        feature3Item2Value: 'Configure website navigation',
-
-        feature4Title: 'Publish & Manage',
-        feature4Description: 'Launch your website and keep everything updated.',
-        feature4Item1Label: 'Domain',
-        feature4Item1Value: 'Connect your own domain',
-        feature4Item2Label: 'Publish',
-        feature4Item2Value: 'Update your website anytime',
-
-        templateReadyText: 'Ready to use',
-
-        pageHomeText: 'Home',
-        pageServicesText: 'Services',
-        pageAboutText: 'About',
-        menuReadyText: 'Menu ready',
-
-        websiteText: 'Website',
-        liveText: 'Live',
-        domainText: 'yourdomain.com',
-        domainConnectedText: 'Domain connected',
-    },
-    inspector: [
-        textField('introEyebrow', 'Intro Eyebrow'),
-        textField('introTitle', 'Intro Title'),
-        textField('introTitleAccent', 'Intro Title Accent'),
-        textareaField('introDescription', 'Intro Description'),
-
-        textField('visualEyebrow', 'Visual Eyebrow'),
-        textField('visualTitle', 'Visual Title'),
-        textField('visualTitleAccent', 'Visual Title Accent'),
-        textareaField('visualDescription', 'Visual Description'),
-
-        textField('brandName', 'Brand Name'),
-        textField('brandDescription', 'Brand Description'),
-
-        textField('flow1Title', 'Flow 1 Title'),
-        textField('flow1Description', 'Flow 1 Description'),
-        textField('flow2Title', 'Flow 2 Title'),
-        textField('flow2Description', 'Flow 2 Description'),
-        textField('flow3Title', 'Flow 3 Title'),
-        textField('flow3Description', 'Flow 3 Description'),
-
-        textField('securityText', 'Security Text'),
-        textField('noCodeText', 'No Code Text'),
-
-        textField('stepsEyebrow', 'Steps Eyebrow'),
-        textField('stepsCountText', 'Steps Count Text'),
-
-        textField('step1Number', 'Step 1 Number'),
-        textField('step1Label', 'Step 1 Label'),
-        textField('step1Title', 'Step 1 Title'),
-        textareaField('step1Description', 'Step 1 Description'),
-
-        textField('step2Number', 'Step 2 Number'),
-        textField('step2Label', 'Step 2 Label'),
-        textField('step2Title', 'Step 2 Title'),
-        textareaField('step2Description', 'Step 2 Description'),
-
-        textField('step3Number', 'Step 3 Number'),
-        textField('step3Label', 'Step 3 Label'),
-        textField('step3Title', 'Step 3 Title'),
-        textareaField('step3Description', 'Step 3 Description'),
-
-        textField('stepsButtonText', 'Steps Button Text'),
-
-        textField('zoomText', 'Zoom Text'),
-
-        textField('mapStartTitle', 'Map Start Title'),
-        textareaField('mapStartDescription', 'Map Start Description'),
-
-        textField('selfSetupTitle', 'Self Setup Title'),
-
-        textField('selfItem1Title', 'Self Item 1 Title'),
-        textareaField('selfItem1Description', 'Self Item 1 Description'),
-        textField('selfItem2Title', 'Self Item 2 Title'),
-        textareaField('selfItem2Description', 'Self Item 2 Description'),
-        textField('selfItem3Title', 'Self Item 3 Title'),
-        textareaField('selfItem3Description', 'Self Item 3 Description'),
-
-        textField('serviceSetupTitle', 'Service Setup Title'),
-
-        textField('serviceItem1Title', 'Service Item 1 Title'),
-        textareaField('serviceItem1Description', 'Service Item 1 Description'),
-        textField('serviceItem2Title', 'Service Item 2 Title'),
-        textareaField('serviceItem2Description', 'Service Item 2 Description'),
-        textField('serviceItem3Title', 'Service Item 3 Title'),
-        textareaField('serviceItem3Description', 'Service Item 3 Description'),
-
-        textField('readyTitle', 'Ready Title'),
-        textareaField('readyDescription', 'Ready Description'),
-
-        textField('selfMapLabel', 'Self Map Label'),
-        textField('serviceMapLabel', 'Service Map Label'),
-        textField('readyMapLabel', 'Ready Map Label'),
-
-        textField('selfSetupLabel', 'Self Setup Label'),
-        textField('selfSetupCardTitle', 'Self Setup Card Title'),
-        textField('selfSetupCardTitleAccent', 'Self Setup Card Title Accent'),
-        textareaField('selfSetupCardDescription', 'Self Setup Card Description'),
-        textField('selfSetupPrimaryText', 'Self Setup Primary Button'),
-        textField('selfSetupSecondaryText', 'Self Setup Secondary Button'),
-        textField('selfSetupLinkText', 'Self Setup Link Text'),
-        textField('selfSetupHref', 'Self Setup Link'),
-
-        textField('serviceSetupLabel', 'Service Setup Label'),
-        textField('serviceSetupCardTitle', 'Service Setup Card Title'),
-        textField('serviceSetupCardTitleAccent', 'Service Setup Card Title Accent'),
-        textareaField('serviceSetupCardDescription', 'Service Setup Card Description'),
-        textField('serviceSetupPrimaryText', 'Service Setup Primary Button'),
-        textField('serviceSetupSecondaryText', 'Service Setup Secondary Button'),
-        textField('serviceSetupLinkText', 'Service Setup Link Text'),
-        textField('serviceSetupHref', 'Service Setup Link'),
-
-        textField('templateBadgeText', 'Template Badge Text'),
-        textField('pagesBadgeText', 'Pages Badge Text'),
-        textField('menuBadgeText', 'Menu Badge Text'),
-
-        textField('featuresTabText', 'Features Tab Text'),
-        textField('builderTabText', 'Builder Tab Text'),
-        textField('featuresButtonText', 'Features Button Text'),
-
-        textField('feature1Title', 'Feature 1 Title'),
-        textareaField('feature1Description', 'Feature 1 Description'),
-        textField('feature1Item1Label', 'Feature 1 Item 1 Label'),
-        textField('feature1Item1Value', 'Feature 1 Item 1 Value'),
-        textField('feature1Item2Label', 'Feature 1 Item 2 Label'),
-        textField('feature1Item2Value', 'Feature 1 Item 2 Value'),
-
-        textField('feature2Title', 'Feature 2 Title'),
-        textareaField('feature2Description', 'Feature 2 Description'),
-        textField('feature2Item1Label', 'Feature 2 Item 1 Label'),
-        textField('feature2Item1Value', 'Feature 2 Item 1 Value'),
-        textField('feature2Item2Label', 'Feature 2 Item 2 Label'),
-        textField('feature2Item2Value', 'Feature 2 Item 2 Value'),
-
-        textField('feature3Title', 'Feature 3 Title'),
-        textareaField('feature3Description', 'Feature 3 Description'),
-        textField('feature3Item1Label', 'Feature 3 Item 1 Label'),
-        textField('feature3Item1Value', 'Feature 3 Item 1 Value'),
-        textField('feature3Item2Label', 'Feature 3 Item 2 Label'),
-        textField('feature3Item2Value', 'Feature 3 Item 2 Value'),
-
-        textField('feature4Title', 'Feature 4 Title'),
-        textareaField('feature4Description', 'Feature 4 Description'),
-        textField('feature4Item1Label', 'Feature 4 Item 1 Label'),
-        textField('feature4Item1Value', 'Feature 4 Item 1 Value'),
-        textField('feature4Item2Label', 'Feature 4 Item 2 Label'),
-        textField('feature4Item2Value', 'Feature 4 Item 2 Value'),
-
-        textField('templateReadyText', 'Template Ready Text'),
-
-        textField('pageHomeText', 'Page Home Text'),
-        textField('pageServicesText', 'Page Services Text'),
-        textField('pageAboutText', 'Page About Text'),
-        textField('menuReadyText', 'Menu Ready Text'),
-
-        textField('websiteText', 'Website Text'),
-        textField('liveText', 'Live Text'),
-        textField('domainText', 'Domain Text'),
-        textField('domainConnectedText', 'Domain Connected Text'),
-    ],
+    inspector: createInspector(),
 
     render: (props) => <Service01 {...(props as unknown as Service01Props)} />,
 };

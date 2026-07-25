@@ -1,116 +1,153 @@
 'use client';
 
-import { useMemo } from 'react';
-import type { RegItem } from '@/lib/ui-builder/types';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+
+import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
+
+import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
 import Link from 'next/link';
 import styles from '@/components/admin/shared/templates/services/project/styles/project-01.module.css';
 type StatTone = 'blue' | 'purple' | 'green' | 'orange';
-export interface ProjectPage01Props {
-    breadcrumbHome?: string;
-    breadcrumbCurrent?: string;
-    heroBadgeTop?: string;
-    heroBadgeLeft?: string;
-    heroBadgeBottom?: string;
-    heroBadgeSsl?: string;
-    heroTitle?: string;
-    heroDescription?: string;
-    heroButtonLabel?: string;
-    sectionBadge?: string;
-    sectionTitle?: string;
-    sectionTitleAccent?: string;
-    sectionDescription?: string;
-    stat1Value?: string;
-    stat1Label?: string;
-    stat2Value?: string;
-    stat2Label?: string;
-    stat3Value?: string;
-    stat3Label?: string;
-    stat4Value?: string;
-    stat4Label?: string;
-    eyebrowText1?: string;
-    eyebrowAccentText1?: string;
-    highlightText1?: string;
-
-    eyebrowText2?: string;
-    eyebrowAccentText2?: string;
-    highlightText2?: string;
-    subTitle1?: string;
-    icon1?: string;
-    title1?: string;
-    description1?: string;
-    image1?: string;
-    subTitle2?: string;
-    icon2?: string;
-    title2?: string;
-    description2?: string;
-    image2?: string;
-    subTitle3?: string;
-    icon3?: string;
-    title3?: string;
-    description3?: string;
-    image3?: string;
-    subTitle4?: string;
-    icon4?: string;
-    title4?: string;
-    description4?: string;
-    image4?: string;
-    subTitle5?: string;
-    icon5?: string;
-    title5?: string;
-    description5?: string;
-    image5?: string;
-    subTitle6?: string;
-    icon6?: string;
-    title6?: string;
-    description6?: string;
-    image6?: string;
-    subTitle7?: string;
-    icon7?: string;
-    title7?: string;
-    description7?: string;
-    image7?: string;
-    subTitle8?: string;
-    icon8?: string;
-    title8?: string;
-    description8?: string;
-    image8?: string;
-    subTitle9?: string;
-    icon9?: string;
-    title9?: string;
-    description9?: string;
-    image9?: string;
-    subTitle10?: string;
-    icon10?: string;
-    title10?: string;
-    description10?: string;
-    image10?: string;
-    subTitle11?: string;
-    icon11?: string;
-    title11?: string;
-    description11?: string;
-    image11?: string;
-}
+import Image from 'next/image';
 
 type FeatureItem = {
-    subtitle: string;
+    subtitle: LocalizedText;
     icon: string;
-    title: string;
-    description: string;
+    title: LocalizedText;
+    description: LocalizedText;
     image: string;
 };
 
-type FeatureSectionHeaderProps = {
-    eyebrow: string;
-    accent: string;
-    highlight: string;
+type FeatureCardProps = {
+    feature: FeatureItem;
+    t: (value: LocalizedText) => string;
 };
 
+type FeatureSectionHeaderProps = {
+    eyebrow: LocalizedText;
+    accent: LocalizedText;
+    highlight: LocalizedText;
+    t: (value: LocalizedText) => string;
+};
+
+type StatItem = {
+    value: LocalizedText;
+    label: LocalizedText;
+    icon: string;
+    tone: StatTone;
+};
+
+export interface ProjectPage01Props {
+    breadcrumbHome?: LocalizedText;
+    breadcrumbCurrent?: LocalizedText;
+
+    heroBadgeTop?: LocalizedText;
+    heroBadgeLeft?: LocalizedText;
+    heroBadgeBottom?: LocalizedText;
+    heroBadgeSsl?: LocalizedText;
+
+    heroTitle?: LocalizedText;
+    heroDescription?: LocalizedText;
+    heroButtonLabel?: LocalizedText;
+
+    sectionBadge?: LocalizedText;
+    sectionTitle?: LocalizedText;
+    sectionTitleAccent?: LocalizedText;
+    sectionDescription?: LocalizedText;
+
+    stat1Value?: LocalizedText;
+    stat1Label?: LocalizedText;
+
+    stat2Value?: LocalizedText;
+    stat2Label?: LocalizedText;
+
+    stat3Value?: LocalizedText;
+    stat3Label?: LocalizedText;
+
+    stat4Value?: LocalizedText;
+    stat4Label?: LocalizedText;
+
+    eyebrowText1?: LocalizedText;
+    eyebrowAccentText1?: LocalizedText;
+    highlightText1?: LocalizedText;
+
+    eyebrowText2?: LocalizedText;
+    eyebrowAccentText2?: LocalizedText;
+    highlightText2?: LocalizedText;
+
+    subTitle1?: LocalizedText;
+    icon1?: string;
+    title1?: LocalizedText;
+    description1?: LocalizedText;
+    image1?: string;
+
+    subTitle2?: LocalizedText;
+    icon2?: string;
+    title2?: LocalizedText;
+    description2?: LocalizedText;
+    image2?: string;
+
+    subTitle3?: LocalizedText;
+    icon3?: string;
+    title3?: LocalizedText;
+    description3?: LocalizedText;
+    image3?: string;
+
+    subTitle4?: LocalizedText;
+    icon4?: string;
+    title4?: LocalizedText;
+    description4?: LocalizedText;
+    image4?: string;
+
+    subTitle5?: LocalizedText;
+    icon5?: string;
+    title5?: LocalizedText;
+    description5?: LocalizedText;
+    image5?: string;
+
+    subTitle6?: LocalizedText;
+    icon6?: string;
+    title6?: LocalizedText;
+    description6?: LocalizedText;
+    image6?: string;
+
+    subTitle7?: LocalizedText;
+    icon7?: string;
+    title7?: LocalizedText;
+    description7?: LocalizedText;
+    image7?: string;
+
+    subTitle8?: LocalizedText;
+    icon8?: string;
+    title8?: LocalizedText;
+    description8?: LocalizedText;
+    image8?: string;
+
+    subTitle9?: LocalizedText;
+    icon9?: string;
+    title9?: LocalizedText;
+    description9?: LocalizedText;
+    image9?: string;
+
+    subTitle10?: LocalizedText;
+    icon10?: string;
+    title10?: LocalizedText;
+    description10?: LocalizedText;
+    image10?: string;
+
+    subTitle11?: LocalizedText;
+    icon11?: string;
+    title11?: LocalizedText;
+    description11?: LocalizedText;
+    image11?: string;
+}
+
 function createFeature(
-    subtitle = '',
-    icon = '',
-    title = '',
-    description = '',
-    image = '',
+    subtitle: LocalizedText,
+    icon: string,
+    title: LocalizedText,
+    description: LocalizedText,
+    image: string,
 ): FeatureItem {
     return {
         subtitle,
@@ -121,25 +158,612 @@ function createFeature(
     };
 }
 
-type FeatureCardProps = {
-    feature: FeatureItem;
+export const DEFAULT_PROPS: Required<ProjectPage01Props> = {
+    breadcrumbHome: {
+        sourceLocale: 'en',
+        default: 'Home',
+        translations: {
+            vi: 'Trang chủ',
+            ja: 'ホーム',
+        },
+    },
+
+    breadcrumbCurrent: {
+        sourceLocale: 'en',
+        default: 'Project',
+        translations: {
+            vi: 'Dự án',
+            ja: 'プロジェクト',
+        },
+    },
+
+    heroBadgeTop: {
+        sourceLocale: 'en',
+        default: 'AI Generated',
+        translations: {
+            vi: 'Được tạo bởi AI',
+            ja: 'AI生成',
+        },
+    },
+
+    heroBadgeLeft: {
+        sourceLocale: 'en',
+        default: 'No-Code Builder',
+        translations: {
+            vi: 'Trình tạo không cần lập trình',
+            ja: 'ノーコードビルダー',
+        },
+    },
+
+    heroBadgeBottom: {
+        sourceLocale: 'en',
+        default: '500+ Templates',
+        translations: {
+            vi: '500+ mẫu giao diện',
+            ja: '500以上のテンプレート',
+        },
+    },
+
+    heroBadgeSsl: {
+        sourceLocale: 'en',
+        default: 'Free SSL',
+        translations: {
+            vi: 'SSL miễn phí',
+            ja: '無料SSL',
+        },
+    },
+
+    heroTitle: {
+        sourceLocale: 'en',
+        default: 'Build Smarter With',
+        translations: {
+            vi: 'Xây dựng thông minh cùng',
+            ja: 'よりスマートに構築',
+        },
+    },
+
+    heroDescription: {
+        sourceLocale: 'en',
+        default:
+            'Launch websites faster using visual editing, responsive templates, cloud hosting and AI-assisted content generation.',
+        translations: {
+            vi: 'Tạo và xuất bản website nhanh hơn với trình chỉnh sửa trực quan, giao diện responsive, cloud hosting và AI hỗ trợ tạo nội dung.',
+            ja: 'ビジュアル編集、レスポンシブテンプレート、クラウドホスティング、AI支援コンテンツ生成で素早くWebサイトを公開します。',
+        },
+    },
+
+    heroButtonLabel: {
+        sourceLocale: 'en',
+        default: 'Start Building',
+        translations: {
+            vi: 'Bắt đầu xây dựng',
+            ja: '今すぐ始める',
+        },
+    },
+
+    sectionBadge: {
+        sourceLocale: 'en',
+        default: 'What We Build',
+        translations: {
+            vi: 'Những gì chúng tôi xây dựng',
+            ja: '私たちが提供するもの',
+        },
+    },
+
+    sectionTitle: {
+        sourceLocale: 'en',
+        default: 'Everything You Need',
+        translations: {
+            vi: 'Mọi thứ bạn cần',
+            ja: '必要なものすべて',
+        },
+    },
+
+    sectionTitleAccent: {
+        sourceLocale: 'en',
+        default: 'To Launch Online',
+        translations: {
+            vi: 'Để phát triển trực tuyến',
+            ja: 'オンライン公開のために',
+        },
+    },
+
+    sectionDescription: {
+        sourceLocale: 'en',
+        default:
+            'Kbuilder provides a complete platform for building, managing and publishing professional websites through visual editing, reusable components and intelligent automation.',
+        translations: {
+            vi: 'Kbuilder cung cấp nền tảng hoàn chỉnh để xây dựng, quản lý và xuất bản website chuyên nghiệp bằng trình chỉnh sửa trực quan, component tái sử dụng và tự động hóa thông minh.',
+            ja: 'Kbuilderはビジュアル編集、再利用可能なコンポーネント、インテリジェントな自動化を備えたWebサイト構築・管理・公開プラットフォームです。',
+        },
+    },
+
+    stat1Value: {
+        sourceLocale: 'en',
+        default: '50+',
+        translations: {
+            vi: '50+',
+            ja: '50+',
+        },
+    },
+
+    stat1Label: {
+        sourceLocale: 'en',
+        default: 'Websites Created',
+        translations: {
+            vi: 'Website đã tạo',
+            ja: '制作済みサイト',
+        },
+    },
+
+    stat2Value: {
+        sourceLocale: 'en',
+        default: '500+',
+        translations: {
+            vi: '500+',
+            ja: '500+',
+        },
+    },
+
+    stat2Label: {
+        sourceLocale: 'en',
+        default: 'Templates',
+        translations: {
+            vi: 'Mẫu giao diện',
+            ja: 'テンプレート',
+        },
+    },
+
+    stat3Value: {
+        sourceLocale: 'en',
+        default: '100%',
+        translations: {
+            vi: '100%',
+            ja: '100%',
+        },
+    },
+
+    stat3Label: {
+        sourceLocale: 'en',
+        default: 'No-Code Experience',
+        translations: {
+            vi: 'Không cần lập trình',
+            ja: 'ノーコード体験',
+        },
+    },
+
+    stat4Value: {
+        sourceLocale: 'en',
+        default: 'AI',
+        translations: {
+            vi: 'AI',
+            ja: 'AI',
+        },
+    },
+
+    stat4Label: {
+        sourceLocale: 'en',
+        default: 'Powered Builder',
+        translations: {
+            vi: 'Nền tảng AI',
+            ja: 'AI搭載ビルダー',
+        },
+    },
+
+    eyebrowText1: {
+        sourceLocale: 'en',
+        default: 'Create Professional Websites and Business Applications Without Code',
+        translations: {
+            vi: 'Tạo website và ứng dụng doanh nghiệp chuyên nghiệp không cần lập trình',
+            ja: 'コード不要でプロフェッショナルなWebサイトと業務アプリを構築',
+        },
+    },
+
+    eyebrowAccentText1: {
+        sourceLocale: 'en',
+        default: 'Business Applications Without Code',
+        translations: {
+            vi: 'Ứng dụng doanh nghiệp không cần lập trình',
+            ja: 'コード不要の業務アプリ',
+        },
+    },
+
+    highlightText1: {
+        sourceLocale: 'en',
+        default: 'Automation Ready',
+        translations: {
+            vi: 'Sẵn sàng tự động hóa',
+            ja: '自動化対応',
+        },
+    },
+
+    eyebrowText2: {
+        sourceLocale: 'en',
+        default: 'Research & Development with',
+        translations: {
+            vi: 'Nghiên cứu và phát triển với',
+            ja: '研究開発',
+        },
+    },
+
+    eyebrowAccentText2: {
+        sourceLocale: 'en',
+        default: 'Machine Learning',
+        translations: {
+            vi: 'Machine Learning',
+            ja: '機械学習',
+        },
+    },
+
+    highlightText2: {
+        sourceLocale: 'en',
+        default: 'Automation Ready',
+        translations: {
+            vi: 'Sẵn sàng tự động hóa',
+            ja: '自動化対応',
+        },
+    },
+    subTitle1: {
+        sourceLocale: 'en',
+        default: 'Website Builder',
+        translations: {
+            vi: 'Trình tạo Website',
+            ja: 'Webサイトビルダー',
+        },
+    },
+
+    icon1: 'bi-window-stack',
+
+    title1: {
+        sourceLocale: 'en',
+        default: 'No-Code Website Builder',
+        translations: {
+            vi: 'Trình tạo Website không cần lập trình',
+            ja: 'ノーコードWebサイトビルダー',
+        },
+    },
+
+    description1: {
+        sourceLocale: 'en',
+        default:
+            'Empower your team to build, manage, and scale professional websites through a fully visual editing experience. With drag-and-drop page creation, dynamic menu management, reusable content blocks, and flexible design controls, anyone can create beautiful responsive websites without technical expertise.',
+        translations: {
+            vi: 'Cho phép đội ngũ của bạn xây dựng, quản lý và mở rộng website chuyên nghiệp bằng trình chỉnh sửa trực quan. Kéo thả trang, quản lý menu, tái sử dụng component và tùy chỉnh giao diện dễ dàng mà không cần lập trình.',
+            ja: 'ビジュアルエディター、ドラッグ＆ドロップ編集、動的メニュー、再利用可能なコンテンツブロックにより、誰でも簡単にプロフェッショナルなWebサイトを構築できます。',
+        },
+    },
+
+    image1: '/assets/images/feature-add.png',
+
+    subTitle2: {
+        sourceLocale: 'en',
+        default: 'Automation',
+        translations: {
+            vi: 'Tự động hóa',
+            ja: '自動化',
+        },
+    },
+
+    icon2: 'bi-lightning-charge',
+
+    title2: {
+        sourceLocale: 'en',
+        default: 'Website Automation',
+        translations: {
+            vi: 'Tự động hóa Website',
+            ja: 'Webサイト自動化',
+        },
+    },
+
+    description2: {
+        sourceLocale: 'en',
+        default:
+            'Launch a fully configured website in as little as 10 minutes. Automatically generate pages, apply branding, configure site settings, and streamline publishing workflows. Schedule and automate content distribution across Facebook and TikTok to keep your audience engaged without manual work.',
+        translations: {
+            vi: 'Triển khai website hoàn chỉnh chỉ trong vài phút. Tự động tạo trang, áp dụng thương hiệu, cấu hình website và tự động hóa quy trình xuất bản cũng như phân phối nội dung.',
+            ja: '数分で完全なWebサイトを構築し、ページ生成・ブランド適用・設定・公開・SNS配信まで自動化します。',
+        },
+    },
+
+    image2: '/assets/images/automation-add.png',
+
+    subTitle3: {
+        sourceLocale: 'en',
+        default: 'Navigation',
+        translations: {
+            vi: 'Điều hướng',
+            ja: 'ナビゲーション',
+        },
+    },
+
+    icon3: 'bi-grid-3x3-gap',
+
+    title3: {
+        sourceLocale: 'en',
+        default: 'Drag & Drop Menus',
+        translations: {
+            vi: 'Menu kéo thả',
+            ja: 'ドラッグ＆ドロップメニュー',
+        },
+    },
+
+    description3: {
+        sourceLocale: 'en',
+        default:
+            'Build professional navigation systems with visual drag-and-drop controls. Create multi-level dropdowns, mega menus, mobile navigation, and custom links while organizing pages effortlessly. Update menu structures instantly and deliver a seamless browsing experience across all devices without writing code.',
+        translations: {
+            vi: 'Xây dựng hệ thống menu chuyên nghiệp bằng kéo thả trực quan. Hỗ trợ menu đa cấp, mega menu, menu mobile và liên kết tùy chỉnh mà không cần lập trình.',
+            ja: 'ドラッグ＆ドロップ操作でメガメニュー、階層メニュー、モバイルメニューを簡単に構築できます。',
+        },
+    },
+
+    image3: '/assets/images/drag-add.png',
+
+    subTitle4: {
+        sourceLocale: 'en',
+        default: 'Templates',
+        translations: {
+            vi: 'Mẫu giao diện',
+            ja: 'テンプレート',
+        },
+    },
+
+    icon4: 'bi-layout-text-window',
+
+    title4: {
+        sourceLocale: 'en',
+        default: 'Premium Templates',
+        translations: {
+            vi: 'Kho giao diện cao cấp',
+            ja: 'プレミアムテンプレート',
+        },
+    },
+
+    description4: {
+        sourceLocale: 'en',
+        default:
+            'Access a growing collection of 300+ premium website templates designed for every industry and use case. From SaaS platforms and landing pages to eCommerce and booking websites, each template is fully editable, mobile-friendly, and optimized for performance, SEO, and conversion.',
+        translations: {
+            vi: 'Truy cập thư viện hơn 300 giao diện chuyên nghiệp cho Landing Page, SaaS, Booking, eCommerce và nhiều lĩnh vực khác. Mỗi giao diện đều responsive, tối ưu SEO và dễ dàng tùy chỉnh.',
+            ja: '300種類以上の高品質テンプレートを利用でき、すべてレスポンシブ・SEO最適化・編集可能です。',
+        },
+    },
+
+    image4: '/assets/images/template-add.png',
+
+    subTitle5: {
+        sourceLocale: 'en',
+        default: 'Smart Setup',
+        translations: {
+            vi: 'Thiết lập thông minh',
+            ja: 'スマートセットアップ',
+        },
+    },
+
+    icon5: 'bi-magic',
+
+    title5: {
+        sourceLocale: 'en',
+        default: 'Automatic Setup',
+        translations: {
+            vi: 'Thiết lập tự động',
+            ja: '自動セットアップ',
+        },
+    },
+
+    description5: {
+        sourceLocale: 'en',
+        default:
+            'Automatically configure your website, generate pages, prepare navigation, connect domains, and apply essential settings within minutes. Reduce manual work and launch projects much faster.',
+        translations: {
+            vi: 'Tự động cấu hình website, tạo trang, chuẩn bị menu, kết nối tên miền và áp dụng các thiết lập cần thiết chỉ trong vài phút.',
+            ja: 'Webサイト設定、ページ生成、ナビゲーション作成、ドメイン接続を自動化します。',
+        },
+    },
+
+    image5: '/assets/images/setup-add.png',
+
+    subTitle6: {
+        sourceLocale: 'en',
+        default: 'Security',
+        translations: {
+            vi: 'Bảo mật',
+            ja: 'セキュリティ',
+        },
+    },
+
+    icon6: 'bi-shield-check',
+
+    title6: {
+        sourceLocale: 'en',
+        default: 'Custom SSL & Domains',
+        translations: {
+            vi: 'SSL & Tên miền',
+            ja: 'SSL・独自ドメイン',
+        },
+    },
+
+    description6: {
+        sourceLocale: 'en',
+        default:
+            'Publish websites under your own branded domain with automated DNS configuration and free SSL certificates. Secure every website with HTTPS, improve SEO performance, and manage domains directly from the platform.',
+        translations: {
+            vi: 'Xuất bản website với tên miền riêng, cấu hình DNS tự động và SSL miễn phí. Bảo mật HTTPS, cải thiện SEO và quản lý tên miền trực tiếp trên nền tảng.',
+            ja: '独自ドメイン・無料SSL・HTTPS・DNS自動設定をサポートし、安全なWebサイトを公開できます。',
+        },
+    },
+
+    image6: '/assets/images/ssl-add.png',
+
+    subTitle7: {
+        sourceLocale: 'en',
+        default: 'Web Builder',
+        translations: {
+            vi: 'Trình tạo Website',
+            ja: 'Webビルダー',
+        },
+    },
+
+    icon7: 'bi-bounding-box',
+
+    title7: {
+        sourceLocale: 'en',
+        default: 'Visual Canvas Builder',
+        translations: {
+            vi: 'Canvas Builder trực quan',
+            ja: 'ビジュアルキャンバスビルダー',
+        },
+    },
+
+    description7: {
+        sourceLocale: 'en',
+        default:
+            'Researching and developing a next-generation visual website builder powered by a canvas-based editing experience. Users can design pages, arrange components, manage layouts, and customize content through a drag-and-drop interface built with Next.js.',
+        translations: {
+            vi: 'Nghiên cứu và phát triển trình tạo website thế hệ mới dựa trên Canvas. Người dùng có thể kéo thả component, thiết kế layout và chỉnh sửa nội dung trực tiếp bằng giao diện trực quan.',
+            ja: 'キャンバスベースの次世代Webサイトビルダーを開発し、ドラッグ＆ドロップでページやコンポーネントを自由に編集できます。',
+        },
+    },
+
+    image7: '/assets/images/canvas-add.png',
+
+    subTitle8: {
+        sourceLocale: 'en',
+        default: 'Mobile Apps',
+        translations: {
+            vi: 'Ứng dụng di động',
+            ja: 'モバイルアプリ',
+        },
+    },
+
+    icon8: 'bi-phone',
+
+    title8: {
+        sourceLocale: 'en',
+        default: 'React Native Applications',
+        translations: {
+            vi: 'Ứng dụng React Native',
+            ja: 'React Nativeアプリケーション',
+        },
+    },
+
+    description8: {
+        sourceLocale: 'en',
+        default:
+            'Building cross-platform mobile applications with React Native for task management, business operations, customer engagement, and productivity workflows while maintaining a consistent experience across iOS and Android devices.',
+        translations: {
+            vi: 'Phát triển ứng dụng đa nền tảng bằng React Native phục vụ quản lý công việc, doanh nghiệp và khách hàng với trải nghiệm đồng nhất trên iOS và Android.',
+            ja: 'React Nativeを利用してiOS・Android向けクロスプラットフォームアプリケーションを開発します。',
+        },
+    },
+
+    image8: '/assets/images/research-react-native.png',
+
+    subTitle9: {
+        sourceLocale: 'en',
+        default: 'Immersive Tech',
+        translations: {
+            vi: 'Công nghệ nhập vai',
+            ja: '没入型テクノロジー',
+        },
+    },
+
+    icon9: 'bi-badge-vr',
+
+    title9: {
+        sourceLocale: 'en',
+        default: 'Virtual Reality Experiences',
+        translations: {
+            vi: 'Trải nghiệm thực tế ảo',
+            ja: 'VR体験',
+        },
+    },
+
+    description9: {
+        sourceLocale: 'en',
+        default:
+            'Exploring virtual reality technologies to create immersive digital experiences, interactive environments, product showcases, training simulations, and next-generation user interactions across multiple industries.',
+        translations: {
+            vi: 'Nghiên cứu công nghệ thực tế ảo nhằm xây dựng trải nghiệm số, môi trường tương tác, mô phỏng đào tạo và trình diễn sản phẩm.',
+            ja: 'VR技術を活用し、没入型体験、製品展示、教育シミュレーションなどを実現します。',
+        },
+    },
+
+    image9: '/assets/images/research-vr.png',
+
+    subTitle10: {
+        sourceLocale: 'en',
+        default: 'Artificial Intelligence',
+        translations: {
+            vi: 'Trí tuệ nhân tạo',
+            ja: '人工知能',
+        },
+    },
+
+    icon10: 'bi-cpu',
+
+    title10: {
+        sourceLocale: 'en',
+        default: 'Machine Learning & AI',
+        translations: {
+            vi: 'Machine Learning & AI',
+            ja: '機械学習・AI',
+        },
+    },
+
+    description10: {
+        sourceLocale: 'en',
+        default:
+            'Researching machine learning and artificial intelligence technologies to automate workflows, analyze business data, intelligent recommendations, and enhance digital products with smart decision-making capabilities.',
+        translations: {
+            vi: 'Nghiên cứu Machine Learning và AI nhằm tự động hóa quy trình, phân tích dữ liệu doanh nghiệp và nâng cao khả năng ra quyết định thông minh.',
+            ja: '機械学習とAIを活用し、業務自動化・データ分析・インテリジェントな意思決定を実現します。',
+        },
+    },
+
+    image10: '/assets/images/research-ai.png',
+
+    subTitle11: {
+        sourceLocale: 'en',
+        default: 'SEO & Marketing',
+        translations: {
+            vi: 'SEO & Marketing',
+            ja: 'SEO・マーケティング',
+        },
+    },
+
+    icon11: 'bi-graph-up-arrow',
+
+    title11: {
+        sourceLocale: 'en',
+        default: 'SEO Landing Pages',
+        translations: {
+            vi: 'Landing Page chuẩn SEO',
+            ja: 'SEOランディングページ',
+        },
+    },
+
+    description11: {
+        sourceLocale: 'en',
+        default:
+            'Developing SEO-optimized landing page systems focused on performance, search visibility, content structure, and conversion optimization to help businesses attract more organic traffic and generate qualified leads.',
+        translations: {
+            vi: 'Phát triển hệ thống Landing Page chuẩn SEO với hiệu năng cao, cấu trúc nội dung tối ưu và tỷ lệ chuyển đổi tốt nhằm thu hút nhiều khách hàng tiềm năng.',
+            ja: 'SEOに最適化されたランディングページを開発し、検索順位・パフォーマンス・コンバージョン率を向上させます。',
+        },
+    },
+
+    image11: '/assets/images/research-seo.png',
 };
 
-type StatItem = {
-    value: string;
-    label: string;
-    icon: string;
-    tone: StatTone;
-};
-
-function FeatureCard({ feature }: FeatureCardProps) {
+function FeatureCard({ feature, t }: FeatureCardProps) {
     return (
         <article className={styles.card}>
             <div className={styles.imageWrap}>
                 <div className={styles.imageGlow} />
                 <div className={styles.imageGrid} />
 
-                <img src={feature.image} alt={feature.title} className={styles.image} />
+                <img src={feature.image} alt={t(feature.title)} className={styles.image} />
             </div>
 
             <div className={styles.content}>
@@ -149,15 +773,15 @@ function FeatureCard({ feature }: FeatureCardProps) {
                     </div>
 
                     <div className={styles.headerTop}>
-                        <h3>{feature.title}</h3>
-                        <h4 className={styles.subtitle}>{feature.subtitle}</h4>
+                        <h3>{t(feature.title)}</h3>
+                        <h4 className={styles.subtitle}>{t(feature.subtitle)}</h4>
                     </div>
                 </div>
 
                 <div className={styles.cardFooter}>
                     <div className={styles.metaRow}>
                         <div className={styles.metaContent}>
-                            <p>{feature.description}</p>
+                            <p>{t(feature.description)}</p>
                         </div>
                     </div>
 
@@ -177,21 +801,24 @@ function FeatureCard({ feature }: FeatureCardProps) {
         </article>
     );
 }
-
-function FeatureSectionHeader({ eyebrow, accent, highlight }: FeatureSectionHeaderProps) {
+function FeatureSectionHeader({ eyebrow, accent, highlight, t }: FeatureSectionHeaderProps) {
     return (
         <div className={styles.header}>
-            <div>
-                <h2 className={styles.eyebrow}>
+            <div className={styles.headerLeft}>
+                <div className={styles.iconBoxTitle}>
                     <i className="bi bi-rocket-takeoff-fill" />
-                    {eyebrow}
-                    <span>{accent}</span>
-                </h2>
+                </div>
+
+                <div className={styles.textContent}>
+                    <h2 className={styles.eyebrow}>{t(eyebrow)}</h2>
+
+                    <p className={styles.accent}>{t(accent)}</p>
+                </div>
             </div>
 
-            <button className={styles.ctaButton}>
+            <button type="button" className={styles.ctaButton}>
                 <i className="bi bi-lightning-charge-fill" />
-                <span>{highlight}</span>
+                <span>{t(highlight)}</span>
             </button>
         </div>
     );
@@ -229,104 +856,12 @@ function createFeatureInspector(index: number): RegItem['inspector'] {
     ];
 }
 
-export const DEFAULT_PROPS: Required<ProjectPage01Props> = {
-    breadcrumbHome: 'Home',
-    breadcrumbCurrent: 'Project',
-    heroBadgeTop: 'AI Generated',
-    heroBadgeLeft: 'No-Code Builder',
-    heroBadgeBottom: '500+ Templates',
-    heroBadgeSsl: 'Free SSL',
-    heroTitle: 'Build Smarter With AI',
-    heroDescription:
-        'Launch websites faster using visual editing, responsive templates, cloud hosting and AI-assisted content generation.',
-    heroButtonLabel: 'Start Building',
-    sectionBadge: 'WHAT WE BUILD',
-    sectionTitle: 'Everything You Need',
-    sectionTitleAccent: 'To Launch Online',
-    sectionDescription:
-        'Kbuilder provides a complete platform for building, managing and publishing professional websites through visual editing, reusable components and intelligent automation.',
-    stat1Value: '50+',
-    stat1Label: 'Websites Created',
-    stat2Value: '500+',
-    stat2Label: 'Templates',
-    stat3Value: '100%',
-    stat3Label: 'No-Code Experience',
-    stat4Value: 'AI',
-    stat4Label: 'Powered Builder',
-    eyebrowText1: 'Create Professional Websites and Business Applications Without Code',
-    eyebrowAccentText1: 'Business Applications Without Code',
-    highlightText1: 'Automation Ready',
-    eyebrowText2: 'Research & Development with',
-    eyebrowAccentText2: 'Machine Learning',
-    highlightText2: 'Automation Ready',
-    subTitle1: 'Website Builder',
-    icon1: 'bi-window-stack',
-    title1: 'No-Code Website Builder',
-    description1:
-        'Empower your team to build, manage, and scale professional websites through a fully visual editing experience. With drag-and-drop page creation, dynamic menu management, reusable content blocks, and flexible design controls, anyone can create beautiful responsive websites without technical expertise.',
-    image1: '/assets/images/feature-add.png',
-    subTitle2: 'Automation',
-    icon2: 'bi-lightning-charge',
-    title2: 'Website Automation',
-    description2:
-        'Launch a fully configured website in as little as 10 minutes. Automatically generate pages, apply branding, configure site settings, and streamline publishing workflows. Schedule and automate content distribution across Facebook and TikTok to keep your audience engaged without manual work.',
-    image2: '/assets/images/automation-add.png',
-    subTitle3: 'Navigation',
-    icon3: 'bi-grid-3x3-gap',
-    title3: 'Drag & Drop Menus',
-    description3:
-        'Build professional navigation systems with visual drag-and-drop controls. Create multi-level dropdowns, mega menus, mobile navigation, and custom links while organizing pages effortlessly. Update menu structures instantly and deliver a seamless browsing experience across all devices without writing code.',
-    image3: '/assets/images/drag-add.png',
-    subTitle4: 'Templates',
-    icon4: 'bi-layout-text-window',
-    title4: 'Premium Templates',
-    description4:
-        'Access a growing collection of 300+ premium website templates designed for every industry and use case. From SaaS platforms and landing pages to eCommerce and booking websites, each template is fully editable, mobile-friendly, and optimized for performance, SEO, and conversion.',
-    image4: '/assets/images/template-add.png',
-    subTitle5: 'Smart Setup',
-    icon5: 'bi-magic',
-    title5: 'Automatic Setup',
-    description5:
-        'Publish websites under your own branded domain with automated DNS configuration and free SSL certificates. Secure every website with HTTPS, improve SEO performance, and manage domains directly from the platform without dealing with servers, hosting panels, or complex technical setup.',
-    image5: '/assets/images/setup-add.png',
-    subTitle6: 'Security',
-    icon6: 'bi-shield-check',
-    title6: 'Custom SSL & Domains',
-    description6:
-        'Publish websites under your own branded domain with automated DNS configuration and free SSL certificates. Secure every website with HTTPS, improve SEO performance, and manage domains directly from the platform without dealing with servers, hosting panels, or complex technical setup.',
-    image6: '/assets/images/ssl-add.png',
-    subTitle7: 'Web Builder',
-    icon7: 'bi-bounding-box',
-    title7: 'Visual Canvas Builder',
-    description7:
-        'Researching and developing a next-generation visual website builder powered by a canvas-based editing experience. Users can design pages, arrange components, manage layouts, and customize content through a drag-and-drop interface built with Next.js.',
-    image7: '/assets/images/canvas-add.png',
-    subTitle8: 'Mobile Apps',
-    icon8: 'bi-phone',
-    title8: 'React Native Applications',
-    description8:
-        'Building cross-platform mobile applications with React Native for task management, business operations, customer engagement, and productivity workflows while maintaining a consistent experience across iOS and Android devices.',
-    image8: '/assets/images/research-react-native.png',
-    subTitle9: 'Immersive Tech',
-    icon9: 'bi-badge-vr',
-    title9: 'Virtual Reality Experiences',
-    description9:
-        'Exploring virtual reality technologies to create immersive digital experiences, interactive environments, product showcases, training simulations, and next-generation user interactions across multiple industries.',
-    image9: '/assets/images/research-vr.png',
-    subTitle10: 'Artificial Intelligence',
-    icon10: 'bi-cpu',
-    title10: 'Machine Learning & AI',
-    description10:
-        'Researching machine learning and artificial intelligence technologies to automate workflows, analyze business data, intelligent recommendations, and enhance digital products with smart decision-making capabilities.',
-    image10: '/assets/images/research-ai.png',
-    subTitle11: 'SEO & Marketing',
-    icon11: 'bi-graph-up-arrow',
-    title11: 'SEO Landing Pages',
-    description11:
-        'Developing SEO-optimized landing page systems focused on performance, search visibility, content structure, and conversion optimization to help businesses attract more organic traffic and generate qualified leads.',
-    image11: '/assets/images/research-seo.png',
-};
 export function ProjectPage01(props: ProjectPage01Props) {
+    const mergedProps = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
+
     const {
         breadcrumbHome,
         breadcrumbCurrent,
@@ -430,10 +965,34 @@ export function ProjectPage01(props: ProjectPage01Props) {
         title11,
         description11,
         image11,
-    } = {
-        ...DEFAULT_PROPS,
-        ...props,
-    };
+    } = mergedProps;
+
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
+
+        return localStorage.getItem('locale') ?? 'en';
+    });
+
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            setSelectedLocale(customEvent.detail);
+        };
+
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
+
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
+
+    const t = useCallback(
+        (value: LocalizedText) => getLocalizedValue(value, selectedLocale),
+        [selectedLocale],
+    );
+
     const stats = useMemo<StatItem[]>(
         () => [
             {
@@ -497,101 +1056,140 @@ export function ProjectPage01(props: ProjectPage01Props) {
                     <div className={styles.headingSection}>
                         <nav className={styles.breadcrumb} aria-label="Breadcrumb">
                             <Link href="/" className={styles.breadcrumbItem}>
-                                {breadcrumbHome}
+                                {t(breadcrumbHome)}
                             </Link>
+
                             <i className="bi bi-chevron-right" />
-                            <span className={styles.breadcrumbCurrent}>{breadcrumbCurrent}</span>
+
+                            <span className={styles.breadcrumbCurrent}>{t(breadcrumbCurrent)}</span>
                         </nav>
                     </div>
                     <div className={styles.heroGrid}>
-                        <div className={styles.visualCard}>
-                            <div className={styles.heroGlow} />
+                        {/* ================= LEFT ================= */}
 
-                            <div className={styles.heroBadgeTop}>
-                                <i className="bi bi-stars" />
-                                {heroBadgeTop}
-                            </div>
-                            <div className={styles.heroBadgeLeft}>
+                        <div className={styles.heroVisual}>
+                            <div className={styles.visualGlow} />
+
+                            <div className={styles.visualNoise} />
+
+                            <div className={styles.visualBadgeLeft}>
                                 <i className="bi bi-code-slash" />
-                                {heroBadgeLeft}
+                                {t(heroBadgeLeft)}
                             </div>
 
-                            <div className={styles.heroBadgeBottom}>
-                                <i className="bi bi-grid-3x3-gap" />
-                                {heroBadgeBottom}
+                            <div className={styles.visualBadgeRight}>
+                                <i className="bi bi-stars" />
+                                {t(heroBadgeTop)}
                             </div>
 
-                            <div className={styles.heroBadgeSsl}>
-                                <i className="bi bi-shield-check" />
-                                {heroBadgeSsl}
+                            <div className={styles.visualContent}>
+                                <div className={styles.visualText}>
+                                    <h1>
+                                        {t(heroTitle)
+                                            .split('\n')
+                                            .map((line, index, arr) => (
+                                                <span key={index}>
+                                                    {line}
+                                                    {index < arr.length - 1 && <br />}
+                                                </span>
+                                            ))}
+
+                                        <span className={styles.visualTextAi}>AI</span>
+                                    </h1>
+
+                                    <p>{t(heroDescription)}</p>
+
+                                    <div className={styles.visualActions}>
+                                        <button type="button" className={styles.primaryButton}>
+                                            <i className="bi bi-rocket-takeoff-fill" />
+                                            {t(heroButtonLabel)}
+                                        </button>
+
+                                        <button type="button" className={styles.secondaryButton}>
+                                            <i className="bi bi-play-circle" />
+                                            Live Demo
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className={styles.browserWrapper}>
+                                    <Image
+                                        src="/assets/images/hero-browser.png"
+                                        alt="Browser Preview"
+                                        width={620}
+                                        height={720}
+                                        priority
+                                        className={styles.browserImage}
+                                    />
+                                </div>
                             </div>
 
-                            <div className={styles.heroContent}>
-                                <h3>
-                                    {heroTitle.split('\n').map((line, index, arr) => (
-                                        <span key={index}>
-                                            {line}
-                                            {index < arr.length - 1 && <br />}
-                                        </span>
-                                    ))}
-                                </h3>
-
-                                <p>{heroDescription}</p>
-
-                                <button type="button">
-                                    {heroButtonLabel}
-                                    <i className="bi bi-arrow-right" />
-                                </button>
+                            <div className={styles.visualOrbit}>
+                                <span />
                             </div>
-                            <div className={styles.trustRow}>
+
+                            <div className={styles.visualStars}>
+                                <span />
+                                <span />
+                                <span />
+                            </div>
+
+                            <div className={styles.trustPanel}>
                                 <div className={styles.trustItem}>
-                                    <i className="bi bi-check-circle-fill" />
-                                    No Credit Card
+                                    <i className="bi bi-credit-card-2-front" />
+
+                                    <div>
+                                        <strong>No Credit Card</strong>
+                                        <span>Required</span>
+                                    </div>
                                 </div>
 
                                 <div className={styles.trustItem}>
                                     <i className="bi bi-shield-check" />
-                                    Secure Hosting
+
+                                    <div>
+                                        <strong>Secure Hosting</strong>
+                                        <span>Always safe</span>
+                                    </div>
                                 </div>
 
                                 <div className={styles.trustItem}>
-                                    <i className="bi bi-lightning-charge-fill" />
-                                    Instant Setup
-                                </div>
-                            </div>
+                                    <i className="bi bi-lightning-charge" />
 
-                            <div className={styles.browser}>
-                                <div className={styles.browserHeader}>
-                                    <span />
-                                    <span />
-                                    <span />
+                                    <div>
+                                        <strong>Instant Setup</strong>
+                                        <span>Get started</span>
+                                    </div>
                                 </div>
 
-                                <div className={styles.browserPreview}>
-                                    <div />
-                                </div>
+                                <div className={styles.trustItem}>
+                                    <i className="bi bi-lock" />
 
-                                <div className={styles.browserBlocks}>
-                                    <div />
-                                    <div />
+                                    <div>
+                                        <strong>Free SSL</strong>
+                                        <span>Included</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className={styles.content}>
-                            <span className={styles.badge}>{sectionBadge}</span>
+                        {/* ================= RIGHT ================= */}
 
-                            <h2 className={styles.title}>
-                                {sectionTitle}
-                                <span>{sectionTitleAccent}</span>
+                        <div className={styles.heroInfo}>
+                            <span className={styles.infoBadge}>{t(sectionBadge)}</span>
+
+                            <h2 className={styles.infoTitle}>
+                                {t(sectionTitle)}
+
+                                <span>{t(sectionTitleAccent)}</span>
                             </h2>
 
-                            <p className={styles.description}>{sectionDescription}</p>
+                            <p className={styles.infoDescription}>{t(sectionDescription)}</p>
 
-                            <div className={styles.actionRow}>
+                            <div className={styles.infoButtons}>
                                 <button className={styles.primaryButton}>
                                     <i className="bi bi-rocket-takeoff-fill" />
-                                    Start Building
+                                    {t(heroButtonLabel)}
                                 </button>
 
                                 <button className={styles.secondaryButton}>
@@ -601,15 +1199,16 @@ export function ProjectPage01(props: ProjectPage01Props) {
                             </div>
 
                             <div className={styles.statsGrid}>
-                                {stats.map((item) => (
-                                    <article key={item.label} className={styles.statCard}>
+                                {stats.map((item, index) => (
+                                    <article key={index} className={styles.statCard}>
                                         <div className={`${styles.iconBox} ${styles[item.tone]}`}>
                                             <i className={`bi ${item.icon}`} />
                                         </div>
 
                                         <div className={styles.statContent}>
-                                            <strong>{item.value}</strong>
-                                            <span>{item.label}</span>
+                                            <strong>{t(item.value)}</strong>
+
+                                            <span>{t(item.label)}</span>
                                         </div>
 
                                         <i className={`bi bi-arrow-up-right ${styles.cardArrow}`} />
@@ -617,18 +1216,18 @@ export function ProjectPage01(props: ProjectPage01Props) {
                                 ))}
                             </div>
 
-                            <div className={styles.featureStrip}>
-                                <div className={styles.featureItem}>
+                            <div className={styles.featureRow}>
+                                <div className={styles.featurePill}>
                                     <i className="bi bi-stars" />
                                     AI Assisted Content
                                 </div>
 
-                                <div className={styles.featureItem}>
+                                <div className={styles.featurePill}>
                                     <i className="bi bi-grid-3x3-gap-fill" />
                                     500+ Templates
                                 </div>
 
-                                <div className={styles.featureItem}>
+                                <div className={styles.featurePill}>
                                     <i className="bi bi-cloud-check-fill" />
                                     Cloud Deployment
                                 </div>
@@ -642,182 +1241,130 @@ export function ProjectPage01(props: ProjectPage01Props) {
                     eyebrow={eyebrowText1}
                     accent={eyebrowAccentText1}
                     highlight={highlightText1}
+                    t={t}
                 />
 
                 <div className={styles.grid}>
-                    {FEATURES_WEBSITE.map((feature) => (
-                        <FeatureCard key={feature.title} feature={feature} />
+                    {FEATURES_WEBSITE.map((feature, index) => (
+                        <FeatureCard key={index} feature={feature} t={t} />
                     ))}
                 </div>
             </section>
+
             <section className={styles.solutions}>
                 <FeatureSectionHeader
                     eyebrow={eyebrowText2}
                     accent={eyebrowAccentText2}
                     highlight={highlightText2}
+                    t={t}
                 />
+
                 <div className={styles.grid}>
-                    {FEATURES_DEVELOPMENT.map((feature) => (
-                        <FeatureCard key={feature.title} feature={feature} />
+                    {FEATURES_DEVELOPMENT.map((feature, index) => (
+                        <FeatureCard key={index} feature={feature} t={t} />
                     ))}
                 </div>
             </section>
         </>
     );
 }
+function createTextField(key: keyof ProjectPage01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
+    };
+}
 
-function createInspector(): RegItem['inspector'] {
+function createTextareaField(key: keyof ProjectPage01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
+    };
+}
+
+function createImageField(key: keyof ProjectPage01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'image',
+        folder: 'project',
+        accept: 'image/*',
+    };
+}
+
+function createIconField(key: keyof ProjectPage01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'text',
+    };
+}
+
+function createHeroInspector(): InspectorField[] {
     return [
-        {
-            key: 'breadcrumbHome',
-            label: 'Breadcrumb Home',
-            kind: 'text',
-        },
-        {
-            key: 'breadcrumbCurrent',
-            label: 'Breadcrumb Current',
-            kind: 'text',
-        },
+        createTextField('breadcrumbHome', 'Breadcrumb Home'),
+        createTextField('breadcrumbCurrent', 'Breadcrumb Current'),
 
-        {
-            key: 'heroBadgeTop',
-            label: 'Hero Badge Top',
-            kind: 'text',
-        },
-        {
-            key: 'heroBadgeLeft',
-            label: 'Hero Badge Left',
-            kind: 'text',
-        },
-        {
-            key: 'heroBadgeBottom',
-            label: 'Hero Badge Bottom',
-            kind: 'text',
-        },
-        {
-            key: 'heroBadgeSsl',
-            label: 'Hero Badge SSL',
-            kind: 'text',
-        },
+        createTextField('heroBadgeTop', 'Hero Badge Top'),
+        createTextField('heroBadgeLeft', 'Hero Badge Left'),
+        createTextField('heroBadgeBottom', 'Hero Badge Bottom'),
+        createTextField('heroBadgeSsl', 'Hero Badge SSL'),
 
-        {
-            key: 'heroTitle',
-            label: 'Hero Title',
-            kind: 'text',
-        },
-        {
-            key: 'heroDescription',
-            label: 'Hero Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'heroButtonLabel',
-            label: 'Hero Button',
-            kind: 'text',
-        },
+        createTextareaField('heroTitle', 'Hero Title'),
+        createTextareaField('heroDescription', 'Hero Description'),
+        createTextField('heroButtonLabel', 'Hero Button'),
+    ];
+}
 
-        {
-            key: 'sectionBadge',
-            label: 'Section Badge',
-            kind: 'text',
-        },
-        {
-            key: 'sectionTitle',
-            label: 'Section Title',
-            kind: 'text',
-        },
-        {
-            key: 'sectionTitleAccent',
-            label: 'Section Title Accent',
-            kind: 'text',
-        },
-        {
-            key: 'sectionDescription',
-            label: 'Section Description',
-            kind: 'textarea',
-        },
+function createSectionInspector(): InspectorField[] {
+    return [
+        createTextField('sectionBadge', 'Section Badge'),
+        createTextareaField('sectionTitle', 'Section Title'),
+        createTextField('sectionTitleAccent', 'Section Title Accent'),
+        createTextareaField('sectionDescription', 'Section Description'),
 
-        {
-            key: 'stat1Value',
-            label: 'Stat 1 Value',
-            kind: 'text',
-        },
-        {
-            key: 'stat1Label',
-            label: 'Stat 1 Label',
-            kind: 'text',
-        },
+        createTextField('eyebrowText1', 'Header 1'),
+        createTextField('eyebrowAccentText1', 'Header 1 Accent'),
+        createTextField('highlightText1', 'Header 1 Highlight'),
 
-        {
-            key: 'stat2Value',
-            label: 'Stat 2 Value',
-            kind: 'text',
-        },
-        {
-            key: 'stat2Label',
-            label: 'Stat 2 Label',
-            kind: 'text',
-        },
+        createTextField('eyebrowText2', 'Header 2'),
+        createTextField('eyebrowAccentText2', 'Header 2 Accent'),
+        createTextField('highlightText2', 'Header 2 Highlight'),
+    ];
+}
 
-        {
-            key: 'stat3Value',
-            label: 'Stat 3 Value',
-            kind: 'text',
-        },
-        {
-            key: 'stat3Label',
-            label: 'Stat 3 Label',
-            kind: 'text',
-        },
+function createStatsInspector(): InspectorField[] {
+    return [
+        createTextField('stat1Value', 'Stat 1 Value'),
+        createTextField('stat1Label', 'Stat 1 Label'),
 
-        {
-            key: 'stat4Value',
-            label: 'Stat 4 Value',
-            kind: 'text',
-        },
-        {
-            key: 'stat4Label',
-            label: 'Stat 4 Label',
-            kind: 'text',
-        },
-        {
-            key: 'eyebrowText1',
-            label: 'Eyebrow Text 1',
-            kind: 'text',
-        },
-        {
-            key: 'eyebrowAccentText1',
-            label: 'Eyebrow Accent Text 1',
-            kind: 'text',
-        },
-        {
-            key: 'highlightText1',
-            label: 'Highlight Text 1',
-            kind: 'text',
-        },
+        createTextField('stat2Value', 'Stat 2 Value'),
+        createTextField('stat2Label', 'Stat 2 Label'),
 
-        {
-            key: 'eyebrowText2',
-            label: 'Eyebrow Text 2',
-            kind: 'text',
-        },
-        {
-            key: 'eyebrowAccentText2',
-            label: 'Eyebrow Accent Text 2',
-            kind: 'text',
-        },
-        {
-            key: 'highlightText2',
-            label: 'Highlight Text 2',
-            kind: 'text',
-        },
-        ...Array.from({ length: 11 }, (_, index) => createFeatureInspector(index + 1)).flat(),
+        createTextField('stat3Value', 'Stat 3 Value'),
+        createTextField('stat3Label', 'Stat 3 Label'),
+
+        createTextField('stat4Value', 'Stat 4 Value'),
+        createTextField('stat4Label', 'Stat 4 Label'),
+    ];
+}
+
+function createInspector(): InspectorField[] {
+    return [
+        ...createHeroInspector(),
+        ...createSectionInspector(),
+        ...createStatsInspector(),
+
+        ...Array.from({ length: 11 }, (_, i) => createFeatureInspector(i + 1)).flat(),
     ];
 }
 export const PROJECT_PAGE_01: RegItem = {
     kind: 'project-page-01',
     label: 'Project Page 01',
-    defaults: DEFAULT_PROPS as Record<string, unknown>,
+    defaults: DEFAULT_PROPS,
+
     inspector: createInspector(),
     render: (props) => <ProjectPage01 {...(props as unknown as ProjectPage01Props)} />,
 };

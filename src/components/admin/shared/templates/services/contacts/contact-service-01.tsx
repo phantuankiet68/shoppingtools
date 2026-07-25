@@ -1,8 +1,10 @@
 'use client';
 
 import styles from '@/components/admin/shared/templates/services/contacts/styles/contact-service-01.module.css';
-import type { RegItem } from '@/lib/ui-builder/types';
-import { useEffect, useRef, useState } from 'react';
+import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
+import { useEffect, useRef, useState, useMemo } from 'react';
+
+import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 
 /* ─────────────────────────────────────────────────
    Types
@@ -10,85 +12,258 @@ import { useEffect, useRef, useState } from 'react';
 export interface ContactInfoItem {
     id: string;
     icon: string;
-    label: string;
-    value: string;
-    description?: string;
+    label: LocalizedText;
+    value: LocalizedText;
+    description?: LocalizedText;
     accentColor?: string;
 }
 
 export interface ContactService01Props {
     siteId?: string;
+    socialTitle?: LocalizedText;
+    headline?: LocalizedText;
+    headlineAccent?: LocalizedText;
+    subheadline?: LocalizedText;
 
-    eyebrow?: string;
-    headline?: string;
-    headlineAccent?: string;
-    subheadline?: string;
+    emailLabel?: LocalizedText;
+    emailPlaceholder?: LocalizedText;
 
-    emailLabel?: string;
-    emailPlaceholder?: string;
+    phoneLabel?: LocalizedText;
+    phonePlaceholder?: LocalizedText;
 
-    phoneLabel?: string;
-    phonePlaceholder?: string;
+    nameLabel?: LocalizedText;
+    namePlaceholder?: LocalizedText;
 
-    nameLabel?: string;
-    namePlaceholder?: string;
+    messageLabel?: LocalizedText;
+    messagePlaceholder?: LocalizedText;
 
-    messageLabel?: string;
-    messagePlaceholder?: string;
-
-    formButtonText?: string;
-    formSuccessText?: string;
-
-    newsletterTitle?: string;
-    newsletterSubtitle?: string;
-    newsletterPlaceholder?: string;
-    newsletterButtonText?: string;
+    formButtonText?: LocalizedText;
+    formSuccessText?: LocalizedText;
 
     // Contact 1
-    contact1Label?: string;
-    contact1Value?: string;
-    contact1Description?: string;
+    contact1Label?: LocalizedText;
+    contact1Value?: LocalizedText;
+    contact1Description?: LocalizedText;
 
     // Contact 2
-    contact2Label?: string;
-    contact2Value?: string;
-    contact2Description?: string;
+    contact2Label?: LocalizedText;
+    contact2Value?: LocalizedText;
+    contact2Description?: LocalizedText;
 
     // Contact 3
-    contact3Label?: string;
-    contact3Value?: string;
-    contact3Description?: string;
+    contact3Label?: LocalizedText;
+    contact3Value?: LocalizedText;
+    contact3Description?: LocalizedText;
 }
-/* ─────────────────────────────────────────────────
-   Default data
-───────────────────────────────────────────────── */
-const DEFAULT_CONTACT_INFO: ContactInfoItem[] = [
-    {
-        id: 'phone',
-        icon: 'telephone-fill',
-        label: 'Call Us',
-        value: '(+84) 765 665 991',
-        description: 'Mon – Fri, 8:00 to 17:00',
-        accentColor: '#6366F1',
+export const DEFAULT_PROPS: Required<ContactService01Props> = {
+    siteId: '',
+    socialTitle: {
+        sourceLocale: 'en',
+        default: 'Follow us',
+        translations: {
+            vi: 'Theo dõi chúng tôi',
+            ja: 'フォローしてください',
+        },
     },
-    {
-        id: 'email',
-        icon: 'envelope-fill',
-        label: 'Email Us',
-        value: 'hello@kbuilder.io',
-        description: 'We reply within 24 hours',
-        accentColor: '#0EA5E9',
+    headline: {
+        sourceLocale: 'en',
+        default: "Let's build something",
+        translations: {
+            vi: 'Hãy cùng xây dựng điều gì đó tuyệt vời.',
+            ja: '一緒に素晴らしいものを作りましょう。',
+        },
     },
-    {
-        id: 'address',
-        icon: 'geo-alt-fill',
-        label: 'Visit Us',
-        value: 'District 1, Ho Chi Minh City',
-        description: 'Our office is open for walk-ins',
-        accentColor: '#F59E0B',
-    },
-];
 
+    headlineAccent: {
+        sourceLocale: 'en',
+        default: 'great together.',
+        translations: {
+            vi: 'cùng nhau.',
+            ja: '一緒に。',
+        },
+    },
+
+    subheadline: {
+        sourceLocale: 'en',
+        default:
+            'Have a question about Kbuilder, need a demo, or just want to say hi? Fill out the form and our team will get back to you shortly.',
+        translations: {
+            vi: 'Bạn có câu hỏi về Kbuilder, cần bản demo hoặc chỉ muốn liên hệ? Hãy điền vào biểu mẫu và đội ngũ của chúng tôi sẽ phản hồi bạn sớm nhất.',
+            ja: 'Kbuilderについてのご質問やデモのご希望、またはお問い合わせがございましたら、フォームにご記入ください。担当チームよりできるだけ早くご連絡いたします。',
+        },
+    },
+
+    emailLabel: {
+        sourceLocale: 'en',
+        default: 'Email',
+        translations: {
+            vi: 'Email',
+            ja: 'メール',
+        },
+    },
+
+    emailPlaceholder: {
+        sourceLocale: 'en',
+        default: 'you@company.com',
+        translations: {
+            vi: 'ban@congty.com',
+            ja: 'your@company.com',
+        },
+    },
+
+    phoneLabel: {
+        sourceLocale: 'en',
+        default: 'Phone',
+        translations: {
+            vi: 'Điện thoại',
+            ja: '電話番号',
+        },
+    },
+
+    phonePlaceholder: {
+        sourceLocale: 'en',
+        default: '+84 000 000 000',
+        translations: {
+            vi: '+84 000 000 000',
+            ja: '+81 000 000 000',
+        },
+    },
+
+    nameLabel: {
+        sourceLocale: 'en',
+        default: 'Name',
+        translations: {
+            vi: 'Họ và tên',
+            ja: 'お名前',
+        },
+    },
+
+    namePlaceholder: {
+        sourceLocale: 'en',
+        default: 'Your full name',
+        translations: {
+            vi: 'Nhập họ và tên',
+            ja: 'お名前をご入力ください',
+        },
+    },
+
+    messageLabel: {
+        sourceLocale: 'en',
+        default: 'Message',
+        translations: {
+            vi: 'Nội dung',
+            ja: 'メッセージ',
+        },
+    },
+
+    messagePlaceholder: {
+        sourceLocale: 'en',
+        default: 'Tell us a bit about your project...',
+        translations: {
+            vi: 'Hãy chia sẻ đôi chút về dự án của bạn...',
+            ja: 'あなたのプロジェクトについて教えてください。',
+        },
+    },
+
+    formButtonText: {
+        sourceLocale: 'en',
+        default: 'Send Message',
+        translations: {
+            vi: 'Gửi tin nhắn',
+            ja: 'メッセージを送信',
+        },
+    },
+
+    formSuccessText: {
+        sourceLocale: 'en',
+        default: 'Message Sent',
+        translations: {
+            vi: 'Đã gửi thành công',
+            ja: '送信が完了しました',
+        },
+    },
+
+    contact1Label: {
+        sourceLocale: 'en',
+        default: 'Call Us',
+        translations: {
+            vi: 'Gọi cho chúng tôi',
+            ja: 'お電話はこちら',
+        },
+    },
+
+    contact1Value: {
+        sourceLocale: 'en',
+        default: '(+84) 765 665 991',
+        translations: {
+            vi: '(+84) 765 665 991',
+            ja: '(+81) 03-1234-5678',
+        },
+    },
+
+    contact1Description: {
+        sourceLocale: 'en',
+        default: 'Mon – Fri, 8:00 to 17:00',
+        translations: {
+            vi: 'Thứ Hai - Thứ Sáu, 8:00 - 17:00',
+            ja: '月曜日〜金曜日 8:00〜17:00',
+        },
+    },
+
+    contact2Label: {
+        sourceLocale: 'en',
+        default: 'Email Us',
+        translations: {
+            vi: 'Gửi email',
+            ja: 'メールでお問い合わせ',
+        },
+    },
+
+    contact2Value: {
+        sourceLocale: 'en',
+        default: 'hello@kbuilder.io',
+        translations: {
+            vi: 'hello@kbuilder.io',
+            ja: 'hello@kbuilder.io',
+        },
+    },
+
+    contact2Description: {
+        sourceLocale: 'en',
+        default: 'We reply within 24 hours',
+        translations: {
+            vi: 'Chúng tôi sẽ phản hồi trong vòng 24 giờ.',
+            ja: '24時間以内に返信いたします。',
+        },
+    },
+
+    contact3Label: {
+        sourceLocale: 'en',
+        default: 'Visit Us',
+        translations: {
+            vi: 'Đến văn phòng',
+            ja: 'オフィスへお越しください',
+        },
+    },
+
+    contact3Value: {
+        sourceLocale: 'en',
+        default: 'District 1, Ho Chi Minh City',
+        translations: {
+            vi: 'Quận 1, TP. Hồ Chí Minh',
+            ja: 'ホーチミン市第1区',
+        },
+    },
+
+    contact3Description: {
+        sourceLocale: 'en',
+        default: 'Our office is open for walk-ins',
+        translations: {
+            vi: 'Văn phòng luôn sẵn sàng đón tiếp khách.',
+            ja: 'ご予約なしでもお気軽にお越しください。',
+        },
+    },
+};
 /* ─────────────────────────────────────────────────
    Hook
 ───────────────────────────────────────────────── */
@@ -112,75 +287,80 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.05) {
     return inView;
 }
 
+function createContact(
+    index: 1 | 2 | 3,
+    icon: string,
+    accentColor: string,
+    props: Required<ContactService01Props>,
+): ContactInfoItem {
+    return {
+        id: `contact-${index}`,
+        icon,
+        label: props[`contact${index}Label`],
+        value: props[`contact${index}Value`],
+        description: props[`contact${index}Description`],
+        accentColor,
+    };
+}
 /* ─────────────────────────────────────────────────
    Component
 ───────────────────────────────────────────────── */
-export function ContactService01({
-    eyebrow = 'Get In Touch',
-    headline = "Let's build something",
-    headlineAccent = 'great together.',
-    subheadline = 'Have a question about Kbuilder, need a demo, or just want to say hi? Fill out the form and our team will get back to you shortly.',
+export function ContactService01(props: ContactService01Props) {
+    const mergedProps: Required<ContactService01Props> = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
 
-    emailLabel = 'Email',
-    emailPlaceholder = 'you@company.com',
-
-    phoneLabel = 'Phone',
-    phonePlaceholder = '+84 000 000 000',
-
-    nameLabel = 'Name',
-    namePlaceholder = 'Your full name',
-
-    messageLabel = 'Message',
-    messagePlaceholder = 'Tell us a bit about your project...',
-
-    formButtonText = 'Send Message',
-    formSuccessText = 'Message Sent',
-
-    newsletterTitle = 'Our Newsletter',
-    newsletterSubtitle = 'Product tips, new templates and release notes — delivered straight to your inbox, once a month.',
-    newsletterPlaceholder = 'Enter your email',
-    newsletterButtonText = 'Subscribe',
-
-    contact1Label = 'Call Us',
-    contact1Value = '(+84) 765 665 991',
-    contact1Description = 'Mon – Fri, 8:00 to 17:00',
-
-    contact2Label = 'Email Us',
-    contact2Value = 'hello@kbuilder.io',
-    contact2Description = 'We reply within 24 hours',
-
-    contact3Label = 'Visit Us',
-    contact3Value = 'District 1, Ho Chi Minh City',
-    contact3Description = 'Our office is open for walk-ins',
-}: ContactService01Props) {
+    const {
+        socialTitle,
+        headline,
+        headlineAccent,
+        subheadline,
+        emailLabel,
+        emailPlaceholder,
+        phoneLabel,
+        phonePlaceholder,
+        nameLabel,
+        namePlaceholder,
+        messageLabel,
+        messagePlaceholder,
+        formButtonText,
+        formSuccessText,
+    } = mergedProps;
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
-    const contactInfo: ContactInfoItem[] = [
-        {
-            id: 'phone',
-            icon: 'telephone-fill',
-            label: contact1Label,
-            value: contact1Value,
-            description: contact1Description,
-            accentColor: '#6366F1',
-        },
-        {
-            id: 'email',
-            icon: 'envelope-fill',
-            label: contact2Label,
-            value: contact2Value,
-            description: contact2Description,
-            accentColor: '#0EA5E9',
-        },
-        {
-            id: 'address',
-            icon: 'geo-alt-fill',
-            label: contact3Label,
-            value: contact3Value,
-            description: contact3Description,
-            accentColor: '#F59E0B',
-        },
-    ];
+
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
+
+        return localStorage.getItem('locale') ?? 'en';
+    });
+
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            setSelectedLocale(customEvent.detail);
+        };
+
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
+
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
+
+    const t = (value: LocalizedText) => getLocalizedValue(value, selectedLocale);
+
+    const contacts = useMemo<ContactInfoItem[]>(
+        () => [
+            createContact(1, 'telephone-fill', '#6366F1', mergedProps),
+            createContact(2, 'envelope-fill', '#0EA5E9', mergedProps),
+            createContact(3, 'geo-alt-fill', '#F59E0B', mergedProps),
+        ],
+        [mergedProps],
+    );
     const [formState, setFormState] = useState({ email: '', phone: '', name: '', message: '' });
     const [newsletterEmail, setNewsletterEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
@@ -191,16 +371,37 @@ export function ContactService01({
             setFormState((prev) => ({ ...prev, [field]: e.target.value }));
         };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
-        setFormState({ email: '', phone: '', name: '', message: '' });
-        window.setTimeout(() => setSubmitted(false), 3000);
-    };
 
-    const handleNewsletterSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setNewsletterEmail('');
+        try {
+            const res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formState),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                setSubmitted(true);
+
+                setFormState({
+                    email: '',
+                    phone: '',
+                    name: '',
+                    message: '',
+                });
+
+                setTimeout(() => {
+                    setSubmitted(false);
+                }, 3000);
+            }
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (
@@ -215,53 +416,34 @@ export function ContactService01({
             <div className={styles.bgOrbB} aria-hidden="true" />
 
             <div className={styles.wrap}>
-                {/* ── Form + Newsletter ── */}
-                <div className={styles.top}>
+                <div className={styles.contactCard}>
+                    {/* LEFT */}
+
                     <div
-                        className={`${styles.formCard} ${styles.r}`}
+                        className={`${styles.left} ${styles.r}`}
                         style={{ '--i': 1 } as React.CSSProperties}
                     >
-                        <div className={styles.headerRow}>
-                            <span className={styles.badge}>{eyebrow}</span>
+                        <div className={styles.heroContent}>
+                            <h2 className={styles.heading}>
+                                {t(headline)}
 
-                            <h2>
-                                {headline} <span className={styles.accent}>{headlineAccent}</span>
+                                <span className={styles.accent}>{t(headlineAccent)}</span>
                             </h2>
 
-                            <p className={styles.sub}>{subheadline}</p>
+                            <p className={styles.sub}>{t(subheadline)}</p>
                         </div>
 
                         <form className={styles.form} onSubmit={handleSubmit}>
-                            <div className={styles.formRow}>
-                                <label className={styles.field}>
-                                    <span>{emailLabel}</span>
-
-                                    <input
-                                        type="email"
-                                        placeholder={emailPlaceholder}
-                                        value={formState.email}
-                                        onChange={handleFormChange('email')}
-                                        required
-                                    />
-                                </label>
-                                <label className={styles.field}>
-                                    <span>{phoneLabel}</span>
-
-                                    <input
-                                        type="tel"
-                                        placeholder={phonePlaceholder}
-                                        value={formState.phone}
-                                        onChange={handleFormChange('phone')}
-                                    />
-                                </label>
-                            </div>
-
                             <label className={styles.field}>
-                                <span>{nameLabel}</span>
+                                <span>
+                                    <i className="bi bi-person" />
+
+                                    {t(nameLabel)}
+                                </span>
 
                                 <input
                                     type="text"
-                                    placeholder={namePlaceholder}
+                                    placeholder={t(namePlaceholder)}
                                     value={formState.name}
                                     onChange={handleFormChange('name')}
                                     required
@@ -269,84 +451,153 @@ export function ContactService01({
                             </label>
 
                             <label className={styles.field}>
-                                <span>{messageLabel}</span>
+                                <span>
+                                    <i className="bi bi-envelope" />
+                                    {t(emailLabel)}
+                                </span>
+
+                                <input
+                                    type="email"
+                                    placeholder={t(emailPlaceholder)}
+                                    value={formState.email}
+                                    onChange={handleFormChange('email')}
+                                    required
+                                />
+                            </label>
+
+                            <label className={styles.field}>
+                                <span>
+                                    <i className="bi bi-envelope" />
+                                    {t(phoneLabel)}
+                                </span>
+
+                                <input
+                                    type="phone"
+                                    placeholder={t(phonePlaceholder)}
+                                    value={formState.phone}
+                                    onChange={handleFormChange('email')}
+                                    required
+                                />
+                            </label>
+
+                            <label className={styles.field}>
+                                <span>
+                                    <i className="bi bi-chat-left-text" />
+                                    {t(messageLabel)}
+                                </span>
 
                                 <textarea
-                                    placeholder={messagePlaceholder}
-                                    rows={4}
+                                    rows={5}
+                                    placeholder={t(messagePlaceholder)}
                                     value={formState.message}
                                     onChange={handleFormChange('message')}
                                     required
                                 />
                             </label>
-
                             <button type="submit" className={styles.formButton}>
-                                {submitted ? formSuccessText : formButtonText}
+                                <span>{submitted ? t(formSuccessText) : t(formButtonText)}</span>
+
                                 <i className={`bi ${submitted ? 'bi-check2' : 'bi-send-fill'}`} />
                             </button>
                         </form>
                     </div>
 
                     <div
-                        className={`${styles.newsletterCard} ${styles.r}`}
+                        className={`${styles.right} ${styles.r}`}
                         style={{ '--i': 2 } as React.CSSProperties}
                     >
-                        <div className={styles.divider}>
-                            <span className={styles.newsletterIcon}>
-                                <i className="bi bi-envelope-paper-fill" />
+                        {/* Illustration */}
+
+                        <div className={styles.heroIllustration}>
+                            <div className={styles.heroCircle} />
+
+                            <div className={styles.heroRing} />
+
+                            <div className={styles.mailCard}>
+                                <i className="bi bi-envelope-paper-heart-fill" />
+                            </div>
+
+                            <span className={styles.paperPlane}>
+                                <i className="bi bi-send-fill" />
                             </span>
 
-                            <div className={styles.newsletterHeading}>
-                                <h3>{newsletterTitle}</h3>
-                                <p>{newsletterSubtitle}</p>
-                            </div>
+                            <span className={styles.chatBubble}>
+                                <i className="bi bi-chat-dots-fill" />
+                            </span>
+
+                            <span className={styles.likeBubble}>
+                                <i className="bi bi-hand-thumbs-up-fill" />
+                            </span>
+                            {['dotOne', 'dotTwo', 'dotThree'].map((cls) => (
+                                <span key={cls} className={styles[cls]} />
+                            ))}
+
+                            {['crossOne', 'crossTwo'].map((cls) => (
+                                <span key={cls} className={styles[cls]}>
+                                    +
+                                </span>
+                            ))}
                         </div>
-                        <form className={styles.newsletterForm} onSubmit={handleNewsletterSubmit}>
-                            <input
-                                type="email"
-                                placeholder={newsletterPlaceholder}
-                                value={newsletterEmail}
-                                onChange={(e) => setNewsletterEmail(e.target.value)}
-                                required
-                            />
-                            <button type="submit">
-                                {newsletterButtonText}
-                                <i className="bi bi-arrow-right" />
-                            </button>
-                        </form>
-                        {/* ── Contact info cards ── */}
-                        <div className={styles.infoGrid}>
-                            {contactInfo.map((item, idx) => {
-                                const accent = item.accentColor ?? '#6366F1';
+
+                        {/* Contact */}
+
+                        <div className={styles.contactList}>
+                            {contacts.map((contact) => {
+                                const accent = contact.accentColor ?? '#6366F1';
+
                                 return (
-                                    <div
-                                        key={item.id}
-                                        className={`${styles.infoCard} ${styles.r}`}
-                                        style={{ '--i': idx + 3 } as React.CSSProperties}
-                                    >
-                                        <span
-                                            className={styles.infoIcon}
+                                    <div key={contact.id} className={styles.contactItem}>
+                                        <div
+                                            className={styles.contactIcon}
                                             style={{
-                                                background: `${accent}14`,
-                                                border: `1.5px solid ${accent}28`,
+                                                background: `${accent}15`,
                                                 color: accent,
                                             }}
                                         >
-                                            <i className={`bi bi-${item.icon}`} />
-                                        </span>
-                                        <div className={styles.infoBody}>
-                                            <h4>{item.label}</h4>
-                                            <p className={styles.infoValue}>{item.value}</p>
-                                            {item.description && (
-                                                <p className={styles.infoDesc}>
-                                                    {item.description}
-                                                </p>
-                                            )}
+                                            <i className={`bi bi-${contact.icon}`} />
+                                        </div>
+
+                                        <div className={styles.contactContent}>
+                                            <h4>{t(contact.label)}</h4>
+
+                                            <strong>{t(contact.value)}</strong>
+
+                                            {contact.description && <p>{t(contact.description)}</p>}
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
+                        <div className={styles.divider} />
+                        {/* Social */}
+
+                        <div className={styles.socialSection}>
+                            <span className={styles.socialTitle}>{t(socialTitle)}</span>
+
+                            <div className={styles.socialList}>
+                                <a href="#" className={styles.socialItem} aria-label="Facebook">
+                                    <i className="bi bi-facebook" />
+                                </a>
+
+                                <a href="#" className={styles.socialItem} aria-label="Twitter">
+                                    <i className="bi bi-twitter-x" />
+                                </a>
+
+                                <a href="#" className={styles.socialItem} aria-label="Instagram">
+                                    <i className="bi bi-instagram" />
+                                </a>
+
+                                <a href="#" className={styles.socialItem} aria-label="LinkedIn">
+                                    <i className="bi bi-linkedin" />
+                                </a>
+                            </div>
+                        </div>
+
+                        <span className={styles.blurOne} />
+
+                        <span className={styles.blurTwo} />
+
+                        <span className={styles.gridDecoration} />
                     </div>
                 </div>
             </div>
@@ -354,205 +605,63 @@ export function ContactService01({
     );
 }
 
+function createLocalizedTextField(key: keyof ContactService01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
+    };
+}
+
+function createContactInspector(index: 1 | 2 | 3): InspectorField[] {
+    return [
+        createLocalizedTextField(`contact${index}Label`, `Contact ${index} Label`),
+        createLocalizedTextField(`contact${index}Value`, `Contact ${index} Value`),
+        createLocalizedTextField(`contact${index}Description`, `Contact ${index} Description`),
+    ];
+}
+
+function createInspector(): InspectorField[] {
+    return [
+        createLocalizedTextField('headline', 'Headline'),
+        createLocalizedTextField('headlineAccent', 'Headline Accent'),
+        createLocalizedTextField('subheadline', 'Subheadline'),
+
+        createLocalizedTextField('nameLabel', 'Name Label'),
+        createLocalizedTextField('namePlaceholder', 'Name Placeholder'),
+
+        createLocalizedTextField('emailLabel', 'Email Label'),
+        createLocalizedTextField('emailPlaceholder', 'Email Placeholder'),
+
+        createLocalizedTextField('phoneLabel', 'Phone Label'),
+        createLocalizedTextField('phonePlaceholder', 'Phone Placeholder'),
+
+        createLocalizedTextField('messageLabel', 'Message Label'),
+        createLocalizedTextField('messagePlaceholder', 'Message Placeholder'),
+
+        createLocalizedTextField('formButtonText', 'Form Button Text'),
+        createLocalizedTextField('formSuccessText', 'Form Success Text'),
+
+        createLocalizedTextField('socialTitle', 'Social Title'),
+
+        ...createContactInspector(1),
+        ...createContactInspector(2),
+        ...createContactInspector(3),
+    ];
+}
 /* ─────────────────────────────────────────────────
    Registry
 ───────────────────────────────────────────────── */
 export const CONTACT_SERVICE_01: RegItem = {
     kind: 'ContactService01',
+
     label: 'Contact Service 01',
 
-    defaults: {
-        eyebrow: 'Get In Touch',
-        headline: "Let's build something",
-        headlineAccent: 'great together.',
-        subheadline:
-            'Have a question about Kbuilder, need a demo, or just want to say hi? Fill out the form and our team will get back to you shortly.',
+    defaults: DEFAULT_PROPS,
 
-        emailLabel: 'Email',
-        emailPlaceholder: 'you@company.com',
+    inspector: createInspector(),
 
-        phoneLabel: 'Phone',
-        phonePlaceholder: '+84 000 000 000',
-
-        nameLabel: 'Name',
-        namePlaceholder: 'Your full name',
-
-        messageLabel: 'Message',
-        messagePlaceholder: 'Tell us a bit about your project...',
-
-        formButtonText: 'Send Message',
-        formSuccessText: 'Message Sent',
-
-        newsletterTitle: 'Our Newsletter',
-        newsletterSubtitle:
-            'Product tips, new templates and release notes — delivered straight to your inbox, once a month.',
-        newsletterPlaceholder: 'Enter your email',
-        newsletterButtonText: 'Subscribe',
-
-        contact1Label: 'Call Us',
-        contact1Value: '(+84) 765 665 991',
-        contact1Description: 'Mon – Fri, 8:00 to 17:00',
-
-        contact2Label: 'Email Us',
-        contact2Value: 'hello@kbuilder.io',
-        contact2Description: 'We reply within 24 hours',
-
-        contact3Label: 'Visit Us',
-        contact3Value: 'District 1, Ho Chi Minh City',
-        contact3Description: 'Our office is open for walk-ins',
-    },
-
-    inspector: [
-        {
-            key: 'eyebrow',
-            label: 'Eyebrow',
-            kind: 'text',
-        },
-        {
-            key: 'headline',
-            label: 'Headline',
-            kind: 'text',
-        },
-        {
-            key: 'headlineAccent',
-            label: 'Headline Accent',
-            kind: 'text',
-        },
-        {
-            key: 'subheadline',
-            label: 'Subheadline',
-            kind: 'textarea',
-        },
-
-        {
-            key: 'emailLabel',
-            label: 'Email Label',
-            kind: 'text',
-        },
-        {
-            key: 'emailPlaceholder',
-            label: 'Email Placeholder',
-            kind: 'text',
-        },
-
-        {
-            key: 'phoneLabel',
-            label: 'Phone Label',
-            kind: 'text',
-        },
-        {
-            key: 'phonePlaceholder',
-            label: 'Phone Placeholder',
-            kind: 'text',
-        },
-
-        {
-            key: 'nameLabel',
-            label: 'Name Label',
-            kind: 'text',
-        },
-        {
-            key: 'namePlaceholder',
-            label: 'Name Placeholder',
-            kind: 'text',
-        },
-
-        {
-            key: 'messageLabel',
-            label: 'Message Label',
-            kind: 'text',
-        },
-        {
-            key: 'messagePlaceholder',
-            label: 'Message Placeholder',
-            kind: 'textarea',
-        },
-
-        {
-            key: 'formButtonText',
-            label: 'Form Button Text',
-            kind: 'text',
-        },
-        {
-            key: 'formSuccessText',
-            label: 'Form Success Text',
-            kind: 'text',
-        },
-
-        {
-            key: 'newsletterTitle',
-            label: 'Newsletter Title',
-            kind: 'text',
-        },
-        {
-            key: 'newsletterSubtitle',
-            label: 'Newsletter Subtitle',
-            kind: 'textarea',
-        },
-        {
-            key: 'newsletterPlaceholder',
-            label: 'Newsletter Placeholder',
-            kind: 'text',
-        },
-        {
-            key: 'newsletterButtonText',
-            label: 'Newsletter Button Text',
-            kind: 'text',
-        },
-
-        // Contact 1
-        {
-            key: 'contact1Label',
-            label: 'Contact 1 Label',
-            kind: 'text',
-        },
-        {
-            key: 'contact1Value',
-            label: 'Contact 1 Value',
-            kind: 'text',
-        },
-        {
-            key: 'contact1Description',
-            label: 'Contact 1 Description',
-            kind: 'textarea',
-        },
-
-        // Contact 2
-        {
-            key: 'contact2Label',
-            label: 'Contact 2 Label',
-            kind: 'text',
-        },
-        {
-            key: 'contact2Value',
-            label: 'Contact 2 Value',
-            kind: 'text',
-        },
-        {
-            key: 'contact2Description',
-            label: 'Contact 2 Description',
-            kind: 'textarea',
-        },
-
-        // Contact 3
-        {
-            key: 'contact3Label',
-            label: 'Contact 3 Label',
-            kind: 'text',
-        },
-        {
-            key: 'contact3Value',
-            label: 'Contact 3 Value',
-            kind: 'text',
-        },
-        {
-            key: 'contact3Description',
-            label: 'Contact 3 Description',
-            kind: 'textarea',
-        },
-    ],
-
-    render: (props) => <ContactService01 {...(props as unknown as ContactService01Props)} />,
+    render: (props) => <ContactService01 {...(props as ContactService01Props)} />,
 };
 
 export default ContactService01;

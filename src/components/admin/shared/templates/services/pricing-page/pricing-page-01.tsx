@@ -1,278 +1,1550 @@
 'use client';
-import type { RegItem } from '@/lib/ui-builder/types';
+
 import React from 'react';
+import Link from 'next/link';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
+
+import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
+
 import styles from '@/components/admin/shared/templates/services/pricing-page/styles/pricing-page-01.module.css';
-type SetupPlan = {
-    name: string;
-    description: string;
-    icon: string;
-    tone: string;
-    popular: boolean;
+
+/* ==========================================================
+   Shared Types
+========================================================== */
+
+type Tone = 'green' | 'blue' | 'purple' | 'orange';
+
+type BillingType = 'monthly' | 'yearly';
+
+type ComparisonValue = string | boolean;
+
+type ButtonProps = {
+    label: LocalizedText;
+    href?: string;
+    target?: '_self' | '_blank';
 };
+
+type SectionHeading = {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    titleAccent?: LocalizedText;
+    description?: LocalizedText;
+};
+
+/* ==========================================================
+   Pricing
+========================================================== */
+
+type PricingFeature = {
+    id: string;
+    label: LocalizedText;
+};
+
 type PricingPlan = {
-    name: string;
-    websiteLabel: string;
-    price?: number;
-    description: string;
+    id: string;
+    name: LocalizedText;
+    websiteLabel: LocalizedText;
+    description: LocalizedText;
     icon: string;
-    tone: 'green' | 'blue' | 'purple' | 'orange';
-    buttonLabel: string;
+    tone: Tone;
+    monthlyPrice?: number;
+    yearlyPrice?: number;
     popular?: boolean;
     comingSoon?: boolean;
-    features: string[];
+    button: ButtonProps;
+    features: PricingFeature[];
 };
 
-type FaqCategory = {
+/* ==========================================================
+   Compare Table
+========================================================== */
+
+type ComparePlan = {
     id: string;
-    label: string;
+    name: LocalizedText;
+    description: LocalizedText;
     icon: string;
+    tone: Tone;
+    popular?: boolean;
 };
 
-type FaqItem = {
-    id: number;
-    question: string;
-    answer: string;
-};
-
-export interface PricingPage01Props {
-    eyebrow?: string;
-    title?: string;
-    titleAccent?: string;
-    description?: string;
-    contactTitle?: string;
-    contactDescription?: string;
-    contactButtonLabel?: string;
-
-    category1Label?: string;
-    category2Label?: string;
-    category3Label?: string;
-
-    question1?: string;
-    answer1?: string;
-
-    question2?: string;
-    answer2?: string;
-
-    question3?: string;
-    answer3?: string;
-
-    question4?: string;
-    answer4?: string;
-
-    question5?: string;
-    answer5?: string;
-
-    plan1Name?: string;
-    plan1Description?: string;
-    plan1Icon?: string;
-    plan1Tone?: string;
-    plan1Popular?: boolean;
-
-    plan2Name?: string;
-    plan2Description?: string;
-    plan2Icon?: string;
-    plan2Tone?: string;
-    plan2Popular?: boolean;
-
-    plan3Name?: string;
-    plan3Description?: string;
-    plan3Icon?: string;
-    plan3Tone?: string;
-    plan3Popular?: boolean;
-
-    plan4Name?: string;
-    plan4Description?: string;
-    plan4Icon?: string;
-    plan4Tone?: string;
-    plan4Popular?: boolean;
-
-    comparison1Title?: string;
-    comparison1Icon?: string;
-
-    comparison1Label1?: string;
-    comparison1Free1?: string | boolean;
-    comparison1Starter1?: string | boolean;
-    comparison1Pro1?: string | boolean;
-    comparison1Enterprise1?: string | boolean;
-
-    comparison1Label2?: string;
-    comparison1Free2?: string | boolean;
-    comparison1Starter2?: string | boolean;
-    comparison1Pro2?: string | boolean;
-    comparison1Enterprise2?: string | boolean;
-    comparison1Highlight?: 'primary' | 'success';
-
-    comparison1Label3?: string;
-    comparison1Free3?: string | boolean;
-    comparison1Starter3?: string | boolean;
-    comparison1Pro3?: string | boolean;
-    comparison1Enterprise3?: string | boolean;
-
-    comparison1Label4?: string;
-    comparison1Free4?: string | boolean;
-    comparison1Starter4?: string | boolean;
-    comparison1Pro4?: string | boolean;
-    comparison1Enterprise4?: string | boolean;
-
-    comparison2Title?: string;
-    comparison2Icon?: string;
-
-    comparison2Label1?: string;
-    comparison2Free1?: string | boolean;
-    comparison2Starter1?: string | boolean;
-    comparison2Pro1?: string | boolean;
-    comparison2Enterprise1?: string | boolean;
-
-    comparison2Label2?: string;
-    comparison2Free2?: string | boolean;
-    comparison2Starter2?: string | boolean;
-    comparison2Pro2?: string | boolean;
-    comparison2Enterprise2?: string | boolean;
-
-    comparison2Label3?: string;
-    comparison2Free3?: string | boolean;
-    comparison2Starter3?: string | boolean;
-    comparison2Pro3?: string | boolean;
-    comparison2Enterprise3?: string | boolean;
-
-    comparison3Title?: string;
-    comparison3Icon?: string;
-
-    comparison3Label1?: string;
-    comparison3Free1?: string | boolean;
-    comparison3Starter1?: string | boolean;
-    comparison3Pro1?: string | boolean;
-    comparison3Enterprise1?: string | boolean;
-
-    comparison3Label2?: string;
-    comparison3Free2?: string | boolean;
-    comparison3Starter2?: string | boolean;
-    comparison3Pro2?: string | boolean;
-    comparison3Enterprise2?: string | boolean;
-
-    comparison3Label3?: string;
-    comparison3Free3?: string | boolean;
-    comparison3Starter3?: string | boolean;
-    comparison3Pro3?: string | boolean;
-    comparison3Enterprise3?: string | boolean;
-
-    comparison3Label4?: string;
-    comparison3Free4?: string | boolean;
-    comparison3Starter4?: string | boolean;
-    comparison3Pro4?: string | boolean;
-    comparison3Enterprise4?: string | boolean;
-
-    pricingPlan1Name?: string;
-    pricingPlan1WebsiteLabel?: string;
-    pricingPlan1Price?: number;
-    pricingPlan1Description?: string;
-    pricingPlan1Icon?: string;
-    pricingPlan1Tone?: 'green' | 'blue' | 'purple' | 'orange';
-    pricingPlan1ButtonLabel?: string;
-    pricingPlan1Popular?: boolean;
-    pricingPlan1ComingSoon?: boolean;
-
-    pricingPlan1Feature1?: string;
-    pricingPlan1Feature2?: string;
-    pricingPlan1Feature3?: string;
-    pricingPlan1Feature4?: string;
-    pricingPlan1Feature5?: string;
-    pricingPlan1Feature6?: string;
-    pricingPlan1Feature7?: string;
-    pricingPlan1Feature8?: string;
-    pricingPlan1Feature9?: string;
-    pricingPlan1Feature10?: string;
-
-    pricingPlan2Name?: string;
-    pricingPlan2WebsiteLabel?: string;
-    pricingPlan2Price?: number;
-    pricingPlan2Description?: string;
-    pricingPlan2Icon?: string;
-    pricingPlan2Tone?: 'green' | 'blue' | 'purple' | 'orange';
-    pricingPlan2ButtonLabel?: string;
-    pricingPlan2Popular?: boolean;
-    pricingPlan2ComingSoon?: boolean;
-
-    pricingPlan2Feature1?: string;
-    pricingPlan2Feature2?: string;
-    pricingPlan2Feature3?: string;
-    pricingPlan2Feature4?: string;
-    pricingPlan2Feature5?: string;
-    pricingPlan2Feature6?: string;
-    pricingPlan2Feature7?: string;
-    pricingPlan2Feature8?: string;
-    pricingPlan2Feature9?: string;
-    pricingPlan2Feature10?: string;
-
-    pricingPlan3Name?: string;
-    pricingPlan3WebsiteLabel?: string;
-    pricingPlan3Price?: number;
-    pricingPlan3Description?: string;
-    pricingPlan3Icon?: string;
-    pricingPlan3Tone?: 'green' | 'blue' | 'purple' | 'orange';
-    pricingPlan3ButtonLabel?: string;
-    pricingPlan3Popular?: boolean;
-    pricingPlan3ComingSoon?: boolean;
-
-    pricingPlan3Feature1?: string;
-    pricingPlan3Feature2?: string;
-    pricingPlan3Feature3?: string;
-    pricingPlan3Feature4?: string;
-    pricingPlan3Feature5?: string;
-    pricingPlan3Feature6?: string;
-    pricingPlan3Feature7?: string;
-    pricingPlan3Feature8?: string;
-    pricingPlan3Feature9?: string;
-    pricingPlan3Feature10?: string;
-
-    pricingPlan4Name?: string;
-    pricingPlan4WebsiteLabel?: string;
-    pricingPlan4Price?: number;
-    pricingPlan4Description?: string;
-    pricingPlan4Icon?: string;
-    pricingPlan4Tone?: 'green' | 'blue' | 'purple' | 'orange';
-    pricingPlan4ButtonLabel?: string;
-    pricingPlan4Popular?: boolean;
-    pricingPlan4ComingSoon?: boolean;
-
-    pricingPlan4Feature1?: string;
-    pricingPlan4Feature2?: string;
-    pricingPlan4Feature3?: string;
-    pricingPlan4Feature4?: string;
-    pricingPlan4Feature5?: string;
-    pricingPlan4Feature6?: string;
-    pricingPlan4Feature7?: string;
-    pricingPlan4Feature8?: string;
-    pricingPlan4Feature9?: string;
-    pricingPlan4Feature10?: string;
-}
-
-type ComparisonValue = {
-    free: string | boolean;
-    starter: string | boolean;
-    pro: string | boolean;
-    enterprise: string | boolean;
-};
-
-type ComparisonRow = ComparisonValue & {
-    label: string;
+type ComparisonRow = {
+    id: string;
+    label: LocalizedText;
     icon?: string;
     highlight?: 'primary' | 'success';
+    free: ComparisonValue;
+    starter: ComparisonValue;
+    pro: ComparisonValue;
+    enterprise: ComparisonValue;
 };
 
 type ComparisonGroup = {
-    title: string;
+    id: string;
+    title: LocalizedText;
     icon: string;
     rows: ComparisonRow[];
 };
 
-const PLAN_KEYS: Array<keyof ComparisonValue> = ['free', 'starter', 'pro', 'enterprise'];
+/* ==========================================================
+   FAQ
+========================================================== */
+
+type FaqCategory = {
+    id: string;
+    label: LocalizedText;
+    icon: string;
+};
+
+type FaqItem = {
+    id: string;
+    categoryId: string;
+    question: LocalizedText;
+    answer: LocalizedText;
+};
+
+type ContactBox = {
+    title: LocalizedText;
+    description: LocalizedText;
+    button: ButtonProps;
+};
+
+export interface PricingPage01Props {
+    breadcrumbHome?: LocalizedText;
+    breadcrumbHomeHref?: string;
+    breadcrumbCurrent?: LocalizedText;
+    hero?: SectionHeading;
+    billing?: {
+        note: LocalizedText;
+        discountLabel: LocalizedText;
+        yearlyLabel: LocalizedText;
+        monthlyLabel: LocalizedText;
+        defaultType: BillingType;
+    };
+    pricingPlans?: PricingPlan[];
+    comparison?: SectionHeading;
+    compareFeatureTitle?: LocalizedText;
+    comparePopularLabel?: LocalizedText;
+    comparePlans?: ComparePlan[];
+    comparisonGroups?: ComparisonGroup[];
+    contact?: ContactBox;
+    faq?: SectionHeading;
+    categories?: FaqCategory[];
+    faqs?: FaqItem[];
+    sidebarHelp?: {
+        title: LocalizedText;
+        description: LocalizedText;
+        button: ButtonProps;
+    };
+}
+
+export const DEFAULT_PROPS: Required<PricingPage01Props> = {
+    /* ==========================================================
+       Breadcrumb
+    ========================================================== */
+
+    breadcrumbHome: {
+        sourceLocale: 'en',
+        default: 'Home',
+        translations: {
+            vi: 'Trang chủ',
+            ja: 'ホーム',
+        },
+    },
+
+    breadcrumbHomeHref: '/',
+
+    breadcrumbCurrent: {
+        sourceLocale: 'en',
+        default: 'Pricing',
+        translations: {
+            vi: 'Bảng giá',
+            ja: '料金',
+        },
+    },
+
+    /* ==========================================================
+       Hero
+    ========================================================== */
+
+    hero: {
+        eyebrow: {
+            sourceLocale: 'en',
+            default: 'Pricing Plans',
+            translations: {
+                vi: 'Gói dịch vụ',
+                ja: '料金プラン',
+            },
+        },
+
+        title: {
+            sourceLocale: 'en',
+            default: 'Flexible Pricing For',
+            translations: {
+                vi: 'Bảng giá linh hoạt dành cho',
+                ja: '柔軟な料金プラン',
+            },
+        },
+
+        titleAccent: {
+            sourceLocale: 'en',
+            default: 'Every Business',
+            translations: {
+                vi: 'Mọi Doanh Nghiệp',
+                ja: 'あらゆるビジネス',
+            },
+        },
+
+        description: {
+            sourceLocale: 'en',
+            default:
+                'Choose the perfect plan to build professional websites with Kbuilder. Upgrade anytime as your business grows.',
+            translations: {
+                vi: 'Chọn gói phù hợp để xây dựng website chuyên nghiệp với Kbuilder và nâng cấp bất kỳ lúc nào khi doanh nghiệp phát triển.',
+                ja: 'KbuilderでプロフェッショナルなWebサイトを構築できる最適なプランを選択し、ビジネスの成長に合わせていつでもアップグレードできます。',
+            },
+        },
+    },
+
+    /* ==========================================================
+       Billing
+    ========================================================== */
+
+    billing: {
+        note: {
+            sourceLocale: 'en',
+            default: 'No contracts. Cancel anytime.',
+            translations: {
+                vi: 'Không hợp đồng. Hủy bất cứ lúc nào.',
+                ja: '契約不要。いつでもキャンセルできます。',
+            },
+        },
+
+        discountLabel: {
+            sourceLocale: 'en',
+            default: 'Save 20%',
+            translations: {
+                vi: 'Tiết kiệm 20%',
+                ja: '20%割引',
+            },
+        },
+
+        monthlyLabel: {
+            sourceLocale: 'en',
+            default: 'Monthly',
+            translations: {
+                vi: 'Theo tháng',
+                ja: '月額',
+            },
+        },
+
+        yearlyLabel: {
+            sourceLocale: 'en',
+            default: 'Yearly',
+            translations: {
+                vi: 'Theo năm',
+                ja: '年額',
+            },
+        },
+
+        defaultType: 'monthly',
+    },
+
+    /* ==========================================================
+       Pricing Plans
+    ========================================================== */
+
+    pricingPlans: [
+        {
+            id: 'starter',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Starter',
+                translations: {
+                    vi: 'Khởi đầu',
+                    ja: 'スターター',
+                },
+            },
+
+            websiteLabel: {
+                sourceLocale: 'en',
+                default: '1 Website',
+                translations: {
+                    vi: '1 Website',
+                    ja: '1サイト',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Perfect for personal websites and small businesses.',
+                translations: {
+                    vi: 'Lý tưởng cho website cá nhân và doanh nghiệp nhỏ.',
+                    ja: '個人サイトや小規模ビジネスに最適です。',
+                },
+            },
+
+            icon: 'bi bi-stars',
+
+            tone: 'green',
+
+            monthlyPrice: 9,
+
+            yearlyPrice: 86,
+
+            button: {
+                label: {
+                    sourceLocale: 'en',
+                    default: 'Get Started',
+                    translations: {
+                        vi: 'Bắt đầu',
+                        ja: '始める',
+                    },
+                },
+
+                href: '/register',
+
+                target: '_self',
+            },
+
+            features: [
+                {
+                    id: 'f1',
+                    label: {
+                        sourceLocale: 'en',
+                        default: '1 Website',
+                        translations: {
+                            vi: '1 Website',
+                            ja: '1サイト',
+                        },
+                    },
+                },
+                {
+                    id: 'f2',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Unlimited Pages',
+                        translations: {
+                            vi: 'Không giới hạn trang',
+                            ja: '無制限ページ',
+                        },
+                    },
+                },
+                {
+                    id: 'f3',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Responsive Templates',
+                        translations: {
+                            vi: 'Template Responsive',
+                            ja: 'レスポンシブテンプレート',
+                        },
+                    },
+                },
+                {
+                    id: 'f4',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Visual Drag & Drop Builder',
+                        translations: {
+                            vi: 'Trình kéo thả trực quan',
+                            ja: 'ドラッグ＆ドロップビルダー',
+                        },
+                    },
+                },
+                {
+                    id: 'f5',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Free SSL Certificate',
+                        translations: {
+                            vi: 'SSL miễn phí',
+                            ja: '無料SSL',
+                        },
+                    },
+                },
+                {
+                    id: 'f6',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Custom Domain',
+                        translations: {
+                            vi: 'Tên miền riêng',
+                            ja: '独自ドメイン',
+                        },
+                    },
+                },
+            ],
+        },
+
+        {
+            id: 'professional',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Professional',
+                translations: {
+                    vi: 'Chuyên nghiệp',
+                    ja: 'プロフェッショナル',
+                },
+            },
+
+            websiteLabel: {
+                sourceLocale: 'en',
+                default: '5 Websites',
+                translations: {
+                    vi: '5 Website',
+                    ja: '5サイト',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Best choice for agencies and growing businesses.',
+                translations: {
+                    vi: 'Lựa chọn tốt nhất cho doanh nghiệp đang phát triển.',
+                    ja: '成長中のビジネスや代理店に最適です。',
+                },
+            },
+
+            icon: 'bi bi-lightning-charge-fill',
+
+            tone: 'blue',
+
+            monthlyPrice: 19,
+
+            yearlyPrice: 182,
+
+            popular: true,
+
+            button: {
+                label: {
+                    sourceLocale: 'en',
+                    default: 'Start Free',
+                    translations: {
+                        vi: 'Dùng thử',
+                        ja: '無料で始める',
+                    },
+                },
+
+                href: '/register',
+
+                target: '_self',
+            },
+
+            features: [
+                {
+                    id: 'f1',
+                    label: {
+                        sourceLocale: 'en',
+                        default: '5 Websites',
+                        translations: {
+                            vi: '5 Website',
+                            ja: '5サイト',
+                        },
+                    },
+                },
+                {
+                    id: 'f2',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Unlimited Pages',
+                        translations: {
+                            vi: 'Không giới hạn trang',
+                            ja: '無制限ページ',
+                        },
+                    },
+                },
+                {
+                    id: 'f3',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Premium Templates',
+                        translations: {
+                            vi: 'Template cao cấp',
+                            ja: 'プレミアムテンプレート',
+                        },
+                    },
+                },
+                {
+                    id: 'f4',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Advanced SEO',
+                        translations: {
+                            vi: 'SEO nâng cao',
+                            ja: '高度なSEO',
+                        },
+                    },
+                },
+                {
+                    id: 'f5',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Analytics Dashboard',
+                        translations: {
+                            vi: 'Thống kê Analytics',
+                            ja: '分析ダッシュボード',
+                        },
+                    },
+                },
+                {
+                    id: 'f6',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Priority Support',
+                        translations: {
+                            vi: 'Hỗ trợ ưu tiên',
+                            ja: '優先サポート',
+                        },
+                    },
+                },
+            ],
+        },
+
+        {
+            id: 'business',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Business',
+                translations: {
+                    vi: 'Doanh nghiệp',
+                    ja: 'ビジネス',
+                },
+            },
+
+            websiteLabel: {
+                sourceLocale: 'en',
+                default: '15 Websites',
+                translations: {
+                    vi: '15 Website',
+                    ja: '15サイト',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Everything you need to manage multiple brands.',
+                translations: {
+                    vi: 'Đầy đủ tính năng để quản lý nhiều thương hiệu.',
+                    ja: '複数ブランドを管理するためのすべての機能。',
+                },
+            },
+
+            icon: 'bi bi-building',
+
+            tone: 'purple',
+
+            monthlyPrice: 39,
+
+            yearlyPrice: 374,
+
+            button: {
+                label: {
+                    sourceLocale: 'en',
+                    default: 'Choose Plan',
+                    translations: {
+                        vi: 'Chọn gói',
+                        ja: 'プランを選択',
+                    },
+                },
+
+                href: '/register',
+
+                target: '_self',
+            },
+
+            features: [
+                {
+                    id: 'f1',
+                    label: {
+                        sourceLocale: 'en',
+                        default: '15 Websites',
+                        translations: {
+                            vi: '15 Website',
+                            ja: '15サイト',
+                        },
+                    },
+                },
+                {
+                    id: 'f2',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Unlimited Storage',
+                        translations: {
+                            vi: 'Dung lượng không giới hạn',
+                            ja: '無制限ストレージ',
+                        },
+                    },
+                },
+                {
+                    id: 'f3',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Team Collaboration',
+                        translations: {
+                            vi: 'Làm việc nhóm',
+                            ja: 'チームコラボレーション',
+                        },
+                    },
+                },
+                {
+                    id: 'f4',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Automation Workflow',
+                        translations: {
+                            vi: 'Tự động hóa',
+                            ja: '自動化ワークフロー',
+                        },
+                    },
+                },
+                {
+                    id: 'f5',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Priority Hosting',
+                        translations: {
+                            vi: 'Hosting ưu tiên',
+                            ja: '高速ホスティング',
+                        },
+                    },
+                },
+                {
+                    id: 'f6',
+                    label: {
+                        sourceLocale: 'en',
+                        default: '24/7 Support',
+                        translations: {
+                            vi: 'Hỗ trợ 24/7',
+                            ja: '24時間365日サポート',
+                        },
+                    },
+                },
+            ],
+        },
+
+        {
+            id: 'enterprise',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Enterprise',
+                translations: {
+                    vi: 'Doanh nghiệp lớn',
+                    ja: 'エンタープライズ',
+                },
+            },
+
+            websiteLabel: {
+                sourceLocale: 'en',
+                default: 'Unlimited Websites',
+                translations: {
+                    vi: 'Không giới hạn Website',
+                    ja: '無制限サイト',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Custom solutions built for large organizations.',
+                translations: {
+                    vi: 'Giải pháp tùy chỉnh dành cho doanh nghiệp lớn.',
+                    ja: '大規模企業向けのカスタムソリューション。',
+                },
+            },
+
+            icon: 'bi bi-gem',
+
+            tone: 'orange',
+
+            comingSoon: true,
+
+            button: {
+                label: {
+                    sourceLocale: 'en',
+                    default: 'Contact Sales',
+                    translations: {
+                        vi: 'Liên hệ',
+                        ja: 'お問い合わせ',
+                    },
+                },
+
+                href: '/contact',
+
+                target: '_self',
+            },
+
+            features: [
+                {
+                    id: 'f1',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Unlimited Websites',
+                        translations: {
+                            vi: 'Website không giới hạn',
+                            ja: '無制限サイト',
+                        },
+                    },
+                },
+                {
+                    id: 'f2',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Dedicated Infrastructure',
+                        translations: {
+                            vi: 'Máy chủ riêng',
+                            ja: '専用インフラ',
+                        },
+                    },
+                },
+                {
+                    id: 'f3',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Enterprise Security',
+                        translations: {
+                            vi: 'Bảo mật doanh nghiệp',
+                            ja: '企業向けセキュリティ',
+                        },
+                    },
+                },
+                {
+                    id: 'f4',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Custom Development',
+                        translations: {
+                            vi: 'Phát triển theo yêu cầu',
+                            ja: 'カスタム開発',
+                        },
+                    },
+                },
+                {
+                    id: 'f5',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Dedicated Account Manager',
+                        translations: {
+                            vi: 'Quản lý tài khoản riêng',
+                            ja: '専任アカウントマネージャー',
+                        },
+                    },
+                },
+                {
+                    id: 'f6',
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Premium Support',
+                        translations: {
+                            vi: 'Hỗ trợ cao cấp',
+                            ja: 'プレミアムサポート',
+                        },
+                    },
+                },
+            ],
+        },
+    ],
+
+    /* ==========================================================
+       Comparison
+    ========================================================== */
+
+    comparison: {
+        eyebrow: {
+            sourceLocale: 'en',
+            default: 'Feature Comparison',
+            translations: {
+                vi: 'So sánh tính năng',
+                ja: '機能比較',
+            },
+        },
+
+        title: {
+            sourceLocale: 'en',
+            default: 'Compare Every',
+            translations: {
+                vi: 'So sánh mọi',
+                ja: 'すべての',
+            },
+        },
+
+        titleAccent: {
+            sourceLocale: 'en',
+            default: 'Plan',
+            translations: {
+                vi: 'Gói dịch vụ',
+                ja: 'プラン',
+            },
+        },
+
+        description: {
+            sourceLocale: 'en',
+            default:
+                'Quickly compare features and choose the plan that best matches your business.',
+            translations: {
+                vi: 'So sánh nhanh các tính năng để lựa chọn gói phù hợp nhất.',
+                ja: '機能を比較して最適なプランを選択しましょう。',
+            },
+        },
+    },
+
+    compareFeatureTitle: {
+        sourceLocale: 'en',
+        default: 'Features',
+        translations: {
+            vi: 'Tính năng',
+            ja: '機能',
+        },
+    },
+
+    comparePopularLabel: {
+        sourceLocale: 'en',
+        default: 'Most Popular',
+        translations: {
+            vi: 'Phổ biến nhất',
+            ja: '人気',
+        },
+    },
+
+    comparePlans: [
+        {
+            id: 'starter',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Starter',
+                translations: {
+                    vi: 'Khởi đầu',
+                    ja: 'スターター',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Personal',
+                translations: {
+                    vi: 'Cá nhân',
+                    ja: '個人',
+                },
+            },
+
+            icon: 'bi bi-stars',
+
+            tone: 'green',
+        },
+
+        {
+            id: 'professional',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Professional',
+                translations: {
+                    vi: 'Chuyên nghiệp',
+                    ja: 'プロ',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Best Value',
+                translations: {
+                    vi: 'Khuyên dùng',
+                    ja: 'おすすめ',
+                },
+            },
+
+            icon: 'bi bi-lightning-charge-fill',
+
+            tone: 'blue',
+
+            popular: true,
+        },
+
+        {
+            id: 'business',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Business',
+                translations: {
+                    vi: 'Doanh nghiệp',
+                    ja: 'ビジネス',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Growing Teams',
+                translations: {
+                    vi: 'Đội nhóm',
+                    ja: 'チーム',
+                },
+            },
+
+            icon: 'bi bi-building',
+
+            tone: 'purple',
+        },
+
+        {
+            id: 'enterprise',
+
+            name: {
+                sourceLocale: 'en',
+                default: 'Enterprise',
+                translations: {
+                    vi: 'Doanh nghiệp lớn',
+                    ja: 'エンタープライズ',
+                },
+            },
+
+            description: {
+                sourceLocale: 'en',
+                default: 'Custom',
+                translations: {
+                    vi: 'Tùy chỉnh',
+                    ja: 'カスタム',
+                },
+            },
+
+            icon: 'bi bi-gem',
+
+            tone: 'orange',
+        },
+    ],
+
+    comparisonGroups: [
+        {
+            id: 'website',
+
+            title: {
+                sourceLocale: 'en',
+                default: 'Website Builder',
+                translations: {
+                    vi: 'Website Builder',
+                    ja: 'Webサイトビルダー',
+                },
+            },
+
+            icon: 'bi bi-window-stack',
+
+            rows: [
+                {
+                    id: 'websites',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Websites',
+                        translations: {
+                            vi: 'Số Website',
+                            ja: 'サイト数',
+                        },
+                    },
+
+                    free: '1',
+                    starter: '5',
+                    pro: '15',
+                    enterprise: 'Unlimited',
+                },
+
+                {
+                    id: 'pages',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Unlimited Pages',
+                        translations: {
+                            vi: 'Không giới hạn trang',
+                            ja: '無制限ページ',
+                        },
+                    },
+
+                    highlight: 'primary',
+
+                    free: true,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+
+                {
+                    id: 'templates',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Premium Templates',
+                        translations: {
+                            vi: 'Template cao cấp',
+                            ja: 'プレミアムテンプレート',
+                        },
+                    },
+
+                    free: false,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+
+                {
+                    id: 'drag',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Drag & Drop Builder',
+                        translations: {
+                            vi: 'Kéo thả trực quan',
+                            ja: 'ドラッグ＆ドロップ',
+                        },
+                    },
+
+                    free: true,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+            ],
+        },
+
+        {
+            id: 'hosting',
+
+            title: {
+                sourceLocale: 'en',
+                default: 'Hosting & Security',
+                translations: {
+                    vi: 'Hosting & Bảo mật',
+                    ja: 'ホスティング',
+                },
+            },
+
+            icon: 'bi bi-shield-lock',
+
+            rows: [
+                {
+                    id: 'ssl',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Free SSL',
+                        translations: {
+                            vi: 'SSL miễn phí',
+                            ja: '無料SSL',
+                        },
+                    },
+
+                    free: true,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+
+                {
+                    id: 'cdn',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Global CDN',
+                        translations: {
+                            vi: 'CDN toàn cầu',
+                            ja: 'グローバルCDN',
+                        },
+                    },
+
+                    free: false,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+
+                {
+                    id: 'backup',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Automatic Backup',
+                        translations: {
+                            vi: 'Sao lưu tự động',
+                            ja: '自動バックアップ',
+                        },
+                    },
+
+                    free: false,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+
+                {
+                    id: 'security',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Enterprise Security',
+                        translations: {
+                            vi: 'Bảo mật doanh nghiệp',
+                            ja: '企業向けセキュリティ',
+                        },
+                    },
+
+                    free: false,
+                    starter: false,
+                    pro: true,
+                    enterprise: true,
+                },
+            ],
+        },
+
+        {
+            id: 'support',
+
+            title: {
+                sourceLocale: 'en',
+                default: 'Support',
+                translations: {
+                    vi: 'Hỗ trợ',
+                    ja: 'サポート',
+                },
+            },
+
+            icon: 'bi bi-headset',
+
+            rows: [
+                {
+                    id: 'email',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Email Support',
+                        translations: {
+                            vi: 'Hỗ trợ Email',
+                            ja: 'メールサポート',
+                        },
+                    },
+
+                    free: true,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+
+                {
+                    id: 'priority',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Priority Support',
+                        translations: {
+                            vi: 'Ưu tiên hỗ trợ',
+                            ja: '優先サポート',
+                        },
+                    },
+
+                    free: false,
+                    starter: true,
+                    pro: true,
+                    enterprise: true,
+                },
+
+                {
+                    id: 'manager',
+
+                    label: {
+                        sourceLocale: 'en',
+                        default: 'Dedicated Manager',
+                        translations: {
+                            vi: 'Quản lý riêng',
+                            ja: '専任マネージャー',
+                        },
+                    },
+
+                    free: false,
+                    starter: false,
+                    pro: false,
+                    enterprise: true,
+                },
+            ],
+        },
+    ],
+    /* ==========================================================
+       Contact
+    ========================================================== */
+
+    contact: {
+        title: {
+            sourceLocale: 'en',
+            default: 'Need a Custom Solution?',
+            translations: {
+                vi: 'Cần giải pháp riêng?',
+                ja: 'カスタムソリューションが必要ですか？',
+            },
+        },
+
+        description: {
+            sourceLocale: 'en',
+            default:
+                'Our team can help you choose the right plan or build a custom solution tailored to your business.',
+            translations: {
+                vi: 'Đội ngũ của chúng tôi sẽ giúp bạn lựa chọn gói phù hợp hoặc xây dựng giải pháp riêng cho doanh nghiệp.',
+                ja: 'お客様のビジネスに最適なプランやカスタムソリューションをご提案します。',
+            },
+        },
+
+        button: {
+            label: {
+                sourceLocale: 'en',
+                default: 'Contact Sales',
+                translations: {
+                    vi: 'Liên hệ tư vấn',
+                    ja: '営業に問い合わせる',
+                },
+            },
+
+            href: '/contact',
+
+            target: '_self',
+        },
+    },
+
+    /* ==========================================================
+       FAQ
+    ========================================================== */
+
+    faq: {
+        eyebrow: {
+            sourceLocale: 'en',
+            default: 'Frequently Asked Questions',
+            translations: {
+                vi: 'Câu hỏi thường gặp',
+                ja: 'よくある質問',
+            },
+        },
+
+        title: {
+            sourceLocale: 'en',
+            default: 'Everything You',
+            translations: {
+                vi: 'Mọi điều bạn',
+                ja: '知っておきたい',
+            },
+        },
+
+        titleAccent: {
+            sourceLocale: 'en',
+            default: 'Need To Know',
+            translations: {
+                vi: 'Cần Biết',
+                ja: '情報',
+            },
+        },
+
+        description: {
+            sourceLocale: 'en',
+            default:
+                'Find answers to the most common questions about pricing, billing and platform features.',
+            translations: {
+                vi: 'Tìm câu trả lời cho những câu hỏi phổ biến nhất về bảng giá và nền tảng.',
+                ja: '料金やプラットフォームに関するよくある質問をご確認ください。',
+            },
+        },
+    },
+
+    categories: [
+        {
+            id: 'general',
+
+            label: {
+                sourceLocale: 'en',
+                default: 'General',
+                translations: {
+                    vi: 'Chung',
+                    ja: '一般',
+                },
+            },
+
+            icon: 'bi bi-grid',
+        },
+
+        {
+            id: 'billing',
+
+            label: {
+                sourceLocale: 'en',
+                default: 'Billing',
+                translations: {
+                    vi: 'Thanh toán',
+                    ja: '請求',
+                },
+            },
+
+            icon: 'bi bi-credit-card',
+        },
+
+        {
+            id: 'support',
+
+            label: {
+                sourceLocale: 'en',
+                default: 'Support',
+                translations: {
+                    vi: 'Hỗ trợ',
+                    ja: 'サポート',
+                },
+            },
+
+            icon: 'bi bi-headset',
+        },
+    ],
+
+    faqs: [
+        {
+            id: 'faq-1',
+
+            categoryId: 'general',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Can I upgrade my plan later?',
+                translations: {
+                    vi: 'Tôi có thể nâng cấp gói sau này không?',
+                    ja: '後でプランをアップグレードできますか？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default: 'Yes. You can upgrade or downgrade your subscription at any time.',
+                translations: {
+                    vi: 'Có. Bạn có thể nâng cấp hoặc hạ cấp gói bất cứ lúc nào.',
+                    ja: 'はい。いつでもプランを変更できます。',
+                },
+            },
+        },
+
+        {
+            id: 'faq-2',
+
+            categoryId: 'general',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Do I need coding knowledge?',
+                translations: {
+                    vi: 'Tôi có cần biết lập trình không?',
+                    ja: 'プログラミング知識は必要ですか？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default: 'No. Kbuilder provides a visual drag-and-drop editor for everyone.',
+                translations: {
+                    vi: 'Không. Kbuilder cung cấp trình chỉnh sửa kéo thả trực quan.',
+                    ja: 'いいえ。ドラッグ＆ドロップで簡単に作成できます。',
+                },
+            },
+        },
+
+        {
+            id: 'faq-3',
+
+            categoryId: 'general',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Can I use my own domain?',
+                translations: {
+                    vi: 'Tôi có thể dùng tên miền riêng không?',
+                    ja: '独自ドメインは利用できますか？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default: 'Yes. Every paid plan supports custom domains.',
+                translations: {
+                    vi: 'Có. Tất cả gói trả phí đều hỗ trợ tên miền riêng.',
+                    ja: 'はい。有料プランでは独自ドメインを利用できます。',
+                },
+            },
+        },
+
+        {
+            id: 'faq-4',
+
+            categoryId: 'billing',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Can I cancel anytime?',
+                translations: {
+                    vi: 'Tôi có thể hủy bất cứ lúc nào?',
+                    ja: 'いつでも解約できますか？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default: 'Yes. There are no long-term contracts.',
+                translations: {
+                    vi: 'Có. Không có hợp đồng dài hạn.',
+                    ja: 'はい。長期契約はありません。',
+                },
+            },
+        },
+
+        {
+            id: 'faq-5',
+
+            categoryId: 'billing',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Do yearly plans include discounts?',
+                translations: {
+                    vi: 'Thanh toán năm có được giảm giá?',
+                    ja: '年間プランは割引がありますか？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default: 'Yes. Annual billing saves up to 20% compared with monthly billing.',
+                translations: {
+                    vi: 'Có. Thanh toán năm giúp tiết kiệm tới 20%.',
+                    ja: 'はい。年間契約で最大20%お得になります。',
+                },
+            },
+        },
+
+        {
+            id: 'faq-6',
+
+            categoryId: 'billing',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Which payment methods are supported?',
+                translations: {
+                    vi: 'Hỗ trợ những phương thức thanh toán nào?',
+                    ja: '利用可能な支払い方法は？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default: 'We support major credit cards and other popular payment methods.',
+                translations: {
+                    vi: 'Chúng tôi hỗ trợ thẻ tín dụng và nhiều phương thức phổ biến.',
+                    ja: '主要なクレジットカードなどに対応しています。',
+                },
+            },
+        },
+
+        {
+            id: 'faq-7',
+
+            categoryId: 'support',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Is technical support included?',
+                translations: {
+                    vi: 'Có hỗ trợ kỹ thuật không?',
+                    ja: '技術サポートは含まれますか？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default:
+                    'Yes. Every plan includes customer support, with priority support on higher tiers.',
+                translations: {
+                    vi: 'Có. Tất cả các gói đều có hỗ trợ khách hàng.',
+                    ja: 'はい。すべてのプランにサポートが含まれます。',
+                },
+            },
+        },
+
+        {
+            id: 'faq-8',
+
+            categoryId: 'support',
+
+            question: {
+                sourceLocale: 'en',
+                default: 'Can I migrate an existing website?',
+                translations: {
+                    vi: 'Có thể chuyển website hiện có sang không?',
+                    ja: '既存サイトを移行できますか？',
+                },
+            },
+
+            answer: {
+                sourceLocale: 'en',
+                default: 'Absolutely. Our team can help migrate your existing website.',
+                translations: {
+                    vi: 'Hoàn toàn có thể. Chúng tôi sẽ hỗ trợ bạn chuyển dữ liệu.',
+                    ja: 'もちろんです。既存サイトの移行をサポートします。',
+                },
+            },
+        },
+    ],
+
+    /* ==========================================================
+       Sidebar Help
+    ========================================================== */
+
+    sidebarHelp: {
+        title: {
+            sourceLocale: 'en',
+            default: 'Still Need Help?',
+            translations: {
+                vi: 'Vẫn cần hỗ trợ?',
+                ja: 'さらにサポートが必要ですか？',
+            },
+        },
+
+        description: {
+            sourceLocale: 'en',
+            default:
+                'Our specialists are ready to help you choose the best solution for your business.',
+            translations: {
+                vi: 'Đội ngũ chuyên gia luôn sẵn sàng tư vấn giải pháp phù hợp nhất.',
+                ja: '最適なプラン選びを専門スタッフがお手伝いします。',
+            },
+        },
+
+        button: {
+            label: {
+                sourceLocale: 'en',
+                default: 'Contact Support',
+                translations: {
+                    vi: 'Liên hệ hỗ trợ',
+                    ja: 'サポートへ連絡',
+                },
+            },
+
+            href: '/contact',
+
+            target: '_self',
+        },
+    },
+};
+
+type PlanKey = 'free' | 'starter' | 'pro' | 'enterprise';
+
+const PLAN_KEYS: PlanKey[] = ['free', 'starter', 'pro', 'enterprise'];
 
 function ComparisonCell({
     value,
     highlight,
 }: {
-    value: string | boolean;
+    value: ComparisonValue;
     highlight?: ComparisonRow['highlight'];
 }) {
     if (typeof value === 'boolean') {
@@ -289,8 +1561,8 @@ function ComparisonCell({
         <span
             className={[
                 styles.cellText,
-                highlight === 'primary' ? styles.primaryText : '',
-                highlight === 'success' ? styles.successText : '',
+                highlight === 'primary' && styles.primaryText,
+                highlight === 'success' && styles.successText,
             ]
                 .filter(Boolean)
                 .join(' ')}
@@ -299,520 +1571,143 @@ function ComparisonCell({
         </span>
     );
 }
-export function PricingPage01({
-    eyebrow = 'Pricing Plans',
-    title = 'Compare Plans & Find Your',
-    titleAccent = 'Perfect Fit',
-    description = 'All plans include our core features. Upgrade when you need more.',
-    contactTitle = 'Need a custom solution?',
-    contactDescription = 'Contact our sales team for Enterprise pricing and features.',
-    contactButtonLabel = 'Contact Sales',
-    category1Label = 'General',
-    category2Label = 'Account',
-    category3Label = 'Billing',
 
-    question1 = 'What is Kbuilder and how does it work?',
-    answer1 = 'Kbuilder is a powerful website builder that helps you create stunning websites without coding. Choose a template, customize it with our drag-and-drop editor, and publish your site in minutes.',
+export function PricingPage01(props: PricingPage01Props) {
+    const mergedProps: Required<PricingPage01Props> = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
 
-    question2 = 'How easy is it to use?',
-    answer2 = 'Kbuilder is designed for everyone. You can select a template, edit your content visually, and launch your website without writing code.',
+    const {
+        breadcrumbHome,
+        breadcrumbHomeHref,
+        breadcrumbCurrent,
+        hero,
+        billing,
+        pricingPlans,
+        comparison,
+        compareFeatureTitle,
+        comparePopularLabel,
+        comparePlans,
+        comparisonGroups,
+        contact,
+        faq,
+        categories,
+        faqs,
+        sidebarHelp,
+    } = mergedProps;
 
-    question3 = 'Can I use my own domain?',
-    answer3 = 'Yes. You can connect your own custom domain and publish your website with a professional web address.',
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
 
-    question4 = 'Do you offer customer support?',
-    answer4 = 'Yes. Our support team is available to help you with website setup, publishing, domains, and other platform questions.',
+        return localStorage.getItem('locale') ?? 'en';
+    });
 
-    question5 = 'Can I cancel my plan anytime?',
-    answer5 = 'Yes. You can change or cancel your subscription based on your current plan and billing settings.',
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            setSelectedLocale(customEvent.detail);
+        };
 
-    plan1Name = 'Free',
-    plan1Description = 'Get started',
-    plan1Icon = 'bi-power',
-    plan1Tone = 'green',
-    plan1Popular = false,
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
 
-    plan2Name = 'Starter',
-    plan2Description = 'For individuals',
-    plan2Icon = 'bi-send',
-    plan2Tone = 'blue',
-    plan2Popular = false,
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
 
-    plan3Name = 'Pro',
-    plan3Description = 'For professionals',
-    plan3Icon = 'bi-lightning-charge',
-    plan3Tone = 'purple',
-    plan3Popular = true,
+    const t = useCallback(
+        (value: LocalizedText) => getLocalizedValue(value, selectedLocale),
+        [selectedLocale],
+    );
 
-    plan4Name = 'Enterprise',
-    plan4Description = 'For large teams',
-    plan4Icon = 'bi-buildings',
-    plan4Tone = 'orange',
-    plan4Popular = false,
-
-    comparison1Title = 'Core features',
-    comparison1Icon = 'bi-stars',
-
-    comparison1Label1 = 'Website Limit',
-    comparison1Free1 = '1 Website',
-    comparison1Starter1 = '2 Websites',
-    comparison1Pro1 = '3 Websites',
-    comparison1Enterprise1 = 'Custom',
-
-    comparison1Label2 = 'Pages',
-    comparison1Free2 = '10 Pages',
-    comparison1Starter2 = '15 Pages',
-    comparison1Pro2 = '30 Pages',
-    comparison1Enterprise2 = 'Custom',
-    comparison1Highlight = 'primary',
-
-    comparison1Label3 = 'Custom Domain',
-    comparison1Free3 = true,
-    comparison1Starter3 = true,
-    comparison1Pro3 = true,
-    comparison1Enterprise3 = true,
-
-    comparison1Label4 = 'Premium Templates',
-    comparison1Free4 = false,
-    comparison1Starter4 = true,
-    comparison1Pro4 = true,
-    comparison1Enterprise4 = true,
-
-    comparison2Title = 'Builder & performance',
-    comparison2Icon = 'bi-file-earmark-code',
-
-    comparison2Label1 = 'Drag & Drop Builder',
-    comparison2Free1 = true,
-    comparison2Starter1 = true,
-    comparison2Pro1 = true,
-    comparison2Enterprise1 = true,
-
-    comparison2Label2 = 'Responsive Design',
-    comparison2Free2 = true,
-    comparison2Starter2 = true,
-    comparison2Pro2 = true,
-    comparison2Enterprise2 = true,
-
-    comparison2Label3 = 'Daily Backup',
-    comparison2Free3 = false,
-    comparison2Starter3 = true,
-    comparison2Pro3 = true,
-    comparison2Enterprise3 = true,
-
-    comparison3Title = 'Advanced features',
-    comparison3Icon = 'bi-gear',
-
-    comparison3Label1 = 'Built-in SEO',
-    comparison3Free1 = true,
-    comparison3Starter1 = true,
-    comparison3Pro1 = true,
-    comparison3Enterprise1 = true,
-
-    comparison3Label2 = 'Advanced Analytics',
-    comparison3Free2 = false,
-    comparison3Starter2 = false,
-    comparison3Pro2 = true,
-    comparison3Enterprise2 = true,
-
-    comparison3Label3 = 'API Access',
-    comparison3Free3 = false,
-    comparison3Starter3 = false,
-    comparison3Pro3 = true,
-    comparison3Enterprise3 = true,
-
-    comparison3Label4 = 'Dedicated Manager',
-    comparison3Free4 = false,
-    comparison3Starter4 = false,
-    comparison3Pro4 = false,
-    comparison3Enterprise4 = true,
-
-    // Plan 1
-    pricingPlan1Name = 'Basic',
-    pricingPlan1WebsiteLabel = '1 Website',
-    pricingPlan1Price = 5,
-    pricingPlan1Description = 'Everything you need to build a simple, professional website.',
-    pricingPlan1Icon = 'bi-flower1',
-    pricingPlan1Tone = 'green',
-    pricingPlan1ButtonLabel = 'Get Started',
-    pricingPlan1Popular = false,
-    pricingPlan1ComingSoon = false,
-
-    pricingPlan1Feature1 = '1 Website',
-    pricingPlan1Feature2 = 'Up to 10 Pages',
-    pricingPlan1Feature3 = 'Free SSL Certificate',
-    pricingPlan1Feature4 = 'Custom Domain',
-    pricingPlan1Feature5 = 'Drag & Drop Builder',
-    pricingPlan1Feature6 = 'Responsive Design',
-    pricingPlan1Feature7 = 'Built-in SEO',
-    pricingPlan1Feature8 = 'Analytics Dashboard',
-    pricingPlan1Feature9 = 'Fast Cloud Hosting',
-    pricingPlan1Feature10 = 'Email Support',
-
-    // pricingPlan 2
-    pricingPlan2Name = 'Standard',
-    pricingPlan2WebsiteLabel = '2 Websites',
-    pricingPlan2Price = 10,
-    pricingPlan2Description = 'More power and flexibility for growing websites.',
-    pricingPlan2Icon = 'bi-star',
-    pricingPlan2Tone = 'blue',
-    pricingPlan2ButtonLabel = 'Start Free Trial',
-    pricingPlan2Popular = false,
-    pricingPlan2ComingSoon = false,
-
-    pricingPlan2Feature1 = '2 Websites',
-    pricingPlan2Feature2 = 'Up to 15 Pages',
-    pricingPlan2Feature3 = 'Free SSL Certificate',
-    pricingPlan2Feature4 = 'Custom Domain',
-    pricingPlan2Feature5 = 'Premium Templates',
-    pricingPlan2Feature6 = 'Drag & Drop Builder',
-    pricingPlan2Feature7 = 'Analytics Dashboard',
-    pricingPlan2Feature8 = 'Daily Backup',
-    pricingPlan2Feature9 = 'Faster Performance',
-    pricingPlan2Feature10 = 'Priority Support',
-
-    // pricingPlan 3
-    pricingPlan3Name = 'Professional',
-    pricingPlan3WebsiteLabel = '3 Websites',
-    pricingPlan3Price = 20,
-    pricingPlan3Description = 'Advanced features for serious businesses and professionals.',
-    pricingPlan3Icon = 'bi-gem',
-    pricingPlan3Tone = 'purple',
-    pricingPlan3ButtonLabel = 'Start Free Trial',
-    pricingPlan3Popular = true,
-    pricingPlan3ComingSoon = false,
-
-    pricingPlan3Feature1 = '3 Websites',
-    pricingPlan3Feature2 = 'Up to 30 Pages',
-    pricingPlan3Feature3 = 'Free SSL Certificate',
-    pricingPlan3Feature4 = 'Unlimited Custom Domains',
-    pricingPlan3Feature5 = 'All Premium Templates',
-    pricingPlan3Feature6 = 'Advanced Analytics',
-    pricingPlan3Feature7 = 'Premium SEO',
-    pricingPlan3Feature8 = 'Daily Backup',
-    pricingPlan3Feature9 = 'API Access',
-    pricingPlan3Feature10 = 'Premium Support',
-
-    // pricingPlan 4
-    pricingPlan4Name = 'Custom',
-    pricingPlan4WebsiteLabel = 'Custom Websites',
-    pricingPlan4Description = "Need something specific? Let's build a pricingPlan for you.",
-    pricingPlan4Icon = 'bi-gear',
-    pricingPlan4Tone = 'orange',
-    pricingPlan4ButtonLabel = 'Contact Sales',
-    pricingPlan4Popular = false,
-    pricingPlan4ComingSoon = true,
-
-    pricingPlan4Feature1 = 'Custom Number of Websites',
-    pricingPlan4Feature2 = 'Custom Pages',
-    pricingPlan4Feature3 = 'Free SSL Certificate',
-    pricingPlan4Feature4 = 'Unlimited Custom Domains',
-    pricingPlan4Feature5 = 'All Premium Templates',
-    pricingPlan4Feature6 = 'Advanced Features',
-    pricingPlan4Feature7 = 'Priority Support',
-    pricingPlan4Feature8 = 'Dedicated Account Manager',
-    pricingPlan4Feature9 = 'API Access',
-    pricingPlan4Feature10 = 'And More...',
-}: PricingPage01Props) {
     const [activeCategory, setActiveCategory] = React.useState('general');
-    const [openFaqId, setOpenFaqId] = React.useState<number | null>(1);
+    const [openFaqId, setOpenFaqId] = React.useState<string | null>(null);
 
-    const PLANS: SetupPlan[] = [
-        {
-            name: plan1Name,
-            description: plan1Description,
-            icon: plan1Icon,
-            tone: plan1Tone,
-            popular: plan1Popular,
-        },
-        {
-            name: plan2Name,
-            description: plan2Description,
-            icon: plan2Icon,
-            tone: plan2Tone,
-            popular: plan2Popular,
-        },
-        {
-            name: plan3Name,
-            description: plan3Description,
-            icon: plan3Icon,
-            tone: plan3Tone,
-            popular: plan3Popular,
-        },
-        {
-            name: plan4Name,
-            description: plan4Description,
-            icon: plan4Icon,
-            tone: plan4Tone,
-            popular: plan4Popular,
-        },
-    ];
+    const PLANS =
+        comparePlans?.map((plan) => ({
+            name: t(plan.name),
+            description: t(plan.description),
+            icon: plan.icon,
+            tone: plan.tone,
+            popular: plan.popular,
+        })) ?? [];
 
-    const COMPARISON_GROUPS: ComparisonGroup[] = [
-        {
-            title: comparison1Title,
-            icon: comparison1Icon,
-            rows: [
-                {
-                    label: comparison1Label1,
-                    free: comparison1Free1,
-                    starter: comparison1Starter1,
-                    pro: comparison1Pro1,
-                    enterprise: comparison1Enterprise1,
-                },
-                {
-                    label: comparison1Label2,
-                    free: comparison1Free2,
-                    starter: comparison1Starter2,
-                    pro: comparison1Pro2,
-                    enterprise: comparison1Enterprise2,
-                    highlight: comparison1Highlight,
-                },
-                {
-                    label: comparison1Label3,
-                    free: comparison1Free3,
-                    starter: comparison1Starter3,
-                    pro: comparison1Pro3,
-                    enterprise: comparison1Enterprise3,
-                },
-                {
-                    label: comparison1Label4,
-                    free: comparison1Free4,
-                    starter: comparison1Starter4,
-                    pro: comparison1Pro4,
-                    enterprise: comparison1Enterprise4,
-                },
-            ],
-        },
+    const COMPARISON_GROUPS: ComparisonGroup[] = comparisonGroups ?? [];
 
-        {
-            title: comparison2Title,
-            icon: comparison2Icon,
-            rows: [
-                {
-                    label: comparison2Label1,
-                    free: comparison2Free1,
-                    starter: comparison2Starter1,
-                    pro: comparison2Pro1,
-                    enterprise: comparison2Enterprise1,
-                },
-                {
-                    label: comparison2Label2,
-                    free: comparison2Free2,
-                    starter: comparison2Starter2,
-                    pro: comparison2Pro2,
-                    enterprise: comparison2Enterprise2,
-                },
-                {
-                    label: comparison2Label3,
-                    free: comparison2Free3,
-                    starter: comparison2Starter3,
-                    pro: comparison2Pro3,
-                    enterprise: comparison2Enterprise3,
-                },
-            ],
-        },
+    const PRICING_PLANS: PricingPlan[] = pricingPlans ?? [];
 
-        {
-            title: comparison3Title,
-            icon: comparison3Icon,
-            rows: [
-                {
-                    label: comparison3Label1,
-                    free: comparison3Free1,
-                    starter: comparison3Starter1,
-                    pro: comparison3Pro1,
-                    enterprise: comparison3Enterprise1,
-                },
-                {
-                    label: comparison3Label2,
-                    free: comparison3Free2,
-                    starter: comparison3Starter2,
-                    pro: comparison3Pro2,
-                    enterprise: comparison3Enterprise2,
-                },
-                {
-                    label: comparison3Label3,
-                    free: comparison3Free3,
-                    starter: comparison3Starter3,
-                    pro: comparison3Pro3,
-                    enterprise: comparison3Enterprise3,
-                },
-                {
-                    label: comparison3Label4,
-                    free: comparison3Free4,
-                    starter: comparison3Starter4,
-                    pro: comparison3Pro4,
-                    enterprise: comparison3Enterprise4,
-                },
-            ],
-        },
-    ];
+    const FAQ_CATEGORIES: FaqCategory[] = categories ?? [];
 
-    const PRICING_PLANS: PricingPlan[] = [
-        {
-            name: pricingPlan1Name,
-            websiteLabel: pricingPlan1WebsiteLabel,
-            price: pricingPlan1Price,
-            description: pricingPlan1Description,
-            icon: pricingPlan1Icon,
-            tone: pricingPlan1Tone,
-            buttonLabel: pricingPlan1ButtonLabel,
-            popular: pricingPlan1Popular,
-            comingSoon: pricingPlan1ComingSoon,
-            features: [
-                pricingPlan1Feature1,
-                pricingPlan1Feature2,
-                pricingPlan1Feature3,
-                pricingPlan1Feature4,
-                pricingPlan1Feature5,
-                pricingPlan1Feature6,
-                pricingPlan1Feature7,
-                pricingPlan1Feature8,
-                pricingPlan1Feature9,
-                pricingPlan1Feature10,
-            ].filter(Boolean) as string[],
-        },
+    const FAQ_ITEMS: FaqItem[] = faqs ?? [];
 
-        {
-            name: pricingPlan2Name,
-            websiteLabel: pricingPlan2WebsiteLabel,
-            price: pricingPlan2Price,
-            description: pricingPlan2Description,
-            icon: pricingPlan2Icon,
-            tone: pricingPlan2Tone,
-            buttonLabel: pricingPlan2ButtonLabel,
-            popular: pricingPlan2Popular,
-            comingSoon: pricingPlan2ComingSoon,
-            features: [
-                pricingPlan2Feature1,
-                pricingPlan2Feature2,
-                pricingPlan2Feature3,
-                pricingPlan2Feature4,
-                pricingPlan2Feature5,
-                pricingPlan2Feature6,
-                pricingPlan2Feature7,
-                pricingPlan2Feature8,
-                pricingPlan2Feature9,
-                pricingPlan2Feature10,
-            ].filter(Boolean) as string[],
-        },
+    const filteredFaqs = React.useMemo(() => {
+        return FAQ_ITEMS.filter((item) => item.categoryId === activeCategory);
+    }, [FAQ_ITEMS, activeCategory]);
 
-        {
-            name: pricingPlan3Name,
-            websiteLabel: pricingPlan3WebsiteLabel,
-            price: pricingPlan3Price,
-            description: pricingPlan3Description,
-            icon: pricingPlan3Icon,
-            tone: pricingPlan3Tone,
-            buttonLabel: pricingPlan3ButtonLabel,
-            popular: pricingPlan3Popular,
-            comingSoon: pricingPlan3ComingSoon,
-            features: [
-                pricingPlan3Feature1,
-                pricingPlan3Feature2,
-                pricingPlan3Feature3,
-                pricingPlan3Feature4,
-                pricingPlan3Feature5,
-                pricingPlan3Feature6,
-                pricingPlan3Feature7,
-                pricingPlan3Feature8,
-                pricingPlan3Feature9,
-                pricingPlan3Feature10,
-            ].filter(Boolean) as string[],
-        },
+    useEffect(() => {
+        if (filteredFaqs.length > 0) {
+            setOpenFaqId(filteredFaqs[0].id);
+        } else {
+            setOpenFaqId(null);
+        }
+    }, [filteredFaqs]);
 
-        {
-            name: pricingPlan4Name,
-            websiteLabel: pricingPlan4WebsiteLabel,
-            description: pricingPlan4Description,
-            icon: pricingPlan4Icon,
-            tone: pricingPlan4Tone,
-            buttonLabel: pricingPlan4ButtonLabel,
-            popular: pricingPlan4Popular,
-            comingSoon: pricingPlan4ComingSoon,
-            features: [
-                pricingPlan4Feature1,
-                pricingPlan4Feature2,
-                pricingPlan4Feature3,
-                pricingPlan4Feature4,
-                pricingPlan4Feature5,
-                pricingPlan4Feature6,
-                pricingPlan4Feature7,
-                pricingPlan4Feature8,
-                pricingPlan4Feature9,
-                pricingPlan4Feature10,
-            ].filter(Boolean) as string[],
-        },
-    ];
-
-    const categories: FaqCategory[] = [
-        {
-            id: 'general',
-            label: category1Label,
-            icon: 'bi-chat-square',
-        },
-        {
-            id: 'account',
-            label: category2Label,
-            icon: 'bi-shield-check',
-        },
-        {
-            id: 'billing',
-            label: category3Label,
-            icon: 'bi-credit-card',
-        },
-    ];
-
-    const faqs: FaqItem[] = [
-        {
-            id: 1,
-            question: question1,
-            answer: answer1,
-        },
-        {
-            id: 2,
-            question: question2,
-            answer: answer2,
-        },
-        {
-            id: 3,
-            question: question3,
-            answer: answer3,
-        },
-        {
-            id: 4,
-            question: question4,
-            answer: answer4,
-        },
-        {
-            id: 5,
-            question: question5,
-            answer: answer5,
-        },
-    ];
-
-    const toggleFaq = React.useCallback((id: number) => {
+    const toggleFaq = React.useCallback((id: string) => {
         setOpenFaqId((currentId) => (currentId === id ? null : id));
     }, []);
 
     return (
         <>
+            <div className={styles.headingSection}>
+                <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+                    <Link href={breadcrumbHomeHref ?? '/'} className={styles.breadcrumbItem}>
+                        {t(breadcrumbHome)}
+                    </Link>
+
+                    <i className="bi bi-chevron-right" />
+
+                    <span className={styles.breadcrumbCurrent}>{t(breadcrumbCurrent)}</span>
+                </nav>
+            </div>
             <section className={styles.section}>
                 <div className={styles.container}>
                     <div className={styles.heading}>
                         <div className={styles.headingContent}>
                             <span className={styles.eyebrow}>
-                                <i className="bi bi-bag-check" /> Pricing Plans
+                                <i className="bi bi-bag-check" />
+                                {t(hero.eyebrow)}
                             </span>
-                            <h2>Simple, Transparent Pricing</h2>
+
+                            <h2>
+                                {t(hero.title)}
+
+                                {hero.titleAccent && (
+                                    <>
+                                        {' '}
+                                        <span className={styles.titleAccent}>
+                                            {t(hero.titleAccent)}
+                                        </span>
+                                    </>
+                                )}
+                            </h2>
+
+                            {hero.description && (
+                                <p className={styles.description}>{t(hero.description)}</p>
+                            )}
                         </div>
+
                         <div className={styles.headingActions}>
-                            <p>No contracts. No hidden fees. Cancel anytime.</p>
+                            <p>{t(billing.note)}</p>
 
                             <div className={styles.billing}>
-                                <span className={styles.discount}>20% Off</span>
+                                <span className={styles.discount}>{t(billing.discountLabel)}</span>
 
-                                <span className={styles.activeBilling}>Pay Yearly</span>
+                                <span className={styles.activeBilling}>
+                                    {t(billing.yearlyLabel)}
+                                </span>
 
                                 <button
                                     type="button"
@@ -822,14 +1717,14 @@ export function PricingPage01({
                                     <span />
                                 </button>
 
-                                <span>Pay Monthly</span>
+                                <span>{t(billing.monthlyLabel)}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className={styles.pricingGrid}>
                         {PRICING_PLANS.map((plan) => (
-                            <PricingCard key={plan.name} plan={plan} />
+                            <PricingCard key={plan.id} plan={plan} t={t} />
                         ))}
                     </div>
                 </div>
@@ -842,12 +1737,25 @@ export function PricingPage01({
                         <div className={styles.headingContent}>
                             <span className={styles.eyebrow}>
                                 <i className="bi bi-bag-check" />
-                                {eyebrow}
+                                {t(comparison.eyebrow)}
                             </span>
 
                             <h2 className={styles.title}>
-                                {title} <span className={styles.titleAccent}>{titleAccent}</span>
+                                {t(comparison.title)}
+
+                                {comparison.titleAccent && (
+                                    <>
+                                        {' '}
+                                        <span className={styles.titleAccent}>
+                                            {t(comparison.titleAccent)}
+                                        </span>
+                                    </>
+                                )}
                             </h2>
+
+                            {comparison.description && (
+                                <p className={styles.description}>{t(comparison.description)}</p>
+                            )}
                         </div>
                     </header>
 
@@ -860,7 +1768,7 @@ export function PricingPage01({
                                             <i className="bi bi-stars" />
                                         </span>
 
-                                        <span>Compare features</span>
+                                        <span>{t(compareFeatureTitle)}</span>
                                     </div>
 
                                     {PLANS.map((plan) => (
@@ -870,7 +1778,7 @@ export function PricingPage01({
                                         >
                                             {plan.popular && (
                                                 <span className={styles.popularBadge}>
-                                                    Most Popular
+                                                    {t(comparePopularLabel)}
                                                 </span>
                                             )}
 
@@ -888,11 +1796,11 @@ export function PricingPage01({
                                 </div>
 
                                 {COMPARISON_GROUPS.map((group) => (
-                                    <div key={group.title} className={styles.comparisonGroup}>
+                                    <div key={group.id} className={styles.comparisonGroup}>
                                         <div className={styles.groupHeader}>
                                             <div className={styles.groupTitle}>
                                                 <i className={`bi ${group.icon}`} />
-                                                <strong>{group.title}</strong>
+                                                <strong>{t(group.title)}</strong>
                                             </div>
 
                                             {PLANS.map((plan) => (
@@ -906,11 +1814,11 @@ export function PricingPage01({
                                         </div>
 
                                         {group.rows.map((row) => (
-                                            <div key={row.label} className={styles.comparisonRow}>
+                                            <div key={row.id} className={styles.comparisonRow}>
                                                 <div className={styles.featureName}>
                                                     {row.icon && <i className={`bi ${row.icon}`} />}
 
-                                                    <span>{row.label}</span>
+                                                    <span>{t(row.label)}</span>
 
                                                     <i
                                                         className={`bi bi-info-circle ${styles.infoIcon}`}
@@ -942,15 +1850,21 @@ export function PricingPage01({
                                 </span>
 
                                 <div>
-                                    <strong>{contactTitle}</strong>
-                                    <p>{contactDescription}</p>
+                                    <strong>{t(contact.title)}</strong>
+
+                                    <p>{t(contact.description)}</p>
                                 </div>
                             </div>
 
-                            <button type="button" className={styles.contactButton}>
-                                <span>{contactButtonLabel}</span>
+                            <Link
+                                href={contact.button.href ?? '#'}
+                                target={contact.button.target}
+                                className={styles.contactButton}
+                            >
+                                <span>{t(contact.button.label)}</span>
+
                                 <i className="bi bi-arrow-right" />
-                            </button>
+                            </Link>
                         </footer>
                     </div>
                 </div>
@@ -963,17 +1877,32 @@ export function PricingPage01({
                         <div className={styles.headingContent}>
                             <span className={styles.eyebrow}>
                                 <i className="bi bi-question-circle" />
-                                {eyebrow}
+                                {t(faq.eyebrow)}
                             </span>
 
-                            <h2 className={styles.title}>{title}</h2>
+                            <h2 className={styles.title}>
+                                {t(faq.title)}
+
+                                {faq.titleAccent && (
+                                    <>
+                                        {' '}
+                                        <span className={styles.titleAccent}>
+                                            {t(faq.titleAccent)}
+                                        </span>
+                                    </>
+                                )}
+                            </h2>
+
+                            {faq.description && (
+                                <p className={styles.description}>{t(faq.description)}</p>
+                            )}
                         </div>
                     </header>
 
                     <div className={styles.faqLayout}>
                         <aside className={styles.categories}>
                             <div className={styles.categoryList}>
-                                {categories.map((category) => {
+                                {FAQ_CATEGORIES.map((category) => {
                                     const isActive = activeCategory === category.id;
 
                                     return (
@@ -989,7 +1918,7 @@ export function PricingPage01({
                                                 <i className={`bi ${category.icon}`} />
                                             </span>
 
-                                            <span>{category.label}</span>
+                                            <span>{t(category.label)}</span>
 
                                             <i
                                                 className={`bi bi-arrow-right-short ${styles.categoryArrow}`}
@@ -1005,26 +1934,29 @@ export function PricingPage01({
                                 </span>
 
                                 <div>
-                                    <strong>Still need help?</strong>
+                                    <strong>{t(sidebarHelp.title)}</strong>
 
-                                    <p>Our support team is ready to help.</p>
+                                    <p>{t(sidebarHelp.description)}</p>
                                 </div>
 
-                                <button type="button">
-                                    Contact support
+                                <Link
+                                    href={sidebarHelp.button.href ?? '#'}
+                                    target={sidebarHelp.button.target}
+                                >
+                                    {t(sidebarHelp.button.label)}
                                     <i className="bi bi-arrow-right" />
-                                </button>
+                                </Link>
                             </div>
                         </aside>
 
                         <div className={styles.faqPanel}>
                             <div className={styles.faqList}>
-                                {faqs.map((faq) => {
-                                    const isOpen = openFaqId === faq.id;
+                                {filteredFaqs.map((item) => {
+                                    const isOpen = openFaqId === item.id;
 
                                     return (
                                         <article
-                                            key={faq.id}
+                                            key={item.id}
                                             className={`${styles.faqItem} ${
                                                 isOpen ? styles.faqItemOpen : ''
                                             }`}
@@ -1032,10 +1964,10 @@ export function PricingPage01({
                                             <button
                                                 type="button"
                                                 className={styles.faqQuestion}
-                                                onClick={() => toggleFaq(faq.id)}
+                                                onClick={() => toggleFaq(item.id)}
                                                 aria-expanded={isOpen}
                                             >
-                                                <span>{faq.question}</span>
+                                                <span>{t(item.question)}</span>
 
                                                 <span className={styles.faqToggle}>
                                                     <i
@@ -1055,7 +1987,7 @@ export function PricingPage01({
                                             >
                                                 <div className={styles.answerOverflow}>
                                                     <div className={styles.faqAnswer}>
-                                                        <p>{faq.answer}</p>
+                                                        <p>{t(item.answer)}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1071,7 +2003,7 @@ export function PricingPage01({
     );
 }
 
-function PricingCard({ plan }: { plan: PricingPlan }) {
+function PricingCard({ plan, t }: { plan: PricingPlan; t: (value: LocalizedText) => string }) {
     return (
         <article
             className={`${styles.card} ${styles[plan.tone]} ${plan.popular ? styles.popular : ''}`}
@@ -1090,8 +2022,9 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                     </div>
 
                     <div className={styles.planInfo}>
-                        <h3>{plan.name}</h3>
-                        <span>{plan.websiteLabel}</span>
+                        <h3>{t(plan.name)}</h3>
+
+                        <span>{t(plan.websiteLabel)}</span>
                     </div>
                 </div>
 
@@ -1106,7 +2039,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                         <div className={styles.price}>
                             <span className={styles.currency}>$</span>
 
-                            <strong>{plan.price}</strong>
+                            <strong>{plan.monthlyPrice}</strong>
 
                             <span className={styles.period}>/ month</span>
                         </div>
@@ -1115,17 +2048,22 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 
                 <div className={styles.divider} />
 
-                <p className={styles.description}>{plan.description}</p>
+                <p className={styles.description}>{t(plan.description)}</p>
 
-                <button type="button" className={styles.planButton}>
-                    {plan.buttonLabel}
-                </button>
+                <Link
+                    href={plan.button.href ?? '#'}
+                    target={plan.button.target}
+                    className={styles.planButton}
+                >
+                    {t(plan.button.label)}
+                </Link>
 
                 <ul className={styles.features}>
                     {plan.features.map((feature) => (
-                        <li key={feature}>
+                        <li key={feature.id}>
                             <i className="bi bi-check2" />
-                            <span>{feature}</span>
+
+                            <span>{t(feature.label)}</span>
                         </li>
                     ))}
                 </ul>
@@ -1134,357 +2072,330 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
     );
 }
 
-function createDefaults() {
-    const defaults: Record<string, unknown> = {
-        eyebrow: 'Pricing Plans',
-        title: 'Compare Plans & Find Your',
-        titleAccent: 'Perfect Fit',
-        description: 'All plans include our core features. Upgrade when you need more.',
-
-        contactTitle: 'Need a custom solution?',
-        contactDescription: 'Contact our sales team for Enterprise pricing and features.',
-        contactButtonLabel: 'Contact Sales',
-
-        category1Label: 'General',
-        category2Label: 'Account',
-        category3Label: 'Billing',
-
-        question1: 'What is Kbuilder and how does it work?',
-        answer1:
-            'Kbuilder is a powerful website builder that helps you create stunning websites without coding. Choose a template, customize it with our drag-and-drop editor, and publish your site in minutes.',
-
-        question2: 'How easy is it to use?',
-        answer2:
-            'Kbuilder is designed for everyone. You can select a template, edit your content visually, and launch your website without writing code.',
-
-        question3: 'Can I use my own domain?',
-        answer3:
-            'Yes. You can connect your own custom domain and publish your website with a professional web address.',
-
-        question4: 'Do you offer customer support?',
-        answer4:
-            'Yes. Our support team is available to help you with website setup, publishing, domains, and other platform questions.',
-
-        question5: 'Can I cancel my plan anytime?',
-        answer5:
-            'Yes. You can change or cancel your subscription based on your current plan and billing settings.',
-
-        plan1Name: 'Free',
-        plan1Description: 'Get started',
-        plan1Icon: 'bi-power',
-        plan1Tone: 'green',
-        plan1Popular: false,
-
-        plan2Name: 'Starter',
-        plan2Description: 'For individuals',
-        plan2Icon: 'bi-send',
-        plan2Tone: 'blue',
-        plan2Popular: false,
-
-        plan3Name: 'Pro',
-        plan3Description: 'For professionals',
-        plan3Icon: 'bi-lightning-charge',
-        plan3Tone: 'purple',
-        plan3Popular: true,
-
-        plan4Name: 'Enterprise',
-        plan4Description: 'For large teams',
-        plan4Icon: 'bi-buildings',
-        plan4Tone: 'orange',
-        plan4Popular: false,
-
-        comparison1Title: 'Core features',
-        comparison1Icon: 'bi-stars',
-
-        comparison1Label1: 'Website Limit',
-        comparison1Free1: '1 Website',
-        comparison1Starter1: '2 Websites',
-        comparison1Pro1: '3 Websites',
-        comparison1Enterprise1: 'Custom',
-
-        comparison1Label2: 'Pages',
-        comparison1Free2: '10 Pages',
-        comparison1Starter2: '15 Pages',
-        comparison1Pro2: '30 Pages',
-        comparison1Enterprise2: 'Custom',
-        comparison1Highlight: 'primary',
-
-        comparison1Label3: 'Custom Domain',
-        comparison1Free3: true,
-        comparison1Starter3: true,
-        comparison1Pro3: true,
-        comparison1Enterprise3: true,
-
-        comparison1Label4: 'Premium Templates',
-        comparison1Free4: false,
-        comparison1Starter4: true,
-        comparison1Pro4: true,
-        comparison1Enterprise4: true,
-
-        comparison2Title: 'Builder & Performance',
-        comparison2Icon: 'bi-file-earmark-code',
-
-        comparison2Label1: 'Drag & Drop Builder',
-        comparison2Free1: true,
-        comparison2Starter1: true,
-        comparison2Pro1: true,
-        comparison2Enterprise1: true,
-
-        comparison2Label2: 'Responsive Design',
-        comparison2Free2: true,
-        comparison2Starter2: true,
-        comparison2Pro2: true,
-        comparison2Enterprise2: true,
-
-        comparison2Label3: 'Daily Backup',
-        comparison2Free3: false,
-        comparison2Starter3: true,
-        comparison2Pro3: true,
-        comparison2Enterprise3: true,
-
-        comparison3Title: 'Advanced Features',
-        comparison3Icon: 'bi-gear',
-
-        comparison3Label1: 'Built-in SEO',
-        comparison3Free1: true,
-        comparison3Starter1: true,
-        comparison3Pro1: true,
-        comparison3Enterprise1: true,
-
-        comparison3Label2: 'Advanced Analytics',
-        comparison3Free2: false,
-        comparison3Starter2: false,
-        comparison3Pro2: true,
-        comparison3Enterprise2: true,
-
-        comparison3Label3: 'API Access',
-        comparison3Free3: false,
-        comparison3Starter3: false,
-        comparison3Pro3: true,
-        comparison3Enterprise3: true,
-
-        comparison3Label4: 'Dedicated Manager',
-        comparison3Free4: false,
-        comparison3Starter4: false,
-        comparison3Pro4: false,
-        comparison3Enterprise4: true,
-
-        pricingPlan1Name: 'Basic',
-        pricingPlan1WebsiteLabel: '1 Website',
-        pricingPlan1Price: 5,
-        pricingPlan1Description: 'Everything you need to build a simple, professional website.',
-        pricingPlan1Icon: 'bi-flower1',
-        pricingPlan1Tone: 'green',
-        pricingPlan1ButtonLabel: 'Get Started',
-        pricingPlan1Popular: false,
-        pricingPlan1ComingSoon: false,
-
-        pricingPlan1Feature1: '1 Website',
-        pricingPlan1Feature2: 'Up to 10 Pages',
-        pricingPlan1Feature3: 'Free SSL Certificate',
-        pricingPlan1Feature4: 'Custom Domain',
-        pricingPlan1Feature5: 'Drag & Drop Builder',
-        pricingPlan1Feature6: 'Responsive Design',
-        pricingPlan1Feature7: 'Built-in SEO',
-        pricingPlan1Feature8: 'Analytics Dashboard',
-        pricingPlan1Feature9: 'Fast Cloud Hosting',
-        pricingPlan1Feature10: 'Email Support',
-
-        pricingPlan2Name: 'Standard',
-        pricingPlan2WebsiteLabel: '2 Websites',
-        pricingPlan2Price: 10,
-        pricingPlan2Description: 'More power and flexibility for growing websites.',
-        pricingPlan2Icon: 'bi-star',
-        pricingPlan2Tone: 'blue',
-        pricingPlan2ButtonLabel: 'Start Free Trial',
-        pricingPlan2Popular: false,
-        pricingPlan2ComingSoon: false,
-
-        pricingPlan2Feature1: '2 Websites',
-        pricingPlan2Feature2: 'Up to 15 Pages',
-        pricingPlan2Feature3: 'Free SSL Certificate',
-        pricingPlan2Feature4: 'Custom Domain',
-        pricingPlan2Feature5: 'Premium Templates',
-        pricingPlan2Feature6: 'Drag & Drop Builder',
-        pricingPlan2Feature7: 'Analytics Dashboard',
-        pricingPlan2Feature8: 'Daily Backup',
-        pricingPlan2Feature9: 'Faster Performance',
-        pricingPlan2Feature10: 'Priority Support',
-
-        pricingPlan3Name: 'Professional',
-        pricingPlan3WebsiteLabel: '3 Websites',
-        pricingPlan3Price: 20,
-        pricingPlan3Description: 'Advanced features for serious businesses and professionals.',
-        pricingPlan3Icon: 'bi-gem',
-        pricingPlan3Tone: 'purple',
-        pricingPlan3ButtonLabel: 'Start Free Trial',
-        pricingPlan3Popular: true,
-        pricingPlan3ComingSoon: false,
-
-        pricingPlan3Feature1: '3 Websites',
-        pricingPlan3Feature2: 'Up to 30 Pages',
-        pricingPlan3Feature3: 'Free SSL Certificate',
-        pricingPlan3Feature4: 'Unlimited Custom Domains',
-        pricingPlan3Feature5: 'All Premium Templates',
-        pricingPlan3Feature6: 'Advanced Analytics',
-        pricingPlan3Feature7: 'Premium SEO',
-        pricingPlan3Feature8: 'Daily Backup',
-        pricingPlan3Feature9: 'API Access',
-        pricingPlan3Feature10: 'Premium Support',
-
-        pricingPlan4Name: 'Custom',
-        pricingPlan4WebsiteLabel: 'Custom Websites',
-        pricingPlan4Price: undefined,
-        pricingPlan4Description: "Need something specific? Let's build a pricing plan for you.",
-        pricingPlan4Icon: 'bi-gear',
-        pricingPlan4Tone: 'orange',
-        pricingPlan4ButtonLabel: 'Contact Sales',
-        pricingPlan4Popular: false,
-        pricingPlan4ComingSoon: true,
-
-        pricingPlan4Feature1: 'Custom Number of Websites',
-        pricingPlan4Feature2: 'Custom Pages',
-        pricingPlan4Feature3: 'Free SSL Certificate',
-        pricingPlan4Feature4: 'Unlimited Custom Domains',
-        pricingPlan4Feature5: 'All Premium Templates',
-        pricingPlan4Feature6: 'Advanced Features',
-        pricingPlan4Feature7: 'Priority Support',
-        pricingPlan4Feature8: 'Dedicated Account Manager',
-        pricingPlan4Feature9: 'API Access',
-        pricingPlan4Feature10: 'And More...',
-    };
-
-    return defaults;
-}
-
-function textField(key: string, label: string) {
+function createTextField(key: string, label: string): InspectorField {
     return {
         key,
         label,
-        kind: 'text' as const,
+        kind: 'localized-text',
     };
 }
 
-function textareaField(key: string, label: string) {
+function createTextareaField(key: string, label: string): InspectorField {
     return {
         key,
         label,
-        kind: 'textarea' as const,
+        kind: 'localized-text',
     };
 }
 
-function numberField(key: string, label: string) {
+function createNumberField(key: string, label: string): InspectorField {
     return {
         key,
         label,
-        kind: 'number' as const,
+        kind: 'number',
     };
 }
 
-function checkField(key: string, label: string) {
+function createCheckField(key: string, label: string): InspectorField {
     return {
         key,
         label,
-        kind: 'check' as const,
+        kind: 'check',
     };
 }
-function createInspector(): RegItem['inspector'] {
+export interface SelectOption {
+    label: string;
+    value: string;
+}
+
+const createSelectField = (
+    key: string,
+    label: string,
+    options: SelectOption[],
+): InspectorField => ({
+    kind: 'select',
+    key,
+    label,
+    options,
+});
+function createHeroInspector(): InspectorField[] {
     return [
-        textField('eyebrow', 'Eyebrow'),
-        textField('title', 'Title'),
-        textField('titleAccent', 'Title Accent'),
-        textareaField('description', 'Description'),
+        createTextField('hero.eyebrow', 'Hero Eyebrow'),
+        createTextField('hero.title', 'Hero Title'),
+        createTextField('hero.titleAccent', 'Hero Title Accent'),
+        createTextareaField('hero.description', 'Hero Description'),
+    ];
+}
+function createBillingInspector(): InspectorField[] {
+    return [
+        createTextareaField('billing.note', 'Billing Note'),
 
-        // Contact
-        textField('contactTitle', 'Contact Title'),
-        textareaField('contactDescription', 'Contact Description'),
-        textField('contactButtonLabel', 'Contact Button'),
+        createTextField('billing.discountLabel', 'Discount Label'),
 
-        // Categories
-        textField('category1Label', 'Category 1'),
-        textField('category2Label', 'Category 2'),
-        textField('category3Label', 'Category 3'),
+        createTextField('billing.monthlyLabel', 'Monthly Label'),
 
-        // FAQ
-        ...Array.from({ length: 5 }, (_, i) => [
-            textField(`question${i + 1}`, `FAQ ${i + 1} Question`),
-            textareaField(`answer${i + 1}`, `FAQ ${i + 1} Answer`),
-        ]).flat(),
+        createTextField('billing.yearlyLabel', 'Yearly Label'),
+    ];
+}
 
-        // Compare Plans
-        ...Array.from({ length: 4 }, (_, i) => [
-            textField(`plan${i + 1}Name`, `Compare Plan ${i + 1} Name`),
-            textField(`plan${i + 1}Description`, `Compare Plan ${i + 1} Description`),
-            textField(`plan${i + 1}Icon`, `Compare Plan ${i + 1} Icon`),
-            textField(`plan${i + 1}Tone`, `Compare Plan ${i + 1} Tone`),
-            checkField(`plan${i + 1}Popular`, `Compare Plan ${i + 1} Popular`),
-        ]).flat(),
+function createContactInspector(): InspectorField[] {
+    return [
+        createTextField('contact.title', 'Contact Title'),
 
-        // Comparison Group 1
-        textField('comparison1Title', 'Comparison 1 Title'),
-        textField('comparison1Icon', 'Comparison 1 Icon'),
+        createTextareaField('contact.description', 'Contact Description'),
 
-        ...Array.from({ length: 4 }, (_, row) => [
-            textField(`comparison1Label${row + 1}`, `Comparison 1 Row ${row + 1} Label`),
-            textField(`comparison1Free${row + 1}`, `Comparison 1 Free ${row + 1}`),
-            textField(`comparison1Starter${row + 1}`, `Comparison 1 Starter ${row + 1}`),
-            textField(`comparison1Pro${row + 1}`, `Comparison 1 Pro ${row + 1}`),
-            textField(`comparison1Enterprise${row + 1}`, `Comparison 1 Enterprise ${row + 1}`),
-        ]).flat(),
+        createTextField('contact.button.label', 'Button Label'),
 
-        textField('comparison1Highlight', 'Comparison 1 Highlight'),
+        createTextField('contact.button.href', 'Button Url'),
 
-        // Comparison Group 2
-        textField('comparison2Title', 'Comparison 2 Title'),
-        textField('comparison2Icon', 'Comparison 2 Icon'),
+        createTextField('contact.button.target', 'Button Target'),
+    ];
+}
 
-        ...Array.from({ length: 3 }, (_, row) => [
-            textField(`comparison2Label${row + 1}`, `Comparison 2 Row ${row + 1} Label`),
-            textField(`comparison2Free${row + 1}`, `Comparison 2 Free ${row + 1}`),
-            textField(`comparison2Starter${row + 1}`, `Comparison 2 Starter ${row + 1}`),
-            textField(`comparison2Pro${row + 1}`, `Comparison 2 Pro ${row + 1}`),
-            textField(`comparison2Enterprise${row + 1}`, `Comparison 2 Enterprise ${row + 1}`),
-        ]).flat(),
+function createSidebarHelpInspector(): InspectorField[] {
+    return [
+        createTextField('sidebarHelp.title', 'Sidebar Title'),
 
-        // Comparison Group 3
-        textField('comparison3Title', 'Comparison 3 Title'),
-        textField('comparison3Icon', 'Comparison 3 Icon'),
+        createTextareaField('sidebarHelp.description', 'Sidebar Description'),
 
-        ...Array.from({ length: 4 }, (_, row) => [
-            textField(`comparison3Label${row + 1}`, `Comparison 3 Row ${row + 1} Label`),
-            textField(`comparison3Free${row + 1}`, `Comparison 3 Free ${row + 1}`),
-            textField(`comparison3Starter${row + 1}`, `Comparison 3 Starter ${row + 1}`),
-            textField(`comparison3Pro${row + 1}`, `Comparison 3 Pro ${row + 1}`),
-            textField(`comparison3Enterprise${row + 1}`, `Comparison 3 Enterprise ${row + 1}`),
-        ]).flat(),
+        createTextField('sidebarHelp.button.label', 'Button Label'),
 
-        // Pricing Plans
-        ...Array.from({ length: 4 }, (_, plan) => [
-            textField(`pricingPlan${plan + 1}Name`, `Plan ${plan + 1} Name`),
+        createTextField('sidebarHelp.button.href', 'Button Url'),
 
-            textField(`pricingPlan${plan + 1}WebsiteLabel`, `Plan ${plan + 1} Website Label`),
+        createTextField('sidebarHelp.button.target', 'Button Target'),
+    ];
+}
 
-            numberField(`pricingPlan${plan + 1}Price`, `Plan ${plan + 1} Price`),
+function createFaqInspector(): InspectorField[] {
+    return [
+        createTextField('faq.eyebrow', 'FAQ Eyebrow'),
 
-            textareaField(`pricingPlan${plan + 1}Description`, `Plan ${plan + 1} Description`),
+        createTextField('faq.title', 'FAQ Title'),
 
-            textField(`pricingPlan${plan + 1}Icon`, `Plan ${plan + 1} Icon`),
+        createTextField('faq.titleAccent', 'FAQ Title Accent'),
 
-            textField(`pricingPlan${plan + 1}Tone`, `Plan ${plan + 1} Tone`),
+        createTextareaField('faq.description', 'FAQ Description'),
+    ];
+}
 
-            textField(`pricingPlan${plan + 1}ButtonLabel`, `Plan ${plan + 1} Button Label`),
+function createCategoriesInspector(): InspectorField[] {
+    return Array.from({ length: 3 }, (_, i) => [
+        createTextField(`categories.${i}.label`, `Category ${i + 1}`),
 
-            checkField(`pricingPlan${plan + 1}Popular`, `Plan ${plan + 1} Popular`),
+        createTextField(`categories.${i}.icon`, `Category ${i + 1} Icon`),
+    ]).flat();
+}
 
-            checkField(`pricingPlan${plan + 1}ComingSoon`, `Plan ${plan + 1} Coming Soon`),
+function createFaqItemsInspector(): InspectorField[] {
+    return Array.from({ length: 8 }, (_, i) => [
+        createTextField(`faqs.${i}.question`, `FAQ ${i + 1} Question`),
+
+        createTextareaField(`faqs.${i}.answer`, `FAQ ${i + 1} Answer`),
+
+        createTextField(`faqs.${i}.categoryId`, `FAQ ${i + 1} Category`),
+    ]).flat();
+}
+
+function createPricingPlansInspector(): InspectorField[] {
+    return Array.from({ length: 4 }, (_, plan) => {
+        const index = plan;
+
+        return [
+            createTextField(`pricingPlans.${index}.name`, `Plan ${plan + 1} Name`),
+
+            createTextField(`pricingPlans.${index}.websiteLabel`, `Plan ${plan + 1} Website Label`),
+
+            createTextareaField(
+                `pricingPlans.${index}.description`,
+                `Plan ${plan + 1} Description`,
+            ),
+
+            createTextField(`pricingPlans.${index}.icon`, `Plan ${plan + 1} Icon`),
+
+            createSelectField(`pricingPlans.${index}.tone`, `Plan ${plan + 1} Tone`, [
+                {
+                    label: 'Green',
+                    value: 'green',
+                },
+                {
+                    label: 'Blue',
+                    value: 'blue',
+                },
+                {
+                    label: 'Purple',
+                    value: 'purple',
+                },
+                {
+                    label: 'Orange',
+                    value: 'orange',
+                },
+            ]),
+
+            createNumberField(
+                `pricingPlans.${index}.monthlyPrice`,
+                `Plan ${plan + 1} Monthly Price`,
+            ),
+
+            createNumberField(`pricingPlans.${index}.yearlyPrice`, `Plan ${plan + 1} Yearly Price`),
+
+            createCheckField(`pricingPlans.${index}.popular`, `Plan ${plan + 1} Popular`),
+
+            createCheckField(`pricingPlans.${index}.comingSoon`, `Plan ${plan + 1} Coming Soon`),
+
+            createTextField(`pricingPlans.${index}.button.label`, `Plan ${plan + 1} Button Label`),
+
+            createTextField(`pricingPlans.${index}.button.href`, `Plan ${plan + 1} Button Href`),
+
+            createSelectField(
+                `pricingPlans.${index}.button.target`,
+                `Plan ${plan + 1} Button Target`,
+                [
+                    {
+                        label: '_self',
+                        value: '_self',
+                    },
+                    {
+                        label: '_blank',
+                        value: '_blank',
+                    },
+                ],
+            ),
 
             ...Array.from({ length: 10 }, (_, feature) =>
-                textField(
-                    `pricingPlan${plan + 1}Feature${feature + 1}`,
+                createTextField(
+                    `pricingPlans.${index}.features.${feature}.label`,
                     `Plan ${plan + 1} Feature ${feature + 1}`,
                 ),
             ),
+        ];
+    }).flat();
+}
+function createComparisonInspector(): InspectorField[] {
+    return [
+        createTextField('comparison.eyebrow', 'Comparison Eyebrow'),
+
+        createTextField('comparison.title', 'Comparison Title'),
+
+        createTextField('comparison.titleAccent', 'Comparison Title Accent'),
+
+        createTextareaField('comparison.description', 'Comparison Description'),
+
+        createTextField('compareFeatureTitle', 'Compare Feature Title'),
+
+        createTextField('comparePopularLabel', 'Compare Popular Label'),
+    ];
+}
+function createComparePlansInspector(): InspectorField[] {
+    return Array.from({ length: 4 }, (_, index) => [
+        createTextField(`comparePlans.${index}.name`, `Compare Plan ${index + 1} Name`),
+
+        createTextareaField(
+            `comparePlans.${index}.description`,
+            `Compare Plan ${index + 1} Description`,
+        ),
+
+        createTextField(`comparePlans.${index}.icon`, `Compare Plan ${index + 1} Icon`),
+
+        createSelectField(`comparePlans.${index}.tone`, `Compare Plan ${index + 1} Tone`, [
+            {
+                label: 'Green',
+                value: 'green',
+            },
+            {
+                label: 'Blue',
+                value: 'blue',
+            },
+            {
+                label: 'Purple',
+                value: 'purple',
+            },
+            {
+                label: 'Orange',
+                value: 'orange',
+            },
+        ]),
+
+        createCheckField(`comparePlans.${index}.popular`, `Compare Plan ${index + 1} Popular`),
+    ]).flat();
+}
+
+function createComparisonGroupsInspector(): InspectorField[] {
+    const rowCounts = [4, 4, 3];
+
+    return rowCounts.flatMap((rowCount, groupIndex) => [
+        createTextField(`comparisonGroups.${groupIndex}.title`, `Group ${groupIndex + 1} Title`),
+
+        createTextField(`comparisonGroups.${groupIndex}.icon`, `Group ${groupIndex + 1} Icon`),
+
+        ...Array.from({ length: rowCount }, (_, rowIndex) => [
+            createTextField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.label`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Label`,
+            ),
+
+            createTextField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.icon`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Icon`,
+            ),
+
+            createSelectField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.highlight`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Highlight`,
+                [
+                    {
+                        label: 'None',
+                        value: '',
+                    },
+                    {
+                        label: 'Primary',
+                        value: 'primary',
+                    },
+                    {
+                        label: 'Success',
+                        value: 'success',
+                    },
+                ],
+            ),
+
+            createTextField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.free`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Free`,
+            ),
+
+            createTextField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.starter`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Starter`,
+            ),
+
+            createTextField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.pro`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Pro`,
+            ),
+
+            createTextField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.enterprise`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Enterprise`,
+            ),
         ]).flat(),
+    ]);
+}
+
+function createInspector(): RegItem['inspector'] {
+    return [
+        ...createHeroInspector(),
+        ...createBillingInspector(),
+
+        ...createPricingPlansInspector(),
+
+        ...createComparisonInspector(),
+        ...createComparePlansInspector(),
+        ...createComparisonGroupsInspector(),
+
+        ...createContactInspector(),
+
+        ...createFaqInspector(),
+        ...createCategoriesInspector(),
+        ...createSidebarHelpInspector(),
     ];
 }
 
@@ -1493,11 +2404,11 @@ export const PRICING_PAGE_01: RegItem = {
 
     label: 'Pricing Page 01',
 
-    defaults: createDefaults(),
+    defaults: DEFAULT_PROPS,
 
     inspector: createInspector(),
 
-    render: (props) => <PricingPage01 {...(props as unknown as PricingPage01Props)} />,
+    render: (props) => <PricingPage01 {...(props as PricingPage01Props)} />,
 };
 
 export default PricingPage01;

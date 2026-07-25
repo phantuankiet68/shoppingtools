@@ -1,563 +1,1638 @@
 'use client';
 
-import { useMemo } from 'react';
-import type { RegItem } from '@/lib/ui-builder/types';
-import Link from 'next/link';
-import styles from '@/components/admin/shared/templates/services/about/styles/about-01.module.css';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+
+import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
+import { getLocalizedValue, type LocalizedText } from '@/lib/ui-builder/localization';
+
+import styles from '@/components/admin/shared/templates/services/about/styles/about-01.module.css';
+
+type ValueColor = 'purple' | 'blue' | 'orange' | 'pink';
+type TeamColor = ValueColor | 'green';
+
 type FeatureItem = {
     icon: string;
-    title: string;
-    description: string;
+    title: LocalizedText;
+    description: LocalizedText;
 };
 
 type StatItem = {
-    value: string;
-    label: string;
+    value: LocalizedText;
+    label: LocalizedText;
     icon: string;
 };
 
 type JourneyItem = {
     icon: string;
-    date: string;
-    title: string;
-    description: string;
-    active?: string | boolean;
+    date: LocalizedText;
+    title: LocalizedText;
+    description: LocalizedText;
+    active?: boolean;
 };
 
 type StoryItem = {
-    year: string;
-    badge: string;
-    title: string;
-    titleAccent: string;
-    description: string;
+    year: LocalizedText;
+    badge: LocalizedText;
+    title: LocalizedText;
+    titleAccent: LocalizedText;
+    description: LocalizedText;
     image: string;
-    imageAlt: string;
-    reverse?: string | boolean;
+    imageAlt: LocalizedText;
+    reverse?: boolean;
 };
 
-type ValueColor = 'purple' | 'blue' | 'orange' | 'pink';
-
-interface CoreValue {
-    id: string;
+type CoreValue = {
+    id: LocalizedText;
     icon: string;
-    title: string;
-    description: string;
-    tags: string[];
+    title: LocalizedText;
+    description: LocalizedText;
+    tags: LocalizedText[];
     color: ValueColor;
-}
+};
 
 type TeamMember = {
-    name: string;
-    role: string;
-    description: string;
+    name: LocalizedText;
+    role: LocalizedText;
+    description: LocalizedText;
     image: string;
-    color: 'purple' | 'green' | 'blue' | 'pink' | 'orange';
+    color: TeamColor;
     icon: string;
 };
 
 export interface About01Props {
-    breadcrumbHome?: string;
-    breadcrumbCurrent?: string;
-
-    badge?: string;
-
-    heroTitle?: string;
-    heroTitleAccent?: string;
-
-    heroDescription?: string;
-
-    primaryButtonLabel?: string;
-    secondaryButtonLabel?: string;
-
+    breadcrumbHome?: LocalizedText;
+    breadcrumbCurrent?: LocalizedText;
+    badge?: LocalizedText;
+    heroTitle?: LocalizedText;
+    heroTitleAccent?: LocalizedText;
+    heroDescription?: LocalizedText;
+    primaryButtonLabel?: LocalizedText;
+    secondaryButtonLabel?: LocalizedText;
     image?: string;
-
-    performanceScore?: string;
-    performanceLabel?: string;
-
-    stat1Value?: string;
-    stat1Label?: string;
-
-    stat2Value?: string;
-    stat2Label?: string;
-
-    stat3Value?: string;
-    stat3Label?: string;
-
-    stat4Value?: string;
-    stat4Label?: string;
-
-    feature1Icon?: string;
-    feature1Title?: string;
-    feature1Description?: string;
-
-    feature2Icon?: string;
-    feature2Title?: string;
-    feature2Description?: string;
-
-    feature3Icon?: string;
-    feature3Title?: string;
-    feature3Description?: string;
-
-    feature4Icon?: string;
-    feature4Title?: string;
-    feature4Description?: string;
-
-    capability1Icon?: string;
-    capability1Label?: string;
-
-    capability2Icon?: string;
-    capability2Label?: string;
-
-    capability3Icon?: string;
-    capability3Label?: string;
-
-    capability4Icon?: string;
-    capability4Label?: string;
-
-    capability5Icon?: string;
-    capability5Label?: string;
-
-    value1Icon?: string;
-    value1Title?: string;
-    value1Description?: string;
-
-    value2Icon?: string;
-    value2Title?: string;
-    value2Description?: string;
-
-    value3Icon?: string;
-    value3Title?: string;
-    value3Description?: string;
-
-    value4Icon?: string;
-    value4Title?: string;
-    value4Description?: string;
-
-    journey1Icon?: string;
-    journey1Date?: string;
-    journey1Title?: string;
-    journey1Description?: string;
-    journey1Active?: string | boolean;
-
-    journey2Icon?: string;
-    journey2Date?: string;
-    journey2Title?: string;
-    journey2Description?: string;
-
-    journey3Icon?: string;
-    journey3Date?: string;
-    journey3Title?: string;
-    journey3Description?: string;
-
-    journey4Icon?: string;
-    journey4Date?: string;
-    journey4Title?: string;
-    journey4Description?: string;
-
-    journey5Icon?: string;
-    journey5Date?: string;
-    journey5Title?: string;
-    journey5Description?: string;
-
-    story1Year?: string;
-    story1Badge?: string;
-    story1Title?: string;
-    story1TitleAccent?: string;
-    story1Description?: string;
-    story1Image?: string;
-    story1Alt?: string;
-
-    story2Year?: string;
-    story2Badge?: string;
-    story2Title?: string;
-    story2TitleAccent?: string;
-    story2Description?: string;
-    story2Image?: string;
-    story2Alt?: string;
-    story2Reverse?: string | boolean;
-
-    problem1Icon?: string;
-    problem1Title?: string;
-    problem1Description?: string;
-
-    problem2Icon?: string;
-    problem2Title?: string;
-    problem2Description?: string;
-
-    problem3Icon?: string;
-    problem3Title?: string;
-    problem3Description?: string;
-
-    problem4Icon?: string;
-    problem4Title?: string;
-    problem4Description?: string;
-
-    solution1Icon?: string;
-    solution1Title?: string;
-    solution1Description?: string;
-
-    solution2Icon?: string;
-    solution2Title?: string;
-    solution2Description?: string;
-
-    solution3Icon?: string;
-    solution3Title?: string;
-    solution3Description?: string;
-
-    solution4Icon?: string;
-    solution4Title?: string;
-    solution4Description?: string;
-
-    coreValue1Id?: string;
-    coreValue1Icon?: string;
-    coreValue1Title?: string;
-    coreValue1Description?: string;
-
-    coreValue1Tag1?: string;
-    coreValue1Tag2?: string;
-    coreValue1Tag3?: string;
-    coreValue1Color?: string;
-
-    coreValue2Id?: string;
-    coreValue2Icon?: string;
-    coreValue2Title?: string;
-    coreValue2Description?: string;
-
-    coreValue2Tag1?: string;
-    coreValue2Tag2?: string;
-    coreValue2Tag3?: string;
-    coreValue2Color?: string;
-
-    coreValue3Id?: string;
-    coreValue3Icon?: string;
-    coreValue3Title?: string;
-    coreValue3Description?: string;
-
-    coreValue3Tag1?: string;
-    coreValue3Tag2?: string;
-    coreValue3Tag3?: string;
-    coreValue3Color?: string;
-
-    coreValue4Id?: string;
-    coreValue4Icon?: string;
-    coreValue4Title?: string;
-    coreValue4Description?: string;
-
-    coreValue4Tag1?: string;
-    coreValue4Tag2?: string;
-    coreValue4Tag3?: string;
-    coreValue4Color?: string;
-
-    team1Name?: string;
-    team1Role?: string;
-    team1Description?: string;
-    team1Image?: string;
-    team1Color?: string;
-    team1Icon?: string;
-
-    team2Name?: string;
-    team2Role?: string;
-    team2Description?: string;
-    team2Image?: string;
-    team2Color?: string;
-    team2Icon?: string;
-
-    team3Name?: string;
-    team3Role?: string;
-    team3Description?: string;
-    team3Image?: string;
-    team3Color?: string;
-    team3Icon?: string;
-
-    team4Name?: string;
-    team4Role?: string;
-    team4Description?: string;
-    team4Image?: string;
-    team4Color?: string;
-    team4Icon?: string;
-
-    team5Name?: string;
-    team5Role?: string;
-    team5Description?: string;
-    team5Image?: string;
-    team5Color?: string;
-    team5Icon?: string;
-
-    team6Name?: string;
-    team6Role?: string;
-    team6Description?: string;
-    team6Image?: string;
-    team6Color?: string;
-    team6Icon?: string;
+    performanceScore?: LocalizedText;
+    performanceLabel?: LocalizedText;
+    missionBadge?: LocalizedText;
+    missionTitle?: LocalizedText;
+    missionTitleAccent?: LocalizedText;
+    missionDescription?: LocalizedText;
+    missionCenterTitle?: LocalizedText;
+    missionCenterDescription?: LocalizedText;
+    missionNodes?: {
+        icon: string;
+        title: LocalizedText;
+        description: LocalizedText;
+    }[];
+    stats?: StatItem[];
+    features?: FeatureItem[];
+    values?: FeatureItem[];
+    journeyBadge?: LocalizedText;
+    journeyTitle?: LocalizedText;
+    journeyTitleAccent?: LocalizedText;
+    journeyDescription?: LocalizedText;
+    journeys?: JourneyItem[];
+    stories?: StoryItem[];
+    storyFeatures?: {
+        icon: string;
+        title: LocalizedText;
+        badge: LocalizedText;
+        description: LocalizedText;
+    }[];
+    whyBadge?: LocalizedText;
+    whyTitle?: LocalizedText;
+    whyTitleAccent?: LocalizedText;
+    whyDescription?: LocalizedText;
+    problems?: FeatureItem[];
+    solutions?: FeatureItem[];
+    builderPreviewImage?: string;
+    coreValues?: CoreValue[];
+    teamBadge?: LocalizedText;
+    teamTitle?: LocalizedText;
+    teamTitleAccent?: LocalizedText;
+    teamDescription?: LocalizedText;
+    team?: TeamMember[];
+    ctaBadge?: LocalizedText;
+    ctaTitle?: LocalizedText;
+    ctaTitleAccent?: LocalizedText;
+    ctaDescription?: LocalizedText;
+    ctaPrimaryButtonLabel?: LocalizedText;
+    ctaSecondaryButtonLabel?: LocalizedText;
+    ctaImage?: string;
+    pageTitle?: LocalizedText;
+    pageDescription?: LocalizedText;
 }
 
-export const DEFAULT_PROPS: Required<About01Props> = {
-    breadcrumbHome: 'Home',
-    breadcrumbCurrent: 'About',
+const DEFAULT_PROPS: About01Props = {
+    /* ==========================================================================
+       Breadcrumb
+    ========================================================================== */
 
-    badge: 'No-Code Website Builder',
+    breadcrumbHome: {
+        sourceLocale: 'en',
+        default: 'Home',
+        translations: {
+            vi: 'Trang chủ',
+            ja: 'ホーム',
+        },
+    },
 
-    heroTitle: 'Kbuilder',
-    heroTitleAccent: 'For Modern Websites',
+    breadcrumbCurrent: {
+        sourceLocale: 'en',
+        default: 'About Us',
+        translations: {
+            vi: 'Giới thiệu',
+            ja: '私たちについて',
+        },
+    },
 
-    heroDescription:
-        'Kbuilder specializes in software engineering, SaaS platforms and digital transformation solutions. Our approach goes beyond templates and visual builders — we collaborate with clients to analyze business requirements, architect scalable systems, develop high-quality products and provide ongoing technical support. From startups to growing enterprises, we help organizations build technology that drives long-term growth.',
+    whyBadge: {
+        sourceLocale: 'en',
+        default: 'Why Kbuilder',
+        translations: {
+            vi: 'Tại sao chọn Kbuilder',
+            ja: 'Kbuilderを選ぶ理由',
+        },
+    },
 
-    primaryButtonLabel: 'Start Creating',
-    secondaryButtonLabel: 'Explore Templates',
+    /* ==========================================================================
+       Hero
+    ========================================================================== */
 
-    image: '/assets/images/feature-add.png',
+    badge: {
+        sourceLocale: 'en',
+        default: 'ABOUT KBUILDER',
+        translations: {
+            vi: 'VỀ KBUILDER',
+            ja: 'KBUILDERについて',
+        },
+    },
 
-    performanceScore: '98 / 100',
-    performanceLabel: 'Performance Score',
+    heroTitle: {
+        sourceLocale: 'en',
+        default: 'Building Better',
+        translations: {
+            vi: 'Kiến tạo',
+            ja: 'より良い',
+        },
+    },
 
-    stat1Value: '30+',
-    stat1Label: 'Websites Created',
+    heroTitleAccent: {
+        sourceLocale: 'en',
+        default: 'Web Experiences',
+        translations: {
+            vi: 'Trải nghiệm Web',
+            ja: 'Web体験',
+        },
+    },
 
-    stat2Value: '300+',
-    stat2Label: 'Templates',
+    heroDescription: {
+        sourceLocale: 'en',
+        default:
+            'Kbuilder is an all-in-one no-code website builder that helps creators, businesses, agencies, and development teams build professional websites with an intuitive drag-and-drop editor. Create responsive landing pages, business websites, eCommerce stores, portfolios, blogs, and custom web experiences using modern templates, reusable components, visual editing tools, AI-powered features, and one-click publishing without writing a single line of code.',
+        translations: {
+            vi: 'Kbuilder là nền tảng xây dựng website không cần lập trình (no-code) giúp cá nhân, doanh nghiệp, agency và đội ngũ phát triển tạo website chuyên nghiệp bằng trình chỉnh sửa kéo thả trực quan. Dễ dàng xây dựng landing page, website doanh nghiệp, cửa hàng thương mại điện tử, portfolio, blog và nhiều loại website khác với template hiện đại, component tái sử dụng, công cụ chỉnh sửa trực quan, tính năng AI và xuất bản chỉ với một cú nhấp mà không cần viết bất kỳ dòng mã nào.',
+            ja: 'Kbuilderは、個人・企業・制作会社・開発チーム向けのオールインワンノーコードWebサイトビルダーです。直感的なドラッグ＆ドロップエディターを使用して、ランディングページ、企業サイト、ECサイト、ポートフォリオ、ブログなどを簡単に作成できます。モダンなテンプレート、再利用可能なコンポーネント、ビジュアル編集、AI機能、ワンクリック公開を備え、コードを書くことなくプロフェッショナルなWebサイトを構築できます。',
+        },
+    },
 
-    stat3Value: '300+',
-    stat3Label: 'Components',
+    primaryButtonLabel: {
+        sourceLocale: 'en',
+        default: 'Get Started',
+        translations: {
+            vi: 'Bắt đầu ngay',
+            ja: '始める',
+        },
+    },
 
-    stat4Value: '99.9%',
-    stat4Label: 'Uptime',
+    secondaryButtonLabel: {
+        sourceLocale: 'en',
+        default: 'Explore Features',
+        translations: {
+            vi: 'Khám phá tính năng',
+            ja: '機能を見る',
+        },
+    },
 
-    feature1Icon: 'bi-bounding-box',
-    feature1Title: 'Visual Builder',
-    feature1Description: 'Drag & Drop',
+    image: '/assets/images/about/about-hero.png',
 
-    feature2Icon: 'bi-stars',
-    feature2Title: 'AI Assistant',
-    feature2Description: 'Generate Content',
+    performanceScore: {
+        sourceLocale: 'en',
+        default: '99%',
+        translations: {
+            vi: '99%',
+            ja: '99%',
+        },
+    },
 
-    feature3Icon: 'bi-grid',
-    feature3Title: 'Templates',
-    feature3Description: 'Ready Sections',
+    performanceLabel: {
+        sourceLocale: 'en',
+        default: 'Customer Satisfaction',
+        translations: {
+            vi: 'Khách hàng hài lòng',
+            ja: '顧客満足度',
+        },
+    },
 
-    feature4Icon: 'bi-shield-check',
-    feature4Title: 'Free SSL',
-    feature4Description: 'Secure by Default',
+    /* ==========================================================================
+       Mission
+    ========================================================================== */
 
-    capability1Icon: 'bi-shield-check',
-    capability1Label: 'Free SSL',
+    missionBadge: {
+        sourceLocale: 'en',
+        default: 'OUR MISSION',
+        translations: {
+            vi: 'SỨ MỆNH',
+            ja: '私たちの使命',
+        },
+    },
 
-    capability2Icon: 'bi-globe2',
-    capability2Label: 'Custom Domains',
+    missionTitle: {
+        sourceLocale: 'en',
+        default: 'Empowering Everyone',
+        translations: {
+            vi: 'Trao quyền cho mọi người',
+            ja: 'すべての人を支援する',
+        },
+    },
 
-    capability3Icon: 'bi-hdd-network',
-    capability3Label: 'Cloud Hosting',
+    missionTitleAccent: {
+        sourceLocale: 'en',
+        default: 'To Build Without Limits',
+        translations: {
+            vi: 'Xây dựng không giới hạn',
+            ja: '制限なく構築する',
+        },
+    },
 
-    capability4Icon: 'bi-lightning-charge',
-    capability4Label: 'Click Publish',
+    missionDescription: {
+        sourceLocale: 'en',
+        default:
+            'Our mission is to make website creation simple, accessible and enjoyable for everyone through automation, beautiful templates and intuitive visual editing.',
+        translations: {
+            vi: 'Sứ mệnh của chúng tôi là giúp việc xây dựng website trở nên đơn giản, dễ tiếp cận và thú vị thông qua tự động hóa, mẫu giao diện đẹp và trình chỉnh sửa trực quan.',
+            ja: '私たちの使命は、自動化、美しいテンプレート、直感的なビジュアル編集を通じて、誰でも簡単にWebサイトを作成できるようにすることです。',
+        },
+    },
 
-    capability5Icon: 'bi-magic',
-    capability5Label: 'AI Automation',
+    missionCenterTitle: {
+        sourceLocale: 'en',
+        default: 'Our Mission',
+        translations: {
+            vi: 'Sứ mệnh của chúng tôi',
+            ja: '私たちの使命',
+        },
+    },
 
-    value1Icon: 'bi-people-fill',
-    value1Title: 'Accessibility',
-    value1Description:
-        'Democratizing digital creation by making powerful web-building tools accessible to everyone.',
+    missionCenterDescription: {
+        sourceLocale: 'en',
+        default: 'Empower creators worldwide with modern website building tools.',
+        translations: {
+            vi: 'Trao quyền cho nhà sáng tạo trên toàn thế giới bằng công cụ xây dựng website hiện đại.',
+            ja: '世界中のクリエイターに最新のWeb制作ツールを提供します。',
+        },
+    },
 
-    value2Icon: 'bi-lightbulb',
-    value2Title: 'Innovation',
-    value2Description: 'We continuously improve our platform with smarter and faster solutions.',
+    /* ==========================================================================
+       Mission Diagram
+    ========================================================================== */
 
-    value3Icon: 'bi-shield-check',
-    value3Title: 'Reliability',
-    value3Description:
-        'Built on enterprise-grade infrastructure with security, stability, and performance its core.',
+    missionNodes: [
+        {
+            icon: 'bi bi-lightbulb-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Innovation',
+                translations: {
+                    vi: 'Đổi mới',
+                    ja: 'イノベーション',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Continuously improving the way websites are built.',
+                translations: {
+                    vi: 'Không ngừng cải tiến cách xây dựng website.',
+                    ja: 'Web制作の未来を革新します。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-globe2',
+            title: {
+                sourceLocale: 'en',
+                default: 'Accessibility',
+                translations: {
+                    vi: 'Dễ tiếp cận',
+                    ja: 'アクセシビリティ',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Making professional websites available to everyone.',
+                translations: {
+                    vi: 'Giúp mọi người đều có thể tạo website chuyên nghiệp.',
+                    ja: '誰でもプロ品質のWebサイトを作成できます。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-shield-check',
+            title: {
+                sourceLocale: 'en',
+                default: 'Reliability',
+                translations: {
+                    vi: 'Tin cậy',
+                    ja: '信頼性',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Fast, secure and stable website infrastructure.',
+                translations: {
+                    vi: 'Hạ tầng website nhanh, bảo mật và ổn định.',
+                    ja: '高速・安全・安定したインフラ。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-graph-up-arrow',
+            title: {
+                sourceLocale: 'en',
+                default: 'Growth',
+                translations: {
+                    vi: 'Phát triển',
+                    ja: '成長',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Helping businesses grow through digital experiences.',
+                translations: {
+                    vi: 'Giúp doanh nghiệp phát triển thông qua trải nghiệm số.',
+                    ja: 'デジタル体験でビジネス成長を支援します。',
+                },
+            },
+        },
+    ],
 
-    value4Icon: 'bi-bar-chart-line',
-    value4Title: 'Growth',
-    value4Description:
-        'Providing the tools and flexibility needed to grow, scale, and succeed online.',
+    /* ==========================================================================
+       Statistics
+    ========================================================================== */
 
-    journey1Icon: 'bi-rocket-takeoff-fill',
-    journey1Date: 'May 2024',
-    journey1Title: 'The Beginning',
-    journey1Description: 'Started researching No-Code solutions and the future of web building.',
-    journey1Active: true,
+    stats: [
+        {
+            icon: 'bi bi-people-fill',
+            value: {
+                sourceLocale: 'en',
+                default: '50K+',
+                translations: {
+                    vi: '50K+',
+                    ja: '50K+',
+                },
+            },
+            label: {
+                sourceLocale: 'en',
+                default: 'Active Users',
+                translations: {
+                    vi: 'Người dùng',
+                    ja: 'ユーザー',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-window-stack',
+            value: {
+                sourceLocale: 'en',
+                default: '120K+',
+                translations: {
+                    vi: '120K+',
+                    ja: '120K+',
+                },
+            },
+            label: {
+                sourceLocale: 'en',
+                default: 'Websites Created',
+                translations: {
+                    vi: 'Website đã tạo',
+                    ja: '作成されたWebサイト',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-globe',
+            value: {
+                sourceLocale: 'en',
+                default: '80+',
+                translations: {
+                    vi: '80+',
+                    ja: '80+',
+                },
+            },
+            label: {
+                sourceLocale: 'en',
+                default: 'Countries',
+                translations: {
+                    vi: 'Quốc gia',
+                    ja: '国',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-award-fill',
+            value: {
+                sourceLocale: 'en',
+                default: '99%',
+                translations: {
+                    vi: '99%',
+                    ja: '99%',
+                },
+            },
+            label: {
+                sourceLocale: 'en',
+                default: 'Satisfaction',
+                translations: {
+                    vi: 'Hài lòng',
+                    ja: '満足度',
+                },
+            },
+        },
+    ],
+    /* ==========================================================================
+       Features
+    ========================================================================== */
 
-    journey2Icon: 'bi-stack',
-    journey2Date: 'Jun – Dec 2024',
-    journey2Title: 'Research & Learning',
-    journey2Description: 'Deep dive into No-Code tools, platform architecture, and market needs.',
+    features: [
+        {
+            icon: 'bi bi-magic',
+            title: {
+                sourceLocale: 'en',
+                default: 'Visual Builder',
+                translations: {
+                    vi: 'Trình kéo thả',
+                    ja: 'ビジュアル編集',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Build visually with drag & drop.',
+                translations: {
+                    vi: 'Thiết kế bằng kéo thả.',
+                    ja: 'ドラッグ＆ドロップ編集。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-grid-1x2-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Templates',
+                translations: {
+                    vi: 'Mẫu giao diện',
+                    ja: 'テンプレート',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Responsive ready-made layouts.',
+                translations: {
+                    vi: 'Mẫu responsive sẵn có.',
+                    ja: 'レスポンシブ対応。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-lightning-charge-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Fast',
+                translations: {
+                    vi: 'Tốc độ cao',
+                    ja: '高速',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Optimized for speed.',
+                translations: {
+                    vi: 'Tối ưu hiệu suất.',
+                    ja: '高速表示を実現。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-robot',
+            title: {
+                sourceLocale: 'en',
+                default: 'AI',
+                translations: {
+                    vi: 'AI',
+                    ja: 'AI',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Create with AI.',
+                translations: {
+                    vi: 'Tạo bằng AI.',
+                    ja: 'AIで作成。',
+                },
+            },
+        },
+    ],
 
-    journey3Icon: 'bi-shield-check',
-    journey3Date: 'Jan – Apr 2025',
-    journey3Title: 'Planning & Foundation',
-    journey3Description:
-        'Designed the core architecture and planned a powerful web builder platform.',
+    /* ==========================================================================
+       Values
+    ========================================================================== */
 
-    journey4Icon: 'bi-people',
-    journey4Date: 'May 2025',
-    journey4Title: 'Platform & Templates',
-    journey4Description: 'Built the role-based permission system and started creating templates.',
+    values: [
+        {
+            icon: 'bi bi-heart-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Customer First',
+                translations: {
+                    vi: 'Khách hàng là trung tâm',
+                    ja: '顧客第一',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Every decision we make starts with delivering more value to our customers.',
+                translations: {
+                    vi: 'Mọi quyết định đều hướng đến việc mang lại nhiều giá trị hơn cho khách hàng.',
+                    ja: 'すべての意思決定は顧客価値を中心に行います。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-stars',
+            title: {
+                sourceLocale: 'en',
+                default: 'Innovation',
+                translations: {
+                    vi: 'Đổi mới liên tục',
+                    ja: '継続的な革新',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'We continuously improve our platform with modern technologies.',
+                translations: {
+                    vi: 'Không ngừng cải tiến nền tảng bằng những công nghệ hiện đại.',
+                    ja: '最新技術でプラットフォームを進化させ続けます。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-shield-lock-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Trust & Security',
+                translations: {
+                    vi: 'Bảo mật & Tin cậy',
+                    ja: 'セキュリティと信頼',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Security, privacy and reliability are built into everything we create.',
+                translations: {
+                    vi: 'Bảo mật và độ tin cậy luôn là ưu tiên hàng đầu.',
+                    ja: '安全性と信頼性を最優先にしています。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-people-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Community',
+                translations: {
+                    vi: 'Cộng đồng',
+                    ja: 'コミュニティ',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Growing together with creators, developers and businesses around the world.',
+                translations: {
+                    vi: 'Đồng hành cùng cộng đồng nhà sáng tạo và doanh nghiệp trên toàn thế giới.',
+                    ja: '世界中のクリエイターと共に成長します。',
+                },
+            },
+        },
+    ],
+    /* ==========================================================================
+       Journey
+    ========================================================================== */
 
-    journey5Icon: 'bi-flag',
-    journey5Date: 'Now & Beyond',
-    journey5Title: 'Growing Together',
-    journey5Description:
-        'Continuing to improve, add more features, and help everyone build without limits.',
+    journeyBadge: {
+        sourceLocale: 'en',
+        default: 'OUR JOURNEY',
+        translations: {
+            vi: 'HÀNH TRÌNH',
+            ja: '私たちの歩み',
+        },
+    },
 
-    story1Year: '2024',
-    story1Badge: 'May 2024',
-    story1Title: 'Started with',
-    story1TitleAccent: 'a simple vision.',
-    story1Description:
-        'Our journey began with one goal: making professional website creation accessible to everyone. We researched the no-code ecosystem, explored user needs, and designed the first concepts for Kbuilder.',
-    story1Image: '/assets/images/story-01.png',
-    story1Alt: 'Research',
+    journeyTitle: {
+        sourceLocale: 'en',
+        default: 'Building Kbuilder',
+        translations: {
+            vi: 'Xây dựng Kbuilder',
+            ja: 'Kbuilderの構築',
+        },
+    },
 
-    story2Year: '2025',
-    story2Badge: 'May 2025',
-    story2Title: 'Turning ideas into',
-    story2TitleAccent: 'a real platform.',
-    story2Description:
-        'We built Kbuilder with reusable templates, scalable architecture, intuitive visual editing, and powerful tools to help creators build modern websites faster and with confidence.',
-    story2Image: '/assets/images/story-02.png',
-    story2Alt: 'Development',
-    story2Reverse: true,
+    journeyTitleAccent: {
+        sourceLocale: 'en',
+        default: 'Step By Step',
+        translations: {
+            vi: 'Từng Bước Một',
+            ja: '一歩ずつ',
+        },
+    },
 
-    problem1Icon: 'bi-clock-history',
-    problem1Title: 'Too Time-Consuming',
-    problem1Description:
-        'Building a professional website often takes weeks or even months, delaying launches and business growth.',
+    journeyDescription: {
+        sourceLocale: 'en',
+        default:
+            'Every milestone represents our commitment to making website creation easier and more accessible.',
+        translations: {
+            vi: 'Mỗi cột mốc đều thể hiện cam kết của chúng tôi trong việc giúp xây dựng website trở nên đơn giản hơn.',
+            ja: 'すべてのマイルストーンは、Web制作をより簡単にするための取り組みです。',
+        },
+    },
 
-    problem2Icon: 'bi-currency-dollar',
-    problem2Title: 'Too Expensive',
-    problem2Description:
-        'Hiring developers or agencies requires a significant investment that many individuals and startups cannot afford.',
+    journeys: [
+        {
+            icon: 'bi bi-search',
+            date: {
+                sourceLocale: 'en',
+                default: '2023',
+                translations: {
+                    vi: '2023',
+                    ja: '2023',
+                },
+            },
+            title: {
+                sourceLocale: 'en',
+                default: 'Research & Discovery',
+                translations: {
+                    vi: 'Nghiên cứu & Khám phá',
+                    ja: '調査と発見',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'We analyzed hundreds of website builders to identify common challenges.',
+                translations: {
+                    vi: 'Phân tích hàng trăm nền tảng để tìm ra những khó khăn phổ biến.',
+                    ja: '多くのWebビルダーを分析し課題を発見しました。',
+                },
+            },
+            active: false,
+        },
+        {
+            icon: 'bi bi-lightbulb',
+            date: {
+                sourceLocale: 'en',
+                default: '2024',
+                translations: {
+                    vi: '2024',
+                    ja: '2024',
+                },
+            },
+            title: {
+                sourceLocale: 'en',
+                default: 'Product Strategy',
+                translations: {
+                    vi: 'Chiến lược sản phẩm',
+                    ja: '製品戦略',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Designed a modern visual builder focused on speed and simplicity.',
+                translations: {
+                    vi: 'Thiết kế nền tảng kéo thả hiện đại tập trung vào tốc độ và sự đơn giản.',
+                    ja: '高速でシンプルなビジュアルビルダーを設計しました。',
+                },
+            },
+            active: true,
+        },
+        {
+            icon: 'bi bi-code-slash',
+            date: {
+                sourceLocale: 'en',
+                default: '2025',
+                translations: {
+                    vi: '2025',
+                    ja: '2025',
+                },
+            },
+            title: {
+                sourceLocale: 'en',
+                default: 'Platform Development',
+                translations: {
+                    vi: 'Phát triển nền tảng',
+                    ja: 'プラットフォーム開発',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Implemented visual editing, reusable components and automation.',
+                translations: {
+                    vi: 'Hoàn thiện trình chỉnh sửa trực quan và hệ thống component.',
+                    ja: 'ビジュアル編集とコンポーネントを実装。',
+                },
+            },
+            active: false,
+        },
+        {
+            icon: 'bi bi-rocket-takeoff',
+            date: {
+                sourceLocale: 'en',
+                default: 'Today',
+                translations: {
+                    vi: 'Hiện tại',
+                    ja: '現在',
+                },
+            },
+            title: {
+                sourceLocale: 'en',
+                default: 'Growing Together',
+                translations: {
+                    vi: 'Cùng phát triển',
+                    ja: '共に成長',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Helping creators and businesses build amazing digital experiences.',
+                translations: {
+                    vi: 'Đồng hành cùng doanh nghiệp và nhà sáng tạo trên toàn thế giới.',
+                    ja: '世界中のクリエイターを支援しています。',
+                },
+            },
+            active: false,
+        },
+    ],
 
-    problem3Icon: 'bi-code-slash',
-    problem3Title: 'Too Complex',
-    problem3Description:
-        'Traditional website development requires coding knowledge, making it difficult for non-technical users.',
+    /* ==========================================================================
+       Stories
+    ========================================================================== */
 
-    problem4Icon: 'bi-sliders',
-    problem4Title: 'Too Limited',
-    problem4Description:
-        'Many existing builders lack flexibility, customization, and modern design capabilities.',
+    stories: [
+        {
+            year: {
+                sourceLocale: 'en',
+                default: '2023',
+                translations: {
+                    vi: '2023',
+                    ja: '2023',
+                },
+            },
+            badge: {
+                sourceLocale: 'en',
+                default: 'The Beginning',
+                translations: {
+                    vi: 'Khởi đầu',
+                    ja: '始まり',
+                },
+            },
+            title: {
+                sourceLocale: 'en',
+                default: 'A Vision',
+                translations: {
+                    vi: 'Một Tầm Nhìn',
+                    ja: 'ビジョン',
+                },
+            },
+            titleAccent: {
+                sourceLocale: 'en',
+                default: 'For Everyone',
+                translations: {
+                    vi: 'Cho Mọi Người',
+                    ja: 'すべての人へ',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Kbuilder was born from the belief that everyone should be able to build beautiful websites without writing code.',
+                translations: {
+                    vi: 'Kbuilder được tạo ra với niềm tin rằng ai cũng có thể xây dựng website đẹp mà không cần lập trình.',
+                    ja: '誰でもコードを書かずにWebサイトを作れる世界を目指しました。',
+                },
+            },
+            image: '/assets/images/about/story-01.png',
+            imageAlt: {
+                sourceLocale: 'en',
+                default: 'Kbuilder Story',
+                translations: {
+                    vi: 'Câu chuyện Kbuilder',
+                    ja: 'Kbuilderストーリー',
+                },
+            },
+            reverse: false,
+        },
+        {
+            year: {
+                sourceLocale: 'en',
+                default: '2025',
+                translations: {
+                    vi: '2025',
+                    ja: '2025',
+                },
+            },
+            badge: {
+                sourceLocale: 'en',
+                default: 'The Future',
+                translations: {
+                    vi: 'Tương lai',
+                    ja: '未来',
+                },
+            },
+            title: {
+                sourceLocale: 'en',
+                default: 'Creating',
+                translations: {
+                    vi: 'Kiến tạo',
+                    ja: '創造',
+                },
+            },
+            titleAccent: {
+                sourceLocale: 'en',
+                default: 'The Next Generation',
+                translations: {
+                    vi: 'Thế hệ Website mới',
+                    ja: '次世代Web',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Our mission continues with AI, automation and powerful visual experiences.',
+                translations: {
+                    vi: 'Tiếp tục phát triển với AI, tự động hóa và trải nghiệm trực quan.',
+                    ja: 'AIと自動化で未来のWeb制作を実現します。',
+                },
+            },
+            image: '/assets/images/about/story-02.png',
+            imageAlt: {
+                sourceLocale: 'en',
+                default: 'Future Vision',
+                translations: {
+                    vi: 'Tầm nhìn tương lai',
+                    ja: '未来ビジョン',
+                },
+            },
+            reverse: true,
+        },
+    ],
 
-    solution1Icon: 'bi-lightning-charge-fill',
-    solution1Title: 'Fast & Easy',
-    solution1Description: 'Build and launch beautiful websites in minutes instead of weeks.',
+    /* ==========================================================================
+       Story Features
+    ========================================================================== */
 
-    solution2Icon: 'bi-palette-fill',
-    solution2Title: 'No Code Needed',
-    solution2Description: 'Design visually without writing a single line of code.',
+    storyFeatures: [
+        {
+            icon: 'bi bi-search',
+            title: {
+                sourceLocale: 'en',
+                default: 'Research & Discovery',
+                translations: {
+                    vi: 'Nghiên cứu',
+                    ja: '調査',
+                },
+            },
+            badge: {
+                sourceLocale: 'en',
+                default: 'Completed',
+                translations: {
+                    vi: 'Hoàn thành',
+                    ja: '完了',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Understanding the needs of creators and businesses.',
+                translations: {
+                    vi: 'Nghiên cứu nhu cầu của nhà sáng tạo và doanh nghiệp.',
+                    ja: 'ユーザーの課題を調査。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-diagram-3',
+            title: {
+                sourceLocale: 'en',
+                default: 'Product Strategy',
+                translations: {
+                    vi: 'Chiến lược sản phẩm',
+                    ja: '製品戦略',
+                },
+            },
+            badge: {
+                sourceLocale: 'en',
+                default: 'Validated',
+                translations: {
+                    vi: 'Đã xác thực',
+                    ja: '検証済み',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Building a scalable and flexible visual platform.',
+                translations: {
+                    vi: 'Xây dựng nền tảng trực quan linh hoạt.',
+                    ja: '拡張可能な設計。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-stars',
+            title: {
+                sourceLocale: 'en',
+                default: 'Kbuilder Vision',
+                translations: {
+                    vi: 'Tầm nhìn Kbuilder',
+                    ja: 'Kbuilderビジョン',
+                },
+            },
+            badge: {
+                sourceLocale: 'en',
+                default: '2026',
+                translations: {
+                    vi: '2026',
+                    ja: '2026',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Empowering millions to create professional websites.',
+                translations: {
+                    vi: 'Giúp hàng triệu người tạo website chuyên nghiệp.',
+                    ja: '数百万人のWeb制作を支援。',
+                },
+            },
+        },
+    ],
+    /* ==========================================================================
+       Problems
+    ========================================================================== */
 
-    solution3Icon: 'bi-shield-check',
-    solution3Title: 'Powerful & Flexible',
-    solution3Description: 'Professional features with complete design freedom.',
+    problems: [
+        {
+            icon: 'bi bi-x-circle-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Complex Website Builders',
+                translations: {
+                    vi: 'Trình tạo website quá phức tạp',
+                    ja: '複雑なWebサイトビルダー',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Many platforms require technical knowledge before users can build a website.',
+                translations: {
+                    vi: 'Nhiều nền tảng yêu cầu kiến thức kỹ thuật trước khi có thể xây dựng website.',
+                    ja: '多くのプラットフォームは専門知識を必要とします。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-clock-history',
+            title: {
+                sourceLocale: 'en',
+                default: 'Time-Consuming Setup',
+                translations: {
+                    vi: 'Thiết lập mất nhiều thời gian',
+                    ja: 'セットアップに時間がかかる',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Creating pages, menus and layouts manually slows down every project.',
+                translations: {
+                    vi: 'Việc tạo trang, menu và bố cục thủ công làm chậm quá trình phát triển.',
+                    ja: '手動設定は多くの時間を必要とします。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-code-slash',
+            title: {
+                sourceLocale: 'en',
+                default: 'Too Much Coding',
+                translations: {
+                    vi: 'Phải viết quá nhiều mã',
+                    ja: 'コーディングが多すぎる',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Small businesses struggle because every customization requires developers.',
+                translations: {
+                    vi: 'Doanh nghiệp nhỏ gặp khó khăn vì mọi chỉnh sửa đều cần lập trình viên.',
+                    ja: 'カスタマイズには開発者が必要です。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-exclamation-triangle-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Poor User Experience',
+                translations: {
+                    vi: 'Trải nghiệm người dùng kém',
+                    ja: 'ユーザー体験が悪い',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Outdated interfaces make website creation frustrating and inefficient.',
+                translations: {
+                    vi: 'Giao diện lỗi thời khiến việc xây dựng website trở nên khó khăn.',
+                    ja: '古いUIは使いづらい体験を生みます。',
+                },
+            },
+        },
+    ],
 
-    solution4Icon: 'bi-rocket-takeoff-fill',
-    solution4Title: 'Built for Everyone',
-    solution4Description: 'Perfect for creators, agencies, freelancers and businesses.',
+    /* ==========================================================================
+       Solutions
+    ========================================================================== */
 
-    coreValue1Id: '01',
-    coreValue1Icon: 'bi-people',
-    coreValue1Title: 'Customer First',
-    coreValue1Description:
-        'We begin with our customers, understanding their challenges and creating experiences that genuinely help them succeed. Their growth inspires every decision we make.',
+    solutions: [
+        {
+            icon: 'bi bi-magic',
+            title: {
+                sourceLocale: 'en',
+                default: 'Visual Editing',
+                translations: {
+                    vi: 'Chỉnh sửa trực quan',
+                    ja: 'ビジュアル編集',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Design pages visually with instant preview and drag-and-drop editing.',
+                translations: {
+                    vi: 'Thiết kế trực quan bằng kéo thả với khả năng xem trước tức thì.',
+                    ja: 'ドラッグ＆ドロップで直感的に編集。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-robot',
+            title: {
+                sourceLocale: 'en',
+                default: 'AI Assistance',
+                translations: {
+                    vi: 'AI hỗ trợ',
+                    ja: 'AIサポート',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Generate layouts, pages and content automatically using AI.',
+                translations: {
+                    vi: 'AI tự động tạo bố cục, trang và nội dung.',
+                    ja: 'AIがページとコンテンツを自動生成します。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-lightning-charge-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Automation',
+                translations: {
+                    vi: 'Tự động hóa',
+                    ja: '自動化',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Automate repetitive tasks to launch websites significantly faster.',
+                translations: {
+                    vi: 'Tự động hóa quy trình giúp triển khai website nhanh hơn.',
+                    ja: '繰り返し作業を自動化します。',
+                },
+            },
+        },
+        {
+            icon: 'bi bi-shield-check',
+            title: {
+                sourceLocale: 'en',
+                default: 'Reliable Platform',
+                translations: {
+                    vi: 'Nền tảng ổn định',
+                    ja: '信頼できるプラットフォーム',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Built with security, scalability and performance as top priorities.',
+                translations: {
+                    vi: 'Được xây dựng với ưu tiên về bảo mật, khả năng mở rộng và hiệu suất.',
+                    ja: '安全性と拡張性を重視しています。',
+                },
+            },
+        },
+    ],
 
-    coreValue1Tag1: 'Empathy',
-    coreValue1Tag2: 'Listening',
-    coreValue1Tag3: 'Impact',
-    coreValue1Color: 'purple',
+    /* ==========================================================================
+       Core Values
+    ========================================================================== */
 
-    coreValue2Id: '02',
-    coreValue2Icon: 'bi-rocket-takeoff',
-    coreValue2Title: 'Innovation',
-    coreValue2Description:
-        'Innovation means continuously exploring better ideas, embracing creativity, and building solutions that shape the future of digital experiences.',
+    coreValues: [
+        {
+            id: {
+                sourceLocale: 'en',
+                default: '01',
+                translations: {
+                    vi: '01',
+                    ja: '01',
+                },
+            },
+            icon: 'bi bi-lightbulb-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Innovation',
+                translations: {
+                    vi: 'Đổi mới',
+                    ja: 'イノベーション',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Continuously pushing technology forward to simplify website creation.',
+                translations: {
+                    vi: 'Không ngừng đổi mới để việc xây dựng website trở nên đơn giản hơn.',
+                    ja: 'Web制作をより簡単にする革新。',
+                },
+            },
+            tags: [
+                {
+                    sourceLocale: 'en',
+                    default: 'Creativity',
+                    translations: {
+                        vi: 'Sáng tạo',
+                        ja: '創造性',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Technology',
+                    translations: {
+                        vi: 'Công nghệ',
+                        ja: 'テクノロジー',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Future',
+                    translations: {
+                        vi: 'Tương lai',
+                        ja: '未来',
+                    },
+                },
+            ],
+            color: 'purple',
+        },
+        {
+            id: {
+                sourceLocale: 'en',
+                default: '02',
+                translations: {
+                    vi: '02',
+                    ja: '02',
+                },
+            },
+            icon: 'bi bi-heart-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Customer First',
+                translations: {
+                    vi: 'Khách hàng là trung tâm',
+                    ja: '顧客第一',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Everything we build begins with solving real customer problems.',
+                translations: {
+                    vi: 'Mọi sản phẩm đều bắt đầu từ việc giải quyết vấn đề thực tế của khách hàng.',
+                    ja: 'すべては顧客の課題解決から始まります。',
+                },
+            },
+            tags: [
+                {
+                    sourceLocale: 'en',
+                    default: 'Support',
+                    translations: {
+                        vi: 'Hỗ trợ',
+                        ja: 'サポート',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Trust',
+                    translations: {
+                        vi: 'Tin cậy',
+                        ja: '信頼',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Success',
+                    translations: {
+                        vi: 'Thành công',
+                        ja: '成功',
+                    },
+                },
+            ],
+            color: 'blue',
+        },
+        {
+            id: {
+                sourceLocale: 'en',
+                default: '03',
+                translations: {
+                    vi: '03',
+                    ja: '03',
+                },
+            },
+            icon: 'bi bi-award-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Quality Excellence',
+                translations: {
+                    vi: 'Chất lượng vượt trội',
+                    ja: '品質へのこだわり',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'We are committed to delivering reliable, scalable and high-quality digital experiences.',
+                translations: {
+                    vi: 'Chúng tôi cam kết mang đến những sản phẩm chất lượng cao, ổn định và có khả năng mở rộng.',
+                    ja: '高品質で信頼性が高く、拡張性のあるデジタル体験を提供します。',
+                },
+            },
+            tags: [
+                {
+                    sourceLocale: 'en',
+                    default: 'Quality',
+                    translations: {
+                        vi: 'Chất lượng',
+                        ja: '品質',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Performance',
+                    translations: {
+                        vi: 'Hiệu năng',
+                        ja: 'パフォーマンス',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Reliability',
+                    translations: {
+                        vi: 'Tin cậy',
+                        ja: '信頼性',
+                    },
+                },
+            ],
+            color: 'orange',
+        },
+        {
+            id: {
+                sourceLocale: 'en',
+                default: '04',
+                translations: {
+                    vi: '04',
+                    ja: '04',
+                },
+            },
+            icon: 'bi bi-people-fill',
+            title: {
+                sourceLocale: 'en',
+                default: 'Collaboration',
+                translations: {
+                    vi: 'Hợp tác',
+                    ja: 'コラボレーション',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Great products are built through teamwork, transparency and shared success.',
+                translations: {
+                    vi: 'Những sản phẩm tuyệt vời được tạo nên từ sự hợp tác, minh bạch và cùng nhau phát triển.',
+                    ja: '優れた製品はチームワークと透明性、そして共通の成功から生まれます。',
+                },
+            },
+            tags: [
+                {
+                    sourceLocale: 'en',
+                    default: 'Teamwork',
+                    translations: {
+                        vi: 'Làm việc nhóm',
+                        ja: 'チームワーク',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Transparency',
+                    translations: {
+                        vi: 'Minh bạch',
+                        ja: '透明性',
+                    },
+                },
+                {
+                    sourceLocale: 'en',
+                    default: 'Growth',
+                    translations: {
+                        vi: 'Phát triển',
+                        ja: '成長',
+                    },
+                },
+            ],
+            color: 'pink',
+        },
+    ],
+    /* ==========================================================================
+       Team
+    ========================================================================== */
 
-    coreValue2Tag1: 'Curiosity',
-    coreValue2Tag2: 'Creativity',
-    coreValue2Tag3: 'Growth',
-    coreValue2Color: 'blue',
+    teamBadge: {
+        sourceLocale: 'en',
+        default: 'OUR TEAM',
+        translations: {
+            vi: 'ĐỘI NGŨ',
+            ja: 'チーム',
+        },
+    },
 
-    coreValue3Id: '03',
-    coreValue3Icon: 'bi-shield-check',
-    coreValue3Title: 'Integrity',
-    coreValue3Description:
-        'Trust is earned through honesty, accountability, and transparency. We always choose the path that builds long-term relationships with our users.',
+    teamTitle: {
+        sourceLocale: 'en',
+        default: 'Meet The People Behind',
+        translations: {
+            vi: 'Gặp gỡ đội ngũ phía sau',
+            ja: '私たちのチーム',
+        },
+    },
 
-    coreValue3Tag1: 'Honesty',
-    coreValue3Tag2: 'Trust',
-    coreValue3Tag3: 'Respect',
-    coreValue3Color: 'orange',
+    teamTitleAccent: {
+        sourceLocale: 'en',
+        default: 'Kbuilder',
+        translations: {
+            vi: 'Kbuilder',
+            ja: 'Kbuilder',
+        },
+    },
 
-    coreValue4Id: '04',
-    coreValue4Icon: 'bi-heart',
-    coreValue4Title: 'Empowerment',
-    coreValue4Description:
-        'We empower creators, entrepreneurs, and businesses with tools that unlock new possibilities and transform ideas into reality.',
+    teamDescription: {
+        sourceLocale: 'en',
+        default:
+            'A passionate team of designers, engineers and creators building the future of website creation.',
+        translations: {
+            vi: 'Đội ngũ kỹ sư, nhà thiết kế và nhà sáng tạo đang xây dựng tương lai của việc tạo website.',
+            ja: 'Web制作の未来を築くデザイナーとエンジニアのチームです。',
+        },
+    },
 
-    coreValue4Tag1: 'Enable',
-    coreValue4Tag2: 'Support',
-    coreValue4Tag3: 'Inspire',
-    coreValue4Color: 'pink',
+    team: [
+        {
+            name: {
+                sourceLocale: 'en',
+                default: 'Alex Johnson',
+                translations: {
+                    vi: 'Alex Johnson',
+                    ja: 'Alex Johnson',
+                },
+            },
+            role: {
+                sourceLocale: 'en',
+                default: 'Founder & CEO',
+                translations: {
+                    vi: 'Nhà sáng lập & CEO',
+                    ja: 'CEO',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Leading the vision and strategy behind Kbuilder.',
+                translations: {
+                    vi: 'Định hướng chiến lược và phát triển Kbuilder.',
+                    ja: 'Kbuilderのビジョンを牽引します。',
+                },
+            },
+            image: '/assets/images/avatar-1.png',
+            color: 'purple',
+            icon: 'bi bi-stars',
+        },
+        {
+            name: {
+                sourceLocale: 'en',
+                default: 'Sophia Williams',
+                translations: {
+                    vi: 'Sophia Williams',
+                    ja: 'Sophia Williams',
+                },
+            },
+            role: {
+                sourceLocale: 'en',
+                default: 'UI/UX Designer',
+                translations: {
+                    vi: 'Thiết kế UI/UX',
+                    ja: 'UI/UXデザイナー',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Creating intuitive and delightful user experiences.',
+                translations: {
+                    vi: 'Thiết kế trải nghiệm người dùng hiện đại và trực quan.',
+                    ja: '直感的なUI/UXを設計。',
+                },
+            },
+            image: '/assets/images/avatar-2.png',
+            color: 'blue',
+            icon: 'bi bi-palette-fill',
+        },
+        {
+            name: {
+                sourceLocale: 'en',
+                default: 'Daniel Brown',
+                translations: {
+                    vi: 'Daniel Brown',
+                    ja: 'Daniel Brown',
+                },
+            },
+            role: {
+                sourceLocale: 'en',
+                default: 'Lead Engineer',
+                translations: {
+                    vi: 'Trưởng nhóm kỹ thuật',
+                    ja: 'リードエンジニア',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Building scalable systems and platform architecture.',
+                translations: {
+                    vi: 'Xây dựng kiến trúc hệ thống mạnh mẽ và dễ mở rộng.',
+                    ja: 'スケーラブルなシステムを開発。',
+                },
+            },
+            image: '/assets/images/avatar-3.png',
+            color: 'green',
+            icon: 'bi bi-cpu-fill',
+        },
+        {
+            name: {
+                sourceLocale: 'en',
+                default: 'Emily Davis',
+                translations: {
+                    vi: 'Emily Davis',
+                    ja: 'Emily Davis',
+                },
+            },
+            role: {
+                sourceLocale: 'en',
+                default: 'Marketing Manager',
+                translations: {
+                    vi: 'Quản lý Marketing',
+                    ja: 'マーケティング',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default: 'Connecting Kbuilder with creators around the world.',
+                translations: {
+                    vi: 'Kết nối Kbuilder với cộng đồng sáng tạo toàn cầu.',
+                    ja: '世界中のクリエイターとつながります。',
+                },
+            },
+            image: '/assets/images/avatar-4.png',
+            color: 'orange',
+            icon: 'bi bi-megaphone-fill',
+        },
+    ],
 
-    team1Name: 'Alex Nguyen',
-    team1Role: 'Co-Founder & CEO',
-    team1Description:
-        'Visionary leader passionate about empowering creators and businesses through no-code innovation.',
-    team1Image: '/assets/images/default-avatar.png',
-    team1Color: 'purple',
-    team1Icon: 'bi-stars',
+    /* ==========================================================================
+       CTA
+    ========================================================================== */
 
-    team2Name: 'Linh Tran',
-    team2Role: 'Chief Technology Officer',
-    team2Description:
-        'Full-stack architect focused on scalable cloud infrastructure and developer experience.',
-    team2Image: '/assets/images/default-avatar.png',
-    team2Color: 'green',
-    team2Icon: 'bi-code-slash',
+    ctaBadge: {
+        sourceLocale: 'en',
+        default: 'START BUILDING TODAY',
+        translations: {
+            vi: 'BẮT ĐẦU NGAY HÔM NAY',
+            ja: '今すぐ始めよう',
+        },
+    },
 
-    team3Name: 'Minh Le',
-    team3Role: 'Head of Design',
-    team3Description:
-        'Crafting elegant digital experiences that feel simple, modern, and delightful.',
-    team3Image: '/assets/images/default-avatar.png',
-    team3Color: 'blue',
-    team3Icon: 'bi-palette2',
+    ctaTitle: {
+        sourceLocale: 'en',
+        default: 'Ready To Build',
+        translations: {
+            vi: 'Sẵn sàng xây dựng',
+            ja: '準備はできましたか',
+        },
+    },
 
-    team4Name: 'Mai Pham',
-    team4Role: 'Marketing Director',
-    team4Description: 'Helping businesses connect with customers through meaningful storytelling.',
-    team4Image: '/assets/images/default-avatar.png',
-    team4Color: 'pink',
-    team4Icon: 'bi-megaphone-fill',
+    ctaTitleAccent: {
+        sourceLocale: 'en',
+        default: 'Your Next Website?',
+        translations: {
+            vi: 'Website tiếp theo?',
+            ja: '次のWebサイトを',
+        },
+    },
 
-    team5Name: 'Quang Tran',
-    team5Role: 'Product Manager',
-    team5Description: 'Turning user feedback into products that solve real-world challenges.',
-    team5Image: '/assets/images/default-avatar.png',
-    team5Color: 'orange',
-    team5Icon: 'bi-lightbulb-fill',
+    ctaDescription: {
+        sourceLocale: 'en',
+        default:
+            'Join thousands of creators using Kbuilder to design faster, launch sooner and grow confidently.',
+        translations: {
+            vi: 'Tham gia cùng hàng nghìn nhà sáng tạo đang sử dụng Kbuilder để xây dựng website nhanh hơn.',
+            ja: 'KbuilderでWebサイト制作を始めましょう。',
+        },
+    },
 
-    team6Name: 'Huy Pham',
-    team6Role: 'Frontend Lead',
-    team6Description:
-        'Passionate about creating blazing-fast interfaces with outstanding user experiences.',
-    team6Image: '/assets/images/default-avatar.png',
-    team6Color: 'purple',
-    team6Icon: 'bi-shield-check',
+    ctaPrimaryButtonLabel: {
+        sourceLocale: 'en',
+        default: 'Start Free',
+        translations: {
+            vi: 'Bắt đầu miễn phí',
+            ja: '無料で始める',
+        },
+    },
+
+    ctaSecondaryButtonLabel: {
+        sourceLocale: 'en',
+        default: 'Contact Sales',
+        translations: {
+            vi: 'Liên hệ',
+            ja: 'お問い合わせ',
+        },
+    },
+
+    ctaImage: '/assets/images/about/cta-image.png',
+
+    /* ==========================================================================
+       SEO
+    ========================================================================== */
+
+    pageTitle: {
+        sourceLocale: 'en',
+        default: 'About Kbuilder',
+        translations: {
+            vi: 'Giới thiệu Kbuilder',
+            ja: 'Kbuilderについて',
+        },
+    },
+
+    pageDescription: {
+        sourceLocale: 'en',
+        default:
+            'Learn more about Kbuilder, our mission, values and the passionate team building the future of website creation.',
+        translations: {
+            vi: 'Tìm hiểu về Kbuilder, sứ mệnh, giá trị cốt lõi và đội ngũ phát triển nền tảng.',
+            ja: 'Kbuilderの使命、価値観、チームをご紹介します。',
+        },
+    },
 };
 
 export function About01(props: About01Props) {
+    const mergedProps = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
+
     const {
+        /* Breadcrumb */
         breadcrumbHome,
         breadcrumbCurrent,
 
+        /* Hero */
         badge,
-
         heroTitle,
         heroTitleAccent,
-
         heroDescription,
 
         primaryButtonLabel,
@@ -567,584 +1642,188 @@ export function About01(props: About01Props) {
 
         performanceScore,
         performanceLabel,
-        stat1Value,
-        stat1Label,
-        stat2Value,
-        stat2Label,
-        stat3Value,
-        stat3Label,
-        stat4Value,
-        stat4Label,
-        feature1Icon,
-        feature1Title,
-        feature1Description,
-        feature2Icon,
-        feature2Title,
-        feature2Description,
-        feature3Icon,
-        feature3Title,
-        feature3Description,
-        feature4Icon,
-        feature4Title,
-        feature4Description,
-        capability1Icon,
-        capability1Label,
-        capability2Icon,
-        capability2Label,
-        capability3Icon,
-        capability3Label,
-        capability4Icon,
-        capability4Label,
-        capability5Icon,
-        capability5Label,
-        value1Icon,
-        value1Title,
-        value1Description,
-        value2Icon,
-        value2Title,
-        value2Description,
-        value3Icon,
-        value3Title,
-        value3Description,
-        value4Icon,
-        value4Title,
-        value4Description,
-        journey1Icon,
-        journey1Date,
-        journey1Title,
-        journey1Description,
-        journey1Active,
 
-        journey2Icon,
-        journey2Date,
-        journey2Title,
-        journey2Description,
+        /* Mission */
+        missionBadge,
+        missionTitle,
+        missionTitleAccent,
+        missionDescription,
 
-        journey3Icon,
-        journey3Date,
-        journey3Title,
-        journey3Description,
+        missionCenterTitle,
+        missionCenterDescription,
 
-        journey4Icon,
-        journey4Date,
-        journey4Title,
-        journey4Description,
+        missionNodes,
 
-        journey5Icon,
-        journey5Date,
-        journey5Title,
-        journey5Description,
+        /* Collections */
+        stats,
+        features,
+        values,
 
-        story1Year,
-        story1Badge,
-        story1Title,
-        story1TitleAccent,
-        story1Description,
-        story1Image,
-        story1Alt,
+        /* Journey */
+        journeyBadge,
+        journeyTitle,
+        journeyTitleAccent,
+        journeyDescription,
 
-        story2Year,
-        story2Badge,
-        story2Title,
-        story2TitleAccent,
-        story2Description,
-        story2Image,
-        story2Alt,
-        story2Reverse,
+        journeys,
 
-        problem1Icon,
-        problem1Title,
-        problem1Description,
+        /* Stories */
+        stories,
+        storyFeatures,
 
-        problem2Icon,
-        problem2Title,
-        problem2Description,
+        /* Why */
+        whyBadge,
+        whyTitle,
+        whyTitleAccent,
+        whyDescription,
 
-        problem3Icon,
-        problem3Title,
-        problem3Description,
+        /* Problems / Solutions */
+        problems,
+        solutions,
 
-        problem4Icon,
-        problem4Title,
-        problem4Description,
+        builderPreviewImage,
 
-        solution1Icon,
-        solution1Title,
-        solution1Description,
+        /* Core Values */
+        coreValues,
 
-        solution2Icon,
-        solution2Title,
-        solution2Description,
+        /* Team */
+        teamBadge,
+        teamTitle,
+        teamTitleAccent,
+        teamDescription,
 
-        solution3Icon,
-        solution3Title,
-        solution3Description,
+        team,
 
-        solution4Icon,
-        solution4Title,
-        solution4Description,
+        /* CTA */
+        ctaBadge,
+        ctaTitle,
+        ctaTitleAccent,
+        ctaDescription,
 
-        coreValue1Id,
-        coreValue1Icon,
-        coreValue1Title,
-        coreValue1Description,
-        coreValue1Tag1,
-        coreValue1Tag2,
-        coreValue1Tag3,
-        coreValue1Color,
+        ctaPrimaryButtonLabel,
+        ctaSecondaryButtonLabel,
 
-        coreValue2Id,
-        coreValue2Icon,
-        coreValue2Title,
-        coreValue2Description,
-        coreValue2Tag1,
-        coreValue2Tag2,
-        coreValue2Tag3,
-        coreValue2Color,
+        ctaImage,
 
-        coreValue3Id,
-        coreValue3Icon,
-        coreValue3Title,
-        coreValue3Description,
-        coreValue3Tag1,
-        coreValue3Tag2,
-        coreValue3Tag3,
-        coreValue3Color,
+        /* SEO */
+        pageTitle,
+        pageDescription,
+    } = mergedProps;
 
-        coreValue4Id,
-        coreValue4Icon,
-        coreValue4Title,
-        coreValue4Description,
-        coreValue4Tag1,
-        coreValue4Tag2,
-        coreValue4Tag3,
-        coreValue4Color,
+    /* ==========================================================================
+   Locale
+========================================================================== */
 
-        team1Name,
-        team1Role,
-        team1Description,
-        team1Image,
-        team1Color,
-        team1Icon,
+    const [selectedLocale, setSelectedLocale] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
 
-        team2Name,
-        team2Role,
-        team2Description,
-        team2Image,
-        team2Color,
-        team2Icon,
+        return localStorage.getItem('locale') ?? 'en';
+    });
 
-        team3Name,
-        team3Role,
-        team3Description,
-        team3Image,
-        team3Color,
-        team3Icon,
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            setSelectedLocale(customEvent.detail);
+        };
 
-        team4Name,
-        team4Role,
-        team4Description,
-        team4Image,
-        team4Color,
-        team4Icon,
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
 
-        team5Name,
-        team5Role,
-        team5Description,
-        team5Image,
-        team5Color,
-        team5Icon,
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
 
-        team6Name,
-        team6Role,
-        team6Description,
-        team6Image,
-        team6Color,
-        team6Icon,
-    } = {
-        ...DEFAULT_PROPS,
-        ...props,
-    };
+    const t = (value?: LocalizedText) => (value ? getLocalizedValue(value, selectedLocale) : '');
 
-    const stats = useMemo<StatItem[]>(
-        () => [
-            {
-                value: stat1Value,
-                label: stat1Label,
-                icon: 'bi-window',
-            },
-            {
-                value: stat2Value,
-                label: stat2Label,
-                icon: 'bi-grid',
-            },
-            {
-                value: stat3Value,
-                label: stat3Label,
-                icon: 'bi-box',
-            },
-            {
-                value: stat4Value,
-                label: stat4Label,
-                icon: 'bi-shield-check',
-            },
-        ],
-        [
-            stat1Value,
-            stat1Label,
-            stat2Value,
-            stat2Label,
-            stat3Value,
-            stat3Label,
-            stat4Value,
-            stat4Label,
-        ],
-    );
-    const features = useMemo<FeatureItem[]>(
-        () => [
-            {
-                icon: feature1Icon,
-                title: feature1Title,
-                description: feature1Description,
-            },
-            {
-                icon: feature2Icon,
-                title: feature2Title,
-                description: feature2Description,
-            },
-            {
-                icon: feature3Icon,
-                title: feature3Title,
-                description: feature3Description,
-            },
-            {
-                icon: feature4Icon,
-                title: feature4Title,
-                description: feature4Description,
-            },
-        ],
-        [
-            feature1Icon,
-            feature1Title,
-            feature1Description,
+    const ensureArray = <T,>(value?: T[]): T[] => value ?? [];
 
-            feature2Icon,
-            feature2Title,
-            feature2Description,
+    const statsData = ensureArray(stats);
 
-            feature3Icon,
-            feature3Title,
-            feature3Description,
+    const featuresData = ensureArray(features);
 
-            feature4Icon,
-            feature4Title,
-            feature4Description,
-        ],
-    );
+    const valuesData = ensureArray(values);
 
-    const capabilities = useMemo(
-        () => [
-            {
-                icon: capability1Icon,
-                label: capability1Label,
-            },
-            {
-                icon: capability2Icon,
-                label: capability2Label,
-            },
-            {
-                icon: capability3Icon,
-                label: capability3Label,
-            },
-            {
-                icon: capability4Icon,
-                label: capability4Label,
-            },
-            {
-                icon: capability5Icon,
-                label: capability5Label,
-            },
-        ],
-        [
-            capability1Icon,
-            capability1Label,
+    const missionNodesData = ensureArray(missionNodes);
 
-            capability2Icon,
-            capability2Label,
+    const journeysData = ensureArray(journeys);
 
-            capability3Icon,
-            capability3Label,
+    const storiesData = ensureArray(stories);
 
-            capability4Icon,
-            capability4Label,
+    const storyFeaturesData = ensureArray(storyFeatures);
 
-            capability5Icon,
-            capability5Label,
-        ],
-    );
+    const problemsData = ensureArray(problems);
 
-    const VALUES = [
-        {
-            icon: value1Icon,
-            title: value1Title,
-            description: value1Description,
-        },
-        {
-            icon: value2Icon,
-            title: value2Title,
-            description: value2Description,
-        },
-        {
-            icon: value3Icon,
-            title: value3Title,
-            description: value3Description,
-        },
-        {
-            icon: value4Icon,
-            title: value4Title,
-            description: value4Description,
-        },
-    ];
+    const solutionsData = ensureArray(solutions);
 
-    const JOURNEY: JourneyItem[] = [
-        {
-            icon: journey1Icon,
-            date: journey1Date,
-            title: journey1Title,
-            description: journey1Description,
-            active: journey1Active,
-        },
-        {
-            icon: journey2Icon,
-            date: journey2Date,
-            title: journey2Title,
-            description: journey2Description,
-        },
-        {
-            icon: journey3Icon,
-            date: journey3Date,
-            title: journey3Title,
-            description: journey3Description,
-        },
-        {
-            icon: journey4Icon,
-            date: journey4Date,
-            title: journey4Title,
-            description: journey4Description,
-        },
-        {
-            icon: journey5Icon,
-            date: journey5Date,
-            title: journey5Title,
-            description: journey5Description,
-        },
-    ];
+    const coreValuesData = ensureArray(coreValues);
 
-    const STORIES: StoryItem[] = [
-        {
-            year: story1Year,
-            badge: story1Badge,
-            title: story1Title,
-            titleAccent: story1TitleAccent,
-            description: story1Description,
-            image: story1Image,
-            imageAlt: story1Alt,
-        },
-        {
-            year: story2Year,
-            badge: story2Badge,
-            title: story2Title,
-            titleAccent: story2TitleAccent,
-            description: story2Description,
-            image: story2Image,
-            imageAlt: story2Alt,
-            reverse: story2Reverse,
-        },
-    ];
-
-    const problems = [
-        {
-            icon: problem1Icon,
-            title: problem1Title,
-            description: problem1Description,
-        },
-        {
-            icon: problem2Icon,
-            title: problem2Title,
-            description: problem2Description,
-        },
-        {
-            icon: problem3Icon,
-            title: problem3Title,
-            description: problem3Description,
-        },
-        {
-            icon: problem4Icon,
-            title: problem4Title,
-            description: problem4Description,
-        },
-    ];
-
-    const solutions = [
-        {
-            icon: solution1Icon,
-            title: solution1Title,
-            description: solution1Description,
-        },
-        {
-            icon: solution2Icon,
-            title: solution2Title,
-            description: solution2Description,
-        },
-        {
-            icon: solution3Icon,
-            title: solution3Title,
-            description: solution3Description,
-        },
-        {
-            icon: solution4Icon,
-            title: solution4Title,
-            description: solution4Description,
-        },
-    ];
-
-    const CORE_VALUES: CoreValue[] = [
-        {
-            id: coreValue1Id,
-            icon: coreValue1Icon,
-            title: coreValue1Title,
-            description: coreValue1Description,
-            tags: [coreValue1Tag1, coreValue1Tag2, coreValue1Tag3],
-            color: (coreValue1Color ?? 'purple') as ValueColor,
-        },
-        {
-            id: coreValue2Id,
-            icon: coreValue2Icon,
-            title: coreValue2Title,
-            description: coreValue2Description,
-            tags: [coreValue2Tag1, coreValue2Tag2, coreValue2Tag3],
-            color: (coreValue2Color ?? 'blue') as ValueColor,
-        },
-        {
-            id: coreValue3Id,
-            icon: coreValue3Icon,
-            title: coreValue3Title,
-            description: coreValue3Description,
-            tags: [coreValue3Tag1, coreValue3Tag2, coreValue3Tag3],
-            color: (coreValue3Color ?? 'orange') as ValueColor,
-        },
-        {
-            id: coreValue4Id,
-            icon: coreValue4Icon,
-            title: coreValue4Title,
-            description: coreValue4Description,
-            tags: [coreValue4Tag1, coreValue4Tag2, coreValue4Tag3],
-            color: (coreValue4Color ?? 'pink') as ValueColor,
-        },
-    ];
-
-    const TEAM: TeamMember[] = [
-        {
-            name: team1Name,
-            role: team1Role,
-            description: team1Description,
-            image: team1Image,
-            color: (team1Color ?? 'purple') as ValueColor,
-            icon: team1Icon,
-        },
-
-        {
-            name: team2Name,
-            role: team2Role,
-            description: team2Description,
-            image: team2Image,
-            color: (team2Color ?? 'green') as ValueColor,
-            icon: team2Icon,
-        },
-
-        {
-            name: team3Name,
-            role: team3Role,
-            description: team3Description,
-            image: team3Image,
-            color: (team3Color ?? 'blue') as ValueColor,
-            icon: team3Icon,
-        },
-
-        {
-            name: team4Name,
-            role: team4Role,
-            description: team4Description,
-            image: team4Image,
-            color: (team4Color ?? 'pink') as ValueColor,
-            icon: team4Icon,
-        },
-
-        {
-            name: team5Name,
-            role: team5Role,
-            description: team5Description,
-            image: team5Image,
-            color: (team5Color ?? 'orange') as ValueColor,
-            icon: team5Icon,
-        },
-
-        {
-            name: team6Name,
-            role: team6Role,
-            description: team6Description,
-            image: team6Image,
-            color: (team6Color ?? 'purple') as ValueColor,
-            icon: team6Icon,
-        },
-    ];
+    const teamData = ensureArray(team);
 
     return (
         <>
+            <div className={styles.headingSection}>
+                <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+                    <Link href="/" className={styles.breadcrumbItem}>
+                        {t(breadcrumbHome)}
+                    </Link>
+
+                    <i className="bi bi-chevron-right" />
+
+                    <span className={styles.breadcrumbCurrent}>{t(breadcrumbCurrent)}</span>
+                </nav>
+            </div>
             <section className={styles.hero}>
-                <div className={styles.headingSection}>
-                    <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-                        <Link href="/" className={styles.breadcrumbItem}>
-                            {breadcrumbHome}
-                        </Link>
-                        <i className="bi bi-chevron-right" />
-                        <span className={styles.breadcrumbCurrent}>{breadcrumbCurrent}</span>
-                    </nav>
-                </div>
+                <div className={styles.grid} />
+                <div className={styles.blurOne} />
+                <div className={styles.blurTwo} />
+                <div className={styles.blurThree} />
                 <div className={styles.container}>
                     <div className={styles.content}>
-                        <div className={styles.badge}>
-                            <i className="bi bi-lightning-charge-fill" />
-                            {badge}
-                        </div>
+                        <a
+                            href="/"
+                            className={`${styles.badge} ${styles.r}`}
+                            style={{ '--i': 0 } as React.CSSProperties}
+                        >
+                            <span className={styles.badgeIcon}>
+                                <i className="bi bi-stars" />
+                            </span>
 
-                        <h1>{heroTitle}</h1>
+                            <span>{t(badge)}</span>
 
-                        <h2>{heroTitleAccent}</h2>
+                            <i className="bi bi-arrow-right" />
+                        </a>
 
-                        <p>{heroDescription}</p>
+                        <h1>{t(heroTitle)}</h1>
+
+                        <h2>{t(heroTitleAccent)}</h2>
+
+                        <p>{t(heroDescription)}</p>
 
                         <div className={styles.actions}>
                             <button className={styles.primaryButton}>
-                                {primaryButtonLabel}
+                                {t(primaryButtonLabel)}
                                 <i className="bi bi-arrow-right" />
                             </button>
 
                             <button className={styles.secondaryButton}>
-                                {secondaryButtonLabel}
+                                {t(secondaryButtonLabel)}
                                 <i className="bi bi-grid-3x3-gap" />
                             </button>
                         </div>
+
                         <div className={styles.stats}>
-                            {stats.map((stat) => (
-                                <div key={stat.label} className={styles.statCard}>
+                            {statsData.map((stat, index) => (
+                                <div key={index} className={styles.statCard}>
                                     <div className={styles.statIcon}>
+                                        <span className={styles.iconGlow} />
                                         <i className={`bi ${stat.icon}`} />
                                     </div>
 
-                                    <strong>{stat.value}</strong>
+                                    <strong className={styles.statValue}>{t(stat.value)}</strong>
 
-                                    <span>{stat.label}</span>
+                                    <span className={styles.statLabel}>{t(stat.label)}</span>
                                 </div>
                             ))}
                         </div>
@@ -1152,14 +1831,13 @@ export function About01(props: About01Props) {
 
                     <div className={styles.visual}>
                         <div className={styles.featureGrid}>
-                            {features.map((feature) => (
-                                <div key={feature.title} className={styles.feature}>
-                                    <i className={`bi ${feature.icon}`} />
-
-                                    <div>
-                                        <strong>{feature.title}</strong>
-                                        <span>{feature.description}</span>
+                            {featuresData.map((feature, index) => (
+                                <div key={index} className={styles.featureCard}>
+                                    <div className={styles.featureIcon}>
+                                        <i className={`bi ${feature.icon}`} />
                                     </div>
+
+                                    <h4>{t(feature.title)}</h4>
                                 </div>
                             ))}
                         </div>
@@ -1168,7 +1846,7 @@ export function About01(props: About01Props) {
                             <div className={styles.glow} />
 
                             <div className={styles.canvas}>
-                                <img src={image} alt={heroTitle} />
+                                <img src={image} alt={t(heroTitle)} />
                             </div>
 
                             <div className={styles.performanceCard}>
@@ -1177,20 +1855,86 @@ export function About01(props: About01Props) {
                                 </div>
 
                                 <div>
-                                    <strong>{performanceScore}</strong>
-                                    <span>{performanceLabel}</span>
+                                    <strong>{t(performanceScore)}</strong>
+
+                                    <span>{t(performanceLabel)}</span>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+            <section className={styles.coreValuesSection}>
+                <div className={styles.coreValuesBlurOne} />
+                <div className={styles.coreValuesBlurTwo} />
+                <div className={styles.coreValuesBackgroundGrid} />
 
-                        <div className={styles.capabilityBar}>
-                            {capabilities.map((item) => (
-                                <div key={item.label} className={styles.capability}>
-                                    <i className={`bi ${item.icon}`} />
-                                    <span>{item.label}</span>
+                <div className={styles.coreValuesContainer}>
+                    <div className={styles.coreValuesGrid}>
+                        {coreValuesData.map((value, index) => (
+                            <article
+                                key={index}
+                                className={`${styles.coreValueCard} ${styles[value.color]}`}
+                            >
+                                <div className={styles.cardGlow} />
+
+                                <div className={styles.cardNoise} />
+
+                                <div className={styles.cardOrbit}>
+                                    <span />
+                                    <span />
+                                    <span />
                                 </div>
-                            ))}
-                        </div>
+
+                                <div className={styles.cardWave}>
+                                    <svg viewBox="0 0 1200 180" preserveAspectRatio="none">
+                                        <path d="M0,80 C160,20 340,150 560,120 C780,90 930,10 1200,70 L1200,180 L0,180 Z" />
+                                    </svg>
+                                </div>
+
+                                <div className={styles.iconSection}>
+                                    <div className={styles.iconHalo} />
+
+                                    <div className={styles.iconCircle}>
+                                        <i className={`bi ${value.icon}`} />
+                                    </div>
+
+                                    <span className={styles.orbitDot} />
+                                </div>
+
+                                <div className={styles.numberCard}>{t(value.id)}</div>
+
+                                <div className={styles.content}>
+                                    <h3>{t(value.title)}</h3>
+
+                                    <div className={styles.heartDivider}>
+                                        <span />
+
+                                        <i className="bi bi-heart-fill" />
+
+                                        <span />
+                                    </div>
+
+                                    <p>{t(value.description)}</p>
+                                </div>
+
+                                <div className={styles.tagRow}>
+                                    {value.tags.map((tag, tagIndex) => (
+                                        <div key={tagIndex} className={styles.tag}>
+                                            <i className="bi bi-check2-circle" />
+
+                                            {t(tag)}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className={styles.sparkles}>
+                                    <span />
+                                    <span />
+                                    <span />
+                                </div>
+                            </article>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -1202,37 +1946,29 @@ export function About01(props: About01Props) {
                     <div className={styles.aboutVisionNarrative}>
                         <span className={styles.aboutVisionPill}>
                             <i className="bi bi-stars" />
-                            OUR MISSION
+                            {t(missionBadge)}
                         </span>
 
                         <h2 className={styles.aboutVisionHeadline}>
-                            Empowering Everyone
+                            {t(missionTitle)}
                             <br />
-                            To Build, Grow & Succeed
-                            <span> Without Code.</span>
+                            {t(missionTitleAccent)}
                         </h2>
 
-                        <p className={styles.aboutVisionSummary}>
-                            At Kbuilder, our mission is to remove technical barriers and empower
-                            anyone to create professional websites, business applications, and
-                            digital experiences without code. We help creators, startups, agencies,
-                            and enterprises launch faster, innovate confidently, and grow without
-                            limits.ises to build professional digital experiences without writing
-                            code.
-                        </p>
+                        <p className={styles.aboutVisionSummary}>{t(missionDescription)}</p>
 
                         <div className={styles.aboutVisionValueGrid}>
-                            {VALUES.map((item) => (
-                                <article key={item.title} className={styles.aboutVisionValueCard}>
+                            {valuesData.map((item, index) => (
+                                <article key={index} className={styles.aboutVisionValueCard}>
                                     <div className={styles.aboutVisionValueHeader}>
                                         <div className={styles.aboutVisionValueIcon}>
                                             <i className={`bi ${item.icon}`} />
                                         </div>
 
-                                        <h3>{item.title}</h3>
+                                        <h3>{t(item.title)}</h3>
                                     </div>
 
-                                    <p>{item.description}</p>
+                                    <p>{t(item.description)}</p>
                                 </article>
                             ))}
                         </div>
@@ -1277,60 +2013,34 @@ export function About01(props: About01Props) {
                             <div className={styles.aboutVisionCenter}>
                                 <div className={styles.aboutVisionBrand}>K</div>
 
-                                <h3>Our Mission</h3>
+                                <h3>{t(missionCenterTitle)}</h3>
 
-                                <p>Empower everyone to build professional websites without code.</p>
+                                <p>{t(missionCenterDescription)}</p>
                             </div>
 
-                            <div
-                                className={`${styles.aboutVisionNode} ${styles.aboutVisionNodeTop}`}
-                            >
-                                <div className={styles.aboutVisionNodeIcon}>
-                                    <i className="bi bi-bar-chart-line-fill" />
-                                </div>
+                            {missionNodesData.map((node, index) => {
+                                const positions = [
+                                    styles.aboutVisionNodeTop,
+                                    styles.aboutVisionNodeRight,
+                                    styles.aboutVisionNodeBottom,
+                                    styles.aboutVisionNodeLeft,
+                                ];
 
-                                <h4>Growth</h4>
+                                return (
+                                    <div
+                                        key={index}
+                                        className={`${styles.aboutVisionNode} ${positions[index]}`}
+                                    >
+                                        <div className={styles.aboutVisionNodeIcon}>
+                                            <i className={`bi ${node.icon}`} />
+                                        </div>
 
-                                <p>Helping businesses and creators scale and succeed online.</p>
-                            </div>
+                                        <h4>{t(node.title)}</h4>
 
-                            <div
-                                className={`${styles.aboutVisionNode} ${styles.aboutVisionNodeRight}`}
-                            >
-                                <div className={styles.aboutVisionNodeIcon}>
-                                    <i className="bi bi-shield-check" />
-                                </div>
-
-                                <h4>Reliability</h4>
-
-                                <p>
-                                    Delivering a secure, fast and dependable platform you can trust.
-                                </p>
-                            </div>
-
-                            <div
-                                className={`${styles.aboutVisionNode} ${styles.aboutVisionNodeBottom}`}
-                            >
-                                <div className={styles.aboutVisionNodeIcon}>
-                                    <i className="bi bi-people-fill" />
-                                </div>
-
-                                <h4>Accessibility</h4>
-
-                                <p>Making website creation accessible, everywhere.</p>
-                            </div>
-
-                            <div
-                                className={`${styles.aboutVisionNode} ${styles.aboutVisionNodeLeft}`}
-                            >
-                                <div className={styles.aboutVisionNodeIcon}>
-                                    <i className="bi bi-lightbulb" />
-                                </div>
-
-                                <h4>Innovation</h4>
-
-                                <p>Pushing boundaries to create smarter and simpler solutions.</p>
-                            </div>
+                                        <p>{t(node.description)}</p>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -1340,17 +2050,14 @@ export function About01(props: About01Props) {
                     <div className={styles.journeyHeader}>
                         <span className={styles.eyebrow}>
                             <i className="bi bi-stars" />
-                            Our Journey
+                            {t(journeyBadge)}
                         </span>
 
                         <h2>
-                            Building <span>Kbuilder</span> Step by Step
+                            {t(journeyTitle)} <span>{t(journeyTitleAccent)}</span>
                         </h2>
 
-                        <p>
-                            Our journey toward making website creation faster, easier, and
-                            accessible to everyone.
-                        </p>
+                        <p>{t(journeyDescription)}</p>
                     </div>
 
                     <div className={styles.journeyTimeline}>
@@ -1359,9 +2066,9 @@ export function About01(props: About01Props) {
                         </div>
 
                         <div className={styles.journeyGrid}>
-                            {JOURNEY.map((item) => (
+                            {journeysData.map((item, index) => (
                                 <article
-                                    key={item.title}
+                                    key={index}
                                     className={`${styles.journeyItem} ${
                                         item.active ? styles.journeyItemActive : ''
                                     }`}
@@ -1373,12 +2080,12 @@ export function About01(props: About01Props) {
                                     </div>
 
                                     <div className={styles.journeyContent}>
-                                        <span className={styles.journeyDate}>{item.date}</span>
+                                        <span className={styles.journeyDate}>{t(item.date)}</span>
 
-                                        <h3 className={styles.journeyTitle}>{item.title}</h3>
+                                        <h3 className={styles.journeyTitle}>{t(item.title)}</h3>
 
                                         <p className={styles.journeyDescription}>
-                                            {item.description}
+                                            {t(item.description)}
                                         </p>
                                     </div>
                                 </article>
@@ -1389,90 +2096,57 @@ export function About01(props: About01Props) {
                 <div className={styles.storySection}>
                     <div className={styles.storyContainer}>
                         <div className={styles.storyGrid}>
-                            {STORIES.map((story) => (
-                                <article key={story.year} className={styles.storyCard}>
+                            {storiesData.map((story, index) => (
+                                <article key={index} className={styles.storyCard}>
                                     <div className={styles.storyContentTop}>
                                         <div className={styles.storyContent}>
-                                            <span className={styles.storyBadge}>{story.badge}</span>
+                                            <span className={styles.storyBadge}>
+                                                {t(story.badge)}
+                                            </span>
 
                                             <h3>
-                                                {story.title}
-                                                <span>{story.titleAccent}</span>
+                                                {t(story.title)}
+                                                <span>{t(story.titleAccent)}</span>
                                             </h3>
 
-                                            <p>{story.description}</p>
+                                            <p>{t(story.description)}</p>
                                         </div>
 
                                         <div className={styles.storyVisual}>
                                             <Image
-                                                src={story.image}
-                                                alt={story.imageAlt}
+                                                src={
+                                                    story.image ??
+                                                    '/assets/images/about/story-placeholder.png'
+                                                }
+                                                alt={t(story.imageAlt)}
                                                 fill
-                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                                sizes="(max-width:768px)100vw,50vw"
                                                 className={styles.storyImage}
                                             />
                                         </div>
                                     </div>
+
                                     <div className={styles.storyFeatures}>
-                                        <article className={styles.storyFeature}>
-                                            <div className={styles.storyFeatureIcon}>
-                                                <i className="bi bi-search" />
-                                            </div>
-
-                                            <div className={styles.storyFeatureContent}>
-                                                <div className={styles.storyFeatureHeader}>
-                                                    <strong>Research & Discovery</strong>
-
-                                                    <span>Completed</span>
+                                        {storyFeaturesData.map((feature, featureIndex) => (
+                                            <article
+                                                key={featureIndex}
+                                                className={styles.storyFeature}
+                                            >
+                                                <div className={styles.storyFeatureIcon}>
+                                                    <i className={`bi ${feature.icon}`} />
                                                 </div>
 
-                                                <p>
-                                                    We explored more than 50 no-code platforms,
-                                                    industry trends and user expectations to
-                                                    identify opportunities.
-                                                </p>
-                                            </div>
-                                        </article>
+                                                <div className={styles.storyFeatureContent}>
+                                                    <div className={styles.storyFeatureHeader}>
+                                                        <strong>{t(feature.title)}</strong>
 
-                                        <article className={styles.storyFeature}>
-                                            <div className={styles.storyFeatureIcon}>
-                                                <i className="bi bi-lightbulb" />
-                                            </div>
+                                                        <span>{t(feature.badge)}</span>
+                                                    </div>
 
-                                            <div className={styles.storyFeatureContent}>
-                                                <div className={styles.storyFeatureHeader}>
-                                                    <strong>Product Strategy</strong>
-
-                                                    <span>Validated</span>
+                                                    <p>{t(feature.description)}</p>
                                                 </div>
-
-                                                <p>
-                                                    Designed the complete website building workflow
-                                                    with a strong focus on simplicity and
-                                                    productivity.
-                                                </p>
-                                            </div>
-                                        </article>
-
-                                        <article className={styles.storyFeature}>
-                                            <div className={styles.storyFeatureIcon}>
-                                                <i className="bi bi-bullseye" />
-                                            </div>
-
-                                            <div className={styles.storyFeatureContent}>
-                                                <div className={styles.storyFeatureHeader}>
-                                                    <strong>Kbuilder Vision</strong>
-
-                                                    <span>2025</span>
-                                                </div>
-
-                                                <p>
-                                                    Building an intelligent visual platform where
-                                                    anyone can create professional websites without
-                                                    writing code.
-                                                </p>
-                                            </div>
-                                        </article>
+                                            </article>
+                                        ))}
                                     </div>
                                 </article>
                             ))}
@@ -1491,33 +2165,30 @@ export function About01(props: About01Props) {
                                 <span className={styles.whyKbuilderLogo}>
                                     <i className="bi bi-stars" />
                                 </span>
-                                Our Purpose
+
+                                {t(whyBadge)}
                             </span>
 
                             <h2 className={styles.whyKbuilderTitle}>
-                                Why Kbuilder
-                                <span> Exists</span>
+                                {t(whyTitle)}
+                                <span>{t(whyTitleAccent)}</span>
                             </h2>
 
                             <div className={styles.whyKbuilderDivider} />
 
-                            <p className={styles.whyKbuilderDescription}>
-                                We believe creating professional websites should be simple, fast,
-                                and accessible to everyone. Instead of spending months learning code
-                                or hiring expensive agencies, anyone should be able to transform an
-                                idea into a beautiful website within minutes.
-                            </p>
+                            <p className={styles.whyKbuilderDescription}>{t(whyDescription)}</p>
+
                             <div className={styles.problemsGrid}>
-                                {problems.map((item) => (
-                                    <article key={item.title} className={styles.problemCard}>
+                                {problemsData.map((item, index) => (
+                                    <article key={index} className={styles.problemCard}>
                                         <div className={styles.problemCardIcon}>
                                             <i className={`bi ${item.icon}`} />
                                         </div>
 
                                         <div>
-                                            <h4>{item.title}</h4>
+                                            <h4>{t(item.title)}</h4>
 
-                                            <p>{item.description}</p>
+                                            <p>{t(item.description)}</p>
                                         </div>
                                     </article>
                                 ))}
@@ -1526,10 +2197,10 @@ export function About01(props: About01Props) {
 
                         <div className={styles.builderBrowserBody}>
                             <Image
-                                src="/assets/images/builder-preview.png"
-                                alt="Kbuilder Visual Builder"
+                                src={builderPreviewImage ?? '/assets/images/builder-preview.png'}
+                                alt={t(whyTitle)}
                                 width={860}
-                                height={620}
+                                height={520}
                                 priority
                                 className={styles.builderPreviewImage}
                             />
@@ -1538,71 +2209,20 @@ export function About01(props: About01Props) {
 
                     <div className={styles.solutionSection}>
                         <div className={styles.solutionGrid}>
-                            {solutions.map((item) => (
-                                <div key={item.title} className={styles.solutionCard}>
+                            {solutionsData.map((item, index) => (
+                                <div key={index} className={styles.solutionCard}>
                                     <div className={styles.solutionCardIcon}>
                                         <i className={`bi ${item.icon}`} />
                                     </div>
 
                                     <div>
-                                        <h4>{item.title}</h4>
+                                        <h4>{t(item.title)}</h4>
 
-                                        <p>{item.description}</p>
+                                        <p>{t(item.description)}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                </div>
-            </section>
-            <section className={styles.coreValuesSection}>
-                <div className={styles.coreValuesBlurOne} />
-                <div className={styles.coreValuesBlurTwo} />
-                <div className={styles.coreValuesBackgroundGrid} />
-
-                <div className={styles.coreValuesContainer}>
-                    <div className={styles.coreValuesGrid}>
-                        {CORE_VALUES.map((value) => (
-                            <article
-                                key={value.id}
-                                className={`${styles.coreValueCard} ${styles[value.color]}`}
-                            >
-                                <div className={styles.coreValueGlow} />
-                                <div className={styles.coreValuePattern} />
-
-                                <div className={styles.coreValueIconWrapper}>
-                                    <div className={styles.coreValueIconCircle}>
-                                        <i className={`bi ${value.icon}`} />
-                                    </div>
-                                </div>
-
-                                <div className={styles.coreValueNumber}>{value.id}</div>
-
-                                <div className={styles.coreValueDivider} />
-
-                                <div className={styles.coreValueContent}>
-                                    <h3>{value.title}</h3>
-                                    <p>{value.description}</p>
-                                </div>
-
-                                <div className={styles.coreValueFooter}>
-                                    <div className={styles.coreValueTags}>
-                                        {value.tags.map((tag, index) => (
-                                            <span key={tag}>
-                                                {tag}
-                                                {index !== value.tags.length - 1 && (
-                                                    <strong>•</strong>
-                                                )}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <span className={styles.coreValueBottomBar} />
-                                <span className={styles.coreValueCornerDecoration} />
-                                <span className={styles.coreValueHoverBorder} />
-                            </article>
-                        ))}
                     </div>
                 </div>
             </section>
@@ -1613,55 +2233,108 @@ export function About01(props: About01Props) {
                 <div className={styles.teamBackgroundGrid} />
 
                 <div className={styles.teamContainer}>
-                    <div className={styles.teamHeader}>
-                        <span className={styles.teamBadge}>
-                            <i className="bi bi-people-fill" />
-                            OUR TEAM
-                        </span>
+                    <div className={styles.teamHero}>
+                        <div className={styles.teamHeroGlow} />
 
-                        <h2 className={styles.teamTitle}>
-                            Meet The People Behind
-                            <span>Kbuilder</span>
-                        </h2>
+                        <div className={styles.teamHeroLeft}>
+                            <div className={styles.teamHeroIcon}>
+                                <i className="bi bi-people-fill" />
+                            </div>
 
-                        <p className={styles.teamDescription}>
-                            A passionate team of creators, designers, engineers and innovators
-                            dedicated to building the future of modern no-code development.
-                        </p>
+                            <div className={styles.teamHeroContent}>
+                                <h2>
+                                    {t(teamTitle)}
+                                    <span>{t(teamTitleAccent)}</span>
+                                </h2>
+
+                                <p>{t(teamDescription)}</p>
+                            </div>
+                        </div>
+
+                        <div className={styles.teamHeroBadge}>
+                            <i className="bi bi-stars" />
+                            {t(teamBadge)}
+                        </div>
                     </div>
 
-                    <div className={styles.teamGrid}>
-                        {TEAM.map((member) => (
+                    <div className={styles.team02Grid}>
+                        {teamData.map((member, index) => (
                             <article
-                                key={member.name}
-                                className={`${styles.teamCard} ${styles[member.color]}`}
+                                key={index}
+                                className={`${styles.team02Card} ${styles[member.color]}`}
                             >
-                                <div className={styles.teamCardGlow} />
+                                {/* Background Glow */}
+                                <div className={styles.team02Glow} />
 
-                                <div className={styles.teamAvatarSection}>
-                                    <div className={styles.teamAvatarBackground} />
+                                {/* Border */}
+                                <div className={styles.team02Border} />
 
-                                    <Image
-                                        src={member.image}
-                                        alt={member.name}
-                                        width={260}
-                                        height={260}
-                                        className={styles.teamAvatar}
-                                    />
+                                {/* Decorative Dots */}
+                                <div className={styles.team02Dots}>
+                                    {Array.from({ length: 9 }).map((_, dotIndex) => (
+                                        <span key={dotIndex} />
+                                    ))}
+                                </div>
 
-                                    <div className={styles.teamRoleBadge}>
-                                        <i className={`bi ${member.icon}`} />
+                                {/* Bottom Wave */}
+                                <div className={styles.team02Wave} />
+
+                                {/* Avatar */}
+                                <div className={styles.team02AvatarArea}>
+                                    <div className={styles.team02OrbitOuter} />
+
+                                    <div className={styles.team02OrbitInner} />
+
+                                    <div className={styles.team02OrbitDot} />
+
+                                    <div className={styles.team02AvatarCircle}>
+                                        <Image
+                                            src={member.image ?? '/assets/images/avatar-1.png'}
+                                            alt={t(member.name)}
+                                            width={320}
+                                            height={320}
+                                            className={styles.team02Avatar}
+                                        />
+                                    </div>
+
+                                    <div className={styles.team02FloatingBadge}>
+                                        <div className={styles.team02BadgeBox}>
+                                            <i className={`bi ${member.icon}`} />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className={styles.teamContent}>
-                                    <h3 className={styles.teamName}>{member.name}</h3>
+                                {/* Content */}
+                                <div className={styles.team02Content}>
+                                    <div className={styles.team02Heading}>
+                                        <h3 className={styles.team02Name}>{t(member.name)}</h3>
 
-                                    <span className={styles.teamPosition}>{member.role}</span>
+                                        <span className={styles.team02Role}>{t(member.role)}</span>
+                                    </div>
 
-                                    <div className={styles.teamDivider} />
+                                    <div className={styles.team02AccentLine}>
+                                        <span />
+                                    </div>
 
-                                    <p className={styles.teamBio}>{member.description}</p>
+                                    <p className={styles.team02Description}>
+                                        {t(member.description)}
+                                    </p>
+
+                                    <div className={styles.team02Footer}>
+                                        <div className={styles.team02Socials}>
+                                            <button type="button" className={styles.team02Social}>
+                                                <i className="bi bi-linkedin" />
+                                            </button>
+
+                                            <button type="button" className={styles.team02Social}>
+                                                <i className="bi bi-twitter-x" />
+                                            </button>
+
+                                            <button type="button" className={styles.team02Social}>
+                                                <i className="bi bi-envelope-fill" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </article>
                         ))}
@@ -1671,311 +2344,504 @@ export function About01(props: About01Props) {
         </>
     );
 }
+const createLocalizedField = (key: string, label: string): InspectorField => ({
+    kind: 'localized-text',
+    key,
+    label,
+});
 
-function createFeatureInspector(index: number): RegItem['inspector'] {
-    return [
-        {
-            key: `feature${index}Icon`,
-            label: `Feature ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `feature${index}Title`,
-            label: `Feature ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `feature${index}Description`,
-            label: `Feature ${index} Description`,
-            kind: 'text',
-        },
-    ];
+const createLocalizedTextareaField = (key: string, label: string): InspectorField => ({
+    kind: 'textarea',
+    key,
+    label,
+});
+
+const createImageField = (key: string, label: string, folder = 'about'): InspectorField => ({
+    kind: 'image',
+    key,
+    label,
+    folder,
+    accept: 'image/*',
+});
+
+const createIconField = (key: string, label = 'Icon'): InspectorField => ({
+    kind: 'text',
+    key,
+    label,
+});
+
+const createCheckField = (key: string, label: string): InspectorField => ({
+    kind: 'check',
+    key,
+    label,
+});
+
+const createNumberField = (key: string, label: string): InspectorField => ({
+    kind: 'number',
+    key,
+    label,
+});
+
+export interface SelectOption {
+    label: string;
+    value: string;
 }
 
-function createStatInspector(index: number): RegItem['inspector'] {
-    return [
-        {
-            key: `stat${index}Value`,
-            label: `Stat ${index} Value`,
-            kind: 'text',
-        },
-        {
-            key: `stat${index}Label`,
-            label: `Stat ${index} Label`,
-            kind: 'text',
-        },
-    ];
-}
+const createSelectField = (
+    key: string,
+    label: string,
+    options: SelectOption[],
+): InspectorField => ({
+    kind: 'select',
+    key,
+    label,
+    options,
+});
 
-function createCapabilityInspector(index: number): RegItem['inspector'] {
+function createBreadcrumbInspector(): InspectorField[] {
     return [
-        {
-            key: `capability${index}Icon`,
-            label: `Capability ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `capability${index}Label`,
-            label: `Capability ${index} Label`,
-            kind: 'text',
-        },
-    ];
-}
+        createLocalizedField('breadcrumbHome', 'Breadcrumb Home'),
 
-function createValueInspector(index: number): RegItem['inspector'] {
-    return [
-        {
-            key: `value${index}Icon`,
-            label: `Value ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `value${index}Title`,
-            label: `Value ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `value${index}Description`,
-            label: `Value ${index} Description`,
-            kind: 'textarea',
-        },
+        createLocalizedField('breadcrumbCurrent', 'Breadcrumb Current'),
     ];
 }
 
-function createJourneyInspector(index: number): RegItem['inspector'] {
+function createHeroInspector(): InspectorField[] {
     return [
-        {
-            key: `journey${index}Icon`,
-            label: `Journey ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `journey${index}Date`,
-            label: `Journey ${index} Date`,
-            kind: 'text',
-        },
-        {
-            key: `journey${index}Title`,
-            label: `Journey ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `journey${index}Description`,
-            label: `Journey ${index} Description`,
-            kind: 'textarea',
-        },
-        {
-            key: `journey${index}Active`,
-            label: `Journey ${index} Active`,
-            kind: 'check',
-        },
+        createLocalizedField('badge', 'Hero Badge'),
+
+        createLocalizedField('heroTitle', 'Hero Title'),
+
+        createLocalizedField('heroTitleAccent', 'Hero Title Accent'),
+
+        createLocalizedTextareaField('heroDescription', 'Hero Description'),
+
+        createLocalizedField('primaryButtonLabel', 'Primary Button'),
+
+        createLocalizedField('secondaryButtonLabel', 'Secondary Button'),
+
+        createImageField('image', 'Hero Image'),
+
+        createLocalizedField('performanceScore', 'Performance Score'),
+
+        createLocalizedField('performanceLabel', 'Performance Label'),
     ];
 }
 
-function createStoryInspector(index: number): RegItem['inspector'] {
+function createMissionInspector(): InspectorField[] {
     return [
-        {
-            key: `story${index}Year`,
-            label: `Story ${index} Year`,
-            kind: 'text',
-        },
-        {
-            key: `story${index}Badge`,
-            label: `Story ${index} Badge`,
-            kind: 'text',
-        },
-        {
-            key: `story${index}Title`,
-            label: `Story ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `story${index}TitleAccent`,
-            label: `Story ${index} Title Accent`,
-            kind: 'text',
-        },
-        {
-            key: `story${index}Description`,
-            label: `Story ${index} Description`,
-            kind: 'textarea',
-        },
-        {
-            key: `story${index}Image`,
-            label: `Story ${index} Image`,
-            kind: 'image',
-            folder: 'about',
-            accept: 'image/*',
-        },
-        {
-            key: `story${index}ImageAlt`,
-            label: `Story ${index} Image Alt`,
-            kind: 'text',
-        },
-        {
-            key: `story${index}Reverse`,
-            label: `Story ${index} Reverse`,
-            kind: 'check',
-        },
+        createLocalizedField('missionBadge', 'Mission Badge'),
+
+        createLocalizedField('missionTitle', 'Mission Title'),
+
+        createLocalizedField('missionTitleAccent', 'Mission Title Accent'),
+
+        createLocalizedTextareaField('missionDescription', 'Mission Description'),
+
+        createLocalizedField('missionCenterTitle', 'Mission Center Title'),
+
+        createLocalizedTextareaField('missionCenterDescription', 'Mission Center Description'),
     ];
 }
 
-function createProblemInspector(index: number): RegItem['inspector'] {
+function createWhyInspector(): InspectorField[] {
     return [
-        {
-            key: `problem${index}Icon`,
-            label: `Problem ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `problem${index}Title`,
-            label: `Problem ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `problem${index}Description`,
-            label: `Problem ${index} Description`,
-            kind: 'textarea',
-        },
+        createLocalizedField('whyBadge', 'Why Badge'),
+
+        createLocalizedField('whyTitle', 'Why Title'),
+
+        createLocalizedField('whyTitleAccent', 'Why Title Accent'),
+
+        createLocalizedTextareaField('whyDescription', 'Why Description'),
+
+        createImageField('builderPreviewImage', 'Builder Preview Image'),
+    ];
+}
+function createTeamHeaderInspector(): InspectorField[] {
+    return [
+        createLocalizedField('teamBadge', 'Team Badge'),
+
+        createLocalizedField('teamTitle', 'Team Title'),
+
+        createLocalizedField('teamTitleAccent', 'Team Title Accent'),
+
+        createLocalizedTextareaField('teamDescription', 'Team Description'),
     ];
 }
 
-function createSolutionInspector(index: number): RegItem['inspector'] {
+function createCtaInspector(): InspectorField[] {
     return [
-        {
-            key: `solution${index}Icon`,
-            label: `Solution ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `solution${index}Title`,
-            label: `Solution ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `solution${index}Description`,
-            label: `Solution ${index} Description`,
-            kind: 'textarea',
-        },
+        createLocalizedField('ctaBadge', 'CTA Badge'),
+
+        createLocalizedField('ctaTitle', 'CTA Title'),
+
+        createLocalizedField('ctaTitleAccent', 'CTA Title Accent'),
+
+        createLocalizedTextareaField('ctaDescription', 'CTA Description'),
+
+        createLocalizedField('ctaPrimaryButtonLabel', 'Primary Button'),
+
+        createLocalizedField('ctaSecondaryButtonLabel', 'Secondary Button'),
+
+        createImageField('ctaImage', 'CTA Image'),
     ];
 }
-function createCoreValueInspector(index: number): RegItem['inspector'] {
+function createSeoInspector(): InspectorField[] {
     return [
-        {
-            key: `coreValue${index}Icon`,
-            label: `Core Value ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `coreValue${index}Title`,
-            label: `Core Value ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `coreValue${index}Description`,
-            label: `Core Value ${index} Description`,
-            kind: 'textarea',
-        },
-        {
-            key: `coreValue${index}Color`,
-            label: `Core Value ${index} Color`,
-            kind: 'select',
-            options: [
-                { label: 'Purple', value: 'purple' },
-                { label: 'Blue', value: 'blue' },
-                { label: 'Orange', value: 'orange' },
-                { label: 'Pink', value: 'pink' },
-            ],
-        },
+        createLocalizedField('pageTitle', 'SEO Title'),
+
+        createLocalizedTextareaField('pageDescription', 'SEO Description'),
     ];
 }
-function createTeamInspector(index: number): RegItem['inspector'] {
-    return [
-        {
-            key: `team${index}Name`,
-            label: `Team ${index} Name`,
-            kind: 'text',
-        },
-        {
-            key: `team${index}Role`,
-            label: `Team ${index} Role`,
-            kind: 'text',
-        },
-        {
-            key: `team${index}Image`,
-            label: `Team ${index} Image`,
-            kind: 'image',
-            folder: 'about/team',
-            accept: 'image/*',
-        },
-        {
-            key: `team${index}ImageAlt`,
-            label: `Team ${index} Image Alt`,
-            kind: 'text',
-        },
-    ];
+
+function createStatsArray(): InspectorField {
+    return {
+        key: 'stats',
+
+        label: 'Statistics',
+
+        kind: 'array',
+
+        itemLabel: 'Stat',
+
+        fields: [createLocalizedField('value', 'Value'), createLocalizedField('label', 'Label')],
+    };
+}
+
+function createFeatureArray(key: string, label: string, itemLabel: string): InspectorField {
+    return {
+        key,
+
+        label,
+
+        kind: 'array',
+
+        itemLabel,
+
+        fields: [
+            createIconField('icon'),
+
+            createLocalizedField('title', 'Title'),
+
+            createLocalizedTextareaField('description', 'Description'),
+        ],
+    };
+}
+
+function createMissionNodeArray(): InspectorField {
+    return {
+        key: 'missionNodes',
+
+        label: 'Mission Nodes',
+
+        kind: 'array',
+
+        itemLabel: 'Node',
+
+        fields: [
+            createIconField('icon'),
+
+            createLocalizedField('title', 'Title'),
+
+            createLocalizedTextareaField('description', 'Description'),
+        ],
+    };
+}
+
+function createJourneyArray(): InspectorField {
+    return {
+        key: 'journeys',
+
+        label: 'Journey Timeline',
+
+        kind: 'array',
+
+        itemLabel: 'Journey',
+
+        fields: [
+            createIconField('icon'),
+
+            createLocalizedField('date', 'Date'),
+
+            createLocalizedField('title', 'Title'),
+
+            createLocalizedTextareaField('description', 'Description'),
+
+            createCheckField('active', 'Active'),
+        ],
+    };
+}
+
+function createStoryArray(): InspectorField {
+    return {
+        key: 'stories',
+
+        label: 'Stories',
+
+        kind: 'array',
+
+        itemLabel: 'Story',
+
+        fields: [
+            createLocalizedField('year', 'Year'),
+
+            createLocalizedField('badge', 'Badge'),
+
+            createLocalizedField('title', 'Title'),
+
+            createLocalizedField('titleAccent', 'Title Accent'),
+
+            createLocalizedTextareaField('description', 'Description'),
+
+            createImageField('image', 'Image'),
+
+            createLocalizedField('imageAlt', 'Image Alt'),
+
+            createCheckField('reverse', 'Reverse Layout'),
+        ],
+    };
+}
+
+function createStoryFeatureArray(): InspectorField {
+    return {
+        key: 'storyFeatures',
+
+        label: 'Story Features',
+
+        kind: 'array',
+
+        itemLabel: 'Feature',
+
+        fields: [
+            createIconField('icon'),
+
+            createLocalizedField('title', 'Title'),
+
+            createLocalizedField('badge', 'Badge'),
+
+            createLocalizedTextareaField('description', 'Description'),
+        ],
+    };
+}
+
+function createCoreValueArray(): InspectorField {
+    return {
+        key: 'coreValues',
+
+        label: 'Core Values',
+
+        kind: 'array',
+
+        itemLabel: 'Core Value',
+
+        fields: [
+            createLocalizedField('id', 'Number'),
+
+            createIconField('icon'),
+
+            createLocalizedField('title', 'Title'),
+
+            createLocalizedTextareaField('description', 'Description'),
+
+            createSelectField('color', 'Color', [
+                {
+                    label: 'Purple',
+                    value: 'purple',
+                },
+                {
+                    label: 'Blue',
+                    value: 'blue',
+                },
+                {
+                    label: 'Green',
+                    value: 'green',
+                },
+                {
+                    label: 'Orange',
+                    value: 'orange',
+                },
+                {
+                    label: 'Pink',
+                    value: 'pink',
+                },
+            ]),
+
+            {
+                key: 'tags',
+
+                label: 'Tags',
+
+                kind: 'array',
+
+                itemLabel: 'Tag',
+
+                fields: [createLocalizedField('value', 'Tag')],
+            },
+        ],
+    };
+}
+
+function createTeamArray(): InspectorField {
+    return {
+        key: 'team',
+
+        label: 'Team Members',
+
+        kind: 'array',
+
+        itemLabel: 'Member',
+
+        fields: [
+            createLocalizedField('name', 'Name'),
+
+            createLocalizedField('role', 'Role'),
+
+            createLocalizedTextareaField('description', 'Description'),
+
+            createIconField('icon'),
+
+            createSelectField('color', 'Color', [
+                {
+                    label: 'Purple',
+                    value: 'purple',
+                },
+                {
+                    label: 'Blue',
+                    value: 'blue',
+                },
+                {
+                    label: 'Green',
+                    value: 'green',
+                },
+                {
+                    label: 'Orange',
+                    value: 'orange',
+                },
+                {
+                    label: 'Pink',
+                    value: 'pink',
+                },
+            ]),
+
+            createImageField('image', 'Image', 'about/team'),
+
+            createLocalizedField('imageAlt', 'Image Alt'),
+        ],
+    };
 }
 
 function createInspector(): RegItem['inspector'] {
     return [
-        {
-            key: 'breadcrumbHome',
-            label: 'Breadcrumb Home',
-            kind: 'text',
-        },
+        /* ==========================================================
+           Breadcrumb
+        ========================================================== */
 
-        {
-            key: 'breadcrumbCurrent',
-            label: 'Breadcrumb Current',
-            kind: 'text',
-        },
+        ...createBreadcrumbInspector(),
 
-        {
-            key: 'heroTitle',
-            label: 'Hero Title',
-            kind: 'text',
-        },
+        /* ==========================================================
+           Hero
+        ========================================================== */
 
-        {
-            key: 'heroTitleAccent',
-            label: 'Hero Title Accent',
-            kind: 'text',
-        },
+        ...createHeroInspector(),
 
-        {
-            key: 'heroDescription',
-            label: 'Hero Description',
-            kind: 'textarea',
-        },
+        /* ==========================================================
+           Mission
+        ========================================================== */
 
-        {
-            key: 'image',
-            label: 'Hero Image',
-            kind: 'image',
-            folder: 'services/about',
-            accept: 'image/*',
-        },
+        ...createMissionInspector(),
 
-        ...Array.from({ length: 4 }, (_, i) => createFeatureInspector(i + 1)).flat(),
+        /* ==========================================================
+           Why
+        ========================================================== */
 
-        ...Array.from({ length: 4 }, (_, i) => createStatInspector(i + 1)).flat(),
+        ...createWhyInspector(),
 
-        ...Array.from({ length: 5 }, (_, i) => createCapabilityInspector(i + 1)).flat(),
+        /* ==========================================================
+           Team Header
+        ========================================================== */
 
-        ...Array.from({ length: 4 }, (_, i) => createValueInspector(i + 1)).flat(),
+        ...createTeamHeaderInspector(),
 
-        ...Array.from({ length: 5 }, (_, i) => createJourneyInspector(i + 1)).flat(),
+        /* ==========================================================
+           CTA
+        ========================================================== */
 
-        ...Array.from({ length: 2 }, (_, i) => createStoryInspector(i + 1)).flat(),
+        ...createCtaInspector(),
 
-        ...Array.from({ length: 4 }, (_, i) => createProblemInspector(i + 1)).flat(),
+        /* ==========================================================
+           SEO
+        ========================================================== */
 
-        ...Array.from({ length: 4 }, (_, i) => createSolutionInspector(i + 1)).flat(),
+        ...createSeoInspector(),
 
-        ...Array.from({ length: 4 }, (_, i) => createCoreValueInspector(i + 1)).flat(),
+        /* ==========================================================
+           Statistics
+        ========================================================== */
 
-        ...Array.from({ length: 6 }, (_, i) => createTeamInspector(i + 1)).flat(),
+        createStatsArray(),
+
+        /* ==========================================================
+           Hero Features
+        ========================================================== */
+
+        createFeatureArray('features', 'Hero Features', 'Feature'),
+
+        /* ==========================================================
+           Mission Values
+        ========================================================== */
+
+        createFeatureArray('values', 'Mission Values', 'Value'),
+
+        /* ==========================================================
+           Mission Nodes
+        ========================================================== */
+
+        createMissionNodeArray(),
+
+        /* ==========================================================
+           Journey Timeline
+        ========================================================== */
+
+        createJourneyArray(),
+
+        /* ==========================================================
+           Stories
+        ========================================================== */
+
+        createStoryArray(),
+
+        /* ==========================================================
+           Story Features
+        ========================================================== */
+
+        createStoryFeatureArray(),
+
+        /* ==========================================================
+           Problems
+        ========================================================== */
+
+        createFeatureArray('problems', 'Problems', 'Problem'),
+
+        /* ==========================================================
+           Solutions
+        ========================================================== */
+
+        createFeatureArray('solutions', 'Solutions', 'Solution'),
+
+        /* ==========================================================
+           Core Values
+        ========================================================== */
+
+        createCoreValueArray(),
+
+        /* ==========================================================
+           Team
+        ========================================================== */
+
+        createTeamArray(),
     ];
 }
+
 export const ABOUT_PAGE_01: RegItem = {
     kind: 'about-page-01',
 

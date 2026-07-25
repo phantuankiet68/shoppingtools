@@ -8,7 +8,8 @@ export type FieldKind =
     | 'toggle'
     | 'select'
     | 'image'
-    | 'localized-text';
+    | 'localized-text'
+    | 'array';
 export type SelectOption = {
     label: string;
     value: string;
@@ -65,6 +66,13 @@ export type InspectorField =
           key: string;
           label: string;
           kind: 'localized-text';
+      }
+    | {
+          key: string;
+          label: string;
+          kind: 'array';
+          itemLabel?: string;
+          fields: InspectorField[];
       };
 
 export type Slots = {
