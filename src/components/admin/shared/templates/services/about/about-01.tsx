@@ -1693,21 +1693,6 @@ export function About01(props: About01Props) {
         teamDescription,
 
         team,
-
-        /* CTA */
-        ctaBadge,
-        ctaTitle,
-        ctaTitleAccent,
-        ctaDescription,
-
-        ctaPrimaryButtonLabel,
-        ctaSecondaryButtonLabel,
-
-        ctaImage,
-
-        /* SEO */
-        pageTitle,
-        pageDescription,
     } = mergedProps;
 
     /* ==========================================================================
