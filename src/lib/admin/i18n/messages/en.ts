@@ -29,6 +29,7 @@ const en = {
     sites: {
         menu: {
             home: 'Home',
+            signin: 'Sign In',
             about: 'About',
             aboutUs: 'About Us',
             aboutMe: 'About Me',
@@ -180,7 +181,7 @@ const en = {
 
         menuPath: {
             home: '/',
-
+            signin: '/signin',
             about: '/about',
             aboutUs: '/about-us',
             aboutMe: '/about-me',

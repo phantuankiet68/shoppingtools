@@ -30,6 +30,7 @@
         "@prisma/adapter-pg": "^7.6.0",
         "@prisma/client": "^7.6.0",
         "ably": "^2.16.0",
+        "arctic": "^3.7.0",
         "bcrypt": "^6.0.0",
         "bcryptjs": "^3.0.3",
         "bootstrap-icons": "^1.13.1",

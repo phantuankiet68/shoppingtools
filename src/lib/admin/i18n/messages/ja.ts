@@ -28,6 +28,7 @@ const ja = {
     sites: {
         menu: {
             home: 'ホーム',
+            signin: 'ログイン',
             about: '会社概要',
             aboutUs: '私たちについて',
             aboutMe: 'プロフィール',
@@ -178,7 +179,7 @@ const ja = {
 
         menuPath: {
             home: '/',
-
+            signin: '/signin',
             about: '/company',
             aboutUs: '/company',
             aboutMe: '/profile',

@@ -45,6 +45,8 @@ import { ABOUT_PAGE_01 } from '@/components/admin/shared/templates/services/abou
 
 import { BLOG_PAGE_01 } from '@/components/admin/shared/templates/services/blog/blog-01';
 
+import { SIGN_IN_01 } from '@/components/admin/shared/templates/services/sign-in/sign-in-01';
+
 export const BASIC: RegItem[] = [];
 
 export const REGISTRY_HOME: RegItem[] = [
@@ -78,6 +80,7 @@ export const REGISTRY_HOME: RegItem[] = [
     PROJECT_PAGE_01,
     ABOUT_PAGE_01,
     BLOG_PAGE_01,
+    SIGN_IN_01,
 ];
 
 export const REGISTRY: RegItem[] = [...BASIC, ...REGISTRY_HOME];

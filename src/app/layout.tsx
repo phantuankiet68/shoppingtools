@@ -3,7 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import type { Metadata } from 'next';
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
-
+import { AuthProvider } from '@/components/admin/providers/auth-provider';
 const poppins = {
     variable: '',
 };
@@ -22,7 +22,7 @@ export default function RootLayout({
         <html lang="en" className={poppins.variable}>
             <body className="antialiased">
                 <ToastProvider>
-                    {children}
+                    <AuthProvider>{children}</AuthProvider>
 
                     <Toaster
                         position="top-right"

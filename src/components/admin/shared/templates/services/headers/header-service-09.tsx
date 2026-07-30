@@ -8,6 +8,8 @@ import styles from '@/components/admin/shared/templates/services/headers/styles/
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 import { useSite } from '@/hooks/v1/useSiteHook';
 
+import { useAuth } from '@/components/admin/providers/auth-provider';
+
 import type { RegItem } from '@/lib/ui-builder/types';
 const LOCALES = [
     {
@@ -61,6 +63,13 @@ export interface HeaderService09Props {
     showOfferCard?: boolean;
     showCheckout?: boolean;
     showLogin?: boolean;
+    profileText?: LocalizedText;
+    profileHref?: string;
+
+    accountText?: LocalizedText;
+    accountHref?: string;
+
+    logoutText?: LocalizedText;
 }
 
 function useSiteMenus(siteId?: string) {
@@ -150,7 +159,7 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
         },
     },
 
-    loginHref: '/login',
+    loginHref: '/sign-in',
 
     offerTitle: {
         sourceLocale: 'en',
@@ -180,6 +189,36 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     showOfferCard: true,
     showCheckout: true,
     showLogin: true,
+    profileText: {
+        sourceLocale: 'en',
+        default: 'My Profile',
+        translations: {
+            vi: 'Hồ sơ của tôi',
+            ja: 'マイプロフィール',
+        },
+    },
+
+    profileHref: '/profile',
+
+    accountText: {
+        sourceLocale: 'en',
+        default: 'Account',
+        translations: {
+            vi: 'Tài khoản',
+            ja: 'アカウント',
+        },
+    },
+
+    accountHref: '/account',
+
+    logoutText: {
+        sourceLocale: 'en',
+        default: 'Sign Out',
+        translations: {
+            vi: 'Đăng xuất',
+            ja: 'ログアウト',
+        },
+    },
 };
 function HeaderService09(props: HeaderService09Props) {
     const {
@@ -205,6 +244,11 @@ function HeaderService09(props: HeaderService09Props) {
         showOfferCard,
         showCheckout,
         showLogin,
+        profileHref,
+        profileText,
+        accountHref,
+        accountText,
+        logoutText,
     } = {
         ...DEFAULT_PROPS,
         ...props,
@@ -273,6 +317,8 @@ function HeaderService09(props: HeaderService09Props) {
             document.removeEventListener('keydown', onEscape);
         };
     }, []);
+
+    const { user, loading, logout } = useAuth();
 
     const MENU_TRANSLATIONS = {
         '/': {
@@ -495,18 +541,61 @@ function HeaderService09(props: HeaderService09Props) {
                             </Link>
                         )}
 
-                        {showLogin && (
-                            <Link href={loginHref} className={styles.login}>
-                                <div className={styles.avatar}>
-                                    <i className="bi bi-person" />
-                                </div>
+                        {loading ? null : user ? (
+                            <div className={styles.userMenu}>
+                                <button className={styles.userButton}>
+                                    <Image
+                                        src={user.avatar ?? '/assets/images/avatar.png'}
+                                        alt={user.name ?? 'User Avatar'}
+                                        width={42}
+                                        height={42}
+                                        className={styles.userAvatar}
+                                    />
 
-                                <div>
-                                    <strong>{getLocalizedValue(loginTitle, selectedLocale)}</strong>
+                                    <div className={styles.userInfo}>
+                                        <strong>{user.name}</strong>
 
-                                    <span>{getLocalizedValue(loginSubtitle, selectedLocale)}</span>
+                                        <span>{user.systemRole}</span>
+                                    </div>
+
+                                    <i className="bi bi-chevron-down" />
+                                </button>
+
+                                <div className={styles.dropdown}>
+                                    <Link href={profileHref}>
+                                        <i className="bi bi-person" />
+                                        {getLocalizedValue(profileText, selectedLocale)}
+                                    </Link>
+
+                                    <Link href={accountHref}>
+                                        <i className="bi bi-gear" />
+                                        {getLocalizedValue(accountText, selectedLocale)}
+                                    </Link>
+
+                                    <button onClick={logout}>
+                                        <i className="bi bi-box-arrow-right" />
+                                        {getLocalizedValue(logoutText, selectedLocale)}
+                                    </button>
                                 </div>
-                            </Link>
+                            </div>
+                        ) : (
+                            showLogin && (
+                                <Link href={loginHref} className={styles.login}>
+                                    <div className={styles.avatar}>
+                                        <i className="bi bi-person" />
+                                    </div>
+
+                                    <div>
+                                        <strong>
+                                            {getLocalizedValue(loginTitle, selectedLocale)}
+                                        </strong>
+
+                                        <span>
+                                            {getLocalizedValue(loginSubtitle, selectedLocale)}
+                                        </span>
+                                    </div>
+                                </Link>
+                            )
                         )}
                     </div>
                 </div>

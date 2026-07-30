@@ -29,6 +29,7 @@ const vi = {
     sites: {
         menu: {
             home: 'Trang chủ',
+            signin: 'Đăng nhập',
             about: 'Giới thiệu',
             aboutUs: 'Về chúng tôi',
             aboutMe: 'Về tôi',
@@ -179,7 +180,7 @@ const vi = {
         },
         menuPath: {
             home: '/',
-
+            signin: '/dang-nhap',
             about: '/gioi-thieu',
             aboutUs: '/gioi-thieu',
             aboutMe: '/ve-toi',

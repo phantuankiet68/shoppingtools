@@ -1,0 +1,789 @@
+/* ==========================================================
+   PAGE
+========================================================== */
+
+.page {
+    position: relative;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1400px;
+    margin: 0 auto;
+}
+
+/* ==========================================================
+   BACKGROUND
+========================================================== */
+
+.background {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.blurOne,
+.blurTwo,
+.blurThree {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(120px);
+}
+
+.blurTwo {
+    width: 500px;
+    height: 500px;
+
+    right: -180px;
+    top: 100px;
+
+    background: rgba(138, 106, 255, 0.18);
+}
+
+.blurThree {
+    width: 520px;
+    height: 520px;
+
+    left: 35%;
+    bottom: -220px;
+
+    background: rgba(140, 132, 255, 0.15);
+}
+
+/* ==========================================================
+   CONTAINER
+========================================================== */
+
+.container {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    background: rgba(255, 255, 255, 0.82);
+
+    backdrop-filter: blur(18px);
+
+    border-radius: 16px;
+    border: var(--bd-header);
+    overflow: hidden;
+    margin: 32px 24px 0 24px;
+}
+
+/* ==========================================================
+   LEFT
+========================================================== */
+
+.left {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 24px;
+
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* ==========================================================
+   RIGHT
+========================================================== */
+
+.right {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(180deg, rgba(248, 247, 255, 0.98), rgba(243, 241, 255, 0.98));
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 1200px) {
+    .page {
+        padding: 24px;
+    }
+
+    .container {
+        grid-template-columns: 1fr;
+    }
+
+    .left,
+    .right {
+        padding: 48px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page {
+        padding: 16px;
+    }
+
+    .left,
+    .right {
+        padding: 32px 24px;
+    }
+}
+
+/* ==========================================================
+   LEFT CONTENT
+========================================================== */
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logoIcon {
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    color: white;
+
+    font-size: 1.6rem;
+    font-weight: 700;
+    background:
+        radial-gradient(circle at 50% 40%, #9587ff33, #0000 45%),
+        linear-gradient(135deg, #8eb9ff, #d1b5f5);
+}
+
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.header h1 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 3.2rem;
+    line-height: 1.1;
+    font-weight: 800;
+    color: #17192f;
+}
+
+.header h1 span {
+    background: linear-gradient(90deg, #5d63ff 0%, #8d5dff 35%, #b46bff 70%, #ff7bd5 100%);
+    -webkit-text-fill-color: transparent;
+    color: #0000;
+    -webkit-background-clip: text;
+    background-clip: text;
+    margin-top: 0.45rem;
+    display: inline-block;
+}
+
+.header p {
+    margin: 15px 0;
+
+    color: #777f98;
+
+    line-height: 1.8;
+
+    font-size: 1.5rem;
+}
+
+/* ==========================================================
+   SOCIAL
+========================================================== */
+
+.social {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 18px;
+
+    margin-bottom: 30px;
+}
+
+.socialButtonGoogle {
+    height: 60px;
+    border: 1px solid #ececf8;
+    border-radius: 12px;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.socialButtonGoogle:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 35px rgba(100, 100, 180, 0.12);
+}
+.socialButtonGoogle i {
+    font-size: 24px;
+    background: linear-gradient(
+        45deg,
+        #4285f4 0%,
+        #4285f4 25%,
+        #34a853 50%,
+        #fbbc05 75%,
+        #ea4335 100%
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.socialButtonGoogle span {
+    font-size: 1.4rem;
+}
+
+.socialButton {
+    height: 60px;
+    border: 1px solid #ececf8;
+    border-radius: 12px;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.socialButton:hover {
+    transform: translateY(-4px);
+
+    box-shadow: 0 18px 35px rgba(100, 100, 180, 0.12);
+}
+
+.socialButton i {
+    font-size: 24px;
+    color: #1877f2;
+    transition: 0.3s;
+}
+
+.socialButton:hover i {
+    transform: scale(1.08);
+}
+
+.socialButton span {
+    font-size: 1.4rem;
+}
+
+/* ==========================================================
+   DIVIDER
+========================================================== */
+
+.divider {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    margin-bottom: 24px;
+}
+
+.divider span {
+    flex: 1;
+
+    height: 1px;
+
+    background: #ebedf5;
+}
+
+.divider p {
+    margin: 0;
+
+    color: #8b90a6;
+
+    font-size: 14px;
+}
+
+/* ==========================================================
+   FORM
+========================================================== */
+
+.form {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 24px;
+}
+
+.field {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+.field label {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.input {
+    height: 53px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 18px;
+    border: 1px solid #e7e9f4;
+    border-radius: 12px;
+    transition: 0.25s;
+    background: white;
+}
+
+.input:focus-within {
+    border-color: #6e63ff;
+
+    box-shadow: 0 0 0 4px rgba(110, 99, 255, 0.12);
+}
+
+.input i {
+    color: #8f95ad;
+
+    font-size: 18px;
+}
+
+.input input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 1.4rem;
+}
+
+.eye {
+    border: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    color: #9096ad;
+}
+
+/* ==========================================================
+   ACTIONS
+========================================================== */
+
+.actions {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+}
+
+.checkbox {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    color: #656d88;
+}
+
+.actions a {
+    color: #6f63ff;
+    text-decoration: none;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+/* ==========================================================
+   BUTTON
+========================================================== */
+
+.loginButton {
+    height: 62px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    background: linear-gradient(135deg, #6255ff 0%, #7b61ff 45%, #b26eff 100%);
+    box-shadow: 0 20px 40px #6856ff47;
+    transition: 0.3s;
+    will-change: transform;
+}
+
+.loginButton:hover {
+    transform: translateY(-3px);
+
+    box-shadow: 0 20px 40px rgba(95, 90, 255, 0.35);
+}
+
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+.footer {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-size: 15px;
+}
+
+.footer span {
+    color: #707791;
+}
+
+.footer a {
+    color: #6d63ff;
+
+    text-decoration: none;
+
+    font-weight: 700;
+}
+
+/* ==========================================================
+   BACKGROUND
+========================================================== */
+
+.heroBackground {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.blurTop,
+.blurBottom,
+.heroCircle {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(90px);
+}
+
+.blurTop {
+    width: 340px;
+    height: 340px;
+    top: -120px;
+    right: -120px;
+    background: rgba(116, 96, 255, 0.18);
+}
+
+.blurBottom {
+    width: 420px;
+    height: 420px;
+    left: -140px;
+    bottom: -160px;
+    background: rgba(132, 112, 255, 0.18);
+}
+
+.heroCircle {
+    width: 520px;
+    height: 520px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(130, 120, 255, 0.08);
+}
+
+.heroDots {
+    position: absolute;
+    top: 50px;
+    right: 60px;
+    width: 120px;
+    height: 120px;
+    opacity: 0.35;
+    background-image: radial-gradient(#7b6cff 2px, transparent 2px);
+    background-size: 18px 18px;
+}
+
+/* ==========================================================
+   PREVIEW
+========================================================== */
+
+.preview {
+    position: relative;
+    z-index: 5;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.preview img {
+    width: min(92%, 760px);
+    height: auto;
+    animation: floating 8s ease-in-out infinite;
+    filter: drop-shadow(0 40px 80px rgba(80, 70, 180, 0.18));
+    border-radius: 16px;
+}
+
+/* ==========================================================
+   FLOATING CARD
+========================================================== */
+
+.cardPublish,
+.cardAI,
+.cardAnalytics,
+.imageCard,
+.cursorCard {
+    position: absolute;
+    z-index: 10;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 24px 50px rgba(55, 55, 120, 0.1);
+}
+
+.cardPublish,
+.cardAI {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    animation: floating 6s ease-in-out infinite;
+}
+
+.cardPublish {
+    top: 4%;
+    left: 6%;
+}
+
+.cardAI {
+    right: 8%;
+    bottom: 22%;
+    animation-delay: 1.5s;
+}
+
+.cardIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #6d63ff, #8672ff);
+    color: white;
+    font-size: 20px;
+}
+
+.cardPublish strong,
+.cardAI strong {
+    display: block;
+    color: #23243f;
+    font-size: 15px;
+}
+
+.cardPublish span,
+.cardAI span {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #7c84a0;
+}
+
+/* ==========================================================
+   ANALYTICS
+========================================================== */
+
+.cardAnalytics {
+    left: 12%;
+    bottom: 22%;
+    width: 150px;
+    padding: 18px;
+    animation: floating 7s ease-in-out infinite;
+}
+
+.chart {
+    display: flex;
+    align-items: end;
+    gap: 6px;
+    height: 42px;
+}
+
+.chart span {
+    flex: 1;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6f63ff, #8a72ff);
+}
+
+.chart span:nth-child(1) {
+    height: 16px;
+}
+.chart span:nth-child(2) {
+    height: 34px;
+}
+.chart span:nth-child(3) {
+    height: 24px;
+}
+.chart span:nth-child(4) {
+    height: 40px;
+}
+
+.analyticsContent {
+    margin-top: 14px;
+}
+
+.analyticsContent strong {
+    display: block;
+    font-size: 22px;
+    color: #23243f;
+}
+
+.analyticsContent span {
+    color: #7f86a1;
+    font-size: 14px;
+}
+
+/* ==========================================================
+   MINI ICON CARD
+========================================================== */
+
+.imageCard,
+.cursorCard {
+    width: 74px;
+    height: 74px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    color: #6f63ff;
+}
+
+.imageCard {
+    top: 6%;
+    right: 12%;
+    animation: floating 5s ease-in-out infinite;
+}
+
+.cursorCard {
+    bottom: 50%;
+    right: 2%;
+    animation: floating 6.5s ease-in-out infinite;
+}
+
+/* ==========================================================
+   STATS
+========================================================== */
+
+.stats {
+    position: absolute;
+    left: 50%;
+    bottom: 23px;
+    transform: translateX(-50%);
+    z-index: 15;
+
+    width: calc(100% - 80px);
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+
+    padding: 26px;
+
+    border-radius: 28px;
+
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.stat i {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(108, 99, 255, 0.1);
+    color: #6e63ff;
+    font-size: 20px;
+}
+
+.stat strong {
+    display: block;
+    font-size: 20px;
+    color: #20233c;
+}
+
+.stat span {
+    display: block;
+    margin-top: 4px;
+    color: #7c83a0;
+    font-size: 13px;
+}
+
+/* ==========================================================
+   ANIMATION
+========================================================== */
+
+@keyframes floating {
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
+}
+.errorMessage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    font-size: 1.4rem;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.errorMessage i {
+    font-size: 1.8rem;
+}
+/* ==========================================================
+   LINK BUTTON
+========================================================== */
+
+.linkButton {
+    border: none;
+    background: transparent;
+    color: #6366f1;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 0;
+    transition: 0.25s;
+}
+
+.linkButton:hover {
+    color: #4f46e5;
+    text-decoration: underline;
+}
