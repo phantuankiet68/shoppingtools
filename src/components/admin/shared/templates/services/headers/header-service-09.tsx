@@ -10,7 +10,7 @@ import { useSite } from '@/hooks/v1/useSiteHook';
 
 import { useAuth } from '@/components/admin/providers/auth-provider';
 
-import type { RegItem } from '@/lib/ui-builder/types';
+import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
 const LOCALES = [
     {
         value: 'en',
@@ -31,6 +31,12 @@ const LOCALES = [
         flag: '/flags/jp.png',
     },
 ];
+
+export type MenuTranslation = {
+    vi: string;
+    ja: string;
+};
+
 export type ServiceNavItem = {
     label: string;
     href: string;
@@ -61,6 +67,7 @@ export interface HeaderService09Props {
     accentColor?: string;
     showTopbar?: boolean;
     showOfferCard?: boolean;
+    showWishlist?: boolean;
     showCheckout?: boolean;
     showLogin?: boolean;
     profileText?: LocalizedText;
@@ -81,145 +88,115 @@ function useSiteMenus(siteId?: string) {
             return;
         }
 
-        fetch(`/api/v1/sites/${siteId}/menus`)
-            .then((res) => res.json())
-            .then((data) => {
+        const controller = new AbortController();
+
+        async function loadMenus() {
+            try {
+                const res = await fetch(`/api/v1/sites/${siteId}/menus`, {
+                    signal: controller.signal,
+                });
+
+                if (!res.ok) {
+                    throw new Error('Failed to load menus');
+                }
+
+                const data = await res.json();
+
                 setMenus(Array.isArray(data?.data) ? data.data : []);
-            })
-            .catch(() => {
-                setMenus([]);
-            });
+            } catch (error) {
+                if ((error as Error).name !== 'AbortError') {
+                    setMenus([]);
+                }
+            }
+        }
+
+        loadMenus();
+
+        return () => controller.abort();
     }, [siteId]);
 
     return menus;
 }
 
+function localeText(en: string, vi: string, ja: string): LocalizedText {
+    return {
+        sourceLocale: 'en',
+        default: en,
+        translations: {
+            vi,
+            ja,
+        },
+    };
+}
 export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     siteId: '',
-
-    supportLabel: {
-        sourceLocale: 'en',
-        default: 'Need Help?',
-        translations: {
-            vi: 'Cần hỗ trợ?',
-            ja: 'サポートが必要ですか？',
-        },
-    },
-
+    supportLabel: localeText('Need Help?', 'Cần hỗ trợ?', 'サポートが必要ですか？'),
     supportPhone: '023-444-6666-5678',
-
-    wishlistText: {
-        sourceLocale: 'en',
-        default: 'Wishlist',
-        translations: {
-            vi: 'Yêu thích',
-            ja: 'お気に入り',
-        },
-    },
-
+    wishlistText: localeText('Wishlist', 'Yêu thích', 'お気に入り'),
     wishlistHref: '/wishlist',
-
-    checkoutText: {
-        sourceLocale: 'en',
-        default: 'Checkout',
-        translations: {
-            vi: 'Thanh toán',
-            ja: 'チェックアウト',
-        },
-    },
-
+    checkoutText: localeText('Checkout', 'Thanh toán', 'チェックアウト'),
     checkoutHref: '/checkout',
-
     logo: '/assets/images/logo.png',
-
-    logoTitle: {
-        sourceLocale: 'en',
-        default: 'ETRO STORES',
-        translations: {
-            vi: 'ETRO STORES',
-            ja: 'ETRO STORES',
-        },
-    },
-
-    loginTitle: {
-        sourceLocale: 'en',
-        default: 'Login',
-        translations: {
-            vi: 'Đăng nhập',
-            ja: 'ログイン',
-        },
-    },
-
-    loginSubtitle: {
-        sourceLocale: 'en',
-        default: 'Welcome Guest',
-        translations: {
-            vi: 'Chào mừng Quý khách',
-            ja: 'ようこそ、ゲスト様',
-        },
-    },
-
+    logoTitle: localeText('ETRO STORES', 'ETRO STORES', 'ETRO STORES'),
+    loginTitle: localeText('Login', 'Đăng nhập', 'ログイン'),
+    loginSubtitle: localeText('Welcome Guest', 'Chào mừng Quý khách', 'ようこそ、ゲスト様'),
     loginHref: '/sign-in',
-
-    offerTitle: {
-        sourceLocale: 'en',
-        default: 'Developer Docs',
-        translations: {
-            vi: 'Tài liệu dành cho lập trình viên',
-            ja: '開発者向けドキュメント',
-        },
-    },
-
-    offerSubtitle: {
-        sourceLocale: 'en',
-        default: 'Documentation',
-        translations: {
-            vi: 'Tài liệu hướng dẫn',
-            ja: 'ドキュメント',
-        },
-    },
-
+    offerTitle: localeText(
+        'Developer Docs',
+        'Tài liệu dành cho lập trình viên',
+        '開発者向けドキュメント',
+    ),
+    offerSubtitle: localeText('Documentation', 'Tài liệu hướng dẫn', 'ドキュメント'),
     offerHref: '/docs',
-
     primaryColor: '#7C3AED',
     secondaryColor: '#EC4899',
     accentColor: '#FF8A00',
-
     showTopbar: true,
     showOfferCard: true,
+    showWishlist: true,
     showCheckout: true,
     showLogin: true,
-    profileText: {
-        sourceLocale: 'en',
-        default: 'My Profile',
-        translations: {
-            vi: 'Hồ sơ của tôi',
-            ja: 'マイプロフィール',
-        },
-    },
-
+    profileText: localeText('My Profile', 'Hồ sơ của tôi', 'マイプロフィール'),
     profileHref: '/profile',
-
-    accountText: {
-        sourceLocale: 'en',
-        default: 'Account',
-        translations: {
-            vi: 'Tài khoản',
-            ja: 'アカウント',
-        },
-    },
-
-    accountHref: '/account',
-
-    logoutText: {
-        sourceLocale: 'en',
-        default: 'Sign Out',
-        translations: {
-            vi: 'Đăng xuất',
-            ja: 'ログアウト',
-        },
-    },
+    accountText: localeText('Change Password', 'Đổi mật khẩu', 'パスワード変更'),
+    accountHref: '/change-password',
+    logoutText: localeText('Sign Out', 'Đăng xuất', 'ログアウト'),
 };
+
+export function menuTranslation(vi: string, ja: string): MenuTranslation {
+    return {
+        vi,
+        ja,
+    };
+}
+
+function themeStyle(primary: string, secondary: string, accent: string): React.CSSProperties {
+    return {
+        '--primary': primary,
+        '--secondary': secondary,
+        '--accent': accent,
+    } as React.CSSProperties;
+}
+
+function renderBadge(badge?: string) {
+    if (!badge) return null;
+
+    return (
+        <span className={`${styles.badge} ${badge === 'HOT' ? styles.hot : styles.new}`}>
+            {badge}
+        </span>
+    );
+}
+const MENU_TRANSLATIONS = {
+    '/': menuTranslation('Trang chủ', 'ホーム'),
+    '/service': menuTranslation('Dịch vụ', 'サービス'),
+    '/project': menuTranslation('Dự án', 'プロジェクト'),
+    '/about': menuTranslation('Giới thiệu', '会社概要'),
+    '/pricing': menuTranslation('Bảng giá', '料金'),
+    '/blog': menuTranslation('Blog', 'ブログ'),
+    '/contact': menuTranslation('Liên hệ', 'お問い合わせ'),
+} as const;
+
 function HeaderService09(props: HeaderService09Props) {
     const {
         siteId,
@@ -242,6 +219,7 @@ function HeaderService09(props: HeaderService09Props) {
         accentColor,
         showTopbar,
         showOfferCard,
+        showWishlist,
         showCheckout,
         showLogin,
         profileHref,
@@ -257,13 +235,6 @@ function HeaderService09(props: HeaderService09Props) {
     const menus = useSiteMenus(siteId);
 
     const [mobileOpen, setMobileOpen] = useState(false);
-
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
     const pathname = usePathname();
 
     const siteLogo = site?.logoUrl || logo || '/assets/images/logo.png';
@@ -320,43 +291,6 @@ function HeaderService09(props: HeaderService09Props) {
 
     const { user, loading, logout } = useAuth();
 
-    const MENU_TRANSLATIONS = {
-        '/': {
-            vi: 'Trang chủ',
-            ja: 'ホーム',
-        },
-
-        '/service': {
-            vi: 'Dịch vụ',
-            ja: 'サービス',
-        },
-
-        '/project': {
-            vi: 'Dự án',
-            ja: 'プロジェクト',
-        },
-
-        '/about': {
-            vi: 'Giới thiệu',
-            ja: '会社概要',
-        },
-
-        '/pricing': {
-            vi: 'Bảng giá',
-            ja: '料金',
-        },
-
-        '/blog': {
-            vi: 'Blog',
-            ja: 'ブログ',
-        },
-
-        '/contact': {
-            vi: 'Liên hệ',
-            ja: 'お問い合わせ',
-        },
-    } as const;
-
     function getMenuLabel(href: string, fallback: string, locale: string) {
         if (locale === 'en') {
             return fallback;
@@ -368,16 +302,24 @@ function HeaderService09(props: HeaderService09Props) {
         );
     }
 
+    function handleLocaleChange(locale: string) {
+        setSelectedLocale(locale);
+
+        localStorage.setItem('locale', locale);
+
+        window.dispatchEvent(
+            new CustomEvent('locale-change', {
+                detail: locale,
+            }),
+        );
+
+        setLanguageOpen(false);
+    }
+
     return (
         <header
             className={`${styles.header} ${styles.sticky}`}
-            style={
-                {
-                    '--primary': primaryColor,
-                    '--secondary': secondaryColor,
-                    '--accent': accentColor,
-                } as React.CSSProperties
-            }
+            style={themeStyle(primaryColor, secondaryColor, accentColor)}
         >
             {showTopbar && (
                 <div className={styles.topbar}>
@@ -427,18 +369,7 @@ function HeaderService09(props: HeaderService09Props) {
                                                     className={`${styles.languageItem} ${
                                                         active ? styles.languageItemActive : ''
                                                     }`}
-                                                    onClick={() => {
-                                                        setSelectedLocale(item.value);
-                                                        localStorage.setItem('locale', item.value);
-
-                                                        window.dispatchEvent(
-                                                            new CustomEvent('locale-change', {
-                                                                detail: item.value,
-                                                            }),
-                                                        );
-
-                                                        setLanguageOpen(false);
-                                                    }}
+                                                    onClick={() => handleLocaleChange(item.value)}
                                                 >
                                                     <div className={styles.languageItemLeft}>
                                                         <Image
@@ -466,10 +397,12 @@ function HeaderService09(props: HeaderService09Props) {
                         </div>
 
                         <div className={styles.topbarRight}>
-                            <Link href={wishlistHref}>
-                                <i className="bi bi-heart" />
-                                {getLocalizedValue(wishlistText, selectedLocale)}
-                            </Link>
+                            {showWishlist && (
+                                <Link href={wishlistHref}>
+                                    <i className="bi bi-heart" />
+                                    {getLocalizedValue(wishlistText, selectedLocale)}
+                                </Link>
+                            )}
 
                             <Link href={checkoutHref}>
                                 <i className="bi bi-bag" />
@@ -508,16 +441,7 @@ function HeaderService09(props: HeaderService09Props) {
                                 }`}
                             >
                                 {getMenuLabel(item.href, item.label, selectedLocale)}
-
-                                {!!item.badge && (
-                                    <span
-                                        className={`${styles.badge} ${
-                                            item.badge === 'HOT' ? styles.hot : styles.new
-                                        }`}
-                                    >
-                                        {item.badge}
-                                    </span>
-                                )}
+                                {renderBadge(item.badge)}
                             </Link>
                         ))}
                     </nav>
@@ -610,10 +534,7 @@ function HeaderService09(props: HeaderService09Props) {
             >
                 <i className={`bi ${mobileOpen ? 'bi-x-lg' : 'bi-list'}`} />
             </button>
-
-            {/* ================= MOBILE MENU ================= */}
-
-            {mounted && mobileOpen && (
+            {mobileOpen && (
                 <div className={styles.mobileMenu}>
                     <div className={styles.mobileNav}>
                         {menus.map((item) => (
@@ -624,25 +545,18 @@ function HeaderService09(props: HeaderService09Props) {
                                 onClick={() => setMobileOpen(false)}
                             >
                                 <span>{getMenuLabel(item.href, item.label, selectedLocale)}</span>
-
-                                {!!item.badge && (
-                                    <span
-                                        className={`${styles.badge} ${
-                                            item.badge === 'HOT' ? styles.hot : styles.new
-                                        }`}
-                                    >
-                                        {item.badge}
-                                    </span>
-                                )}
+                                {renderBadge(item.badge)}
                             </Link>
                         ))}
                     </div>
 
                     <div className={styles.mobileActions}>
-                        <Link href={wishlistHref}>
-                            <i className="bi bi-heart" />
-                            {getLocalizedValue(wishlistText, selectedLocale)}
-                        </Link>
+                        {showWishlist && (
+                            <Link href={wishlistHref}>
+                                <i className="bi bi-heart" />
+                                {getLocalizedValue(wishlistText, selectedLocale)}
+                            </Link>
+                        )}
 
                         {showCheckout && (
                             <Link href={checkoutHref}>
@@ -657,173 +571,111 @@ function HeaderService09(props: HeaderService09Props) {
     );
 }
 
-function createTopbarInspector(): RegItem['inspector'] {
-    return [
-        {
-            key: 'supportLabel',
-            label: 'Support Label',
-            kind: 'localized-text',
-        },
-
-        {
-            key: 'supportPhone',
-            label: 'Support Phone',
-            kind: 'text',
-        },
-
-        {
-            key: 'wishlistText',
-            label: 'Wishlist Text',
-            kind: 'localized-text',
-        },
-
-        {
-            key: 'checkoutText',
-            label: 'Checkout Text',
-            kind: 'localized-text',
-        },
-    ];
+function textField(key: string, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'text',
+    };
 }
 
-function createLogoInspector(): RegItem['inspector'] {
+function localizedTextField(key: string, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'localized-text',
+    };
+}
+
+function checkField(key: string, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'check',
+    };
+}
+
+function imageField(key: string, label: string, folder?: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'image',
+        folder,
+    };
+}
+
+function createAccountInspector(): RegItem['inspector'] {
     return [
-        {
-            key: 'logoTitle',
-            label: 'Logo Title',
-            kind: 'localized-text',
-        },
-        {
-            key: 'logo',
-            label: 'Logo',
-            kind: 'image',
-            folder: 'logos',
-        },
+        localizedTextField('profileText', 'Profile Text'),
+        textField('profileHref', 'Profile Url'),
+        localizedTextField('accountText', 'Account Text'),
+        textField('accountHref', 'Account Url'),
+        localizedTextField('logoutText', 'Logout Text'),
     ];
+}
+function createTopbarInspector(): RegItem['inspector'] {
+    return [
+        localizedTextField('supportLabel', 'Support Label'),
+        textField('supportPhone', 'Support Phone'),
+        localizedTextField('wishlistText', 'Wishlist Text'),
+        localizedTextField('checkoutText', 'Checkout Text'),
+    ];
+}
+function createLogoInspector(): RegItem['inspector'] {
+    return [localizedTextField('logoTitle', 'Logo Title'), imageField('logo', 'Logo', 'logos')];
 }
 
 function createLoginInspector(): RegItem['inspector'] {
     return [
-        {
-            key: 'loginTitle',
-            label: 'Login Title',
-            kind: 'localized-text',
-        },
-
-        {
-            key: 'loginSubtitle',
-            label: 'Login Subtitle',
-            kind: 'localized-text',
-        },
-
-        {
-            key: 'loginHref',
-            label: 'Login Url',
-            kind: 'text',
-        },
+        localizedTextField('loginTitle', 'Login Title'),
+        localizedTextField('loginSubtitle', 'Login Subtitle'),
+        textField('loginHref', 'Login Url'),
     ];
 }
 
 function createOfferInspector(): RegItem['inspector'] {
     return [
-        {
-            key: 'offerTitle',
-            label: 'Offer Title',
-            kind: 'localized-text',
-        },
-
-        {
-            key: 'offerSubtitle',
-            label: 'Offer Subtitle',
-            kind: 'localized-text',
-        },
-
-        {
-            key: 'offerHref',
-            label: 'Offer Url',
-            kind: 'text',
-        },
+        localizedTextField('offerTitle', 'Offer Title'),
+        localizedTextField('offerSubtitle', 'Offer Subtitle'),
+        textField('offerHref', 'Offer Url'),
     ];
 }
 
 function createThemeInspector(): RegItem['inspector'] {
     return [
-        {
-            key: 'primaryColor',
-            label: 'Primary Color',
-            kind: 'text',
-        },
-
-        {
-            key: 'secondaryColor',
-            label: 'Secondary Color',
-            kind: 'text',
-        },
-
-        {
-            key: 'accentColor',
-            label: 'Accent Color',
-            kind: 'text',
-        },
+        textField('primaryColor', 'Primary Color'),
+        textField('secondaryColor', 'Secondary Color'),
+        textField('accentColor', 'Accent Color'),
     ];
 }
 
 function createLayoutInspector(): RegItem['inspector'] {
     return [
-        {
-            key: 'showTopbar',
-            label: 'Show Topbar',
-            kind: 'check',
-        },
-
-        {
-            key: 'showOfferCard',
-            label: 'Show Offer Card',
-            kind: 'check',
-        },
-
-        {
-            key: 'showWishlist',
-            label: 'Show Wishlist',
-            kind: 'check',
-        },
-
-        {
-            key: 'showCheckout',
-            label: 'Show Checkout',
-            kind: 'check',
-        },
-
-        {
-            key: 'showLogin',
-            label: 'Show Login',
-            kind: 'check',
-        },
+        checkField('showTopbar', 'Show Topbar'),
+        checkField('showOfferCard', 'Show Offer Card'),
+        checkField('showWishlist', 'Show Wishlist'),
+        checkField('showCheckout', 'Show Checkout'),
+        checkField('showLogin', 'Show Login'),
     ];
 }
-
+function inspectorGroup(...groups: RegItem['inspector'][]): RegItem['inspector'] {
+    return groups.flat();
+}
 function createInspector(): RegItem['inspector'] {
-    return [
-        ...createTopbarInspector(),
-
-        ...createLoginInspector(),
-
-        ...createOfferInspector(),
-
-        ...createThemeInspector(),
-
-        ...createLayoutInspector(),
-
-        ...createLogoInspector(),
-    ];
+    return inspectorGroup(
+        createTopbarInspector(),
+        createLoginInspector(),
+        createOfferInspector(),
+        createThemeInspector(),
+        createLayoutInspector(),
+        createLogoInspector(),
+        createAccountInspector(),
+    );
 }
 export const HEADER_SERVICE_09: RegItem = {
     kind: 'HeaderService09',
-
     label: 'Header Service 09',
-
     defaults: DEFAULT_PROPS,
-
     inspector: createInspector(),
-
     render: (props) => <HeaderService09 {...(props as HeaderService09Props)} />,
 };

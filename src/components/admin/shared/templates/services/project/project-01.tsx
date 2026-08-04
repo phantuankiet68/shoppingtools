@@ -1284,24 +1284,6 @@ function createTextareaField(key: keyof ProjectPage01Props, label: string): Insp
     };
 }
 
-function createImageField(key: keyof ProjectPage01Props, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'image',
-        folder: 'project',
-        accept: 'image/*',
-    };
-}
-
-function createIconField(key: keyof ProjectPage01Props, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'text',
-    };
-}
-
 function createHeroInspector(): InspectorField[] {
     return [
         createTextField('breadcrumbHome', 'Breadcrumb Home'),

@@ -30,6 +30,7 @@ const vi = {
         menu: {
             home: 'Trang chủ',
             signin: 'Đăng nhập',
+            profile: 'Hồ sơ',
             about: 'Giới thiệu',
             aboutUs: 'Về chúng tôi',
             aboutMe: 'Về tôi',
@@ -184,7 +185,7 @@ const vi = {
             about: '/gioi-thieu',
             aboutUs: '/gioi-thieu',
             aboutMe: '/ve-toi',
-
+            profile: '/ho-so',
             services: '/dich-vu',
             service: '/dich-vu',
             projects: '/du-an',

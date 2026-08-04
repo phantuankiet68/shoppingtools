@@ -35,7 +35,7 @@ const en = {
             aboutMe: 'About Me',
             aboutEvent: 'About Event',
             aboutSchool: 'About School',
-
+            profile: 'Profile',
             services: 'Services',
             service: 'Service',
 
@@ -185,7 +185,7 @@ const en = {
             about: '/about',
             aboutUs: '/about-us',
             aboutMe: '/about-me',
-
+            profile: '/profile',
             services: '/services',
             service: '/service',
             projects: '/projects',

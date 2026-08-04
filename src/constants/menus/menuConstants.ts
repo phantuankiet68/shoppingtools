@@ -91,6 +91,11 @@ export const MENU_TEMPLATES: Record<WebsiteType, Record<string, MenuTemplateItem
             { title: 'sites.menu.news', path: 'sites.menuPath.news', icon: 'bi-newspaper' },
             { title: 'sites.menu.contact', path: 'sites.menuPath.contact', icon: 'bi-envelope' },
             { title: 'sites.menu.signin', path: 'sites.menuPath.signin', icon: 'bi bi-person' },
+            {
+                title: 'sites.menu.profile',
+                path: 'sites.menuPath.profile',
+                icon: 'bi-person-circle',
+            },
         ],
 
         Restaurant: [

@@ -29,4 +29,24 @@ từ design bên trên bạn có thể độ lại Ui design qtheo phong cách m
 
 Hiện tại đây là template tôi vừa mới tạo bạn hãy cải tạo giống với template chuẩn giúp tôi. Hãy ở cương vị serior front-end developer làm việc này giúp tôi. lưu ý hiện tại còn rất nhiều text chưa được lưu thuộc tính vào drop và nếu thấy bug ẩn hay dư thưa hãy hướng dẫn tôi chỉnh sửa nhé
 
+sửa tiếp nội dung SignIn01Props nhé lưu ý nếu có text hãy thêm thuộc tính drop vào SignIn01Props và ghi lại toàn bộ giúp tôi nhé
+
+thường thì được setup pathName: {
+
+        sourceLocale: 'en',
+
+        default: 'Service',
+
+        translations: {
+
+            vi: 'Dịch vụ',
+
+            ja: 'サービス',
+
+        },
+
+    },
+
+Bạn hãy chỉnh giúp tôi nhé nếu nhiều quá thì hãy lưu ý đừng một dòng xuống một dòng nhé tốn nhiều với lại nếu nhiều quá hãy chia làm 3 phần nhé. hãy dịch chuẩn giúp tôi
+
 tạo DEFAULT_PROPS giúp tôi nhé
