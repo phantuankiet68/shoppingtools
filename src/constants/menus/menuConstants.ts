@@ -96,6 +96,11 @@ export const MENU_TEMPLATES: Record<WebsiteType, Record<string, MenuTemplateItem
                 path: 'sites.menuPath.profile',
                 icon: 'bi-person-circle',
             },
+            {
+                title: 'sites.menu.changePassword',
+                path: 'sites.menuPath.changePassword',
+                icon: 'bi-shield-lock',
+            },
         ],
 
         Restaurant: [

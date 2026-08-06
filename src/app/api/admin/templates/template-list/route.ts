@@ -8,38 +8,29 @@ type TemplateListItem = {
     code: string;
     label: string;
     kind: string;
-
     category: {
         id: string;
         name: string;
         minTier: AccessTier;
         description: string | null;
     };
-
     children: string[];
     rawChildren: string[];
-
     previewImageUrl: string | null;
-
     isActive: boolean;
     isPublic: boolean;
-
     sortOrder: number;
     status: string;
-
     createdAt: string;
     updatedAt: string;
 };
 
 function parseTier(value: string | null): AccessTier | null {
     if (!value) return null;
-
     const normalized = value.trim().toUpperCase();
-
     if (normalized === 'BASIC') return 'BASIC';
     if (normalized === 'NORMAL') return 'NORMAL';
     if (normalized === 'PRO') return 'PRO';
-
     return null;
 }
 
@@ -47,13 +38,10 @@ function getAllowedTiers(tier: AccessTier): AccessTier[] {
     switch (tier) {
         case 'BASIC':
             return ['BASIC'];
-
         case 'NORMAL':
             return ['BASIC', 'NORMAL'];
-
         case 'PRO':
             return ['BASIC', 'NORMAL', 'PRO'];
-
         default:
             return [];
     }
@@ -62,35 +50,45 @@ function getAllowedTiers(tier: AccessTier): AccessTier[] {
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
-
         const q = searchParams.get('q')?.trim() || '';
-
         const siteType = searchParams.get('siteType')?.trim() || '';
-
+        const normalizedSiteType =
+            siteType.length > 0
+                ? siteType.charAt(0).toUpperCase() + siteType.slice(1).toLowerCase()
+                : '';
         const includeInactive = searchParams.get('includeInactive') === 'true';
-
         const includeArchived = searchParams.get('includeArchived') === 'true';
-
         const includeDeleted = searchParams.get('includeDeleted') === 'true';
-
         const tier = parseTier(searchParams.get('tier'));
-
         const registryKindSet = new Set(REGISTRY.map((item) => item.kind));
-
+        const categoryWhere: Prisma.TemplateCategoryWhereInput = {};
+        if (tier) {
+            categoryWhere.minTier = {
+                in: getAllowedTiers(tier),
+            };
+        }
+        if (normalizedSiteType) {
+            categoryWhere.OR = [
+                {
+                    name: 'All',
+                },
+                {
+                    name: normalizedSiteType,
+                },
+            ];
+        }
         const where: Prisma.TemplateCatalogWhereInput = {
             ...(includeDeleted
                 ? {}
                 : {
                       deletedAt: null,
                   }),
-
             ...(includeInactive
                 ? {}
                 : {
                       isActive: true,
                       isPublic: true,
                   }),
-
             ...(includeArchived
                 ? {}
                 : {
@@ -98,7 +96,6 @@ export async function GET(request: NextRequest) {
                           not: 'ARCHIVED',
                       },
                   }),
-
             ...(q
                 ? {
                       OR: [
@@ -131,21 +128,14 @@ export async function GET(request: NextRequest) {
                       ],
                   }
                 : {}),
-
-            ...(tier
+            ...(Object.keys(categoryWhere).length
                 ? {
-                      category: {
-                          minTier: {
-                              in: getAllowedTiers(tier),
-                          },
-                      },
+                      category: categoryWhere,
                   }
                 : {}),
         };
-
         const rows = await prisma.templateCatalog.findMany({
             where,
-
             orderBy: [
                 {
                     sortOrder: 'asc',
@@ -154,24 +144,18 @@ export async function GET(request: NextRequest) {
                     updatedAt: 'desc',
                 },
             ],
-
             select: {
                 id: true,
                 code: true,
                 name: true,
                 kind: true,
-
                 previewImageUrl: true,
-
                 isActive: true,
                 isPublic: true,
-
                 sortOrder: true,
                 status: true,
-
                 createdAt: true,
                 updatedAt: true,
-
                 category: {
                     select: {
                         id: true,
@@ -185,38 +169,26 @@ export async function GET(request: NextRequest) {
 
         const data: TemplateListItem[] = rows.map((row) => {
             const rawChildren = [row.kind];
-
             const children = Array.from(new Set(rawChildren));
-
             return {
                 id: row.id,
-
                 code: row.code,
                 label: row.name,
-
                 kind: row.kind,
-
                 category: {
                     id: row.category.id,
                     name: row.category.name,
                     minTier: row.category.minTier,
                     description: row.category.description,
                 },
-
                 children,
                 rawChildren,
-
                 previewImageUrl: row.previewImageUrl,
-
                 isActive: row.isActive,
                 isPublic: row.isPublic,
-
                 sortOrder: row.sortOrder,
-
                 status: String(row.status),
-
                 createdAt: row.createdAt.toISOString(),
-
                 updatedAt: row.updatedAt.toISOString(),
             };
         });
@@ -229,31 +201,22 @@ export async function GET(request: NextRequest) {
 
         return Response.json({
             success: true,
-
             data,
-
             meta: {
                 total: data.length,
                 totalRows: rows.length,
-
                 registryCount: registryKindSet.size,
-
                 unmatchedKinds,
-
                 tierFilter: tier,
-
                 siteTypeFilter: siteType || null,
             },
         });
     } catch (error) {
         console.error('GET /api/admin/templates/template-list error:', error);
-
         return Response.json(
             {
                 success: false,
-
                 message: 'Không thể tải danh sách template',
-
                 error: error instanceof Error ? error.message : 'Unknown error',
             },
             {

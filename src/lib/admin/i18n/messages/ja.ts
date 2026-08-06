@@ -30,6 +30,7 @@ const ja = {
             home: 'ホーム',
             signin: 'ログイン',
             profile: 'プロフィール',
+            changePassword: 'パスワード変更',
             about: '会社概要',
             aboutUs: '私たちについて',
             aboutMe: 'プロフィール',
@@ -185,7 +186,7 @@ const ja = {
             about: '/company',
             aboutUs: '/company',
             aboutMe: '/profile',
-
+            changePassword: '/change-password',
             services: '/service',
             service: '/service',
             projects: '/project',

@@ -14,7 +14,8 @@ type Props = {
     registry?: RegItem[];
     templateGroup?: string | null;
     tier?: string | null;
-    siteType?: string | null;
+    businessType?: string | null;
+    websiteType?: string | null;
     path?: string | null;
 };
 
@@ -73,7 +74,9 @@ type TemplateGroupHome =
     | 'About'
     | 'Blog'
     | 'SignIn'
-    | 'Profile';
+    | 'Profile'
+    | 'ChangePassword';
+
 function normalizeText(value?: string | null) {
     return (value || '').trim().toLowerCase();
 }
@@ -85,6 +88,10 @@ function inferGroupFromKind(kind?: string | null): TemplateGroupHome | null {
 
     if (normalizedKind.includes('pricing-page') || normalizedKind.includes('pricingpage')) {
         return 'PricingPage';
+    }
+
+    if (normalizedKind.includes('change-password') || normalizedKind.includes('changepassword')) {
+        return 'ChangePassword';
     }
 
     if (normalizedKind.startsWith('topbar')) return 'Topbar';
@@ -123,6 +130,7 @@ const TEMPLATE_GROUPS_BY_PATH: Record<string, TemplateGroupHome[]> = {
     '/contact': ['Contact'],
 
     '/profile': ['Profile'],
+    '/change-password': ['ChangePassword'],
 
     '/topbar': ['Topbar'],
     '/header': ['Header'],
@@ -191,7 +199,8 @@ export default function ControlsPalette({
     registry,
     templateGroup,
     tier,
-    siteType,
+    businessType,
+    websiteType,
     path,
 }: Props) {
     const sourceRegistry = React.useMemo(() => registry ?? REGISTRY, [registry]);
@@ -233,8 +242,8 @@ export default function ControlsPalette({
                     params.set('tier', tier.trim().toUpperCase());
                 }
 
-                if (siteType && siteType.trim()) {
-                    params.set('siteType', siteType.trim().toLowerCase());
+                if (businessType?.trim()) {
+                    params.set('businessType', businessType.trim());
                 }
 
                 const queryString = params.toString();
@@ -324,7 +333,7 @@ export default function ControlsPalette({
         return () => {
             cancelled = true;
         };
-    }, [tier, siteType]);
+    }, [tier, businessType]);
 
     const templatesFiltered = React.useMemo(() => {
         const tierRank = {
@@ -337,6 +346,7 @@ export default function ControlsPalette({
             const groupMatched = tpl.groups.some((group) => allowedTemplateGroups.includes(group));
 
             const categoryMatched =
+                normalizeText(tpl.categoryName) === 'all' ||
                 normalizeText(tpl.categoryName) === normalizeText(currentSite?.category);
 
             const templateTier = tierRank[(tpl.minTier ?? 'BASIC') as keyof typeof tierRank] ?? 1;

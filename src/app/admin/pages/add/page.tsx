@@ -62,7 +62,8 @@ export default function UiBuilderAddPage() {
     const setCollapsed = useAdminLayoutStore((state) => state.setCollapsed);
     const siteId = currentSite?.id ?? '';
     const siteDomain = currentSite?.domain ?? '';
-    const siteType = currentSite?.type ?? '';
+    const websiteType = currentSite?.type ?? '';
+    const businessType = currentSite?.category ?? '';
     const tier = currentWorkspace?.tier ?? '';
 
     const initialId = sp.get('id');
@@ -498,7 +499,8 @@ export default function UiBuilderAddPage() {
                                 registry={filteredRegistry}
                                 templateGroup={templateGroup}
                                 tier={tier}
-                                siteType={siteType}
+                                businessType={businessType}
+                                websiteType={websiteType}
                                 path={effectivePath}
                             />
                         </aside>

@@ -76,4 +76,5 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
     tpl('tpl-blog-page', 'Blog Page', ['Blog01']),
     tpl('tpl-sign-in', 'Sign In', ['SignIn01']),
     tpl('tpl-profile', 'Profile', ['Profile01']),
+    tpl('tpl-change-password', 'Change Password', ['ChangePassword01']),
 ] as const;

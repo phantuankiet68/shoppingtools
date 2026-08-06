@@ -36,6 +36,7 @@ const en = {
             aboutEvent: 'About Event',
             aboutSchool: 'About School',
             profile: 'Profile',
+            changePassword: 'Change Password',
             services: 'Services',
             service: 'Service',
 
@@ -186,6 +187,7 @@ const en = {
             aboutUs: '/about-us',
             aboutMe: '/about-me',
             profile: '/profile',
+            changePassword: '/change-password',
             services: '/services',
             service: '/service',
             projects: '/projects',

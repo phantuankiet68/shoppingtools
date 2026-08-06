@@ -63,6 +63,7 @@ model User {
   emailRecipients        EmailRecipient[]
   emailSubscribers       EmailSubscriber[]
   tasks                  Task[]
+  changePasswordToken ChangePasswordToken[]
 
   @@index([siteId])
   @@index([systemRole])
