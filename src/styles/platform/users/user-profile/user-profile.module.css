@@ -1,0 +1,178 @@
+.card {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.cover {
+    height: 140px;
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
+    position: relative;
+}
+
+.content {
+    display: grid;
+    grid-template-columns:
+        300px
+        1fr
+        180px;
+
+    align-items: start;
+    gap: 12px;
+    padding: 15px;
+}
+
+.left {
+    display: flex;
+    gap: 15px;
+}
+
+.avatar {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 6px solid #bdd5f8;
+}
+
+.image {
+    object-fit: cover;
+}
+
+.online {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #22c55e;
+    right: 8px;
+    bottom: 10px;
+    border: 3px solid #fff;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.heading {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+}
+
+.heading h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #0f172a;
+}
+
+.badges {
+    display: flex;
+    gap: 10px;
+}
+
+.customer,
+.active {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.customer {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.info p {
+    margin: 0;
+    color: #64748b;
+    font-size: 1.3rem;
+}
+
+.meta {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.meta div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #475569;
+    font-size: 1.3rem;
+    font-weight: 500;
+}
+
+.meta i {
+    color: #2563eb;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.stat {
+    padding: 15px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: var(--bd-header);
+}
+
+.stat span {
+    display: block;
+    color: #64748b;
+    font-size: 1.3rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.stat strong {
+    font-size: 1.4rem;
+    color: #5084ff;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.actions button {
+    height: 48px;
+    border: none;
+    border-radius: 14px;
+    background: #f1f5f9;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1.4rem;
+    transition: 0.25s;
+}
+
+.actions button:hover {
+    transform: translateY(-2px);
+}
+
+.primary {
+    background: #2563eb !important;
+    color: #fff;
+}
+
+.danger {
+    background: #fee2e2 !important;
+    color: #dc2626;
+}

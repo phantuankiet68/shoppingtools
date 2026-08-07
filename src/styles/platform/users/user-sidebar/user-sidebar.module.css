@@ -1,0 +1,131 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #fff;
+    padding: 10px;
+}
+
+.searchRow {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid #edf1f7;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.search i {
+    color: #94a3b8;
+    font-size: 18px;
+}
+
+.search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+}
+
+.filterButton {
+    width: 48px;
+    height: 48px;
+    border: 1px solid #edf1f7;
+    border-radius: 14px;
+    background: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.filterButton:hover {
+    background: #f8fafc;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.total span {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.total label {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.list {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 4px;
+}
+
+.list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.list::-webkit-scrollbar-thumb {
+    background: #d7dce5;
+    border-radius: 999px;
+}
+
+.bottom {
+    margin-top: 18px;
+    border-top: 1px solid #eef2f7;
+    padding-top: 18px;
+}
+
+.bottom p {
+    margin: 0 0 16px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination button {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #edf2f7;
+    background: #fff;
+    cursor: pointer;
+}
+
+.pagination span {
+    color: #94a3b8;
+}
+
+.active {
+    background: linear-gradient(135deg, #3465ff, #2457f5);
+    color: #fff;
+    border: none;
+}

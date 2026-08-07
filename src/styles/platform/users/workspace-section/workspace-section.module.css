@@ -1,0 +1,153 @@
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 50px;
+}
+
+/* ==========================
+   Header
+========================== */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.heading {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    color: #3b82f6;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.titleRow h2 {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 600;
+    color: #31a8cd;
+}
+
+.count {
+    min-width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    background: #eff6ff;
+    color: #2563eb;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.heading p {
+    max-width: 620px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #64748b;
+}
+
+/* ==========================
+   Button
+========================== */
+
+.button {
+    height: 48px;
+    padding: 0 22px;
+
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 12px;
+    background: var(--bg-primary);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: 0.25s;
+}
+
+.button i {
+    font-size: 18px;
+}
+
+.button:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.28);
+}
+
+/* ==========================
+   Grid
+========================== */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.logo i {
+    font-size: 1.6rem;
+}
+
+/* ==========================
+   Responsive
+========================== */
+
+@media (max-width: 1400px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 1100px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .titleRow h2 {
+        font-size: 28px;
+    }
+
+    .button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}

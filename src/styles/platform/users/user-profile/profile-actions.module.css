@@ -1,0 +1,35 @@
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.actions button {
+    height: 50px;
+    border: none;
+    border-radius: 14px;
+    background: #f8fafc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 1.4rem;
+    transition: 0.25s;
+    border: var(--bd-header);
+}
+
+.actions button:hover {
+    transform: translateY(-2px);
+}
+
+.primary {
+    background: var(--bg-primary) !important;
+    color: #fff;
+}
+
+.danger {
+    background: #fee2e2 !important;
+    color: #dc2626;
+}

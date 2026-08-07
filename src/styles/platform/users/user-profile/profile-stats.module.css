@@ -1,0 +1,46 @@
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.card {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 15px;
+    transition: 0.25s;
+    display: flex;
+    gap: 10px;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.06);
+}
+
+.icon {
+    width: 70px;
+    height: 80px;
+    border-radius: 12px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon i {
+    font-size: 18px;
+}
+
+.card span {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.card strong {
+    color: #4cbbff;
+    font-size: 2.2rem;
+}

@@ -1,0 +1,179 @@
+.card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    transition: 0.25s;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+}
+
+.thumbnail {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+
+.image {
+    object-fit: cover;
+    transition: 0.35s;
+}
+
+.card:hover .image {
+    transform: scale(1.05);
+}
+
+.overlay {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: 16px;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.published,
+.draft,
+.ssl {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    backdrop-filter: blur(12px);
+}
+
+.published {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.draft {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.ssl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.body {
+    padding: 15px;
+}
+
+.heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.heading h3 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #0f172a;
+}
+
+.heading p {
+    color: #64748b;
+    font-size: 1.3rem;
+    font-weight: 500;
+}
+
+.heading button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 12px;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.workspace {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #8ec9e0;
+    font-weight: 500;
+    font-size: 1.3rem;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 12px;
+    gap: 14px;
+}
+
+.stats div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.stats i {
+    color: #2563eb;
+}
+
+.dates {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.dates label {
+    display: block;
+    color: #94a3b8;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.dates strong {
+    color: #0f172a;
+    font-size: 1.4rem;
+    font-weight: 500;
+}
+
+.actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.actions button {
+    flex: 1;
+    height: 46px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.4rem;
+    font-weight: 500;
+    transition: 0.25s;
+    border: var(--bd-header);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 10px;
+}
+
+.actions button:hover {
+    transform: translateY(-2px);
+}
+
+.primary {
+    background: var(--bg-primary);
+    color: #fff;
+}
