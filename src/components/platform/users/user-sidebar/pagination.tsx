@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import styles from '@/styles/platform/users/user-sidebar/pagination.module.css';
 
 interface PaginationProps {
@@ -14,29 +15,44 @@ export default function Pagination({
     page,
     totalPages,
     totalItems,
-    pageSize = 10,
+    pageSize = 6,
     onChange,
 }: PaginationProps) {
-    const start = (page - 1) * pageSize + 1;
-    const end = Math.min(page * pageSize, totalItems);
+    const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
 
-    const pages = [];
+    const end = totalItems === 0 ? 0 : Math.min(page * pageSize, totalItems);
 
-    if (totalPages <= 5) {
-        for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-        pages.push(1);
+    const pages = useMemo<(number | '...')[]>(() => {
+        if (totalPages <= 1) return [1];
 
-        if (page > 3) pages.push('...');
+        const result: (number | '...')[] = [];
 
-        for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-            pages.push(i);
+        if (totalPages <= 5) {
+            for (let i = 1; i <= totalPages; i++) {
+                result.push(i);
+            }
+
+            return result;
         }
 
-        if (page < totalPages - 2) pages.push('...');
+        result.push(1);
 
-        pages.push(totalPages);
-    }
+        if (page > 3) {
+            result.push('...');
+        }
+
+        for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+            result.push(i);
+        }
+
+        if (page < totalPages - 2) {
+            result.push('...');
+        }
+
+        result.push(totalPages);
+
+        return result;
+    }, [page, totalPages]);
 
     return (
         <div className={styles.wrapper}>
@@ -46,25 +62,34 @@ export default function Pagination({
             </p>
 
             <div className={styles.pagination}>
-                <button disabled={page === 1} onClick={() => onChange?.(page - 1)}>
+                <button
+                    type="button"
+                    disabled={page <= 1 || totalItems === 0}
+                    onClick={() => onChange?.(page - 1)}
+                >
                     <i className="bi bi-chevron-left" />
                 </button>
 
                 {pages.map((item, index) =>
                     item === '...' ? (
-                        <span key={index}>...</span>
+                        <span key={`ellipsis-${index}`}>...</span>
                     ) : (
                         <button
+                            type="button"
                             key={item}
-                            onClick={() => onChange?.(Number(item))}
-                            className={Number(item) === page ? styles.active : ''}
+                            className={item === page ? styles.active : ''}
+                            onClick={() => onChange?.(item)}
                         >
                             {item}
                         </button>
                     ),
                 )}
 
-                <button disabled={page === totalPages} onClick={() => onChange?.(page + 1)}>
+                <button
+                    type="button"
+                    disabled={page >= totalPages || totalItems === 0}
+                    onClick={() => onChange?.(page + 1)}
+                >
                     <i className="bi bi-chevron-right" />
                 </button>
             </div>

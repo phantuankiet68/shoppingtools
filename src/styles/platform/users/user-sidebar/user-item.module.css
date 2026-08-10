@@ -38,6 +38,11 @@
 .content strong {
     font-size: 1.3rem;
     font-weight: 600;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100px;
 }
 
 .content span {
@@ -46,6 +51,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100px;
 }
 
 .active .content span {

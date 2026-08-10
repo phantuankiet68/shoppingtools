@@ -2,15 +2,20 @@
 
 import styles from '@/styles/platform/users/user-sidebar/search.module.css';
 
+export type UserRole = 'ALL' | 'SUPER_ADMIN' | 'ADMIN' | 'CUSTOMER';
+export type UserStatus = 'ALL' | 'ACTIVE' | 'SUSPENDED';
+
 interface SearchProps {
     value: string;
     onChange: (value: string) => void;
 
-    role: 'ALL' | 'SUPER_ADMIN' | 'ADMIN' | 'CUSTOMER';
-    onRoleChange: (role: 'ALL' | 'SUPER_ADMIN' | 'ADMIN' | 'CUSTOMER') => void;
+    role: UserRole;
+    onRoleChange: (role: UserRole) => void;
+
+    status: UserStatus;
+    onStatusChange: (status: UserStatus) => void;
 
     placeholder?: string;
-    onFilterClick?: () => void;
 }
 
 export default function Search({
@@ -18,8 +23,9 @@ export default function Search({
     onChange,
     role,
     onRoleChange,
+    status,
+    onStatusChange,
     placeholder = 'Search users...',
-    onFilterClick,
 }: SearchProps) {
     return (
         <div className={styles.wrapper}>
@@ -27,6 +33,7 @@ export default function Search({
                 <i className="bi bi-search" />
 
                 <input
+                    type="text"
                     value={value}
                     placeholder={placeholder}
                     onChange={(e) => onChange(e.target.value)}
@@ -35,16 +42,9 @@ export default function Search({
 
             <div className={styles.filters}>
                 <div className={styles.select}>
-                    <i className="bi bi-person-badge"></i>
+                    <i className="bi bi-person-badge" />
 
-                    <select
-                        value={role}
-                        onChange={(e) =>
-                            onRoleChange(
-                                e.target.value as 'ALL' | 'SUPER_ADMIN' | 'ADMIN' | 'CUSTOMER',
-                            )
-                        }
-                    >
+                    <select value={role} onChange={(e) => onRoleChange(e.target.value as UserRole)}>
                         <option value="ALL">All Roles</option>
                         <option value="SUPER_ADMIN">Super Admin</option>
                         <option value="ADMIN">Admin</option>
@@ -52,9 +52,18 @@ export default function Search({
                     </select>
                 </div>
 
-                <button type="button" className={styles.filterButton} onClick={onFilterClick}>
-                    <i className="bi bi-sliders2" />
-                </button>
+                <div className={styles.select}>
+                    <i className="bi bi-shield-check" />
+
+                    <select
+                        value={status}
+                        onChange={(e) => onStatusChange(e.target.value as UserStatus)}
+                    >
+                        <option value="ALL">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="SUSPENDED">Suspended</option>
+                    </select>
+                </div>
             </div>
         </div>
     );

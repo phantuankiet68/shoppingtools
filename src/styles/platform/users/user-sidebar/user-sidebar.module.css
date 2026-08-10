@@ -129,3 +129,23 @@
     color: #fff;
     border: none;
 }
+.superAdmin {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.admin {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.customer {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.verified {
+    color: #2563eb;
+    font-size: 14px;
+    margin-left: 6px;
+}

@@ -6,7 +6,7 @@ enum ProjectStatus {
 
 model Project {
   id              String        @id @default(cuid())
-  profileId       String        @map("profile_id")
+  userId String @map("user_id")
   name            String
   slug            String        @unique
   websiteType     WebsiteType
@@ -23,10 +23,9 @@ model Project {
   reviewedBy      String?       @map("reviewed_by")
   reviewedAt      DateTime?     @map("reviewed_at")
   rejectReason    String?       @db.Text
-  profile         Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
-  @@index([profileId])
+  user User @relation("UserProjects",fields: [userId],references: [id], onDelete: Cascade)
   @@index([status])
   @@index([websiteType])
   @@index([slug])

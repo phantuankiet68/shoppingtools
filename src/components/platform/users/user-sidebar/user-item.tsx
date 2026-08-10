@@ -1,17 +1,44 @@
 import Image from 'next/image';
 import styles from '@/styles/platform/users/user-sidebar/user-item.module.css';
-import { UserItem as User } from './users';
 
-interface Props {
-    user: User;
-    active?: boolean;
+export interface UserItemData {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+    role: 'SUPER_ADMIN' | 'ADMIN' | 'CUSTOMER';
+    status: 'ACTIVE' | 'SUSPENDED';
+    verified: boolean;
 }
 
-export default function UserItem({ user, active }: Props) {
+interface Props {
+    user: UserItemData;
+    active?: boolean;
+    onClick?: () => void;
+}
+interface Props {
+    user: UserItemData;
+
+    active?: boolean;
+
+    onClick?: () => void;
+}
+
+export default function UserItem({ user, active = false, onClick }: Props) {
+    const roleClass = {
+        SUPER_ADMIN: styles.superAdmin,
+        ADMIN: styles.admin,
+        CUSTOMER: styles.customer,
+    }[user.role];
+
     return (
-        <button className={`${styles.item} ${active ? styles.active : ''}`}>
+        <button
+            type="button"
+            className={`${styles.item} ${active ? styles.active : ''}`}
+            onClick={onClick}
+        >
             <Image
-                src={user.avatar}
+                src={user.avatar || '/assets/images/avatar-default.png'}
                 alt={user.name}
                 width={46}
                 height={46}
@@ -25,11 +52,17 @@ export default function UserItem({ user, active }: Props) {
             </div>
 
             <div className={styles.right}>
-                <i className={`${styles.dot} ${user.online ? styles.online : styles.offline}`} />
+                <i
+                    className={`${styles.dot} ${
+                        user.status === 'ACTIVE' ? styles.online : styles.offline
+                    }`}
+                />
 
-                <label className={user.role === 'Admin' ? styles.admin : styles.customer}>
-                    {user.role}
-                </label>
+                <label className={roleClass}>{user.role.replace('_', ' ')}</label>
+
+                {user.verified && (
+                    <i className={`bi bi-patch-check-fill ${styles.verified}`} title="Verified" />
+                )}
             </div>
         </button>
     );

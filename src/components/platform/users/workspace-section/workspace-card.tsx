@@ -1,13 +1,29 @@
-import Image from 'next/image';
 import styles from '@/styles/platform/users/workspace-section/workspace-card.module.css';
-import { Workspace } from './workspaces';
+
+export interface WorkspaceItem {
+    id: string;
+    name: string;
+    role: string;
+    owner: string;
+    sites: number;
+    members: number;
+    plan: string;
+    storageUsed: number;
+    storageTotal: number;
+    lastActivity: string;
+    icon: string;
+    accent: string;
+}
 
 interface WorkspaceCardProps {
-    workspace: Workspace;
+    workspace: WorkspaceItem;
 }
 
 export default function WorkspaceCard({ workspace }: WorkspaceCardProps) {
-    const percent = Math.min((workspace.storageUsed / workspace.storageTotal) * 100, 100);
+    const percent =
+        workspace.storageTotal > 0
+            ? Math.min((workspace.storageUsed / workspace.storageTotal) * 100, 100)
+            : 0;
 
     return (
         <article className={styles.card}>
@@ -36,8 +52,8 @@ export default function WorkspaceCard({ workspace }: WorkspaceCardProps) {
                     </div>
                 </div>
 
-                <button className={styles.more} aria-label="Workspace menu">
-                    <i className="bi bi-three-dots-vertical"></i>
+                <button type="button" className={styles.more} aria-label="Workspace menu">
+                    <i className="bi bi-three-dots-vertical" />
                 </button>
             </header>
 
@@ -83,7 +99,13 @@ export default function WorkspaceCard({ workspace }: WorkspaceCardProps) {
             <footer className={styles.footer}>
                 <span>Last activity</span>
 
-                <strong>{workspace.lastActivity}</strong>
+                <strong>
+                    {new Intl.DateTimeFormat('en', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                    }).format(new Date(workspace.lastActivity))}
+                </strong>
             </footer>
         </article>
     );

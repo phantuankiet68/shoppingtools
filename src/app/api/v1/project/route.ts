@@ -41,19 +41,6 @@ export async function GET(request: NextRequest) {
             return error('Unauthorized.', 401);
         }
 
-        const profile = await prisma.profile.findUnique({
-            where: {
-                userId: auth.user.id,
-            },
-            select: {
-                id: true,
-            },
-        });
-
-        if (!profile) {
-            return error('Profile not found.', 404);
-        }
-
         const { searchParams } = new URL(request.url);
 
         const page = Math.max(Number(searchParams.get('page')) || 1, 1);
@@ -65,7 +52,7 @@ export async function GET(request: NextRequest) {
         const [projects, total] = await prisma.$transaction([
             prisma.project.findMany({
                 where: {
-                    profileId: profile.id,
+                    userId: auth.user.id,
                 },
                 orderBy: {
                     createdAt: 'desc',
@@ -74,7 +61,7 @@ export async function GET(request: NextRequest) {
                 take: limit,
                 select: {
                     id: true,
-                    profileId: true,
+                    userId: true,
                     name: true,
                     slug: true,
                     websiteType: true,
@@ -86,6 +73,7 @@ export async function GET(request: NextRequest) {
                     isPublished: true,
                     totalViews: true,
                     totalTemplates: true,
+                    storageUsed: true,
                     publishedAt: true,
                     reviewedBy: true,
                     reviewedAt: true,
@@ -97,14 +85,19 @@ export async function GET(request: NextRequest) {
 
             prisma.project.count({
                 where: {
-                    profileId: profile.id,
+                    userId: auth.user.id,
                 },
             }),
         ]);
 
+        const serializedProjects = projects.map((project) => ({
+            ...project,
+            storageUsed: Number(project.storageUsed),
+        }));
+
         return NextResponse.json({
             success: true,
-            projects,
+            projects: serializedProjects,
             pagination: {
                 page,
                 limit,
@@ -115,16 +108,35 @@ export async function GET(request: NextRequest) {
     } catch (err) {
         console.error('[PROJECT_GET]', err);
 
-        return error('Internal server error.', 500);
+        return NextResponse.json(
+            {
+                success: false,
+                message: err instanceof Error ? err.message : 'Internal server error.',
+                projects: [],
+                pagination: {
+                    page: 1,
+                    limit: 3,
+                    total: 0,
+                    totalPages: 0,
+                },
+            },
+            {
+                status: 500,
+            },
+        );
     }
 }
+
 export async function POST(request: NextRequest) {
     try {
         const auth = await getCustomerContextFromRequest(request);
+
         if (!auth.ok) {
             return error('Unauthorized.', 401);
         }
+
         const body = await request.json();
+
         const data = {
             name: trimString(body.name),
             slug: body.slug ? createSlug(body.slug) : null,
@@ -159,22 +171,20 @@ export async function POST(request: NextRequest) {
             return error('Invalid website type.');
         }
 
-        const profile = await prisma.profile.findUnique({
+        const exists = await prisma.project.findFirst({
             where: {
-                userId: auth.user.id,
-            },
-            select: {
-                id: true,
-            },
-        });
-
-        if (!profile) {
-            return error('Profile not found.', 404);
-        }
-
-        const exists = await prisma.project.findUnique({
-            where: {
-                slug: data.slug,
+                OR: [
+                    {
+                        slug: data.slug,
+                    },
+                    ...(data.domain
+                        ? [
+                              {
+                                  domain: data.domain,
+                              },
+                          ]
+                        : []),
+                ],
             },
             select: {
                 id: true,
@@ -182,12 +192,12 @@ export async function POST(request: NextRequest) {
         });
 
         if (exists) {
-            return error('Project slug already exists.', 409);
+            return error('Project slug or domain already exists.', 409);
         }
 
         const project = await prisma.project.create({
             data: {
-                profileId: profile.id,
+                userId: auth.user.id,
                 name: data.name,
                 slug: data.slug,
                 websiteType: data.websiteType as WebsiteType,
@@ -198,7 +208,7 @@ export async function POST(request: NextRequest) {
             },
             select: {
                 id: true,
-                profileId: true,
+                userId: true,
                 name: true,
                 slug: true,
                 websiteType: true,
@@ -210,6 +220,7 @@ export async function POST(request: NextRequest) {
                 isPublished: true,
                 totalViews: true,
                 totalTemplates: true,
+                storageUsed: true,
                 publishedAt: true,
                 reviewedBy: true,
                 reviewedAt: true,
@@ -224,8 +235,16 @@ export async function POST(request: NextRequest) {
             project,
         });
     } catch (err) {
-        console.error('[PROJECT_POST]', err);
+        console.error('[PROJECT_GET]', err);
 
-        return error('Internal server error.', 500);
+        return NextResponse.json(
+            {
+                success: false,
+                message: err instanceof Error ? err.message : 'Internal server error.',
+            },
+            {
+                status: 500,
+            },
+        );
     }
 }

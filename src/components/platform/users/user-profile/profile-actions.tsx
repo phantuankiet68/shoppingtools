@@ -1,25 +1,37 @@
 import styles from '@/styles/platform/users/user-profile/profile-actions.module.css';
 
-export default function ProfileActions() {
+interface ProfileActionsProps {
+    onPromote?: () => void;
+    onChangeRole?: () => void;
+    onSuspend?: () => void;
+    onDelete?: () => void;
+}
+
+export default function ProfileActions({
+    onPromote,
+    onChangeRole,
+    onSuspend,
+    onDelete,
+}: ProfileActionsProps) {
     return (
         <div className={styles.actions}>
-            <button className={styles.primary}>
-                <i className="bi bi-person-check-fill"></i>
+            <button type="button" className={styles.primary} onClick={onPromote}>
+                <i className="bi bi-person-check-fill" />
                 Promote to Admin
             </button>
 
-            <button>
-                <i className="bi bi-arrow-repeat"></i>
+            <button type="button" onClick={onChangeRole}>
+                <i className="bi bi-arrow-repeat" />
                 Change Role
             </button>
 
-            <button>
-                <i className="bi bi-pause-circle"></i>
+            <button type="button" onClick={onSuspend}>
+                <i className="bi bi-pause-circle" />
                 Suspend User
             </button>
 
-            <button className={styles.danger}>
-                <i className="bi bi-trash3"></i>
+            <button type="button" className={styles.danger} onClick={onDelete}>
+                <i className="bi bi-trash3" />
                 Delete User
             </button>
         </div>

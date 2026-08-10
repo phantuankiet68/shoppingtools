@@ -1,28 +1,33 @@
-import UserHeader from '@/components/platform/users/user-header';
+'use client';
+import { useState } from 'react';
 import UserProfile from '@/components/platform/users/user-profile';
 import UserSidebar from '@/components/platform/users/user-sidebar';
 import WorkspaceSection from '@/components/platform/users/workspace-section';
+import ProjectSection from '@/components/platform/users/project-section';
 import BillingStatus from '@/components/platform/users/billing-status';
 import SiteSection from '@/components/platform/users/site-section';
-import RecentActivity from '@/components/platform/users/recent-activity';
 import styles from '@/styles/platform/users/user-layout/user-layout.module.css';
 
 export default function UserLayout() {
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
     return (
         <main className={styles.page}>
             <aside className={styles.sidebar}>
-                <UserSidebar />
+                <UserSidebar selectedUserId={selectedUserId} onSelect={setSelectedUserId} />
             </aside>
 
             <section className={styles.content}>
-                <UserHeader />
-
                 <div className={styles.body}>
-                    <UserProfile />
-                    <WorkspaceSection />
-                    <SiteSection />
-                    <BillingStatus />
-                    <RecentActivity />
+                    <UserProfile userId={selectedUserId} />
+
+                    <WorkspaceSection userId={selectedUserId} />
+
+                    <ProjectSection userId={selectedUserId} />
+
+                    <SiteSection userId={selectedUserId} />
+
+                    <BillingStatus userId={selectedUserId} />
                 </div>
             </section>
         </main>

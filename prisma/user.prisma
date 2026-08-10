@@ -64,7 +64,7 @@ model User {
   emailSubscribers       EmailSubscriber[]
   tasks                  Task[]
   changePasswordToken ChangePasswordToken[]
-
+  projects Project[] @relation("UserProjects")
   @@index([siteId])
   @@index([systemRole])
   @@index([status])

@@ -1,36 +1,38 @@
+'use client';
+
 import Image from 'next/image';
 
 import styles from '@/styles/platform/users/site-section/site-card.module.css';
 
-import { Site } from './sites';
+import type { Site } from './sites';
 
 interface Props {
     site: Site;
 }
 
 export default function SiteCard({ site }: Props) {
+    const logo = site.logoUrl || '/assets/images/site-default.png';
+
     return (
         <article className={styles.card}>
             <div className={styles.thumbnail}>
                 <Image
-                    src={site.thumbnail}
+                    src={site.logoUrl || '/assets/images/blog-02.png'}
                     alt={site.name}
                     fill
-                    sizes="(max-width: 768px) 100vw,
-           (max-width: 1200px) 50vw,
-           25vw"
+                    sizes="(max-width: 768px) 100px, 100px"
                     className={styles.image}
                 />
 
                 <div className={styles.overlay}>
-                    <span className={site.status === 'Published' ? styles.published : styles.draft}>
+                    <span className={site.status === 'ACTIVE' ? styles.published : styles.draft}>
                         {site.status}
                     </span>
 
-                    {site.ssl && (
+                    {site.isPublic && (
                         <span className={styles.ssl}>
-                            <i className="bi bi-shield-lock-fill" />
-                            SSL
+                            <i className="bi bi-globe2" />
+                            Public
                         </span>
                     )}
                 </div>
@@ -44,28 +46,33 @@ export default function SiteCard({ site }: Props) {
                         <p>{site.domain}</p>
                     </div>
 
-                    <button>
+                    <button type="button">
                         <i className="bi bi-three-dots" />
                     </button>
                 </div>
+                <div className={styles.webtype}>
+                    <span className={styles.workspace}>
+                        <i className="bi bi-window-stack" />
+                        {site.type}
+                    </span>
 
-                <span className={styles.workspace}>
-                    <i className="bi bi-grid-1x2-fill" />
-
-                    {site.workspace}
-                </span>
+                    {site.category && (
+                        <span className={styles.workspace}>
+                            <i className="bi bi-tag" />
+                            {site.category}
+                        </span>
+                    )}
+                </div>
 
                 <div className={styles.stats}>
                     <div>
-                        <i className="bi bi-eye" />
-
-                        <span>{site.visitors}</span>
+                        <i className="bi bi-envelope" />
+                        <span>{site.contactEmail || '-'}</span>
                     </div>
 
                     <div>
-                        <i className="bi bi-hdd-stack" />
-
-                        <span>{site.storage}</span>
+                        <i className="bi bi-telephone" />
+                        <span>{site.contactPhone || '-'}</span>
                     </div>
                 </div>
 
@@ -73,23 +80,14 @@ export default function SiteCard({ site }: Props) {
                     <div>
                         <label>Created</label>
 
-                        <strong>{site.created}</strong>
+                        <strong>{new Date(site.createdAt).toLocaleDateString()}</strong>
                     </div>
 
                     <div>
                         <label>Updated</label>
 
-                        <strong>{site.updated}</strong>
+                        <strong>{new Date(site.updatedAt).toLocaleDateString()}</strong>
                     </div>
-                </div>
-
-                <div className={styles.actions}>
-                    <button className={styles.primary}>
-                        <i className="bi bi-box-arrow-up-right" />
-                        Dashboard
-                    </button>
-
-                    <button>Manage</button>
                 </div>
             </div>
         </article>

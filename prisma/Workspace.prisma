@@ -14,13 +14,10 @@ model Workspace {
   primaryColor String?  @map("primary_color")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
-
   owner        User                   @relation("WorkspaceOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
   members      WorkspaceMember[]
   sites        Site[]
   accessPolicy WorkspaceAccessPolicy?
-  profiles     Profile[]
-
   @@index([ownerUserId])
   @@map("workspaces")
 }

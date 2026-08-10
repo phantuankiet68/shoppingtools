@@ -267,6 +267,11 @@ export interface Profile01Props {
     totalProjectsLabel?: LocalizedText;
     totalTemplatesLabel?: LocalizedText;
     storageUsageLabel?: LocalizedText;
+    bannerSectionTitle?: LocalizedText;
+    bannerSectionDescription?: LocalizedText;
+    uploadBannerButton?: LocalizedText;
+    uploadingBannerButton?: LocalizedText;
+    removeBannerButton?: LocalizedText;
 }
 
 export const DEFAULT_PROPS: Required<Profile01Props> = {
@@ -1547,6 +1552,50 @@ export const DEFAULT_PROPS: Required<Profile01Props> = {
             ja: 'プロジェクトを削除できません。',
         },
     },
+    bannerSectionTitle: {
+        sourceLocale: 'en',
+        default: 'Profile Banner',
+        translations: {
+            vi: 'Ảnh bìa hồ sơ',
+            ja: 'プロフィールバナー',
+        },
+    },
+
+    bannerSectionDescription: {
+        sourceLocale: 'en',
+        default: 'Upload a banner image to personalize your profile.',
+        translations: {
+            vi: 'Tải lên ảnh bìa để cá nhân hóa hồ sơ của bạn.',
+            ja: 'プロフィールをカスタマイズするためのバナー画像をアップロードします。',
+        },
+    },
+
+    uploadBannerButton: {
+        sourceLocale: 'en',
+        default: 'Upload Banner',
+        translations: {
+            vi: 'Tải ảnh bìa',
+            ja: 'バナーをアップロード',
+        },
+    },
+
+    uploadingBannerButton: {
+        sourceLocale: 'en',
+        default: 'Uploading...',
+        translations: {
+            vi: 'Đang tải lên...',
+            ja: 'アップロード中...',
+        },
+    },
+
+    removeBannerButton: {
+        sourceLocale: 'en',
+        default: 'Remove Banner',
+        translations: {
+            vi: 'Xóa ảnh bìa',
+            ja: 'バナーを削除',
+        },
+    },
 };
 
 export function CreateProjectModal(props: CreateProjectModalProps) {
@@ -1604,6 +1653,8 @@ export function CreateProjectModal(props: CreateProjectModalProps) {
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
+    const WEBSITE_TYPE_KEYS: WebsiteType[] = ['landing', 'blog', 'ecommerce', 'booking', 'lms'];
 
     const [selectedLocale, setSelectedLocale] = useState(() => {
         if (typeof window === 'undefined') {
@@ -1790,9 +1841,6 @@ export function CreateProjectModal(props: CreateProjectModalProps) {
         }
     };
 
-    if (!open) return null;
-    const WEBSITE_TYPE_KEYS: WebsiteType[] = ['landing', 'blog', 'ecommerce', 'booking', 'lms'];
-
     const WEBSITE_TYPES = useMemo(() => {
         const labels: Record<WebsiteType, string> = {
             landing: t(websiteTypeLanding),
@@ -1830,6 +1878,8 @@ export function CreateProjectModal(props: CreateProjectModalProps) {
             };
         });
     }, []);
+
+    if (!open) return null;
 
     return (
         <div
@@ -2197,6 +2247,11 @@ export function Profile01(props: Profile01Props) {
         upgradeTitle,
         upgradeDescription,
         upgradeButton,
+        bannerSectionTitle,
+        bannerSectionDescription,
+        uploadBannerButton,
+        uploadingBannerButton,
+        removeBannerButton,
     } = mergedProps;
 
     const [selectedLocale, setSelectedLocale] = useState(() => {
@@ -2230,18 +2285,22 @@ export function Profile01(props: Profile01Props) {
         firstName: '',
         lastName: '',
         username: '',
+
         email: '',
         phone: '',
+
         gender: '',
+
         dobMonth: '',
         dobDay: null as number | null,
         dobYear: null as number | null,
+
         locale: '',
         timezone: '',
+
         bio: '',
 
         avatar: '',
-        logo: '',
         banner: '',
     });
 
@@ -2282,31 +2341,44 @@ export function Profile01(props: Profile01Props) {
     const loadProfile = async () => {
         try {
             setLoading(true);
+
             const response = await fetch('/api/v1/profile', {
                 credentials: 'include',
                 cache: 'no-store',
             });
+
             const json = await response.json();
+
             if (!response.ok || !json.success) {
                 throw new Error(json.message ?? 'Unable to load profile.');
             }
+
             const profile = json.profile;
+
+            const dob = profile.dob ? new Date(profile.dob) : null;
+
             setGeneralForm({
                 firstName: profile.firstName ?? '',
                 lastName: profile.lastName ?? '',
                 username: profile.username ?? '',
-                email: profile.email ?? '',
-                phone: profile.phone ?? '',
+
+                email: profile.contactEmail ?? '',
+                phone: profile.contactPhone ?? '',
+
                 gender: profile.gender ?? '',
-                dobMonth: profile.dobMonth ?? '',
-                dobDay: profile.dobDay,
-                dobYear: profile.dobYear,
+
+                dobMonth: dob ? dob.toLocaleString('en-US', { month: 'long' }) : '',
+
+                dobDay: dob ? dob.getDate() : null,
+
+                dobYear: dob ? dob.getFullYear() : null,
+
                 locale: profile.locale ?? '',
                 timezone: profile.timezone ?? '',
                 bio: profile.bio ?? '',
 
                 avatar: profile.avatar ?? '',
-                logo: profile.logo ?? '',
+
                 banner: profile.banner ?? '',
             });
 
@@ -2341,25 +2413,35 @@ export function Profile01(props: Profile01Props) {
                 throw new Error(json.message ?? 'Unable to save profile.');
             }
 
+            const profile = json.profile;
+
+            const dob = profile.dob ? new Date(profile.dob) : null;
+
             setSuccess(json.message ?? 'Profile updated successfully.');
 
             setGeneralForm({
-                firstName: json.profile.firstName ?? '',
-                lastName: json.profile.lastName ?? '',
-                username: json.profile.username ?? '',
-                email: json.profile.email ?? '',
-                phone: json.profile.phone ?? '',
-                gender: json.profile.gender ?? '',
-                dobMonth: json.profile.dobMonth ?? '',
-                dobDay: json.profile.dobDay,
-                dobYear: json.profile.dobYear,
-                locale: json.profile.locale ?? '',
-                timezone: json.profile.timezone ?? '',
-                bio: json.profile.bio ?? '',
+                firstName: profile.firstName ?? '',
+                lastName: profile.lastName ?? '',
+                username: profile.username ?? '',
 
-                avatar: json.profile.avatar ?? '',
-                logo: json.profile.logo ?? '',
-                banner: json.profile.banner ?? '',
+                email: profile.contactEmail ?? '',
+                phone: profile.contactPhone ?? '',
+
+                gender: profile.gender ?? 'UNKNOWN',
+
+                dobMonth: dob ? dob.toLocaleString('en-US', { month: 'long' }) : '',
+
+                dobDay: dob ? dob.getDate() : null,
+
+                dobYear: dob ? dob.getFullYear() : null,
+
+                locale: profile.locale ?? '',
+                timezone: profile.timezone ?? '',
+
+                bio: profile.bio ?? '',
+
+                avatar: profile.avatar ?? '',
+                banner: profile.banner ?? '',
             });
         } catch (err) {
             if (err instanceof Error) {
@@ -2403,49 +2485,42 @@ export function Profile01(props: Profile01Props) {
     const avatarInputRef = useRef<HTMLInputElement>(null);
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
-    const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [uploadingBanner, setUploadingBanner] = useState(false);
 
-    const logoInputRef = useRef<HTMLInputElement>(null);
+    const bannerInputRef = useRef<HTMLInputElement>(null);
 
-    const logoSrc =
-        logoPreview ??
-        (generalForm.logo?.startsWith('/uploads/') ? generalForm.logo : '/assets/images/logo.png');
+    const bannerSrc = generalForm.banner || '/assets/images/default-banner.jpg';
 
-    const handleLogoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleBannerChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
 
         if (!file) return;
 
-        if (!file.type.startsWith('image/')) {
-            setError('Please choose an image.');
-            return;
-        }
-
-        const preview = URL.createObjectURL(file);
-
-        setLogoPreview(preview);
+        setUploadingBanner(true);
 
         try {
-            setUploadingLogo(true);
+            const formData = new FormData();
+            formData.append('file', file);
 
-            const json = await uploadImage(file, 'logo');
+            const response = await fetch('/api/upload/banner', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const json = await response.json();
+
+            if (!response.ok || !json.success) {
+                throw new Error(json.message);
+            }
 
             setGeneralForm((prev) => ({
                 ...prev,
-                logo: json.image,
+                banner: json.url, // hoặc json.data.url
             }));
-
-            setSuccess('Logo updated successfully.');
         } catch (err) {
-            URL.revokeObjectURL(preview);
-
-            setLogoPreview(null);
-
-            if (err instanceof Error) {
-                setError(err.message);
-            }
+            console.error(err);
         } finally {
-            setUploadingLogo(false);
+            setUploadingBanner(false);
         }
     };
 
@@ -2476,6 +2551,10 @@ export function Profile01(props: Profile01Props) {
             setLoadingProjects(false);
         }
     };
+
+    useEffect(() => {
+        console.log('PROJECT STATE', projects);
+    }, [projects]);
 
     useEffect(() => {
         loadProfile();
@@ -2510,6 +2589,7 @@ export function Profile01(props: Profile01Props) {
         monthNovember,
         monthDecember,
     ];
+
     return (
         <>
             <section className={styles.profile}>
@@ -2531,6 +2611,7 @@ export function Profile01(props: Profile01Props) {
 
                                             <label className={styles.avatarUpload}>
                                                 <i className="bi bi-camera-fill"></i>
+
                                                 <input
                                                     ref={avatarInputRef}
                                                     type="file"
@@ -2556,7 +2637,10 @@ export function Profile01(props: Profile01Props) {
                                                     {t(uploadAvatarButton)}
                                                 </button>
 
-                                                <button className={styles.outlineButton}>
+                                                <button
+                                                    type="button"
+                                                    className={styles.outlineButton}
+                                                >
                                                     <i className="bi bi-trash3"></i>
                                                     {t(removeAvatarButton)}
                                                 </button>
@@ -2564,46 +2648,46 @@ export function Profile01(props: Profile01Props) {
                                         </div>
                                     </div>
 
-                                    <div className={styles.logoSection}>
-                                        <div className={styles.logoPreview}>
+                                    <div className={styles.bannerSection}>
+                                        <div className={styles.bannerPreview}>
                                             <Image
-                                                src={logoSrc}
-                                                alt={t(logoSectionTitle)}
-                                                width={72}
-                                                height={72}
-                                                className={styles.logoImage}
+                                                src={bannerSrc}
+                                                alt={t(bannerSectionTitle)}
+                                                width={220}
+                                                height={120}
+                                                className={styles.bannerImage}
                                             />
 
                                             <input
-                                                ref={logoInputRef}
+                                                ref={bannerInputRef}
                                                 type="file"
                                                 hidden
                                                 accept="image/*"
-                                                onChange={handleLogoChange}
+                                                onChange={handleBannerChange}
                                             />
                                         </div>
 
-                                        <div className={styles.logoInfo}>
-                                            <h3>{t(logoSectionTitle)}</h3>
+                                        <div className={styles.bannerInfo}>
+                                            <h3>{t(bannerSectionTitle)}</h3>
 
-                                            <p>{t(logoSectionDescription)}</p>
+                                            <p>{t(bannerSectionDescription)}</p>
 
                                             <div className={styles.mediaButtons}>
                                                 <button
                                                     type="button"
                                                     className={styles.primaryButton}
-                                                    disabled={uploadingLogo}
-                                                    onClick={() => logoInputRef.current?.click()}
+                                                    disabled={uploadingBanner}
+                                                    onClick={() => bannerInputRef.current?.click()}
                                                 >
-                                                    {uploadingLogo ? (
+                                                    {uploadingBanner ? (
                                                         <>
                                                             <span className={styles.spinner}></span>
-                                                            {t(uploadingLogoButton)}
+                                                            {t(uploadingBannerButton)}
                                                         </>
                                                     ) : (
                                                         <>
                                                             <i className="bi bi-upload"></i>
-                                                            {t(uploadLogoButton)}
+                                                            {t(uploadBannerButton)}
                                                         </>
                                                     )}
                                                 </button>
@@ -2613,7 +2697,7 @@ export function Profile01(props: Profile01Props) {
                                                     className={styles.outlineButton}
                                                 >
                                                     <i className="bi bi-trash3"></i>
-                                                    {t(removeLogoButton)}
+                                                    {t(removeBannerButton)}
                                                 </button>
                                             </div>
                                         </div>
@@ -2964,7 +3048,7 @@ export function Profile01(props: Profile01Props) {
                         <div className={styles.leftColumn}>
                             <section className={styles.projects}>
                                 <div className={styles.sectionHeader}>
-                                    <div>
+                                    <div className={styles.sectionHeaderTitle}>
                                         <span className={styles.sectionLabel}>
                                             {t(projectsTitle)}
                                         </span>

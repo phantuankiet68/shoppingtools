@@ -1,14 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+import { SocialType } from '@/generated/prisma';
+
 import { prisma } from '@/lib/prisma';
 import { getCustomerContextFromRequest } from '@/lib/auth/customer-guard';
 
 function error(message: string, status = 400) {
-    return NextResponse.json({ success: false, message }, { status });
+    return NextResponse.json(
+        {
+            success: false,
+            message,
+        },
+        {
+            status,
+        },
+    );
 }
 
 function trimString(value: unknown): string | null {
-    if (typeof value !== 'string') return null;
+    if (typeof value !== 'string') {
+        return null;
+    }
+
     const result = value.trim();
+
     return result.length ? result : null;
 }
 
@@ -17,23 +32,46 @@ export async function PATCH(request: NextRequest) {
         const auth = await getCustomerContextFromRequest(request);
 
         if (!auth.ok) {
-            return error('Unauthorized', 401);
+            return error('Unauthorized.', 401);
         }
 
         const body = await request.json();
 
-        const data = {
-            website: trimString(body.website),
-            facebook: trimString(body.facebook),
-            instagram: trimString(body.instagram),
-            tiktok: trimString(body.tiktok),
-            youtube: trimString(body.youtube),
-            linkedin: trimString(body.linkedin),
-        };
+        const socials = [
+            {
+                type: SocialType.WEBSITE,
+                url: trimString(body.website),
+            },
+            {
+                type: SocialType.FACEBOOK,
+                url: trimString(body.facebook),
+            },
+            {
+                type: SocialType.INSTAGRAM,
+                url: trimString(body.instagram),
+            },
+            {
+                type: SocialType.TIKTOK,
+                url: trimString(body.tiktok),
+            },
+            {
+                type: SocialType.YOUTUBE,
+                url: trimString(body.youtube),
+            },
+            {
+                type: SocialType.LINKEDIN,
+                url: trimString(body.linkedin),
+            },
+        ].filter((item) => item.url);
 
         const user = await prisma.user.findUnique({
-            where: { id: auth.user.id },
-            select: { id: true, email: true, image: true },
+            where: {
+                id: auth.user.id,
+            },
+            select: {
+                id: true,
+                image: true,
+            },
         });
 
         if (!user) {
@@ -44,31 +82,48 @@ export async function PATCH(request: NextRequest) {
             where: {
                 userId: user.id,
             },
-            update: {
-                website: data.website,
-                facebook: data.facebook,
-                instagram: data.instagram,
-                tiktok: data.tiktok,
-                youtube: data.youtube,
-                linkedin: data.linkedin,
-            },
+
+            update: {},
+
             create: {
                 userId: user.id,
-                email: user.email,
                 avatar: user.image,
-                website: data.website,
-                facebook: data.facebook,
-                instagram: data.instagram,
-                tiktok: data.tiktok,
-                youtube: data.youtube,
-                linkedin: data.linkedin,
+            },
+
+            select: {
+                id: true,
+            },
+        });
+
+        await prisma.socialLink.deleteMany({
+            where: {
+                profileId: profile.id,
+            },
+        });
+
+        if (socials.length > 0) {
+            await prisma.socialLink.createMany({
+                data: socials.map((item) => ({
+                    profileId: profile.id,
+                    type: item.type,
+                    url: item.url!,
+                })),
+            });
+        }
+
+        const result = await prisma.profile.findUnique({
+            where: {
+                id: profile.id,
+            },
+            include: {
+                socialLinks: true,
             },
         });
 
         return NextResponse.json({
             success: true,
             message: 'Social links updated successfully.',
-            profile,
+            profile: result,
         });
     } catch (err) {
         console.error('[PROFILE_SOCIAL]', err);

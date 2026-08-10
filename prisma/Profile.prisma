@@ -5,63 +5,61 @@ enum ProfileStatus {
   PENDING_VERIFICATION
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
 model Profile {
-  id              String        @id @default(cuid())
-  userId          String        @unique @map("user_id")
-  workspaceId     String?
-  firstName       String?       @map("first_name")
-  lastName        String?       @map("last_name")
-  username        String?       @unique
-  avatar          String?
-  banner          String?
-  email           String?
-  phone           String?
-  gender          String?
-  dobMonth        String?       @map("dob_month")
-  dobDay          Int?          @map("dob_day")
-  dobYear         Int?          @map("dob_year")
-  shopName        String?       @map("shop_name")
-  shopSlug        String?       @unique @map("shop_slug")
-  shopDescription String?       @map("shop_description") @db.Text
-  slogan          String?
-  bio             String?       @db.Text
-  address         String?
-  ward            String?
-  district        String?
-  city            String?
-  country         String?
-  logo            String?
-  cover           String?
-  website         String?
-  facebook        String?
-  instagram       String?
-  tiktok          String?
-  youtube         String?
-  linkedin        String?
-  companyName     String?       @map("company_name")
-  taxCode         String?       @map("tax_code")
-  businessLicense String?       @map("business_license")
-  isVerified      Boolean       @default(false)
-  verifiedAt      DateTime?     @map("verified_at")
-  status          ProfileStatus @default(ACTIVE)
-  totalProducts   Int           @default(0)
-  totalOrders     Int           @default(0)
-  totalSales      Float         @default(0)
-  rating          Float         @default(0)
-  reviewCount     Int           @default(0)
-  locale          String?
-  timezone        String?
-  twoFA           Boolean       @default(false) @map("two_fa")
-  user            User          @relation("UserProfile", fields: [userId], references: [id], onDelete: Cascade)
-  workspace       Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
-  projects Project[]
-  @@index([shopName])
-  @@index([shopSlug])
+  id       String @id @default(cuid())
+  userId   String @unique @map("user_id")
+  firstName String? @map("first_name")
+  lastName  String? @map("last_name")
+  username  String? @unique
+  avatar String?
+  banner String?
+  contactEmail String? @map("contact_email")
+  contactPhone String? @map("contact_phone")
+  gender Gender? @default(UNKNOWN)
+  dob DateTime? @map("dob")
+  bio String? @db.Text
+  locale String?
+  timezone String?
+  address  String?
+  status ProfileStatus @default(ACTIVE)
+  user User @relation("UserProfile", fields: [userId], references: [id], onDelete: Cascade)
+  socialLinks SocialLink[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([username])
   @@index([status])
-  @@index([city])
-  @@index([country])
-  @@index([isVerified])
   @@map("profiles")
 }
+
+enum SocialType {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  LINKEDIN
+  X
+  THREADS
+  GITHUB
+  GITLAB
+  DISCORD
+  TELEGRAM
+  WEBSITE
+}
+
+model SocialLink {
+  id String @id @default(cuid())
+  profileId String @map("profile_id")
+  type SocialType
+  url String
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@unique([profileId, type])
+  @@map("profile_social_links")
+}
+

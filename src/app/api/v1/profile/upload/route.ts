@@ -1,6 +1,5 @@
 import fs from 'fs/promises';
 import path from 'path';
-
 import sharp from 'sharp';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -11,7 +10,7 @@ export const runtime = 'nodejs';
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
-const VALID_TYPES = ['avatar', 'logo', 'banner', 'cover', 'thumbnail'] as const;
+const VALID_TYPES = ['avatar', 'banner', 'thumbnail'] as const;
 
 type UploadType = (typeof VALID_TYPES)[number];
 
@@ -38,7 +37,6 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
 
         const file = formData.get('file');
-
         const type = formData.get('type');
 
         if (!(file instanceof File)) {
@@ -60,16 +58,10 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
 
         let width = 512;
-
         let height = 512;
 
-        switch (type as UploadType) {
+        switch (type) {
             case 'avatar':
-                width = 512;
-                height = 512;
-                break;
-
-            case 'logo':
                 width = 512;
                 height = 512;
                 break;
@@ -79,18 +71,13 @@ export async function POST(request: NextRequest) {
                 height = 500;
                 break;
 
-            case 'cover':
-                width = 1920;
-                height = 600;
-                break;
-
             case 'thumbnail':
                 width = 1200;
                 height = 800;
                 break;
         }
 
-        const optimizedImage = await sharp(buffer)
+        const optimized = await sharp(buffer)
             .rotate()
             .resize(width, height, {
                 fit: 'cover',
@@ -108,31 +95,34 @@ export async function POST(request: NextRequest) {
             recursive: true,
         });
 
-        const fileName = `${crypto.randomUUID()}-${Date.now()}.webp`;
+        const filename = `${crypto.randomUUID()}-${Date.now()}.webp`;
 
-        const filePath = path.join(uploadDir, fileName);
+        await fs.writeFile(path.join(uploadDir, filename), optimized);
 
-        await fs.writeFile(filePath, optimizedImage);
-
-        const imageUrl = `/uploads/${folder}/${fileName}`;
+        const imageUrl = `/uploads/${folder}/${filename}`;
 
         let profile = null;
 
-        if (type === 'avatar' || type === 'logo' || type === 'banner' || type === 'cover') {
-            const updateData = {
-                [type]: imageUrl,
-            };
-
+        if (type === 'avatar' || type === 'banner') {
             profile = await prisma.profile.upsert({
                 where: {
                     userId: auth.user.id,
                 },
+
                 create: {
                     userId: auth.user.id,
-                    email: auth.user.email,
-                    ...updateData,
+                    [type]: imageUrl,
                 },
-                update: updateData,
+
+                update: {
+                    [type]: imageUrl,
+                },
+
+                select: {
+                    id: true,
+                    avatar: true,
+                    banner: true,
+                },
             });
         }
 
