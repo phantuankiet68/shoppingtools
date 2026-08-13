@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 type CreateMenuPayload = {
     siteId?: string;
     parentId?: string | null;
+    key?: string;
     title?: string;
     path?: string | null;
     icon?: string | null;
@@ -33,8 +34,51 @@ function slugifyTitle(value: string): string {
         .replace(/^-|-$/g, '');
 }
 
+function normalizeMenuKey(input: string | null | undefined, title: string): string {
+    const raw = input?.trim() || title;
+    const key = slugifyTitle(raw);
+
+    return key.slice(0, 100) || `menu-${Date.now()}`;
+}
+
+async function generateUniqueMenuKey(
+    tx: Prisma.TransactionClient,
+    siteId: string,
+    input: string | null | undefined,
+    title: string,
+): Promise<string> {
+    const baseKey = normalizeMenuKey(input, title);
+
+    const existing = await tx.menuItem.findMany({
+        where: {
+            siteId,
+            key: {
+                startsWith: baseKey,
+            },
+        },
+        select: {
+            key: true,
+        },
+    });
+
+    const existingKeys = new Set(existing.map((item) => item.key));
+
+    if (!existingKeys.has(baseKey)) {
+        return baseKey;
+    }
+
+    let index = 2;
+
+    while (existingKeys.has(`${baseKey}-${index}`)) {
+        index++;
+    }
+
+    return `${baseKey}-${index}`;
+}
+
 function buildMenuPath(area: MenuArea, title: string): string | null {
     const slug = slugifyTitle(title);
+
     if (!slug) return null;
 
     switch (area) {
@@ -55,6 +99,7 @@ function normalizePath(
     title: string,
 ): string | null {
     const raw = input?.trim() ?? '';
+
     if (!raw) {
         return buildMenuPath(area, title);
     }
@@ -83,7 +128,9 @@ export async function POST(req: NextRequest) {
         }
 
         const body = (await req.json()) as CreateMenuPayload;
-        const { siteId, parentId, title, path, icon, sortOrder, visible } = body;
+
+        const { siteId, parentId, key, title, path, icon, sortOrder, visible } = body;
+
         const area = parseArea(body.area);
 
         if (!siteId || !title) {
@@ -106,20 +153,37 @@ export async function POST(req: NextRequest) {
         }
 
         const site = await prisma.site.findUnique({
-            where: { id: nextSiteId },
-            select: { id: true, name: true, domain: true },
+            where: {
+                id: nextSiteId,
+            },
+            select: {
+                id: true,
+                name: true,
+                domain: true,
+            },
         });
 
         if (!site) {
-            return NextResponse.json({ message: `Site not found: ${nextSiteId}` }, { status: 400 });
+            return NextResponse.json(
+                {
+                    message: `Site not found: ${nextSiteId}`,
+                },
+                { status: 400 },
+            );
         }
 
         const nextParentId = parentId?.trim() ? parentId.trim() : null;
 
         if (nextParentId) {
             const parent = await prisma.menuItem.findUnique({
-                where: { id: nextParentId },
-                select: { id: true, siteId: true, area: true },
+                where: {
+                    id: nextParentId,
+                },
+                select: {
+                    id: true,
+                    siteId: true,
+                    area: true,
+                },
             });
 
             if (!parent) {
@@ -128,14 +192,18 @@ export async function POST(req: NextRequest) {
 
             if (parent.siteId !== site.id) {
                 return NextResponse.json(
-                    { message: 'Parent menu must belong to same site' },
+                    {
+                        message: 'Parent menu must belong to same site',
+                    },
                     { status: 400 },
                 );
             }
 
             if (parent.area !== area) {
                 return NextResponse.json(
-                    { message: 'Parent menu must belong to same area' },
+                    {
+                        message: 'Parent menu must belong to same area',
+                    },
                     { status: 400 },
                 );
             }
@@ -144,10 +212,13 @@ export async function POST(req: NextRequest) {
         const normalizedPath = normalizePath(path, area, nextTitle);
 
         const menu = await prisma.$transaction(async (tx) => {
+            const menuKey = await generateUniqueMenuKey(tx, site.id, key, nextTitle);
+
             const created = await tx.menuItem.create({
                 data: {
                     siteId: site.id,
                     parentId: nextParentId,
+                    key: menuKey,
                     title: nextTitle,
                     path: normalizedPath,
                     icon: icon?.trim() ? icon.trim() : null,

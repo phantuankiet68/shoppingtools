@@ -2,8 +2,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
+    gap: 12px;
+    padding: 5px;
     border-radius: 12px;
     background: #fff;
     border: var(--bd-header);
@@ -20,7 +20,7 @@
 
 .searchWrapper {
     position: relative;
-    min-width: 320px;
+    min-width: 200px;
     flex: 1;
 }
 
@@ -68,8 +68,8 @@
     border-radius: 12px;
     border: 1px solid #e2e8f0;
     background: #fafafa;
-    padding: 0 16px 0 38px;
-    min-width: 180px;
+    padding: 0 16px 0 30px;
+    min-width: 120px;
     outline: none;
     cursor: pointer;
     font-size: 14px;

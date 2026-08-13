@@ -1,14 +1,5 @@
-"use client";
+import SitesClient from '@/components/platform/sites/site-manager';
 
-import dynamic from "next/dynamic";
-import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
-const SiteBuilder = dynamic(() => import("@/components/admin/sites/page"), { ssr: false });
-
-export default function Page() {
-  return (
-    <main>
-      <AdminPageTitle title="Site Management" />
-      <SiteBuilder />
-    </main>
-  );
+export default function Sites() {
+    return <SitesClient />;
 }

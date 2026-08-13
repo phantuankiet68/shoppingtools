@@ -1,4 +1,4 @@
-import { Prisma, TemplateStatus } from '@/generated/prisma';
+import { AccessTier, Prisma, TemplateStatus } from '@/generated/prisma';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -9,14 +9,10 @@ type CreateTemplateBody = {
     name?: string;
     kind?: string;
     categoryId?: string;
-
     status?: TemplateStatus;
-
     previewImageUrl?: string | null;
-
     isActive?: boolean;
     isPublic?: boolean;
-
     sortOrder?: number;
 };
 
@@ -40,36 +36,19 @@ function parseBoolean(value: string | null) {
 
 function validateCreateBody(body: CreateTemplateBody) {
     const code = slugify(normalizeString(body.code));
-
     const name = normalizeString(body.name);
     const kind = normalizeString(body.kind);
-
     const categoryId = normalizeString(body.categoryId);
-
     const previewImageUrl = normalizeString(body.previewImageUrl) || null;
-
     const status = isTemplateStatus(body.status) ? body.status : 'PUBLISHED';
-
     const sortOrder = Number(body.sortOrder ?? 0);
 
     const errors: string[] = [];
 
-    if (!code) {
-        errors.push('Code is required.');
-    }
-
-    if (!name) {
-        errors.push('Name is required.');
-    }
-
-    if (!kind) {
-        errors.push('Kind is required.');
-    }
-
-    if (!categoryId) {
-        errors.push('Category is required.');
-    }
-
+    if (!code) errors.push('Code is required.');
+    if (!name) errors.push('Name is required.');
+    if (!kind) errors.push('Kind is required.');
+    if (!categoryId) errors.push('Category is required.');
     if (!Number.isFinite(sortOrder) || sortOrder < 0) {
         errors.push('Sort order must be greater than or equal to 0.');
     }
@@ -77,22 +56,15 @@ function validateCreateBody(body: CreateTemplateBody) {
     return {
         valid: errors.length === 0,
         errors,
-
         data: {
             code,
             name,
             kind,
-
             categoryId,
-
             status,
-
             previewImageUrl,
-
             isActive: body.isActive ?? true,
-
             isPublic: body.isPublic ?? true,
-
             sortOrder: Math.trunc(sortOrder),
         },
     };
@@ -103,78 +75,83 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
 
         const keyword = searchParams.get('keyword')?.trim() ?? '';
-
         const categoryId = searchParams.get('categoryId')?.trim() ?? '';
-
         const status = searchParams.get('status');
+        const tier = searchParams.get('tier')?.trim() ?? '';
 
         const isActive = parseBoolean(searchParams.get('isActive'));
-
         const isPublic = parseBoolean(searchParams.get('isPublic'));
 
         const includeDeleted = searchParams.get('includeDeleted') === 'true';
 
         const page = Math.max(Number(searchParams.get('page') ?? 1), 1);
+        const pageSize = Math.min(Math.max(Number(searchParams.get('pageSize') ?? 8), 1), 100);
 
-        const pageSize = Math.min(Math.max(Number(searchParams.get('pageSize') ?? 10), 1), 100);
+        const where: Prisma.TemplateCatalogWhereInput = {};
 
-        const where: Prisma.TemplateCatalogWhereInput = {
-            ...(keyword && {
-                OR: [
-                    {
+        if (!includeDeleted) {
+            where.deletedAt = null;
+        }
+
+        if (categoryId) {
+            where.categoryId = categoryId;
+        }
+
+        if (isTemplateStatus(status)) {
+            where.status = status;
+        }
+
+        if (typeof isActive === 'boolean') {
+            where.isActive = isActive;
+        }
+
+        if (typeof isPublic === 'boolean') {
+            where.isPublic = isPublic;
+        }
+
+        if (tier) {
+            where.category = {
+                is: {
+                    minTier: tier as AccessTier,
+                },
+            };
+        }
+        if (keyword) {
+            where.OR = [
+                {
+                    name: {
+                        contains: keyword,
+                        mode: 'insensitive',
+                    },
+                },
+                {
+                    code: {
+                        contains: keyword,
+                        mode: 'insensitive',
+                    },
+                },
+                {
+                    kind: {
+                        contains: keyword,
+                        mode: 'insensitive',
+                    },
+                },
+                {
+                    category: {
                         name: {
                             contains: keyword,
                             mode: 'insensitive',
                         },
                     },
-
-                    {
-                        code: {
-                            contains: keyword,
-                            mode: 'insensitive',
-                        },
-                    },
-
-                    {
-                        kind: {
-                            contains: keyword,
-                            mode: 'insensitive',
-                        },
-                    },
-                ],
-            }),
-
-            ...(categoryId && {
-                categoryId,
-            }),
-
-            ...(isTemplateStatus(status) && {
-                status,
-            }),
-
-            ...(typeof isActive === 'boolean' && {
-                isActive,
-            }),
-
-            ...(typeof isPublic === 'boolean' && {
-                isPublic,
-            }),
-
-            ...(includeDeleted
-                ? {}
-                : {
-                      deletedAt: null,
-                  }),
-        };
+                },
+            ];
+        }
 
         const [items, total] = await Promise.all([
             prisma.templateCatalog.findMany({
                 where,
-
                 skip: (page - 1) * pageSize,
-
                 take: pageSize,
-
                 orderBy: [
                     {
                         sortOrder: 'asc',
@@ -183,7 +160,6 @@ export async function GET(req: NextRequest) {
                         createdAt: 'desc',
                     },
                 ],
-
                 include: {
                     category: {
                         select: {
@@ -195,7 +171,6 @@ export async function GET(req: NextRequest) {
                     },
                 },
             }),
-
             prisma.templateCatalog.count({
                 where,
             }),
@@ -203,9 +178,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-
             data: items,
-
             meta: {
                 page,
                 pageSize,
@@ -250,7 +223,6 @@ export async function POST(req: NextRequest) {
             where: {
                 id: result.data.categoryId,
             },
-
             select: {
                 id: true,
             },
@@ -271,24 +243,15 @@ export async function POST(req: NextRequest) {
         const created = await prisma.templateCatalog.create({
             data: {
                 code: result.data.code,
-
                 name: result.data.name,
-
                 kind: result.data.kind,
-
                 categoryId: result.data.categoryId,
-
                 status: result.data.status,
-
                 previewImageUrl: result.data.previewImageUrl,
-
                 isActive: result.data.isActive,
-
                 isPublic: result.data.isPublic,
-
                 sortOrder: result.data.sortOrder,
             },
-
             include: {
                 category: {
                     select: {
@@ -303,9 +266,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
             {
                 success: true,
-
                 data: created,
-
                 message: 'Template created successfully.',
             },
             {

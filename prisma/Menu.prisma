@@ -3,45 +3,65 @@ enum MenuArea {
   ADMIN
   SITE
 }
-
-model MenuItem {
-  id     String @id @default(cuid())
-  siteId String
-  site   Site   @relation(fields: [siteId], references: [id], onUpdate: Cascade)
-
-  parentId String?    @db.VarChar(191)
-  parent   MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
-  children MenuItem[] @relation("MenuItemToSelf")
-
-  title     String  @db.VarChar(191)
-  path      String? @db.VarChar(255)
-  icon      String? @db.VarChar(100)
-  sortOrder Int     @default(0)
-  visible   Boolean @default(true)
-
-  area      MenuArea
+model MenuTemplate {
+  id String @id @default(cuid())
+  websiteType WebsiteType
+  categoryId String @map("category_id")
+  category TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  parentId String? @map("parent_id")
+  parent MenuTemplate? @relation("MenuTemplateToSelf", fields: [parentId], references: [id])
+  children MenuTemplate[] @relation("MenuTemplateToSelf")
+  key String @db.VarChar(100)
+  title String @db.VarChar(191)
+  path String? @db.VarChar(255)
+  icon String? @db.VarChar(100)
+  area MenuArea
+  sortOrder Int @default(0)
+  visible Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  rolePermissions MenuRolePermission[]
-
+  @@unique([websiteType, categoryId, key])
+  @@index([websiteType])
+  @@index([categoryId])
+  @@index([websiteType, categoryId])
   @@index([parentId])
+  @@index([websiteType, categoryId, sortOrder])
+  @@map("menu_templates")
+}
+model MenuItem {
+  id String @id @default(cuid())
+  siteId String
+  site Site @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  parentId String? @map("parent_id")
+  parent MenuItem? @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  children MenuItem[] @relation("MenuItemToSelf")
+  key String @db.VarChar(100)
+  title String @db.VarChar(191)
+  path String? @db.VarChar(255)
+  icon String? @db.VarChar(100)
+  area MenuArea
+  sortOrder Int @default(0)
+  visible Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rolePermissions MenuRolePermission[]
+  @@unique([siteId, key])
+  @@index([parentId])
+  @@index([siteId])
+  @@index([siteId, area])
   @@index([siteId, area, sortOrder])
-  @@index([siteId, area, visible])
-  @@index([title])
+  @@index([siteId, visible])
+  @@map("menu_items")
 }
 
 model MenuRolePermission {
   id     String   @id @default(cuid())
   menuId String
   menu   MenuItem @relation(fields: [menuId], references: [id], onDelete: Cascade)
-
   systemRole SystemRole
   enabled    Boolean    @default(true)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@unique([menuId, systemRole])
   @@index([systemRole, enabled])
   @@index([menuId])

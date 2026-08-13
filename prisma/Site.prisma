@@ -55,69 +55,114 @@ enum PaymentSiteMethod {
   CASH
 }
 
+enum DomainVerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+enum SslStatus {
+  PENDING
+  PROVISIONING
+  ACTIVE
+  EXPIRING
+  EXPIRED
+  FAILED
+  REVOKED
+}
+
+enum DeploymentStatus {
+  IDLE
+  BUILDING
+  DEPLOYING
+  SUCCESS
+  FAILED
+}
+
 model Site {
-  id              String      @id @default(cuid())
+  id String @id @default(cuid())
 
-  name            String
-  domain          String      @unique
-  type            WebsiteType @default(ecommerce)
-  category        String?     @db.VarChar(100)
+  name     String
+  domain   String @unique
+  type     WebsiteType @default(ecommerce)
+  category String? @db.VarChar(100)
 
-  logoUrl         String?     @map("logo_url")
-  faviconUrl      String?
+  logoUrl     String? @map("logo_url")
+  faviconUrl  String?
 
-  seoTitle        String?     @map("seo_title")
-  seoDescription  String?     @map("seo_description") @db.Text
+  seoTitle       String? @map("seo_title")
+  seoDescription String? @map("seo_description") @db.Text
 
-  contactEmail    String?
-  contactPhone    String?
+  contactEmail String?
+  contactPhone String?
 
-  ownerUserId     String      @map("owner_user_id")
-  createdByUserId String?     @map("created_by_user_id")
-  workspaceId     String?     @map("workspace_id")
+  ownerUserId     String @map("owner_user_id")
+  createdByUserId String? @map("created_by_user_id")
+  workspaceId     String? @map("workspace_id")
 
-  status          SiteStatus  @default(DRAFT)
-  isPublic        Boolean     @default(false) @map("is_public")
+  status     SiteStatus @default(DRAFT)
+  isPublic   Boolean @default(false) @map("is_public")
+  publishedAt DateTime? @map("published_at")
 
-  publishedAt     DateTime?   @map("published_at")
+  domainVerificationStatus DomainVerificationStatus @default(PENDING) @map("domain_verification_status")
+  domainVerificationToken  String? @map("domain_verification_token")
+  domainVerifiedAt         DateTime? @map("domain_verified_at")
 
-  themeConfig     Json?       @map("theme_config")
+  sslStatus        SslStatus @default(PENDING) @map("ssl_status")
+  sslProvider      String? @map("ssl_provider")
+  sslCertificateId String? @map("ssl_certificate_id")
+  sslIssuedAt      DateTime? @map("ssl_issued_at")
+  sslExpiresAt     DateTime? @map("ssl_expires_at")
+  sslAutoRenew     Boolean @default(true) @map("ssl_auto_renew")
+  sslLastCheckedAt DateTime? @map("ssl_last_checked_at")
+  sslErrorCode     String? @map("ssl_error_code")
+  sslErrorMessage  String? @map("ssl_error_message") @db.Text
 
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-  deletedAt       DateTime?   @map("deleted_at")
+  deploymentStatus DeploymentStatus @default(IDLE) @map("deployment_status")
+  deployedAt       DateTime? @map("deployed_at")
+  deploymentError  String? @map("deployment_error") @db.Text
 
-  owner           User        @relation("SiteOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
-  createdBy       User?       @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  workspace       Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  storageUsedBytes   BigInt @default(0) @map("storage_used_bytes")
+  bandwidthUsedBytes BigInt @default(0) @map("bandwidth_used_bytes")
+  totalVisits        BigInt @default(0) @map("total_visits")
 
-  subscription    SiteSubscription?
+  themeConfig Json? @map("theme_config")
 
-  customers       Customer[]
-  addresses       Address[]
-  menuItems       MenuItem[]
-  orders          Order[]
-  orderItems      OrderItem[]
-  fulfillments    Fulfillment[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
-  pages           Page[]
-  products        Product[]
+  owner      User @relation("SiteOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  createdBy  User? @relation("SiteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  workspace  Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  subscription SiteSubscription?
+
+  customers Customer[]
+  addresses Address[]
+  menuItems MenuItem[]
+  orders Order[]
+  orderItems OrderItem[]
+  fulfillments Fulfillment[]
+
+  pages Page[]
+  products Product[]
   productVariants ProductVariant[]
-  Brands          Brand[]
-  Categories      Category[]
+  brands Brand[]
+  categories Category[]
 
   storageIntegration StorageIntegration?
-  storageLogs        StorageLog[]
+  storageLogs StorageLog[]
 
   returnRequests ReturnRequest[]
-  reviews        Review[]
+  reviews Review[]
 
   emailProviderConfig EmailProviderConfig?
-  emailCampaigns      EmailCampaign[]
-  emailSubscribers    EmailSubscriber[]
-  emailLogs           EmailLog[]
+  emailCampaigns EmailCampaign[]
+  emailSubscribers EmailSubscriber[]
+  emailLogs EmailLog[]
   emailAnalyticsDailies EmailAnalyticsDaily[]
-  subscribers         Subscriber[]
+  subscribers Subscriber[]
 
   users User[]
   payments Payment[]
@@ -129,48 +174,78 @@ model Site {
   @@index([isPublic])
   @@index([publishedAt])
   @@index([type])
+  @@index([domainVerificationStatus])
+  @@index([sslStatus])
+  @@index([sslExpiresAt])
+  @@index([deploymentStatus])
+  @@index([deletedAt])
 
   @@map("sites")
 }
 
 model PricingPlan {
   id String @id @default(cuid())
+
   name String
   code String @unique
   description String?
+
   status PlanStatus @default(ACTIVE)
+
   price Decimal @db.Decimal(10,2)
   billingCycle BillingCycle
+
   maxPages Int
   maxProducts Int
   maxUsers Int
+
+  maxStorageBytes   BigInt @default(10737418240) @map("max_storage_bytes")
+  maxBandwidthBytes BigInt @default(107374182400) @map("max_bandwidth_bytes")
+
   canCustomDomain Boolean @default(true)
+  canRemoveBranding Boolean @default(false)
+  canUseAnalytics Boolean @default(true)
+  canUseEmail Boolean @default(true)
+
   sortOrder Int @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   subscriptions SiteSubscription[]
+
   @@index([status])
   @@index([sortOrder])
 }
 
 model SiteSubscription {
   id String @id @default(cuid())
+
   siteId String @unique
-  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields:[siteId], references:[id], onDelete:Cascade)
+
   planId String
-  plan PricingPlan @relation(fields: [planId], references: [id])
+  plan PricingPlan @relation(fields:[planId], references:[id])
+
   status SubscriptionStatus @default(TRIAL)
+
   billingCycle BillingCycle
   autoRenew Boolean @default(true)
+
   startedAt DateTime @default(now())
   trialEndsAt DateTime?
+
   currentPeriodStart DateTime
   currentPeriodEnd DateTime
+
   nextBillingAt DateTime?
   canceledAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   paymentSites PaymentSite[]
+
   @@index([status])
   @@index([nextBillingAt])
   @@index([currentPeriodEnd])
@@ -180,10 +255,10 @@ model PaymentSite {
   id String @id @default(cuid())
 
   siteId String
-  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields:[siteId], references:[id], onDelete:Cascade)
 
   subscriptionId String?
-  subscription SiteSubscription? @relation(fields: [subscriptionId], references: [id])
+  subscription SiteSubscription? @relation(fields:[subscriptionId], references:[id])
 
   amount Decimal @db.Decimal(10,2)
   currency String @default("USD")
@@ -200,12 +275,20 @@ model PaymentSite {
 
   paidAt DateTime?
 
+  providerEventId String? @map("provider_event_id")
+  failureCode String? @map("failure_code")
+  failureMessage String? @map("failure_message") @db.Text
+  refundedAt DateTime? @map("refunded_at")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerEventId])
 
   @@index([siteId])
   @@index([subscriptionId])
   @@index([status])
+  @@index([provider])
   @@index([paidAt])
 
   @@map("payment_sites")

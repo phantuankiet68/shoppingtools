@@ -15,14 +15,14 @@ model TemplateCategory {
 
   name        String
   description String?
-
+  websiteType WebsiteType?
   minTier AccessTier @default(BASIC) @map("min_tier")
 
   sortOrder Int     @default(0) @map("sort_order")
   isActive  Boolean @default(true) @map("is_active")
 
   templates TemplateCatalog[]
-
+  menuTemplates MenuTemplate[]
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -33,23 +33,16 @@ model TemplateCategory {
 
 model TemplateCatalog {
   id String @id @default(cuid())
-
   code String @unique
   name String
   kind String
-
   categoryId String           @map("category_id")
   category   TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-
   status TemplateStatus @default(PUBLISHED)
-
   previewImageUrl String? @map("preview_image_url")
-
   isActive Boolean @default(true) @map("is_active")
   isPublic Boolean @default(true) @map("is_public")
-
   sortOrder Int @default(0) @map("sort_order")
-
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")

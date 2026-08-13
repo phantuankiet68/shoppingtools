@@ -50,3 +50,5 @@ thường thì được setup pathName: {
 Bạn hãy chỉnh giúp tôi nhé nếu nhiều quá thì hãy lưu ý đừng một dòng xuống một dòng nhé tốn nhiều với lại nếu nhiều quá hãy chia làm 3 phần nhé. hãy dịch chuẩn giúp tôi
 
 tạo DEFAULT_PROPS giúp tôi nhé
+
+Hiện tại tôi muốn tạo list site mannager để quản lý toàn bộ site đã được đăng ký. tôi đang sử dụng công nghệ next 16, prisma 7.8.0, và css module. Bạn hãy ở cương vị là serior front-end developer hãy tạo bố cục giống với ảnh nhưng khác về nội dụng. và hãy độ lại có thêm icon mắt để link đến domain site để kiểm tra và thêm nút khóa nửa nhé

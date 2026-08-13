@@ -168,11 +168,6 @@ export default function MenuPageClient() {
                                                 </option>
                                             ))}
                                         </select>
-
-                                        <i
-                                            className={`bi bi-chevron-down ${styles.areaFilterChevron}`}
-                                            aria-hidden="true"
-                                        />
                                     </div>
                                 </div>
 
@@ -498,11 +493,6 @@ export default function MenuPageClient() {
 
                     <aside className={styles.sidebar}>
                         <div className={styles.sideCard}>
-                            <div className={styles.topbarLeft}>
-                                <div className={styles.titleInline}>
-                                    <span className={styles.kicker}>Overview</span>
-                                </div>
-                            </div>
                             <div className={styles.bulkActions}>
                                 <button
                                     type="button"

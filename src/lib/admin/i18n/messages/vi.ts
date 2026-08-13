@@ -717,6 +717,8 @@ const vi = {
             inventory: 'Kho hàng',
             lowStock: 'Sắp hết hàng',
             listInventory: 'Danh sách kho',
+            template: 'Template',
+            menu_template: 'Mẫu Menu',
         },
         menuStructure: {
             untitled: '(Chưa có tiêu đề)',

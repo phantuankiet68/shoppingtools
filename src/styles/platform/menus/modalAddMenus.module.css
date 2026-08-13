@@ -134,7 +134,7 @@
 }
 .metaLabel {
     color: #64748b;
-    font-size: 0.84rem;
+    font-size: 1.2rem;
     font-weight: 600;
 }
 .metaValue {
@@ -145,7 +145,7 @@
     border-radius: 999px;
     background: rgba(37, 99, 235, 0.1);
     color: #1d4ed8;
-    font-size: 0.84rem;
+    font-size: 1.2rem;
     font-weight: 400;
 }
 .visibilityToggle {
@@ -185,7 +185,7 @@
 .visibilityText {
     min-width: 54px;
     color: #475569;
-    font-size: 0.86rem;
+    font-size: 1.2rem;
     font-weight: 700;
 }
 .errorBox {

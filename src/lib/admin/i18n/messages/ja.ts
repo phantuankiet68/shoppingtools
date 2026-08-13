@@ -539,6 +539,8 @@ const ja = {
         chat: 'チャット',
         template_email: 'メールテンプレート',
         tasks: 'タスク',
+        template: 'テンプレート',
+        menu_template: 'メニューテンプレート',
         aria: {
             chooseSite: 'サイトを選択',
             siteKind: 'サイト種別',

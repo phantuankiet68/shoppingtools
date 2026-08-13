@@ -98,6 +98,12 @@ export default function AdminTemplatesPage() {
     const [selectedTemplate, setSelectedTemplate] = useState<TemplateCatalog | null>(null);
     const [loadingTemplateDetail, setLoadingTemplateDetail] = useState(false);
 
+    const PAGE_SIZE = 8;
+
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+
     const fetchTemplateCategorys = async () => {
         try {
             setLoadingGroups(true);
@@ -132,7 +138,32 @@ export default function AdminTemplatesPage() {
         try {
             setLoadingTemplates(true);
 
-            const response = await fetch('/api/platform/templates?page=1&pageSize=100', {
+            const params = new URLSearchParams();
+
+            params.set('page', page.toString());
+            params.set('pageSize', PAGE_SIZE.toString());
+
+            if (keyword.trim()) {
+                params.set('keyword', keyword.trim());
+            }
+
+            if (selectedGroupId !== 'all') {
+                params.set('categoryId', selectedGroupId);
+            }
+
+            if (selectedStatus !== 'all') {
+                params.set('status', selectedStatus);
+            }
+
+            if (selectedTier !== 'all') {
+                params.set('tier', selectedTier);
+            }
+
+            if (publicOnly) {
+                params.set('isPublic', 'true');
+            }
+
+            const response = await fetch(`/api/platform/templates?${params.toString()}`, {
                 method: 'GET',
                 cache: 'no-store',
             });
@@ -144,15 +175,28 @@ export default function AdminTemplatesPage() {
             }));
 
             if (!response.ok || !result.success) {
-                console.error('Failed to fetch templates:', result);
+                console.error(result);
                 setTemplates([]);
+                setTotalPages(1);
+                setTotalItems(0);
                 return;
             }
 
-            setTemplates(Array.isArray(result.data) ? result.data : []);
+            setTemplates(result.data ?? []);
+
+            setPage(result.meta?.page ?? 1);
+
+            setTotalPages(result.meta?.totalPages ?? 1);
+
+            setTotalItems(result.meta?.total ?? 0);
         } catch (error) {
-            console.error('Fetch templates error:', error);
+            console.error(error);
+
             setTemplates([]);
+
+            setTotalPages(1);
+
+            setTotalItems(0);
         } finally {
             setLoadingTemplates(false);
         }
@@ -208,8 +252,11 @@ export default function AdminTemplatesPage() {
 
     useEffect(() => {
         fetchTemplateCategorys();
-        fetchTemplates();
     }, []);
+
+    useEffect(() => {
+        fetchTemplates();
+    }, [page, keyword, selectedGroupId, selectedStatus, selectedTier, publicOnly]);
 
     const categoryMap = useMemo(
         () =>
@@ -540,13 +587,6 @@ export default function AdminTemplatesPage() {
                                                                 >
                                                                     {template.name}
                                                                 </div>
-
-                                                                <div
-                                                                    className={styles.templateCode}
-                                                                >
-                                                                    {template.code} ·{' '}
-                                                                    {template.kind}
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -639,6 +679,28 @@ export default function AdminTemplatesPage() {
                                     )}
                                 </tbody>
                             </table>
+                            <div className={styles.pagination}>
+                                <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+                                    Previous
+                                </button>
+
+                                {Array.from({ length: totalPages }, (_, i) => (
+                                    <button
+                                        key={i}
+                                        className={page === i + 1 ? styles.activePage : ''}
+                                        onClick={() => setPage(i + 1)}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+
+                                <button
+                                    disabled={page === totalPages}
+                                    onClick={() => setPage((p) => p + 1)}
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </main>

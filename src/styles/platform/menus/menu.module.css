@@ -75,7 +75,7 @@
     padding: 8px 16px;
     border-radius: 10px;
     font-weight: 500;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
     min-height: 52px;
     display: flex;
     align-items: center;
@@ -166,7 +166,7 @@
     border-radius: 8px;
     background: #ffd6c5;
     color: #ff5a00;
-    font-size: 0.82rem;
+    font-size: 1.2rem;
     font-weight: 500;
 }
 
@@ -261,8 +261,8 @@
 
 .contentGrid {
     display: grid;
-    grid-template-columns: minmax(0, 1.8fr) 320px;
-    gap: 16px;
+    grid-template-columns: minmax(0, 1.8fr) 220px;
+    gap: 12px;
     align-items: start;
 }
 
@@ -306,7 +306,7 @@
 
 .searchIcon {
     color: var(--muted-soft);
-    font-size: 23px;
+    font-size: 1.4rem;
     margin-top: -5px;
 }
 
@@ -334,7 +334,7 @@
 
 .segmentButton {
     min-height: 36px;
-    padding: 0 20px;
+    padding: 0 10px;
     border-radius: 10px;
     background: transparent;
     color: var(--muted);
@@ -391,8 +391,8 @@
 }
 
 .avatar {
-    width: 35px;
-    height: 35px;
+    width: 45px;
+    height: 45px;
     border-radius: 12px;
     background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
     color: #1e3a8a;
@@ -410,7 +410,7 @@
 
 .menuTitle {
     display: block;
-    font-size: 13px;
+    font-size: 1.3rem;
     font-weight: 500;
     color: var(--muted);
 }
@@ -421,7 +421,7 @@
     gap: 8px;
     margin-top: 4px;
     color: var(--muted);
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -436,7 +436,7 @@
 
 .pathCell {
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 1.3rem;
     word-break: break-word;
 }
 
@@ -459,8 +459,7 @@
     min-height: 28px;
     padding: 0 10px;
     border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 500;
+    font-size: 1.2rem;
 }
 
 .badgeSuccessSoft {
@@ -584,18 +583,19 @@
     border: var(--bd-header);
     border-radius: 8px;
     background: var(--panel-muted);
+    font-size: 1.3rem;
 }
 
 .overviewItem span,
 .accessKey {
     color: var(--muted);
-    font-size: 0.86rem;
+    font-size: 1.2rem;
 }
 
 .accessLabel {
     display: block;
     margin-bottom: 2px;
-    font-size: 0.9rem;
+    font-size: 1.3rem;
 }
 
 @keyframes spin {
@@ -723,8 +723,8 @@
 
 .switchText {
     min-width: 34px;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 1.2rem;
+    font-weight: 500;
     color: var(--muted);
 }
 
@@ -759,8 +759,8 @@
     border: var(--bd-add);
     background: var(--bg-add);
     color: var(--color-add);
-    font-size: 0.88rem;
-    font-weight: 400;
+    font-size: 1.2rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.18s ease;
 }
@@ -834,14 +834,6 @@
     pointer-events: none;
 }
 
-.areaFilterChevron {
-    position: absolute;
-    right: 14px;
-    font-size: 12px;
-    color: #667085;
-    pointer-events: none;
-}
-
 .areaFilterSelect {
     width: 100%;
     min-height: 44px;
@@ -904,7 +896,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
-    font-size: 14px;
+    font-size: 1.3rem;
     color: #64748b;
     line-height: 1.5;
 }
@@ -930,7 +922,7 @@
     height: 40px;
     padding: 0 14px;
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 1.2rem;
     font-weight: 500;
     cursor: pointer;
     transition:
@@ -993,10 +985,10 @@
 
 .bulkEnableButton,
 .bulkDisableButton {
-    height: 52px;
+    height: 46px;
     padding: 0 14px;
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 1.3rem;
     display: inline-flex;
     align-items: center;
     gap: 8px;

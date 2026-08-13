@@ -537,6 +537,8 @@ const en = {
         chat: 'Chat',
         tasks: 'Tasks',
         template_email: 'Email Templates',
+        template: 'List Template',
+        menu_template: 'Menu Template',
         aria: {
             chooseSite: 'Choose website',
             siteKind: 'Site type',
