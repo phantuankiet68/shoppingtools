@@ -1,0 +1,148 @@
+.wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 280px;
+    min-height: 42px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #f8fafc;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.search:focus-within {
+    border-color: #bfdbfe;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px #eff6ff;
+}
+
+.search > i {
+    margin-left: 13px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.search input {
+    width: 100%;
+    min-width: 0;
+    height: 45px;
+    padding: 0 34px 0 10px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #334155;
+    font-family: inherit;
+    font-size: 1.3rem;
+}
+
+.search input::placeholder {
+    color: #94a3b8;
+}
+
+.clearSearch {
+    position: absolute;
+    right: 8px;
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: #e8eef5;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.clearSearch:hover {
+    background: #dbe3ef;
+    color: #334155;
+}
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filters select {
+    min-height: 42px;
+    padding: 0 30px 0 11px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    outline: none;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1.3rem;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.filters select:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+}
+
+.filters select:focus {
+    border-color: #bfdbfe;
+    background: #ffffff;
+}
+
+.clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #64748b;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1.3rem;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.clear:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+}
+
+@media (max-width: 1100px) {
+    .wrapper {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .search {
+        width: 100%;
+    }
+
+    .filters {
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .filters select,
+    .clear {
+        flex-shrink: 0;
+    }
+}

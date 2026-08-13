@@ -70,6 +70,28 @@
     --color-warning: #f18a4c;
     --bg-warning: #fff4e5;
     --bd-warning: 1px solid #ffd1ab;
+    /* Background */
+    --bg: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-hover: #f8fafc;
+
+    /* Border */
+    --bd-default: 1px solid #e5e7eb;
+    --bd-light: 1px solid #f1f5f9;
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+
+    /* Text */
+    --text: #111827;
+    --muted: #6b7280;
+
+    /* Primary */
+    --primary: #2563eb;
+    --primary-soft: #eff6ff;
 }
 
 html {

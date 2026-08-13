@@ -1,0 +1,151 @@
+.wrapper {
+    display: grid;
+    gap: 12px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.header p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 1.3rem;
+}
+
+.count {
+    min-width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    background: #eff6ff;
+    color: #2563eb;
+
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.list {
+    display: grid;
+    gap: 8px;
+}
+.empty {
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    min-height: 260px;
+    padding: 42px 24px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    text-align: center;
+}
+
+.emptyIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 4px;
+    border: 1px solid #dbe3ef;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #94a3b8;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.emptyIcon i {
+    font-size: 1.5rem;
+}
+
+.empty h3 {
+    margin: 2px 0 0;
+    color: #334155;
+    font-size: 1.4rem;
+    font-weight: 650;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+}
+
+.empty p {
+    max-width: 440px;
+    margin: 0;
+    color: #94a3b8;
+    font-size: 1.3rem;
+    font-weight: 450;
+    line-height: 1.55;
+}
+.loading {
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    min-height: 260px;
+    padding: 42px 24px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    text-align: center;
+}
+
+.loadingIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 4px;
+    border: 1px solid #dbe3ef;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #64748b;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.loadingIcon i {
+    display: inline-block;
+    font-size: 1.5rem;
+    animation: loadingSpin 0.9s linear infinite;
+}
+
+.loading h3 {
+    margin: 2px 0 0;
+    color: #334155;
+    font-size: 1.4rem;
+    font-weight: 650;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+}
+
+.loading p {
+    max-width: 440px;
+    margin: 0;
+    color: #94a3b8;
+    font-size: 1.3rem;
+    font-weight: 450;
+    line-height: 1.55;
+}
+
+@keyframes loadingSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

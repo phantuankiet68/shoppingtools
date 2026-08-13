@@ -85,5 +85,13 @@ export const API = {
 
         SITE_DEPLOY: (id: string) => `/api/platform/sites/${id}/deploy`,
         SITE_PROVISION_SSL: (id: string) => `/api/platform/sites/${id}/provision-ssl`,
+
+        API_HEALTH: '/api/platform/api-health',
+
+        API_HEALTH_DETAIL: (id: string) => `/api/platform/api-health/${id}`,
+
+        API_HEALTH_TEST: (id: string) => `/api/platform/api-health/${id}/test`,
+
+        API_HEALTH_TEST_ALL: '/api/platform/api-health/test-all',
     },
 } as const;
