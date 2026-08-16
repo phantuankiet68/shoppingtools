@@ -335,6 +335,7 @@ const en = {
             results: '/results',
 
             jlptCourses: '/jlpt-courses',
+            api_health: '/platform/api-health',
         },
 
         type: {
@@ -539,6 +540,7 @@ const en = {
         template_email: 'Email Templates',
         template: 'List Template',
         menu_template: 'Menu Template',
+        api_health: 'API Health',
         aria: {
             chooseSite: 'Choose website',
             siteKind: 'Site type',

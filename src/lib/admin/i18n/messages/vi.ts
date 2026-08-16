@@ -335,6 +335,7 @@ const vi = {
             results: '/ket-qua',
 
             jlptCourses: '/khoa-hoc-jlpt',
+            api_health: '/platform/api-health',
         },
 
         type: {
@@ -545,6 +546,7 @@ const vi = {
         'low-stock': 'Sắp hết hàng',
         list: 'Danh sách tồn kho',
         tasks: 'Công việc',
+        api_health: 'Theo dõi API',
         aria: {
             chooseSite: 'Chọn website',
             siteKind: 'Loại website',

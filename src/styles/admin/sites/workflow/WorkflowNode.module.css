@@ -1,0 +1,259 @@
+.node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 430px;
+    min-height: 0px;
+    padding: 12px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #1b263a 0%, #182235 100%);
+    border: 1px solid rgba(44, 214, 123, 0.45);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+    cursor: pointer;
+    transition: 0.25s;
+    overflow: visible;
+}
+
+.node:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 0 0 1px rgba(68, 170, 255, 0.25),
+        0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+.active {
+    border-color: #4da3ff;
+    box-shadow:
+        0 0 0 1px rgba(77, 163, 255, 0.45),
+        0 0 35px rgba(77, 163, 255, 0.25);
+}
+
+.handle {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2ad46d;
+    border: 4px solid #edf8f0;
+    transform: translateY(-50%);
+    box-shadow: 0 0 14px rgba(42, 212, 109, 0.7);
+    z-index: 10;
+}
+
+.left {
+    left: -8px;
+}
+
+.right {
+    right: -8px;
+}
+
+.icon {
+    width: 43px;
+    height: 43px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icon i {
+    font-size: 1.6rem;
+    color: #fff;
+}
+
+.green {
+    background: linear-gradient(180deg, #29c659, #1ea546);
+}
+
+.blue {
+    background: linear-gradient(180deg, #4f8cff, #2f67e8);
+}
+
+.orange {
+    background: linear-gradient(180deg, #ffa114, #ff6b00);
+}
+
+.purple {
+    background: linear-gradient(180deg, #9f6bff, #7c3aed);
+}
+
+.red {
+    background: linear-gradient(180deg, #ff6666, #ef4444);
+}
+
+.yellow {
+    background: linear-gradient(180deg, #ffd34d, #f59e0b);
+}
+
+.gray {
+    background: linear-gradient(180deg, #7b8799, #5f6979);
+}
+
+.body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.handleLeft {
+    display: flex;
+    gap: 10px;
+}
+.headerTop {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+}
+
+.subtitle {
+    margin: 0;
+    color: #9ba8bd;
+    font-size: 1.2rem;
+    line-height: 1.45;
+}
+
+.badge {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    color: #a5a8a6;
+    background: rgba(112, 112, 112, 0.16);
+}
+
+.badge.success {
+    color: #2ad46d;
+    background: rgba(42, 212, 109, 0.16);
+}
+
+.badge.running {
+    color: #ffb020;
+    background: rgba(255, 176, 32, 0.18);
+}
+
+.badge.waiting {
+    color: #b8c1d4;
+    background: rgba(184, 193, 212, 0.14);
+}
+
+.badge.error {
+    color: #ff6666;
+    background: rgba(255, 102, 102, 0.18);
+}
+
+.api {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: max-content;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #27344b;
+    color: #9cc7ff;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.api i {
+    font-size: 1rem;
+}
+
+.progress {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22d3ee, #3b82f6);
+    animation: progress 1.2s linear infinite;
+}
+
+.success {
+    border-color: rgba(42, 212, 109, 0.45);
+}
+
+.running {
+    border-color: rgba(255, 176, 32, 0.45);
+}
+
+.waiting {
+    border-color: rgba(170, 180, 195, 0.35);
+}
+
+.error {
+    border-color: rgba(255, 95, 95, 0.45);
+}
+
+@keyframes progress {
+    from {
+        filter: hue-rotate(0deg);
+    }
+    to {
+        filter: hue-rotate(25deg);
+    }
+}
+.warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #f59e0b;
+}
+.error {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #ef4444;
+}
+.duration {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+.indeterminate {
+    width: 35%;
+    animation: progressMove 1.2s ease-in-out infinite;
+}
+
+@keyframes progressMove {
+    0% {
+        transform: translateX(-120%);
+    }
+    100% {
+        transform: translateX(320%);
+    }
+}

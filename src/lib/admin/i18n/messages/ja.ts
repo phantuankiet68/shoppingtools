@@ -334,6 +334,7 @@ const ja = {
             results: '/results',
 
             jlptCourses: '/jlpt-courses',
+            api_health: '/platform/api-health',
         },
 
         type: {
@@ -541,6 +542,7 @@ const ja = {
         tasks: 'タスク',
         template: 'テンプレート',
         menu_template: 'メニューテンプレート',
+        api_health: 'APIヘルス',
         aria: {
             chooseSite: 'サイトを選択',
             siteKind: 'サイト種別',
