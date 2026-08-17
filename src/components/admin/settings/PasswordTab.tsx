@@ -3,7 +3,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import styles from '@/styles/admin/settings/password.module.css';
 import { changePassword } from '@/services/adminUser.service';
-import { getAdminProfile } from '@/services/profile/getProfile.service';
 
 type Account = {
     email: string;

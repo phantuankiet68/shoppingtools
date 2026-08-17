@@ -370,6 +370,7 @@ const en = {
             favicon: 'Favicon',
             defaultMenus: 'Default Menus',
             defaultPages: 'Default Pages',
+            close: 'Close',
         },
 
         table: {
@@ -388,6 +389,13 @@ const en = {
             public: 'Public',
             private: 'Private',
             newSite: 'New Site',
+            domainSsl: 'Domain & SSL',
+            deployment: 'Deployment',
+            usage: 'Usage',
+            visits: 'Visits',
+            payment: 'Payment',
+            allStatus: 'All Status',
+            allTypes: 'All Types',
         },
 
         types: {
@@ -430,8 +438,25 @@ const en = {
             selectSiteFirst: 'Please select a site first.',
             success: 'Success',
         },
-        status: { draft: 'DRAFT', active: 'ACTIVE', suspended: 'SUSPENDED' },
+        status: {
+            draft: 'DRAFT',
+            published: 'PUBLISHED',
+            suspended: 'SUSPENDED',
+            archived: 'ARCHIVED',
+            private: 'Private',
+        },
+        domain: {
+            pending: 'Pending Verification',
+        },
 
+        ssl: {
+            pending: 'SSL Pending',
+        },
+
+        deployment: {
+            idle: 'Idle',
+            notDeployed: 'Not Deployed',
+        },
         category: {
             'Company Profile': 'Company Profile',
             'Personal Profile': 'Personal Profile',

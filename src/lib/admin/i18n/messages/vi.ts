@@ -374,6 +374,7 @@ const vi = {
 
             defaultMenus: 'Menu mặc định',
             defaultPages: 'Trang mặc định',
+            close: 'Đóng',
         },
 
         table: {
@@ -392,6 +393,13 @@ const vi = {
             public: 'Công khai',
             private: 'Riêng tư',
             newSite: 'Website mới',
+            domainSsl: 'Domain & SSL',
+            deployment: 'Triển khai',
+            usage: 'Dung lượng',
+            visits: 'Lượt truy cập',
+            payment: 'Thanh toán',
+            allStatus: 'Tất cả trạng thái',
+            allTypes: 'Tất cả loại',
         },
 
         types: {
@@ -434,8 +442,25 @@ const vi = {
             selectSiteFirst: 'Vui lòng chọn website trước',
             success: 'Thành công',
         },
-        status: { draft: 'Bản nháp', active: 'Hoạt động', suspended: 'Tạm khóa' },
+        status: {
+            draft: 'BẢN NHÁP',
+            published: 'ĐÃ XUẤT BẢN',
+            suspended: 'TẠM NGƯNG',
+            archived: 'ĐÃ LƯU TRỮ',
+            private: 'Riêng tư',
+        },
+        domain: {
+            pending: 'Đang chờ xác minh',
+        },
 
+        ssl: {
+            pending: 'Đang chờ',
+        },
+
+        deployment: {
+            idle: 'Chưa triển khai',
+            notDeployed: 'Chưa được triển khai',
+        },
         category: {
             'Company Profile': 'Hồ sơ công ty',
             'Personal Profile': 'Hồ sơ cá nhân',

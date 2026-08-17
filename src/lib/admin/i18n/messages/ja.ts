@@ -374,6 +374,7 @@ const ja = {
 
             defaultMenus: 'デフォルトメニュー',
             defaultPages: 'デフォルトページ',
+            close: '閉じる',
         },
 
         table: {
@@ -392,6 +393,13 @@ const ja = {
             public: '公開',
             private: '非公開',
             newSite: '新しいサイト',
+            domainSsl: 'ドメインとSSL',
+            deployment: 'デプロイ',
+            usage: '使用量',
+            visits: 'アクセス数',
+            payment: '支払い',
+            allStatus: 'すべてのステータス',
+            allTypes: 'すべてのタイプ',
         },
 
         types: {
@@ -434,7 +442,25 @@ const ja = {
             selectSiteFirst: '先にサイトを選択してください。',
             success: '成功',
         },
-        status: { draft: '下書き', active: '公開中', suspended: '停止中' },
+        status: {
+            draft: '下書き',
+            published: '公開済み',
+            suspended: '停止中',
+            archived: 'アーカイブ済み',
+            private: '非公開',
+        },
+        domain: {
+            pending: '確認待ち',
+        },
+
+        ssl: {
+            pending: 'SSL待ち',
+        },
+
+        deployment: {
+            idle: '待機中',
+            notDeployed: '未デプロイ',
+        },
         category: {
             'Company Profile': '会社概要',
             'Personal Profile': '個人プロフィール',

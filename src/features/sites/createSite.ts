@@ -10,9 +10,6 @@ type CreateSiteInput = {
     contactPhone?: string | null;
     seoTitle?: string | null;
     seoDescription?: string | null;
-    status?: 'DRAFT' | 'PUBLISHED' | 'SUSPENDED' | 'ARCHIVED';
-    isPublic?: boolean;
-    publishedAt?: string | null;
     workspaceId: string;
     ownerUserId: string;
     createdByUserId?: string | null;
@@ -73,9 +70,10 @@ export async function createSite(input: CreateSiteInput) {
             contactPhone: input.contactPhone || null,
             seoTitle: input.seoTitle || null,
             seoDescription: input.seoDescription || null,
-            status: input.status ?? 'DRAFT',
-            isPublic: input.isPublic ?? false,
-            publishedAt: input.publishedAt ? new Date(input.publishedAt) : null,
+            status: 'DRAFT',
+            isPublic: false,
+            publishedAt: null,
+
             ownerUserId: input.ownerUserId,
             createdByUserId: input.createdByUserId ?? input.ownerUserId,
             workspaceId: input.workspaceId,

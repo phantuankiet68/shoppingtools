@@ -192,14 +192,15 @@ model PricingPlan {
 
   status PlanStatus @default(ACTIVE)
 
-  price Decimal @db.Decimal(10,2)
+  price Decimal @db.Decimal(12,3)
+  currency String @default("VND")
   billingCycle BillingCycle
 
   maxPages Int
   maxProducts Int
   maxUsers Int
 
-  maxStorageBytes   BigInt @default(10737418240) @map("max_storage_bytes")
+  maxStorageBytes BigInt @default(10737418240) @map("max_storage_bytes")
   maxBandwidthBytes BigInt @default(107374182400) @map("max_bandwidth_bytes")
 
   canCustomDomain Boolean @default(true)
@@ -222,10 +223,10 @@ model SiteSubscription {
   id String @id @default(cuid())
 
   siteId String @unique
-  site Site @relation(fields:[siteId], references:[id], onDelete:Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   planId String
-  plan PricingPlan @relation(fields:[planId], references:[id])
+  plan PricingPlan @relation(fields: [planId], references: [id])
 
   status SubscriptionStatus @default(TRIAL)
 
@@ -255,15 +256,19 @@ model PaymentSite {
   id String @id @default(cuid())
 
   siteId String
-  site Site @relation(fields:[siteId], references:[id], onDelete:Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   subscriptionId String?
-  subscription SiteSubscription? @relation(fields:[subscriptionId], references:[id])
+  subscription SiteSubscription? @relation(fields: [subscriptionId], references: [id])
 
-  amount Decimal @db.Decimal(10,2)
-  currency String @default("USD")
+  amount Decimal @db.Decimal(12,3)
+  currency String @default("VND")
 
-  status PaymentSiteStatus
+  billingMonths Int @default(1) @map("billing_months")
+
+  paymentCode String @unique @map("payment_code")
+
+  status PaymentSiteStatus @default(PENDING)
   provider PaymentSiteProvider
   method PaymentSiteMethod?
 
@@ -276,20 +281,20 @@ model PaymentSite {
   paidAt DateTime?
 
   providerEventId String? @map("provider_event_id")
-  failureCode String? @map("failure_code")
-  failureMessage String? @map("failure_message") @db.Text
-  refundedAt DateTime? @map("refunded_at")
+  failureCode String?
+  failureMessage String? @db.Text
+  refundedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([provider, providerEventId])
-
   @@index([siteId])
   @@index([subscriptionId])
   @@index([status])
   @@index([provider])
   @@index([paidAt])
+  @@index([billingMonths])
 
   @@map("payment_sites")
 }
