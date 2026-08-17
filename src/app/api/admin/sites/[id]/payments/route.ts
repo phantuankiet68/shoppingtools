@@ -21,32 +21,57 @@ const METHODS = ['CARD', 'BANK_TRANSFER', 'WALLET', 'CASH'] as const;
 type PaymentMethod = (typeof METHODS)[number];
 
 type CreatePaymentBody = {
-    months: unknown;
-    provider: unknown;
+    months?: unknown;
+    provider?: unknown;
     method?: unknown;
     description?: unknown;
 };
 
+const PAYMENT_SELECT = {
+    id: true,
+    siteId: true,
+    subscriptionId: true,
+    amount: true,
+    currency: true,
+    billingMonths: true,
+    paymentCode: true,
+    status: true,
+    provider: true,
+    method: true,
+    transactionId: true,
+    invoiceNumber: true,
+    receiptUrl: true,
+    description: true,
+    paidAt: true,
+    providerEventId: true,
+    failureCode: true,
+    failureMessage: true,
+    refundedAt: true,
+    createdAt: true,
+    updatedAt: true,
+} as const;
+
+function json(data: unknown, status = 200) {
+    return NextResponse.json(data, {
+        status,
+        headers: {
+            'Cache-Control': 'no-store',
+        },
+    });
+}
+
 function parseBillingMonths(value: unknown): BillingMonths | null {
     const months = Number(value);
 
-    if (!Number.isInteger(months)) {
-        return null;
-    }
-
-    if (!ALLOWED_MONTHS.includes(months as BillingMonths)) {
-        return null;
-    }
-
-    return months as BillingMonths;
+    return Number.isInteger(months) && ALLOWED_MONTHS.includes(months as BillingMonths)
+        ? (months as BillingMonths)
+        : null;
 }
 
 function parseProvider(value: unknown): PaymentProvider | null {
-    if (typeof value !== 'string') {
-        return null;
-    }
-
-    return PROVIDERS.includes(value as PaymentProvider) ? (value as PaymentProvider) : null;
+    return typeof value === 'string' && PROVIDERS.includes(value as PaymentProvider)
+        ? (value as PaymentProvider)
+        : null;
 }
 
 function parseMethod(value: unknown): PaymentMethod | null {
@@ -54,46 +79,46 @@ function parseMethod(value: unknown): PaymentMethod | null {
         return null;
     }
 
-    if (typeof value !== 'string') {
-        return null;
-    }
-
-    return METHODS.includes(value as PaymentMethod) ? (value as PaymentMethod) : null;
+    return typeof value === 'string' && METHODS.includes(value as PaymentMethod)
+        ? (value as PaymentMethod)
+        : null;
 }
 
 function validatePaymentMethod(provider: PaymentProvider, method: PaymentMethod | null) {
-    if (provider === 'VNPAY') {
-        if (method && !['BANK_TRANSFER', 'WALLET', 'CARD'].includes(method)) {
-            return 'VNPAY does not support this payment method.';
-        }
-    }
+    switch (provider) {
+        case 'VNPAY':
+            if (method && !['BANK_TRANSFER', 'WALLET', 'CARD'].includes(method)) {
+                return 'VNPAY does not support this payment method.';
+            }
+            break;
 
-    if (provider === 'MOMO') {
-        if (method && !['WALLET', 'CARD'].includes(method)) {
-            return 'MOMO does not support this payment method.';
-        }
-    }
+        case 'MOMO':
+            if (method && !['WALLET', 'CARD'].includes(method)) {
+                return 'MOMO does not support this payment method.';
+            }
+            break;
 
-    if (provider === 'STRIPE') {
-        if (method && method !== 'CARD') {
-            return 'STRIPE requires CARD payment method.';
-        }
-    }
+        case 'STRIPE':
+            if (method && method !== 'CARD') {
+                return 'STRIPE requires CARD payment method.';
+            }
+            break;
 
-    if (provider === 'PAYPAL') {
-        if (method && method !== 'WALLET') {
-            return 'PAYPAL requires WALLET payment method.';
-        }
-    }
+        case 'PAYPAL':
+            if (method && method !== 'WALLET') {
+                return 'PAYPAL requires WALLET payment method.';
+            }
+            break;
 
-    if (provider === 'MANUAL') {
-        if (!method) {
-            return 'Manual payment requires a payment method.';
-        }
+        case 'MANUAL':
+            if (!method) {
+                return 'Manual payment requires a payment method.';
+            }
 
-        if (!['BANK_TRANSFER', 'CASH'].includes(method)) {
-            return 'Manual payment only supports BANK_TRANSFER or CASH.';
-        }
+            if (!['BANK_TRANSFER', 'CASH'].includes(method)) {
+                return 'Manual payment only supports BANK_TRANSFER or CASH.';
+            }
+            break;
     }
 
     return null;
@@ -105,6 +130,7 @@ function generatePaymentCode() {
 
 function generateInvoiceNumber() {
     const now = new Date();
+
     const year = now.getUTCFullYear();
     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
     const day = String(now.getUTCDate()).padStart(2, '0');
@@ -117,7 +143,7 @@ async function createUniquePaymentCode() {
     for (let attempt = 0; attempt < 10; attempt++) {
         const paymentCode = generatePaymentCode();
 
-        const existing = await prisma.paymentSite.findUnique({
+        const exists = await prisma.paymentSite.findUnique({
             where: {
                 paymentCode,
             },
@@ -126,7 +152,7 @@ async function createUniquePaymentCode() {
             },
         });
 
-        if (!existing) {
+        if (!exists) {
             return paymentCode;
         }
     }
@@ -138,7 +164,7 @@ async function createUniqueInvoiceNumber() {
     for (let attempt = 0; attempt < 10; attempt++) {
         const invoiceNumber = generateInvoiceNumber();
 
-        const existing = await prisma.paymentSite.findFirst({
+        const exists = await prisma.paymentSite.findFirst({
             where: {
                 invoiceNumber,
             },
@@ -147,7 +173,7 @@ async function createUniqueInvoiceNumber() {
             },
         });
 
-        if (!existing) {
+        if (!exists) {
             return invoiceNumber;
         }
     }
@@ -155,167 +181,361 @@ async function createUniqueInvoiceNumber() {
     throw new Error('Unable to generate a unique invoice number.');
 }
 
-export async function POST(request: Request, { params }: RouteContext) {
+async function getAuthorizedSite(siteId: string, userId: string, workspaceId: string) {
+    return prisma.site.findFirst({
+        where: {
+            id: siteId,
+            workspaceId,
+            ownerUserId: userId,
+            deletedAt: null,
+        },
+        select: {
+            id: true,
+            name: true,
+            domain: true,
+            type: true,
+            status: true,
+            subscription: {
+                select: {
+                    id: true,
+                    planId: true,
+                    status: true,
+                    billingCycle: true,
+                    autoRenew: true,
+                    startedAt: true,
+                    trialEndsAt: true,
+                    currentPeriodStart: true,
+                    currentPeriodEnd: true,
+                    nextBillingAt: true,
+                    canceledAt: true,
+                    plan: {
+                        select: {
+                            id: true,
+                            name: true,
+                            code: true,
+                            price: true,
+                            currency: true,
+                            billingCycle: true,
+                            status: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
+
+/**
+ * GET /api/admin/sites/[id]/payments
+ *
+ * Returns payment history for one authorized site.
+ */
+export async function GET(request: Request, { params }: RouteContext) {
     try {
-        // ---------------------------------------------------------
-        // 1. Authentication
-        // ---------------------------------------------------------
         const session = await getCurrentSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Unauthorized.',
                 },
-                { status: 401 },
+                401,
             );
         }
 
-        // ---------------------------------------------------------
-        // 2. Site ID
-        // ---------------------------------------------------------
         const { id: siteId } = await params;
 
         if (!siteId || typeof siteId !== 'string') {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Invalid site ID.',
                 },
-                { status: 400 },
+                400,
             );
         }
 
-        // ---------------------------------------------------------
-        // 3. Workspace
-        // ---------------------------------------------------------
         const workspaceId = session.currentWorkspace?.id ?? null;
 
         if (!workspaceId) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'No workspace selected.',
                 },
-                { status: 400 },
+                400,
             );
         }
 
-        // ---------------------------------------------------------
-        // 4. Parse request body
-        // ---------------------------------------------------------
+        const url = new URL(request.url);
+
+        const pageParam = Number(url.searchParams.get('page') ?? '1');
+        const limitParam = Number(url.searchParams.get('limit') ?? '10');
+
+        const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+
+        const limit =
+            Number.isInteger(limitParam) && limitParam > 0 ? Math.min(limitParam, 50) : 10;
+
+        const site = await getAuthorizedSite(siteId, session.user.id, workspaceId);
+
+        if (!site) {
+            return json(
+                {
+                    success: false,
+                    error: 'Site not found.',
+                },
+                404,
+            );
+        }
+
+        const skip = (page - 1) * limit;
+
+        const [payments, total] = await prisma.$transaction([
+            prisma.paymentSite.findMany({
+                where: {
+                    siteId: site.id,
+                },
+                orderBy: [
+                    {
+                        createdAt: 'desc',
+                    },
+                    {
+                        id: 'desc',
+                    },
+                ],
+                skip,
+                take: limit,
+                select: {
+                    ...PAYMENT_SELECT,
+                    subscription: {
+                        select: {
+                            id: true,
+                            planId: true,
+                            status: true,
+                            billingCycle: true,
+                            currentPeriodStart: true,
+                            currentPeriodEnd: true,
+                            nextBillingAt: true,
+                            plan: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    code: true,
+                                    price: true,
+                                    currency: true,
+                                    billingCycle: true,
+                                    status: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            }),
+            prisma.paymentSite.count({
+                where: {
+                    siteId: site.id,
+                },
+            }),
+        ]);
+
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+
+        return json({
+            success: true,
+            site: {
+                id: site.id,
+                name: site.name,
+                domain: site.domain,
+                type: site.type,
+                status: site.status,
+            },
+            subscription: site.subscription
+                ? {
+                      ...site.subscription,
+                      plan: site.subscription.plan
+                          ? {
+                                ...site.subscription.plan,
+                                price: site.subscription.plan.price.toString(),
+                            }
+                          : null,
+                  }
+                : null,
+            payments: payments.map((payment) => ({
+                ...payment,
+                amount: payment.amount.toString(),
+                subscription: payment.subscription
+                    ? {
+                          ...payment.subscription,
+                          plan: payment.subscription.plan
+                              ? {
+                                    ...payment.subscription.plan,
+                                    price: payment.subscription.plan.price.toString(),
+                                }
+                              : null,
+                      }
+                    : null,
+            })),
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrevious: page > 1,
+            },
+        });
+    } catch (error) {
+        console.error('GET /api/admin/sites/[id]/payments error:', error);
+
+        return json(
+            {
+                success: false,
+                error: 'Failed to load payment history.',
+            },
+            500,
+        );
+    }
+}
+
+/**
+ * POST /api/admin/sites/[id]/payments
+ *
+ * Creates a new pending payment for the site's subscription.
+ */
+export async function POST(request: Request, { params }: RouteContext) {
+    try {
+        const session = await getCurrentSession();
+
+        if (!session?.user?.id) {
+            return json(
+                {
+                    success: false,
+                    error: 'Unauthorized.',
+                },
+                401,
+            );
+        }
+
+        const { id: siteId } = await params;
+
+        if (!siteId || typeof siteId !== 'string') {
+            return json(
+                {
+                    success: false,
+                    error: 'Invalid site ID.',
+                },
+                400,
+            );
+        }
+
+        const workspaceId = session.currentWorkspace?.id ?? null;
+
+        if (!workspaceId) {
+            return json(
+                {
+                    success: false,
+                    error: 'No workspace selected.',
+                },
+                400,
+            );
+        }
+
         let body: CreatePaymentBody;
 
         try {
             body = await request.json();
         } catch {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Invalid JSON body.',
                 },
-                { status: 400 },
+                400,
             );
         }
 
         if (!body || typeof body !== 'object' || Array.isArray(body)) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Invalid request body.',
                 },
-                { status: 400 },
+                400,
             );
         }
 
-        // ---------------------------------------------------------
-        // 5. Validate billing period
-        // ---------------------------------------------------------
         const months = parseBillingMonths(body.months);
 
         if (months === null) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Invalid billing period. Allowed values are 1, 3, 6 or 12 months.',
                 },
-                { status: 400 },
+                400,
             );
         }
 
-        // ---------------------------------------------------------
-        // 6. Validate provider
-        // ---------------------------------------------------------
         const provider = parseProvider(body.provider);
 
-        if (provider === null) {
-            return NextResponse.json(
+        if (!provider) {
+            return json(
                 {
                     success: false,
                     error: 'Invalid payment provider.',
                 },
-                { status: 400 },
+                400,
             );
         }
 
-        // ---------------------------------------------------------
-        // 7. Validate method
-        // ---------------------------------------------------------
         const method = parseMethod(body.method);
 
-        if (
-            body.method !== undefined &&
-            body.method !== null &&
-            body.method !== '' &&
-            method === null
-        ) {
-            return NextResponse.json(
+        if (body.method !== undefined && body.method !== null && body.method !== '' && !method) {
+            return json(
                 {
                     success: false,
                     error: 'Invalid payment method.',
                 },
-                { status: 400 },
+                400,
             );
         }
 
-        const paymentMethodError = validatePaymentMethod(provider, method);
+        const methodError = validatePaymentMethod(provider, method);
 
-        if (paymentMethodError) {
-            return NextResponse.json(
+        if (methodError) {
+            return json(
                 {
                     success: false,
-                    error: paymentMethodError,
+                    error: methodError,
                 },
-                { status: 400 },
+                400,
             );
         }
 
-        // ---------------------------------------------------------
-        // 8. Validate description
-        // ---------------------------------------------------------
         let description: string | null = null;
 
         if (body.description !== undefined && body.description !== null) {
             if (typeof body.description !== 'string') {
-                return NextResponse.json(
+                return json(
                     {
                         success: false,
                         error: 'Invalid payment description.',
                     },
-                    { status: 400 },
+                    400,
                 );
             }
 
             description = body.description.trim();
 
             if (description.length > 500) {
-                return NextResponse.json(
+                return json(
                     {
                         success: false,
                         error: 'Payment description must not exceed 500 characters.',
                     },
-                    { status: 400 },
+                    400,
                 );
             }
 
@@ -324,192 +544,121 @@ export async function POST(request: Request, { params }: RouteContext) {
             }
         }
 
-        // ---------------------------------------------------------
-        // 9. Find site + subscription + pricing plan
-        // ---------------------------------------------------------
-        const site = await prisma.site.findFirst({
-            where: {
-                id: siteId,
-                workspaceId,
-                ownerUserId: session.user.id,
-                deletedAt: null,
-            },
-            select: {
-                id: true,
-                name: true,
-                domain: true,
-                type: true,
-                status: true,
-                subscription: {
-                    select: {
-                        id: true,
-                        status: true,
-                        planId: true,
-                        billingCycle: true,
-                        plan: {
-                            select: {
-                                id: true,
-                                name: true,
-                                code: true,
-                                price: true,
-                                currency: true,
-                                billingCycle: true,
-                                status: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+        const site = await getAuthorizedSite(siteId, session.user.id, workspaceId);
 
         if (!site) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Site not found.',
                 },
-                { status: 404 },
-            );
-        }
-
-        // ---------------------------------------------------------
-        // 10. Validate site status
-        // ---------------------------------------------------------
-        if (site.status === 'PUBLISHED') {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'This site is already published.',
-                },
-                { status: 409 },
+                404,
             );
         }
 
         if (site.status === 'SUSPENDED') {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Suspended sites cannot create a payment.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
         if (site.status === 'ARCHIVED') {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'Archived sites cannot create a payment.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
-        // ---------------------------------------------------------
-        // 11. Site MUST have subscription + pricing plan
-        // ---------------------------------------------------------
         const subscription = site.subscription;
-        const plan = subscription?.plan ?? null;
 
         if (!subscription) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'This site does not have a subscription.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
+        const plan = subscription.plan;
+
         if (!plan) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'This site does not have a pricing plan.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
-        // ---------------------------------------------------------
-        // 12. Validate pricing plan
-        // ---------------------------------------------------------
         if (plan.status !== 'ACTIVE') {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'The pricing plan is inactive.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
         if (plan.billingCycle !== 'MONTHLY') {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'This payment endpoint currently supports monthly billing plans only.',
                 },
-                { status: 400 },
-            );
-        }
-
-        if (!plan.price || plan.price.lessThanOrEqualTo(0)) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'The pricing plan has an invalid price.',
-                },
-                { status: 409 },
+                400,
             );
         }
 
         if (plan.currency !== 'VND') {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'This payment endpoint currently supports VND pricing only.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
-        // ---------------------------------------------------------
-        // 13. Validate subscription status
-        // ---------------------------------------------------------
-        if (['ACTIVE', 'PAST_DUE', 'SUSPENDED'].includes(subscription.status)) {
-            return NextResponse.json(
+        if (plan.price.lessThanOrEqualTo(0)) {
+            return json(
                 {
                     success: false,
-                    error: 'This site already has an active subscription.',
+                    error: 'The pricing plan has an invalid price.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
         if (subscription.status === 'CANCELED') {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'This subscription has been canceled.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
-        if (subscription.status === 'EXPIRED') {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'This subscription has expired.',
-                },
-                { status: 409 },
-            );
-        }
-
-        // ---------------------------------------------------------
-        // 14. Check existing pending payment
-        // ---------------------------------------------------------
+        /*
+         * A pending payment is unique per site.
+         *
+         * Same period:
+         *   reuse it.
+         *
+         * Different period:
+         *   cancel the old pending payment and create a new one.
+         */
         const pendingPayment = await prisma.paymentSite.findFirst({
             where: {
                 siteId: site.id,
@@ -518,33 +667,9 @@ export async function POST(request: Request, { params }: RouteContext) {
             orderBy: {
                 createdAt: 'desc',
             },
-            select: {
-                id: true,
-                siteId: true,
-                subscriptionId: true,
-                amount: true,
-                currency: true,
-                billingMonths: true,
-                paymentCode: true,
-                status: true,
-                provider: true,
-                method: true,
-                transactionId: true,
-                invoiceNumber: true,
-                receiptUrl: true,
-                description: true,
-                paidAt: true,
-                failureCode: true,
-                failureMessage: true,
-                refundedAt: true,
-                createdAt: true,
-                updatedAt: true,
-            },
+            select: PAYMENT_SELECT,
         });
 
-        // ---------------------------------------------------------
-        // 15. Reuse pending payment for same billing period
-        // ---------------------------------------------------------
         if (
             pendingPayment &&
             pendingPayment.subscriptionId === subscription.id &&
@@ -553,44 +678,43 @@ export async function POST(request: Request, { params }: RouteContext) {
             const transferContent =
                 `${pendingPayment.paymentCode} ` + `${pendingPayment.billingMonths}M`;
 
-            return NextResponse.json(
-                {
-                    success: true,
-                    existing: true,
-                    message: 'A pending payment already exists for this billing period.',
-                    payment: {
-                        ...pendingPayment,
-                        amount: pendingPayment.amount.toString(),
+            return json({
+                success: true,
+                existing: true,
+                message: 'A pending payment already exists for this billing period.',
+                payment: {
+                    ...pendingPayment,
+                    amount: pendingPayment.amount.toString(),
+                },
+                paymentInfo: {
+                    paymentId: pendingPayment.id,
+                    paymentCode: pendingPayment.paymentCode,
+                    invoiceNumber: pendingPayment.invoiceNumber,
+                    monthlyPrice: plan.price.toString(),
+                    months: pendingPayment.billingMonths,
+                    totalAmount: pendingPayment.amount.toString(),
+                    currency: pendingPayment.currency,
+                    provider: pendingPayment.provider,
+                    method: pendingPayment.method,
+                    transferContent,
+                    status: pendingPayment.status,
+                    plan: {
+                        id: plan.id,
+                        name: plan.name,
+                        code: plan.code,
+                        price: plan.price.toString(),
+                        currency: plan.currency,
+                        billingCycle: plan.billingCycle,
                     },
-                    paymentInfo: {
-                        paymentId: pendingPayment.id,
-                        paymentCode: pendingPayment.paymentCode,
-                        invoiceNumber: pendingPayment.invoiceNumber,
-                        monthlyPrice: plan.price.toString(),
-                        months: pendingPayment.billingMonths,
-                        totalAmount: pendingPayment.amount.toString(),
-                        currency: pendingPayment.currency,
-                        provider: pendingPayment.provider,
-                        method: pendingPayment.method,
-                        transferContent,
-                        status: pendingPayment.status,
-                        plan: {
-                            id: plan.id,
-                            name: plan.name,
-                            code: plan.code,
-                            price: plan.price.toString(),
-                            currency: plan.currency,
-                            billingCycle: plan.billingCycle,
-                        },
+                    subscription: {
+                        id: subscription.id,
+                        status: subscription.status,
+                        billingCycle: subscription.billingCycle,
                     },
                 },
-                { status: 200 },
-            );
+            });
         }
 
-        // ---------------------------------------------------------
-        // 16. Cancel old pending payment
-        // ---------------------------------------------------------
         if (pendingPayment) {
             await prisma.paymentSite.update({
                 where: {
@@ -602,94 +726,53 @@ export async function POST(request: Request, { params }: RouteContext) {
             });
         }
 
-        // ---------------------------------------------------------
-        // 17. Calculate payment amount
-        //
-        // Example:
-        // 1  month  = 90,000
-        // 3  months = 270,000
-        // 6  months = 540,000
-        // 12 months = 1,080,000
-        //
-        // NEVER trust amount from frontend.
-        // ---------------------------------------------------------
+        /*
+         * NEVER trust amount from the client.
+         *
+         * Pricing:
+         * 1 month  = 90,000
+         * 3 months = 270,000
+         * 6 months = 540,000
+         * 12 months = 1,080,000
+         */
         const monthlyPrice = plan.price;
         const totalAmount = monthlyPrice.mul(months);
         const currency = plan.currency;
 
         if (totalAmount.lessThanOrEqualTo(0)) {
-            return NextResponse.json(
+            return json(
                 {
                     success: false,
                     error: 'The calculated payment amount is invalid.',
                 },
-                { status: 409 },
+                409,
             );
         }
 
-        // ---------------------------------------------------------
-        // 18. Generate payment identifiers
-        // ---------------------------------------------------------
         const paymentCode = await createUniquePaymentCode();
-
         const invoiceNumber = await createUniqueInvoiceNumber();
-
         const transferContent = `${paymentCode} ${months}M`;
 
-        // ---------------------------------------------------------
-        // 19. Create PaymentSite
-        // ---------------------------------------------------------
         const payment = await prisma.paymentSite.create({
             data: {
                 siteId: site.id,
-
-                // IMPORTANT:
-                // Payment belongs to this subscription.
                 subscriptionId: subscription.id,
-
                 amount: totalAmount,
                 currency,
-
                 billingMonths: months,
-
                 paymentCode,
-
                 status: 'PENDING',
                 provider,
                 method,
-
                 invoiceNumber,
-
-                // paidAt MUST remain null.
-                // Payment is only PENDING until admin confirms it.
                 paidAt: null,
-
                 description:
                     description ||
                     `Kbuilder ${plan.name} subscription - ` +
                         `${months} month${months > 1 ? 's' : ''}.`,
             },
             select: {
-                id: true,
-                siteId: true,
-                subscriptionId: true,
-                amount: true,
-                currency: true,
-                billingMonths: true,
-                paymentCode: true,
-                status: true,
-                provider: true,
-                method: true,
-                transactionId: true,
-                invoiceNumber: true,
-                receiptUrl: true,
-                description: true,
-                paidAt: true,
-                failureCode: true,
-                failureMessage: true,
-                refundedAt: true,
-                createdAt: true,
-                updatedAt: true,
+                ...PAYMENT_SELECT,
                 site: {
                     select: {
                         id: true,
@@ -702,40 +785,27 @@ export async function POST(request: Request, { params }: RouteContext) {
             },
         });
 
-        // ---------------------------------------------------------
-        // 20. Response
-        // ---------------------------------------------------------
-        return NextResponse.json(
+        return json(
             {
                 success: true,
                 existing: false,
                 message: 'Payment created successfully.',
-
                 payment: {
                     ...payment,
                     amount: payment.amount.toString(),
                 },
-
                 paymentInfo: {
                     paymentId: payment.id,
                     paymentCode,
                     invoiceNumber,
-
                     monthlyPrice: monthlyPrice.toString(),
-
                     months,
-
                     totalAmount: totalAmount.toString(),
-
                     currency,
-
                     provider,
                     method,
-
                     transferContent,
-
                     status: 'PENDING',
-
                     plan: {
                         id: plan.id,
                         name: plan.name,
@@ -744,13 +814,11 @@ export async function POST(request: Request, { params }: RouteContext) {
                         currency: plan.currency,
                         billingCycle: plan.billingCycle,
                     },
-
                     subscription: {
                         id: subscription.id,
                         status: subscription.status,
                         billingCycle: subscription.billingCycle,
                     },
-
                     site: {
                         id: site.id,
                         name: site.name,
@@ -759,17 +827,17 @@ export async function POST(request: Request, { params }: RouteContext) {
                     },
                 },
             },
-            { status: 201 },
+            201,
         );
     } catch (error) {
         console.error('POST /api/admin/sites/[id]/payments error:', error);
 
-        return NextResponse.json(
+        return json(
             {
                 success: false,
                 error: 'Failed to create payment.',
             },
-            { status: 500 },
+            500,
         );
     }
 }

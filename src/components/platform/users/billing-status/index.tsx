@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import styles from '@/styles/platform/users/billing-status/billing-status.module.css';
 import type { BillingItem, BillingStatus } from './billing';
 import Image from 'next/image';
+
 interface BillingSummary {
     totalSites: number;
     active: number;
@@ -141,6 +142,7 @@ export default function BillingStatus({ userId }: { userId: string | null }) {
     const [renewLoading, setRenewLoading] = useState<string | null>(null);
 
     const [reminderLoading, setReminderLoading] = useState<string | null>(null);
+    const [confirmLoading, setConfirmLoading] = useState<string | null>(null);
 
     const resetState = () => {
         setItems([]);
@@ -295,6 +297,38 @@ export default function BillingStatus({ userId }: { userId: string | null }) {
         [userId, loadItems, loadSummary],
     );
 
+    const confirmPayment = useCallback(
+        async (siteId: string, paymentId: string) => {
+            try {
+                setConfirmLoading(paymentId);
+
+                const response = await fetch(
+                    `/api/platform/sites/${siteId}/payments/${paymentId}/confirm`,
+                    {
+                        method: 'POST',
+                    },
+                );
+
+                const json = await response.json();
+
+                if (!response.ok || json.success !== true) {
+                    throw new Error(json.message ?? 'Failed to confirm payment.');
+                }
+
+                alert(json.message ?? 'Payment confirmed successfully.');
+
+                await Promise.all([loadItems(), loadSummary()]);
+            } catch (error) {
+                console.error('CONFIRM_PAYMENT_ERROR', error);
+
+                alert(error instanceof Error ? error.message : 'Failed to confirm payment.');
+            } finally {
+                setConfirmLoading(null);
+            }
+        },
+        [loadItems, loadSummary],
+    );
+
     useEffect(() => {
         if (!userId) {
             resetState();
@@ -393,7 +427,8 @@ export default function BillingStatus({ userId }: { userId: string | null }) {
             </header>
 
             <div className={styles.list}>
-                {items.map((item) => {
+                {items.map((rawItem) => {
+                    const item = rawItem;
                     const status = STATUS_MAP[item.status] ?? STATUS_MAP.NO_SUBSCRIPTION;
 
                     return (
@@ -517,61 +552,82 @@ export default function BillingStatus({ userId }: { userId: string | null }) {
                                 </div>
 
                                 <div className={styles.actions}>
-                                    {(item.status === 'EXPIRING_SOON' ||
-                                        item.status === 'OVERDUE') && (
+                                    {item.paymentStatus === 'PENDING' && item.pendingPaymentId ? (
+                                        <button
+                                            className={styles.primaryAction}
+                                            disabled={confirmLoading === item.pendingPaymentId}
+                                            onClick={() =>
+                                                confirmPayment(item.id, item.pendingPaymentId!)
+                                            }
+                                        >
+                                            <i
+                                                className={`bi ${
+                                                    confirmLoading === item.pendingPaymentId
+                                                        ? 'bi-arrow-repeat spin'
+                                                        : 'bi-check-circle'
+                                                }`}
+                                            />
+
+                                            {confirmLoading === item.pendingPaymentId
+                                                ? 'Confirming...'
+                                                : 'Confirm Payment'}
+                                        </button>
+                                    ) : (
                                         <>
-                                            <button
-                                                className={styles.secondaryAction}
-                                                disabled={reminderLoading === item.id}
-                                                onClick={() => sendReminder(item.id)}
-                                            >
-                                                <i
-                                                    className={`bi ${
-                                                        reminderLoading === item.id
-                                                            ? 'bi-arrow-repeat spin'
-                                                            : 'bi-bell'
-                                                    }`}
-                                                />
-                                                <i
-                                                    className={`bi ${
-                                                        reminderLoading === item.id
-                                                            ? 'bi-arrow-repeat spin'
-                                                            : 'bi-bell'
-                                                    }`}
-                                                />
-                                            </button>
+                                            {(item.status === 'EXPIRING_SOON' ||
+                                                item.status === 'OVERDUE') && (
+                                                <>
+                                                    <button
+                                                        className={styles.secondaryAction}
+                                                        disabled={reminderLoading === item.id}
+                                                        onClick={() => sendReminder(item.id)}
+                                                    >
+                                                        <i
+                                                            className={`bi ${
+                                                                reminderLoading === item.id
+                                                                    ? 'bi-arrow-repeat spin'
+                                                                    : 'bi-bell'
+                                                            }`}
+                                                        />
+                                                        {reminderLoading === item.id
+                                                            ? 'Sending...'
+                                                            : 'Remind'}
+                                                    </button>
 
-                                            <button
-                                                className={styles.primaryAction}
-                                                disabled={renewLoading === item.id}
-                                                onClick={() => renewSubscription(item.id)}
-                                            >
-                                                <i
-                                                    className={`bi ${
-                                                        renewLoading === item.id
-                                                            ? 'bi-arrow-repeat spin'
-                                                            : 'bi-arrow-repeat'
-                                                    }`}
-                                                />
-                                                {renewLoading === item.id
-                                                    ? 'Processing...'
-                                                    : 'Renew'}
-                                            </button>
+                                                    <button
+                                                        className={styles.primaryAction}
+                                                        disabled={renewLoading === item.id}
+                                                        onClick={() => renewSubscription(item.id)}
+                                                    >
+                                                        <i
+                                                            className={`bi ${
+                                                                renewLoading === item.id
+                                                                    ? 'bi-arrow-repeat spin'
+                                                                    : 'bi-arrow-repeat'
+                                                            }`}
+                                                        />
+
+                                                        {renewLoading === item.id
+                                                            ? 'Processing...'
+                                                            : 'Renew'}
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            {item.status === 'PAID' && (
+                                                <button className={styles.primaryAction}>
+                                                    <i className="bi bi-eye" />
+                                                    Details
+                                                </button>
+                                            )}
+
+                                            {item.status === 'TRIAL' && (
+                                                <button className={styles.primaryAction}>
+                                                    <i className="bi bi-stars" />
+                                                    Upgrade
+                                                </button>
+                                            )}
                                         </>
-                                    )}
-
-                                    {item.status === 'PAID' && (
-                                        <button className={styles.primaryAction}>
-                                            <i className="bi bi-eye" />
-                                            Details
-                                        </button>
-                                    )}
-
-                                    {item.status === 'TRIAL' && (
-                                        <button className={styles.primaryAction}>
-                                            <i className="bi bi-stars" />
-                                            Upgrade
-                                        </button>
                                     )}
                                 </div>
                             </div>

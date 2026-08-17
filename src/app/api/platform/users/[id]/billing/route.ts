@@ -1,12 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import {
-    PaymentSiteStatus,
-    SiteStatus,
-    SubscriptionStatus,
-    WebsiteType,
-    BillingCycle,
-} from '@/generated/prisma';
+import { PaymentSiteStatus, SubscriptionStatus, BillingCycle } from '@/generated/prisma';
 
 interface RouteContext {
     params: Promise<{
@@ -24,8 +18,11 @@ type BillingStatus =
     | 'EXPIRED'
     | 'NO_SUBSCRIPTION';
 
+type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELED' | 'REFUNDED';
+
 interface BillingItem {
     id: string;
+
     customer: {
         id: string;
         name: string;
@@ -33,17 +30,34 @@ interface BillingItem {
         avatar: string | null;
         username: string | null;
     };
+
     site: string;
     domain: string;
+
     plan: string | null;
+    planId: string | null;
+
     amount: number;
     currency: string;
+
     billingCycle: BillingCycle | null;
+
     nextBilling: Date | null;
+    currentPeriodStart: Date | null;
+    currentPeriodEnd: Date | null;
+
     daysRemaining: number | null;
+
     lastPaidAt: Date | null;
+
+    subscriptionId: string | null;
     subscriptionStatus: SubscriptionStatus | null;
+
+    paymentStatus: PaymentStatus | null;
+    pendingPaymentId: string | null;
+
     status: BillingStatus;
+
     notification: string;
     icon: string;
     color: string;
@@ -78,14 +92,20 @@ function getCustomerName(firstName: string | null, lastName: string | null, emai
 }
 
 function calculateDaysRemaining(date: Date | null) {
-    if (!date) {
-        return null;
-    }
+    if (!date) return null;
 
     return Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
-function getNotification(status: BillingStatus, daysRemaining: number | null) {
+function getNotification(
+    status: BillingStatus,
+    daysRemaining: number | null,
+    hasPendingPayment = false,
+) {
+    if (hasPendingPayment) {
+        return 'Payment is waiting for administrator confirmation.';
+    }
+
     switch (status) {
         case 'PAID':
             return 'Everything is up to date. The next payment will be charged automatically.';
@@ -113,9 +133,52 @@ function getNotification(status: BillingStatus, daysRemaining: number | null) {
     }
 }
 
-export async function GET(req: NextRequest, { params }: RouteContext) {
+function getBillingStatus(
+    subscriptionStatus: SubscriptionStatus,
+    daysRemaining: number | null,
+): BillingStatus {
+    switch (subscriptionStatus) {
+        case SubscriptionStatus.TRIAL:
+            return 'TRIAL';
+
+        case SubscriptionStatus.PAST_DUE:
+            return 'OVERDUE';
+
+        case SubscriptionStatus.SUSPENDED:
+            return 'SUSPENDED';
+
+        case SubscriptionStatus.CANCELED:
+            return 'CANCELED';
+
+        case SubscriptionStatus.EXPIRED:
+            return 'EXPIRED';
+
+        case SubscriptionStatus.ACTIVE:
+        default:
+            if (daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 7) {
+                return 'EXPIRING_SOON';
+            }
+
+            return 'PAID';
+    }
+}
+
+export async function GET(_req: Request, { params }: RouteContext) {
     try {
         const { id } = await params;
+
+        if (!id) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    count: 0,
+                    data: [],
+                    message: 'User ID is required.',
+                },
+                { status: 400 },
+            );
+        }
+
         const sites = await prisma.site.findMany({
             where: {
                 ownerUserId: id,
@@ -139,18 +202,29 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
                 subscription: {
                     include: {
                         plan: true,
+                    },
+                },
 
-                        paymentSites: {
-                            where: {
-                                status: PaymentSiteStatus.SUCCESS,
-                            },
-
-                            orderBy: {
-                                paidAt: 'desc',
-                            },
-
-                            take: 1,
+                paymentSites: {
+                    where: {
+                        status: {
+                            in: [PaymentSiteStatus.PENDING, PaymentSiteStatus.SUCCESS],
                         },
+                    },
+
+                    orderBy: {
+                        createdAt: 'desc',
+                    },
+
+                    take: 10,
+
+                    select: {
+                        id: true,
+                        amount: true,
+                        currency: true,
+                        status: true,
+                        paidAt: true,
+                        createdAt: true,
                     },
                 },
             },
@@ -160,105 +234,126 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
             },
         });
 
-        const data: BillingItem[] = [];
-
-        for (const site of sites) {
+        const data: BillingItem[] = sites.map((site) => {
             const customerName = getCustomerName(
                 site.owner.profile?.firstName ?? null,
                 site.owner.profile?.lastName ?? null,
                 site.owner.email,
             );
 
+            const customer = {
+                id: site.owner.id,
+                name: customerName,
+                email: site.owner.email,
+                avatar: site.owner.profile?.avatar ?? null,
+                username: site.owner.profile?.username ?? null,
+            };
+
             const subscription = site.subscription;
 
             if (!subscription) {
-                data.push({
+                return {
                     id: site.id,
-
-                    customer: {
-                        id: site.owner.id,
-                        name: customerName,
-                        email: site.owner.email,
-                        avatar: site.owner.profile?.avatar ?? null,
-                        username: site.owner.profile?.username ?? null,
-                    },
+                    customer,
                     site: site.name,
                     domain: site.domain,
                     plan: null,
+                    planId: null,
                     amount: 0,
-                    currency: 'USD',
+                    currency: 'VND',
                     billingCycle: null,
                     nextBilling: null,
+                    currentPeriodStart: null,
+                    currentPeriodEnd: null,
                     daysRemaining: null,
                     lastPaidAt: null,
+                    subscriptionId: null,
                     subscriptionStatus: null,
+                    paymentStatus: null,
+                    pendingPaymentId: null,
                     status: 'NO_SUBSCRIPTION',
                     notification: getNotification('NO_SUBSCRIPTION', null),
                     icon: STATUS_ICON.NO_SUBSCRIPTION,
                     color: STATUS_COLOR.NO_SUBSCRIPTION,
-                });
-                continue;
+                };
             }
 
-            const latestPayment = subscription.paymentSites[0] ?? null;
+            const pendingPayment =
+                site.paymentSites.find((payment) => payment.status === PaymentSiteStatus.PENDING) ??
+                null;
+
+            const lastSuccessfulPayment =
+                site.paymentSites.find((payment) => payment.status === PaymentSiteStatus.SUCCESS) ??
+                null;
+
             const daysRemaining = calculateDaysRemaining(subscription.currentPeriodEnd);
-            let status: BillingStatus;
 
-            switch (subscription.status) {
-                case SubscriptionStatus.TRIAL:
-                    status = 'TRIAL';
-                    break;
-                case SubscriptionStatus.PAST_DUE:
-                    status = 'OVERDUE';
-                    break;
-                case SubscriptionStatus.SUSPENDED:
-                    status = 'SUSPENDED';
-                    break;
-                case SubscriptionStatus.CANCELED:
-                    status = 'CANCELED';
-                    break;
-                case SubscriptionStatus.EXPIRED:
-                    status = 'EXPIRED';
-                    break;
-                case SubscriptionStatus.ACTIVE:
-                default:
-                    if (daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 7) {
-                        status = 'EXPIRING_SOON';
-                    } else {
-                        status = 'PAID';
-                    }
-                    break;
-            }
+            const status = getBillingStatus(subscription.status, daysRemaining);
 
-            const amount = Number(latestPayment?.amount ?? subscription.plan.price);
+            /*
+             * Billing UI luôn hiển thị giá của plan.
+             *
+             * Không lấy amount của PaymentSite ở đây vì
+             * PaymentSite có thể là 3 / 6 / 12 tháng.
+             *
+             * Ví dụ:
+             * Plan = 90,000 / month
+             * Payment = 270,000 / 3 months
+             *
+             * UI vẫn phải hiển thị:
+             * 90,000 VND / monthly
+             */
+            const amount = Number(subscription.plan.price ?? 0);
 
-            const currency = latestPayment?.currency ?? 'USD';
+            const currency = subscription.plan.currency || 'VND';
 
-            data.push({
+            const paymentStatus = pendingPayment?.status ?? lastSuccessfulPayment?.status ?? null;
+
+            const notification = getNotification(status, daysRemaining, Boolean(pendingPayment));
+
+            return {
                 id: site.id,
-                customer: {
-                    id: site.owner.id,
-                    name: customerName,
-                    email: site.owner.email,
-                    avatar: site.owner.profile?.avatar ?? null,
-                    username: site.owner.profile?.username ?? null,
-                },
+
+                customer,
+
                 site: site.name,
                 domain: site.domain,
+
                 plan: subscription.plan.name,
+                planId: subscription.plan.id,
+
                 amount,
                 currency,
-                billingCycle: subscription.billingCycle,
+
+                billingCycle: subscription.billingCycle ?? subscription.plan.billingCycle,
+
                 nextBilling: subscription.nextBillingAt,
+
+                currentPeriodStart: subscription.currentPeriodStart,
+
+                currentPeriodEnd: subscription.currentPeriodEnd,
+
                 daysRemaining,
-                lastPaidAt: latestPayment?.paidAt ?? null,
+
+                lastPaidAt: lastSuccessfulPayment?.paidAt ?? null,
+
+                subscriptionId: subscription.id,
+
                 subscriptionStatus: subscription.status,
+
+                paymentStatus,
+
+                pendingPaymentId: pendingPayment?.id ?? null,
+
                 status,
-                notification: getNotification(status, daysRemaining),
+
+                notification,
+
                 icon: STATUS_ICON[status],
+
                 color: STATUS_COLOR[status],
-            });
-        }
+            };
+        });
 
         return NextResponse.json(
             {
@@ -266,9 +361,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
                 count: data.length,
                 data,
             },
-            {
-                status: 200,
-            },
+            { status: 200 },
         );
     } catch (error) {
         console.error('[Platform Users Billing API]', {
@@ -284,9 +377,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
                 data: [],
                 message: 'Failed to load billing information.',
             },
-            {
-                status: 500,
-            },
+            { status: 500 },
         );
     }
 }

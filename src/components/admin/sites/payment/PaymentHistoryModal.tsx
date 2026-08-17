@@ -230,34 +230,6 @@ export default function PaymentHistoryModal({ open, site, onClose, onRenew }: Pr
                 aria-labelledby="payment-history-title"
             >
                 <header className={styles.header}>
-                    <div className={styles.headerIcon}>
-                        <i className="bi bi-credit-card-2-front" />
-                    </div>
-
-                    <div className={styles.headerContent}>
-                        <div className={styles.titleRow}>
-                            <h2 id="payment-history-title">Payment & Subscription</h2>
-
-                            <span className={styles.subscriptionBadge}>
-                                <span />
-                                {currentSubscriptionStatus}
-                            </span>
-                        </div>
-
-                        <p>Manage payments and subscription for this website.</p>
-                    </div>
-
-                    <button
-                        type="button"
-                        className={styles.closeButton}
-                        onClick={onClose}
-                        aria-label="Close"
-                    >
-                        <i className="bi bi-x-lg" />
-                    </button>
-                </header>
-
-                <div className={styles.body}>
                     <div className={styles.siteSummary}>
                         <div className={styles.siteIdentity}>
                             <div className={styles.siteAvatar}>
@@ -315,6 +287,17 @@ export default function PaymentHistoryModal({ open, site, onClose, onRenew }: Pr
                         </div>
                     </div>
 
+                    <button
+                        type="button"
+                        className={styles.closeButton}
+                        onClick={onClose}
+                        aria-label="Close"
+                    >
+                        <i className="bi bi-x-lg" />
+                    </button>
+                </header>
+
+                <div className={styles.body}>
                     <nav className={styles.tabs}>
                         <button
                             type="button"
@@ -336,17 +319,6 @@ export default function PaymentHistoryModal({ open, site, onClose, onRenew }: Pr
                         >
                             <i className="bi bi-arrow-repeat" />
                             Renew Subscription
-                        </button>
-
-                        <button
-                            type="button"
-                            className={`${styles.tab} ${
-                                activeTab === 'plan' ? styles.tabActive : ''
-                            }`}
-                            onClick={() => setActiveTab('plan')}
-                        >
-                            <i className="bi bi-info-circle" />
-                            Plan Information
                         </button>
                     </nav>
 
@@ -786,170 +758,69 @@ export default function PaymentHistoryModal({ open, site, onClose, onRenew }: Pr
                                 </div>
 
                                 <div className={styles.paymentPreview}>
-                                    <div className={styles.previewHeader}>
-                                        <div>
-                                            <h3>Payment</h3>
-                                            <p>Bank transfer / QR</p>
-                                        </div>
-
-                                        <span>
-                                            <i className="bi bi-shield-check" />
-                                            Secure
-                                        </span>
-                                    </div>
-
-                                    <div className={styles.qrFrame}>
-                                        <Image
-                                            src="/assets/images/payment.jpg"
-                                            alt="Payment QR"
-                                            width={360}
-                                            height={360}
-                                            className={styles.qrImage}
-                                        />
-                                    </div>
-
-                                    <div className={styles.previewAmount}>
-                                        <span>Total amount</span>
-                                        <strong>{formatMoney(renewAmount)}</strong>
-                                    </div>
-
-                                    <div className={styles.transferInfo}>
-                                        <div>
-                                            <span>Bank</span>
-                                            <strong>VIETCOMBANK</strong>
-                                        </div>
-
-                                        <div>
-                                            <span>Account Name</span>
-                                            <strong>CONG TY TNHH KBUILDER</strong>
-                                        </div>
-
-                                        <div>
-                                            <span>Account Number</span>
-                                            <strong>1234 5678 9999</strong>
-                                        </div>
-
-                                        <div>
-                                            <span>Transfer Content</span>
-                                            <strong>
-                                                KB{site.id.slice(0, 8).toUpperCase()}{' '}
-                                                {selectedMonths}M
-                                            </strong>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        className={styles.renewButton}
-                                        onClick={() => onRenew?.(site)}
-                                        disabled={!plan || monthlyPrice <= 0}
-                                    >
-                                        <i className="bi bi-arrow-repeat" />
-                                        Renew Subscription
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'plan' && (
-                            <div className={styles.planLayout}>
-                                <div className={styles.planHero}>
-                                    <div className={styles.planIcon}>
-                                        <i className="bi bi-stars" />
-                                    </div>
-
                                     <div>
-                                        <span>Current Plan</span>
-                                        <h3>{plan?.name ?? 'No Pricing Plan'}</h3>
+                                        <div className={styles.previewHeader}>
+                                            <div>
+                                                <h3>Payment</h3>
+                                                <p>Bank transfer / QR</p>
+                                            </div>
 
-                                        {plan && (
-                                            <strong>
-                                                {formatMoney(plan.price)}
-                                                <small> / month</small>
-                                            </strong>
-                                        )}
-                                    </div>
-
-                                    <span className={styles.planStatus}>
-                                        {plan?.status ?? 'INACTIVE'}
-                                    </span>
-                                </div>
-
-                                <div className={styles.planGrid}>
-                                    <div className={styles.planFeature}>
-                                        <div>
-                                            <i className="bi bi-file-earmark-text" />
+                                            <span>
+                                                <i className="bi bi-shield-check" />
+                                                Secure
+                                            </span>
                                         </div>
-                                        <span>Pages</span>
-                                        <strong>{plan?.id ? 'Included' : '-'}</strong>
-                                    </div>
 
-                                    <div className={styles.planFeature}>
-                                        <div>
-                                            <i className="bi bi-box-seam" />
+                                        <div className={styles.qrFrame}>
+                                            <Image
+                                                src="/assets/images/payment.jpg"
+                                                alt="Payment QR"
+                                                width={360}
+                                                height={360}
+                                                className={styles.qrImage}
+                                            />
                                         </div>
-                                        <span>Products</span>
-                                        <strong>{plan?.id ? 'Included' : '-'}</strong>
                                     </div>
-
-                                    <div className={styles.planFeature}>
-                                        <div>
-                                            <i className="bi bi-people" />
-                                        </div>
-                                        <span>Users</span>
-                                        <strong>{plan?.id ? 'Included' : '-'}</strong>
-                                    </div>
-
-                                    <div className={styles.planFeature}>
-                                        <div>
-                                            <i className="bi bi-hdd" />
-                                        </div>
-                                        <span>Storage</span>
-                                        <strong>{plan?.id ? 'Included' : '-'}</strong>
-                                    </div>
-
-                                    <div className={styles.planFeature}>
-                                        <div>
-                                            <i className="bi bi-globe2" />
-                                        </div>
-                                        <span>Custom Domain</span>
-                                        <strong>{plan?.id ? 'Available' : '-'}</strong>
-                                    </div>
-
-                                    <div className={styles.planFeature}>
-                                        <div>
-                                            <i className="bi bi-bar-chart" />
-                                        </div>
-                                        <span>Analytics</span>
-                                        <strong>{plan?.id ? 'Available' : '-'}</strong>
-                                    </div>
-                                </div>
-
-                                <div className={styles.subscriptionInfo}>
                                     <div>
-                                        <span>Billing Cycle</span>
-                                        <strong>{site.subscription?.billingCycle ?? '-'}</strong>
-                                    </div>
+                                        <div className={styles.previewAmount}>
+                                            <span>Total amount</span>
+                                            <strong>{formatMoney(renewAmount)}</strong>
+                                        </div>
 
-                                    <div>
-                                        <span>Started</span>
-                                        <strong>{formatDate(site.subscription?.startedAt)}</strong>
-                                    </div>
+                                        <div className={styles.transferInfo}>
+                                            <div>
+                                                <span>Bank</span>
+                                                <strong>VIETCOMBANK</strong>
+                                            </div>
 
-                                    <div>
-                                        <span>Current Period</span>
-                                        <strong>
-                                            {formatDate(site.subscription?.currentPeriodStart)}
-                                            {' — '}
-                                            {formatDate(site.subscription?.currentPeriodEnd)}
-                                        </strong>
-                                    </div>
+                                            <div>
+                                                <span>Account Name</span>
+                                                <strong>CONG TY TNHH KBUILDER</strong>
+                                            </div>
 
-                                    <div>
-                                        <span>Auto Renewal</span>
-                                        <strong>
-                                            {site.subscription?.autoRenew ? 'Enabled' : 'Disabled'}
-                                        </strong>
+                                            <div>
+                                                <span>Account Number</span>
+                                                <strong>1234 5678 9999</strong>
+                                            </div>
+
+                                            <div>
+                                                <span>Transfer Content</span>
+                                                <strong>
+                                                    KB{site.id.slice(0, 8).toUpperCase()}{' '}
+                                                    {selectedMonths}M
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            className={styles.renewButton}
+                                            onClick={() => onRenew?.(site)}
+                                            disabled={!plan || monthlyPrice <= 0}
+                                        >
+                                            <i className="bi bi-arrow-repeat" />
+                                            Renew Subscription
+                                        </button>
                                     </div>
                                 </div>
                             </div>
