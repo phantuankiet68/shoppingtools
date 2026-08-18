@@ -1,4 +1,4 @@
-import { MenuArea, Prisma, SystemRole } from '@/generated/prisma';
+import { MenuArea, Prisma } from '@/generated/prisma';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 import { isAdmin } from '@/lib/auth/roles';
 import { prisma } from '@/lib/prisma';
@@ -25,22 +25,6 @@ type TreeNode = {
     parentKey: string | null;
     children?: TreeNode[];
 };
-
-function resolveAreaByRole(role: SystemRole): MenuArea | null {
-    switch (role) {
-        case 'SUPER_ADMIN':
-            return 'PLATFORM';
-
-        case 'ADMIN':
-            return 'ADMIN';
-
-        case 'CUSTOMER':
-            return 'SITE';
-
-        default:
-            return null;
-    }
-}
 
 function buildTree(rows: LayoutItem[]): TreeNode[] {
     const nodeMap = new Map<string, TreeNode>();
@@ -122,46 +106,70 @@ export async function GET(req: NextRequest) {
         const authUser = await requireBackofficeUser();
 
         if (!authUser) {
-            return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: 'Forbidden',
+                },
+                { status: 403 },
+            );
         }
 
         const url = new URL(req.url);
 
+        const siteId = url.searchParams.get('siteId')?.trim();
         const includeHidden = url.searchParams.get('includeHidden') === '1';
-
         const tree = url.searchParams.get('tree') === '1';
 
-        const area = resolveAreaByRole(authUser.systemRole);
-
-        if (!area) {
+        if (!siteId) {
             return NextResponse.json(
                 {
-                    message: 'Unsupported system role',
+                    success: false,
+                    message: 'Site ID is required.',
                 },
+                { status: 400 },
+            );
+        }
+
+        const site = await prisma.site.findUnique({
+            where: {
+                id: siteId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!site) {
+            return NextResponse.json(
                 {
-                    status: 403,
+                    success: false,
+                    message: 'Site not found.',
                 },
+                { status: 404 },
             );
         }
 
         const where: Prisma.MenuItemWhereInput = {
-            area,
-
-            ...(includeHidden ? {} : { visible: true }),
-
-            rolePermissions: {
-                some: {
-                    systemRole: authUser.systemRole,
-                    enabled: true,
-                },
-            },
+            siteId,
+            area: MenuArea.ADMIN,
+            ...(includeHidden
+                ? {}
+                : {
+                      visible: true,
+                  }),
         };
 
         const items = await prisma.menuItem.findMany({
             where,
-
-            orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
-
+            orderBy: [
+                {
+                    sortOrder: 'asc',
+                },
+                {
+                    title: 'asc',
+                },
+            ],
             select: {
                 id: true,
                 parentId: true,
@@ -177,13 +185,15 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(
             tree
                 ? {
-                      area,
-                      systemRole: authUser.systemRole,
+                      success: true,
+                      siteId,
+                      area: MenuArea.ADMIN,
                       tree: buildTree(items),
                   }
                 : {
-                      area,
-                      systemRole: authUser.systemRole,
+                      success: true,
+                      siteId,
+                      area: MenuArea.ADMIN,
                       items,
                   },
             {
@@ -198,7 +208,8 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(
             {
-                message: 'Internal server error',
+                success: false,
+                message: 'Internal server error.',
             },
             {
                 status: 500,

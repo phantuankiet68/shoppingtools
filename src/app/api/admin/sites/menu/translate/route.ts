@@ -15,13 +15,30 @@ export async function POST(req: NextRequest) {
         const session = await getCurrentSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Unauthorized',
+                },
+                { status: 401 },
+            );
         }
 
         const body = await req.json();
 
         const menus = Array.isArray(body.menus) ? body.menus : [];
-        const localeValue = String(body.locale ?? 'en');
+
+        const localeValue = String(body.locale ?? 'en').trim();
+
+        if (!menus.length) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Menu items are required.',
+                },
+                { status: 400 },
+            );
+        }
 
         if (!isSiteLocale(localeValue)) {
             return NextResponse.json(
@@ -51,7 +68,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
             {
                 success: false,
-                error: 'Failed to translate menu.',
+                error: error instanceof Error ? error.message : 'Failed to translate menu.',
             },
             { status: 500 },
         );

@@ -1,24 +1,35 @@
+import { MenuArea } from '@/generated/prisma';
+
+type MenuTemplateData = {
+    key: string;
+    title: string;
+    path?: string | null;
+    icon?: string | null;
+    area: MenuArea;
+    sortOrder?: number;
+    visible?: boolean;
+};
+
 type GenerateMenuItemsInput = {
     siteId: string;
-    menus: any[];
+    menus: MenuTemplateData[];
 };
 
 export function generateMenuItems({ siteId, menus }: GenerateMenuItemsInput) {
     return menus.map((menu, index) => ({
         siteId,
         key: buildMenuKey(menu, index),
-        title: String(menu.title ?? '').trim(),
+        title: menu.title.trim(),
         path: menu.path ?? null,
         icon: menu.icon ?? null,
-        area: menu.area ?? 'SITE',
+        area: menu.area,
         sortOrder: menu.sortOrder ?? index,
         visible: menu.visible ?? true,
-        parentKey: menu.parentKey ?? null,
     }));
 }
 
-function buildMenuKey(menu: any, index: number) {
-    const rawKey = String(menu.key ?? '').trim();
+function buildMenuKey(menu: MenuTemplateData, index: number) {
+    const rawKey = menu.key.trim();
 
     if (rawKey) {
         return rawKey;

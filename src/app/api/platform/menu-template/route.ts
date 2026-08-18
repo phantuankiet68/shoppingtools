@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, WebsiteType, MenuArea } from '@/generated/prisma';
+import { MenuArea, Prisma, WebsiteType } from '@/generated/prisma';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/utils/platform/platformHelpers';
+
+const ALLOWED_SORT_FIELDS = ['title', 'key', 'sortOrder', 'createdAt', 'updatedAt'] as const;
+
+function isWebsiteType(value: string): value is WebsiteType {
+    return Object.values(WebsiteType).includes(value as WebsiteType);
+}
+
+function isMenuArea(value: string): value is MenuArea {
+    return Object.values(MenuArea).includes(value as MenuArea);
+}
 
 export async function GET(req: NextRequest) {
     try {
@@ -10,20 +20,15 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
 
         const page = Math.max(Number(searchParams.get('page') ?? 1), 1);
-        const limit = Math.max(Number(searchParams.get('limit') ?? 20), 1);
+        const limit = Math.min(Math.max(Number(searchParams.get('limit') ?? 20), 1), 100);
 
         const search = searchParams.get('search')?.trim();
-
-        const websiteType = searchParams.get('websiteType') as WebsiteType | null;
-
+        const websiteTypeParam = searchParams.get('websiteType');
         const categoryId = searchParams.get('categoryId');
-
-        const area = searchParams.get('area') as MenuArea | null;
-
+        const areaParam = searchParams.get('area');
         const visibleParam = searchParams.get('visible');
 
-        const sortBy = searchParams.get('sortBy') ?? 'sortOrder';
-
+        const sortByParam = searchParams.get('sortBy') ?? 'sortOrder';
         const sortOrder = searchParams.get('sortOrder') === 'desc' ? 'desc' : 'asc';
 
         const where: Prisma.MenuTemplateWhereInput = {};
@@ -48,29 +53,59 @@ export async function GET(req: NextRequest) {
                         mode: 'insensitive',
                     },
                 },
+                {
+                    icon: {
+                        contains: search,
+                        mode: 'insensitive',
+                    },
+                },
             ];
         }
 
-        if (websiteType) {
-            where.websiteType = websiteType;
+        if (websiteTypeParam) {
+            if (!isWebsiteType(websiteTypeParam)) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: 'Invalid website type.',
+                    },
+                    { status: 400 },
+                );
+            }
+
+            where.websiteType = websiteTypeParam;
         }
 
         if (categoryId) {
             where.categoryId = categoryId;
         }
 
-        if (area) {
-            where.area = area;
+        if (areaParam) {
+            if (!isMenuArea(areaParam)) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: 'Invalid menu area.',
+                    },
+                    { status: 400 },
+                );
+            }
+
+            where.area = areaParam;
         }
 
         if (visibleParam !== null) {
             where.visible = visibleParam === 'true';
         }
 
-        const allowSort = ['title', 'sortOrder', 'createdAt', 'updatedAt'];
+        const sortBy = ALLOWED_SORT_FIELDS.includes(
+            sortByParam as (typeof ALLOWED_SORT_FIELDS)[number],
+        )
+            ? sortByParam
+            : 'sortOrder';
 
         const orderBy: Prisma.MenuTemplateOrderByWithRelationInput = {
-            [allowSort.includes(sortBy) ? sortBy : 'sortOrder']: sortOrder,
+            [sortBy]: sortOrder,
         };
 
         const [items, total, categories] = await prisma.$transaction([
@@ -78,18 +113,16 @@ export async function GET(req: NextRequest) {
                 where,
                 include: {
                     category: true,
-                    parent: {
-                        select: {
-                            id: true,
-                            title: true,
-                        },
-                    },
                 },
                 orderBy,
                 skip: (page - 1) * limit,
                 take: limit,
             }),
-            prisma.menuTemplate.count({ where }),
+
+            prisma.menuTemplate.count({
+                where,
+            }),
+
             prisma.templateCategory.findMany({
                 where: {
                     isActive: true,
@@ -134,6 +167,8 @@ export async function GET(req: NextRequest) {
             }
         }
 
+        console.error('[GET /api/platform/menu-template]', error);
+
         return NextResponse.json(
             {
                 success: false,
@@ -143,29 +178,30 @@ export async function GET(req: NextRequest) {
         );
     }
 }
+
 export async function POST(req: NextRequest) {
     try {
         await requireAdmin();
+
         const body = await req.json();
 
-        const {
-            websiteType,
-            categoryId,
-            parentId,
-            key,
-            title,
-            path,
-            icon,
-            area,
-            sortOrder,
-            visible,
-        } = body;
+        const { websiteType, categoryId, key, title, path, icon, area, sortOrder, visible } = body;
 
         if (!websiteType) {
             return NextResponse.json(
                 {
                     success: false,
                     message: 'Website type is required.',
+                },
+                { status: 400 },
+            );
+        }
+
+        if (!isWebsiteType(websiteType)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: 'Invalid website type.',
                 },
                 { status: 400 },
             );
@@ -211,9 +247,24 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        if (!isMenuArea(area)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: 'Invalid menu area.',
+                },
+                { status: 400 },
+            );
+        }
+
         const category = await prisma.templateCategory.findUnique({
             where: {
                 id: categoryId,
+            },
+            select: {
+                id: true,
+                name: true,
+                isActive: true,
             },
         });
 
@@ -227,11 +278,32 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const existed = await prisma.menuTemplate.findFirst({
+        if (!category.isActive) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: 'Category is inactive.',
+                },
+                { status: 400 },
+            );
+        }
+
+        const normalizedKey = key.trim();
+        const normalizedTitle = title.trim();
+        const normalizedPath = path?.trim() || null;
+        const normalizedIcon = icon?.trim() || null;
+
+        const existed = await prisma.menuTemplate.findUnique({
             where: {
-                websiteType,
-                categoryId,
-                key,
+                websiteType_categoryId_area_key: {
+                    websiteType,
+                    categoryId,
+                    area,
+                    key: normalizedKey,
+                },
+            },
+            select: {
+                id: true,
             },
         });
 
@@ -252,37 +324,33 @@ export async function POST(req: NextRequest) {
                 where: {
                     websiteType,
                     categoryId,
-                    parentId: parentId ?? null,
+                    area,
                 },
                 orderBy: {
                     sortOrder: 'desc',
                 },
+                select: {
+                    sortOrder: true,
+                },
             });
 
-            nextSortOrder = (lastMenu?.sortOrder ?? 0) + 1;
+            nextSortOrder = (lastMenu?.sortOrder ?? -1) + 1;
         }
 
         const menu = await prisma.menuTemplate.create({
             data: {
                 websiteType,
                 categoryId,
-                parentId: parentId ?? null,
-                key: key.trim(),
-                title: title.trim(),
-                path: path?.trim() || null,
-                icon: icon?.trim() || null,
+                key: normalizedKey,
+                title: normalizedTitle,
+                path: normalizedPath,
+                icon: normalizedIcon,
                 area,
                 sortOrder: nextSortOrder,
                 visible: visible ?? true,
             },
             include: {
                 category: true,
-                parent: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
             },
         });
 
@@ -292,9 +360,7 @@ export async function POST(req: NextRequest) {
                 message: 'Menu template created successfully.',
                 data: menu,
             },
-            {
-                status: 201,
-            },
+            { status: 201 },
         );
     } catch (error) {
         if (error instanceof Error) {
@@ -318,14 +384,25 @@ export async function POST(req: NextRequest) {
                 );
             }
         }
+
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: 'Menu template key already exists.',
+                },
+                { status: 409 },
+            );
+        }
+
+        console.error('[POST /api/platform/menu-template]', error);
+
         return NextResponse.json(
             {
                 success: false,
                 message: 'Failed to create menu template.',
             },
-            {
-                status: 500,
-            },
+            { status: 500 },
         );
     }
 }

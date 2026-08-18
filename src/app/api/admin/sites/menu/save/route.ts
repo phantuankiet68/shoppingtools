@@ -13,7 +13,6 @@ type MenuItemRequest = {
     area: MenuArea;
     sortOrder?: number;
     visible?: boolean;
-    parentKey?: string | null;
 };
 
 export async function POST(req: NextRequest) {
@@ -21,7 +20,13 @@ export async function POST(req: NextRequest) {
         const session = await getCurrentSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Unauthorized',
+                },
+                { status: 401 },
+            );
         }
 
         const body: unknown = await req.json();
@@ -42,6 +47,7 @@ export async function POST(req: NextRequest) {
         };
 
         const siteId = String(payload.siteId ?? '').trim();
+
         const items = Array.isArray(payload.items) ? (payload.items as MenuItemRequest[]) : [];
 
         if (!siteId) {
@@ -65,28 +71,42 @@ export async function POST(req: NextRequest) {
         }
 
         const invalidItems = items.filter(
-            (item) => !item || typeof item.key !== 'string' || !item.key.trim(),
+            (item) =>
+                !item ||
+                typeof item.key !== 'string' ||
+                !item.key.trim() ||
+                typeof item.title !== 'string' ||
+                !item.title.trim() ||
+                (item.area !== MenuArea.SITE && item.area !== MenuArea.ADMIN),
         );
 
         if (invalidItems.length) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: `Invalid menu items: ${invalidItems.length} item(s) are missing key.`,
+                    error: `Invalid menu items: ${invalidItems.length} item(s).`,
                 },
                 { status: 400 },
             );
         }
 
-        const keys = items.map((item) => item.key.trim());
+        const duplicateMap = new Map<string, number>();
 
-        const duplicateKeys = keys.filter((key, index) => keys.indexOf(key) !== index);
+        for (const item of items) {
+            const key = `${item.area}:${item.key.trim()}`;
+
+            duplicateMap.set(key, (duplicateMap.get(key) ?? 0) + 1);
+        }
+
+        const duplicateKeys = [...duplicateMap.entries()]
+            .filter(([, count]) => count > 1)
+            .map(([key]) => key);
 
         if (duplicateKeys.length) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: `Duplicate menu keys: ${[...new Set(duplicateKeys)].join(', ')}`,
+                    error: `Duplicate menu keys: ${duplicateKeys.join(', ')}`,
                 },
                 { status: 400 },
             );

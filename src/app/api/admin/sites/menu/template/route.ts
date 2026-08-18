@@ -9,7 +9,13 @@ export async function POST(req: NextRequest) {
         const session = await getCurrentSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Unauthorized',
+                },
+                { status: 401 },
+            );
         }
 
         const body = await req.json();
@@ -27,7 +33,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const result = loadMenuTemplate({
+        const result = await loadMenuTemplate({
             type,
             category,
         });
@@ -42,7 +48,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
             {
                 success: false,
-                error: 'Failed to load menu template.',
+                error: error instanceof Error ? error.message : 'Failed to load menu template.',
             },
             { status: 500 },
         );

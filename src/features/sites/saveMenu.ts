@@ -9,7 +9,6 @@ type MenuItemInput = {
     area: MenuArea;
     sortOrder?: number;
     visible?: boolean;
-    parentKey?: string | null;
 };
 
 type SaveMenuInput = {
@@ -18,6 +17,10 @@ type SaveMenuInput = {
 };
 
 export async function saveMenu({ siteId, items }: SaveMenuInput) {
+    if (!siteId.trim()) {
+        throw new Error('Site ID is required.');
+    }
+
     if (!items.length) {
         return {
             siteId,
@@ -26,11 +29,41 @@ export async function saveMenu({ siteId, items }: SaveMenuInput) {
         };
     }
 
-    const keys = items.map((item) => item.key);
-    const duplicateKeys = keys.filter((key, index) => keys.indexOf(key) !== index);
+    const normalizedItems = items.map((item) => ({
+        key: item.key.trim(),
+        title: item.title.trim(),
+        path: item.path?.trim() || null,
+        icon: item.icon?.trim() || null,
+        area: item.area,
+        sortOrder: item.sortOrder ?? 0,
+        visible: item.visible ?? true,
+    }));
+
+    const invalidItems = normalizedItems.filter(
+        (item) =>
+            !item.key ||
+            !item.title ||
+            (item.area !== MenuArea.SITE && item.area !== MenuArea.ADMIN),
+    );
+
+    if (invalidItems.length) {
+        throw new Error(`Invalid menu items: ${invalidItems.length} item(s).`);
+    }
+
+    const duplicateMap = new Map<string, number>();
+
+    for (const item of normalizedItems) {
+        const uniqueKey = `${item.area}:${item.key}`;
+
+        duplicateMap.set(uniqueKey, (duplicateMap.get(uniqueKey) ?? 0) + 1);
+    }
+
+    const duplicateKeys = [...duplicateMap.entries()]
+        .filter(([, count]) => count > 1)
+        .map(([key]) => key);
 
     if (duplicateKeys.length) {
-        throw new Error(`Duplicate menu keys: ${[...new Set(duplicateKeys)].join(', ')}`);
+        throw new Error(`Duplicate menu keys: ${duplicateKeys.join(', ')}`);
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -39,7 +72,9 @@ export async function saveMenu({ siteId, items }: SaveMenuInput) {
                 siteId,
             },
             select: {
+                id: true,
                 key: true,
+                area: true,
             },
         });
 
@@ -47,44 +82,18 @@ export async function saveMenu({ siteId, items }: SaveMenuInput) {
             throw new Error('Menu items already exist for this site.');
         }
 
-        const keyToId = new Map<string, string>();
-        const pending = [...items];
-
-        while (pending.length) {
-            const ready = pending.filter((item) => !item.parentKey || keyToId.has(item.parentKey));
-
-            if (!ready.length) {
-                const unresolved = pending
-                    .map((item) => `${item.key} → ${item.parentKey}`)
-                    .join(', ');
-
-                throw new Error(`Unable to resolve menu hierarchy: ${unresolved}`);
-            }
-
-            for (const item of ready) {
-                const created = await tx.menuItem.create({
-                    data: {
-                        siteId,
-                        key: item.key,
-                        title: item.title,
-                        path: item.path ?? null,
-                        icon: item.icon ?? null,
-                        area: item.area,
-                        sortOrder: item.sortOrder ?? 0,
-                        visible: item.visible ?? true,
-                        parentId: item.parentKey ? (keyToId.get(item.parentKey) ?? null) : null,
-                    },
-                });
-
-                keyToId.set(item.key, created.id);
-
-                const index = pending.indexOf(item);
-
-                if (index !== -1) {
-                    pending.splice(index, 1);
-                }
-            }
-        }
+        await tx.menuItem.createMany({
+            data: normalizedItems.map((item) => ({
+                siteId,
+                key: item.key,
+                title: item.title,
+                path: item.path,
+                icon: item.icon,
+                area: item.area,
+                sortOrder: item.sortOrder,
+                visible: item.visible,
+            })),
+        });
 
         return tx.menuItem.findMany({
             where: {

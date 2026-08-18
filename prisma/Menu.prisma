@@ -3,14 +3,12 @@ enum MenuArea {
   ADMIN
   SITE
 }
+
 model MenuTemplate {
   id String @id @default(cuid())
   websiteType WebsiteType
   categoryId String @map("category_id")
-  category TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  parentId String? @map("parent_id")
-  parent MenuTemplate? @relation("MenuTemplateToSelf", fields: [parentId], references: [id])
-  children MenuTemplate[] @relation("MenuTemplateToSelf")
+  category TemplateCategory @relation(fields: [categoryId],references: [id],onDelete: Restrict)
   key String @db.VarChar(100)
   title String @db.VarChar(191)
   path String? @db.VarChar(255)
@@ -18,22 +16,23 @@ model MenuTemplate {
   area MenuArea
   sortOrder Int @default(0)
   visible Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@unique([websiteType, categoryId, key])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([websiteType, categoryId, area, key])
   @@index([websiteType])
   @@index([categoryId])
   @@index([websiteType, categoryId])
-  @@index([parentId])
-  @@index([websiteType, categoryId, sortOrder])
+  @@index([websiteType, categoryId, area])
+  @@index([websiteType, categoryId, area, sortOrder])
   @@map("menu_templates")
 }
+
 model MenuItem {
   id String @id @default(cuid())
   siteId String
-  site Site @relation(fields: [siteId], references: [id], onUpdate: Cascade)
+  site Site @relation(fields: [siteId],references: [id],onDelete: Cascade,onUpdate: Cascade)
   parentId String? @map("parent_id")
-  parent MenuItem? @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  parent MenuItem? @relation("MenuItemToSelf",fields: [parentId],references: [id])
   children MenuItem[] @relation("MenuItemToSelf")
   key String @db.VarChar(100)
   title String @db.VarChar(191)
@@ -42,12 +41,12 @@ model MenuItem {
   area MenuArea
   sortOrder Int @default(0)
   visible Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
   rolePermissions MenuRolePermission[]
-  @@unique([siteId, key])
-  @@index([parentId])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([siteId, area, key])
   @@index([siteId])
+  @@index([parentId])
   @@index([siteId, area])
   @@index([siteId, area, sortOrder])
   @@index([siteId, visible])
@@ -55,14 +54,15 @@ model MenuItem {
 }
 
 model MenuRolePermission {
-  id     String   @id @default(cuid())
+  id String @id @default(cuid())
   menuId String
-  menu   MenuItem @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  menu MenuItem @relation(fields: [menuId], references: [id],onDelete: Cascade)
   systemRole SystemRole
-  enabled    Boolean    @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  enabled Boolean @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   @@unique([menuId, systemRole])
   @@index([systemRole, enabled])
   @@index([menuId])
+  @@map("menu_role_permissions")
 }

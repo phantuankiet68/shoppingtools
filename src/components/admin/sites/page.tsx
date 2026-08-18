@@ -224,16 +224,6 @@ export default function SitesPage() {
         [paymentSite, load],
     );
 
-    const handlePaymentHistory = useCallback((site: SiteLike) => {
-        setPaymentHistorySite(site);
-        setPaymentHistoryOpen(true);
-    }, []);
-
-    const handleClosePaymentHistory = useCallback(() => {
-        setPaymentHistoryOpen(false);
-        setPaymentHistorySite(null);
-    }, []);
-
     return (
         <div className={styles.shell}>
             <div className={styles.page}>

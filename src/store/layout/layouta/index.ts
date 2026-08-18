@@ -35,7 +35,7 @@ type State = {
     setNotiTab: (v: NotiTab) => void;
 
     loadMe: () => Promise<void>;
-    loadMenu: () => Promise<void>;
+    loadMenu: (siteId: string) => Promise<void>;
 
     setActiveKey: (k: string) => void;
     syncActiveByPathname: (pathname: string) => void;
@@ -74,12 +74,25 @@ export const useAdminLayoutStore = create<State>((set, get) => ({
         } catch {}
     },
 
-    loadMenu: async () => {
+    loadMenu: async (siteId) => {
+        if (!siteId) {
+            set({ items: [] });
+            return;
+        }
+
         try {
-            const data = await adminMenuService.layoutMenu({});
+            const data = await adminMenuService.layoutMenu({
+                siteId,
+            });
+
             const tree = buildTree(data.items || []);
-            set({ items: tree, openGroups: {} });
-        } catch {
+
+            set({
+                items: tree,
+                openGroups: {},
+            });
+        } catch (error) {
+            console.error('[AdminLayoutStore] Failed to load menu:', error);
             set({ items: [] });
         }
     },
