@@ -1,3 +1,4 @@
+import { Prisma } from '@/generated/prisma';
 import { prisma } from '@/lib/prisma';
 
 type CreateSystemPagesInput = {
@@ -26,50 +27,52 @@ const SYSTEM_PAGES = [
 ] as const;
 
 export async function createSystemPages({ siteId }: CreateSystemPagesInput) {
-    const existingPages = await prisma.page.findMany({
+    const site = await prisma.site.findUnique({
         where: {
-            siteId,
-            slug: {
-                in: SYSTEM_PAGES.map((page) => page.slug),
-            },
+            id: siteId,
         },
         select: {
             id: true,
-            slug: true,
         },
     });
 
-    const existingSlugs = new Set(existingPages.map((page) => page.slug));
-
-    const pagesToCreate = SYSTEM_PAGES.filter((page) => !existingSlugs.has(page.slug));
-
-    if (pagesToCreate.length) {
-        await prisma.$transaction(
-            pagesToCreate.map((page) =>
-                prisma.page.create({
-                    data: {
-                        siteId,
-                        title: page.title,
-                        slug: page.slug,
-                        path: page.path,
-                        status: 'DRAFT',
-                        sortOrder: page.sortOrder,
-                    },
-                }),
-            ),
-        );
+    if (!site) {
+        throw new Error('SITE_NOT_FOUND');
     }
 
-    const pages = await prisma.page.findMany({
-        where: {
-            siteId,
-            slug: {
-                in: SYSTEM_PAGES.map((page) => page.slug),
+    const pages = await prisma.$transaction(async (tx) => {
+        for (const page of SYSTEM_PAGES) {
+            await tx.page.upsert({
+                where: {
+                    siteId_slug: {
+                        siteId,
+                        slug: page.slug,
+                    },
+                },
+                update: {},
+                create: {
+                    siteId,
+                    title: page.title,
+                    slug: page.slug,
+                    path: page.path,
+                    status: 'DRAFT',
+                    sortOrder: page.sortOrder,
+                    blocks: [] as Prisma.InputJsonValue,
+                },
+            });
+        }
+
+        return tx.page.findMany({
+            where: {
+                siteId,
+                slug: {
+                    in: SYSTEM_PAGES.map((page) => page.slug),
+                },
             },
-        },
-        orderBy: {
-            sortOrder: 'asc',
-        },
+            orderBy: {
+                sortOrder: 'asc',
+            },
+        });
     });
 
     return {

@@ -9,13 +9,18 @@ export async function POST(req: NextRequest) {
         const session = await getCurrentSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Unauthorized',
+                },
+                { status: 401 },
+            );
         }
 
         const body = await req.json();
 
         const siteId = String(body.siteId ?? '').trim();
-        const pages = Array.isArray(body.pages) ? body.pages : [];
 
         if (!siteId) {
             return NextResponse.json(
@@ -27,19 +32,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        if (!pages.length) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Public pages are required.',
-                },
-                { status: 400 },
-            );
-        }
-
         const result = await createPublicPages({
             siteId,
-            pages,
         });
 
         return NextResponse.json({
@@ -48,6 +42,18 @@ export async function POST(req: NextRequest) {
         });
     } catch (error) {
         console.error('[POST /api/admin/sites/pages/public]', error);
+
+        if (error instanceof Error) {
+            if (error.message === 'SITE_NOT_FOUND') {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'Site not found.',
+                    },
+                    { status: 404 },
+                );
+            }
+        }
 
         return NextResponse.json(
             {

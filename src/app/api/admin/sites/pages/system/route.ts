@@ -9,10 +9,17 @@ export async function POST(req: NextRequest) {
         const session = await getCurrentSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Unauthorized',
+                },
+                { status: 401 },
+            );
         }
 
         const body = await req.json();
+
         const siteId = String(body.siteId ?? '').trim();
 
         if (!siteId) {
@@ -35,6 +42,18 @@ export async function POST(req: NextRequest) {
         });
     } catch (error) {
         console.error('[POST /api/admin/sites/pages/system]', error);
+
+        if (error instanceof Error) {
+            if (error.message === 'SITE_NOT_FOUND') {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'Site not found.',
+                    },
+                    { status: 404 },
+                );
+            }
+        }
 
         return NextResponse.json(
             {

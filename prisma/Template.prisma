@@ -13,19 +13,23 @@ enum TemplateStatus {
 model TemplateCategory {
   id String @id @default(cuid())
 
-  name        String
+  name String
   description String?
-  websiteType WebsiteType?
+  websiteType WebsiteType
   minTier AccessTier @default(BASIC) @map("min_tier")
 
-  sortOrder Int     @default(0) @map("sort_order")
-  isActive  Boolean @default(true) @map("is_active")
+  sortOrder Int @default(0) @map("sort_order")
+  isActive Boolean @default(true) @map("is_active")
 
   templates TemplateCatalog[]
   menuTemplates MenuTemplate[]
+  pageTemplates PageTemplate[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([websiteType, name])
+  @@index([websiteType, name, minTier])
   @@index([isActive, sortOrder])
   @@index([minTier])
   @@map("template_categories")
@@ -33,22 +37,53 @@ model TemplateCategory {
 
 model TemplateCatalog {
   id String @id @default(cuid())
+
   code String @unique
   name String
   kind String
-  categoryId String           @map("category_id")
-  category   TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  categoryId String @map("category_id")
+  category TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
   status TemplateStatus @default(PUBLISHED)
   previewImageUrl String? @map("preview_image_url")
+
   isActive Boolean @default(true) @map("is_active")
   isPublic Boolean @default(true) @map("is_public")
+
   sortOrder Int @default(0) @map("sort_order")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   @@index([categoryId, sortOrder])
   @@index([status, isActive])
   @@index([kind])
   @@map("template_catalog")
+}
+
+model PageTemplate {
+  id String @id @default(cuid())
+  categoryId String @map("category_id")
+  category TemplateCategory @relation(fields: [categoryId],references: [id],onDelete: Restrict)
+  websiteType WebsiteType
+  minTier AccessTier @default(BASIC) @map("min_tier")
+  key String @db.VarChar(100)
+  title String @db.VarChar(191)
+  path String? @db.VarChar(255)
+  blocks Json
+  status TemplateStatus @default(PUBLISHED)
+  previewImageUrl String? @map("preview_image_url")
+  isActive Boolean @default(true) @map("is_active")
+  isPublic Boolean @default(true) @map("is_public")
+  sortOrder Int @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  @@unique([websiteType, categoryId, key])
+  @@index([categoryId, sortOrder])
+  @@index([websiteType, categoryId])
+  @@index([status, isActive])
+  @@map("page_templates")
 }

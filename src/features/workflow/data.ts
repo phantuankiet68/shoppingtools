@@ -74,8 +74,24 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
                     response: ['success', 'data.siteId', 'data.site'],
                 },
                 {
-                    id: 'assets',
+                    id: 'system-pages',
                     step: 4,
+                    title: 'Create System Pages',
+                    subtitle: 'Header • Footer • 404',
+                    description:
+                        'Create the predefined system pages for the site before initializing menus and public pages.',
+                    icon: 'bi bi-file-earmark',
+                    color: 'blue',
+                    status: 'waiting',
+                    runtimeStatus: 'idle',
+                    method: 'POST',
+                    api: '/api/admin/sites/pages/system',
+                    request: ['siteId'],
+                    response: ['success', 'data.siteId', 'data.count', 'data.pages'],
+                },
+                {
+                    id: 'assets',
+                    step: 5,
                     title: 'Upload Assets',
                     subtitle: 'Logo • Favicon',
                     description:
@@ -98,7 +114,7 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
             nodes: [
                 {
                     id: 'menu-template',
-                    step: 5,
+                    step: 6,
                     title: 'Load Menu Template',
                     subtitle: 'Read prepared template',
                     description:
@@ -114,7 +130,7 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
                 },
                 {
                     id: 'menu-translate',
-                    step: 6,
+                    step: 7,
                     title: 'Translate Menu',
                     subtitle: 'Resolve localization',
                     description: 'Resolve menu title and path values using the selected locale.',
@@ -129,7 +145,7 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
                 },
                 {
                     id: 'menu-generate',
-                    step: 7,
+                    step: 8,
                     title: 'Generate Menu Items',
                     subtitle: 'Prepare menu tree',
                     description:
@@ -145,7 +161,7 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
                 },
                 {
                     id: 'menu-save',
-                    step: 8,
+                    step: 9,
                     title: 'Save Menu',
                     subtitle: 'Persist menu tree',
                     description: 'Create MenuItem records inside a database transaction.',
@@ -165,21 +181,6 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
             title: 'PAGE PIPELINE',
             color: '#3b82f6',
             nodes: [
-                {
-                    id: 'system-pages',
-                    step: 9,
-                    title: 'Create System Pages',
-                    subtitle: 'Header • Footer • 404',
-                    description: 'Create the predefined system pages for the site.',
-                    icon: 'bi bi-file-earmark',
-                    color: 'blue',
-                    status: 'waiting',
-                    runtimeStatus: 'idle',
-                    method: 'POST',
-                    api: '/api/admin/sites/pages/system',
-                    request: ['siteId'],
-                    response: ['success', 'data.siteId', 'data.count', 'data.pages'],
-                },
                 {
                     id: 'public-pages',
                     step: 10,
@@ -271,6 +272,7 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
             ],
         },
     ],
+
     sidebar: {
         request: [
             'name',
@@ -328,6 +330,12 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
             },
             {
                 method: 'POST',
+                endpoint: '/api/admin/sites/pages/system',
+                color: '#2563eb',
+                description: ['Create Header', 'Create Footer', 'Create 404'],
+            },
+            {
+                method: 'POST',
                 endpoint: '/api/admin/sites/assets',
                 color: '#9333ea',
                 description: ['Upload logo', 'Upload favicon'],
@@ -358,12 +366,6 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
             },
             {
                 method: 'POST',
-                endpoint: '/api/admin/sites/pages/system',
-                color: '#2563eb',
-                description: ['Create Header', 'Create Footer', 'Create 404'],
-            },
-            {
-                method: 'POST',
                 endpoint: '/api/admin/sites/pages/public',
                 color: '#16a34a',
                 description: ['Create public pages'],
@@ -382,6 +384,7 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
             },
         ],
     },
+
     benefits: [
         {
             id: 'automation',
@@ -414,6 +417,7 @@ export const CREATE_SITE_WORKFLOW: WorkflowData = {
             description: 'Danh sách Site được reload sau khi toàn bộ workflow hoàn tất.',
         },
     ],
+
     runtime: {
         status: 'idle',
         completedSteps: 0,
