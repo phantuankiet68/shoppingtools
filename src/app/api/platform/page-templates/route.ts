@@ -1,108 +1,166 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentSession } from '@/lib/auth/session';
-import {
-    createPageTemplate,
-    getPageTemplates,
-} from '@/features/platform/pageTemplates/pageTemplates';
-import { AccessTier, Prisma, TemplateStatus, WebsiteType } from '@/generated/prisma';
+import { prisma } from '@/lib/prisma';
+import { Prisma, WebsiteType } from '@/generated/prisma';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const WEBSITE_TYPES = Object.values(WebsiteType);
-const ACCESS_TIERS = Object.values(AccessTier);
-const TEMPLATE_STATUSES = Object.values(TemplateStatus);
+const WEBSITE_TYPES = new Set(Object.values(WebsiteType));
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+const MAX_TITLE_LENGTH = 191;
+const MAX_SLUG_LENGTH = 191;
+const MAX_PATH_LENGTH = 255;
+
+const CATEGORY_SELECT = {
+    id: true,
+    name: true,
+    websiteType: true,
+} satisfies Prisma.TemplateCategorySelect;
+
+const PAGE_TEMPLATE_INCLUDE = {
+    category: {
+        select: CATEGORY_SELECT,
+    },
+} satisfies Prisma.PageTemplateInclude;
+
+function parsePositiveInt(value: string | null, fallback: number, max?: number) {
+    if (!value) return fallback;
+
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 1) return fallback;
+
+    return max ? Math.min(parsed, max) : parsed;
+}
 
 function parseWebsiteType(value: string | null): WebsiteType | undefined {
     if (!value) return undefined;
-
-    return WEBSITE_TYPES.includes(value as WebsiteType) ? (value as WebsiteType) : undefined;
+    return WEBSITE_TYPES.has(value as WebsiteType) ? (value as WebsiteType) : undefined;
 }
 
-function parseAccessTier(value: string | null): AccessTier | undefined {
-    if (!value) return undefined;
-
-    return ACCESS_TIERS.includes(value as AccessTier) ? (value as AccessTier) : undefined;
+function normalizeSlug(value: string) {
+    return value
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, MAX_SLUG_LENGTH);
 }
 
-function parseTemplateStatus(value: string | null): TemplateStatus | undefined {
-    if (!value) return undefined;
+function normalizePath(value: string) {
+    const normalized = `/${value.trim().replace(/^\/+/, '')}`
+        .replace(/\/{2,}/g, '/')
+        .replace(/\/+$/, '');
 
-    return TEMPLATE_STATUSES.includes(value as TemplateStatus)
-        ? (value as TemplateStatus)
-        : undefined;
+    return normalized || '/';
 }
 
-function parseBoolean(value: string | null): boolean | undefined {
-    if (value === null) {
-        return undefined;
-    }
-
-    if (value === 'true' || value === '1') {
-        return true;
-    }
-
-    if (value === 'false' || value === '0') {
-        return false;
-    }
-
-    return undefined;
-}
-
-function parseNumber(value: string | null, fallback: number) {
-    if (value === null || value.trim() === '') {
-        return fallback;
-    }
-
-    const parsed = Number(value);
-
-    return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function parseBlocks(value: unknown): Prisma.InputJsonValue[] {
-    if (Array.isArray(value)) {
-        return value as Prisma.InputJsonValue[];
-    }
-
-    if (typeof value !== 'string' || !value.trim()) {
-        throw new Error('Page blocks are required.');
-    }
-
-    let parsed: unknown;
-
-    try {
-        parsed = JSON.parse(value);
-    } catch {
-        throw new Error('Page blocks contain invalid JSON.');
-    }
-
-    if (!Array.isArray(parsed)) {
-        throw new Error('Page blocks must be a JSON array.');
-    }
-
-    return parsed as Prisma.InputJsonValue[];
-}
-
-function parsePayloadBoolean(value: unknown, fallback: boolean) {
-    if (value === undefined) {
-        return fallback;
-    }
-
-    if (typeof value === 'boolean') {
-        return value;
-    }
+function parseBlocks(value: unknown): Prisma.InputJsonValue | null {
+    if (value === undefined || value === null || value === '') return null;
 
     if (typeof value === 'string') {
-        if (value === 'true' || value === '1') {
-            return true;
-        }
-
-        if (value === 'false' || value === '0') {
-            return false;
+        try {
+            value = JSON.parse(value);
+        } catch {
+            throw new Error('Page blocks contain invalid JSON.');
         }
     }
 
-    return fallback;
+    if (
+        value === null ||
+        typeof value !== 'object' ||
+        (Array.isArray(value) && value.length === 0)
+    ) {
+        if (Array.isArray(value)) return value as Prisma.InputJsonValue;
+        throw new Error('Page blocks must be a JSON object or array.');
+    }
+
+    return value as Prisma.InputJsonValue;
+}
+
+function buildWhere(searchParams: URLSearchParams): Prisma.PageTemplateWhereInput {
+    const search = searchParams.get('search')?.trim();
+    const categoryId = searchParams.get('categoryId')?.trim();
+    const websiteTypeValue = searchParams.get('websiteType');
+    const websiteType = parseWebsiteType(websiteTypeValue);
+
+    if (websiteTypeValue && !websiteType) {
+        throw new ApiError(400, 'Invalid website type.');
+    }
+
+    return {
+        deletedAt: null,
+        ...(categoryId ? { categoryId } : {}),
+        ...(websiteType ? { websiteType } : {}),
+        ...(search
+            ? {
+                  OR: [
+                      { title: { contains: search, mode: 'insensitive' } },
+                      { slug: { contains: search, mode: 'insensitive' } },
+                      { path: { contains: search, mode: 'insensitive' } },
+                  ],
+              }
+            : {}),
+    };
+}
+
+class ApiError extends Error {
+    constructor(
+        public readonly status: number,
+        message: string,
+    ) {
+        super(message);
+        this.name = 'ApiError';
+    }
+}
+
+function jsonError(error: unknown, fallback: string) {
+    if (error instanceof ApiError) {
+        return NextResponse.json(
+            { success: false, error: error.message },
+            { status: error.status },
+        );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'A page template with the same website type, category and slug already exists.',
+                },
+                { status: 409 },
+            );
+        }
+
+        if (error.code === 'P2003') {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'The selected template category does not exist.',
+                },
+                { status: 400 },
+            );
+        }
+    }
+
+    console.error('[page-templates]', error);
+
+    return NextResponse.json({ success: false, error: fallback }, { status: 500 });
+}
+
+async function requireSession() {
+    const session = await getCurrentSession();
+
+    if (!session?.user?.id) {
+        throw new ApiError(401, 'Unauthorized.');
+    }
+
+    return session;
 }
 
 /**
@@ -110,90 +168,40 @@ function parsePayloadBoolean(value: unknown, fallback: boolean) {
  */
 export async function GET(req: NextRequest) {
     try {
-        const session = await getCurrentSession();
-
-        if (!session?.user?.id) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Unauthorized.',
-                },
-                { status: 401 },
-            );
-        }
+        await requireSession();
 
         const { searchParams } = new URL(req.url);
+        const page = parsePositiveInt(searchParams.get('page'), DEFAULT_PAGE);
+        const limit = parsePositiveInt(searchParams.get('limit'), DEFAULT_LIMIT, MAX_LIMIT);
+        const where = buildWhere(searchParams);
+        const skip = (page - 1) * limit;
 
-        const page = parseNumber(searchParams.get('page'), 1);
+        const [items, total] = await prisma.$transaction([
+            prisma.pageTemplate.findMany({
+                where,
+                include: PAGE_TEMPLATE_INCLUDE,
+                orderBy: [{ sortOrder: 'asc' }, { updatedAt: 'desc' }],
+                skip,
+                take: limit,
+            }),
+            prisma.pageTemplate.count({ where }),
+        ]);
 
-        const limit = parseNumber(searchParams.get('limit'), 10);
-
-        const search = searchParams.get('search')?.trim() || undefined;
-
-        const categoryId = searchParams.get('categoryId')?.trim() || undefined;
-
-        const websiteTypeValue = searchParams.get('websiteType');
-
-        const minTierValue = searchParams.get('minTier');
-
-        const statusValue = searchParams.get('status');
-
-        const websiteType = parseWebsiteType(websiteTypeValue);
-
-        const minTier = parseAccessTier(minTierValue);
-
-        const status = parseTemplateStatus(statusValue);
-
-        if (websiteTypeValue && !websiteType) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Invalid website type.',
-                },
-                { status: 400 },
-            );
-        }
-
-        if (minTierValue && !minTier) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Invalid access tier.',
-                },
-                { status: 400 },
-            );
-        }
-
-        if (statusValue && !status) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Invalid template status.',
-                },
-                { status: 400 },
-            );
-        }
-
-        const isActive = parseBoolean(searchParams.get('isActive'));
-
-        const isPublic = parseBoolean(searchParams.get('isPublic'));
-
-        const result = await getPageTemplates({
-            page,
-            limit,
-            search,
-            websiteType,
-            categoryId,
-            minTier,
-            status,
-            isActive,
-            isPublic,
-        });
+        const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+        const safePage = totalPages > 0 ? Math.min(page, totalPages) : 1;
 
         return NextResponse.json(
             {
                 success: true,
-                data: result,
+                data: {
+                    items,
+                    pagination: {
+                        page: safePage,
+                        limit,
+                        total,
+                        totalPages,
+                    },
+                },
             },
             {
                 status: 200,
@@ -203,15 +211,7 @@ export async function GET(req: NextRequest) {
             },
         );
     } catch (error) {
-        console.error('[GET /api/platform/page-templates]', error);
-
-        return NextResponse.json(
-            {
-                success: false,
-                error: error instanceof Error ? error.message : 'Failed to fetch page templates.',
-            },
-            { status: 500 },
-        );
+        return jsonError(error, 'Failed to fetch page templates.');
     }
 }
 
@@ -220,200 +220,128 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
     try {
-        const session = await getCurrentSession();
+        await requireSession();
 
-        if (!session?.user?.id) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Unauthorized.',
-                },
-                { status: 401 },
-            );
+        let body: unknown;
+
+        try {
+            body = await req.json();
+        } catch {
+            throw new ApiError(400, 'Invalid JSON request body.');
         }
 
-        const body: unknown = await req.json();
-
         if (!body || typeof body !== 'object' || Array.isArray(body)) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Invalid request body.',
-                },
-                { status: 400 },
-            );
+            throw new ApiError(400, 'Invalid request body.');
         }
 
         const payload = body as Record<string, unknown>;
-
         const title = String(payload.title ?? '').trim();
-
-        const key = String(payload.key ?? '').trim();
-
         const categoryId = String(payload.categoryId ?? '').trim();
-
-        const websiteTypeValue = String(payload.websiteType ?? '').trim();
-
-        const minTierValue = String(payload.minTier ?? payload.tier ?? AccessTier.BASIC).trim();
-
-        const statusValue = String(payload.status ?? TemplateStatus.DRAFT).trim();
+        const websiteType = parseWebsiteType(String(payload.websiteType ?? '').trim());
+        const rawSlug = String(payload.slug ?? '').trim();
+        const slug = rawSlug ? normalizeSlug(rawSlug) : normalizeSlug(title);
+        const rawPath = String(payload.path ?? '').trim();
+        const path = normalizePath(rawPath);
+        const previewImageUrl =
+            payload.previewImageUrl === null ||
+            payload.previewImageUrl === undefined ||
+            String(payload.previewImageUrl).trim() === ''
+                ? null
+                : String(payload.previewImageUrl).trim();
+        const sortOrderValue = Number(payload.sortOrder ?? 0);
+        const sortOrder = Number.isFinite(sortOrderValue)
+            ? Math.max(0, Math.trunc(sortOrderValue))
+            : 0;
+        const blocks = parseBlocks(payload.blocks);
 
         if (!title) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Template title is required.',
-                },
-                { status: 400 },
-            );
+            throw new ApiError(400, 'Template title is required.');
         }
 
-        if (!key) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Template key is required.',
-                },
-                { status: 400 },
+        if (title.length > MAX_TITLE_LENGTH) {
+            throw new ApiError(
+                400,
+                `Template title must be ${MAX_TITLE_LENGTH} characters or fewer.`,
             );
         }
 
         if (!categoryId) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Template category is required.',
-                },
-                { status: 400 },
-            );
+            throw new ApiError(400, 'Template category is required.');
         }
-
-        const websiteType = parseWebsiteType(websiteTypeValue);
 
         if (!websiteType) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Invalid website type.',
-                },
-                { status: 400 },
+            throw new ApiError(400, 'Invalid website type.');
+        }
+
+        if (rawSlug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rawSlug)) {
+            throw new ApiError(
+                400,
+                'Slug may contain only lowercase letters, numbers and hyphens.',
             );
         }
 
-        const minTier = parseAccessTier(minTierValue);
+        if (!slug) {
+            throw new ApiError(400, 'A valid slug could not be generated from the title.');
+        }
 
-        if (!minTier) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Invalid access tier.',
-                },
-                { status: 400 },
+        if (slug.length > MAX_SLUG_LENGTH) {
+            throw new ApiError(400, `Slug must be ${MAX_SLUG_LENGTH} characters or fewer.`);
+        }
+
+        if (!rawPath) {
+            throw new ApiError(400, 'Template path is required.');
+        }
+
+        if (!path.startsWith('/')) {
+            throw new ApiError(400, 'Template path must start with /.');
+        }
+
+        if (path.length > MAX_PATH_LENGTH) {
+            throw new ApiError(
+                400,
+                `Template path must be ${MAX_PATH_LENGTH} characters or fewer.`,
             );
         }
 
-        const status = parseTemplateStatus(statusValue);
+        const category = await prisma.templateCategory.findFirst({
+            where: {
+                id: categoryId,
+                websiteType,
+            },
+            select: {
+                id: true,
+            },
+        });
 
-        if (!status) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Invalid template status.',
-                },
-                { status: 400 },
+        if (!category) {
+            throw new ApiError(
+                400,
+                'Template category does not exist or does not belong to the selected website type.',
             );
         }
 
-        let blocks: Prisma.InputJsonValue;
-
-        try {
-            blocks = parseBlocks(payload.blocks);
-        } catch (error) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Invalid page blocks.',
-                },
-                { status: 400 },
-            );
-        }
-
-        if (!blocks.length) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Page blocks are required.',
-                },
-                { status: 400 },
-            );
-        }
-
-        const sortOrderValue = Number(payload.sortOrder ?? 0);
-
-        const isActive = parsePayloadBoolean(payload.isActive, true);
-
-        const isPublic = parsePayloadBoolean(payload.isPublic, true);
-
-        const result = await createPageTemplate({
-            title,
-            key,
-            categoryId,
-            websiteType,
-            minTier,
-            status,
-            blocks,
-            path: payload.path === null || payload.path === undefined ? null : String(payload.path),
-            previewImageUrl:
-                payload.previewImageUrl === null || payload.previewImageUrl === undefined
-                    ? null
-                    : String(payload.previewImageUrl),
-            sortOrder: Number.isFinite(sortOrderValue) ? sortOrderValue : 0,
-            isActive,
-            isPublic,
+        const item = await prisma.pageTemplate.create({
+            data: {
+                categoryId,
+                websiteType,
+                title,
+                slug,
+                path,
+                ...(blocks !== null ? { blocks } : {}),
+                previewImageUrl,
+                sortOrder,
+            },
+            include: PAGE_TEMPLATE_INCLUDE,
         });
 
         return NextResponse.json(
             {
                 success: true,
-                data: result,
+                data: item,
             },
             { status: 201 },
         );
     } catch (error) {
-        console.error('[POST /api/platform/page-templates]', error);
-
-        const message = error instanceof Error ? error.message : 'Failed to create page template.';
-
-        if (message.includes('already exists')) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: message,
-                },
-                { status: 409 },
-            );
-        }
-
-        if (
-            message.includes('category not found') ||
-            message.includes('does not belong') ||
-            message.includes('blocks')
-        ) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: message,
-                },
-                { status: 400 },
-            );
-        }
-
-        return NextResponse.json(
-            {
-                success: false,
-                error: message,
-            },
-            { status: 500 },
-        );
+        return jsonError(error, 'Failed to create page template.');
     }
 }

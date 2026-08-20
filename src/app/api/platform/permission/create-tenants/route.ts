@@ -93,11 +93,16 @@ export async function POST(req: NextRequest) {
                 role: 'Manager',
                 avatar: initials,
                 email: createdUser.email,
-                phone: createdUser.profile?.phone ?? 'N/A',
-                subject: createdUser.profile?.companyName ?? 'Administration',
+
+                phone: createdUser.profile?.contactPhone ?? 'N/A',
+
+                subject: 'Administration',
+
                 experience: 'N/A',
                 qualification: 'N/A',
+
                 bio: createdUser.profile?.bio ?? 'Administrator of the system.',
+
                 teachingProfile: false,
                 verified: Boolean(createdUser.emailVerifiedAt),
                 image: createdUser.image ?? null,

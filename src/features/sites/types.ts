@@ -1,4 +1,4 @@
-export type SiteStatus = 'DRAFT' | 'ACTIVE' | 'SUSPENDED';
+export type SiteStatus = 'DRAFT' | 'PUBLISHED' | 'SUSPENDED' | 'ARCHIVED';
 
 export type WebsiteType = 'landing' | 'blog' | 'ecommerce' | 'booking' | 'lms';
 

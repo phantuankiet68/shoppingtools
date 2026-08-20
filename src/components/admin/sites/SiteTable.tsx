@@ -20,15 +20,8 @@ type Props = {
     setActiveId: (id: string) => void;
     setMode: (mode: 'create' | 'edit') => void;
     onDelete: (site: SiteLike) => void;
-    search: string;
-    setSearch: (value: string) => void;
-    status: string;
-    setStatus: (value: string) => void;
-    type: string;
-    setType: (value: string) => void;
     pagination: Pagination;
     setPage: (page: number) => void;
-    onRefresh: () => void;
     busy: boolean;
     onPayment: (site: SiteLike) => void;
     onPaymentHistory: (site: SiteLike) => void;
@@ -41,82 +34,14 @@ export default function SiteTable({
     setActiveId,
     setMode,
     onDelete,
-    search,
-    setSearch,
-    status,
-    setStatus,
-    type,
-    setType,
     pagination,
     setPage,
-    onRefresh,
     busy,
     onPayment,
     onPaymentHistory,
 }: Props) {
     return (
         <section className={styles.tableSection}>
-            <div className={styles.tableToolbar}>
-                <div className={styles.searchWrap}>
-                    <i className="bi bi-search" />
-
-                    <input
-                        type="search"
-                        value={search}
-                        placeholder={t('sites.table.search')}
-                        onChange={(event) => setSearch(event.target.value)}
-                    />
-
-                    {search && (
-                        <button
-                            type="button"
-                            className={styles.searchClear}
-                            onClick={() => setSearch('')}
-                            aria-label={t('sites.table.clearSearch')}
-                        >
-                            <i className="bi bi-x-circle-fill" />
-                        </button>
-                    )}
-                </div>
-
-                <div className={styles.filterGroup}>
-                    <div className={styles.filterSelect}>
-                        <i className="bi bi-funnel" />
-
-                        <select value={status} onChange={(event) => setStatus(event.target.value)}>
-                            <option value="all">{t('sites.table.allStatus')}</option>
-                            <option value="DRAFT">{t('sites.status.draft')}</option>
-                            <option value="PUBLISHED">{t('sites.status.published')}</option>
-                            <option value="SUSPENDED">{t('sites.status.suspended')}</option>
-                            <option value="ARCHIVED">{t('sites.status.archived')}</option>
-                        </select>
-                    </div>
-
-                    <div className={styles.filterSelect}>
-                        <i className="bi bi-grid" />
-
-                        <select value={type} onChange={(event) => setType(event.target.value)}>
-                            <option value="all">{t('sites.table.allTypes')}</option>
-                            <option value="landing">{t('sites.types.landing')}</option>
-                            <option value="blog">{t('sites.types.blog')}</option>
-                            <option value="ecommerce">{t('sites.types.ecommerce')}</option>
-                            <option value="booking">{t('sites.types.booking')}</option>
-                            <option value="lms">{t('sites.types.lms')}</option>
-                        </select>
-                    </div>
-
-                    <button
-                        type="button"
-                        className={styles.refreshBtn}
-                        onClick={onRefresh}
-                        disabled={busy}
-                        aria-label={t('sites.table.refresh')}
-                    >
-                        <i className={`bi bi-arrow-clockwise ${busy ? styles.spin : ''}`} />
-                    </button>
-                </div>
-            </div>
-
             <div className={styles.tableWrap}>
                 <div className={styles.tableHeader}>
                     <div>{t('sites.table.site')}</div>

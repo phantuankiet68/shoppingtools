@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-
 import { prisma } from '@/lib/prisma';
 import { getCustomerContextFromRequest } from '@/lib/auth/customer-guard';
 
@@ -33,10 +32,13 @@ function createSlug(value: string): string {
         .replace(/^-|-$/g, '');
 }
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ projectId: string }> },
-) {
+type RouteContext = {
+    params: Promise<{
+        projectId: string;
+    }>;
+};
+
+export async function GET(request: NextRequest, { params }: RouteContext) {
     try {
         const auth = await getCustomerContextFromRequest(request);
 
@@ -46,23 +48,10 @@ export async function GET(
 
         const { projectId } = await params;
 
-        const profile = await prisma.profile.findUnique({
-            where: {
-                userId: auth.user.id,
-            },
-            select: {
-                id: true,
-            },
-        });
-
-        if (!profile) {
-            return error('Profile not found.', 404);
-        }
-
         const project = await prisma.project.findFirst({
             where: {
                 id: projectId,
-                profileId: profile.id,
+                userId: auth.user.id,
             },
         });
 
@@ -81,10 +70,7 @@ export async function GET(
     }
 }
 
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ projectId: string }> },
-) {
+export async function PATCH(request: NextRequest, { params }: RouteContext) {
     try {
         const auth = await getCustomerContextFromRequest(request);
 
@@ -96,37 +82,22 @@ export async function PATCH(
 
         const body = await request.json();
 
-        const data = {
-            name: trimString(body.name),
-            slug: trimString(body.slug),
-            description: trimString(body.description),
-        };
+        const name = trimString(body.name);
+        const requestedSlug = trimString(body.slug);
+        const description = trimString(body.description);
 
-        if (!data.name) {
+        if (!name) {
             return error('Project name is required.');
         }
 
-        if (!data.slug) {
+        if (!requestedSlug) {
             return error('Project slug is required.');
-        }
-
-        const profile = await prisma.profile.findUnique({
-            where: {
-                userId: auth.user.id,
-            },
-            select: {
-                id: true,
-            },
-        });
-
-        if (!profile) {
-            return error('Profile not found.', 404);
         }
 
         const project = await prisma.project.findFirst({
             where: {
                 id: projectId,
-                profileId: profile.id,
+                userId: auth.user.id,
             },
             select: {
                 id: true,
@@ -137,7 +108,11 @@ export async function PATCH(
             return error('Project not found.', 404);
         }
 
-        const slug = createSlug(data.slug);
+        const slug = createSlug(requestedSlug);
+
+        if (!slug) {
+            return error('Project slug is invalid.');
+        }
 
         const exists = await prisma.project.findFirst({
             where: {
@@ -160,9 +135,9 @@ export async function PATCH(
                 id: project.id,
             },
             data: {
-                name: data.name,
+                name,
                 slug,
-                description: data.description,
+                description,
             },
         });
 
@@ -177,10 +152,8 @@ export async function PATCH(
         return error('Internal server error.', 500);
     }
 }
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ projectId: string }> },
-) {
+
+export async function DELETE(request: NextRequest, { params }: RouteContext) {
     try {
         const auth = await getCustomerContextFromRequest(request);
 
@@ -190,23 +163,10 @@ export async function DELETE(
 
         const { projectId } = await params;
 
-        const profile = await prisma.profile.findUnique({
-            where: {
-                userId: auth.user.id,
-            },
-            select: {
-                id: true,
-            },
-        });
-
-        if (!profile) {
-            return error('Profile not found.', 404);
-        }
-
         const project = await prisma.project.findFirst({
             where: {
                 id: projectId,
-                profileId: profile.id,
+                userId: auth.user.id,
             },
             select: {
                 id: true,

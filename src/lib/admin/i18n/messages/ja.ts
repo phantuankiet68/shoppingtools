@@ -400,6 +400,8 @@ const ja = {
             payment: '支払い',
             allStatus: 'すべてのステータス',
             allTypes: 'すべてのタイプ',
+            showing: '表示中',
+            of: '全',
         },
 
         types: {

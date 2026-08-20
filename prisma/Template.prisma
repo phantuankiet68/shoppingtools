@@ -68,22 +68,17 @@ model PageTemplate {
   categoryId String @map("category_id")
   category TemplateCategory @relation(fields: [categoryId],references: [id],onDelete: Restrict)
   websiteType WebsiteType
-  minTier AccessTier @default(BASIC) @map("min_tier")
-  key String @db.VarChar(100)
   title String @db.VarChar(191)
-  path String? @db.VarChar(255)
-  blocks Json
-  status TemplateStatus @default(PUBLISHED)
+  slug String? @db.VarChar(191)
+  path String @db.VarChar(255)
+  blocks Json?
   previewImageUrl String? @map("preview_image_url")
-  isActive Boolean @default(true) @map("is_active")
-  isPublic Boolean @default(true) @map("is_public")
   sortOrder Int @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-  @@unique([websiteType, categoryId, key])
+  @@unique([websiteType, categoryId, slug])
   @@index([categoryId, sortOrder])
   @@index([websiteType, categoryId])
-  @@index([status, isActive])
   @@map("page_templates")
 }

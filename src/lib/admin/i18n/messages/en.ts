@@ -396,6 +396,8 @@ const en = {
             payment: 'Payment',
             allStatus: 'All Status',
             allTypes: 'All Types',
+            showing: 'Showing',
+            of: 'of',
         },
 
         types: {

@@ -342,6 +342,15 @@ export default function SiteTableRow({
                         <i className="bi bi-arrow-repeat" />
                     </button>
                 )}
+                <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => onDelete(site)}
+                    aria-label={t('sites.table.delete')}
+                    title={t('sites.table.delete')}
+                >
+                    <i className="bi bi-trash3" />
+                </button>
             </div>
         </div>
     );

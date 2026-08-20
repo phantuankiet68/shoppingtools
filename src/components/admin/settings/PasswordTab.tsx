@@ -104,59 +104,6 @@ export default function ChangePassword() {
             if (status.type !== 'idle') setStatus({ type: 'idle' });
         };
 
-    useEffect(() => {
-        let alive = true;
-
-        (async () => {
-            try {
-                const res = await getAdminProfile();
-                if (!res.ok) {
-                    if (!alive) return;
-
-                    if (res.status === 401) {
-                        setStatus({
-                            type: 'error',
-                            message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
-                        });
-                    } else {
-                        setStatus({ type: 'error', message: 'Không thể tải thông tin tài khoản.' });
-                    }
-                    return;
-                }
-
-                const data = await res.json();
-
-                if (!alive) return;
-
-                const nextAccount: Account = {
-                    email: data?.user?.email ?? '',
-                    username: data?.profile?.username ?? '—',
-                    role:
-                        data?.profile?.role === 'admin'
-                            ? 'Admin'
-                            : data?.profile?.role === 'staff'
-                              ? 'Staff'
-                              : 'Viewer',
-                    status: data?.profile?.status === 'active' ? 'Active' : 'Suspended',
-                    twoFA: Boolean(data?.profile?.twoFA),
-                    lastLogin: fmt(data?.profile?.lastLoginAt ?? null),
-                    lastIP: data?.profile?.lastLoginIp ?? '—',
-                    device: data?.session?.userAgent ?? '—',
-                    location: data?.session?.country ?? '—',
-                };
-
-                setAccount(nextAccount);
-            } catch {
-                if (!alive) return;
-                setStatus({ type: 'error', message: 'Có lỗi mạng khi tải dữ liệu.' });
-            }
-        })();
-
-        return () => {
-            alive = false;
-        };
-    }, []);
-
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 

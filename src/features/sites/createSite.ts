@@ -1,18 +1,27 @@
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import { SiteStatus, WebsiteType } from '@/generated/prisma';
 
 type CreateSiteInput = {
     name: string;
     domain: string;
-    type?: string;
+    type?: WebsiteType;
     category?: string | null;
-    contactEmail?: string;
+
+    contactEmail?: string | null;
     contactPhone?: string | null;
+
     seoTitle?: string | null;
     seoDescription?: string | null;
+
+    status?: SiteStatus;
+    isPublic?: boolean;
+    publishedAt?: Date | null;
+
     workspaceId: string;
     ownerUserId: string;
     createdByUserId?: string | null;
+
     logoUrl?: string | null;
     faviconUrl?: string | null;
 };
@@ -34,6 +43,7 @@ async function nextSiteId(prefix = crypto.randomUUID().replace(/-/g, '')) {
     });
 
     let max = 0;
+
     const re = new RegExp(`^${prefix}(\\d{2})$`, 'i');
 
     for (const row of rows) {
@@ -60,19 +70,25 @@ export async function createSite(input: CreateSiteInput) {
     const site = await prisma.site.create({
         data: {
             id,
+
             name: input.name,
             domain: input.domain,
-            type: input.type as any,
+
+            type: input.type ?? WebsiteType.ecommerce,
             category: input.category ?? null,
+
             logoUrl: input.logoUrl ?? null,
             faviconUrl: input.faviconUrl ?? null,
-            contactEmail: input.contactEmail || null,
-            contactPhone: input.contactPhone || null,
-            seoTitle: input.seoTitle || null,
-            seoDescription: input.seoDescription || null,
-            status: 'DRAFT',
-            isPublic: false,
-            publishedAt: null,
+
+            contactEmail: input.contactEmail ?? null,
+            contactPhone: input.contactPhone ?? null,
+
+            seoTitle: input.seoTitle ?? null,
+            seoDescription: input.seoDescription ?? null,
+
+            status: input.status ?? SiteStatus.DRAFT,
+            isPublic: input.isPublic ?? false,
+            publishedAt: input.publishedAt ?? null,
 
             ownerUserId: input.ownerUserId,
             createdByUserId: input.createdByUserId ?? input.ownerUserId,

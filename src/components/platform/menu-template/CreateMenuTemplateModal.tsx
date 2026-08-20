@@ -6,24 +6,27 @@ import styles from '@/styles/platform/menu-template/create-menu-template-modal.m
 import type {
     MenuTemplate,
     MenuTemplateCategory,
+    MenuTemplateParent,
 } from '@/services/platform/menu-template/index.service';
 
-export interface CreateMenuTemplatePayload {
+type CreateMenuTemplatePayload = {
     websiteType: WebsiteType;
     categoryId: string;
+    parentId?: string | null;
     key: string;
     title: string;
-    path: string | null;
-    icon: string | null;
+    path?: string | null;
+    icon?: string | null;
     area: MenuArea;
-    sortOrder: number;
-    visible: boolean;
-}
+    visible?: boolean;
+    sortOrder?: number;
+};
 
 interface CreateMenuTemplateModalProps {
     open: boolean;
     loading: boolean;
     categories: MenuTemplateCategory[];
+    parentMenus: MenuTemplateParent[];
     menu?: MenuTemplate | null;
     onClose: () => void;
     onSubmit: (data: CreateMenuTemplatePayload) => Promise<void>;
@@ -44,6 +47,7 @@ export default function CreateMenuTemplateModal({
     open,
     loading,
     categories,
+    parentMenus,
     menu,
     onClose,
     onSubmit,
@@ -58,7 +62,7 @@ export default function CreateMenuTemplateModal({
     const [sortOrder, setSortOrder] = useState(0);
     const [visible, setVisible] = useState(true);
     const [error, setError] = useState('');
-
+    const [parentId, setParentId] = useState<string | null>(null);
     const categoryOptions = useMemo(() => categories, [categories]);
 
     const isEdit = Boolean(menu);
@@ -69,6 +73,7 @@ export default function CreateMenuTemplateModal({
         if (menu) {
             setWebsiteType(menu.websiteType);
             setCategoryId(menu.categoryId);
+            setParentId(menu.parentId);
             setTitle(menu.title);
             setKey(menu.key);
             setPath(menu.path ?? '');
@@ -82,6 +87,7 @@ export default function CreateMenuTemplateModal({
 
         setWebsiteType(WebsiteType.landing);
         setCategoryId(categories[0]?.id ?? '');
+        setParentId(null);
         setTitle('');
         setKey('');
         setPath('');
@@ -153,6 +159,7 @@ export default function CreateMenuTemplateModal({
         await onSubmit({
             websiteType,
             categoryId,
+            parentId,
             key: key.trim(),
             title: title.trim(),
             path: path.trim() || null,
@@ -215,6 +222,26 @@ export default function CreateMenuTemplateModal({
                                     </option>
                                 ))}
                             </select>
+                        </div>
+                        <div className={styles.field}>
+                            <label htmlFor="parentId">Parent Menu</label>
+
+                            <select
+                                id="parentId"
+                                value={parentId ?? ''}
+                                onChange={(e) => setParentId(e.target.value || null)}
+                                disabled={loading}
+                            >
+                                <option value="">Root Menu</option>
+
+                                {parentMenus.map((item) => (
+                                    <option key={item.id} value={item.id}>
+                                        {item.title}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <small>Leave empty to create a root-level menu.</small>
                         </div>
 
                         <div className={styles.field}>

@@ -57,7 +57,7 @@ export async function createSystemPages({ siteId }: CreateSystemPagesInput) {
                     path: page.path,
                     status: 'DRAFT',
                     sortOrder: page.sortOrder,
-                    blocks: [] as Prisma.InputJsonValue,
+                    blocks: Prisma.JsonNull,
                 },
             });
         }

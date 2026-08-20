@@ -3,13 +3,25 @@ import { prisma } from '@/lib/prisma';
 import { getCustomerContextFromRequest } from '@/lib/auth/customer-guard';
 
 function error(message: string, status = 400) {
-    return NextResponse.json({ success: false, message }, { status });
+    return NextResponse.json(
+        {
+            success: false,
+            message,
+        },
+        {
+            status,
+        },
+    );
 }
 
 function trimString(value: unknown): string | null {
-    if (typeof value !== 'string') return null;
+    if (typeof value !== 'string') {
+        return null;
+    }
+
     const result = value.trim();
-    return result.length ? result : null;
+
+    return result.length > 0 ? result : null;
 }
 
 export async function PATCH(request: NextRequest) {
@@ -22,14 +34,16 @@ export async function PATCH(request: NextRequest) {
 
         const body = await request.json();
 
-        const data = {
-            locale: trimString(body.locale),
-            timezone: trimString(body.timezone),
-        };
+        const locale = trimString(body.locale);
+        const timezone = trimString(body.timezone);
 
         const user = await prisma.user.findUnique({
-            where: { id: auth.user.id },
-            select: { id: true, email: true, image: true },
+            where: {
+                id: auth.user.id,
+            },
+            select: {
+                id: true,
+            },
         });
 
         if (!user) {
@@ -40,16 +54,16 @@ export async function PATCH(request: NextRequest) {
             where: {
                 userId: user.id,
             },
+
             update: {
-                locale: data.locale,
-                timezone: data.timezone,
+                locale,
+                timezone,
             },
+
             create: {
                 userId: user.id,
-                email: user.email,
-                avatar: user.image,
-                locale: data.locale,
-                timezone: data.timezone,
+                locale,
+                timezone,
             },
         });
 

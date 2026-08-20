@@ -23,77 +23,12 @@ export function useAdminProfile({ workspaceId, userEmail }: UseAdminProfileProps
 
     const [saving, setSaving] = useState(false);
 
-    const loadProfile = useCallback(async () => {
-        try {
-            const res = await getAdminProfile();
-
-            if (!res.ok) {
-                modal.error('Load Failed', 'Unable to load profile information.');
-
-                return;
-            }
-
-            const data = await res.json();
-
-            const p = data?.profile;
-
-            const mappedProfile = mapProfile(p);
-
-            if (!mappedProfile.email && userEmail) {
-                mappedProfile.email = userEmail;
-            }
-
-            setProfile(mappedProfile);
-        } catch (error) {
-            console.error(error);
-
-            modal.error('Server Error', 'Something went wrong while loading profile.');
-        } finally {
-            setLoading(false);
-        }
-    }, [userEmail, modal]);
-
-    useEffect(() => {
-        void loadProfile();
-    }, [loadProfile]);
-
     const updateField = useCallback(<K extends keyof Profile>(key: K, value: Profile[K]) => {
         setProfile((prev) => ({
             ...prev,
             [key]: value,
         }));
     }, []);
-
-    const handleSave = useCallback(async () => {
-        try {
-            setSaving(true);
-
-            const payload = {
-                workspaceId,
-                ...mapProfilePayload(profile),
-            };
-
-            const { res, data } = await patchAdminProfile(payload);
-
-            if (!res.ok) {
-                modal.error('Update Failed', data?.error ?? 'Unable to update profile.');
-
-                return false;
-            }
-
-            modal.success('Profile Updated', 'Your profile has been updated successfully.');
-
-            return true;
-        } catch (error) {
-            console.error(error);
-
-            modal.error('Server Error', 'Something went wrong. Please try again later.');
-
-            return false;
-        } finally {
-            setSaving(false);
-        }
-    }, [profile, workspaceId, modal]);
 
     const handleUpload = useCallback(
         async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner' | 'cover') => {
@@ -142,9 +77,6 @@ export function useAdminProfile({ workspaceId, userEmail }: UseAdminProfileProps
         saving,
 
         updateField,
-        handleSave,
         handleUpload,
-
-        reload: loadProfile,
     };
 }

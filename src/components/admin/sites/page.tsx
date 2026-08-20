@@ -112,16 +112,6 @@ export default function SitesPage() {
         [items, activeId],
     );
 
-    const filtered = useMemo(() => {
-        const q = query.trim().toLowerCase();
-
-        if (!q) {
-            return items;
-        }
-
-        return items.filter((site) => `${site.name} ${site.domain}`.toLowerCase().includes(q));
-    }, [items, query]);
-
     const handleWorkflowEvent = useCallback((event: WorkflowEvent) => {
         setWorkflow((current) => applyWorkflowEvent(current, event));
     }, []);
@@ -232,12 +222,104 @@ export default function SitesPage() {
                         <div className={styles.panelHeader}>
                             <div className={styles.panelHeaderTop}>
                                 <div className={styles.panelTitle}>{t('sites.form.title')}</div>
-
                                 <div className={styles.panelSub}>
                                     {t('sites.form.sub')} ({currentSiteCount}/{maxSites})
                                 </div>
                             </div>
+                            <div className={styles.tableToolbar}>
+                                <div className={styles.searchWrap}>
+                                    <i className="bi bi-search" />
 
+                                    <input
+                                        type="search"
+                                        value={query}
+                                        placeholder={t('sites.table.search')}
+                                        onChange={(event) => {
+                                            setQuery(event.target.value);
+                                            setPage(1);
+                                        }}
+                                    />
+
+                                    {query && (
+                                        <button
+                                            type="button"
+                                            className={styles.searchClear}
+                                            onClick={() => {
+                                                setQuery('');
+                                                setPage(1);
+                                            }}
+                                            aria-label={t('sites.table.clearSearch')}
+                                        >
+                                            <i className="bi bi-x-circle-fill" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className={styles.filterGroup}>
+                                    <div className={styles.filterSelect}>
+                                        <i className="bi bi-funnel" />
+
+                                        <select
+                                            value={status}
+                                            onChange={(event) => {
+                                                setStatus(event.target.value);
+                                                setPage(1);
+                                            }}
+                                        >
+                                            <option value="all">
+                                                {t('sites.table.allStatus')}
+                                            </option>
+                                            <option value="DRAFT">{t('sites.status.draft')}</option>
+                                            <option value="PUBLISHED">
+                                                {t('sites.status.published')}
+                                            </option>
+                                            <option value="SUSPENDED">
+                                                {t('sites.status.suspended')}
+                                            </option>
+                                            <option value="ARCHIVED">
+                                                {t('sites.status.archived')}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.filterSelect}>
+                                        <i className="bi bi-grid" />
+
+                                        <select
+                                            value={type}
+                                            onChange={(event) => {
+                                                setType(event.target.value);
+                                                setPage(1);
+                                            }}
+                                        >
+                                            <option value="all">{t('sites.table.allTypes')}</option>
+                                            <option value="landing">
+                                                {t('sites.types.landing')}
+                                            </option>
+                                            <option value="blog">{t('sites.types.blog')}</option>
+                                            <option value="ecommerce">
+                                                {t('sites.types.ecommerce')}
+                                            </option>
+                                            <option value="booking">
+                                                {t('sites.types.booking')}
+                                            </option>
+                                            <option value="lms">{t('sites.types.lms')}</option>
+                                        </select>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className={styles.refreshBtn}
+                                        onClick={load}
+                                        disabled={busy}
+                                        aria-label={t('sites.table.refresh')}
+                                    >
+                                        <i
+                                            className={`bi bi-arrow-clockwise ${busy ? styles.spin : ''}`}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
                             <div className={styles.panelHeaderActions}>
                                 {(mode === 'create' || !!activeId) && (
                                     <button
@@ -289,7 +371,7 @@ export default function SitesPage() {
                     />
 
                     <SiteTable
-                        items={filtered}
+                        items={items}
                         activeId={activeId}
                         t={t}
                         setActiveId={setActiveId}
@@ -302,21 +384,8 @@ export default function SitesPage() {
                             setPaymentHistorySite(site);
                             setPaymentHistoryOpen(true);
                         }}
-                        search={query}
-                        setSearch={setQuery}
-                        status={status}
-                        setStatus={(value) => {
-                            setStatus(value);
-                            setPage(1);
-                        }}
-                        type={type}
-                        setType={(value) => {
-                            setType(value);
-                            setPage(1);
-                        }}
                         pagination={pagination}
                         setPage={setPage}
-                        onRefresh={load}
                         busy={busy}
                     />
                 </div>

@@ -1,12 +1,10 @@
-import { WebsiteType } from '@/generated/prisma';
+import { SiteStatus, WebsiteType } from '@/generated/prisma';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 type Context = {
     params: Promise<{ workspaceId: string }>;
 };
-
-type SiteStatus = 'DRAFT' | 'ACTIVE' | 'SUSPENDED';
 
 type CreateSitePayload = {
     name?: string;

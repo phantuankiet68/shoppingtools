@@ -2,7 +2,7 @@ import { SiteStatus, WebsiteType } from '@/features/sites/types';
 
 export const WEBSITE_TYPES: WebsiteType[] = ['landing', 'blog', 'ecommerce', 'booking', 'lms'];
 
-export const SITE_STATUSES: SiteStatus[] = ['DRAFT', 'ACTIVE', 'SUSPENDED'];
+export const SITE_STATUSES: SiteStatus[] = ['DRAFT', 'PUBLISHED', 'SUSPENDED', 'ARCHIVED'];
 
 export const DOMAIN_REGEX = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.[a-z]{2,})+$/i;
 

@@ -4,40 +4,27 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './page-templates.module.css';
 import PageTemplateModal, { type PageTemplateFormData } from './PageTemplateModal';
 
-type TemplateStatus = 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
-type AccessTier = 'BASIC' | 'NORMAL' | 'PRO';
 type WebsiteType = 'landing' | 'blog' | 'ecommerce' | 'booking' | 'lms';
 
 type PageTemplateCategory = {
     id: string;
     name: string;
     websiteType: WebsiteType;
-    minTier: AccessTier;
 };
 
 type PageTemplate = {
     id: string;
-    title: string;
-    key: string;
     categoryId: string;
     category: PageTemplateCategory;
     websiteType: WebsiteType;
-    minTier: AccessTier;
-    status: TemplateStatus;
+    title: string;
+    slug: string | null;
+    path: string;
+    blocks: unknown;
     previewImageUrl: string | null;
-    path: string | null;
     sortOrder: number;
-    isActive: boolean;
-    isPublic: boolean;
     createdAt: string;
     updatedAt: string;
-};
-
-type PageTemplateStats = {
-    total: number;
-    published: number;
-    draft: number;
-    archived: number;
 };
 
 type Pagination = {
@@ -52,7 +39,6 @@ type PageTemplatesResponse = {
     data?: {
         items: PageTemplate[];
         pagination: Pagination;
-        stats: PageTemplateStats;
     };
     error?: string;
 };
@@ -66,18 +52,6 @@ type CategoryResponse = {
     error?: string;
 };
 
-const STATUS_LABELS: Record<TemplateStatus, string> = {
-    PUBLISHED: 'Published',
-    DRAFT: 'Draft',
-    ARCHIVED: 'Archived',
-};
-
-const TIER_LABELS: Record<AccessTier, string> = {
-    BASIC: 'Basic',
-    NORMAL: 'Normal',
-    PRO: 'Pro',
-};
-
 const WEBSITE_TYPE_LABELS: Record<WebsiteType, string> = {
     landing: 'Landing',
     blog: 'Blog',
@@ -86,36 +60,26 @@ const WEBSITE_TYPE_LABELS: Record<WebsiteType, string> = {
     lms: 'LMS',
 };
 
+const DEFAULT_PAGINATION: Pagination = {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+};
+
 export default function PageTemplates() {
     const [search, setSearch] = useState('');
     const [websiteType, setWebsiteType] = useState('ALL');
     const [category, setCategory] = useState('ALL');
-    const [tier, setTier] = useState('ALL');
-    const [status, setStatus] = useState('ALL');
 
     const [categories, setCategories] = useState<PageTemplateCategory[]>([]);
     const [templates, setTemplates] = useState<PageTemplate[]>([]);
-
-    const [stats, setStats] = useState<PageTemplateStats>({
-        total: 0,
-        published: 0,
-        draft: 0,
-        archived: 0,
-    });
-
-    const [pagination, setPagination] = useState<Pagination>({
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 0,
-    });
+    const [pagination, setPagination] = useState<Pagination>(DEFAULT_PAGINATION);
 
     const [selected, setSelected] = useState<string[]>([]);
     const [view, setView] = useState<'list' | 'grid'>('list');
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
     const [createModalOpen, setCreateModalOpen] = useState(false);
 
     const loadCategories = useCallback(async () => {
@@ -126,10 +90,14 @@ export default function PageTemplates() {
                 params.set('websiteType', websiteType);
             }
 
-            const response = await fetch(`/api/platform/template-categories?${params.toString()}`, {
-                method: 'GET',
-                cache: 'no-store',
-            });
+            const query = params.toString();
+            const response = await fetch(
+                `/api/platform/template-categories${query ? `?${query}` : ''}`,
+                {
+                    method: 'GET',
+                    cache: 'no-store',
+                },
+            );
 
             const result = (await response.json()) as CategoryResponse;
 
@@ -140,7 +108,6 @@ export default function PageTemplates() {
             setCategories(result.data?.categories ?? []);
         } catch (error) {
             console.error('[PageTemplates] loadCategories', error);
-
             setCategories([]);
         }
     }, [websiteType]);
@@ -150,31 +117,14 @@ export default function PageTemplates() {
             setLoading(true);
             setError('');
 
-            const params = new URLSearchParams();
+            const params = new URLSearchParams({
+                page: String(pagination.page),
+                limit: String(pagination.limit),
+            });
 
-            params.set('page', String(pagination.page));
-
-            params.set('limit', String(pagination.limit));
-
-            if (search.trim()) {
-                params.set('search', search.trim());
-            }
-
-            if (websiteType !== 'ALL') {
-                params.set('websiteType', websiteType);
-            }
-
-            if (category !== 'ALL') {
-                params.set('categoryId', category);
-            }
-
-            if (tier !== 'ALL') {
-                params.set('minTier', tier);
-            }
-
-            if (status !== 'ALL') {
-                params.set('status', status);
-            }
+            if (search.trim()) params.set('search', search.trim());
+            if (websiteType !== 'ALL') params.set('websiteType', websiteType);
+            if (category !== 'ALL') params.set('categoryId', category);
 
             const response = await fetch(`/api/platform/page-templates?${params.toString()}`, {
                 method: 'GET',
@@ -188,33 +138,22 @@ export default function PageTemplates() {
             }
 
             setTemplates(result.data?.items ?? []);
+            const nextPagination = result.data?.pagination;
 
-            setStats(
-                result.data?.stats ?? {
-                    total: 0,
-                    published: 0,
-                    draft: 0,
-                    archived: 0,
-                },
-            );
-
-            setPagination(
-                result.data?.pagination ?? {
-                    page: 1,
-                    limit: 10,
-                    total: 0,
-                    totalPages: 0,
-                },
-            );
+            if (nextPagination) {
+                setPagination((current) => ({
+                    ...current,
+                    ...nextPagination,
+                }));
+            }
         } catch (error) {
             console.error('[PageTemplates] loadTemplates', error);
-
             setTemplates([]);
             setError(error instanceof Error ? error.message : 'Failed to load page templates.');
         } finally {
             setLoading(false);
         }
-    }, [pagination.page, pagination.limit, search, websiteType, category, tier, status]);
+    }, [pagination.page, pagination.limit, search, websiteType, category]);
 
     useEffect(() => {
         void loadCategories();
@@ -224,12 +163,22 @@ export default function PageTemplates() {
         void loadTemplates();
     }, [loadTemplates]);
 
-    const categoryOptions = useMemo(() => {
-        return [['ALL', 'All Categories'], ...categories.map((item) => [item.id, item.name])] as [
-            string,
-            string,
-        ][];
-    }, [categories]);
+    useEffect(() => {
+        setSelected((current) =>
+            current.filter((id) => templates.some((template) => template.id === id)),
+        );
+    }, [templates]);
+
+    const categoryOptions = useMemo(
+        () =>
+            [
+                ['ALL', 'All Categories'],
+                ...categories
+                    .filter((item) => websiteType === 'ALL' || item.websiteType === websiteType)
+                    .map((item) => [item.id, item.name]),
+            ] as [string, string][],
+        [categories, websiteType],
+    );
 
     const toggleSelect = (id: string) => {
         setSelected((current) =>
@@ -238,71 +187,38 @@ export default function PageTemplates() {
     };
 
     const toggleAll = () => {
-        if (templates.length > 0 && selected.length === templates.length) {
-            setSelected([]);
-            return;
-        }
+        const visibleIds = templates.map((template) => template.id);
+        const allSelected =
+            visibleIds.length > 0 && visibleIds.every((id) => selected.includes(id));
 
-        setSelected(templates.map((template) => template.id));
+        setSelected((current) =>
+            allSelected
+                ? current.filter((id) => !visibleIds.includes(id))
+                : [...new Set([...current, ...visibleIds])],
+        );
     };
 
     const clearFilters = () => {
         setSearch('');
         setWebsiteType('ALL');
         setCategory('ALL');
-        setTier('ALL');
-        setStatus('');
-
-        setPagination((current) => ({
-            ...current,
-            page: 1,
-        }));
+        setPagination((current) => ({ ...current, page: 1 }));
     };
 
     const handleWebsiteTypeChange = (value: string) => {
         setWebsiteType(value);
         setCategory('ALL');
-
-        setPagination((current) => ({
-            ...current,
-            page: 1,
-        }));
+        setPagination((current) => ({ ...current, page: 1 }));
     };
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
-
-        setPagination((current) => ({
-            ...current,
-            page: 1,
-        }));
+        setPagination((current) => ({ ...current, page: 1 }));
     };
 
     const handleCategoryChange = (value: string) => {
         setCategory(value);
-
-        setPagination((current) => ({
-            ...current,
-            page: 1,
-        }));
-    };
-
-    const handleTierChange = (value: string) => {
-        setTier(value);
-
-        setPagination((current) => ({
-            ...current,
-            page: 1,
-        }));
-    };
-
-    const handleStatusChange = (value: string) => {
-        setStatus(value);
-
-        setPagination((current) => ({
-            ...current,
-            page: 1,
-        }));
+        setPagination((current) => ({ ...current, page: 1 }));
     };
 
     const handleLimitChange = (value: number) => {
@@ -318,46 +234,42 @@ export default function PageTemplates() {
             return;
         }
 
-        setPagination((current) => ({
-            ...current,
-            page,
-        }));
+        setPagination((current) => ({ ...current, page }));
     };
 
     const handleCreateTemplate = async (data: PageTemplateFormData) => {
-        try {
-            setError('');
+        setError('');
 
-            const response = await fetch('/api/platform/page-templates', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
+        const response = await fetch('/api/platform/page-templates', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
 
-            const result = (await response.json()) as {
-                success: boolean;
-                data?: PageTemplate;
-                error?: string;
-            };
+        const result = (await response.json()) as {
+            success: boolean;
+            data?: PageTemplate;
+            error?: string;
+        };
 
-            if (!response.ok || !result.success) {
-                throw new Error(result.error || 'Failed to create page template.');
-            }
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Failed to create page template.');
+        }
 
-            setCreateModalOpen(false);
+        setCreateModalOpen(false);
+        setSelected([]);
+        setPagination((current) => ({ ...current, page: 1 }));
 
-            setPagination((current) => ({
-                ...current,
-                page: 1,
-            }));
-
+        /*
+         * loadTemplates is intentionally not called here.
+         * Changing page to 1 is enough to trigger the effect when needed;
+         * when already on page 1, the effect does not re-run, so refresh
+         * explicitly in that case.
+         */
+        if (pagination.page === 1) {
             await loadTemplates();
-        } catch (error) {
-            console.error('[PageTemplates] createTemplate', error);
-
-            setError(error instanceof Error ? error.message : 'Failed to create page template.');
         }
     };
 
@@ -375,50 +287,12 @@ export default function PageTemplates() {
                             <div className={styles.titleIcon}>
                                 <i className="bi bi-layout-text-window-reverse" />
                             </div>
-
                             <div>
                                 <h1>Page Templates</h1>
-
-                                <p className={styles.subtitle}>Manage page templates.</p>
+                                <p className={styles.subtitle}>Manage reusable page templates.</p>
                             </div>
                         </div>
                     </div>
-
-                    <section className={styles.stats}>
-                        <StatCard
-                            icon="bi-grid-1x2"
-                            label="Total Templates"
-                            value={String(stats.total)}
-                            note=""
-                            description="Across all website categories"
-                            tone="purple"
-                            trend="up"
-                        />
-
-                        <StatCard
-                            icon="bi-check2-circle"
-                            label="Published"
-                            value={String(stats.published)}
-                            note={
-                                stats.total > 0
-                                    ? `${Math.round((stats.published / stats.total) * 100)}%`
-                                    : '0%'
-                            }
-                            description="Currently available for websites"
-                            tone="green"
-                            trend="stable"
-                        />
-
-                        <StatCard
-                            icon="bi-layers"
-                            label="Template Status"
-                            value={String(stats.draft + stats.archived)}
-                            note={`${stats.draft} Draft`}
-                            description="Templates requiring attention"
-                            tone="yellow"
-                            trend="neutral"
-                        />
-                    </section>
 
                     <button
                         type="button"
@@ -434,7 +308,6 @@ export default function PageTemplates() {
                     <div className={styles.error}>
                         <i className="bi bi-exclamation-triangle" />
                         <span>{error}</span>
-
                         <button type="button" onClick={() => void loadTemplates()}>
                             Retry
                         </button>
@@ -447,41 +320,31 @@ export default function PageTemplates() {
                             <div className={styles.toolbarLeft}>
                                 <div className={styles.search}>
                                     <i className="bi bi-search" />
-
                                     <input
                                         value={search}
                                         onChange={(event) => handleSearchChange(event.target.value)}
                                         placeholder="Search templates..."
                                     />
                                 </div>
-
-                                <button type="button" className={styles.secondaryButton}>
-                                    Bulk actions
-                                    <i className="bi bi-chevron-down" />
-                                </button>
                             </div>
 
                             <div className={styles.toolbarRight}>
-                                <button type="button" className={styles.secondaryButton}>
-                                    Sort by
-                                    <i className="bi bi-chevron-down" />
-                                </button>
-
                                 <div className={styles.viewSwitcher}>
                                     <button
                                         type="button"
                                         className={view === 'grid' ? styles.viewActive : ''}
                                         onClick={() => setView('grid')}
                                         aria-label="Grid view"
+                                        aria-pressed={view === 'grid'}
                                     >
                                         <i className="bi bi-grid" />
                                     </button>
-
                                     <button
                                         type="button"
                                         className={view === 'list' ? styles.viewActive : ''}
                                         onClick={() => setView('list')}
                                         aria-label="List view"
+                                        aria-pressed={view === 'list'}
                                     >
                                         <i className="bi bi-list-ul" />
                                     </button>
@@ -517,11 +380,10 @@ export default function PageTemplates() {
                                     onChange={(event) =>
                                         handleLimitChange(Number(event.target.value))
                                     }
+                                    aria-label="Items per page"
                                 >
                                     <option value="10">10 per page</option>
-
                                     <option value="20">20 per page</option>
-
                                     <option value="50">50 per page</option>
                                 </select>
 
@@ -529,6 +391,7 @@ export default function PageTemplates() {
                                     type="button"
                                     disabled={pagination.page <= 1}
                                     onClick={() => handlePageChange(pagination.page - 1)}
+                                    aria-label="Previous page"
                                 >
                                     <i className="bi bi-chevron-left" />
                                 </button>
@@ -546,9 +409,7 @@ export default function PageTemplates() {
                                                         ? styles.pageActive
                                                         : ''
                                                 }
-                                                onClick={() =>
-                                                    handlePageChange(pageNumber as number)
-                                                }
+                                                onClick={() => handlePageChange(pageNumber)}
                                             >
                                                 {pageNumber}
                                             </button>
@@ -559,6 +420,7 @@ export default function PageTemplates() {
                                     type="button"
                                     disabled={pagination.page >= pagination.totalPages}
                                     onClick={() => handlePageChange(pagination.page + 1)}
+                                    aria-label="Next page"
                                 >
                                     <i className="bi bi-chevron-right" />
                                 </button>
@@ -567,9 +429,40 @@ export default function PageTemplates() {
                     </div>
 
                     <aside className={styles.filters}>
+                        <section className={styles.stats}>
+                            <StatCard
+                                icon="bi-grid-1x2"
+                                label="Total Templates"
+                                value={String(pagination.total)}
+                                note=""
+                                description="All page templates"
+                                tone="purple"
+                                trend="up"
+                            />
+                            <StatCard
+                                icon="bi-folder2-open"
+                                label="Categories"
+                                value={String(categories.length)}
+                                note=""
+                                description="Available template categories"
+                                tone="green"
+                                trend="stable"
+                            />
+                            <StatCard
+                                icon="bi-window-stack"
+                                label="Website Types"
+                                value={String(
+                                    new Set(templates.map((template) => template.websiteType)).size,
+                                )}
+                                note=""
+                                description="Types in the current page"
+                                tone="yellow"
+                                trend="neutral"
+                            />
+                        </section>
+
                         <div className={styles.filterHeader}>
                             <h2>Filters</h2>
-
                             <button type="button" onClick={clearFilters}>
                                 Clear all
                             </button>
@@ -595,65 +488,6 @@ export default function PageTemplates() {
                             onChange={handleCategoryChange}
                             options={categoryOptions}
                         />
-
-                        <FilterSelect
-                            label="Access Tier"
-                            value={tier}
-                            onChange={handleTierChange}
-                            options={[
-                                ['ALL', 'All Tiers'],
-                                ['BASIC', 'Basic'],
-                                ['NORMAL', 'Normal'],
-                                ['PRO', 'Pro'],
-                            ]}
-                        />
-
-                        <FilterSelect
-                            label="Status"
-                            value={status}
-                            onChange={handleStatusChange}
-                            options={[
-                                ['ALL', 'All Status'],
-                                ['PUBLISHED', 'Published'],
-                                ['DRAFT', 'Draft'],
-                                ['ARCHIVED', 'Archived'],
-                            ]}
-                        />
-
-                        <div className={styles.filterGroup}>
-                            <label>Search in</label>
-
-                            <select defaultValue="title-path">
-                                <option value="title-path">Title & Path</option>
-
-                                <option value="title">Title</option>
-
-                                <option value="code">Code</option>
-
-                                <option value="path">Path</option>
-                            </select>
-                        </div>
-
-                        <div className={styles.filterGroup}>
-                            <label>Keyword</label>
-
-                            <div className={styles.filterInput}>
-                                <input placeholder="Search keywords..." />
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            className={styles.applyButton}
-                            onClick={() => void loadTemplates()}
-                        >
-                            Apply Filters
-                        </button>
-
-                        <button type="button" className={styles.savePreset}>
-                            <i className="bi bi-bookmark" />
-                            Save as Preset
-                        </button>
                     </aside>
                 </section>
             </div>
@@ -691,10 +525,8 @@ function StatCard({
                     <div className={`${styles.statIcon} ${styles[tone]}`}>
                         <i className={`bi ${icon}`} />
                     </div>
-
                     <div>
                         <span className={styles.statLabel}>{label}</span>
-
                         <strong className={styles.statValue}>{value}</strong>
                     </div>
                 </div>
@@ -702,15 +534,13 @@ function StatCard({
                 {note && (
                     <span className={`${styles.statTrend} ${styles[`trend${trend}`]}`}>
                         {trend === 'up' && <i className="bi bi-arrow-up-right" />}
-
                         {trend === 'stable' && <i className="bi bi-check2" />}
-
                         {trend === 'neutral' && <i className="bi bi-dash" />}
-
                         {note}
                     </span>
                 )}
             </div>
+            <span className={styles.statDescription}>{description}</span>
         </article>
     );
 }
@@ -729,7 +559,6 @@ function FilterSelect({
     return (
         <div className={styles.filterGroup}>
             <label>{label}</label>
-
             <select value={value} onChange={(event) => onChange(event.target.value)}>
                 {options.map(([optionValue, optionLabel]) => (
                     <option key={optionValue} value={optionValue}>
@@ -752,6 +581,9 @@ function TemplateTable({
     onToggle: (id: string) => void;
     onToggleAll: () => void;
 }) {
+    const allSelected =
+        templates.length > 0 && templates.every((template) => selected.includes(template.id));
+
     return (
         <div className={styles.tableWrapper}>
             <table className={styles.table}>
@@ -760,18 +592,15 @@ function TemplateTable({
                         <th className={styles.checkboxColumn}>
                             <input
                                 type="checkbox"
-                                checked={
-                                    templates.length > 0 && selected.length === templates.length
-                                }
+                                checked={allSelected}
                                 onChange={onToggleAll}
+                                aria-label="Select all templates"
                             />
                         </th>
-
                         <th>Preview</th>
                         <th>Template</th>
                         <th>Category</th>
-                        <th>Tier</th>
-                        <th>Status</th>
+                        <th>Path</th>
                         <th>Updated</th>
                         <th>Actions</th>
                     </tr>
@@ -785,6 +614,7 @@ function TemplateTable({
                                     type="checkbox"
                                     checked={selected.includes(template.id)}
                                     onChange={() => onToggle(template.id)}
+                                    aria-label={`Select ${template.title}`}
                                 />
                             </td>
 
@@ -796,7 +626,6 @@ function TemplateTable({
                                             alt={template.title}
                                             onError={(event) => {
                                                 event.currentTarget.style.display = 'none';
-
                                                 event.currentTarget.parentElement?.classList.add(
                                                     styles.previewError,
                                                 );
@@ -813,47 +642,29 @@ function TemplateTable({
                             <td>
                                 <div className={styles.templateInfo}>
                                     <strong>{template.title}</strong>
-
-                                    <span>/{template.key}</span>
+                                    <span>{template.slug ? `/${template.slug}` : 'No slug'}</span>
                                 </div>
                             </td>
 
                             <td>
                                 <div className={styles.categoryInfo}>
                                     <strong>
-                                        {WEBSITE_TYPE_LABELS[template.websiteType]} /{' '}
-                                        {template.category.name}
+                                        {WEBSITE_TYPE_LABELS[template.websiteType] ??
+                                            template.websiteType}
                                     </strong>
-
                                     <span>{template.category.name}</span>
                                 </div>
                             </td>
 
                             <td>
-                                <span
-                                    className={`${styles.badge} ${styles[`tier${template.minTier}`]}`}
-                                >
-                                    {TIER_LABELS[template.minTier]}
-                                </span>
-                            </td>
-
-                            <td>
-                                <span
-                                    className={`${styles.status} ${styles[`status${template.status}`]}`}
-                                >
-                                    <i className="bi bi-circle-fill" />
-
-                                    {STATUS_LABELS[template.status]}
-                                </span>
+                                <span>{template.path}</span>
                             </td>
 
                             <td>
                                 <div className={styles.updatedBy}>
                                     <div className={styles.avatar}>PT</div>
-
                                     <div>
                                         <strong>Platform</strong>
-
                                         <span>{formatDate(template.updatedAt)}</span>
                                     </div>
                                 </div>
@@ -864,11 +675,9 @@ function TemplateTable({
                                     <button type="button" aria-label="Preview">
                                         <i className="bi bi-eye" />
                                     </button>
-
                                     <button type="button" aria-label="Edit">
                                         <i className="bi bi-pencil" />
                                     </button>
-
                                     <button type="button" aria-label="More">
                                         <i className="bi bi-three-dots-vertical" />
                                     </button>
@@ -879,12 +688,10 @@ function TemplateTable({
 
                     {!templates.length && (
                         <tr>
-                            <td colSpan={8}>
+                            <td colSpan={7}>
                                 <div className={styles.empty}>
                                     <i className="bi bi-layout-text-window-reverse" />
-
                                     <strong>No page templates found</strong>
-
                                     <span>Try changing your filters or search keywords.</span>
                                 </div>
                             </td>
@@ -909,11 +716,10 @@ function TemplateGrid({ templates }: { templates: PageTemplate[] }) {
                         )}
 
                         <div className={styles.gridOverlay}>
-                            <button type="button">
+                            <button type="button" aria-label="Preview">
                                 <i className="bi bi-eye" />
                             </button>
-
-                            <button type="button">
+                            <button type="button" aria-label="Edit">
                                 <i className="bi bi-pencil" />
                             </button>
                         </div>
@@ -922,22 +728,24 @@ function TemplateGrid({ templates }: { templates: PageTemplate[] }) {
                     <div className={styles.gridContent}>
                         <div>
                             <strong>{template.title}</strong>
-
-                            <span>/{template.key}</span>
+                            <span>{template.slug ? `/${template.slug}` : template.path}</span>
                         </div>
 
                         <div className={styles.gridMeta}>
                             <span>{template.category.name}</span>
-
-                            <span
-                                className={`${styles.badge} ${styles[`tier${template.minTier}`]}`}
-                            >
-                                {TIER_LABELS[template.minTier]}
-                            </span>
+                            <span>{template.path}</span>
                         </div>
                     </div>
                 </article>
             ))}
+
+            {!templates.length && (
+                <div className={styles.empty}>
+                    <i className="bi bi-layout-text-window-reverse" />
+                    <strong>No page templates found</strong>
+                    <span>Try changing your filters or search keywords.</span>
+                </div>
+            )}
         </div>
     );
 }
@@ -945,9 +753,7 @@ function TemplateGrid({ templates }: { templates: PageTemplate[] }) {
 function formatDate(value: string) {
     const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
+    if (Number.isNaN(date.getTime())) return value;
 
     return new Intl.DateTimeFormat('en-US', {
         dateStyle: 'medium',
@@ -956,31 +762,23 @@ function formatDate(value: string) {
 }
 
 function buildPageNumbers(currentPage: number, totalPages: number): Array<number | '...'> {
-    if (totalPages <= 1) {
-        return totalPages === 1 ? [1] : [];
-    }
-
+    if (totalPages <= 1) return totalPages === 1 ? [1] : [];
     if (totalPages <= 7) {
         return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
 
     const pages: Array<number | '...'> = [1];
 
-    if (currentPage > 4) {
-        pages.push('...');
-    }
+    if (currentPage > 4) pages.push('...');
 
     const start = Math.max(2, currentPage - 1);
-
     const end = Math.min(totalPages - 1, currentPage + 1);
 
-    for (let page = start; page <= end; page++) {
+    for (let page = start; page <= end; page += 1) {
         pages.push(page);
     }
 
-    if (currentPage < totalPages - 3) {
-        pages.push('...');
-    }
+    if (currentPage < totalPages - 3) pages.push('...');
 
     pages.push(totalPages);
 

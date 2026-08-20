@@ -12,7 +12,7 @@ import {
 import { useMenuTemplate } from '@/hooks/platform/menu-template/use-menu-template';
 import styles from '@/styles/platform/menu-template/menu-template.module.css';
 import CreateMenuTemplateModal from '@/components/platform/menu-template/CreateMenuTemplateModal';
-import type { CreateMenuTemplatePayload } from '@/components/platform/menu-template/CreateMenuTemplateModal';
+import type { CreateMenuTemplatePayload } from '@/services/platform/menu-template/index.service';
 import type { MenuTemplate as MenuTemplateModel } from '@/services/platform/menu-template/index.service';
 
 const groupColors = [

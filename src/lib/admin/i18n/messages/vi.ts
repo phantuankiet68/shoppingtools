@@ -400,6 +400,8 @@ const vi = {
             payment: 'Thanh toán',
             allStatus: 'Tất cả trạng thái',
             allTypes: 'Tất cả loại',
+            showing: 'Hiển thị',
+            of: 'trên tổng số',
         },
 
         types: {

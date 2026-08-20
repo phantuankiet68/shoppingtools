@@ -1,12 +1,16 @@
 'use client';
 
+import Image from 'next/image';
 import { adminAuthService } from '@/services/auth/adminAuthService';
 import { useAdminAuthStore } from '@/store/auth/adminAuthStore';
 import styles from '@/styles/admin/login/login.module.css';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-type FormState = { email: string; password: string };
+type FormState = {
+    email: string;
+    password: string;
+};
 
 const MAX_FAIL = 3;
 const LOCK_SECONDS = 10;
@@ -14,59 +18,72 @@ const LOCK_SECONDS = 10;
 export default function AdminLoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const nextUrl = useMemo(() => searchParams.get('next') || '/admin', [searchParams]);
-    const [form, setForm] = useState<FormState>({ email: '', password: '' });
-    const [showPw, setShowPw] = useState(false);
 
+    const nextUrl = useMemo(() => searchParams.get('next') || '/admin', [searchParams]);
+
+    const [form, setForm] = useState<FormState>({
+        email: '',
+        password: '',
+    });
+
+    const [showPw, setShowPw] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // lock state
     const [failCount, setFailCount] = useState(0);
     const [lockedUntil, setLockedUntil] = useState<number | null>(null);
     const [secondsLeft, setSecondsLeft] = useState(0);
 
-    const now = Date.now();
-    const isLocked = lockedUntil !== null && lockedUntil > now;
-
     const timerRef = useRef<number | null>(null);
 
-    // countdown tick
+    const isLocked = lockedUntil !== null && lockedUntil > Date.now();
+
     useEffect(() => {
         if (!lockedUntil) return;
 
-        // clear old
-        if (timerRef.current) window.clearInterval(timerRef.current);
+        if (timerRef.current) {
+            window.clearInterval(timerRef.current);
+        }
 
         const tick = () => {
             const left = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+
             setSecondsLeft(left);
 
             if (left <= 0) {
                 setLockedUntil(null);
                 setSecondsLeft(0);
-                setFailCount(0); // reset after lock ends
-                if (timerRef.current) window.clearInterval(timerRef.current);
+                setFailCount(0);
+
+                if (timerRef.current) {
+                    window.clearInterval(timerRef.current);
+                }
+
                 timerRef.current = null;
             }
         };
 
         tick();
-        timerRef.current = window.setInterval(tick, 250);
+
+        timerRef.current = window.setInterval(tick, 1000);
 
         return () => {
-            if (timerRef.current) window.clearInterval(timerRef.current);
+            if (timerRef.current) {
+                window.clearInterval(timerRef.current);
+            }
+
             timerRef.current = null;
         };
     }, [lockedUntil]);
 
     function lockFor10s() {
         const until = Date.now() + LOCK_SECONDS * 1000;
+
         setLockedUntil(until);
         setError(null);
     }
 
-    const setAuthenticated = useAdminAuthStore((s) => s.setAuthenticated);
+    const setAuthenticated = useAdminAuthStore((state) => state.setAuthenticated);
 
     async function handleLogin() {
         if (isLocked || loading) return;
@@ -75,11 +92,7 @@ export default function AdminLoginPage() {
         setLoading(true);
 
         try {
-            console.log('LOGIN_CLICK');
-
             await adminAuthService.login(form);
-
-            console.log('LOGIN_SUCCESS');
 
             setFailCount(0);
             setLockedUntil(null);
@@ -89,8 +102,6 @@ export default function AdminLoginPage() {
 
             router.replace(nextUrl);
         } catch (err: any) {
-            console.error('LOGIN_ERROR', err);
-
             setFailCount((prev) => {
                 const next = prev + 1;
 
@@ -113,196 +124,367 @@ export default function AdminLoginPage() {
 
     return (
         <div className={styles.page}>
-            <div className={styles.bgGlowA} />
-            <div className={styles.bgGlowB} />
-            <div className={styles.bgGrid} />
-            <div className={styles.noise} />
+            <div className={styles.backgroundGlow} />
+            <div className={styles.backgroundGrid} />
+            <div className={styles.backgroundOrb} />
 
             <main className={styles.container}>
-                <section className={styles.card} aria-label="Admin Login">
-                    {/* Hero */}
-                    <div className={styles.hero}>
-                        <div className={styles.robot} aria-hidden="true">
-                            <svg viewBox="0 0 160 160" className={styles.robotSvg}>
-                                {/* LEFT ARM */}
-                                <g className={styles.armLeft}>
-                                    <rect
-                                        x="8"
-                                        y="78"
-                                        width="36"
-                                        height="18"
-                                        rx="9"
-                                        fill="#ffffff"
-                                    />
-                                    <circle cx="10" cy="87" r="6" fill="#ffffff" />
-                                </g>
+                <section className={styles.card} aria-label="KBuilder Admin Login">
+                    {/* ==================================================
+                        LEFT VISUAL PANEL
+                    ================================================== */}
+                    <section className={styles.visualPanel}>
+                        <div className={styles.visualInner}>
+                            {/* Brand */}
+                            <header className={styles.brandHeader}>
+                                <div className={styles.brand}>
+                                    <div className={styles.brandLogo}>
+                                        <span>K</span>
+                                    </div>
 
-                                {/* RIGHT ARM */}
-                                <g className={styles.armRight}>
-                                    <rect
-                                        x="116"
-                                        y="78"
-                                        width="36"
-                                        height="18"
-                                        rx="9"
-                                        fill="#ffffff"
-                                    />
-                                    <circle cx="150" cy="87" r="6" fill="#ffffff" />
-                                </g>
+                                    <div className={styles.brandText}>
+                                        <strong>KBUILDER</strong>
+                                        <span>Website Management Platform</span>
+                                    </div>
+                                </div>
 
-                                {/* HEAD */}
-                                <rect x="40" y="22" width="80" height="60" rx="26" fill="#ffffff" />
-                                <rect x="52" y="36" width="56" height="32" rx="16" fill="#0f172a" />
+                                <div className={styles.consoleBadge}>
+                                    <i className="bi bi-shield-check" />
+                                    <span>ADMIN CONSOLE</span>
+                                </div>
+                            </header>
 
-                                {/* EYES */}
-                                <circle cx="70" cy="52" r="5" fill="#3b82f6" />
-                                <circle cx="90" cy="52" r="5" fill="#3b82f6" />
+                            {/* Hero copy */}
+                            <div className={styles.heroContent}>
+                                <div className={styles.eyebrow}>
+                                    <span className={styles.eyebrowLine} />
+                                    <span>CONTROL YOUR DIGITAL WORLD</span>
+                                </div>
 
-                                {/* BODY */}
-                                <rect x="54" y="86" width="52" height="40" rx="20" fill="#ffffff" />
-                                <circle cx="80" cy="106" r="6" fill="#22c55e" />
-                            </svg>
+                                <h1 className={styles.heroTitle}>
+                                    Build. Manage.
+                                    <span>Grow.</span>
+                                </h1>
 
-                            <div className={styles.robotShadow} />
-                        </div>
+                                <p className={styles.heroDescription}>
+                                    Manage websites, projects and digital experiences from one
+                                    powerful workspace.
+                                </p>
+                            </div>
 
-                        <div className={styles.heroText}>
-                            <p className={styles.kicker}>
-                                <span className={styles.pill}>
-                                    <i className="bi bi-shield-lock" />
-                                    Admin Only
+                            {/* Robot IMAGE */}
+                            <div className={styles.robotStage}>
+                                <div className={styles.robotGlow} />
+
+                                <div className={`${styles.robotOrbit} ${styles.robotOrbitOne}`} />
+                                <div className={`${styles.robotOrbit} ${styles.robotOrbitTwo}`} />
+                                <div className={`${styles.robotOrbit} ${styles.robotOrbitThree}`} />
+
+                                <div className={`${styles.robotNode} ${styles.robotNodeOne}`} />
+                                <div className={`${styles.robotNode} ${styles.robotNodeTwo}`} />
+                                <div className={`${styles.robotNode} ${styles.robotNodeThree}`} />
+
+                                <Image
+                                    src="/assets/images/admin/robot-stage.png"
+                                    alt="KBuilder workspace"
+                                    fill
+                                    priority
+                                    sizes="620px"
+                                    className={styles.robotImage}
+                                />
+
+                                <div className={`${styles.robotCard} ${styles.robotCardTemplates}`}>
+                                    <div className={styles.robotCardIcon}>
+                                        <i className="bi bi-grid-1x2-fill" />
+                                    </div>
+
+                                    <div>
+                                        <strong>350+</strong>
+                                        <span>Templates</span>
+                                    </div>
+                                </div>
+
+                                <div className={`${styles.robotCard} ${styles.robotCardVisitors}`}>
+                                    <span className={styles.liveDot} />
+
+                                    <div>
+                                        <strong>24.6K</strong>
+                                        <span>Visitors</span>
+                                    </div>
+
+                                    <i className="bi bi-graph-up-arrow" />
+                                </div>
+
+                                <div className={`${styles.robotCard} ${styles.robotCardCode}`}>
+                                    <i className="bi bi-code-slash" />
+                                </div>
+                            </div>
+
+                            {/* Features */}
+                            <div className={styles.featureList}>
+                                <div className={styles.featureItem}>
+                                    <div className={styles.featureIcon}>
+                                        <i className="bi bi-layout-text-window-reverse" />
+                                    </div>
+
+                                    <div>
+                                        <strong>Visual Builder</strong>
+                                        <span>Build without limits</span>
+                                    </div>
+                                </div>
+
+                                <div className={styles.featureItem}>
+                                    <div className={styles.featureIcon}>
+                                        <i className="bi bi-layers" />
+                                    </div>
+
+                                    <div>
+                                        <strong>Powerful Components</strong>
+                                        <span>Reusable & scalable</span>
+                                    </div>
+                                </div>
+
+                                <div className={styles.featureItem}>
+                                    <div className={styles.featureIcon}>
+                                        <i className="bi bi-cloud-check" />
+                                    </div>
+
+                                    <div>
+                                        <strong>Cloud Hosting</strong>
+                                        <span>Fast & secure deployment</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bottom features */}
+                            <footer className={styles.visualFooter}>
+                                <span>
+                                    <i className="bi bi-shield-check" />
+                                    Enterprise Security
                                 </span>
-                            </p>
-                            <h1 className={styles.title}>Welcome back</h1>
-                            <p className={styles.subtitle}>
-                                Sign in to manage your system securely
-                            </p>
 
-                            {/* Floating status badge (top-left) */}
+                                <span>
+                                    <i className="bi bi-lightning-charge-fill" />
+                                    Fast Deployment
+                                </span>
+
+                                <span>
+                                    <i className="bi bi-cloud-fill" />
+                                    Cloud Powered
+                                </span>
+                            </footer>
+                        </div>
+                    </section>
+
+                    {/* ==================================================
+                        RIGHT LOGIN PANEL
+                    ================================================== */}
+                    <section className={styles.loginPanel}>
+                        <div className={styles.loginContent}>
+                            <div className={styles.loginHeader}>
+                                <div className={styles.mobileBrand}>
+                                    <div className={styles.brandLogo}>
+                                        <span>K</span>
+                                    </div>
+
+                                    <strong>KBUILDER</strong>
+                                </div>
+
+                                <div className={styles.securityBadge}>
+                                    <i className="bi bi-shield-lock" />
+                                    <span>Admin Only</span>
+                                </div>
+
+                                <div className={styles.loginRobot}>
+                                    <div className={styles.loginRobotGlow} />
+
+                                    <Image
+                                        src="/assets/images/admin/robot-stage.png"
+                                        alt=""
+                                        width={150}
+                                        height={150}
+                                        priority
+                                        className={styles.loginRobotImage}
+                                    />
+                                </div>
+
+                                <span className={styles.loginEyebrow}>SECURE ADMINISTRATION</span>
+
+                                <h2 className={styles.loginTitle}>
+                                    Welcome <span>back</span>
+                                </h2>
+                            </div>
+
+                            {/* Status */}
                             {(isLocked || failCount > 0) && (
                                 <div
-                                    className={`${styles.statusBadge} ${isLocked ? styles.statusLocked : styles.statusWarn}`}
+                                    className={`${styles.statusBadge} ${
+                                        isLocked ? styles.statusLocked : styles.statusWarning
+                                    }`}
                                     role="status"
                                     aria-live="polite"
                                 >
-                                    <i
-                                        className={`bi ${isLocked ? 'bi-lock-fill' : 'bi-exclamation-triangle'}`}
-                                    />
+                                    <div className={styles.statusIcon}>
+                                        <i
+                                            className={`bi ${
+                                                isLocked
+                                                    ? 'bi-lock-fill'
+                                                    : 'bi-exclamation-triangle'
+                                            }`}
+                                        />
+                                    </div>
+
                                     <div className={styles.statusText}>
                                         {isLocked ? (
                                             <>
-                                                <strong>Locked</strong>
-                                                <span>{secondsLeft}s remaining</span>
+                                                <strong>Temporarily locked</strong>
+
+                                                <span>Try again in {secondsLeft}s</span>
                                             </>
                                         ) : (
                                             <>
-                                                <strong>Login failed</strong>
-                                                <span>Remaining tries: {remainingTries}</span>
+                                                <strong>Login attempt failed</strong>
+
+                                                <span>{remainingTries} attempts remaining</span>
                                             </>
                                         )}
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    </div>
 
-                    <form className={styles.form}>
-                        <div className={styles.field}>
-                            <label className={styles.label} htmlFor="email">
-                                Email
-                            </label>
+                            {/* Form */}
+                            <form
+                                className={styles.form}
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    handleLogin();
+                                }}
+                            >
+                                {/* Email */}
+                                <div className={styles.field}>
+                                    <label className={styles.label} htmlFor="email">
+                                        Email address
+                                    </label>
 
-                            <div className={styles.inputShell}>
-                                <i
-                                    className={`bi bi-envelope ${styles.inputIcon}`}
-                                    aria-hidden="true"
-                                />
-                                <input
-                                    id="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    placeholder="admin@company.com"
-                                    value={form.email}
-                                    onChange={(e) =>
-                                        setForm((s) => ({ ...s, email: e.target.value }))
-                                    }
-                                    className={styles.input}
-                                    required
-                                    disabled={isLocked || loading}
-                                />
-                            </div>
-                        </div>
+                                    <div className={styles.inputShell}>
+                                        <span className={styles.inputIcon}>
+                                            <i className="bi bi-envelope" />
+                                        </span>
 
-                        <div className={styles.field}>
-                            <label className={styles.label} htmlFor="password">
-                                Password
-                            </label>
+                                        <input
+                                            id="email"
+                                            type="email"
+                                            autoComplete="email"
+                                            placeholder="admin@company.com"
+                                            value={form.email}
+                                            onChange={(event) =>
+                                                setForm((state) => ({
+                                                    ...state,
+                                                    email: event.target.value,
+                                                }))
+                                            }
+                                            className={styles.input}
+                                            required
+                                            disabled={isLocked || loading}
+                                        />
+                                    </div>
+                                </div>
 
-                            <div className={styles.inputShell}>
-                                <i
-                                    className={`bi bi-lock ${styles.inputIcon}`}
-                                    aria-hidden="true"
-                                />
-                                <input
-                                    id="password"
-                                    type={showPw ? 'text' : 'password'}
-                                    autoComplete="current-password"
-                                    placeholder="••••••••••••"
-                                    value={form.password}
-                                    onChange={(e) =>
-                                        setForm((s) => ({ ...s, password: e.target.value }))
-                                    }
-                                    className={styles.input}
-                                    required
-                                    disabled={isLocked || loading}
-                                />
+                                {/* Password */}
+                                <div className={styles.field}>
+                                    <div className={styles.labelRow}>
+                                        <label className={styles.label} htmlFor="password">
+                                            Password
+                                        </label>
+
+                                        <button type="button" className={styles.forgotButton}>
+                                            Forgot password?
+                                        </button>
+                                    </div>
+
+                                    <div className={styles.inputShell}>
+                                        <span className={styles.inputIcon}>
+                                            <i className="bi bi-lock" />
+                                        </span>
+
+                                        <input
+                                            id="password"
+                                            type={showPw ? 'text' : 'password'}
+                                            autoComplete="current-password"
+                                            placeholder="Enter your password"
+                                            value={form.password}
+                                            onChange={(event) =>
+                                                setForm((state) => ({
+                                                    ...state,
+                                                    password: event.target.value,
+                                                }))
+                                            }
+                                            className={styles.input}
+                                            required
+                                            disabled={isLocked || loading}
+                                        />
+
+                                        <button
+                                            type="button"
+                                            className={styles.eyeButton}
+                                            onClick={() => setShowPw((state) => !state)}
+                                            aria-label={showPw ? 'Hide password' : 'Show password'}
+                                            disabled={isLocked || loading}
+                                        >
+                                            <i
+                                                className={`bi ${
+                                                    showPw ? 'bi-eye-slash' : 'bi-eye'
+                                                }`}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Error */}
+                                {error && !isLocked && (
+                                    <div className={styles.error} role="alert" aria-live="polite">
+                                        <i className="bi bi-x-circle" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
+
+                                {/* Submit */}
                                 <button
-                                    type="button"
-                                    className={styles.eyeBtn}
-                                    onClick={() => setShowPw((s) => !s)}
-                                    aria-label={showPw ? 'Hide password' : 'Show password'}
-                                    disabled={isLocked || loading}
+                                    type="submit"
+                                    disabled={loading || isLocked}
+                                    className={styles.loginButton}
                                 >
-                                    <i className={`bi ${showPw ? 'bi-eye-slash' : 'bi-eye'}`} />
+                                    <span className={styles.loginButtonIcon}>
+                                        {loading ? (
+                                            <span className={styles.spinner} />
+                                        ) : (
+                                            <i className="bi bi-arrow-right" />
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        {isLocked
+                                            ? `Locked · ${secondsLeft}s`
+                                            : loading
+                                              ? 'Signing in...'
+                                              : 'Sign in to Admin'}
+                                    </span>
+
+                                    {!loading && !isLocked && (
+                                        <i
+                                            className={`bi bi-arrow-up-right ${styles.loginButtonArrow}`}
+                                        />
+                                    )}
                                 </button>
-                            </div>
+                            </form>
                         </div>
 
-                        {error && !isLocked ? (
-                            <div className={styles.error} role="alert" aria-live="polite">
-                                <i className="bi bi-x-circle" aria-hidden="true" />
-                                <span>{error}</span>
-                            </div>
-                        ) : null}
-
-                        <button
-                            type="button"
-                            onClick={handleLogin}
-                            disabled={loading || isLocked}
-                            className={styles.button}
-                        >
-                            {loading ? (
-                                <span className={styles.spinner} />
-                            ) : (
-                                <i className="bi bi-box-arrow-in-right" />
-                            )}
-
-                            <span>
-                                {isLocked
-                                    ? `Locked (${secondsLeft}s)`
-                                    : loading
-                                      ? 'Logging in...'
-                                      : 'Login'}
-                            </span>
-                        </button>
-
-                        <div className={styles.footerNote}>
-                            <i className="bi bi-info-circle" aria-hidden="true" />
-                            <span>
-                                After 3 failed attempts, lock 10s (UI). Add server rate-limit too.
-                            </span>
-                        </div>
-                    </form>
+                        <footer className={styles.loginFooter}>
+                            <span>KBuilder Admin Console</span>
+                            <span className={styles.footerDivider} />
+                            <span>v1.0</span>
+                        </footer>
+                    </section>
                 </section>
             </main>
         </div>

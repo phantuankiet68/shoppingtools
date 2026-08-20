@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import styles from '@/styles/admin/sites/workflow/WorkflowNode.module.css';
 import { WorkflowNode as WorkflowNodeType } from '@/features/workflow/types';
 
@@ -8,9 +9,16 @@ type Props = {
     active?: boolean;
     isLast?: boolean;
     onClick?: () => void;
+    nodeRefs: React.RefObject<Record<string, HTMLElement | null>>;
 };
 
-export default function WorkflowNode({ node, active = false, isLast = false, onClick }: Props) {
+export default function WorkflowNode({
+    node,
+    active = false,
+    isLast = false,
+    onClick,
+    nodeRefs,
+}: Props) {
     const status = node.runtimeStatus ?? node.status;
     const running = status === 'running';
     const success = status === 'success';
@@ -18,12 +26,16 @@ export default function WorkflowNode({ node, active = false, isLast = false, onC
 
     return (
         <article
+            ref={(element) => {
+                nodeRefs.current[node.id] = element;
+            }}
             onClick={onClick}
             className={[styles.node, styles[status], active && styles.active]
                 .filter(Boolean)
                 .join(' ')}
         >
             <span className={`${styles.handle} ${styles.left}`} />
+
             <div className={styles.handleLeft}>
                 <div className={styles.headerTop}>
                     <div className={`${styles.icon} ${styles[node.color]}`}>
@@ -35,6 +47,7 @@ export default function WorkflowNode({ node, active = false, isLast = false, onC
                     <div className={styles.header}>
                         <h3 className={styles.title}>{node.title}</h3>
                     </div>
+
                     <span
                         className={`${styles.badge} ${
                             status === 'waiting'
@@ -55,6 +68,7 @@ export default function WorkflowNode({ node, active = false, isLast = false, onC
                                     ? 'Error'
                                     : 'Waiting')}
                     </span>
+
                     {running && (
                         <div className={styles.progress}>
                             <div
@@ -64,7 +78,10 @@ export default function WorkflowNode({ node, active = false, isLast = false, onC
                                 style={
                                     node.progress !== undefined
                                         ? {
-                                              width: `${Math.min(100, Math.max(0, node.progress))}%`,
+                                              width: `${Math.min(
+                                                  100,
+                                                  Math.max(0, node.progress),
+                                              )}%`,
                                           }
                                         : undefined
                                 }
@@ -87,6 +104,7 @@ export default function WorkflowNode({ node, active = false, isLast = false, onC
                     )}
                 </div>
             </div>
+
             {node.subtitle && <p className={styles.subtitle}>{node.subtitle}</p>}
 
             {node.api && (
@@ -95,6 +113,7 @@ export default function WorkflowNode({ node, active = false, isLast = false, onC
                     <span>{node.api}</span>
                 </div>
             )}
+
             {!isLast && <span className={`${styles.handle} ${styles.right}`} />}
         </article>
     );

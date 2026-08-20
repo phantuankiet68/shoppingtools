@@ -15,9 +15,16 @@ type Props = {
     group: WorkflowGroupType;
     selectedNode?: WorkflowNodeType;
     onSelectNode: (node: WorkflowNodeType) => void;
+    nodeRefs: React.RefObject<Record<string, HTMLElement | null>>;
 };
 
-export default function WorkflowGroup({ workflow, group, selectedNode, onSelectNode }: Props) {
+export default function WorkflowGroup({
+    workflow,
+    group,
+    selectedNode,
+    onSelectNode,
+    nodeRefs,
+}: Props) {
     return (
         <section className={styles.group}>
             <header className={styles.header}>
@@ -34,6 +41,7 @@ export default function WorkflowGroup({ workflow, group, selectedNode, onSelectN
                             active={selectedNode?.id === node.id}
                             isLast={index === group.nodes.length - 1}
                             onClick={() => onSelectNode(node)}
+                            nodeRefs={nodeRefs}
                         />
 
                         {index < group.nodes.length - 1 && (

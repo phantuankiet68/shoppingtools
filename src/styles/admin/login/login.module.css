@@ -1,495 +1,1405 @@
 .page {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
-  background: radial-gradient(1200px 800px at 20% 10%, #f3f5ff 0%, #eef1ff 45%, #edf3ff 100%);
-  color: #0f172a;
+    position: relative;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 24px;
+    color: #142653;
 }
 
-.bgGlowA {
-  position: absolute;
-  inset: -220px auto auto -260px;
-  width: 560px;
-  height: 560px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.32) 0%, rgba(99, 102, 241, 0) 65%);
-  pointer-events: none;
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.backgroundGlow {
+    position: fixed;
+    z-index: 0;
+    width: 520px;
+    height: 520px;
+    top: -260px;
+    left: -220px;
+    border-radius: 50%;
+    background: rgba(74, 105, 238, 0.1);
+    filter: blur(30px);
+    pointer-events: none;
 }
 
-.bgGlowB {
-  position: absolute;
-  inset: auto -280px -260px auto;
-  width: 640px;
-  height: 640px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 35% 35%, rgba(34, 211, 238, 0.3) 0%, rgba(34, 211, 238, 0) 65%);
-  pointer-events: none;
+.backgroundOrb {
+    position: fixed;
+    z-index: 0;
+    width: 460px;
+    height: 460px;
+    right: -230px;
+    bottom: -240px;
+    border-radius: 50%;
+    background: rgba(83, 103, 235, 0.08);
+    filter: blur(25px);
+    pointer-events: none;
 }
 
-.bgGrid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, rgba(79, 70, 229, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(79, 70, 229, 0.06) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.9), transparent 70%);
-  opacity: 0.6;
-  pointer-events: none;
+.backgroundGrid {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.4;
+    background-image:
+        linear-gradient(rgba(70, 95, 175, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(70, 95, 175, 0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+    pointer-events: none;
 }
 
-/* subtle noise without image */
-.noise {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 2px),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 1px, transparent 1px 2px);
-  mix-blend-mode: overlay;
-}
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
 
 .container {
-  position: relative;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 28px;
+    position: relative;
+    z-index: 2;
+    width: min(1540px, 100%);
 }
 
-/* Card */
 .card {
-  width: min(390px, 94vw);
-  border-radius: 26px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(99, 102, 241, 0.14);
-  position: relative;
-  overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.03fr) minmax(430px, 0.97fr);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    background: #fff;
 }
 
-/* top shine */
-.card::before {
-  content: "";
-  position: absolute;
-  inset: -30% -20% auto -20%;
-  height: 60%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
-  transform: rotate(-10deg);
-  pointer-events: none;
+/* =========================================================
+   LEFT VISUAL PANEL
+========================================================= */
+
+.visualPanel {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border-right: 1px solid rgba(71, 92, 160, 0.07);
 }
 
-/* Hero */
-.hero {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 18px;
-  align-items: center;
-  margin-bottom: 5px;
+.visualPanel::before {
+    content: '';
+    position: absolute;
+    width: 620px;
+    height: 620px;
+    right: -300px;
+    top: 170px;
+    border: 1px solid rgba(74, 104, 231, 0.08);
+    border-radius: 50%;
 }
 
-@media (max-width: 520px) {
-  .hero {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
+.visualPanel::after {
+    content: '';
+    position: absolute;
+    width: 820px;
+    height: 820px;
+    right: -400px;
+    top: 40px;
+    border: 1px solid rgba(74, 104, 231, 0.045);
+    border-radius: 50%;
+}
+
+.visualInner {
+    position: relative;
+    min-height: 800px;
+    padding: 34px;
+}
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.brandHeader {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.brandLogo {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #2865f5, #43a4ff);
+    box-shadow: 0 12px 26px rgba(46, 99, 240, 0.2);
+}
+
+.brandLogo::before,
+.brandLogo::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 28px;
+    border-radius: 5px;
+    background: #fff;
+    transform: skewY(-25deg);
+}
+
+.brandLogo::before {
+    left: 12px;
+}
+
+.brandLogo::after {
+    right: 12px;
+    opacity: 0.65;
+}
+
+.brandLogo span {
+    position: relative;
+    z-index: 2;
+    font-size: 0;
+}
+
+.brandText strong {
+    display: block;
+    color: #16264d;
+    font-size: 16px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+}
+
+.brandText span {
+    display: block;
+    margin-top: 3px;
+    color: #8492ae;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.consoleBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    border: 1px solid rgba(63, 98, 224, 0.12);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.65);
+    color: #4564d6;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    backdrop-filter: blur(12px);
+}
+
+.consoleBadge i {
+    font-size: 13px;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.heroContent {
+    position: relative;
+    z-index: 10;
+    width: min(520px, 100%);
+    margin-top: 24px;
+}
+
+.eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    color: #4d69d8;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.15em;
+}
+
+.eyebrowLine {
+    width: 30px;
+    height: 2px;
+    border-radius: 999px;
+    background: #3c68f4;
+}
+
+.heroTitle {
+    background: linear-gradient(135deg, #10204a 0%, #285ff5 48%, #5b6cff 100%);
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    letter-spacing: -0.065em;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0 0;
+    font-size: 4.5rem;
+    font-weight: 850;
+    line-height: 0.95;
+    display: flex;
+}
+
+.heroTitle span {
+    color: #2865f5;
+}
+
+.heroDescription {
+    max-width: 490px;
+    margin: 15px 0 0;
+    color: #7080a1;
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+/* =========================================================
+   ROBOT IMAGE STAGE
+========================================================= */
+
+.robotStage {
+    z-index: 4;
+    pointer-events: none;
+    width: 620px;
+    height: 365px;
+    position: absolute;
+    bottom: 174px;
+    left: 35%;
+    transform: translateX(-34%);
+}
+.robotImage {
+    position: relative !important;
+    z-index: 5;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    object-position: center;
+    filter: drop-shadow(0 25px 30px rgba(42, 69, 140, 0.1))
+        drop-shadow(0 0 35px rgba(65, 105, 245, 0.09));
+    animation: robotFloat 5s ease-in-out infinite;
+}
+
+.robotGlow {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    width: 300px;
+    height: 300px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(67, 105, 255, 0.2),
+        rgba(67, 105, 255, 0.06) 45%,
+        transparent 72%
+    );
+    filter: blur(10px);
+}
+
+/* =========================================================
+   ORBITS
+========================================================= */
+
+.robotOrbit {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: 50%;
+    border: 1px solid rgba(69, 104, 235, 0.12);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) rotate(-18deg);
+}
+
+.robotOrbitOne {
+    width: 330px;
+    height: 175px;
+}
+
+.robotOrbitTwo {
+    width: 475px;
+    height: 255px;
+    border-color: rgba(69, 104, 235, 0.08);
+}
+
+.robotOrbitThree {
+    width: 610px;
+    height: 340px;
+    border-color: rgba(69, 104, 235, 0.05);
+}
+
+/* =========================================================
+   ORBIT NODES
+========================================================= */
+
+.robotNode {
+    position: absolute;
+    z-index: 6;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow:
+        0 0 0 3px rgba(62, 101, 242, 0.1),
+        0 0 16px rgba(62, 101, 242, 0.3);
+}
+
+.robotNodeOne {
+    top: 80px;
+    left: 135px;
+}
+
+.robotNodeTwo {
+    top: 158px;
+    right: 45px;
+}
+
+.robotNodeThree {
+    bottom: 68px;
+    left: 210px;
+}
+
+/* =========================================================
+   ROBOT FLOATING CARDS
+========================================================= */
+
+.robotCard {
+    position: absolute;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(18px);
+}
+
+.robotCardIcon {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 10px;
+    background: #eff4ff;
+    color: #3267f5;
+}
+
+.robotCardIcon i {
+    font-size: 15px;
+}
+
+.robotCard strong,
+.robotCard span {
+    display: block;
+}
+
+.robotCard strong {
+    color: rgb(87, 140, 255);
+    font-size: 14px;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.robotCard span {
+    margin-top: 5px;
+    color: #8794ae;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+/* Templates */
+
+.robotCardTemplates {
+    left: 24px;
+    top: 178px;
+    animation: cardFloat 5s ease-in-out infinite;
+}
+
+/* Visitors */
+
+.robotCardVisitors {
+    top: 55px;
+    right: -5px;
+    min-width: 155px;
+    animation: cardFloatReverse 5.5s ease-in-out infinite;
+}
+
+.robotCardVisitors > i {
+    margin-left: auto;
+    color: #2db67a;
+    font-size: 13px;
+}
+
+.liveDot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #27c47a;
+    box-shadow:
+        0 0 0 4px rgba(39, 196, 122, 0.1),
+        0 0 12px rgba(39, 196, 122, 0.3);
+}
+
+/* Code */
+
+.robotCardCode {
+    right: 65px;
+    bottom: 47px;
+    width: 52px;
+    height: 52px;
+    padding: 8px;
+    justify-content: center;
+    animation: cardFloatCode 4.5s ease-in-out infinite;
+}
+
+.robotCardCode i {
+    width: 35px;
+    height: 35px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #eff4ff;
+    color: #3267f5;
+}
+
+/* =========================================================
+   ROBOT ANIMATION
+========================================================= */
+
+@keyframes robotFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-9px);
+    }
+}
+
+@keyframes cardFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-7px);
+    }
+}
+
+@keyframes cardFloatReverse {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(7px);
+    }
+}
+
+@keyframes cardFloatCode {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-7px) rotate(3deg);
+    }
+}
+
+/* =========================================================
+   FEATURE CARDSvisualInner
+========================================================= */
+
+.featureList {
+    position: absolute;
+    z-index: 15;
+    left: 24px;
+    right: 24px;
+    bottom: 90px;
+    display: grid;
+    grid-template-columns: 1fr 1.3fr 1.2fr;
     gap: 12px;
-  }
 }
 
-.heroText {
-  display: grid;
-  gap: 8px;
-  z-index: 100;
+.featureItem {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 14px;
+    border: 1px solid rgba(78, 101, 176, 0.08);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
 }
 
-.kicker {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: right;
+.featureIcon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #fff;
+    color: #3267f5;
+    box-shadow: 0 5px 14px rgba(45, 82, 176, 0.08);
 }
 
-.pill {
-  color: #06a6fc;
-  background: #3da6ff47;
-  border: 1px solid #05b1ffdb;
-  border-radius: 999px;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  display: inline-flex;
+.featureIcon i {
+    font-size: 15px;
 }
 
-.title {
-  letter-spacing: -0.03em;
-  color: #00a6ff;
-  margin: 0;
-  font-size: 23px;
-  font-weight: 900;
-  line-height: 1.05;
+.featureItem strong {
+    display: block;
+    color: #578cff;
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
-.subtitle {
-  margin: 0;
-  font-size: 14px;
-  color: #0875e29e;
-  font-weight: 600;
+.featureItem span {
+    display: block;
+    margin-top: 3px;
+    color: #8b97b0;
+    font-size: 1.2rem;
+    line-height: 1.4;
 }
 
-/* Robot */
-.robot {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  display: grid;
-  place-items: center;
-  animation: robotFloat 2.6s ease-in-out infinite;
-  transform-origin: center;
+/* =========================================================
+   VISUAL FOOTER
+========================================================= */
+
+.visualFooter {
+    position: absolute;
+    z-index: 20;
+    left: 56px;
+    right: 56px;
+    bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 18px;
+    border-top: 1px solid rgba(70, 89, 145, 0.08);
 }
 
-.robotSvg {
-  width: 150px;
-  height: 150px;
-  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.18));
+.visualFooter span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #8190ae;
+    font-size: 1.3rem;
+    font-weight: 500;
 }
 
-.robotShadow {
-  position: absolute;
-  bottom: -10px;
-  width: 96px;
-  height: 18px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.2);
-  filter: blur(12px);
-  opacity: 0.45;
-  animation: shadowPulse 2.6s ease-in-out infinite;
+.visualFooter i {
+    color: #4168e8;
+    font-size: 1.3rem;
+}
+
+/* =========================================================
+   LOGIN PANEL
+========================================================= */
+.loginPanel {
+    position: relative;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 16%, rgba(53, 101, 255, 0.07), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, #fbfcff 55%, #f7f9ff 100%);
+}
+
+.loginPanel::before {
+    content: '';
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    top: -280px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: rgba(61, 99, 255, 0.055);
+    filter: blur(10px);
+    pointer-events: none;
+}
+
+.loginPanel::after {
+    content: '';
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    right: -250px;
+    bottom: -220px;
+    border-radius: 50%;
+    background: rgba(55, 95, 255, 0.045);
+    filter: blur(30px);
+    pointer-events: none;
+}
+
+/* ==================================================
+   CONTENT
+================================================== */
+
+.loginContent {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 560px);
+    margin: 0 auto;
+    padding: 58px 56px 24px;
+    flex: 1;
+}
+
+/* ==================================================
+   HEADER
+================================================== */
+
+.loginHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* ==================================================
+   MOBILE BRAND
+================================================== */
+
+.mobileBrand {
+    display: none;
+}
+
+/* ==================================================
+   SECURITY BADGE
+================================================== */
+
+.securityBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    height: 38px;
+    padding: 0 15px;
+    border: 1px solid rgba(55, 95, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow:
+        0 8px 24px rgba(35, 65, 150, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    color: #3158d8;
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: 0.025em;
+    backdrop-filter: blur(12px);
+}
+
+.securityBadge i {
+    font-size: 14px;
+}
+
+/* ==================================================
+   ROBOT
+================================================== */
+
+.loginRobot {
+    position: relative;
+    width: 190px;
+    height: 170px;
+    margin: 22px auto 4px;
+    display: grid;
+    place-items: center;
+}
+
+.loginRobot::before,
+.loginRobot::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(52, 95, 255, 0.11);
+    border-radius: 50%;
+}
+
+.loginRobot::after {
+    inset: 31px;
+    border-color: rgba(52, 95, 255, 0.075);
+}
+
+.loginRobotGlow {
+    position: absolute;
+    width: 115px;
+    height: 115px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(45, 104, 255, 0.22) 0%,
+        rgba(45, 104, 255, 0.09) 34%,
+        transparent 72%
+    );
+    filter: blur(8px);
+}
+
+.loginRobotImage {
+    position: relative;
+    z-index: 2;
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 24px rgba(37, 83, 220, 0.14))
+        drop-shadow(0 4px 8px rgba(37, 83, 220, 0.08));
+    animation: robotFloat 4.5s ease-in-out infinite;
 }
 
 @keyframes robotFloat {
-  0% {
-    transform: translateY(0) rotate(-0.4deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(0.4deg);
-  }
-  100% {
-    transform: translateY(0) rotate(-0.4deg);
-  }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-7px);
+    }
 }
 
-@keyframes shadowPulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.45;
-  }
-  50% {
-    transform: scale(0.82);
-    opacity: 0.3;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.45;
-  }
+/* ==================================================
+   EYEBROW
+================================================== */
+
+.loginEyebrow {
+    margin-top: 5px;
+    color: #8291b0;
+    font-size: 1.2rem;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.1em;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .robot,
-  .robotShadow {
-    animation: none !important;
-  }
+/* ==================================================
+   TITLE
+================================================== */
+
+.loginTitle {
+    margin: 16px 0 0;
+    color: #122451;
+    font-size: clamp(2.8rem, 4vw, 4.15rem);
+    font-weight: 850;
+    line-height: 0.98;
+    letter-spacing: -0.065em;
 }
 
-/* Form */
+.loginTitle span {
+    background: linear-gradient(110deg, #2364ef 0%, #315ff4 45%, #5867f5 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ==================================================
+   SUBTITLE
+================================================== */
+
+.loginSubtitle {
+    max-width: 410px;
+    margin: 15px auto 0;
+    color: #8b99b4;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* ==================================================
+   FORM
+================================================== */
+
 .form {
-  display: grid;
-  gap: 13px;
-  z-index: 100;
-  position: relative;
+    margin-top: 38px;
 }
+
+/* ==================================================
+   FIELD
+================================================== */
 
 .field {
-  display: grid;
-  gap: 8px;
+    margin-bottom: 22px;
+}
+
+.labelRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 9px;
 }
 
 .label {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: rgba(15, 23, 42, 0.65);
+    display: block;
+    margin-bottom: 9px;
+    color: rgb(87, 140, 255);
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: 600;
 }
 
-/* Input shell with icon */
+.labelRow .label {
+    margin-bottom: 0;
+}
+
+/* ==================================================
+   FORGOT
+================================================== */
+
+.forgotButton {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #3266ed;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    transition:
+        color 160ms ease,
+        opacity 160ms ease;
+}
+
+.forgotButton:hover {
+    color: #1d4ed8;
+}
+
+/* ==================================================
+   INPUT
+================================================== */
+
 .inputShell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 14px;
-
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-
-  transition:
-    box-shadow 150ms ease,
-    border-color 150ms ease,
-    transform 150ms ease;
-  max-height: 50px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 66px;
+    border: 1px solid #dce3f0;
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow:
+        0 4px 14px rgba(31, 55, 110, 0.025),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
 }
 
 .inputShell:focus-within {
-  border-color: rgba(70, 179, 229, 0.35);
-  box-shadow:
-    0 0 0 5px rgba(70, 171, 229, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  transform: translateY(-1px);
+    border-color: rgba(48, 99, 241, 0.65);
+    box-shadow:
+        0 0 0 4px rgba(48, 99, 241, 0.08),
+        0 10px 28px rgba(45, 83, 180, 0.06);
 }
 
 .inputIcon {
-  font-size: 16px;
-  color: rgba(79, 70, 229, 0.7);
+    width: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3670ff;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 
 .input {
-  width: 100%;
-  border: 0;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  color: #0f172a;
+    width: 100%;
+    min-width: 0;
+    height: 64px;
+    padding: 0 18px 0 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #182b56;
+    font-family: inherit;
+    font-size: 1.5rem;
 }
 
 .input::placeholder {
-  color: rgba(100, 116, 139, 0.7);
+    color: #aab5c9;
+    font-weight: 500;
 }
 
-.eyeBtn {
-  border: 0;
-  background: transparent;
-  color: rgba(100, 116, 139, 0.9);
-  cursor: pointer;
-  padding: 6px 6px;
-  border-radius: 10px;
+.input:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
 
-.eyeBtn:hover {
-  background: rgba(15, 23, 42, 0.06);
+/* ==================================================
+   EYE BUTTON
+================================================== */
+
+.eyeButton {
+    width: 48px;
+    height: 48px;
+    margin-right: 8px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #9aa8bd;
+    cursor: pointer;
+    transition:
+        color 160ms ease,
+        background 160ms ease;
 }
 
+.eyeButton:hover {
+    background: #f1f5ff;
+    color: #3266ed;
+}
+
+/* ==================================================
+   ERROR / STATUS
+================================================== */
+
+.statusBadge,
 .error {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-radius: 14px;
-  padding: 10px 12px;
-  font-size: 13px;
-
-  color: #991b1b;
-  background: rgba(254, 242, 242, 0.95);
-  border: 1px solid rgba(185, 28, 28, 0.14);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 15px;
+    border-radius: 14px;
+    margin-bottom: 20px;
 }
 
-.button {
-  margin-top: 6px;
-  width: 100%;
-  height: 48px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: #ffffff;
-
-  /* LOGIN GRADIENT */
-  background: #4ebaed;
-
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    filter 160ms ease,
-    opacity 160ms ease;
-}
-
-/* icon trong button */
-.button i {
-  font-size: 16px;
-  line-height: 1;
-}
-
-/* Hover */
-.button:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  box-shadow:
-    0 22px 44px rgba(79, 70, 229, 0.32),
-    0 12px 22px rgba(6, 182, 212, 0.26);
-}
-
-/* Active (click) */
-.button:active {
-  transform: translateY(0);
-  box-shadow:
-    0 12px 22px rgba(79, 70, 229, 0.26),
-    0 6px 12px rgba(6, 182, 212, 0.2);
-}
-
-/* Focus (keyboard / accessibility) */
-.button:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 4px rgba(99, 102, 241, 0.35),
-    0 18px 36px rgba(79, 70, 229, 0.28);
-}
-
-/* Disabled / locked */
-.button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  filter: grayscale(0.15);
-  box-shadow: none;
-}
-
-.spinner {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  border: 2px solid rgba(255, 255, 255, 0.55);
-  border-top-color: #fff;
-  animation: spin 700ms linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Footer note */
-.footerNote {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.55);
-}
-
-/* ===== Floating status badge ===== */
 .statusBadge {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  z-index: 3;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 10px 14px;
-  border-radius: 14px;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  box-shadow:
-    0 12px 26px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    border: 1px solid #dce4f2;
+    background: #f8faff;
 }
 
-.statusBadge i {
-  font-size: 14px;
+.statusWarning {
+    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(255, 248, 230, 0.8);
+}
+
+.statusLocked {
+    border-color: rgba(239, 68, 68, 0.18);
+    background: rgba(254, 242, 242, 0.85);
+}
+
+.statusIcon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #eef3ff;
+    color: #3567ef;
+    flex-shrink: 0;
 }
 
 .statusText {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.statusText strong {
+    color: #24365e;
+    font-size: 12px;
+    font-weight: 800;
 }
 
 .statusText span {
-  font-weight: 600;
-  opacity: 0.85;
+    color: #8795b0;
+    font-size: 11px;
 }
 
-/* Warning (failed attempts) */
-.statusWarn {
-  color: #5b21b6;
-  background: rgba(237, 233, 254, 0.85);
-  border: 1px solid rgba(139, 92, 246, 0.35);
+.error {
+    color: #c73535;
+    background: #fff5f5;
+    border: 1px solid rgba(220, 53, 69, 0.14);
+    font-size: 12px;
 }
 
-.statusWarn i {
-  color: #7c3aed;
+/* ==================================================
+   LOGIN BUTTON
+================================================== */
+
+.loginButton {
+    position: relative;
+    width: 100%;
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 7px;
+    border: 0;
+    border-radius: 17px;
+    background: var(--bg-primary);
+    color: #fff;
+    font-family: inherit;
+    font-size: 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        filter 180ms ease;
 }
 
-/* Locked */
-.statusLocked {
-  color: #78350f;
-  background: rgba(254, 243, 199, 0.92);
-  border: 1px solid rgba(245, 158, 11, 0.45);
+.loginButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow:
+        0 23px 42px rgba(122, 198, 248, 0.28),
+        0 7px 14px rgba(45, 170, 220, 0.15);
+    filter: saturate(1.08);
 }
 
-.statusLocked i {
-  color: #d97706;
-}
-/* ===== Robot arms ===== */
-
-.armLeft {
-  transform-origin: right center;
-  animation: armLeftMove 2.8s ease-in-out infinite;
+.loginButton:active:not(:disabled) {
+    transform: translateY(0);
 }
 
-.armRight {
-  transform-origin: left center;
-  animation: armRightMove 2.8s ease-in-out infinite;
+.loginButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
-@keyframes armLeftMove {
-  0% {
-    transform: rotate(0deg) translateY(0);
-  }
-  50% {
-    transform: rotate(-6deg) translateY(-1px);
-  }
-  100% {
-    transform: rotate(0deg) translateY(0);
-  }
+.loginButtonIcon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.16);
+    font-size: 20px;
 }
 
-@keyframes armRightMove {
-  0% {
-    transform: rotate(0deg) translateY(0);
-  }
-  50% {
-    transform: rotate(6deg) translateY(-1px);
-  }
-  100% {
-    transform: rotate(0deg) translateY(0);
-  }
+.loginButton > span:nth-child(2) {
+    flex: 1;
+    text-align: center;
 }
 
-/* Tôn trọng reduced motion */
+.loginButtonArrow {
+    width: 48px;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+}
+
+/* ==================================================
+   SPINNER
+================================================== */
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    display: block;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==================================================
+   SECURITY NOTE
+================================================== */
+
+.securityNote {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid #e3e8f3;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(247, 249, 255, 0.96), rgba(252, 253, 255, 0.96));
+}
+
+.securityNoteIcon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: #edf3ff;
+    color: #3769f2;
+    font-size: 16px;
+}
+
+.securityNote strong {
+    display: block;
+    color: #26385f;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.securityNote span {
+    display: block;
+    margin-top: 3px;
+    color: #91a0ba;
+    font-size: 10px;
+    line-height: 1.45;
+}
+
+/* ==================================================
+   FOOTER
+================================================== */
+
+.loginFooter {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 30px 28px;
+    color: #a2aec3;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.footerDivider {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #c5cede;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1250px) {
+    .page {
+        padding: 18px;
+    }
+
+    .card {
+        grid-template-columns: 1fr 0.92fr;
+        min-height: 800px;
+    }
+
+    .heroContent {
+        margin-top: 68px;
+    }
+
+    .heroTitle {
+        font-size: clamp(50px, 5vw, 68px);
+    }
+
+    .robotStage {
+        width: 540px;
+        height: 380px;
+        bottom: 125px;
+        transform: translateX(-36%);
+    }
+
+    .featureList {
+        left: 40px;
+        right: 40px;
+    }
+
+    .visualFooter {
+        left: 40px;
+        right: 40px;
+    }
+
+    .loginPanel {
+        padding-left: 55px;
+        padding-right: 55px;
+    }
+
+    .loginFooter {
+        left: 55px;
+        right: 55px;
+    }
+}
+
+/* =========================================================
+   SMALL DESKTOP
+========================================================= */
+
+@media (max-width: 1050px) {
+    .card {
+        grid-template-columns: 1fr 0.95fr;
+    }
+
+    .consoleBadge {
+        display: none;
+    }
+
+    .heroTitle {
+        font-size: 54px;
+    }
+
+    .heroDescription {
+        max-width: 390px;
+        font-size: 13px;
+    }
+
+    .robotStage {
+        width: 470px;
+        height: 330px;
+        transform: translateX(-34%);
+    }
+
+    .robotCardTemplates {
+        left: 5px;
+    }
+
+    .robotCardVisitors {
+        right: 0;
+    }
+
+    .featureItem {
+        padding: 11px;
+    }
+
+    .featureItem strong {
+        font-size: 9px;
+    }
+
+    .featureItem span {
+        font-size: 7px;
+    }
+
+    .loginPanel {
+        padding-left: 42px;
+        padding-right: 42px;
+    }
+}
+
+/* =========================================================
+   TABLET / MOBILE
+========================================================= */
+
+@media (max-width: 850px) {
+    .page {
+        padding: 0;
+    }
+
+    .container {
+        width: 100%;
+    }
+
+    .card {
+        display: block;
+        min-height: 100dvh;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .visualPanel {
+        display: none;
+    }
+
+    .loginPanel {
+        min-height: 100dvh;
+        padding: 35px 28px 70px;
+    }
+
+    .mobileBrand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .mobileBrand .brandLogo {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .mobileBrand strong {
+        color: #16264d;
+        font-size: 14px;
+        font-weight: 850;
+    }
+
+    .loginFooter {
+        left: 28px;
+        right: 28px;
+    }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+    .loginPanel {
+        padding: 25px 20px 65px;
+    }
+
+    .loginRobot {
+        width: 85px;
+        height: 85px;
+    }
+
+    .loginTitle {
+        font-size: 37px;
+    }
+
+    .loginSubtitle {
+        font-size: 12px;
+    }
+
+    .form {
+        margin-top: 30px;
+    }
+
+    .inputShell {
+        height: 54px;
+    }
+
+    .loginButton {
+        height: 56px;
+    }
+
+    .securityNote {
+        padding: 12px;
+    }
+
+    .loginFooter {
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
 @media (prefers-reduced-motion: reduce) {
-  .armLeft,
-  .armRight {
-    animation: none !important;
-  }
+    .robotImage,
+    .robotCardTemplates,
+    .robotCardVisitors,
+    .robotCardCode,
+    .spinner {
+        animation: none;
+    }
+
+    .loginButton,
+    .inputShell {
+        transition: none;
+    }
 }

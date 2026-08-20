@@ -153,71 +153,7 @@ export default function ProfileForm() {
         },
         { id: 'p2', brand: 'mastercard', last4: '4452', expires: '11/26', holder: 'Arthur Nancy' },
     ]);
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await getAdminProfile();
-                if (!res.ok) {
-                    setLoading(false);
-                    return;
-                }
-                const data = await res.json();
 
-                const user = data.user;
-                const p = user?.profile ?? null;
-
-                setProfile((prev) => ({
-                    ...prev,
-                    email: user?.email ?? prev.email,
-
-                    firstName: p?.firstName ?? prev.firstName,
-                    lastName: p?.lastName ?? prev.lastName,
-                    username: p?.username ?? prev.username,
-
-                    backupEmail: p?.backupEmail ?? prev.backupEmail,
-                    phone: p?.phone ?? prev.phone,
-                    address: p?.address ?? prev.address,
-                    city: p?.city ?? prev.city,
-                    country: p?.country ?? prev.country,
-
-                    role: (p?.role ?? prev.role) as Profile['role'],
-                    status: (p?.status ?? prev.status) as Profile['status'],
-
-                    company: p?.company ?? prev.company,
-                    department: p?.department ?? prev.department,
-                    jobTitle: p?.jobTitle ?? prev.jobTitle,
-                    manager: p?.manager ?? prev.manager,
-                    hireDate: p?.hireDate ? String(p.hireDate).slice(0, 10) : prev.hireDate,
-
-                    gender: (p?.gender ?? prev.gender) as Profile['gender'],
-                    locale: (p?.locale ?? prev.locale) as Profile['locale'],
-                    timezone: p?.timezone ?? prev.timezone,
-
-                    dobMonth: p?.dobMonth ?? prev.dobMonth,
-                    dobDay: p?.dobDay ? String(p.dobDay) : prev.dobDay,
-                    dobYear: p?.dobYear ? String(p.dobYear) : prev.dobYear,
-
-                    twitter: p?.twitter ?? prev.twitter,
-                    linkedin: p?.linkedin ?? prev.linkedin,
-                    facebook: p?.facebook ?? prev.facebook,
-                    github: p?.github ?? prev.github,
-                    website: p?.website ?? prev.website,
-
-                    slogan: p?.slogan ?? prev.slogan,
-                    bio: p?.bio ?? prev.bio,
-
-                    twoFA: typeof p?.twoFA === 'boolean' ? p.twoFA : prev.twoFA,
-
-                    lastLogin: fmt(p?.lastLoginAt ?? null),
-                    lastIP: p?.lastLoginIp ?? prev.lastIP,
-                }));
-
-                setLoading(false);
-            } catch {
-                setLoading(false);
-            }
-        })();
-    }, []);
     useEffect(() => {
         (async () => {
             try {
@@ -265,75 +201,6 @@ export default function ProfileForm() {
 
         setErrors({});
         setBusy(true);
-
-        try {
-            const payload = {
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                username: profile.username,
-                email: profile.email,
-
-                backupEmail: profile.backupEmail,
-                phone: profile.phone,
-                address: profile.address,
-                city: profile.city,
-                country: profile.country,
-
-                role: profile.role,
-                status: profile.status,
-
-                company: profile.company,
-                department: profile.department,
-                jobTitle: profile.jobTitle,
-                manager: profile.manager,
-                hireDate: profile.hireDate || null,
-
-                gender: profile.gender,
-                locale: profile.locale,
-                timezone: profile.timezone,
-
-                dobMonth: profile.dobMonth,
-                dobDay: profile.dobDay ? Number(profile.dobDay) : null,
-                dobYear: profile.dobYear ? Number(profile.dobYear) : null,
-
-                twitter: profile.twitter,
-                linkedin: profile.linkedin,
-                facebook: profile.facebook,
-                github: profile.github,
-                website: profile.website,
-
-                slogan: profile.slogan,
-                bio: profile.bio,
-
-                twoFA: profile.twoFA,
-            };
-
-            const { res, data } = await patchAdminProfile(payload);
-
-            if (!res.ok) {
-                if (data?.error === 'VALIDATION_ERROR' && Array.isArray(data.errors)) {
-                    const map: Record<string, string> = {};
-                    for (const e of data.errors) map[e.field] = e.message;
-                    setErrors(map);
-                    alert(Object.values(map).join('\n'));
-                    return;
-                }
-
-                alert(data?.error || 'Save failed');
-                return;
-            }
-            console.log(data);
-
-            setProfile((prev) => ({
-                ...prev,
-                lastLogin: fmt(data?.profile?.lastLoginAt ?? null),
-                lastIP: data?.profile?.lastLoginIp ?? prev.lastIP,
-            }));
-
-            alert('Saved ✅');
-        } finally {
-            setBusy(false);
-        }
     };
 
     if (loading) {

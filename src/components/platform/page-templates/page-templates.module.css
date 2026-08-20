@@ -187,9 +187,10 @@
     font-size: 13px;
 }
 .stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 12px;
+    margin-bottom: 15px;
 }
 
 .statCard {
@@ -222,6 +223,10 @@
     transform: translateY(-2px);
     border-color: #e0e2eb;
     box-shadow: 0 10px 25px rgba(25, 35, 55, 0.07);
+}
+.statCard .statTrend {
+    font-size: 1.2rem;
+    margin-top: 15px;
 }
 
 .statTop {
@@ -337,6 +342,7 @@
     display: block;
     color: #9aa2b1;
     font-size: 1.3rem;
+    margin-top: 12px;
 }
 
 .statLabelTop {
@@ -965,10 +971,6 @@
         grid-template-columns: minmax(0, 1fr) 220px;
     }
 
-    .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1015,10 +1017,6 @@
 
     .primaryButton {
         width: 100%;
-    }
-
-    .stats {
-        grid-template-columns: 1fr;
     }
 
     .toolbar {

@@ -80,10 +80,14 @@ export const API = {
 
         SITE: (id: string) => `/api/platform/sites/${id}`,
 
+        SITE_USAGE: (id: string) => `/api/platform/sites/${id}/usage`,
+
         SITE_PUBLISH: (id: string) => `/api/platform/sites/${id}/publish`,
+
         SITE_UNPUBLISH: (id: string) => `/api/platform/sites/${id}/unpublish`,
 
         SITE_DEPLOY: (id: string) => `/api/platform/sites/${id}/deploy`,
+
         SITE_PROVISION_SSL: (id: string) => `/api/platform/sites/${id}/provision-ssl`,
 
         API_HEALTH: '/api/platform/api-health',

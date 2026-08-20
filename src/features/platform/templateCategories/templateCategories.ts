@@ -29,16 +29,18 @@ export async function getTemplateCategories({
     }
 
     if (search?.trim()) {
+        const keyword = search.trim();
+
         where.OR = [
             {
                 name: {
-                    contains: search.trim(),
+                    contains: keyword,
                     mode: 'insensitive',
                 },
             },
             {
                 description: {
-                    contains: search.trim(),
+                    contains: keyword,
                     mode: 'insensitive',
                 },
             },

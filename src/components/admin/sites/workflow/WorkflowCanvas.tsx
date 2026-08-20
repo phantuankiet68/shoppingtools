@@ -15,7 +15,7 @@ export default function WorkflowCanvas({ workflow }: Props) {
 
     const [selectedNode, setSelectedNode] = useState<WorkflowNode | undefined>(firstNode);
 
-    const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const nodeRefs = useRef<Record<string, HTMLElement | null>>({});
 
     useEffect(() => {
         if (!workflow.runtime?.currentNodeId) return;

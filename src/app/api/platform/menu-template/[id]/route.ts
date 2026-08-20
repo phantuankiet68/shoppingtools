@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/utils/platform/platformHelpers';
+
 interface RouteContext {
     params: Promise<{
         id: string;
@@ -10,6 +11,7 @@ interface RouteContext {
 export async function GET(req: NextRequest, { params }: RouteContext) {
     try {
         await requireAdmin();
+
         const { id } = await params;
 
         const menu = await prisma.menuTemplate.findUnique({
@@ -18,26 +20,6 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
             },
             include: {
                 category: true,
-
-                parent: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
-
-                children: {
-                    orderBy: {
-                        sortOrder: 'asc',
-                    },
-                    select: {
-                        id: true,
-                        title: true,
-                        key: true,
-                        sortOrder: true,
-                        visible: true,
-                    },
-                },
             },
         });
 
@@ -79,6 +61,9 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
                 );
             }
         }
+
+        console.error(error);
+
         return NextResponse.json(
             {
                 success: false,
@@ -94,8 +79,8 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 export async function PATCH(req: NextRequest, { params }: RouteContext) {
     try {
         await requireAdmin();
-        const { id } = await params;
 
+        const { id } = await params;
         const body = await req.json();
 
         const menu = await prisma.menuTemplate.findUnique({
@@ -163,12 +148,11 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
             where: {
                 id,
             },
+
             data: {
                 websiteType: body.websiteType ?? menu.websiteType,
 
                 categoryId: body.categoryId ?? menu.categoryId,
-
-                parentId: body.parentId === undefined ? menu.parentId : body.parentId,
 
                 key: body.key?.trim() ?? menu.key,
 
@@ -187,20 +171,6 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
 
             include: {
                 category: true,
-
-                parent: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
-
-                children: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
             },
         });
 
@@ -231,6 +201,9 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
                 );
             }
         }
+
+        console.error(error);
+
         return NextResponse.json(
             {
                 success: false,
@@ -242,21 +215,16 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
         );
     }
 }
+
 export async function DELETE(req: NextRequest, { params }: RouteContext) {
     try {
         await requireAdmin();
+
         const { id } = await params;
 
         const menu = await prisma.menuTemplate.findUnique({
             where: {
                 id,
-            },
-            include: {
-                children: {
-                    select: {
-                        id: true,
-                    },
-                },
             },
         });
 
@@ -272,24 +240,10 @@ export async function DELETE(req: NextRequest, { params }: RouteContext) {
             );
         }
 
-        if (menu.children.length > 0) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: 'Cannot delete this menu because it has child menus.',
-                },
-                {
-                    status: 409,
-                },
-            );
-        }
-
-        await prisma.$transaction(async (tx) => {
-            await tx.menuTemplate.delete({
-                where: {
-                    id,
-                },
-            });
+        await prisma.menuTemplate.delete({
+            where: {
+                id,
+            },
         });
 
         return NextResponse.json({
@@ -318,6 +272,9 @@ export async function DELETE(req: NextRequest, { params }: RouteContext) {
                 );
             }
         }
+
+        console.error(error);
+
         return NextResponse.json(
             {
                 success: false,

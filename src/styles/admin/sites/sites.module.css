@@ -571,7 +571,7 @@
     display: grid;
     grid-template-columns:
         minmax(220px, 1.6fr) minmax(130px, 0.8fr) minmax(100px, 0.85fr) minmax(150px, 1.1fr)
-        minmax(140px, 1fr) minmax(150px, 1.1fr) minmax(110px, 0.8fr) minmax(110px, 0.85fr) 76px;
+        minmax(140px, 1fr) minmax(150px, 1.1fr) minmax(90px, 0.8fr) minmax(110px, 0.85fr) 120px;
     align-items: center;
     min-height: 54px;
     padding: 0 14px;
@@ -592,10 +592,10 @@
     display: grid;
     grid-template-columns:
         minmax(220px, 1.6fr) minmax(130px, 0.8fr) minmax(100px, 0.85fr) minmax(150px, 1.1fr)
-        minmax(140px, 1fr) minmax(150px, 1.1fr) minmax(110px, 0.8fr) minmax(110px, 0.85fr) 76px;
+        minmax(140px, 1fr) minmax(150px, 1.1fr) minmax(90px, 0.8fr) minmax(110px, 0.85fr) 120px;
     align-items: center;
     min-height: 90px;
-    padding: 14px;
+    padding: 10px;
     border-bottom: 1px solid #edf1f5;
     background: #fff;
     cursor: pointer;
@@ -974,8 +974,6 @@
 }
 
 .actionBtn {
-    width: 36px;
-    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1060,10 +1058,9 @@
 }
 
 .actionBtn {
-    width: 36px;
+    width: 92px;
     height: 36px;
     border-radius: 10px;
-    border: none;
     background: transparent;
     color: #64748b;
     cursor: pointer;

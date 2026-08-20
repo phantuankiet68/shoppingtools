@@ -17,19 +17,56 @@ export interface MenuTemplateParent {
 export interface MenuTemplate {
     id: string;
     websiteType: WebsiteType;
+
     categoryId: string;
     category: MenuTemplateCategory;
+
     parentId: string | null;
     parent: MenuTemplateParent | null;
+
     key: string;
     title: string;
     path: string | null;
     icon: string | null;
+
     area: MenuArea;
     sortOrder: number;
     visible: boolean;
+
     createdAt: string;
     updatedAt: string;
+}
+
+export interface CreateMenuTemplatePayload {
+    websiteType: WebsiteType;
+    categoryId: string;
+    parentId?: string | null;
+
+    key: string;
+    title: string;
+
+    path?: string | null;
+    icon?: string | null;
+
+    area: MenuArea;
+    sortOrder?: number;
+    visible?: boolean;
+}
+
+export interface UpdateMenuTemplatePayload {
+    websiteType?: WebsiteType;
+    categoryId?: string;
+    parentId?: string | null;
+
+    key?: string;
+    title?: string;
+
+    path?: string | null;
+    icon?: string | null;
+
+    area?: MenuArea;
+    sortOrder?: number;
+    visible?: boolean;
 }
 
 export interface Pagination {
@@ -91,7 +128,9 @@ export async function getMenuTemplates(
         }
     });
 
-    return request<MenuTemplateListResponse>(`${BASE_URL}?${params.toString()}`);
+    const queryString = params.toString();
+
+    return request<MenuTemplateListResponse>(queryString ? `${BASE_URL}?${queryString}` : BASE_URL);
 }
 
 export async function getMenuTemplate(id: string): Promise<MenuTemplateResponse> {
@@ -99,7 +138,7 @@ export async function getMenuTemplate(id: string): Promise<MenuTemplateResponse>
 }
 
 export async function createMenuTemplate(
-    data: Partial<MenuTemplate>,
+    data: CreateMenuTemplatePayload,
 ): Promise<MenuTemplateResponse> {
     return request<MenuTemplateResponse>(BASE_URL, {
         method: 'POST',
@@ -112,7 +151,7 @@ export async function createMenuTemplate(
 
 export async function updateMenuTemplate(
     id: string,
-    data: Partial<MenuTemplate>,
+    data: UpdateMenuTemplatePayload,
 ): Promise<MenuTemplateResponse> {
     return request<MenuTemplateResponse>(`${BASE_URL}/${id}`, {
         method: 'PATCH',
@@ -123,10 +162,14 @@ export async function updateMenuTemplate(
     });
 }
 
-export async function deleteMenuTemplate(
-    id: string,
-): Promise<{ success: boolean; message?: string }> {
-    return request<{ success: boolean; message?: string }>(`${BASE_URL}/${id}`, {
+export async function deleteMenuTemplate(id: string): Promise<{
+    success: boolean;
+    message?: string;
+}> {
+    return request<{
+        success: boolean;
+        message?: string;
+    }>(`${BASE_URL}/${id}`, {
         method: 'DELETE',
     });
 }

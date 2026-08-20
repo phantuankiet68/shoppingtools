@@ -56,7 +56,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
             where: {
                 websiteType: menu.websiteType,
                 categoryId: menu.categoryId,
-                parentId: menu.parentId,
+                area: menu.area,
             },
             orderBy: {
                 sortOrder: 'desc',
@@ -67,7 +67,6 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
             data: {
                 websiteType: menu.websiteType,
                 categoryId: menu.categoryId,
-                parentId: menu.parentId,
                 key,
                 title,
                 path: menu.path,
@@ -78,12 +77,6 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
             },
             include: {
                 category: true,
-                parent: {
-                    select: {
-                        id: true,
-                        title: true,
-                    },
-                },
             },
         });
 

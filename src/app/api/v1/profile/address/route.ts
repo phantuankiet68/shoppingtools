@@ -22,7 +22,7 @@ function trimString(value: unknown): string | null {
 
     const result = value.trim();
 
-    return result.length ? result : null;
+    return result.length > 0 ? result : null;
 }
 
 export async function PATCH(request: NextRequest) {
@@ -35,25 +35,14 @@ export async function PATCH(request: NextRequest) {
 
         const body = await request.json();
 
-        const data = {
-            address: trimString(body.address),
+        const address = trimString(body.address);
 
-            ward: trimString(body.ward),
-
-            district: trimString(body.district),
-
-            city: trimString(body.city),
-
-            country: trimString(body.country),
-        };
         const user = await prisma.user.findUnique({
             where: {
                 id: auth.user.id,
             },
             select: {
                 id: true,
-                email: true,
-                image: true,
             },
         });
 
@@ -67,40 +56,18 @@ export async function PATCH(request: NextRequest) {
             },
 
             update: {
-                address: data.address,
-
-                ward: data.ward,
-
-                district: data.district,
-
-                city: data.city,
-
-                country: data.country,
+                address,
             },
 
             create: {
                 userId: user.id,
-
-                email: user.email,
-
-                avatar: user.image,
-
-                address: data.address,
-
-                ward: data.ward,
-
-                district: data.district,
-
-                city: data.city,
-
-                country: data.country,
+                address,
             },
         });
+
         return NextResponse.json({
             success: true,
-
             message: 'Address updated successfully.',
-
             profile,
         });
     } catch (err) {

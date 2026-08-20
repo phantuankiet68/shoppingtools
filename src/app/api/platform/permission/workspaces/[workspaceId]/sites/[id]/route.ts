@@ -1,4 +1,4 @@
-import { WebsiteType } from '@/generated/prisma';
+import { SiteStatus, WebsiteType } from '@/generated/prisma';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 type Context = {
@@ -9,11 +9,10 @@ type UpdateSitePayload = {
     name?: string;
     domain?: string;
     type?: WebsiteType;
-    status?: 'DRAFT' | 'ACTIVE' | 'SUSPENDED';
+    status?: SiteStatus;
     isPublic?: boolean;
     publishedAt?: string | null;
 };
-
 function normalizeDomain(value: string) {
     return value.trim().toLowerCase();
 }
@@ -89,7 +88,7 @@ export async function PUT(req: NextRequest, { params }: Context) {
             name?: string;
             domain?: string;
             type?: WebsiteType;
-            status?: 'DRAFT' | 'ACTIVE' | 'SUSPENDED';
+            status?: SiteStatus;
             isPublic?: boolean;
             publishedAt?: Date | null;
         } = {};
