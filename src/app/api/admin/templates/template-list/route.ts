@@ -12,7 +12,6 @@ type TemplateListItem = {
         id: string;
         name: string;
         minTier: AccessTier;
-        description: string | null;
     };
     children: string[];
     rawChildren: string[];
@@ -26,69 +25,62 @@ type TemplateListItem = {
 };
 
 function parseTier(value: string | null): AccessTier | null {
-    if (!value) return null;
-    const normalized = value.trim().toUpperCase();
-    if (normalized === 'BASIC') return 'BASIC';
-    if (normalized === 'NORMAL') return 'NORMAL';
-    if (normalized === 'PRO') return 'PRO';
-    return null;
-}
-
-function getAllowedTiers(tier: AccessTier): AccessTier[] {
-    switch (tier) {
+    switch (value?.trim().toUpperCase()) {
         case 'BASIC':
-            return ['BASIC'];
         case 'NORMAL':
-            return ['BASIC', 'NORMAL'];
         case 'PRO':
-            return ['BASIC', 'NORMAL', 'PRO'];
+            return value.trim().toUpperCase() as AccessTier;
         default:
-            return [];
+            return null;
     }
 }
+
+const ALLOWED_TIERS: Record<AccessTier, AccessTier[]> = {
+    BASIC: ['BASIC'],
+    NORMAL: ['BASIC', 'NORMAL'],
+    PRO: ['BASIC', 'NORMAL', 'PRO'],
+};
 
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
+
         const q = searchParams.get('q')?.trim() || '';
         const siteType = searchParams.get('siteType')?.trim() || '';
-        const normalizedSiteType =
-            siteType.length > 0
-                ? siteType.charAt(0).toUpperCase() + siteType.slice(1).toLowerCase()
-                : '';
+        const tier = parseTier(searchParams.get('tier'));
+
         const includeInactive = searchParams.get('includeInactive') === 'true';
         const includeArchived = searchParams.get('includeArchived') === 'true';
         const includeDeleted = searchParams.get('includeDeleted') === 'true';
-        const tier = parseTier(searchParams.get('tier'));
+
+        const normalizedSiteType = siteType
+            ? siteType.charAt(0).toUpperCase() + siteType.slice(1).toLowerCase()
+            : '';
+
         const registryKindSet = new Set(REGISTRY.map((item) => item.kind));
-        const categoryWhere: Prisma.TemplateCategoryWhereInput = {};
-        if (tier) {
-            categoryWhere.minTier = {
-                in: getAllowedTiers(tier),
-            };
-        }
-        if (normalizedSiteType) {
-            categoryWhere.OR = [
-                {
-                    name: 'All',
+
+        const categoryWhere: Prisma.TemplateCategoryWhereInput = {
+            ...(tier && {
+                minTier: {
+                    in: ALLOWED_TIERS[tier],
                 },
-                {
-                    name: normalizedSiteType,
-                },
-            ];
-        }
+            }),
+
+            ...(normalizedSiteType && {
+                OR: [{ name: 'All' }, { name: normalizedSiteType }],
+            }),
+        };
+
         const where: Prisma.TemplateCatalogWhereInput = {
-            ...(includeDeleted
-                ? {}
-                : {
-                      deletedAt: null,
-                  }),
+            ...(includeDeleted ? {} : { deletedAt: null }),
+
             ...(includeInactive
                 ? {}
                 : {
                       isActive: true,
                       isPublic: true,
                   }),
+
             ...(includeArchived
                 ? {}
                 : {
@@ -96,54 +88,47 @@ export async function GET(request: NextRequest) {
                           not: 'ARCHIVED',
                       },
                   }),
-            ...(q
-                ? {
-                      OR: [
-                          {
-                              name: {
-                                  contains: q,
-                                  mode: 'insensitive',
-                              },
-                          },
-                          {
-                              code: {
-                                  contains: q,
-                                  mode: 'insensitive',
-                              },
-                          },
-                          {
-                              kind: {
-                                  contains: q,
-                                  mode: 'insensitive',
-                              },
-                          },
-                          {
-                              category: {
-                                  name: {
-                                      contains: q,
-                                      mode: 'insensitive',
-                                  },
-                              },
-                          },
-                      ],
-                  }
-                : {}),
-            ...(Object.keys(categoryWhere).length
-                ? {
-                      category: categoryWhere,
-                  }
-                : {}),
+
+            ...(q && {
+                OR: [
+                    {
+                        name: {
+                            contains: q,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        code: {
+                            contains: q,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        kind: {
+                            contains: q,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        category: {
+                            name: {
+                                contains: q,
+                                mode: 'insensitive',
+                            },
+                        },
+                    },
+                ],
+            }),
+
+            ...(Object.keys(categoryWhere).length > 0 && {
+                category: categoryWhere,
+            }),
         };
+
         const rows = await prisma.templateCatalog.findMany({
             where,
-            orderBy: [
-                {
-                    sortOrder: 'asc',
-                },
-                {
-                    updatedAt: 'desc',
-                },
-            ],
+            orderBy: [{ sortOrder: 'asc' }, { updatedAt: 'desc' }],
+
             select: {
                 id: true,
                 code: true,
@@ -156,11 +141,11 @@ export async function GET(request: NextRequest) {
                 status: true,
                 createdAt: true,
                 updatedAt: true,
+
                 category: {
                     select: {
                         id: true,
                         name: true,
-                        description: true,
                         minTier: true,
                     },
                 },
@@ -168,21 +153,22 @@ export async function GET(request: NextRequest) {
         });
 
         const data: TemplateListItem[] = rows.map((row) => {
-            const rawChildren = [row.kind];
-            const children = Array.from(new Set(rawChildren));
+            const children = [row.kind];
+
             return {
                 id: row.id,
                 code: row.code,
                 label: row.name,
                 kind: row.kind,
+
                 category: {
                     id: row.category.id,
                     name: row.category.name,
                     minTier: row.category.minTier,
-                    description: row.category.description,
                 },
+
                 children,
-                rawChildren,
+                rawChildren: children,
                 previewImageUrl: row.previewImageUrl,
                 isActive: row.isActive,
                 isPublic: row.isPublic,
@@ -213,15 +199,14 @@ export async function GET(request: NextRequest) {
         });
     } catch (error) {
         console.error('GET /api/admin/templates/template-list error:', error);
+
         return Response.json(
             {
                 success: false,
                 message: 'Không thể tải danh sách template',
                 error: error instanceof Error ? error.message : 'Unknown error',
             },
-            {
-                status: 500,
-            },
+            { status: 500 },
         );
     }
 }
