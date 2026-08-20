@@ -1,16 +1,18 @@
 'use client';
 
-import styles from '@/styles/platform/templates/NewGroupModal.module.css';
 import { useEffect, useState } from 'react';
+import styles from '@/styles/platform/templates/NewGroupModal.module.css';
+
+export type WebsiteType = 'landing' | 'blog' | 'ecommerce' | 'booking' | 'lms';
 
 export type AccessTier = 'BASIC' | 'NORMAL' | 'PRO';
 
 export type NewTemplateCategoryForm = {
     name: string;
-    description: string;
+    websiteType: WebsiteType;
+    minTier: AccessTier;
     sortOrder: number;
     isActive: boolean;
-    minTier: AccessTier;
 };
 
 type NewGroupModalProps = {
@@ -19,42 +21,50 @@ type NewGroupModalProps = {
     onCreated?: () => void;
 };
 
-const tierOptions: AccessTier[] = ['BASIC', 'NORMAL', 'PRO'];
+const WEBSITE_TYPES: WebsiteType[] = ['landing', 'blog', 'ecommerce', 'booking', 'lms'];
 
-function createInitialForm(): NewTemplateCategoryForm {
-    return {
-        name: '',
-        description: '',
-        sortOrder: 0,
-        isActive: true,
-        minTier: 'BASIC',
-    };
-}
+const ACCESS_TIERS: AccessTier[] = ['BASIC', 'NORMAL', 'PRO'];
+
+const createInitialForm = (): NewTemplateCategoryForm => ({
+    name: '',
+    websiteType: 'landing',
+    minTier: 'BASIC',
+    sortOrder: 0,
+    isActive: true,
+});
 
 export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModalProps) {
-    const [form, setForm] = useState<NewTemplateCategoryForm>(createInitialForm());
+    const [form, setForm] = useState(createInitialForm);
     const [submitting, setSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         if (!open) return;
 
-        const onKeyDown = (event: KeyboardEvent) => {
+        const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && !submitting) {
                 handleClose();
             }
         };
 
-        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keydown', handleKeyDown);
         document.body.style.overflow = 'hidden';
 
         return () => {
-            document.removeEventListener('keydown', onKeyDown);
+            document.removeEventListener('keydown', handleKeyDown);
             document.body.style.overflow = '';
         };
     }, [open, submitting]);
 
-    const handleChange = <K extends keyof NewTemplateCategoryForm>(
+    const handleClose = () => {
+        if (submitting) return;
+
+        setForm(createInitialForm());
+        setErrorMessage('');
+        onClose();
+    };
+
+    const updateField = <K extends keyof NewTemplateCategoryForm>(
         key: K,
         value: NewTemplateCategoryForm[K],
     ) => {
@@ -68,15 +78,7 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
         }
     };
 
-    const handleClose = () => {
-        if (submitting) return;
-
-        setForm(createInitialForm());
-        setErrorMessage('');
-        onClose();
-    };
-
-    const validateForm = () => {
+    const validate = () => {
         if (!form.name.trim()) {
             return 'Vui lòng nhập Category Name.';
         }
@@ -85,43 +87,44 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
             return 'Sort Order phải lớn hơn hoặc bằng 0.';
         }
 
-        return '';
+        return null;
     };
 
     const handleSubmit = async () => {
-        const validationError = validateForm();
+        const error = validate();
 
-        if (validationError) {
-            setErrorMessage(validationError);
+        if (error) {
+            setErrorMessage(error);
             return;
         }
 
-        const payload = {
-            name: form.name.trim(),
-            description: form.description.trim() || null,
-            sortOrder: Number(form.sortOrder),
-            isActive: form.isActive,
-            minTier: form.minTier,
-        };
+        setSubmitting(true);
+        setErrorMessage('');
 
         try {
-            setSubmitting(true);
-            setErrorMessage('');
-
             const response = await fetch('/api/platform/templates/template-categories', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({
+                    name: form.name.trim(),
+                    websiteType: form.websiteType,
+                    minTier: form.minTier,
+                    sortOrder: form.sortOrder,
+                    isActive: form.isActive,
+                }),
             });
 
             const result = await response.json().catch(() => null);
 
             if (!response.ok) {
-                const message =
-                    result?.message || result?.errors?.[0] || 'Tạo Template Group thất bại.';
-                setErrorMessage(message);
+                setErrorMessage(
+                    result?.error ||
+                        result?.message ||
+                        result?.errors?.[0] ||
+                        'Tạo Template Category thất bại.',
+                );
                 return;
             }
 
@@ -129,7 +132,8 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
             onCreated?.();
             onClose();
         } catch (error) {
-            console.error('Create template group failed:', error);
+            console.error('Create template category failed:', error);
+
             setErrorMessage('Có lỗi xảy ra khi kết nối tới server.');
         } finally {
             setSubmitting(false);
@@ -148,17 +152,15 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
                 aria-labelledby="new-category-title"
             >
                 <div className={styles.header}>
-                    <div>
-                        <h2 id="new-category-title" className={styles.title}>
-                            New Template Category
-                        </h2>
-                    </div>
+                    <h2 id="new-category-title" className={styles.title}>
+                        New Template Category
+                    </h2>
 
                     <button
+                        type="button"
                         className={styles.closeButton}
                         onClick={handleClose}
                         aria-label="Close"
-                        type="button"
                         disabled={submitting}
                     >
                         <i className="bi bi-x-lg" />
@@ -166,31 +168,43 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
                 </div>
 
                 <div className={styles.body}>
-                    <div className={styles.field}>
-                        <label className={styles.label}>Category Name</label>
+                    <div className={styles.gridTwo}>
+                        {/* Category Name */}
+                        <div className={styles.field}>
+                            <label className={styles.label}>Category Name</label>
 
-                        <input
-                            className={styles.input}
-                            value={form.name}
-                            onChange={(e) => handleChange('name', e.target.value)}
-                            placeholder="Ví dụ: Company Profile"
-                            disabled={submitting}
-                        />
+                            <input
+                                className={styles.input}
+                                value={form.name}
+                                onChange={(event) => updateField('name', event.target.value)}
+                                placeholder="Ví dụ: Company Profile"
+                                disabled={submitting}
+                                autoFocus
+                            />
+                        </div>
+
+                        {/* Website Type */}
+                        <div className={styles.field}>
+                            <label className={styles.label}>Website Type</label>
+
+                            <select
+                                className={styles.select}
+                                value={form.websiteType}
+                                onChange={(event) =>
+                                    updateField('websiteType', event.target.value as WebsiteType)
+                                }
+                                disabled={submitting}
+                            >
+                                {WEBSITE_TYPES.map((type) => (
+                                    <option key={type} value={type}>
+                                        {type}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
-                    <div className={styles.field}>
-                        <label className={styles.label}>Description</label>
-
-                        <textarea
-                            className={styles.textarea}
-                            value={form.description}
-                            onChange={(e) => handleChange('description', e.target.value)}
-                            placeholder="Mô tả ngắn về category template này..."
-                            rows={4}
-                            disabled={submitting}
-                        />
-                    </div>
-
+                    {/* Tier + Sort */}
                     <div className={styles.gridTwo}>
                         <div className={styles.field}>
                             <label className={styles.label}>Min Tier</label>
@@ -198,12 +212,12 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
                             <select
                                 className={styles.select}
                                 value={form.minTier}
-                                onChange={(e) =>
-                                    handleChange('minTier', e.target.value as AccessTier)
+                                onChange={(event) =>
+                                    updateField('minTier', event.target.value as AccessTier)
                                 }
                                 disabled={submitting}
                             >
-                                {tierOptions.map((tier) => (
+                                {ACCESS_TIERS.map((tier) => (
                                     <option key={tier} value={tier}>
                                         {tier}
                                     </option>
@@ -219,18 +233,24 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
                                 type="number"
                                 min={0}
                                 value={form.sortOrder}
-                                onChange={(e) => handleChange('sortOrder', Number(e.target.value))}
+                                onChange={(event) =>
+                                    updateField(
+                                        'sortOrder',
+                                        Math.max(0, Number(event.target.value) || 0),
+                                    )
+                                }
                                 disabled={submitting}
                             />
                         </div>
                     </div>
 
+                    {/* Active */}
                     <div className={styles.switchRow}>
                         <label className={styles.switchItem}>
                             <input
                                 type="checkbox"
                                 checked={form.isActive}
-                                onChange={(e) => handleChange('isActive', e.target.checked)}
+                                onChange={(event) => updateField('isActive', event.target.checked)}
                                 disabled={submitting}
                             />
 
@@ -238,41 +258,26 @@ export default function NewGroupModal({ open, onClose, onCreated }: NewGroupModa
                         </label>
                     </div>
 
-                    {errorMessage ? (
-                        <div
-                            style={{
-                                marginTop: 16,
-                                padding: '12px 14px',
-                                borderRadius: 12,
-                                border: '1px solid rgba(239, 68, 68, 0.25)',
-                                background: 'rgba(239, 68, 68, 0.08)',
-                                color: '#b91c1c',
-                                fontSize: 14,
-                                lineHeight: 1.5,
-                            }}
-                        >
-                            {errorMessage}
-                        </div>
-                    ) : null}
+                    {errorMessage && <div className={styles.error}>{errorMessage}</div>}
                 </div>
 
                 <div className={styles.footer}>
                     <button
+                        type="button"
                         className={styles.secondaryButton}
                         onClick={handleClose}
-                        type="button"
                         disabled={submitting}
                     >
                         Cancel
                     </button>
 
                     <button
+                        type="button"
                         className={styles.primaryButton}
                         onClick={handleSubmit}
-                        type="button"
                         disabled={submitting}
                     >
-                        <i className="bi bi-plus-lg" />
+                        <i className={submitting ? 'bi bi-arrow-repeat' : 'bi bi-plus-lg'} />
 
                         {submitting ? 'Creating...' : 'Create Category'}
                     </button>

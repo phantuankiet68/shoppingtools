@@ -27,20 +27,14 @@ type NewTemplateModalProps = {
     onCreated?: () => void;
 };
 
-const statusOptions: TemplateStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+const STATUS_OPTIONS: TemplateStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 
-function getStatusLabel(status: TemplateStatus) {
-    switch (status) {
-        case 'DRAFT':
-            return 'Draft';
-        case 'PUBLISHED':
-            return 'Published';
-        case 'ARCHIVED':
-            return 'Archived';
-        default:
-            return status;
-    }
-}
+const STATUS_LABELS: Record<TemplateStatus, string> = {
+    DRAFT: 'Draft',
+    PUBLISHED: 'Published',
+    ARCHIVED: 'Archived',
+};
+
 function createInitialForm(categories: TemplateCategory[] = []): TemplateFormData {
     return {
         code: '',
@@ -54,11 +48,12 @@ function createInitialForm(categories: TemplateCategory[] = []): TemplateFormDat
         sortOrder: 0,
     };
 }
+
 function createFormFromTemplate(
     template: TemplateCatalog,
     categories: TemplateCategory[],
 ): TemplateFormData {
-    const validCategoryId = categories.some((category) => category.id === template.categoryId)
+    const categoryId = categories.some((category) => category.id === template.categoryId)
         ? template.categoryId
         : (categories[0]?.id ?? '');
 
@@ -66,23 +61,13 @@ function createFormFromTemplate(
         code: template.code ?? '',
         name: template.name ?? '',
         kind: template.kind ?? '',
-
-        categoryId: validCategoryId,
-
+        categoryId,
         status: template.status ?? 'PUBLISHED',
-
         previewImageUrl: template.previewImageUrl ?? '',
-
         isActive: template.isActive ?? true,
-
         isPublic: template.isPublic ?? true,
-
         sortOrder: template.sortOrder ?? 0,
     };
-}
-
-function toSlug(value: string) {
-    return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
 export default function NewTemplateModal({
@@ -95,8 +80,10 @@ export default function NewTemplateModal({
     onCreated,
 }: NewTemplateModalProps) {
     const [form, setForm] = useState<TemplateFormData>(() => createInitialForm(categories));
+
     const [submitting, setSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [selectedPreviewFileName, setSelectedPreviewFileName] = useState('');
@@ -104,28 +91,36 @@ export default function NewTemplateModal({
     const [categoryKeyword, setCategoryKeyword] = useState('');
     const [categoryOpen, setCategoryOpen] = useState(false);
 
+    const isEditMode = mode === 'edit';
+    const isBusy = submitting || loading;
+
     const selectedCategory = useMemo(
-        () => categories.find((item) => item.id === form.categoryId) || null,
+        () => categories.find((category) => category.id === form.categoryId) ?? null,
         [categories, form.categoryId],
     );
 
     const filteredCategories = useMemo(() => {
         const keyword = categoryKeyword.trim().toLowerCase();
 
-        if (!keyword) return categories;
+        if (!keyword) {
+            return categories;
+        }
 
         return categories.filter(
-            (item) =>
-                item.name.toLowerCase().includes(keyword) ||
-                item.minTier.toLowerCase().includes(keyword),
+            (category) =>
+                category.name.toLowerCase().includes(keyword) ||
+                category.minTier.toLowerCase().includes(keyword),
         );
     }, [categories, categoryKeyword]);
 
+    /**
+     * Modal keyboard / body lock
+     */
     useEffect(() => {
         if (!open) return;
 
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && !submitting && !loading) {
+            if (event.key === 'Escape' && !isBusy) {
                 handleClose();
             }
         };
@@ -137,32 +132,34 @@ export default function NewTemplateModal({
             document.removeEventListener('keydown', handleKeyDown);
             document.body.style.overflow = '';
         };
-    }, [open, submitting, loading]);
+    }, [open, isBusy]);
 
+    /**
+     * Initialize form when modal opens
+     */
     useEffect(() => {
         if (!open) return;
 
         setErrorMessage('');
         setUploadProgress(0);
         setSelectedPreviewFileName('');
+        setCategoryOpen(false);
 
-        if (mode === 'edit' && initialData) {
-            setForm(createFormFromTemplate(initialData, categories));
+        if (isEditMode && initialData) {
+            const nextForm = createFormFromTemplate(initialData, categories);
+
+            setForm(nextForm);
+
+            const category = categories.find((item) => item.id === nextForm.categoryId);
+
+            setCategoryKeyword(category ? `${category.name} (${category.minTier})` : '');
+
             return;
         }
 
-        setForm((prev) => {
-            const nextGroupId =
-                prev.categoryId && categories.some((group) => group.id === prev.categoryId)
-                    ? prev.categoryId
-                    : categories[0]?.id || '';
-
-            return {
-                ...createInitialForm(categories),
-                categoryId: nextGroupId,
-            };
-        });
-    }, [open, mode, initialData, categories]);
+        setForm(createInitialForm(categories));
+        setCategoryKeyword('');
+    }, [open, isEditMode, initialData, categories]);
 
     function handleChange<K extends keyof TemplateFormData>(key: K, value: TemplateFormData[K]) {
         setForm((prev) => ({
@@ -175,33 +172,47 @@ export default function NewTemplateModal({
         }
     }
 
-    const handleClose = () => {
-        if (submitting || loading) return;
-
+    function resetForm() {
         setForm(createInitialForm(categories));
         setErrorMessage('');
         setUploadProgress(0);
         setSelectedPreviewFileName('');
+        setCategoryKeyword('');
+        setCategoryOpen(false);
+    }
+
+    function handleClose() {
+        if (isBusy) return;
+
+        resetForm();
         onClose();
-    };
+    }
 
-    const validateForm = () => {
-        if (!form.code.trim()) return 'Vui lòng nhập Code.';
-        if (!form.name.trim()) return 'Vui lòng nhập Name.';
-        if (!form.kind.trim()) return 'Vui lòng nhập Kind.';
-        if (!form.categoryId) return 'Vui lòng chọn Group.';
-        if (form.sortOrder < 0) return 'Sort Order phải lớn hơn hoặc bằng 0.';
+    function validateForm() {
+        if (!form.code.trim()) {
+            return 'Vui lòng nhập Code.';
+        }
+
+        if (!form.name.trim()) {
+            return 'Vui lòng nhập Name.';
+        }
+
+        if (!form.kind.trim()) {
+            return 'Vui lòng nhập Kind.';
+        }
+
+        if (!form.categoryId) {
+            return 'Vui lòng chọn Group.';
+        }
+
+        if (form.sortOrder < 0) {
+            return 'Sort Order phải lớn hơn hoặc bằng 0.';
+        }
+
         return '';
-    };
+    }
 
-    const payload = {
-        ...form,
-        code: form.code?.trim(),
-        name: form.name?.trim(),
-        kind: form.kind?.trim(),
-    };
-
-    const handleSubmit = async () => {
+    async function handleSubmit() {
         const validationError = validateForm();
 
         if (validationError) {
@@ -209,18 +220,25 @@ export default function NewTemplateModal({
             return;
         }
 
+        const templateId = initialData?.id;
+        const editing = isEditMode && Boolean(templateId);
+
+        const payload = {
+            ...form,
+            code: form.code.trim(),
+            name: form.name.trim(),
+            kind: form.kind.trim(),
+            sortOrder: Number(form.sortOrder),
+        };
+
         try {
             setSubmitting(true);
             setErrorMessage('');
 
-            const isEditMode = mode === 'edit' && Boolean(initialData?.id);
-
             const response = await fetch(
-                isEditMode
-                    ? `/api/platform/templates/${initialData?.id}`
-                    : '/api/platform/templates',
+                editing ? `/api/platform/templates/${templateId}` : '/api/platform/templates',
                 {
-                    method: isEditMode ? 'PATCH' : 'POST',
+                    method: editing ? 'PATCH' : 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -231,29 +249,29 @@ export default function NewTemplateModal({
             const result = await response.json().catch(() => null);
 
             if (!response.ok) {
-                const message =
+                setErrorMessage(
                     result?.message ||
-                    result?.errors?.[0] ||
-                    (isEditMode ? 'Cập nhật template thất bại.' : 'Tạo template thất bại.');
-                setErrorMessage(message);
+                        result?.errors?.[0] ||
+                        (editing ? 'Cập nhật template thất bại.' : 'Tạo template thất bại.'),
+                );
                 return;
             }
 
-            setForm(createInitialForm(categories));
-            setSelectedPreviewFileName('');
-            setUploadProgress(0);
+            resetForm();
             onCreated?.();
             onClose();
         } catch (error) {
-            console.error(`${mode === 'edit' ? 'Update' : 'Create'} template failed:`, error);
+            console.error(`${editing ? 'Update' : 'Create'} template failed:`, error);
+
             setErrorMessage('Có lỗi xảy ra khi kết nối tới server.');
         } finally {
             setSubmitting(false);
         }
-    };
+    }
 
-    const handlePreviewFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    async function handlePreviewFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
+
         if (!file) return;
 
         setSelectedPreviewFileName(file.name);
@@ -280,40 +298,52 @@ export default function NewTemplateModal({
                 throw new Error(result?.message || result?.error || 'Upload failed');
             }
 
-            setUploadProgress(100);
-
             setForm((prev) => ({
                 ...prev,
                 previewImageUrl: result.url,
             }));
+
+            setUploadProgress(100);
         } catch (error) {
             console.error('Upload preview failed:', error);
+
             setErrorMessage(error instanceof Error ? error.message : 'Upload ảnh thất bại.');
+
+            setSelectedPreviewFileName('');
+            setUploadProgress(0);
         } finally {
             setUploading(false);
             event.target.value = '';
         }
-    };
+    }
 
-    const handleRemovePreviewImage = () => {
+    function handleRemovePreviewImage() {
         setForm((prev) => ({
             ...prev,
             previewImageUrl: '',
         }));
+
         setSelectedPreviewFileName('');
         setUploadProgress(0);
-    };
+    }
 
-    if (!open) return null;
+    function handleSelectCategory(category: TemplateCategory) {
+        handleChange('categoryId', category.id);
 
-    const isBusy = submitting || loading;
-    const isEditMode = mode === 'edit';
+        setCategoryKeyword(`${category.name} (${category.minTier})`);
+
+        setCategoryOpen(false);
+    }
+
+    if (!open) {
+        return null;
+    }
 
     return (
         <div className={styles.modalOverlay} onClick={handleClose}>
             <div
                 className={styles.modalCard}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-label={isEditMode ? 'Edit Template' : 'New Template'}
@@ -353,10 +383,13 @@ export default function NewTemplateModal({
                             <div className={styles.modalGrid}>
                                 <div className={styles.field}>
                                     <label className={styles.label}>Code</label>
+
                                     <input
                                         className={styles.input}
                                         value={form.code}
-                                        onChange={(e) => handleChange('code', e.target.value)}
+                                        onChange={(event) =>
+                                            handleChange('code', event.target.value)
+                                        }
                                         placeholder="landing-saas-pro"
                                         disabled={isBusy}
                                     />
@@ -364,10 +397,13 @@ export default function NewTemplateModal({
 
                                 <div className={styles.field}>
                                     <label className={styles.label}>Name</label>
+
                                     <input
                                         className={styles.input}
                                         value={form.name}
-                                        onChange={(e) => handleChange('name', e.target.value)}
+                                        onChange={(event) =>
+                                            handleChange('name', event.target.value)
+                                        }
                                         placeholder="Landing SaaS Pro"
                                         disabled={isBusy}
                                     />
@@ -375,10 +411,13 @@ export default function NewTemplateModal({
 
                                 <div className={styles.field}>
                                     <label className={styles.label}>Kind</label>
+
                                     <input
                                         className={styles.input}
                                         value={form.kind}
-                                        onChange={(e) => handleChange('kind', e.target.value)}
+                                        onChange={(event) =>
+                                            handleChange('kind', event.target.value)
+                                        }
                                         placeholder="HeroBanner"
                                         disabled={isBusy}
                                     />
@@ -393,30 +432,41 @@ export default function NewTemplateModal({
                                             placeholder="Tìm category..."
                                             value={categoryKeyword}
                                             onFocus={() => setCategoryOpen(true)}
-                                            onChange={(e) => setCategoryKeyword(e.target.value)}
+                                            onChange={(event) => {
+                                                setCategoryKeyword(event.target.value);
+                                                setCategoryOpen(true);
+                                            }}
+                                            disabled={isBusy}
                                         />
 
                                         {categoryOpen && (
                                             <div className={styles.dropdown}>
-                                                {filteredCategories.map((category) => (
-                                                    <button
-                                                        key={category.id}
-                                                        type="button"
-                                                        className={styles.dropdownItem}
-                                                        onClick={() => {
-                                                            handleChange('categoryId', category.id);
+                                                {filteredCategories.length > 0 ? (
+                                                    filteredCategories.map((category) => (
+                                                        <button
+                                                            key={category.id}
+                                                            type="button"
+                                                            className={styles.dropdownItem}
+                                                            onClick={() =>
+                                                                handleSelectCategory(category)
+                                                            }
+                                                        >
+                                                            {category.name}
 
-                                                            setCategoryKeyword(
-                                                                `${category.name} (${category.minTier})`,
-                                                            );
-
-                                                            setCategoryOpen(false);
+                                                            <span>({category.minTier})</span>
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div
+                                                        style={{
+                                                            padding: '12px 14px',
+                                                            fontSize: 13,
+                                                            color: '#64748b',
                                                         }}
                                                     >
-                                                        {category.name}
-                                                        <span>({category.minTier})</span>
-                                                    </button>
-                                                ))}
+                                                        Không tìm thấy category.
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -424,17 +474,21 @@ export default function NewTemplateModal({
 
                                 <div className={styles.field}>
                                     <label className={styles.label}>Status</label>
+
                                     <select
                                         className={styles.input}
                                         value={form.status}
-                                        onChange={(e) =>
-                                            handleChange('status', e.target.value as TemplateStatus)
+                                        onChange={(event) =>
+                                            handleChange(
+                                                'status',
+                                                event.target.value as TemplateStatus,
+                                            )
                                         }
                                         disabled={isBusy}
                                     >
-                                        {statusOptions.map((item) => (
-                                            <option key={item} value={item}>
-                                                {getStatusLabel(item)}
+                                        {STATUS_OPTIONS.map((status) => (
+                                            <option key={status} value={status}>
+                                                {STATUS_LABELS[status]}
                                             </option>
                                         ))}
                                     </select>
@@ -442,14 +496,15 @@ export default function NewTemplateModal({
 
                                 <div className={styles.field}>
                                     <label className={styles.label}>Sort Order</label>
+
                                     <input
                                         className={styles.input}
                                         type="number"
-                                        value={form.sortOrder}
-                                        onChange={(e) =>
-                                            handleChange('sortOrder', Number(e.target.value))
-                                        }
                                         min={0}
+                                        value={form.sortOrder}
+                                        onChange={(event) =>
+                                            handleChange('sortOrder', Number(event.target.value))
+                                        }
                                         disabled={isBusy}
                                     />
                                 </div>
@@ -480,29 +535,27 @@ export default function NewTemplateModal({
                                         </div>
                                     </div>
 
-                                    {selectedPreviewFileName ? (
+                                    {selectedPreviewFileName && (
                                         <div className={styles.fileRow}>
                                             <div className={styles.fileInfo}>
                                                 <span className={styles.fileIcon}>🖼️</span>
+
                                                 <div className={styles.fileMeta}>
                                                     <span className={styles.fileName}>
                                                         {selectedPreviewFileName}
                                                     </span>
-                                                    {uploading ? (
-                                                        <span className={styles.fileSubtext}>
-                                                            {uploadProgress}%
-                                                        </span>
-                                                    ) : (
-                                                        <span className={styles.fileSubtext}>
-                                                            {form.previewImageUrl
-                                                                ? 'Upload completed'
-                                                                : 'Ready to upload'}
-                                                        </span>
-                                                    )}
+
+                                                    <span className={styles.fileSubtext}>
+                                                        {uploading
+                                                            ? `${uploadProgress}%`
+                                                            : form.previewImageUrl
+                                                              ? 'Upload completed'
+                                                              : 'Ready to upload'}
+                                                    </span>
                                                 </div>
                                             </div>
 
-                                            {form.previewImageUrl && !uploading ? (
+                                            {form.previewImageUrl && !uploading && (
                                                 <button
                                                     type="button"
                                                     className={styles.removeButton}
@@ -511,20 +564,22 @@ export default function NewTemplateModal({
                                                 >
                                                     Remove
                                                 </button>
-                                            ) : null}
+                                            )}
                                         </div>
-                                    ) : null}
+                                    )}
 
-                                    {uploading ? (
+                                    {uploading && (
                                         <div className={styles.progressBar}>
                                             <div
                                                 className={styles.progressValue}
-                                                style={{ width: `${uploadProgress}%` }}
+                                                style={{
+                                                    width: `${uploadProgress}%`,
+                                                }}
                                             />
                                         </div>
-                                    ) : null}
+                                    )}
 
-                                    {form.previewImageUrl ? (
+                                    {form.previewImageUrl && (
                                         <div className={styles.previewBox}>
                                             <img
                                                 src={form.previewImageUrl}
@@ -532,7 +587,7 @@ export default function NewTemplateModal({
                                                 className={styles.previewImage}
                                             />
                                         </div>
-                                    ) : null}
+                                    )}
                                 </div>
 
                                 <span className={styles.hint}>
@@ -545,9 +600,12 @@ export default function NewTemplateModal({
                                     <input
                                         type="checkbox"
                                         checked={form.isActive}
-                                        onChange={(e) => handleChange('isActive', e.target.checked)}
+                                        onChange={(event) =>
+                                            handleChange('isActive', event.target.checked)
+                                        }
                                         disabled={isBusy}
                                     />
+
                                     <span>Is Active</span>
                                 </label>
 
@@ -555,14 +613,17 @@ export default function NewTemplateModal({
                                     <input
                                         type="checkbox"
                                         checked={form.isPublic}
-                                        onChange={(e) => handleChange('isPublic', e.target.checked)}
+                                        onChange={(event) =>
+                                            handleChange('isPublic', event.target.checked)
+                                        }
                                         disabled={isBusy}
                                     />
+
                                     <span>Is Public</span>
                                 </label>
                             </div>
 
-                            {selectedCategory ? (
+                            {selectedCategory && (
                                 <div
                                     style={{
                                         marginTop: 12,
@@ -572,9 +633,9 @@ export default function NewTemplateModal({
                                 >
                                     Group hiện tại: <strong>{selectedCategory.name}</strong>
                                 </div>
-                            ) : null}
+                            )}
 
-                            {errorMessage ? (
+                            {errorMessage && (
                                 <div
                                     style={{
                                         marginTop: 16,
@@ -589,7 +650,7 @@ export default function NewTemplateModal({
                                 >
                                     {errorMessage}
                                 </div>
-                            ) : null}
+                            )}
                         </>
                     )}
                 </div>
@@ -608,9 +669,10 @@ export default function NewTemplateModal({
                         className={styles.modalPrimaryButton}
                         onClick={handleSubmit}
                         type="button"
-                        disabled={isBusy || loading}
+                        disabled={isBusy}
                     >
                         <i className={`bi ${isEditMode ? 'bi-save' : 'bi-plus-lg'}`} />
+
                         {submitting
                             ? isEditMode
                                 ? 'Saving...'

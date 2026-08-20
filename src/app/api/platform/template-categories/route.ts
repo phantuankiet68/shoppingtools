@@ -159,8 +159,6 @@ export async function POST(req: NextRequest) {
 
         const name = normalizeString(body.name);
 
-        const description = normalizeString(body.description);
-
         const websiteTypeValue = normalizeString(body.websiteType);
 
         const minTierValue = normalizeString(body.minTier);
@@ -245,7 +243,6 @@ export async function POST(req: NextRequest) {
         const created = await prisma.templateCategory.create({
             data: {
                 name,
-                description,
                 websiteType,
                 minTier,
                 sortOrder,
@@ -254,7 +251,6 @@ export async function POST(req: NextRequest) {
             select: {
                 id: true,
                 name: true,
-                description: true,
                 websiteType: true,
                 minTier: true,
                 sortOrder: true,

@@ -14,53 +14,25 @@ export async function getTemplateCategories({
     search,
     isActive = true,
 }: GetTemplateCategoriesInput = {}) {
-    const where: Prisma.TemplateCategoryWhereInput = {};
-
-    if (websiteType) {
-        where.websiteType = websiteType;
-    }
-
-    if (minTier) {
-        where.minTier = minTier;
-    }
-
-    if (typeof isActive === 'boolean') {
-        where.isActive = isActive;
-    }
+    const where: Prisma.TemplateCategoryWhereInput = {
+        ...(websiteType && { websiteType }),
+        ...(minTier && { minTier }),
+        ...(typeof isActive === 'boolean' && { isActive }),
+    };
 
     if (search?.trim()) {
-        const keyword = search.trim();
-
-        where.OR = [
-            {
-                name: {
-                    contains: keyword,
-                    mode: 'insensitive',
-                },
-            },
-            {
-                description: {
-                    contains: keyword,
-                    mode: 'insensitive',
-                },
-            },
-        ];
+        where.name = {
+            contains: search.trim(),
+            mode: 'insensitive',
+        };
     }
 
-    const categories = await prisma.templateCategory.findMany({
+    return prisma.templateCategory.findMany({
         where,
-        orderBy: [
-            {
-                sortOrder: 'asc',
-            },
-            {
-                name: 'asc',
-            },
-        ],
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         select: {
             id: true,
             name: true,
-            description: true,
             websiteType: true,
             minTier: true,
             sortOrder: true,
@@ -73,6 +45,4 @@ export async function getTemplateCategories({
             },
         },
     });
-
-    return categories;
 }

@@ -12,6 +12,11 @@ import type {
     TemplateStatus,
 } from '@/features/template/types';
 
+const PAGE_SIZE = 8;
+
+const statusOptions: TemplateStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+const tierOptions: AccessTier[] = ['BASIC', 'NORMAL', 'PRO'];
+
 type TemplateListResponse = {
     success: boolean;
     data: TemplateCatalog[];
@@ -30,9 +35,16 @@ type TemplateDetailResponse = {
     message?: string;
 };
 
+type TemplateCategoryWithCount = TemplateCategory & {
+    _count?: {
+        templates: number;
+        pageTemplates: number;
+    };
+};
+
 type GroupListResponse = {
     success: boolean;
-    data: TemplateCategory[];
+    data: TemplateCategoryWithCount[];
     meta?: {
         page: number;
         pageSize: number;
@@ -42,8 +54,21 @@ type GroupListResponse = {
     message?: string;
 };
 
-const statusOptions: TemplateStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
-const tierOptions: AccessTier[] = ['BASIC', 'NORMAL', 'PRO'];
+type TemplateFilters = {
+    keyword: string;
+    categoryId: string;
+    status: string;
+    tier: string;
+    publicOnly: boolean;
+};
+
+const DEFAULT_FILTERS: TemplateFilters = {
+    keyword: '',
+    categoryId: 'all',
+    status: 'all',
+    tier: 'all',
+    publicOnly: false,
+};
 
 function formatDate(dateString: string) {
     return new Intl.DateTimeFormat('vi-VN', {
@@ -54,181 +79,161 @@ function formatDate(dateString: string) {
 }
 
 function getStatusLabel(status: TemplateStatus) {
-    switch (status) {
-        case 'PUBLISHED':
-            return 'Published';
-        case 'DRAFT':
-            return 'Draft';
-        case 'ARCHIVED':
-            return 'Archived';
-        default:
-            return status;
-    }
+    return (
+        {
+            PUBLISHED: 'Published',
+            DRAFT: 'Draft',
+            ARCHIVED: 'Archived',
+        }[status] ?? status
+    );
 }
 
 function getTierTone(tier: AccessTier) {
-    switch (tier) {
-        case 'BASIC':
-            return styles.tierBasic;
-        case 'NORMAL':
-            return styles.tierNormal;
-        case 'PRO':
-            return styles.tierPro;
-        default:
-            return '';
-    }
+    return {
+        BASIC: styles.tierBasic,
+        NORMAL: styles.tierNormal,
+        PRO: styles.tierPro,
+    }[tier];
 }
 
 export default function AdminTemplatesPage() {
     const [templates, setTemplates] = useState<TemplateCatalog[]>([]);
-    const [categories, setCategories] = useState<TemplateCategory[]>([]);
+    const [categories, setCategories] = useState<TemplateCategoryWithCount[]>([]);
+
     const [loadingTemplates, setLoadingTemplates] = useState(false);
     const [loadingGroups, setLoadingGroups] = useState(false);
+    const [loadingTemplateDetail, setLoadingTemplateDetail] = useState(false);
 
-    const [keyword, setKeyword] = useState('');
-    const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
-    const [selectedStatus, setSelectedStatus] = useState<string>('all');
-    const [selectedTier, setSelectedTier] = useState<string>('all');
-    const [publicOnly, setPublicOnly] = useState(false);
+    const [filters, setFilters] = useState<TemplateFilters>(DEFAULT_FILTERS);
+
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
     const [openNewTemplate, setOpenNewTemplate] = useState(false);
     const [openNewGroup, setOpenNewGroup] = useState(false);
 
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [selectedTemplate, setSelectedTemplate] = useState<TemplateCatalog | null>(null);
-    const [loadingTemplateDetail, setLoadingTemplateDetail] = useState(false);
 
-    const PAGE_SIZE = 8;
+    const updateFilter = <K extends keyof TemplateFilters>(key: K, value: TemplateFilters[K]) => {
+        setFilters((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
 
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
+        setPage(1);
+    };
 
-    const fetchTemplateCategorys = async () => {
+    /**
+     * Fetch template categories
+     */
+    const fetchTemplateCategories = async () => {
         try {
             setLoadingGroups(true);
 
             const response = await fetch('/api/platform/templates/template-categories', {
-                method: 'GET',
                 cache: 'no-store',
             });
 
-            const result: GroupListResponse = await response.json().catch(() => ({
-                success: false,
-                data: [],
-                message: 'Invalid response',
-            }));
+            const result: GroupListResponse = await response.json();
 
             if (!response.ok || !result.success) {
-                console.error('Failed to fetch template categories:', result);
-                setCategories([]);
-                return;
+                throw new Error(result.message || 'Failed to fetch categories');
             }
 
-            setCategories(Array.isArray(result.data) ? result.data : []);
+            setCategories(result.data ?? []);
         } catch (error) {
-            console.error('Fetch template categories error:', error);
+            console.error('[Templates] Fetch categories failed:', error);
             setCategories([]);
         } finally {
             setLoadingGroups(false);
         }
     };
 
+    /**
+     * Fetch templates
+     *
+     * Filtering, sorting and pagination are handled by API.
+     */
     const fetchTemplates = async () => {
         try {
             setLoadingTemplates(true);
 
-            const params = new URLSearchParams();
+            const params = new URLSearchParams({
+                page: String(page),
+                pageSize: String(PAGE_SIZE),
+            });
 
-            params.set('page', page.toString());
-            params.set('pageSize', PAGE_SIZE.toString());
+            const keyword = filters.keyword.trim();
 
-            if (keyword.trim()) {
-                params.set('keyword', keyword.trim());
+            if (keyword) {
+                params.set('keyword', keyword);
             }
 
-            if (selectedGroupId !== 'all') {
-                params.set('categoryId', selectedGroupId);
+            if (filters.categoryId !== 'all') {
+                params.set('categoryId', filters.categoryId);
             }
 
-            if (selectedStatus !== 'all') {
-                params.set('status', selectedStatus);
+            if (filters.status !== 'all') {
+                params.set('status', filters.status);
             }
 
-            if (selectedTier !== 'all') {
-                params.set('tier', selectedTier);
+            if (filters.tier !== 'all') {
+                params.set('tier', filters.tier);
             }
 
-            if (publicOnly) {
+            if (filters.publicOnly) {
                 params.set('isPublic', 'true');
             }
 
             const response = await fetch(`/api/platform/templates?${params.toString()}`, {
-                method: 'GET',
                 cache: 'no-store',
             });
 
-            const result: TemplateListResponse = await response.json().catch(() => ({
-                success: false,
-                data: [],
-                message: 'Invalid response',
-            }));
+            const result: TemplateListResponse = await response.json();
 
             if (!response.ok || !result.success) {
-                console.error(result);
-                setTemplates([]);
-                setTotalPages(1);
-                setTotalItems(0);
-                return;
+                throw new Error(result.message || 'Failed to fetch templates');
             }
 
             setTemplates(result.data ?? []);
-
-            setPage(result.meta?.page ?? 1);
-
             setTotalPages(result.meta?.totalPages ?? 1);
-
             setTotalItems(result.meta?.total ?? 0);
         } catch (error) {
-            console.error(error);
+            console.error('[Templates] Fetch templates failed:', error);
 
             setTemplates([]);
-
             setTotalPages(1);
-
             setTotalItems(0);
         } finally {
             setLoadingTemplates(false);
         }
     };
 
+    /**
+     * Fetch template detail for edit
+     */
     const fetchTemplateDetail = async (id: string) => {
         try {
             setLoadingTemplateDetail(true);
 
             const response = await fetch(`/api/platform/templates/${id}`, {
-                method: 'GET',
                 cache: 'no-store',
             });
 
-            const result: TemplateDetailResponse = await response.json().catch(() => ({
-                success: false,
-                data: null as unknown as TemplateCatalog,
-                message: 'Invalid response',
-            }));
+            const result: TemplateDetailResponse = await response.json();
 
             if (!response.ok || !result.success || !result.data) {
-                console.error('Failed to fetch template detail:', result);
-                alert(result.message || 'Không lấy được thông tin template');
-                return;
+                throw new Error(result.message || 'Không lấy được thông tin template');
             }
 
             setSelectedTemplate(result.data);
             setModalMode('edit');
             setOpenNewTemplate(true);
         } catch (error) {
-            console.error('Fetch template detail error:', error);
-            alert('Có lỗi khi lấy thông tin template');
+            console.error('[Templates] Fetch detail failed:', error);
+            alert(error instanceof Error ? error.message : 'Có lỗi khi lấy thông tin template');
         } finally {
             setLoadingTemplateDetail(false);
         }
@@ -240,78 +245,66 @@ export default function AdminTemplatesPage() {
         setOpenNewTemplate(true);
     };
 
-    const handleEditTemplate = async (id: string) => {
-        await fetchTemplateDetail(id);
-    };
-
     const handleCloseTemplateModal = () => {
         setOpenNewTemplate(false);
         setModalMode('create');
         setSelectedTemplate(null);
     };
 
+    /**
+     * Initial categories
+     */
     useEffect(() => {
-        fetchTemplateCategorys();
+        void fetchTemplateCategories();
     }, []);
 
+    /**
+     * Fetch templates whenever page/filter changes.
+     *
+     * Search is debounced to avoid an API request
+     * for every single keystroke.
+     */
     useEffect(() => {
-        fetchTemplates();
-    }, [page, keyword, selectedGroupId, selectedStatus, selectedTier, publicOnly]);
+        const timer = window.setTimeout(() => {
+            void fetchTemplates();
+        }, 300);
+
+        return () => window.clearTimeout(timer);
+    }, [
+        page,
+        filters.keyword,
+        filters.categoryId,
+        filters.status,
+        filters.tier,
+        filters.publicOnly,
+    ]);
 
     const categoryMap = useMemo(
         () =>
-            categories.reduce<Record<string, TemplateCategory>>((acc, item) => {
-                acc[item.id] = item;
-                return acc;
-            }, {}),
+            Object.fromEntries(categories.map((category) => [category.id, category])) as Record<
+                string,
+                TemplateCategoryWithCount
+            >,
         [categories],
     );
 
-    const filteredTemplates = useMemo(() => {
-        return [...templates]
-            .filter((item) => {
-                const q = keyword.trim().toLowerCase();
-                if (!q) return true;
-
-                return (
-                    item.name.toLowerCase().includes(q) ||
-                    item.code.toLowerCase().includes(q) ||
-                    item.kind.toLowerCase().includes(q) ||
-                    categoryMap[item.categoryId]?.name.toLowerCase().includes(q)
-                );
-            })
-            .filter((item) =>
-                selectedGroupId === 'all' ? true : item.categoryId === selectedGroupId,
-            )
-            .filter((item) => (selectedStatus === 'all' ? true : item.status === selectedStatus))
-            .filter((item) =>
-                selectedTier === 'all' ? true : item.category?.minTier === selectedTier,
-            )
-            .filter((item) => (publicOnly ? item.isPublic : true))
-            .sort((a, b) => {
-                if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
-                return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
-            });
-    }, [
-        categoryMap,
-        keyword,
-        publicOnly,
-        selectedGroupId,
-        selectedStatus,
-        selectedTier,
-        templates,
-    ]);
-
-    const stats = useMemo(() => {
-        return {
-            totalTemplates: templates.length,
-            totalGroups: categories.length,
-            published: templates.filter((item) => item.status === 'PUBLISHED').length,
-            drafts: templates.filter((item) => item.status === 'DRAFT').length,
-            archived: templates.filter((item) => item.status === 'ARCHIVED').length,
-            publicCount: templates.filter((item) => item.isPublic).length,
-        };
-    }, [categories.length, templates]);
+    /**
+     * Stats
+     *
+     * totalTemplates uses server total.
+     * Status/public counts are based on the currently loaded page.
+     *
+     * If you want global status statistics,
+     * expose stats from the API instead.
+     */
+    const stats = {
+        totalTemplates: totalItems,
+        totalGroups: categories.length,
+        published: templates.filter((item) => item.status === 'PUBLISHED').length,
+        drafts: templates.filter((item) => item.status === 'DRAFT').length,
+        archived: templates.filter((item) => item.status === 'ARCHIVED').length,
+        publicCount: templates.filter((item) => item.isPublic).length,
+    };
 
     return (
         <div className={styles.page}>
@@ -342,10 +335,11 @@ export default function AdminTemplatesPage() {
                 <div className={styles.filterBar}>
                     <div className={styles.searchBox}>
                         <i className={`bi bi-search ${styles.searchIcon}`} />
+
                         <input
                             className={styles.searchInput}
-                            value={keyword}
-                            onChange={(e) => setKeyword(e.target.value)}
+                            value={filters.keyword}
+                            onChange={(event) => updateFilter('keyword', event.target.value)}
                             placeholder="Search by name, code, kind..."
                         />
                     </div>
@@ -353,10 +347,11 @@ export default function AdminTemplatesPage() {
                     <div className={styles.filterActions}>
                         <select
                             className={styles.select}
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            value={filters.status}
+                            onChange={(event) => updateFilter('status', event.target.value)}
                         >
                             <option value="all">All Status</option>
+
                             {statusOptions.map((item) => (
                                 <option key={item} value={item}>
                                     {getStatusLabel(item)}
@@ -366,10 +361,11 @@ export default function AdminTemplatesPage() {
 
                         <select
                             className={styles.select}
-                            value={selectedTier}
-                            onChange={(e) => setSelectedTier(e.target.value)}
+                            value={filters.tier}
+                            onChange={(event) => updateFilter('tier', event.target.value)}
                         >
                             <option value="all">All Tiers</option>
+
                             {tierOptions.map((item) => (
                                 <option key={item} value={item}>
                                     {item}
@@ -380,9 +376,12 @@ export default function AdminTemplatesPage() {
                         <label className={styles.checkWrap}>
                             <input
                                 type="checkbox"
-                                checked={publicOnly}
-                                onChange={(e) => setPublicOnly(e.target.checked)}
+                                checked={filters.publicOnly}
+                                onChange={(event) =>
+                                    updateFilter('publicOnly', event.target.checked)
+                                }
                             />
+
                             <span>Public only</span>
                         </label>
                     </div>
@@ -394,8 +393,10 @@ export default function AdminTemplatesPage() {
                     <div className={`${styles.statIcon} ${styles.statIconIndigo}`}>
                         <i className="bi bi-layout-text-window-reverse" />
                     </div>
+
                     <div>
                         <div className={styles.statValue}>{stats.totalTemplates}</div>
+
                         <div className={styles.statLabel}>Templates</div>
                     </div>
                 </div>
@@ -404,8 +405,10 @@ export default function AdminTemplatesPage() {
                     <div className={`${styles.statIcon} ${styles.statIconSky}`}>
                         <i className="bi bi-collection" />
                     </div>
+
                     <div>
                         <div className={styles.statValue}>{stats.totalGroups}</div>
+
                         <div className={styles.statLabel}>Groups</div>
                     </div>
                 </div>
@@ -414,8 +417,10 @@ export default function AdminTemplatesPage() {
                     <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
                         <i className="bi bi-check2-circle" />
                     </div>
+
                     <div>
                         <div className={styles.statValue}>{stats.published}</div>
+
                         <div className={styles.statLabel}>Published</div>
                     </div>
                 </div>
@@ -424,8 +429,10 @@ export default function AdminTemplatesPage() {
                     <div className={`${styles.statIcon} ${styles.statIconAmber}`}>
                         <i className="bi bi-pencil-square" />
                     </div>
+
                     <div>
                         <div className={styles.statValue}>{stats.drafts}</div>
+
                         <div className={styles.statLabel}>Drafts</div>
                     </div>
                 </div>
@@ -434,8 +441,10 @@ export default function AdminTemplatesPage() {
                     <div className={`${styles.statIcon} ${styles.statIconSlate}`}>
                         <i className="bi bi-archive" />
                     </div>
+
                     <div>
                         <div className={styles.statValue}>{stats.archived}</div>
+
                         <div className={styles.statLabel}>Archived</div>
                     </div>
                 </div>
@@ -444,8 +453,10 @@ export default function AdminTemplatesPage() {
                     <div className={`${styles.statIcon} ${styles.statIconRose}`}>
                         <i className="bi bi-globe2" />
                     </div>
+
                     <div>
                         <div className={styles.statValue}>{stats.publicCount}</div>
+
                         <div className={styles.statLabel}>Public</div>
                     </div>
                 </div>
@@ -466,22 +477,27 @@ export default function AdminTemplatesPage() {
 
                         <div className={styles.groupList}>
                             <button
-                                className={`${styles.groupItem} ${selectedGroupId === 'all' ? styles.groupItemActive : ''}`}
-                                onClick={() => setSelectedGroupId('all')}
+                                className={`${styles.groupItem} ${
+                                    filters.categoryId === 'all' ? styles.groupItemActive : ''
+                                }`}
+                                onClick={() => updateFilter('categoryId', 'all')}
                                 type="button"
                             >
                                 <div className={styles.groupItemMain}>
                                     <div className={styles.groupItemIcon}>
                                         <i className="bi bi-stars" />
                                     </div>
+
                                     <div>
                                         <div className={styles.groupName}>All Groups</div>
+
                                         <div className={styles.groupMeta}>
                                             Hiển thị toàn bộ template
                                         </div>
                                     </div>
                                 </div>
-                                <span className={styles.groupCount}>{templates.length}</span>
+
+                                <span className={styles.groupCount}>{totalItems}</span>
                             </button>
 
                             {loadingGroups ? (
@@ -489,35 +505,36 @@ export default function AdminTemplatesPage() {
                                     <div className={styles.emptyTitle}>Đang tải categories...</div>
                                 </div>
                             ) : (
-                                categories.map((group) => {
-                                    const count = templates.filter(
-                                        (item) => item.categoryId === group.id,
-                                    ).length;
+                                categories.map((group) => (
+                                    <button
+                                        key={group.id}
+                                        className={`${styles.groupItem} ${
+                                            filters.categoryId === group.id
+                                                ? styles.groupItemActive
+                                                : ''
+                                        }`}
+                                        onClick={() => updateFilter('categoryId', group.id)}
+                                        type="button"
+                                    >
+                                        <div className={styles.groupItemMain}>
+                                            <div className={styles.groupItemIcon}>
+                                                <i className="bi bi-folder2-open" />
+                                            </div>
 
-                                    return (
-                                        <button
-                                            key={group.id}
-                                            className={`${styles.groupItem} ${selectedGroupId === group.id ? styles.groupItemActive : ''}`}
-                                            onClick={() => setSelectedGroupId(group.id)}
-                                            type="button"
-                                        >
-                                            <div className={styles.groupItemMain}>
-                                                <div className={styles.groupItemIcon}>
-                                                    <i className="bi bi-folder2-open" />
-                                                </div>
-                                                <div>
-                                                    <div className={styles.groupName}>
-                                                        {group.name}
-                                                    </div>
-                                                    <div className={styles.groupMeta}>
-                                                        {group.minTier}
-                                                    </div>
+                                            <div>
+                                                <div className={styles.groupName}>{group.name}</div>
+
+                                                <div className={styles.groupMeta}>
+                                                    {group.minTier}
                                                 </div>
                                             </div>
-                                            <span className={styles.groupCount}>{count}</span>
-                                        </button>
-                                    );
-                                })
+                                        </div>
+
+                                        <span className={styles.groupCount}>
+                                            {group._count?.templates ?? 0}
+                                        </span>
+                                    </button>
+                                ))
                             )}
                         </div>
                     </div>
@@ -550,16 +567,18 @@ export default function AdminTemplatesPage() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : filteredTemplates.length === 0 ? (
+                                    ) : templates.length === 0 ? (
                                         <tr>
                                             <td colSpan={7}>
                                                 <div className={styles.emptyState}>
                                                     <div className={styles.emptyIcon}>
                                                         <i className="bi bi-inboxes" />
                                                     </div>
+
                                                     <div className={styles.emptyTitle}>
                                                         Không có template phù hợp
                                                     </div>
+
                                                     <div className={styles.emptyText}>
                                                         Hãy thử thay đổi filter hoặc từ khóa tìm
                                                         kiếm.
@@ -568,7 +587,7 @@ export default function AdminTemplatesPage() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        filteredTemplates.map((template) => {
+                                        templates.map((template) => {
                                             const category =
                                                 categoryMap[template.categoryId] ??
                                                 template.category;
@@ -594,6 +613,7 @@ export default function AdminTemplatesPage() {
                                                     <td>
                                                         <span className={styles.softBadge}>
                                                             <i className="bi bi-folder2-open" />
+
                                                             {category?.name ?? '-'}
                                                         </span>
                                                     </td>
@@ -615,7 +635,9 @@ export default function AdminTemplatesPage() {
                                                     <td>
                                                         <div className={styles.accessCell}>
                                                             <span
-                                                                className={`${styles.tierBadge} ${getTierTone(
+                                                                className={`${
+                                                                    styles.tierBadge
+                                                                } ${getTierTone(
                                                                     category?.minTier ?? 'BASIC',
                                                                 )}`}
                                                             >
@@ -627,7 +649,9 @@ export default function AdminTemplatesPage() {
                                                     <td>
                                                         <div className={styles.visibility}>
                                                             <span
-                                                                className={`${styles.visibilityDot} ${
+                                                                className={`${
+                                                                    styles.visibilityDot
+                                                                } ${
                                                                     template.isPublic
                                                                         ? styles.publicDot
                                                                         : styles.privateDot
@@ -657,7 +681,7 @@ export default function AdminTemplatesPage() {
                                                                 title="Edit"
                                                                 type="button"
                                                                 onClick={() =>
-                                                                    handleEditTemplate(template.id)
+                                                                    fetchTemplateDetail(template.id)
                                                                 }
                                                                 disabled={loadingTemplateDetail}
                                                             >
@@ -679,24 +703,33 @@ export default function AdminTemplatesPage() {
                                     )}
                                 </tbody>
                             </table>
+
                             <div className={styles.pagination}>
-                                <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+                                <button
+                                    disabled={page === 1}
+                                    onClick={() => setPage((current) => current - 1)}
+                                    type="button"
+                                >
                                     Previous
                                 </button>
 
-                                {Array.from({ length: totalPages }, (_, i) => (
-                                    <button
-                                        key={i}
-                                        className={page === i + 1 ? styles.activePage : ''}
-                                        onClick={() => setPage(i + 1)}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
+                                {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+                                    (pageNumber) => (
+                                        <button
+                                            key={pageNumber}
+                                            className={page === pageNumber ? styles.activePage : ''}
+                                            onClick={() => setPage(pageNumber)}
+                                            type="button"
+                                        >
+                                            {pageNumber}
+                                        </button>
+                                    ),
+                                )}
 
                                 <button
                                     disabled={page === totalPages}
-                                    onClick={() => setPage((p) => p + 1)}
+                                    onClick={() => setPage((current) => current + 1)}
+                                    type="button"
                                 >
                                     Next
                                 </button>
@@ -705,6 +738,7 @@ export default function AdminTemplatesPage() {
                     </div>
                 </main>
             </section>
+
             <NewTemplateModal
                 open={openNewTemplate}
                 categories={categories}
@@ -714,7 +748,7 @@ export default function AdminTemplatesPage() {
                 onClose={handleCloseTemplateModal}
                 onCreated={() => {
                     handleCloseTemplateModal();
-                    fetchTemplates();
+                    void fetchTemplates();
                 }}
             />
 
@@ -722,7 +756,7 @@ export default function AdminTemplatesPage() {
                 open={openNewGroup}
                 onClose={() => setOpenNewGroup(false)}
                 onCreated={() => {
-                    fetchTemplateCategorys();
+                    void fetchTemplateCategories();
                 }}
             />
         </div>

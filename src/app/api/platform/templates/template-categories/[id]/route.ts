@@ -34,11 +34,6 @@ function validateBody(body: UpdateTemplateCategoryBody) {
         }
     }
 
-    if (body.description !== undefined) {
-        data.description =
-            typeof body.description === 'string' ? body.description.trim() || null : null;
-    }
-
     if (body.sortOrder !== undefined) {
         if (!Number.isFinite(body.sortOrder)) {
             errors.push('Sort order is invalid');

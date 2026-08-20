@@ -12,22 +12,16 @@ enum TemplateStatus {
 
 model TemplateCategory {
   id String @id @default(cuid())
-
   name String
-  description String?
   websiteType WebsiteType
   minTier AccessTier @default(BASIC) @map("min_tier")
-
   sortOrder Int @default(0) @map("sort_order")
   isActive Boolean @default(true) @map("is_active")
-
   templates TemplateCatalog[]
   menuTemplates MenuTemplate[]
   pageTemplates PageTemplate[]
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
   @@index([websiteType, name])
   @@index([websiteType, name, minTier])
   @@index([isActive, sortOrder])
