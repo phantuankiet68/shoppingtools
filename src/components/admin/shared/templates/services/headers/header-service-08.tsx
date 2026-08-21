@@ -242,7 +242,7 @@ function HeaderService08({
 }
 
 export const HEADER_SERVICE_08: RegItem = {
-    kind: 'HeaderService08',
+    kind: 'header-service-08',
 
     label: 'Header Service 08 Enterprise',
 

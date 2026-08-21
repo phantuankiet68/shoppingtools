@@ -26,8 +26,7 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
         'TopbarUtility',
     ]),
 
-    tpl('tpl-header', 'Header', [
-        'HeaderAnnouncement',
+    tpl('tpl-header-service', 'Header', [
         'HeaderService01',
         'HeaderService02',
         'HeaderService03',
@@ -38,7 +37,6 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
         'HeaderService08',
         'HeaderService09',
     ]),
-    tpl('tpl-hero', 'Hero', ['HeroService01']),
     tpl('tpl-footer', 'Footer', [
         'FooterService01',
         'FooterService02',
@@ -50,6 +48,7 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
         'FooterService08',
         'FooterService09',
     ]),
+    tpl('tpl-hero', 'Hero', ['HeroService01']),
     tpl('tpl-sidebar', 'Sidebar', [
         'SidebarAnnouncement',
         'HeroCentered',

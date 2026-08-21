@@ -211,7 +211,7 @@ function HeaderService06({
     );
 }
 export const HEADER_SERVICE_06: RegItem = {
-    kind: 'HeaderService06',
+    kind: 'header-service-06',
 
     label: 'Header Service 06',
 

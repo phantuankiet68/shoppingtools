@@ -165,7 +165,7 @@ export function HeaderService02({
 }
 
 export const HEADER_SERVICE_02: RegItem = {
-    kind: 'HeaderService02',
+    kind: 'header-service-02',
     label: 'Header Service 02',
 
     defaults: {

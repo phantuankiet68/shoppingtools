@@ -673,7 +673,7 @@ function createInspector(): RegItem['inspector'] {
     );
 }
 export const HEADER_SERVICE_09: RegItem = {
-    kind: 'HeaderService09',
+    kind: 'header-service-09',
     label: 'Header Service 09',
     defaults: DEFAULT_PROPS,
     inspector: createInspector(),
