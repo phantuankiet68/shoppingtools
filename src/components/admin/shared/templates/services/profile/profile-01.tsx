@@ -2,15 +2,11 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
-
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 import type { InspectorField, RegItem } from '@/lib/ui-builder/types';
-
 import models from '@/components/admin/shared/templates/services/profile/styles/models.module.css';
 import styles from '@/components/admin/shared/templates/services/profile/styles/profile-01.module.css';
-
 export type WebsiteType = 'landing' | 'blog' | 'ecommerce' | 'booking' | 'lms';
-
 export type ProjectStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface ProjectModel extends ProjectSummaryModel {

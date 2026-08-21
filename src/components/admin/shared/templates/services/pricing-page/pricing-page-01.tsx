@@ -2401,13 +2401,9 @@ function createInspector(): RegItem['inspector'] {
 
 export const PRICING_PAGE_01: RegItem = {
     kind: 'pricing-page-01',
-
     label: 'Pricing Page 01',
-
     defaults: DEFAULT_PROPS,
-
     inspector: createInspector(),
-
     render: (props) => <PricingPage01 {...(props as PricingPage01Props)} />,
 };
 

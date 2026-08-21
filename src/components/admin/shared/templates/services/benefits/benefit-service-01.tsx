@@ -1460,7 +1460,7 @@ function createInspector(): RegItem['inspector'] {
    Registry
 ───────────────────────────────────────────────── */
 export const BENEFIT_SERVICE_01: RegItem = {
-    kind: 'BenefitService01',
+    kind: 'benefit-service-01',
     label: 'Benefit Service 01',
     defaults: DEFAULT_PROPS,
     inspector: createInspector(),

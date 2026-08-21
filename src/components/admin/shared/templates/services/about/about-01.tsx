@@ -2361,12 +2361,6 @@ const createCheckField = (key: string, label: string): InspectorField => ({
     label,
 });
 
-const createNumberField = (key: string, label: string): InspectorField => ({
-    kind: 'number',
-    key,
-    label,
-});
-
 export interface SelectOption {
     label: string;
     value: string;
@@ -2386,7 +2380,6 @@ const createSelectField = (
 function createBreadcrumbInspector(): InspectorField[] {
     return [
         createLocalizedField('breadcrumbHome', 'Breadcrumb Home'),
-
         createLocalizedField('breadcrumbCurrent', 'Breadcrumb Current'),
     ];
 }
@@ -2394,21 +2387,13 @@ function createBreadcrumbInspector(): InspectorField[] {
 function createHeroInspector(): InspectorField[] {
     return [
         createLocalizedField('badge', 'Hero Badge'),
-
         createLocalizedField('heroTitle', 'Hero Title'),
-
         createLocalizedField('heroTitleAccent', 'Hero Title Accent'),
-
         createLocalizedTextareaField('heroDescription', 'Hero Description'),
-
         createLocalizedField('primaryButtonLabel', 'Primary Button'),
-
         createLocalizedField('secondaryButtonLabel', 'Secondary Button'),
-
         createImageField('image', 'Hero Image'),
-
         createLocalizedField('performanceScore', 'Performance Score'),
-
         createLocalizedField('performanceLabel', 'Performance Label'),
     ];
 }
@@ -2416,15 +2401,10 @@ function createHeroInspector(): InspectorField[] {
 function createMissionInspector(): InspectorField[] {
     return [
         createLocalizedField('missionBadge', 'Mission Badge'),
-
         createLocalizedField('missionTitle', 'Mission Title'),
-
         createLocalizedField('missionTitleAccent', 'Mission Title Accent'),
-
         createLocalizedTextareaField('missionDescription', 'Mission Description'),
-
         createLocalizedField('missionCenterTitle', 'Mission Center Title'),
-
         createLocalizedTextareaField('missionCenterDescription', 'Mission Center Description'),
     ];
 }
@@ -2432,24 +2412,17 @@ function createMissionInspector(): InspectorField[] {
 function createWhyInspector(): InspectorField[] {
     return [
         createLocalizedField('whyBadge', 'Why Badge'),
-
         createLocalizedField('whyTitle', 'Why Title'),
-
         createLocalizedField('whyTitleAccent', 'Why Title Accent'),
-
         createLocalizedTextareaField('whyDescription', 'Why Description'),
-
         createImageField('builderPreviewImage', 'Builder Preview Image'),
     ];
 }
 function createTeamHeaderInspector(): InspectorField[] {
     return [
         createLocalizedField('teamBadge', 'Team Badge'),
-
         createLocalizedField('teamTitle', 'Team Title'),
-
         createLocalizedField('teamTitleAccent', 'Team Title Accent'),
-
         createLocalizedTextareaField('teamDescription', 'Team Description'),
     ];
 }
@@ -2457,24 +2430,17 @@ function createTeamHeaderInspector(): InspectorField[] {
 function createCtaInspector(): InspectorField[] {
     return [
         createLocalizedField('ctaBadge', 'CTA Badge'),
-
         createLocalizedField('ctaTitle', 'CTA Title'),
-
         createLocalizedField('ctaTitleAccent', 'CTA Title Accent'),
-
         createLocalizedTextareaField('ctaDescription', 'CTA Description'),
-
         createLocalizedField('ctaPrimaryButtonLabel', 'Primary Button'),
-
         createLocalizedField('ctaSecondaryButtonLabel', 'Secondary Button'),
-
         createImageField('ctaImage', 'CTA Image'),
     ];
 }
 function createSeoInspector(): InspectorField[] {
     return [
         createLocalizedField('pageTitle', 'SEO Title'),
-
         createLocalizedTextareaField('pageDescription', 'SEO Description'),
     ];
 }
@@ -2482,13 +2448,9 @@ function createSeoInspector(): InspectorField[] {
 function createStatsArray(): InspectorField {
     return {
         key: 'stats',
-
         label: 'Statistics',
-
         kind: 'array',
-
         itemLabel: 'Stat',
-
         fields: [createLocalizedField('value', 'Value'), createLocalizedField('label', 'Label')],
     };
 }
@@ -2496,18 +2458,12 @@ function createStatsArray(): InspectorField {
 function createFeatureArray(key: string, label: string, itemLabel: string): InspectorField {
     return {
         key,
-
         label,
-
         kind: 'array',
-
         itemLabel,
-
         fields: [
             createIconField('icon'),
-
             createLocalizedField('title', 'Title'),
-
             createLocalizedTextareaField('description', 'Description'),
         ],
     };
@@ -2516,18 +2472,12 @@ function createFeatureArray(key: string, label: string, itemLabel: string): Insp
 function createMissionNodeArray(): InspectorField {
     return {
         key: 'missionNodes',
-
         label: 'Mission Nodes',
-
         kind: 'array',
-
         itemLabel: 'Node',
-
         fields: [
             createIconField('icon'),
-
             createLocalizedField('title', 'Title'),
-
             createLocalizedTextareaField('description', 'Description'),
         ],
     };
@@ -2536,22 +2486,14 @@ function createMissionNodeArray(): InspectorField {
 function createJourneyArray(): InspectorField {
     return {
         key: 'journeys',
-
         label: 'Journey Timeline',
-
         kind: 'array',
-
         itemLabel: 'Journey',
-
         fields: [
             createIconField('icon'),
-
             createLocalizedField('date', 'Date'),
-
             createLocalizedField('title', 'Title'),
-
             createLocalizedTextareaField('description', 'Description'),
-
             createCheckField('active', 'Active'),
         ],
     };
@@ -2560,28 +2502,17 @@ function createJourneyArray(): InspectorField {
 function createStoryArray(): InspectorField {
     return {
         key: 'stories',
-
         label: 'Stories',
-
         kind: 'array',
-
         itemLabel: 'Story',
-
         fields: [
             createLocalizedField('year', 'Year'),
-
             createLocalizedField('badge', 'Badge'),
-
             createLocalizedField('title', 'Title'),
-
             createLocalizedField('titleAccent', 'Title Accent'),
-
             createLocalizedTextareaField('description', 'Description'),
-
             createImageField('image', 'Image'),
-
             createLocalizedField('imageAlt', 'Image Alt'),
-
             createCheckField('reverse', 'Reverse Layout'),
         ],
     };
@@ -2590,20 +2521,13 @@ function createStoryArray(): InspectorField {
 function createStoryFeatureArray(): InspectorField {
     return {
         key: 'storyFeatures',
-
         label: 'Story Features',
-
         kind: 'array',
-
         itemLabel: 'Feature',
-
         fields: [
             createIconField('icon'),
-
             createLocalizedField('title', 'Title'),
-
             createLocalizedField('badge', 'Badge'),
-
             createLocalizedTextareaField('description', 'Description'),
         ],
     };
@@ -2612,22 +2536,14 @@ function createStoryFeatureArray(): InspectorField {
 function createCoreValueArray(): InspectorField {
     return {
         key: 'coreValues',
-
         label: 'Core Values',
-
         kind: 'array',
-
         itemLabel: 'Core Value',
-
         fields: [
             createLocalizedField('id', 'Number'),
-
             createIconField('icon'),
-
             createLocalizedField('title', 'Title'),
-
             createLocalizedTextareaField('description', 'Description'),
-
             createSelectField('color', 'Color', [
                 {
                     label: 'Purple',
@@ -2650,16 +2566,11 @@ function createCoreValueArray(): InspectorField {
                     value: 'pink',
                 },
             ]),
-
             {
                 key: 'tags',
-
                 label: 'Tags',
-
                 kind: 'array',
-
                 itemLabel: 'Tag',
-
                 fields: [createLocalizedField('value', 'Tag')],
             },
         ],
@@ -2669,22 +2580,14 @@ function createCoreValueArray(): InspectorField {
 function createTeamArray(): InspectorField {
     return {
         key: 'team',
-
         label: 'Team Members',
-
         kind: 'array',
-
         itemLabel: 'Member',
-
         fields: [
             createLocalizedField('name', 'Name'),
-
             createLocalizedField('role', 'Role'),
-
             createLocalizedTextareaField('description', 'Description'),
-
             createIconField('icon'),
-
             createSelectField('color', 'Color', [
                 {
                     label: 'Purple',
@@ -2707,9 +2610,7 @@ function createTeamArray(): InspectorField {
                     value: 'pink',
                 },
             ]),
-
             createImageField('image', 'Image', 'about/team'),
-
             createLocalizedField('imageAlt', 'Image Alt'),
         ],
     };
@@ -2717,125 +2618,32 @@ function createTeamArray(): InspectorField {
 
 function createInspector(): RegItem['inspector'] {
     return [
-        /* ==========================================================
-           Breadcrumb
-        ========================================================== */
-
         ...createBreadcrumbInspector(),
-
-        /* ==========================================================
-           Hero
-        ========================================================== */
-
         ...createHeroInspector(),
-
-        /* ==========================================================
-           Mission
-        ========================================================== */
-
         ...createMissionInspector(),
-
-        /* ==========================================================
-           Why
-        ========================================================== */
-
         ...createWhyInspector(),
-
-        /* ==========================================================
-           Team Header
-        ========================================================== */
-
         ...createTeamHeaderInspector(),
-
-        /* ==========================================================
-           CTA
-        ========================================================== */
-
         ...createCtaInspector(),
-
-        /* ==========================================================
-           SEO
-        ========================================================== */
-
         ...createSeoInspector(),
-
-        /* ==========================================================
-           Statistics
-        ========================================================== */
-
         createStatsArray(),
-
-        /* ==========================================================
-           Hero Features
-        ========================================================== */
-
         createFeatureArray('features', 'Hero Features', 'Feature'),
-
-        /* ==========================================================
-           Mission Values
-        ========================================================== */
-
         createFeatureArray('values', 'Mission Values', 'Value'),
-
-        /* ==========================================================
-           Mission Nodes
-        ========================================================== */
-
         createMissionNodeArray(),
-
-        /* ==========================================================
-           Journey Timeline
-        ========================================================== */
-
         createJourneyArray(),
-
-        /* ==========================================================
-           Stories
-        ========================================================== */
-
         createStoryArray(),
-
-        /* ==========================================================
-           Story Features
-        ========================================================== */
-
         createStoryFeatureArray(),
-
-        /* ==========================================================
-           Problems
-        ========================================================== */
-
         createFeatureArray('problems', 'Problems', 'Problem'),
-
-        /* ==========================================================
-           Solutions
-        ========================================================== */
-
         createFeatureArray('solutions', 'Solutions', 'Solution'),
-
-        /* ==========================================================
-           Core Values
-        ========================================================== */
-
         createCoreValueArray(),
-
-        /* ==========================================================
-           Team
-        ========================================================== */
-
         createTeamArray(),
     ];
 }
 
 export const ABOUT_PAGE_01: RegItem = {
     kind: 'about-page-01',
-
     label: 'About Page 01',
-
     defaults: DEFAULT_PROPS as Record<string, unknown>,
-
     inspector: createInspector(),
-
     render: (props) => <About01 {...(props as unknown as About01Props)} />,
 };
 

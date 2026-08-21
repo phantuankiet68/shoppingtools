@@ -244,7 +244,7 @@ function HeaderService08({
 export const HEADER_SERVICE_08: RegItem = {
     kind: 'header-service-08',
 
-    label: 'Header Service 08 Enterprise',
+    label: 'Header Service 08',
 
     defaults: {
         announcementText: 'Trusted by 10,000+ businesses worldwide',

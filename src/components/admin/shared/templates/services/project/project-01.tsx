@@ -1338,7 +1338,6 @@ function createInspector(): InspectorField[] {
         ...createHeroInspector(),
         ...createSectionInspector(),
         ...createStatsInspector(),
-
         ...Array.from({ length: 11 }, (_, i) => createFeatureInspector(i + 1)).flat(),
     ];
 }
@@ -1346,7 +1345,6 @@ export const PROJECT_PAGE_01: RegItem = {
     kind: 'project-page-01',
     label: 'Project Page 01',
     defaults: DEFAULT_PROPS,
-
     inspector: createInspector(),
     render: (props) => <ProjectPage01 {...(props as unknown as ProjectPage01Props)} />,
 };

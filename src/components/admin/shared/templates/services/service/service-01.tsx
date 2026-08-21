@@ -2271,62 +2271,35 @@ function createPublishInspector(): InspectorField[] {
 
 function createInspector(): InspectorField[] {
     return [
-        // Hero
         ...createHeroInspector(),
-        // Summary
         ...createSummaryInspector(),
-
-        // Steps
         ...createStepInspector(1),
         ...createStepInspector(2),
         ...createStepInspector(3),
-
         createTextField('stepsButtonText', 'Steps Button Text'),
-
-        // Map
         ...createMapInspector(),
-
-        // Setup
         ...createSetupInspector(),
-
-        // Setup Cards
         ...createSetupCardInspector('self'),
         ...createSetupCardInspector('service'),
-
-        // Visual
         ...createVisualInspector(),
-
-        // Feature Section
         ...createFeatureSectionInspector(),
-
-        // Feature Cards
         ...createFeatureInspector(1),
         ...createFeatureInspector(2),
         ...createFeatureInspector(3),
         ...createFeatureInspector(4),
-
-        // Publish
         ...createPublishInspector(),
-
         createImageField('browserPreviewImage', 'Browser Preview'),
-
         createImageField('mobilePreviewImage', 'Mobile Preview'),
-
         createImageField('analyticsPreviewImage', 'Analytics Card'),
-
         createImageField('plantPreviewImage', 'Plant Image'),
     ];
 }
 
 export const SERVICE_01: RegItem = {
-    kind: 'Service01',
-
-    label: 'Service 01',
-
+    kind: 'service-page-01',
+    label: 'Service Page 01',
     defaults: DEFAULT_PROPS,
-
     inspector: createInspector(),
-
     render: (props) => <Service01 {...(props as unknown as Service01Props)} />,
 };
 export default Service01;

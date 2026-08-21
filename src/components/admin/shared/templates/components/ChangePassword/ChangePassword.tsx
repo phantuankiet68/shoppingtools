@@ -913,33 +913,22 @@ function localizedTextField(key: string, label: string): InspectorField {
 
 function createInspector(): RegItem['inspector'] {
     return [
-        // Stepper
         localizedTextField('stepPassword', 'Step Password'),
         localizedTextField('stepVerify', 'Step Verify'),
         localizedTextField('stepCompleted', 'Step Completed'),
-
         localizedTextField('passwordRuleMinLength', 'Password Rule - Min Length'),
         localizedTextField('passwordRuleUppercase', 'Password Rule - Uppercase'),
         localizedTextField('passwordRuleLowercase', 'Password Rule - Lowercase'),
         localizedTextField('passwordRuleNumber', 'Password Rule - Number'),
         localizedTextField('passwordRuleSpecial', 'Password Rule - Special Character'),
-        // Verify
-
         localizedTextField('securityNoticeTitle', 'Security Notice Title'),
         localizedTextField('securityNoticeDescription', 'Security Notice Description'),
-
-        // Success
         localizedTextField('successTitle', 'Success Title'),
         localizedTextField('successDescription', 'Success Description'),
-
         localizedTextField('securityUpdatedLabel', 'Security Updated Label'),
         localizedTextField('justNowLabel', 'Just Now Label'),
-
         localizedTextField('continueDashboardButton', 'Continue Dashboard Button'),
-
-        // Messages
         localizedTextField('unknownErrorMessage', 'Unknown Error Message'),
-
         localizedTextField('supportLabel', 'Support Label'),
     ];
 }

@@ -914,7 +914,7 @@ function createInspector(): InspectorField[] {
    Registry
 ───────────────────────────────────────────────── */
 export const FOOTER_SERVICE_09: RegItem = {
-    kind: 'FooterService09',
+    kind: 'footer-service-09',
 
     label: 'Footer Service 09',
 

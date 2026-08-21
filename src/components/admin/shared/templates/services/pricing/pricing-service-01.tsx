@@ -953,7 +953,7 @@ function createInspector(): RegItem['inspector'] {
     ];
 }
 export const PRICING_SERVICE_01: RegItem = {
-    kind: 'PricingService01',
+    kind: 'pricing-service-01',
 
     label: 'Pricing Service 01',
 

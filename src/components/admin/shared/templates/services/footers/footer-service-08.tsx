@@ -366,7 +366,7 @@ export function FooterService08({
    Registry
 ───────────────────────────────────────── */
 export const FOOTER_SERVICE_08: RegItem = {
-    kind: 'FooterService08',
+    kind: 'footer-service-08',
     label: 'Footer Service 08',
 
     defaults: {

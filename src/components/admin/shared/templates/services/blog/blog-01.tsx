@@ -39,63 +39,33 @@ type CommunityItem = {
 };
 
 export interface Blog01Props {
-    /* ==========================================================
-       Breadcrumb
-    ========================================================== */
-
     breadcrumbHome?: LocalizedText;
     breadcrumbCurrent?: LocalizedText;
-
-    /* ==========================================================
-       Hero
-    ========================================================== */
-
     heroBadge?: LocalizedText;
     heroTitle?: LocalizedText;
     heroTitleAccent?: LocalizedText;
     heroDescription?: LocalizedText;
-
     heroPrimaryButton?: LocalizedText;
     heroSecondaryButton?: LocalizedText;
-
     heroReviewText?: LocalizedText;
     heroRating?: LocalizedText;
-
     heroImage?: string;
-
-    /* ==========================================================
-       Hero Features
-    ========================================================== */
-
     feature1Icon?: string;
     feature1Title?: LocalizedText;
     feature1Description?: LocalizedText;
-
     feature2Icon?: string;
     feature2Title?: LocalizedText;
     feature2Description?: LocalizedText;
-
     feature3Icon?: string;
     feature3Title?: LocalizedText;
     feature3Description?: LocalizedText;
-
     feature4Icon?: string;
     feature4Title?: LocalizedText;
     feature4Description?: LocalizedText;
-
-    /* ==========================================================
-       Blog Section
-    ========================================================== */
-
     blogSectionTitle?: LocalizedText;
     blogSectionTitleAccent?: LocalizedText;
     blogSectionDescription?: LocalizedText;
     blogActionButton?: LocalizedText;
-
-    /* ==========================================================
-       Blog 01
-    ========================================================== */
-
     blog1Id?: number;
     blog1Image?: string;
     blog1category?: LocalizedText;
@@ -105,11 +75,6 @@ export interface Blog01Props {
     blog1Author?: LocalizedText;
     blog1Role?: LocalizedText;
     blog1Avatar?: string;
-
-    /* ==========================================================
-       Blog 02
-    ========================================================== */
-
     blog2Id?: number;
     blog2Image?: string;
     blog2category?: LocalizedText;
@@ -119,11 +84,6 @@ export interface Blog01Props {
     blog2Author?: LocalizedText;
     blog2Role?: LocalizedText;
     blog2Avatar?: string;
-
-    /* ==========================================================
-       Blog 03
-    ========================================================== */
-
     blog3Id?: number;
     blog3Image?: string;
     blog3category?: LocalizedText;
@@ -133,11 +93,6 @@ export interface Blog01Props {
     blog3Author?: LocalizedText;
     blog3Role?: LocalizedText;
     blog3Avatar?: string;
-
-    /* ==========================================================
-       Blog 04
-    ========================================================== */
-
     blog4Id?: number;
     blog4Image?: string;
     blog4category?: LocalizedText;
@@ -147,21 +102,11 @@ export interface Blog01Props {
     blog4Author?: LocalizedText;
     blog4Role?: LocalizedText;
     blog4Avatar?: string;
-
-    /* ==========================================================
-       Story Section
-    ========================================================== */
-
     storyTitle?: LocalizedText;
     storyTitleAccent?: LocalizedText;
     storyDescription?: LocalizedText;
     storyActionText?: LocalizedText;
     storyActionLink?: string;
-
-    /* ==========================================================
-       Featured Story
-    ========================================================== */
-
     featuredImage?: string;
     featuredBadge?: LocalizedText;
     featuredCategory?: LocalizedText;
@@ -171,11 +116,6 @@ export interface Blog01Props {
     featuredReadTime?: LocalizedText;
     featuredDescription?: LocalizedText;
     featuredButton?: LocalizedText;
-
-    /* ==========================================================
-       Story 01
-    ========================================================== */
-
     story1Image?: string;
     story1Category?: LocalizedText;
     story1CategoryIcon?: string;
@@ -183,11 +123,6 @@ export interface Blog01Props {
     story1Description?: LocalizedText;
     story1Date?: LocalizedText;
     story1ReadTime?: LocalizedText;
-
-    /* ==========================================================
-       Story 02
-    ========================================================== */
-
     story2Image?: string;
     story2Category?: LocalizedText;
     story2CategoryIcon?: string;
@@ -195,11 +130,6 @@ export interface Blog01Props {
     story2Description?: LocalizedText;
     story2Date?: LocalizedText;
     story2ReadTime?: LocalizedText;
-
-    /* ==========================================================
-       Story 03
-    ========================================================== */
-
     story3Image?: string;
     story3Category?: LocalizedText;
     story3CategoryIcon?: string;
@@ -207,80 +137,41 @@ export interface Blog01Props {
     story3Description?: LocalizedText;
     story3Date?: LocalizedText;
     story3ReadTime?: LocalizedText;
-
-    /* ==========================================================
-       Community
-    ========================================================== */
-
     trekkerBadge?: LocalizedText;
     trekkerTitle?: LocalizedText;
     trekkerTitleAccent?: LocalizedText;
     trekkerDescription?: LocalizedText;
-
-    /* ==========================================================
-       Reviewer
-    ========================================================== */
-
     reviewerAvatar?: string;
     reviewerName?: LocalizedText;
     reviewerRole?: LocalizedText;
     reviewerVerified?: LocalizedText;
     reviewerQuote?: LocalizedText;
     reviewButton?: LocalizedText;
-
-    /* ==========================================================
-       Community Card 01
-    ========================================================== */
-
     community1Icon?: string;
     community1Title?: LocalizedText;
     community1Description?: LocalizedText;
-
-    /* ==========================================================
-       Community Card 02
-    ========================================================== */
-
     community2Icon?: string;
     community2Title?: LocalizedText;
     community2Description?: LocalizedText;
     community2Featured?: boolean;
-
-    /* ==========================================================
-       Community Card 03
-    ========================================================== */
-
     community3Icon?: string;
     community3Title?: LocalizedText;
     community3Description?: LocalizedText;
-
-    /* ==========================================================
-       Travel Hero
-    ========================================================== */
-
     travelHeroImage?: string;
     travelHeroTitle?: LocalizedText;
     travelHeroStories?: LocalizedText;
     travelHeroLocation?: LocalizedText;
-
-    /* ==========================================================
-       Travel Video
-    ========================================================== */
-
     travelVideoImage?: string;
     travelVideoDuration?: LocalizedText;
     travelVideoBadge?: LocalizedText;
     travelVideoTitle?: LocalizedText;
     travelVideoDescription?: LocalizedText;
-
     travelViews?: LocalizedText;
     travelViewsLabel?: LocalizedText;
-
     travelRating?: LocalizedText;
     travelRatingLabel?: LocalizedText;
-
     travelComments?: LocalizedText;
     travelCommentsLabel?: LocalizedText;
-
     travelButton?: LocalizedText;
 }
 
@@ -1790,8 +1681,6 @@ export function BlogPage01(props: Blog01Props) {
                         </div>
 
                         <div className={styles.trekkerVisual}>
-                            {/* ================= HERO IMAGE ================= */}
-
                             <div className={styles.trekkerHeroCard}>
                                 <Image
                                     src={travelHeroImage}
@@ -1823,9 +1712,6 @@ export function BlogPage01(props: Blog01Props) {
                                     <i className="bi bi-bookmark-heart-fill" />
                                 </button>
                             </div>
-
-                            {/* ================= VIDEO CARD ================= */}
-
                             <article className={styles.trekkerJourney}>
                                 <div className={styles.trekkerJourneyMedia}>
                                     <Image
@@ -1868,16 +1754,12 @@ export function BlogPage01(props: Blog01Props) {
                                                 <strong>{t(travelViews)}</strong>
                                                 <span>{t(travelViewsLabel)}</span>
                                             </div>
-
                                             <div className={styles.trekkerJourneyDivider} />
-
                                             <div className={styles.trekkerJourneyStat}>
                                                 <strong>{t(travelRating)}</strong>
                                                 <span>{t(travelRatingLabel)}</span>
                                             </div>
-
                                             <div className={styles.trekkerJourneyDivider} />
-
                                             <div className={styles.trekkerJourneyStat}>
                                                 <strong>{t(travelComments)}</strong>
                                                 <span>{t(travelCommentsLabel)}</span>
@@ -1930,9 +1812,7 @@ function createFeatureInspector(count: number): RegItem['inspector'] {
 
         return [
             createTextField(`feature${no}Icon` as keyof Blog01Props, `Feature ${no} Icon`),
-
             createTextField(`feature${no}Title` as keyof Blog01Props, `Feature ${no} Title`),
-
             createTextareaField(
                 `feature${no}Description` as keyof Blog01Props,
                 `Feature ${no} Description`,
@@ -1943,7 +1823,6 @@ function createFeatureInspector(count: number): RegItem['inspector'] {
 
 function createBlogInspector(count: number): RegItem['inspector'] {
     const inspector: RegItem['inspector'] = [];
-
     for (let i = 1; i <= count; i++) {
         inspector.push(
             {
@@ -1951,24 +1830,16 @@ function createBlogInspector(count: number): RegItem['inspector'] {
                 label: `Blog ${i} ID`,
                 kind: 'number',
             },
-
             createImageField(`blog${i}Image` as keyof Blog01Props, `Blog ${i} Image`),
-
             createTextField(`blog${i}category` as keyof Blog01Props, `Blog ${i} Category`),
-
             createTextField(`blog${i}Date` as keyof Blog01Props, `Blog ${i} Date`),
-
             createTextField(`blog${i}Title` as keyof Blog01Props, `Blog ${i} Title`),
-
             createTextareaField(
                 `blog${i}Description` as keyof Blog01Props,
                 `Blog ${i} Description`,
             ),
-
             createTextField(`blog${i}Author` as keyof Blog01Props, `Blog ${i} Author`),
-
             createTextField(`blog${i}Role` as keyof Blog01Props, `Blog ${i} Role`),
-
             createImageField(`blog${i}Avatar` as keyof Blog01Props, `Blog ${i} Avatar`),
         );
     }
@@ -1983,46 +1854,31 @@ function createStoryInspector(count: number): RegItem['inspector'] {
         createTextareaField('storyDescription', 'Story Description'),
         createTextField('storyActionText', 'Action Button'),
         createTextField('storyActionLink', 'Action Link'),
-
-        // =====================================
-        // Featured Story
-        // =====================================
-
         createImageField('featuredImage', 'Featured Image'),
-
         createTextField('featuredBadge', 'Featured Badge'),
         createTextField('featuredCategory', 'Featured Category'),
         createTextField('featuredCategoryIcon', 'Featured Category Icon'),
-
         createTextField('featuredTitle', 'Featured Title'),
         createTextField('featuredDate', 'Featured Date'),
         createTextField('featuredReadTime', 'Featured Read Time'),
-
         createTextareaField('featuredDescription', 'Featured Description'),
-
         createTextField('featuredButton', 'Featured Button'),
     ];
 
     for (let i = 1; i <= count; i++) {
         inspector.push(
             createImageField(`story${i}Image` as keyof Blog01Props, `Story ${i} Image`),
-
             createTextField(`story${i}Category` as keyof Blog01Props, `Story ${i} Category`),
-
             createTextField(
                 `story${i}CategoryIcon` as keyof Blog01Props,
                 `Story ${i} Category Icon`,
             ),
-
             createTextField(`story${i}Title` as keyof Blog01Props, `Story ${i} Title`),
-
             createTextareaField(
                 `story${i}Description` as keyof Blog01Props,
                 `Story ${i} Description`,
             ),
-
             createTextField(`story${i}Date` as keyof Blog01Props, `Story ${i} Date`),
-
             createTextField(`story${i}ReadTime` as keyof Blog01Props, `Story ${i} Read Time`),
         );
     }
@@ -2032,37 +1888,22 @@ function createStoryInspector(count: number): RegItem['inspector'] {
 
 function createCommunityInspector(count: number): RegItem['inspector'] {
     const inspector: RegItem['inspector'] = [
-        // =====================================
-        // Community
-        // =====================================
-
         createTextField('trekkerBadge', 'Community Badge'),
         createTextField('trekkerTitle', 'Community Title'),
         createTextField('trekkerTitleAccent', 'Community Title Accent'),
-
         createTextareaField('trekkerDescription', 'Community Description'),
-
-        // =====================================
-        // Reviewer
-        // =====================================
-
         createImageField('reviewerAvatar', 'Reviewer Avatar'),
-
         createTextField('reviewerName', 'Reviewer Name'),
         createTextField('reviewerRole', 'Reviewer Role'),
         createTextField('reviewerVerified', 'Reviewer Verified'),
-
         createTextareaField('reviewerQuote', 'Reviewer Quote'),
-
         createTextField('reviewButton', 'Review Button'),
     ];
 
     for (let i = 1; i <= count; i++) {
         inspector.push(
             createTextField(`community${i}Icon` as keyof Blog01Props, `Community ${i} Icon`),
-
             createTextField(`community${i}Title` as keyof Blog01Props, `Community ${i} Title`),
-
             createTextareaField(
                 `community${i}Description` as keyof Blog01Props,
                 `Community ${i} Description`,
@@ -2077,89 +1918,37 @@ function createCommunityInspector(count: number): RegItem['inspector'] {
             });
         }
     }
-
     return inspector;
 }
 
 function createInspector(): RegItem['inspector'] {
     return [
-        // ==========================================================
-        // Breadcrumb
-        // ==========================================================
-
         createTextField('breadcrumbHome', 'Breadcrumb Home'),
         createTextField('breadcrumbCurrent', 'Breadcrumb Current'),
-
-        // ==========================================================
-        // Hero
-        // ==========================================================
-
         createTextField('heroBadge', 'Hero Badge'),
         createTextField('heroTitle', 'Hero Title'),
         createTextField('heroTitleAccent', 'Hero Title Accent'),
         createTextareaField('heroDescription', 'Hero Description'),
-
         createTextField('heroPrimaryButton', 'Primary Button'),
         createTextField('heroSecondaryButton', 'Secondary Button'),
-
         createTextField('heroReviewText', 'Hero Review Text'),
         createTextField('heroRating', 'Hero Rating'),
-
         createImageField('heroImage', 'Hero Image'),
-
-        // ==========================================================
-        // Hero Features
-        // ==========================================================
-
         ...createFeatureInspector(4),
-
-        // ==========================================================
-        // Blog Section
-        // ==========================================================
-
         createTextField('blogSectionTitle', 'Blog Section Title'),
         createTextField('blogSectionTitleAccent', 'Blog Section Title Accent'),
         createTextareaField('blogSectionDescription', 'Blog Section Description'),
         createTextField('blogActionButton', 'Blog Action Button'),
-
-        // ==========================================================
-        // Blog Items
-        // ==========================================================
-
         ...createBlogInspector(4),
-
-        // ==========================================================
-        // Story
-        // ==========================================================
-
         ...createStoryInspector(3),
-
-        // ==========================================================
-        // Community
-        // ==========================================================
-
         ...createCommunityInspector(3),
-
-        // ==========================================================
-        // Travel Hero
-        // ==========================================================
-
         createImageField('travelHeroImage', 'Travel Hero Image'),
-
         createTextField('travelHeroTitle', 'Travel Hero Title'),
         createTextField('travelHeroStories', 'Travel Hero Stories'),
         createTextField('travelHeroLocation', 'Travel Hero Location'),
-
-        // ==========================================================
-        // Travel Video
-        // ==========================================================
-
         createImageField('travelVideoImage', 'Travel Video Image'),
-
         createTextField('travelVideoTitle', 'Travel Video Title'),
-
         createTextareaField('travelVideoDescription', 'Travel Video Description'),
-
         createTextField('travelButton', 'Travel Button'),
     ];
 }

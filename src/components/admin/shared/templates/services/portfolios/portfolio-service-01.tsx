@@ -445,7 +445,7 @@ export function PortfolioService01({
    Registry
 ───────────────────────────────────────────────── */
 export const PORTFOLIO_SERVICE_01: RegItem = {
-    kind: 'PortfolioService01',
+    kind: 'portfolio-service-01',
     label: 'Portfolio Service 01',
 
     defaults: {

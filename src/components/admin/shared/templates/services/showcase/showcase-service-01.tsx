@@ -549,7 +549,7 @@ function createInspector(): RegItem['inspector'] {
 }
 
 export const SHOWCASE_SERVICE_01: RegItem = {
-    kind: 'ShowcaseService01',
+    kind: 'showcase-service-01',
 
     label: 'Showcase Service 01',
 

@@ -202,7 +202,7 @@ export function FooterService02({
 }
 
 export const FOOTER_SERVICE_02: RegItem = {
-    kind: 'FooterService02',
+    kind: 'footer-service-02',
 
     label: 'Footer Service 02',
 

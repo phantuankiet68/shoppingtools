@@ -192,7 +192,7 @@ export function FooterService06({
 }
 
 export const FOOTER_SERVICE_06: RegItem = {
-    kind: 'FooterService06',
+    kind: 'footer-service-06',
 
     label: 'Footer Service 06',
 

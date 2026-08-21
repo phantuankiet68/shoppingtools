@@ -627,7 +627,7 @@ function createInspector(): RegItem['inspector'] {
    Registry
 ───────────────────────────────────────────────── */
 export const HERO_SERVICE_01: RegItem = {
-    kind: 'HeroService01',
+    kind: 'hero-service-01',
     label: 'Hero Service 01',
     defaults: DEFAULT_PROPS,
     inspector: createInspector(),

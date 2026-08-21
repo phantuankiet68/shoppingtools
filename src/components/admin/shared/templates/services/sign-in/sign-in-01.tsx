@@ -1518,13 +1518,9 @@ function createInspector(): RegItem['inspector'] {
 }
 export const SIGN_IN_01: RegItem = {
     kind: 'sign-in-01',
-
     label: 'Sign In 01',
-
     defaults: DEFAULT_PROPS,
-
     inspector: createInspector(),
-
     render: (props) => <SignIn01 {...(props as SignIn01Props)} />,
 };
 

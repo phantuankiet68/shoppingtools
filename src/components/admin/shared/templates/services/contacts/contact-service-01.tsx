@@ -3,12 +3,8 @@
 import styles from '@/components/admin/shared/templates/services/contacts/styles/contact-service-01.module.css';
 import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
 import { useEffect, useRef, useState, useMemo } from 'react';
-
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 
-/* ─────────────────────────────────────────────────
-   Types
-───────────────────────────────────────────────── */
 export interface ContactInfoItem {
     id: string;
     icon: string;
@@ -653,14 +649,10 @@ function createInspector(): InspectorField[] {
    Registry
 ───────────────────────────────────────────────── */
 export const CONTACT_SERVICE_01: RegItem = {
-    kind: 'ContactService01',
-
+    kind: 'contact-page-01',
     label: 'Contact Service 01',
-
     defaults: DEFAULT_PROPS,
-
     inspector: createInspector(),
-
     render: (props) => <ContactService01 {...(props as ContactService01Props)} />,
 };
 

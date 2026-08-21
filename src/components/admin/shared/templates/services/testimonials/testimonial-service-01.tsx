@@ -580,7 +580,7 @@ function createInspector() {
     ];
 }
 export const TESTIMONIAL_SERVICE_01: RegItem = {
-    kind: 'TestimonialService01',
+    kind: 'testimonial-service-01',
 
     label: 'Testimonial Service 01',
 
