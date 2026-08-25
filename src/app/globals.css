@@ -92,6 +92,17 @@
     /* Primary */
     --primary: #2563eb;
     --primary-soft: #eff6ff;
+    --aiv-bg: #07101f;
+    --aiv-surface: #0c1628;
+    --aiv-surface-2: #101c30;
+    --aiv-border: rgba(148, 163, 184, 0.13);
+    --aiv-text: #f7f8ff;
+    --aiv-muted: #8491a8;
+    --aiv-purple: #7c4dff;
+    --aiv-purple-2: #9b6cff;
+    --aiv-green: #22c995;
+    --aiv-blue: #50a7ff;
+    --aiv-pink: #ec5bb9;
 }
 
 html {

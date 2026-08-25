@@ -6,6 +6,7 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
+        "video-worker": "tsx --env-file=.env src/features/platform/ai-video/workers/video-worker.ts",
         "lint": "eslint",
         "prisma:migrate": "prisma migrate dev",
         "prisma:generate": "prisma generate",

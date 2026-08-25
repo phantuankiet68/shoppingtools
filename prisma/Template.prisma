@@ -11,17 +11,18 @@ enum TemplateStatus {
 }
 
 model TemplateCategory {
-  id String @id @default(cuid())
-  name String
-  websiteType WebsiteType
-  minTier AccessTier @default(BASIC) @map("min_tier")
-  sortOrder Int @default(0) @map("sort_order")
-  isActive Boolean @default(true) @map("is_active")
-  templates TemplateCatalog[]
+  id            String            @id @default(cuid())
+  name          String
+  websiteType   WebsiteType
+  minTier       AccessTier        @default(BASIC) @map("min_tier")
+  sortOrder     Int               @default(0) @map("sort_order")
+  isActive      Boolean           @default(true) @map("is_active")
+  templates     TemplateCatalog[]
   menuTemplates MenuTemplate[]
   pageTemplates PageTemplate[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
   @@index([websiteType, name])
   @@index([websiteType, name, minTier])
   @@index([isActive, sortOrder])
@@ -36,19 +37,19 @@ model TemplateCatalog {
   name String
   kind String
 
-  categoryId String @map("category_id")
-  category TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryId String           @map("category_id")
+  category   TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
-  status TemplateStatus @default(PUBLISHED)
-  previewImageUrl String? @map("preview_image_url")
+  status          TemplateStatus @default(PUBLISHED)
+  previewImageUrl String?        @map("preview_image_url")
 
   isActive Boolean @default(true) @map("is_active")
   isPublic Boolean @default(true) @map("is_public")
 
   sortOrder Int @default(0) @map("sort_order")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   @@index([categoryId, sortOrder])
@@ -58,19 +59,20 @@ model TemplateCatalog {
 }
 
 model PageTemplate {
-  id String @id @default(cuid())
-  categoryId String @map("category_id")
-  category TemplateCategory @relation(fields: [categoryId],references: [id],onDelete: Restrict)
-  websiteType WebsiteType
-  title String @db.VarChar(191)
-  slug String? @db.VarChar(191)
-  path String @db.VarChar(255)
-  blocks Json?
-  previewImageUrl String? @map("preview_image_url")
-  sortOrder Int @default(0) @map("sort_order")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id              String           @id @default(cuid())
+  categoryId      String           @map("category_id")
+  category        TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  websiteType     WebsiteType
+  title           String           @db.VarChar(191)
+  slug            String?          @db.VarChar(191)
+  path            String           @db.VarChar(255)
+  blocks          Json?
+  previewImageUrl String?          @map("preview_image_url")
+  sortOrder       Int              @default(0) @map("sort_order")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  deletedAt       DateTime?        @map("deleted_at")
+
   @@unique([websiteType, categoryId, slug])
   @@index([categoryId, sortOrder])
   @@index([websiteType, categoryId])

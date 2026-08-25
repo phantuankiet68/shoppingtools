@@ -1,65 +1,65 @@
 enum ApiMethod {
-    GET
-    POST
-    PUT
-    PATCH
-    DELETE
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
 }
 
 enum ApiHealthStatus {
-    SUCCESS
-    FAILED
-    TIMEOUT
-    PENDING
+  SUCCESS
+  FAILED
+  TIMEOUT
+  PENDING
 }
 
 model ApiHealthEndpoint {
-    id                String           @id @default(cuid())
+  id String @id @default(cuid())
 
-    name              String
-    endpoint          String
-    method            ApiMethod
-    category          String
+  name     String
+  endpoint String
+  method   ApiMethod
+  category String
 
-    isActive          Boolean          @default(true)
+  isActive Boolean @default(true)
 
-    lastStatus        ApiHealthStatus?
-    lastHttpStatus    Int?
-    lastResponseTime  Int?
-    lastCheckedAt     DateTime?
+  lastStatus       ApiHealthStatus?
+  lastHttpStatus   Int?
+  lastResponseTime Int?
+  lastCheckedAt    DateTime?
 
-    createdAt         DateTime         @default(now())
-    updatedAt         DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    checks            ApiHealthCheck[]
+  checks ApiHealthCheck[]
 
-    @@unique([method, endpoint])
-    @@index([category])
-    @@index([isActive])
-    @@index([lastStatus])
-    @@index([lastCheckedAt])
+  @@unique([method, endpoint])
+  @@index([category])
+  @@index([isActive])
+  @@index([lastStatus])
+  @@index([lastCheckedAt])
 }
 
 model ApiHealthCheck {
-    id              String            @id @default(cuid())
+  id String @id @default(cuid())
 
-    endpointId      String
-    endpoint        ApiHealthEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  endpointId String
+  endpoint   ApiHealthEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
-    status          ApiHealthStatus
+  status ApiHealthStatus
 
-    httpStatus      Int?
-    responseTime    Int?
+  httpStatus   Int?
+  responseTime Int?
 
-    errorCode       String?
-    errorMessage    String?
+  errorCode    String?
+  errorMessage String?
 
-    response        Json?
+  response Json?
 
-    checkedAt       DateTime          @default(now())
+  checkedAt DateTime @default(now())
 
-    @@index([endpointId])
-    @@index([status])
-    @@index([checkedAt])
-    @@index([endpointId, checkedAt])
+  @@index([endpointId])
+  @@index([status])
+  @@index([checkedAt])
+  @@index([endpointId, checkedAt])
 }

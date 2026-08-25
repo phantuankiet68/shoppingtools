@@ -5,27 +5,28 @@ enum ProjectStatus {
 }
 
 model Project {
-  id              String        @id @default(cuid())
-  userId String @map("user_id")
-  name            String
-  slug            String        @unique
-  websiteType     WebsiteType
-  description     String?       @db.Text
-  thumbnail       String?
-  logo            String?
-  domain          String?
-  status          ProjectStatus @default(PENDING)
-  isPublished     Boolean       @default(false) @map("is_published")
-  totalViews      Int           @default(0) @map("total_views")
-  totalTemplates  Int           @default(0) @map("total_templates")
-  storageUsed     BigInt        @default(0) @map("storage_used")
-  publishedAt     DateTime?     @map("published_at")
-  reviewedBy      String?       @map("reviewed_by")
-  reviewedAt      DateTime?     @map("reviewed_at")
-  rejectReason    String?       @db.Text
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
-  user User @relation("UserProjects",fields: [userId],references: [id], onDelete: Cascade)
+  id             String        @id @default(cuid())
+  userId         String        @map("user_id")
+  name           String
+  slug           String        @unique
+  websiteType    WebsiteType
+  description    String?       @db.Text
+  thumbnail      String?
+  logo           String?
+  domain         String?
+  status         ProjectStatus @default(PENDING)
+  isPublished    Boolean       @default(false) @map("is_published")
+  totalViews     Int           @default(0) @map("total_views")
+  totalTemplates Int           @default(0) @map("total_templates")
+  storageUsed    BigInt        @default(0) @map("storage_used")
+  publishedAt    DateTime?     @map("published_at")
+  reviewedBy     String?       @map("reviewed_by")
+  reviewedAt     DateTime?     @map("reviewed_at")
+  rejectReason   String?       @db.Text
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  user           User          @relation("UserProjects", fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([status])
   @@index([websiteType])
   @@index([slug])

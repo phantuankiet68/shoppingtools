@@ -13,26 +13,27 @@ enum Gender {
 }
 
 model Profile {
-  id       String @id @default(cuid())
-  userId   String @unique @map("user_id")
-  firstName String? @map("first_name")
-  lastName  String? @map("last_name")
-  username  String? @unique
-  avatar String?
-  banner String?
-  contactEmail String? @map("contact_email")
-  contactPhone String? @map("contact_phone")
-  gender Gender? @default(UNKNOWN)
-  dob DateTime? @map("dob")
-  bio String? @db.Text
-  locale String?
-  timezone String?
-  address  String?
-  status ProfileStatus @default(ACTIVE)
-  user User @relation("UserProfile", fields: [userId], references: [id], onDelete: Cascade)
-  socialLinks SocialLink[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String        @id @default(cuid())
+  userId       String        @unique @map("user_id")
+  firstName    String?       @map("first_name")
+  lastName     String?       @map("last_name")
+  username     String?       @unique
+  avatar       String?
+  banner       String?
+  contactEmail String?       @map("contact_email")
+  contactPhone String?       @map("contact_phone")
+  gender       Gender?       @default(UNKNOWN)
+  dob          DateTime?     @map("dob")
+  bio          String?       @db.Text
+  locale       String?
+  timezone     String?
+  address      String?
+  status       ProfileStatus @default(ACTIVE)
+  user         User          @relation("UserProfile", fields: [userId], references: [id], onDelete: Cascade)
+  socialLinks  SocialLink[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
   @@index([username])
   @@index([status])
   @@map("profiles")
@@ -54,12 +55,12 @@ enum SocialType {
 }
 
 model SocialLink {
-  id String @id @default(cuid())
-  profileId String @map("profile_id")
-  type SocialType
-  url String
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id        String     @id @default(cuid())
+  profileId String     @map("profile_id")
+  type      SocialType
+  url       String
+  profile   Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
   @@unique([profileId, type])
   @@map("profile_social_links")
 }
-

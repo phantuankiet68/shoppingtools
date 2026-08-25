@@ -1,0 +1,246 @@
+enum VideoAffiliateStatus {
+  DRAFT
+  ANALYZING
+  READY
+  FAILED
+}
+
+enum VideoAffiliatePlatform {
+  TIKTOK
+  SHOPEE
+  LAZADA
+  AMAZON
+  WEBSITE
+  OTHER
+}
+
+enum CharacterGender {
+  FEMALE
+  MALE
+  NON_BINARY
+  UNSPECIFIED
+}
+
+enum CharacterStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum VideoProjectStatus {
+  DRAFT
+  READY
+  GENERATING
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum VideoProjectStep {
+  ANALYZE_PRODUCT
+  GENERATE_SCRIPT
+  GENERATE_VOICE
+  GENERATE_SCENES
+  GENERATE_ANIMATION
+  GENERATE_SUBTITLES
+  ADD_MUSIC
+  COMPOSE_VIDEO
+  RENDER_VIDEO
+  COMPLETED
+}
+
+enum VideoSceneStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+enum VideoJobType {
+  ANALYZE_PRODUCT
+  GENERATE_SCRIPT
+  GENERATE_VOICE
+  GENERATE_SCENE
+  GENERATE_ANIMATION
+  GENERATE_SUBTITLES
+  ADD_MUSIC
+  GENERATE_THUMBNAIL
+  COMPOSE_VIDEO
+  RENDER_VIDEO
+}
+
+enum VideoJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model VideoAffiliate {
+  id String @id @default(cuid())
+  createdById String @map("created_by_id")
+  sourceUrl String? @db.Text
+  sourcePlatform VideoAffiliatePlatform @default(OTHER) @map("source_platform")
+  title String?
+  description String? @db.Text
+  category String?
+  currency String @default("USD")
+  priceMin Decimal? @map("price_min") @db.Decimal(12, 2)
+  priceMax Decimal? @map("price_max") @db.Decimal(12, 2)
+  rating Decimal? @db.Decimal(3, 2)
+  reviewCount Int? @map("review_count")
+  soldCount Int? @map("sold_count")
+  productImages Json? @map("product_images")
+  highlights Json?
+  analysisJson Json? @map("analysis_json")
+  status VideoAffiliateStatus @default(DRAFT)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  createdBy User @relation("VideoAffiliateCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  projects VideoProject[]
+  @@index([createdById])
+  @@index([status])
+  @@map("video_affiliates")
+}
+
+model VideoCharacter {
+  id String @id @default(cuid())
+  createdById String @map("created_by_id")
+  name String
+  imageUrl String @map("image_url")
+  thumbnailUrl String? @map("thumbnail_url")
+  gender CharacterGender @default(UNSPECIFIED)
+  language String @default("vi-VN")
+  voiceProvider String? @map("voice_provider")
+  voiceId String? @map("voice_id")
+  defaultMotion String? @map("default_motion")
+  defaultStyle String? @map("default_style")
+  metadata Json?
+  status CharacterStatus @default(ACTIVE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  createdBy User @relation("VideoCharacterCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  projectLinks VideoProjectCharacter[]
+  @@index([createdById])
+  @@index([status])
+  @@map("video_characters")
+}
+
+model VideoProject {
+  id String @id @default(cuid())
+  createdById String @map("created_by_id")
+  videoAffiliateId String? @map("video_affiliate_id")
+  name String
+  status VideoProjectStatus @default(DRAFT)
+  durationSeconds Int @default(30) @map("duration_seconds")
+  aspectRatio String @default("9:16") @map("aspect_ratio")
+  width Int @default(1080)
+  height Int @default(1920)
+  language String @default("vi-VN")
+  videoStyle String? @map("video_style")
+  scriptText String? @map("script_text") @db.Text
+  scriptJson Json? @map("script_json")
+  voiceProvider String? @map("voice_provider")
+  voiceId String? @map("voice_id")
+  voiceText String? @map("voice_text") @db.Text
+  voiceUrl String? @map("voice_url")
+  backgroundMusic String? @map("background_music")
+  affiliateUrl String? @map("affiliate_url") @db.Text
+  ctaText String? @map("cta_text")
+  settingsJson Json? @map("settings_json")
+  currentStep VideoProjectStep? @map("current_step")
+  progress Int @default(0)
+  finalVideoUrl String? @map("final_video_url")
+  thumbnailUrl String? @map("thumbnail_url")
+  errorMessage String? @map("error_message") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  completedAt DateTime? @map("completed_at")
+  createdBy User @relation("VideoProjectCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  videoAffiliate VideoAffiliate? @relation(fields: [videoAffiliateId], references: [id], onDelete: SetNull)
+  characters VideoProjectCharacter[]
+  scenes VideoScene[]
+  jobs VideoJob[]
+  @@index([createdById])
+  @@index([videoAffiliateId])
+  @@index([status])
+  @@index([currentStep])
+  @@map("video_projects")
+}
+
+model VideoProjectCharacter {
+  id String @id @default(cuid())
+  projectId String @map("project_id")
+  characterId String @map("character_id")
+  role String?
+  sortOrder Int @default(0) @map("sort_order")
+  sceneConfig Json? @map("scene_config")
+  createdAt DateTime @default(now()) @map("created_at")
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  character VideoCharacter @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  @@unique([projectId, characterId])
+  @@index([projectId, sortOrder])
+  @@index([characterId])
+  @@map("video_project_characters")
+}
+
+model VideoScene {
+  id String @id @default(cuid())
+  projectId String @map("project_id")
+  sceneNumber Int @map("scene_number")
+  title String?
+  durationSeconds Float @default(5) @map("duration_seconds")
+  scriptText String? @map("script_text") @db.Text
+  voiceText String? @map("voice_text") @db.Text
+  characterIds Json? @map("character_ids")
+  productImageUrls Json? @map("product_image_urls")
+  backgroundUrl String? @map("background_url")
+  motion String?
+  cameraMotion String? @map("camera_motion")
+  style String?
+  settingsJson Json? @map("settings_json")
+  provider String?
+  providerJobId String? @map("provider_job_id")
+  generatedVideoUrl String? @map("generated_video_url")
+  thumbnailUrl String? @map("thumbnail_url")
+  status VideoSceneStatus @default(PENDING)
+  errorMessage String? @map("error_message") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  jobs VideoJob[] @relation("VideoSceneJobs")
+  @@unique([projectId, sceneNumber])
+  @@index([projectId, status])
+  @@index([providerJobId])
+  @@map("video_scenes")
+}
+
+model VideoJob {
+  id String @id @default(cuid())
+  projectId String @map("project_id")
+  sceneId String? @map("scene_id")
+  type VideoJobType
+  status VideoJobStatus @default(QUEUED)
+  provider String?
+  providerJobId String? @map("provider_job_id")
+  progress Int @default(0)
+  attempt Int @default(0)
+  maxAttempts Int @default(3) @map("max_attempts")
+  inputJson Json? @map("input_json")
+  outputJson Json? @map("output_json")
+  errorCode String? @map("error_code")
+  errorMessage String? @map("error_message") @db.Text
+  startedAt DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scene VideoScene? @relation("VideoSceneJobs", fields: [sceneId], references: [id], onDelete: Cascade)
+  @@index([projectId, status])
+  @@index([sceneId])
+  @@index([status])
+  @@index([providerJobId])
+  @@map("video_jobs")
+}
