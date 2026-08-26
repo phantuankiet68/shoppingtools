@@ -40,6 +40,23 @@ export async function POST(req: NextRequest) {
                 { status: 400 },
             );
         }
+        let normalizedPublishedAt: Date | null = null;
+
+        if (publishedAt) {
+            const parsedPublishedAt = new Date(publishedAt);
+
+            if (Number.isNaN(parsedPublishedAt.getTime())) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'Invalid publishedAt datetime.',
+                    },
+                    { status: 400 },
+                );
+            }
+
+            normalizedPublishedAt = parsedPublishedAt;
+        }
 
         const site = await createSite({
             name,
@@ -52,7 +69,7 @@ export async function POST(req: NextRequest) {
             seoDescription,
             status,
             isPublic,
-            publishedAt,
+            publishedAt: normalizedPublishedAt,
             workspaceId,
             ownerUserId: session.user.id,
             createdByUserId: session.user.id,

@@ -38,6 +38,22 @@ export async function POST(req: NextRequest) {
             category,
         });
 
+        if (!result || !result.menus || result.menus.length === 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'No menu template data found.',
+                    code: 'MENU_TEMPLATE_EMPTY',
+                    data: {
+                        type,
+                        category,
+                        menus: [],
+                    },
+                },
+                { status: 404 },
+            );
+        }
+
         return NextResponse.json({
             success: true,
             data: result,
