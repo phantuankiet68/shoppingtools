@@ -8,7 +8,7 @@ import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 import SiteForm from '@/components/admin/sites/SiteForm';
 import SiteTable from '@/components/admin/sites/SiteTable';
 import WorkflowModal from '@/components/admin/sites/workflow/WorkflowModal';
-import PaymentModal from '@/components/admin/sites/payment/PaymentModal';
+import PaymentModal, { PaymentInfo } from '@/components/admin/sites/payment/PaymentModal';
 import { useSiteActions } from '@/hooks/sites/useSiteActions';
 import { SiteFormMode, SiteLike } from '@/features/sites/types';
 import { CREATE_SITE_WORKFLOW } from '@/features/workflow/data';
@@ -16,11 +16,72 @@ import { WorkflowEvent } from '@/features/workflow/types';
 import { applyWorkflowEvent } from '@/features/workflow/applyWorkflowEvent';
 import PaymentHistoryModal from '@/components/admin/sites/payment/PaymentHistoryModal';
 
-type PaymentConfirmationPayload = {
-    months: number;
-    amount?: number;
-    paymentCode?: string;
+type PaymentApiResult = {
+    success?: boolean;
+    existing?: boolean;
+    message?: string;
+    error?: string;
+    payment?: PaymentInfo | null;
+    paymentInfo?: {
+        paymentId?: string | null;
+        paymentCode?: string | null;
+        invoiceNumber?: string | null;
+        monthlyPrice?: string | number | null;
+        months?: number | null;
+        totalAmount?: string | number | null;
+        currency?: string | null;
+        provider?: string | null;
+        method?: string | null;
+        transferContent?: string | null;
+        status?: PaymentInfo['status'];
+        confirmationRequestedAt?: string | null;
+        confirmationRequestedById?: string | null;
+        confirmationNote?: string | null;
+        plan?: {
+            id?: string | null;
+            name?: string | null;
+            code?: string | null;
+            price?: string | number | null;
+            currency?: string | null;
+            billingCycle?: string | null;
+        } | null;
+    } | null;
+    alreadyRequested?: boolean;
 };
+
+function normalizePaymentInfo(result: PaymentApiResult): PaymentInfo | null {
+    if (result.payment) {
+        return {
+            ...result.payment,
+            amount:
+                result.payment.amount !== undefined && result.payment.amount !== null
+                    ? String(result.payment.amount)
+                    : result.payment.amount,
+        };
+    }
+
+    if (!result.paymentInfo) {
+        return null;
+    }
+
+    return {
+        id: result.paymentInfo.paymentId ?? null,
+        paymentCode: result.paymentInfo.paymentCode ?? null,
+        invoiceNumber: result.paymentInfo.invoiceNumber ?? null,
+        amount:
+            result.paymentInfo.totalAmount !== undefined && result.paymentInfo.totalAmount !== null
+                ? String(result.paymentInfo.totalAmount)
+                : null,
+        currency: result.paymentInfo.currency ?? 'VND',
+        billingMonths:
+            result.paymentInfo.months !== undefined && result.paymentInfo.months !== null
+                ? Number(result.paymentInfo.months)
+                : null,
+        provider: result.paymentInfo.provider ?? null,
+        method: result.paymentInfo.method ?? null,
+        status: result.paymentInfo.status ?? 'PENDING',
+    };
+}
 
 export default function SitesPage() {
     const { t } = useAdminI18n();
@@ -52,8 +113,13 @@ export default function SitesPage() {
     const [mode, setMode] = useState<SiteFormMode>('edit');
     const [openWorkflow, setOpenWorkflow] = useState(false);
     const [workflow, setWorkflow] = useState(CREATE_SITE_WORKFLOW);
+
     const [paymentSite, setPaymentSite] = useState<SiteLike | null>(null);
+
+    const [payment, setPayment] = useState<PaymentInfo | null>(null);
+
     const [paymentHistorySite, setPaymentHistorySite] = useState<SiteLike | null>(null);
+
     const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
 
     const load = useCallback(async () => {
@@ -104,7 +170,9 @@ export default function SitesPage() {
             void load();
         }, 300);
 
-        return () => window.clearTimeout(timer);
+        return () => {
+            window.clearTimeout(timer);
+        };
     }, [load]);
 
     const active = useMemo(
@@ -137,6 +205,7 @@ export default function SitesPage() {
             }
 
             setWorkflow(CREATE_SITE_WORKFLOW);
+
             setOpenWorkflow(true);
 
             await handleCreate(form);
@@ -166,23 +235,76 @@ export default function SitesPage() {
     // Payment
     // ---------------------------------------------------------
 
-    const handleOpenPayment = useCallback((site: SiteLike) => {
-        setPaymentSite(site);
+    const findPendingPayment = useCallback((site: SiteLike | null) => {
+        if (!site) {
+            return null;
+        }
+
+        const pending = site.paymentSites?.find((item) => item.status === 'PENDING');
+
+        if (!pending) {
+            return null;
+        }
+
+        return {
+            id: pending.id,
+            paymentCode: pending.paymentCode,
+            amount:
+                pending.amount !== undefined && pending.amount !== null
+                    ? String(pending.amount)
+                    : null,
+            currency: pending.currency ?? 'VND',
+            billingMonths: pending.billingMonths ?? null,
+            invoiceNumber: pending.invoiceNumber ?? null,
+            transactionId: pending.transactionId ?? null,
+            provider: pending.provider ?? null,
+            method: pending.method ?? null,
+            status: pending.status ?? 'PENDING',
+            createdAt: pending.createdAt ?? null,
+            updatedAt: pending.updatedAt ?? null,
+            paidAt: pending.paidAt ?? null,
+        } satisfies PaymentInfo;
     }, []);
+
+    const handleOpenPayment = useCallback(
+        (site: SiteLike) => {
+            const plan = site.subscription?.plan;
+
+            if (!plan?.id || Number(plan.price ?? 0) <= 0) {
+                modal.error('Payment unavailable', 'This site does not have a pricing plan.');
+                return;
+            }
+
+            const pendingPayment = findPendingPayment(site);
+
+            setPaymentSite(site);
+            setPayment(pendingPayment);
+        },
+        [findPendingPayment, modal],
+    );
 
     const handleClosePayment = useCallback(() => {
         setPaymentSite(null);
+        setPayment(null);
     }, []);
 
-    const handlePaymentConfirmation = useCallback(
-        async (payload: PaymentConfirmationPayload) => {
+    /**
+     * Create or reuse a pending payment.
+     *
+     * IMPORTANT:
+     * This does NOT mean the user has paid.
+     * It only creates the PaymentSite record
+     * and returns its payment information.
+     */
+    const handleCreatePayment = useCallback(
+        async (months: number) => {
             if (!paymentSite?.id) {
                 throw new Error('Site is not available.');
             }
 
-            const months = Number(payload.months);
+            const normalizedMonths = Number(months);
 
-            if (![1, 3, 6, 12].includes(months)) {
+            if (![1, 3, 6, 12].includes(normalizedMonths)) {
                 throw new Error('Invalid billing period. Allowed values are 1, 3, 6 or 12 months.');
             }
 
@@ -192,27 +314,84 @@ export default function SitesPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    months,
+                    months: normalizedMonths,
                     provider: 'VNPAY',
                     method: 'BANK_TRANSFER',
                 }),
             });
 
-            const data = await response.json().catch(() => ({}));
+            const data = (await response.json().catch(() => ({}))) as PaymentApiResult;
 
             if (!response.ok) {
                 throw new Error(data.error || 'Payment creation failed.');
             }
 
-            // Refresh sites so the latest payment/subscription
-            // information is available.
+            const normalizedPayment = normalizePaymentInfo(data);
+
+            if (normalizedPayment) {
+                setPayment(normalizedPayment);
+            }
+
             await load();
 
-            // Close payment modal after successful creation.
-            setPaymentSite(null);
+            return data;
         },
         [paymentSite, load],
     );
+
+    /**
+     * Submit "I have paid".
+     *
+     * IMPORTANT:
+     * This does NOT create a new payment and
+     * does NOT change payment to SUCCESS.
+     * The backend confirmation endpoint only
+     * records that the user requested confirmation.
+     */
+    const handlePaymentConfirmation = useCallback(async () => {
+        if (!paymentSite?.id) {
+            throw new Error('Site is not available.');
+        }
+
+        const activePayment = payment ?? findPendingPayment(paymentSite);
+
+        if (!activePayment?.id) {
+            throw new Error('No pending payment was found for this site.');
+        }
+
+        if (activePayment.status !== 'PENDING') {
+            throw new Error(`This payment is no longer pending.`);
+        }
+
+        const response = await fetch(
+            `/api/admin/sites/${paymentSite.id}/payments/${activePayment.id}/confirm`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            },
+        );
+
+        const data = (await response.json().catch(() => ({}))) as PaymentApiResult & {
+            alreadyRequested?: boolean;
+        };
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Payment confirmation failed.');
+        }
+
+        const confirmedPayment = normalizePaymentInfo(data);
+
+        if (confirmedPayment) {
+            setPayment(confirmedPayment);
+        }
+
+        await load();
+
+        return data;
+    }, [paymentSite, payment, findPendingPayment, load]);
 
     return (
         <div className={styles.shell}>
@@ -222,10 +401,12 @@ export default function SitesPage() {
                         <div className={styles.panelHeader}>
                             <div className={styles.panelHeaderTop}>
                                 <div className={styles.panelTitle}>{t('sites.form.title')}</div>
+
                                 <div className={styles.panelSub}>
                                     {t('sites.form.sub')} ({currentSiteCount}/{maxSites})
                                 </div>
                             </div>
+
                             <div className={styles.tableToolbar}>
                                 <div className={styles.searchWrap}>
                                     <i className="bi bi-search" />
@@ -269,13 +450,17 @@ export default function SitesPage() {
                                             <option value="all">
                                                 {t('sites.table.allStatus')}
                                             </option>
+
                                             <option value="DRAFT">{t('sites.status.draft')}</option>
+
                                             <option value="PUBLISHED">
                                                 {t('sites.status.published')}
                                             </option>
+
                                             <option value="SUSPENDED">
                                                 {t('sites.status.suspended')}
                                             </option>
+
                                             <option value="ARCHIVED">
                                                 {t('sites.status.archived')}
                                             </option>
@@ -293,16 +478,21 @@ export default function SitesPage() {
                                             }}
                                         >
                                             <option value="all">{t('sites.table.allTypes')}</option>
+
                                             <option value="landing">
                                                 {t('sites.types.landing')}
                                             </option>
+
                                             <option value="blog">{t('sites.types.blog')}</option>
+
                                             <option value="ecommerce">
                                                 {t('sites.types.ecommerce')}
                                             </option>
+
                                             <option value="booking">
                                                 {t('sites.types.booking')}
                                             </option>
+
                                             <option value="lms">{t('sites.types.lms')}</option>
                                         </select>
                                     </div>
@@ -315,11 +505,14 @@ export default function SitesPage() {
                                         aria-label={t('sites.table.refresh')}
                                     >
                                         <i
-                                            className={`bi bi-arrow-clockwise ${busy ? styles.spin : ''}`}
+                                            className={`bi bi-arrow-clockwise ${
+                                                busy ? styles.spin : ''
+                                            }`}
                                         />
                                     </button>
                                 </div>
                             </div>
+
                             <div className={styles.panelHeaderActions}>
                                 {(mode === 'create' || !!activeId) && (
                                     <button
@@ -377,9 +570,7 @@ export default function SitesPage() {
                         setActiveId={setActiveId}
                         setMode={setMode}
                         onDelete={handleDelete}
-                        onPayment={(site) => {
-                            setPaymentSite(site);
-                        }}
+                        onPayment={handleOpenPayment}
                         onPaymentHistory={(site) => {
                             setPaymentHistorySite(site);
                             setPaymentHistoryOpen(true);
@@ -394,8 +585,11 @@ export default function SitesPage() {
                     open={!!paymentSite}
                     onClose={handleClosePayment}
                     site={paymentSite}
+                    payment={payment}
+                    onCreatePayment={handleCreatePayment}
                     onPaymentConfirmation={handlePaymentConfirmation}
                 />
+
                 <PaymentHistoryModal
                     open={paymentHistoryOpen}
                     site={paymentHistorySite}

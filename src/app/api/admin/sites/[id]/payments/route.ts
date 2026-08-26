@@ -43,6 +43,9 @@ const PAYMENT_SELECT = {
     receiptUrl: true,
     description: true,
     paidAt: true,
+    confirmationRequestedAt: true,
+    confirmationRequestedById: true,
+    confirmationNote: true,
     providerEventId: true,
     failureCode: true,
     failureMessage: true,
@@ -271,6 +274,7 @@ export async function GET(request: Request, { params }: RouteContext) {
         const url = new URL(request.url);
 
         const pageParam = Number(url.searchParams.get('page') ?? '1');
+
         const limitParam = Number(url.searchParams.get('limit') ?? '10');
 
         const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
@@ -402,7 +406,14 @@ export async function GET(request: Request, { params }: RouteContext) {
 /**
  * POST /api/admin/sites/[id]/payments
  *
- * Creates a new pending payment for the site's subscription.
+ * Creates or reuses a pending payment for the site's subscription.
+ *
+ * IMPORTANT:
+ * This endpoint ONLY creates/reuses the payment.
+ * It does NOT confirm that the user has paid.
+ *
+ * "I have paid" must call:
+ * POST /api/admin/sites/[id]/payments/[paymentId]/confirm
  */
 export async function POST(request: Request, { params }: RouteContext) {
     try {
@@ -653,11 +664,12 @@ export async function POST(request: Request, { params }: RouteContext) {
         /*
          * A pending payment is unique per site.
          *
-         * Same period:
-         *   reuse it.
+         * Same billing period:
+         * -> reuse existing payment.
          *
-         * Different period:
-         *   cancel the old pending payment and create a new one.
+         * Different billing period:
+         * -> cancel previous pending payment,
+         *    then create a new one.
          */
         const pendingPayment = await prisma.paymentSite.findFirst({
             where: {
@@ -675,8 +687,7 @@ export async function POST(request: Request, { params }: RouteContext) {
             pendingPayment.subscriptionId === subscription.id &&
             pendingPayment.billingMonths === months
         ) {
-            const transferContent =
-                `${pendingPayment.paymentCode} ` + `${pendingPayment.billingMonths}M`;
+            const transferContent = `${pendingPayment.paymentCode} ${pendingPayment.billingMonths}M`;
 
             return json({
                 success: true,
@@ -698,6 +709,9 @@ export async function POST(request: Request, { params }: RouteContext) {
                     method: pendingPayment.method,
                     transferContent,
                     status: pendingPayment.status,
+                    confirmationRequestedAt: pendingPayment.confirmationRequestedAt,
+                    confirmationRequestedById: pendingPayment.confirmationRequestedById,
+                    confirmationNote: pendingPayment.confirmationNote,
                     plan: {
                         id: plan.id,
                         name: plan.name,
@@ -729,11 +743,7 @@ export async function POST(request: Request, { params }: RouteContext) {
         /*
          * NEVER trust amount from the client.
          *
-         * Pricing:
-         * 1 month  = 90,000
-         * 3 months = 270,000
-         * 6 months = 540,000
-         * 12 months = 1,080,000
+         * Calculate payment amount from the database pricing plan.
          */
         const monthlyPrice = plan.price;
         const totalAmount = monthlyPrice.mul(months);
@@ -750,7 +760,9 @@ export async function POST(request: Request, { params }: RouteContext) {
         }
 
         const paymentCode = await createUniquePaymentCode();
+
         const invoiceNumber = await createUniqueInvoiceNumber();
+
         const transferContent = `${paymentCode} ${months}M`;
 
         const payment = await prisma.paymentSite.create({
@@ -766,6 +778,9 @@ export async function POST(request: Request, { params }: RouteContext) {
                 method,
                 invoiceNumber,
                 paidAt: null,
+                confirmationRequestedAt: null,
+                confirmationRequestedById: null,
+                confirmationNote: null,
                 description:
                     description ||
                     `Kbuilder ${plan.name} subscription - ` +
@@ -806,6 +821,9 @@ export async function POST(request: Request, { params }: RouteContext) {
                     method,
                     transferContent,
                     status: 'PENDING',
+                    confirmationRequestedAt: null,
+                    confirmationRequestedById: null,
+                    confirmationNote: null,
                     plan: {
                         id: plan.id,
                         name: plan.name,

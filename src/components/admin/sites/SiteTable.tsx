@@ -40,18 +40,58 @@ export default function SiteTable({
     onPayment,
     onPaymentHistory,
 }: Props) {
+    const currentPage = Math.max(1, Number(pagination.page) || 1);
+
+    const currentLimit = Math.max(1, Number(pagination.limit) || 10);
+
+    const total = Math.max(0, Number(pagination.total) || 0);
+
+    const totalPages = Math.max(1, Number(pagination.totalPages) || 1);
+
+    const hasPrevious = Boolean(pagination.hasPrevious) && currentPage > 1;
+
+    const hasNext = Boolean(pagination.hasNext) && currentPage < totalPages;
+
+    const start = total === 0 ? 0 : (currentPage - 1) * currentLimit + 1;
+
+    const end = total === 0 ? 0 : Math.min(currentPage * currentLimit, total);
+
+    const handlePreviousPage = () => {
+        if (busy || !hasPrevious) {
+            return;
+        }
+
+        setPage(Math.max(1, currentPage - 1));
+    };
+
+    const handleNextPage = () => {
+        if (busy || !hasNext) {
+            return;
+        }
+
+        setPage(Math.min(totalPages, currentPage + 1));
+    };
+
     return (
         <section className={styles.tableSection}>
             <div className={styles.tableWrap}>
                 <div className={styles.tableHeader}>
                     <div>{t('sites.table.site')}</div>
+
                     <div>{t('sites.table.type')}</div>
+
                     <div>{t('sites.table.status')}</div>
+
                     <div>{t('sites.table.domainSsl')}</div>
+
                     <div>{t('sites.table.deployment')}</div>
+
                     <div>{t('sites.table.usage')}</div>
+
                     <div>{t('sites.table.visits')}</div>
+
                     <div>{t('sites.table.updated')}</div>
+
                     <div>{t('sites.table.action')}</div>
                 </div>
 
@@ -80,34 +120,31 @@ export default function SiteTable({
 
             <div className={styles.tableFooter}>
                 <div className={styles.paginationInfo}>
-                    {t('sites.table.showing')}{' '}
-                    <strong>
-                        {items.length === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1}
-                    </strong>{' '}
-                    -{' '}
-                    <strong>
-                        {Math.min(pagination.page * pagination.limit, pagination.total)}
-                    </strong>{' '}
-                    {t('sites.table.of')} <strong>{pagination.total}</strong>
+                    {t('sites.table.showing')} <strong>{start}</strong> - <strong>{end}</strong>{' '}
+                    {t('sites.table.of')} <strong>{total}</strong>
                 </div>
 
                 <div className={styles.pagination}>
                     <button
                         type="button"
                         className={styles.pageBtn}
-                        disabled={!pagination.hasPrevious || busy}
-                        onClick={() => setPage(pagination.page - 1)}
+                        disabled={busy || !hasPrevious}
+                        onClick={handlePreviousPage}
+                        aria-label={t('sites.table.previousPage')}
                     >
                         <i className="bi bi-chevron-left" />
                     </button>
 
-                    <span className={styles.pageCurrent}>{pagination.page}</span>
+                    <span className={styles.pageCurrent} aria-current="page">
+                        {currentPage}
+                    </span>
 
                     <button
                         type="button"
                         className={styles.pageBtn}
-                        disabled={!pagination.hasNext || busy}
-                        onClick={() => setPage(pagination.page + 1)}
+                        disabled={busy || !hasNext}
+                        onClick={handleNextPage}
+                        aria-label={t('sites.table.nextPage')}
                     >
                         <i className="bi bi-chevron-right" />
                     </button>

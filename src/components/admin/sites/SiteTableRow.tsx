@@ -14,14 +14,20 @@ type Props = {
     onPaymentHistory: (site: SiteLike) => void;
 };
 
-const formatBytes = (value: string | number | bigint | undefined, maxBytes: number) => {
+const MAX_STORAGE_GB = 10;
+const MAX_BANDWIDTH_GB = 100;
+const BYTES_PER_GB = 1073741824;
+
+const formatBytes = (value: string | number | bigint | undefined, maxGb: number) => {
     const bytes = Number(value ?? 0);
 
-    if (!bytes) {
-        return '0 B';
+    if (!Number.isFinite(bytes) || bytes <= 0) {
+        return `0 GB / ${maxGb} GB`;
     }
 
-    return `${(bytes / 1073741824).toFixed(1)} GB / ${maxBytes} GB`;
+    const gb = bytes / BYTES_PER_GB;
+
+    return `${gb.toFixed(1)} GB / ${maxGb} GB`;
 };
 
 const formatDate = (value: string | Date | null | undefined) => {
@@ -59,19 +65,16 @@ const formatTime = (value: string | Date | null | undefined) => {
     }).format(date);
 };
 
-const getStatusClass = (status: SiteLike['status'], styles: Record<string, string>) => {
+const getStatusClass = (status: SiteLike['status'], stylesMap: Record<string, string>) => {
     switch (status) {
         case 'PUBLISHED':
-            return styles.publishedBadge;
-
+            return stylesMap.publishedBadge;
         case 'SUSPENDED':
-            return styles.suspendedBadge;
-
+            return stylesMap.suspendedBadge;
         case 'ARCHIVED':
-            return styles.archivedBadge;
-
+            return stylesMap.archivedBadge;
         default:
-            return styles.draftBadge;
+            return stylesMap.draftBadge;
     }
 };
 
@@ -79,13 +82,10 @@ const getStatusLabel = (status: SiteLike['status'], t: (key: string) => string) 
     switch (status) {
         case 'PUBLISHED':
             return t('sites.status.published');
-
         case 'SUSPENDED':
             return t('sites.status.suspended');
-
         case 'ARCHIVED':
             return t('sites.status.archived');
-
         default:
             return t('sites.status.draft');
     }
@@ -95,16 +95,12 @@ const getWebsiteIcon = (type: SiteLike['type']) => {
     switch (type) {
         case 'ecommerce':
             return 'bi-cart3';
-
         case 'booking':
             return 'bi-calendar3';
-
         case 'lms':
             return 'bi-mortarboard';
-
         case 'blog':
             return 'bi-file-text';
-
         case 'landing':
         default:
             return 'bi-rocket';
@@ -123,7 +119,12 @@ export default function SiteTableRow({
 }: Props) {
     const isActive = site.id === activeId;
 
-    const storagePercent = Math.min(100, (Number(site.storageUsedBytes ?? 0) / 10737418240) * 100);
+    const storageBytes = Number(site.storageUsedBytes ?? 0);
+
+    const storagePercent = Math.min(
+        100,
+        Math.max(0, (storageBytes / (MAX_STORAGE_GB * BYTES_PER_GB)) * 100),
+    );
 
     const sslActive = site.sslStatus === 'ACTIVE';
 
@@ -131,21 +132,11 @@ export default function SiteTableRow({
 
     const deploymentSuccess = site.deploymentStatus === 'SUCCESS';
 
-    /*
-     * Payment history
-     *
-     * Chỉ cần PaymentSite tồn tại là site đã từng
-     * tạo một giao dịch thanh toán.
-     *
-     * Không dùng:
-     * latestPayment.status === 'SUCCESS'
-     *
-     * vì PENDING / FAILED / CANCELED cũng là
-     * lịch sử payment hợp lệ.
-     */
     const paymentSites = site.paymentSites ?? [];
 
     const hasPaymentHistory = paymentSites.length > 0;
+
+    const hasPendingPayment = paymentSites.some((payment) => payment.status === 'PENDING');
 
     return (
         <div
@@ -159,7 +150,7 @@ export default function SiteTableRow({
             <div className={styles.siteCell}>
                 <div className={styles.siteAvatar}>
                     {site.logoUrl ? (
-                        <img src={site.logoUrl} alt="" />
+                        <img src={site.logoUrl} alt="" loading="lazy" />
                     ) : (
                         <i className="bi bi-globe2" />
                     )}
@@ -287,15 +278,16 @@ export default function SiteTableRow({
                 </div>
 
                 <div className={styles.usageInfo}>
-                    <strong>{formatBytes(site.storageUsedBytes, 10)}</strong>
+                    <strong>{formatBytes(site.storageUsedBytes, MAX_STORAGE_GB)}</strong>
 
-                    <span>{formatBytes(site.bandwidthUsedBytes, 100)}</span>
+                    <span>{formatBytes(site.bandwidthUsedBytes, MAX_BANDWIDTH_GB)}</span>
                 </div>
             </div>
 
             {/* Visits */}
             <div className={styles.visitsCell}>
                 <div className={styles.visitChart}>
+                    <span />
                     <span />
                     <span />
                     <span />
@@ -316,11 +308,19 @@ export default function SiteTableRow({
 
             {/* Actions */}
             <div className={styles.actionCell} onClick={(event) => event.stopPropagation()}>
-                {!hasPaymentHistory ? (
-                    /*
-                     * No payment history
-                     * → Create first payment
-                     */
+                {hasPendingPayment ? (
+                    <button
+                        type="button"
+                        className={styles.paymentBtn}
+                        onClick={() => onPayment(site)}
+                        aria-label={t('sites.table.payment')}
+                        title={t('sites.table.payment')}
+                    >
+                        <i className="bi bi-credit-card-2-front" />
+
+                        <span>{t('sites.table.payment')}</span>
+                    </button>
+                ) : !hasPaymentHistory ? (
                     <button
                         type="button"
                         className={styles.paymentBtn}
@@ -342,6 +342,7 @@ export default function SiteTableRow({
                         <i className="bi bi-arrow-repeat" />
                     </button>
                 )}
+
                 <button
                     type="button"
                     className={styles.removeBtn}

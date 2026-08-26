@@ -22,10 +22,9 @@ export type PaymentInfo = {
     createdAt?: string | Date | null;
     updatedAt?: string | Date | null;
     paidAt?: string | Date | null;
-};
-
-type PaymentConfirmationPayload = {
-    months: number;
+    confirmationRequestedAt?: string | Date | null;
+    confirmationRequestedById?: string | null;
+    confirmationNote?: string | null;
 };
 
 type PaymentConfirmationResult = {
@@ -42,6 +41,9 @@ type PaymentConfirmationResult = {
         method?: string | null;
         transferContent?: string | null;
         status?: PaymentStatus;
+        confirmationRequestedAt?: string | null;
+        confirmationRequestedById?: string | null;
+        confirmationNote?: string | null;
         plan?: {
             id?: string | null;
             name?: string | null;
@@ -51,6 +53,7 @@ type PaymentConfirmationResult = {
             billingCycle?: string | null;
         } | null;
     } | null;
+    alreadyRequested?: boolean;
 };
 
 type PaymentModalProps = {
@@ -58,9 +61,13 @@ type PaymentModalProps = {
     onClose: () => void;
     site?: SiteLike | null;
     payment?: PaymentInfo | null;
-    onPaymentConfirmation?: (
-        payload: PaymentConfirmationPayload,
+    onCreatePayment?: (
+        months: number,
     ) => Promise<PaymentConfirmationResult | void> | PaymentConfirmationResult | void;
+    onPaymentConfirmation?: () =>
+        | Promise<PaymentConfirmationResult | void>
+        | PaymentConfirmationResult
+        | void;
 };
 
 const PAYMENT_MINUTES = 15;
@@ -72,11 +79,14 @@ const BILLING_OPTIONS = [
     { months: 12, discount: 0 },
 ] as const;
 
+const ALLOWED_MONTHS = [1, 3, 6, 12];
+
 export default function PaymentModal({
     open,
     onClose,
     site,
     payment,
+    onCreatePayment,
     onPaymentConfirmation,
 }: PaymentModalProps) {
     const [selectedMonths, setSelectedMonths] = useState(1);
@@ -87,35 +97,65 @@ export default function PaymentModal({
 
     const monthlyPrice = Number(site?.subscription?.plan?.price ?? 0);
 
-    const currency = payment?.currency ?? 'VND';
-
     const hasPricingPlan =
         !!site?.subscription?.plan && Number.isFinite(monthlyPrice) && monthlyPrice > 0;
+
+    const activePayment = createdPayment ?? payment ?? null;
+
+    const paymentStatus = activePayment?.status ?? null;
+
+    const hasPayment = !!activePayment?.id;
+
+    const hasPendingPayment = hasPayment && paymentStatus === 'PENDING';
+
+    const hasConfirmationRequest =
+        !!activePayment?.confirmationRequestedAt || confirmationRequested;
+
+    const currency = activePayment?.currency ?? 'VND';
 
     useEffect(() => {
         if (!open) {
             return;
         }
 
-        setSelectedMonths(payment?.billingMonths ?? 1);
-        setSecondsLeft(PAYMENT_MINUTES * 60);
+        const initialPayment = payment ?? null;
+
+        setSelectedMonths(
+            initialPayment?.billingMonths && ALLOWED_MONTHS.includes(initialPayment.billingMonths)
+                ? initialPayment.billingMonths
+                : 1,
+        );
+
         setConfirming(false);
-        setConfirmationRequested(payment?.status === 'PENDING');
-        setCreatedPayment(payment ?? null);
 
-        const timer = window.setInterval(() => {
-            setSecondsLeft((current) => {
-                if (current <= 1) {
-                    window.clearInterval(timer);
-                    return 0;
-                }
+        setCreatedPayment(initialPayment);
 
-                return current - 1;
-            });
-        }, 1000);
+        setConfirmationRequested(!!initialPayment?.confirmationRequestedAt);
+    }, [open, payment]);
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const createdAt = activePayment?.createdAt
+            ? new Date(activePayment.createdAt).getTime()
+            : Date.now();
+
+        const expiresAt = createdAt + PAYMENT_MINUTES * 60 * 1000;
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+
+            setSecondsLeft(remaining);
+        };
+
+        updateTimer();
+
+        const timer = window.setInterval(updateTimer, 1000);
 
         return () => window.clearInterval(timer);
-    }, [open, payment]);
+    }, [open, activePayment?.createdAt, activePayment?.id]);
 
     const selectedOption = useMemo(
         () =>
@@ -125,23 +165,24 @@ export default function PaymentModal({
     );
 
     const subtotal = monthlyPrice * selectedMonths;
+
     const discountAmount = Math.round(subtotal * (selectedOption.discount / 100));
+
     const total = subtotal - discountAmount;
 
-    const minutes = Math.floor(secondsLeft / 60);
-    const seconds = secondsLeft % 60;
+    const paymentAmount = Number(activePayment?.amount ?? total);
 
-    const activePayment = createdPayment ?? payment ?? null;
+    const minutes = Math.floor(secondsLeft / 60);
+
+    const seconds = secondsLeft % 60;
 
     const paymentCode = activePayment?.paymentCode ?? '';
 
-    const paymentStatus = activePayment?.status ?? 'PENDING';
+    const paymentId = activePayment?.id ?? 'Generated after payment creation';
 
-    const paymentId = activePayment?.id ?? 'Generated after submission';
+    const invoiceNumber = activePayment?.invoiceNumber ?? 'Generated after payment creation';
 
-    const invoiceNumber = activePayment?.invoiceNumber ?? 'Generated after submission';
-
-    const transactionId = activePayment?.transactionId ?? 'Waiting for confirmation';
+    const transactionId = activePayment?.transactionId ?? 'Waiting for payment';
 
     const provider = activePayment?.provider ?? 'VNPAY';
 
@@ -149,7 +190,9 @@ export default function PaymentModal({
 
     const subscriptionLabel =
         activePayment?.subscriptionLabel ??
-        `${selectedMonths} ${selectedMonths === 1 ? 'month' : 'months'}`;
+        `${activePayment?.billingMonths ?? selectedMonths} ${
+            (activePayment?.billingMonths ?? selectedMonths) === 1 ? 'month' : 'months'
+        }`;
 
     const formattedMoney = (value: number) =>
         new Intl.NumberFormat('vi-VN', {
@@ -157,7 +200,7 @@ export default function PaymentModal({
             currency: 'VND',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(value);
+        }).format(Number.isFinite(value) ? value : 0);
 
     const formatDate = (value?: string | Date | null) => {
         if (!value) {
@@ -188,36 +231,40 @@ export default function PaymentModal({
         }
     };
 
-    const handlePaymentConfirmation = async () => {
-        if (confirming || confirmationRequested || !site?.id) {
-            return;
-        }
-
-        if (!hasPricingPlan) {
-            console.error('Payment unavailable: site has no pricing plan.');
+    const handleCreatePayment = async () => {
+        if (confirming || !site?.id || !hasPricingPlan) {
             return;
         }
 
         if (secondsLeft <= 0) {
-            console.error('Payment QR expired.');
+            console.error('Payment session expired.');
             return;
         }
 
-        if (![1, 3, 6, 12].includes(selectedMonths)) {
+        if (!ALLOWED_MONTHS.includes(selectedMonths)) {
             console.error('Invalid billing period.');
+            return;
+        }
+
+        if (typeof onCreatePayment !== 'function') {
+            console.error('[PaymentModal] onCreatePayment handler is not provided.');
             return;
         }
 
         try {
             setConfirming(true);
 
-            const result = await onPaymentConfirmation?.({
-                months: selectedMonths,
-            });
+            const result = await onCreatePayment(selectedMonths);
 
             if (result?.payment) {
                 setCreatedPayment(result.payment);
-            } else if (result?.paymentInfo) {
+
+                setConfirmationRequested(!!result.payment.confirmationRequestedAt);
+
+                return;
+            }
+
+            if (result?.paymentInfo) {
                 setCreatedPayment({
                     id: result.paymentInfo.paymentId,
                     paymentCode: result.paymentInfo.paymentCode,
@@ -228,16 +275,110 @@ export default function PaymentModal({
                     provider: result.paymentInfo.provider,
                     method: result.paymentInfo.method,
                     status: result.paymentInfo.status ?? 'PENDING',
+                    confirmationRequestedAt: result.paymentInfo.confirmationRequestedAt ?? null,
+                    confirmationRequestedById: result.paymentInfo.confirmationRequestedById ?? null,
+                    confirmationNote: result.paymentInfo.confirmationNote ?? null,
+                });
+
+                setConfirmationRequested(!!result.paymentInfo.confirmationRequestedAt);
+            }
+        } catch (error) {
+            console.error('[PaymentModal] Payment creation failed:', error);
+        } finally {
+            setConfirming(false);
+        }
+    };
+
+    const handlePaymentConfirmation = async () => {
+        if (confirming || !site?.id || !activePayment?.id) {
+            return;
+        }
+
+        if (paymentStatus !== 'PENDING') {
+            return;
+        }
+
+        if (secondsLeft <= 0) {
+            console.error('Payment session expired.');
+            return;
+        }
+
+        if (typeof onPaymentConfirmation !== 'function') {
+            console.error('[PaymentModal] onPaymentConfirmation handler is not provided.');
+            return;
+        }
+
+        try {
+            setConfirming(true);
+
+            const result = await onPaymentConfirmation();
+
+            if (result?.payment) {
+                setCreatedPayment(result.payment);
+            } else if (result?.paymentInfo) {
+                setCreatedPayment({
+                    id: result.paymentInfo.paymentId ?? activePayment.id,
+                    paymentCode: result.paymentInfo.paymentCode ?? activePayment.paymentCode,
+                    amount: result.paymentInfo.totalAmount ?? activePayment.amount,
+                    currency: result.paymentInfo.currency ?? activePayment.currency,
+                    billingMonths: result.paymentInfo.months ?? activePayment.billingMonths,
+                    invoiceNumber: result.paymentInfo.invoiceNumber ?? activePayment.invoiceNumber,
+                    provider: result.paymentInfo.provider ?? activePayment.provider,
+                    method: result.paymentInfo.method ?? activePayment.method,
+                    status: result.paymentInfo.status ?? activePayment.status,
+                    confirmationRequestedAt:
+                        result.paymentInfo.confirmationRequestedAt ?? new Date().toISOString(),
+                    confirmationRequestedById:
+                        result.paymentInfo.confirmationRequestedById ??
+                        activePayment.confirmationRequestedById,
+                    confirmationNote:
+                        result.paymentInfo.confirmationNote ?? activePayment.confirmationNote,
                 });
             }
 
             setConfirmationRequested(true);
         } catch (error) {
-            console.error('Payment confirmation request failed:', error);
+            console.error('[PaymentModal] Confirmation failed:', error);
         } finally {
             setConfirming(false);
         }
     };
+
+    const handlePrimaryAction = async () => {
+        if (!hasPayment) {
+            await handleCreatePayment();
+            return;
+        }
+
+        if (hasPendingPayment && !hasConfirmationRequest) {
+            await handlePaymentConfirmation();
+        }
+    };
+
+    const primaryActionDisabled =
+        confirming ||
+        !site?.id ||
+        secondsLeft <= 0 ||
+        (!hasPayment && !hasPricingPlan) ||
+        (hasPayment && (paymentStatus !== 'PENDING' || hasConfirmationRequest));
+
+    const primaryIcon = confirming
+        ? 'bi-arrow-repeat'
+        : !hasPayment
+          ? 'bi-credit-card-2-front'
+          : hasConfirmationRequest
+            ? 'bi-check2-circle'
+            : 'bi-check2-circle';
+
+    const primaryLabel = confirming
+        ? hasPayment
+            ? 'Submitting...'
+            : 'Creating payment...'
+        : !hasPayment
+          ? 'Create payment'
+          : hasConfirmationRequest
+            ? 'Confirmation submitted'
+            : 'I have paid';
 
     if (!open) {
         return null;
@@ -264,7 +405,16 @@ export default function PaymentModal({
 
                                 <span className={styles.pendingBadge}>
                                     <i className="bi bi-circle-fill" />
-                                    {paymentStatus === 'PENDING' ? 'Pending' : paymentStatus}
+
+                                    {paymentStatus === 'SUCCESS'
+                                        ? 'Paid'
+                                        : paymentStatus === 'PENDING'
+                                          ? hasConfirmationRequest
+                                              ? 'Confirmation requested'
+                                              : hasPayment
+                                                ? 'Pending'
+                                                : 'Ready'
+                                          : (paymentStatus ?? 'Ready')}
                                 </span>
                             </div>
 
@@ -279,6 +429,7 @@ export default function PaymentModal({
                         className={styles.closeBtn}
                         onClick={onClose}
                         aria-label="Close payment modal"
+                        disabled={confirming}
                     >
                         <i className="bi bi-x-lg" />
                     </button>
@@ -288,7 +439,15 @@ export default function PaymentModal({
                     <section className={styles.summary}>
                         <div className={styles.siteCard}>
                             <div className={styles.sitePreview}>
-                                <i className="bi bi-globe2" />
+                                {site?.logoUrl ? (
+                                    <img
+                                        src={site.logoUrl}
+                                        alt=""
+                                        className={styles.sitePreviewImage}
+                                    />
+                                ) : (
+                                    <i className="bi bi-globe2" />
+                                )}
                             </div>
 
                             <div className={styles.siteInfo}>
@@ -347,6 +506,8 @@ export default function PaymentModal({
 
                                         const price = monthlyPrice * option.months;
 
+                                        const locked = confirming || hasPayment;
+
                                         return (
                                             <button
                                                 key={option.months}
@@ -355,7 +516,7 @@ export default function PaymentModal({
                                                     active ? styles.periodCardActive : ''
                                                 }`}
                                                 onClick={() => setSelectedMonths(option.months)}
-                                                disabled={confirming || confirmationRequested}
+                                                disabled={locked}
                                             >
                                                 {active && (
                                                     <span className={styles.selectedMark}>
@@ -424,7 +585,7 @@ export default function PaymentModal({
                                             <span>VAT included</span>
                                         </div>
 
-                                        <b>{formattedMoney(total)}</b>
+                                        <b>{formattedMoney(hasPayment ? paymentAmount : total)}</b>
                                     </div>
                                 </div>
                             </div>
@@ -473,17 +634,23 @@ export default function PaymentModal({
 
                                         <span>Total amount</span>
 
-                                        <b>{hasPricingPlan ? formattedMoney(total) : '—'}</b>
+                                        <b>
+                                            {hasPricingPlan
+                                                ? formattedMoney(hasPayment ? paymentAmount : total)
+                                                : '—'}
+                                        </b>
 
                                         <small>
                                             <i className="bi bi-clock" />
 
-                                            {secondsLeft > 0
-                                                ? `Expires in ${String(minutes).padStart(
-                                                      2,
-                                                      '0',
-                                                  )}:${String(seconds).padStart(2, '0')}`
-                                                : 'Payment QR expired'}
+                                            {hasPayment
+                                                ? secondsLeft > 0
+                                                    ? `Expires in ${String(minutes).padStart(
+                                                          2,
+                                                          '0',
+                                                      )}:${String(seconds).padStart(2, '0')}`
+                                                    : 'Payment QR expired'
+                                                : 'Create payment to start'}
                                         </small>
                                     </div>
                                 </div>
@@ -497,6 +664,7 @@ export default function PaymentModal({
                                 <div className={styles.transferHeader}>
                                     <div>
                                         <i className="bi bi-bank" />
+
                                         <strong>Bank transfer information</strong>
                                     </div>
 
@@ -579,15 +747,19 @@ export default function PaymentModal({
 
                         <div>
                             <strong>
-                                {confirmationRequested
+                                {hasConfirmationRequest
                                     ? 'Confirmation requested'
-                                    : 'Secure payment'}
+                                    : hasPayment
+                                      ? 'Payment pending'
+                                      : 'Secure payment'}
                             </strong>
 
                             <p>
-                                {confirmationRequested
-                                    ? 'Your payment is waiting for administrator confirmation.'
-                                    : 'After payment, submit your confirmation and wait for administrator approval.'}
+                                {hasConfirmationRequest
+                                    ? 'Your payment has been submitted and is waiting for administrator confirmation.'
+                                    : hasPayment
+                                      ? 'Complete the bank transfer, then click I have paid.'
+                                      : 'Create a payment first to generate your payment information.'}
                             </p>
                         </div>
                     </div>
@@ -605,30 +777,12 @@ export default function PaymentModal({
                         <button
                             type="button"
                             className={styles.paidBtn}
-                            onClick={handlePaymentConfirmation}
-                            disabled={
-                                confirming ||
-                                confirmationRequested ||
-                                !hasPricingPlan ||
-                                paymentStatus !== 'PENDING' ||
-                                secondsLeft <= 0
-                            }
+                            onClick={handlePrimaryAction}
+                            disabled={primaryActionDisabled}
                         >
-                            <i
-                                className={
-                                    confirming
-                                        ? 'bi bi-arrow-repeat'
-                                        : confirmationRequested
-                                          ? 'bi bi-check2-circle'
-                                          : 'bi bi-check2-circle'
-                                }
-                            />
+                            <i className={`bi ${primaryIcon} ${confirming ? styles.spin : ''}`} />
 
-                            {confirming
-                                ? 'Creating payment...'
-                                : confirmationRequested
-                                  ? 'Confirmation submitted'
-                                  : 'I have paid'}
+                            {primaryLabel}
                         </button>
                     </div>
                 </footer>

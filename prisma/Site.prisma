@@ -279,6 +279,10 @@ model PaymentSite {
 
   paidAt DateTime?
 
+  confirmationRequestedAt   DateTime? @map("confirmation_requested_at")
+  confirmationRequestedById String?   @map("confirmation_requested_by_id")
+  confirmationNote         String?    @map("confirmation_note") @db.Text
+
   providerEventId String?   @map("provider_event_id")
   failureCode     String?
   failureMessage  String?   @db.Text
@@ -294,5 +298,6 @@ model PaymentSite {
   @@index([provider])
   @@index([paidAt])
   @@index([billingMonths])
+  @@index([confirmationRequestedAt])
   @@map("payment_sites")
 }
