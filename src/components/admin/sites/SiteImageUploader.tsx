@@ -6,14 +6,10 @@ import { ChangeEvent, DragEvent, useEffect, useRef, useState } from 'react';
 
 type Props = {
     type: 'logo' | 'favicon';
-
     value?: string;
-
     disabled?: boolean;
-
     onUploaded: (file: File, preview: string) => void;
 };
-
 export default function SiteImageUploader({ type, value, disabled, onUploaded }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
 

@@ -6,23 +6,16 @@ import styles from '@/styles/admin/sites/sites.module.css';
 
 import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 import SiteImageUploader from '@/components/admin/sites/SiteImageUploader';
-import { MENU_TEMPLATES } from '@/constants/menus/menuConstants';
 import { WEBSITE_CATEGORIES } from '@/constants/sites/siteConstants';
 import { SiteFormMode, SiteFormState, SiteLike } from '@/features/sites/types';
 import { useSiteForm } from '@/hooks/sites/useSiteForm';
 import { formatDate } from '@/utils/sites/siteHelpers';
 
-import { getPageTemplate } from '@/utils/pages/pageHelpers';
-
 type Props = {
     active?: SiteLike | null;
-
     busy: boolean;
-
     mode: SiteFormMode;
-
     onSave: (payload: SiteFormState) => Promise<void>;
-
     onCreate: (payload: SiteFormState) => Promise<void>;
 };
 

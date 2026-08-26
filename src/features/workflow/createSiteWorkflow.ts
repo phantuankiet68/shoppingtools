@@ -237,7 +237,6 @@ export async function createSiteWorkflow({
                     method: 'POST',
                     body: assetsFormData,
                 });
-
                 const result = await readResponse(response);
 
                 return result.data ?? result;

@@ -48,3 +48,5 @@ Bạn hãy chỉnh giúp tôi nhé nếu nhiều quá thì hãy lưu ý đừng 
 tạo DEFAULT_PROPS giúp tôi nhé
 
 Hiện tại tôi muốn tạo list site mannager để quản lý toàn bộ site đã được đăng ký. tôi đang sử dụng công nghệ next 16, prisma 7.8.0, và css module. Bạn hãy ở cương vị là serior front-end developer hãy tạo bố cục giống với ảnh nhưng khác về nội dụng. và hãy độ lại có thêm icon mắt để link đến domain site để kiểm tra và thêm nút khóa nửa nhé
+
+Bạn ở vị trí serior back end developer với 8 năm kinh nghiệm hãy review lại giúp tôi xem có bug ẩn hay không chỉnh, và kiểm tra xem có thể tạo help rồi rút gon code sách hơn nhé. Lưu ý hãy check giúp tôi xem đã có check auth chưa nhé import { getCurrentSession } from '@/lib/auth/session'; và ghi lại toàn bộ file hoàn chỉnh sau khi đã chỉnh sửa nhé

@@ -19,9 +19,6 @@ export async function GET(req: NextRequest) {
 
         const { searchParams } = new URL(req.url);
 
-        const page = Math.max(Number(searchParams.get('page') ?? 1), 1);
-        const limit = Math.min(Math.max(Number(searchParams.get('limit') ?? 20), 1), 100);
-
         const search = searchParams.get('search')?.trim();
         const websiteTypeParam = searchParams.get('websiteType');
         const categoryId = searchParams.get('categoryId');
@@ -115,8 +112,6 @@ export async function GET(req: NextRequest) {
                     category: true,
                 },
                 orderBy,
-                skip: (page - 1) * limit,
-                take: limit,
             }),
 
             prisma.menuTemplate.count({
@@ -137,12 +132,6 @@ export async function GET(req: NextRequest) {
             success: true,
             data: items,
             categories,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages: Math.ceil(total / limit),
-            },
         });
     } catch (error) {
         if (error instanceof Error) {

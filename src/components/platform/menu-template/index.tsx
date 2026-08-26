@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MenuArea, WebsiteType } from '@/generated/prisma';
 import {
     createMenuTemplate,
@@ -12,8 +12,10 @@ import {
 import { useMenuTemplate } from '@/hooks/platform/menu-template/use-menu-template';
 import styles from '@/styles/platform/menu-template/menu-template.module.css';
 import CreateMenuTemplateModal from '@/components/platform/menu-template/CreateMenuTemplateModal';
-import type { CreateMenuTemplatePayload } from '@/services/platform/menu-template/index.service';
-import type { MenuTemplate as MenuTemplateModel } from '@/services/platform/menu-template/index.service';
+import type {
+    CreateMenuTemplatePayload,
+    MenuTemplate as MenuTemplateModel,
+} from '@/services/platform/menu-template/index.service';
 
 const groupColors = [
     styles.groupBlue,
@@ -64,8 +66,6 @@ const websiteTypes: {
 ];
 
 export default function MenuTemplate() {
-    const [page, setPage] = useState(1);
-    const [limit] = useState(20);
     const [search, setSearch] = useState('');
     const [websiteType, setWebsiteType] = useState<WebsiteType>();
     const [categoryId] = useState<string>();
@@ -73,10 +73,12 @@ export default function MenuTemplate() {
     const [visible] = useState<boolean>();
     const [sortBy] = useState<'sortOrder' | 'title' | 'createdAt' | 'updatedAt'>('sortOrder');
     const [sortOrder] = useState<'asc' | 'desc'>('asc');
+
     const [openCreateModal, setOpenCreateModal] = useState(false);
-    const { loading, error, menus, categories, setMenus, pagination, refresh } = useMenuTemplate({
-        page,
-        limit,
+    const [editingMenu, setEditingMenu] = useState<MenuTemplateModel | null>(null);
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+    const { loading, error, menus, categories, setMenus, refresh } = useMenuTemplate({
         search,
         websiteType,
         categoryId,
@@ -85,7 +87,6 @@ export default function MenuTemplate() {
         sortBy,
         sortOrder,
     });
-    const [editingMenu, setEditingMenu] = useState<MenuTemplateModel | null>(null);
 
     const groups = useMemo(() => {
         const map = new Map<
@@ -93,24 +94,46 @@ export default function MenuTemplate() {
             {
                 id: string;
                 title: string;
-                menus: typeof menus;
+                menus: MenuTemplateModel[];
             }
         >();
 
         menus.forEach((item) => {
-            if (!map.has(item.category.id)) {
-                map.set(item.category.id, {
-                    id: item.category.id,
-                    title: item.category.name,
+            const category = item.category;
+
+            if (!category) return;
+
+            if (!map.has(category.id)) {
+                map.set(category.id, {
+                    id: category.id,
+                    title: category.name,
                     menus: [],
                 });
             }
 
-            map.get(item.category.id)!.menus.push(item);
+            map.get(category.id)!.menus.push(item);
         });
 
-        return [...map.values()];
+        return Array.from(map.values());
     }, [menus]);
+
+    useEffect(() => {
+        setCollapsedGroups(new Set(groups.map((group) => group.id)));
+    }, [groups]);
+
+    function toggleGroup(groupId: string) {
+        setCollapsedGroups((prev) => {
+            const next = new Set(prev);
+
+            if (next.has(groupId)) {
+                next.delete(groupId);
+            } else {
+                next.add(groupId);
+            }
+
+            return next;
+        });
+    }
 
     async function handleDelete(id: string) {
         if (!confirm('Delete this menu template?')) return;
@@ -120,21 +143,16 @@ export default function MenuTemplate() {
 
             setMenus((prev) => prev.filter((item) => item.id !== id));
         } catch (err) {
-            if (err instanceof Error) {
-                alert(err.message);
-            }
+            alert(err instanceof Error ? err.message : 'Failed to delete menu template.');
         }
     }
 
     async function handleDuplicate(id: string) {
         try {
             await duplicateMenuTemplate(id);
-
             await refresh();
         } catch (err) {
-            if (err instanceof Error) {
-                alert(err.message);
-            }
+            alert(err instanceof Error ? err.message : 'Failed to duplicate menu template.');
         }
     }
 
@@ -153,9 +171,7 @@ export default function MenuTemplate() {
                 ),
             );
         } catch (err) {
-            if (err instanceof Error) {
-                alert(err.message);
-            }
+            alert(err instanceof Error ? err.message : 'Failed to update visibility.');
         }
     }
 
@@ -168,26 +184,16 @@ export default function MenuTemplate() {
         setOpenCreateModal(true);
     }
 
-    async function handleCreateMenu(payload: CreateMenuTemplatePayload) {
-        try {
-            await createMenuTemplate(payload);
+    const parentMenus = useMemo(
+        () =>
+            menus.map((item) => ({
+                id: item.id,
+                title: item.title,
+            })),
+        [menus],
+    );
 
-            setOpenCreateModal(false);
-
-            refresh();
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    const parentMenus = useMemo(() => {
-        return menus.map((item) => ({
-            id: item.id,
-            title: item.title,
-        }));
-    }, [menus]);
-
-    const handleSubmitMenu = async (data: CreateMenuTemplatePayload) => {
+    async function handleSubmitMenu(data: CreateMenuTemplatePayload) {
         try {
             if (editingMenu) {
                 await updateMenuTemplate(editingMenu.id, data);
@@ -200,13 +206,14 @@ export default function MenuTemplate() {
             setEditingMenu(null);
             setOpenCreateModal(false);
         } catch (err) {
-            if (err instanceof Error) {
-                alert(err.message);
-            } else {
-                alert('Failed to save menu template.');
-            }
+            alert(err instanceof Error ? err.message : 'Failed to save menu template.');
         }
-    };
+    }
+
+    function closeModal() {
+        setEditingMenu(null);
+        setOpenCreateModal(false);
+    }
 
     if (loading) {
         return (
@@ -234,7 +241,10 @@ export default function MenuTemplate() {
                         {views.map((view) => (
                             <button
                                 key={view.label}
-                                className={`${styles.viewButton} ${view.active ? styles.viewButtonActive : ''}`}
+                                type="button"
+                                className={`${styles.viewButton} ${
+                                    view.active ? styles.viewButtonActive : ''
+                                }`}
                             >
                                 <i className={`bi ${view.icon}`} />
                                 <span>{view.label}</span>
@@ -245,11 +255,11 @@ export default function MenuTemplate() {
                             {websiteTypes.map((item) => (
                                 <button
                                     key={item.value}
-                                    className={`${styles.websiteButton} ${websiteType === item.value ? styles.websiteButtonActive : ''}`}
-                                    onClick={() => {
-                                        setWebsiteType(item.value);
-                                        setPage(1);
-                                    }}
+                                    type="button"
+                                    className={`${styles.websiteButton} ${
+                                        websiteType === item.value ? styles.websiteButtonActive : ''
+                                    }`}
+                                    onClick={() => setWebsiteType(item.value)}
                                 >
                                     <i className={`bi ${item.icon}`} />
                                     <span>{item.label}</span>
@@ -261,13 +271,18 @@ export default function MenuTemplate() {
 
                 <div className={styles.toolbarRight}>
                     <button
+                        type="button"
                         className={styles.toolbarButton}
-                        onClick={() => setOpenCreateModal(true)}
+                        onClick={() => {
+                            setEditingMenu(null);
+                            setOpenCreateModal(true);
+                        }}
                     >
                         <i className="bi bi-plus-lg" />
                         <span>Create</span>
                     </button>
-                    <button className={styles.toolbarButton}>
+
+                    <button type="button" className={styles.toolbarButton}>
                         <i className="bi bi-sort-down" />
                         <span>Sort</span>
                     </button>
@@ -278,256 +293,219 @@ export default function MenuTemplate() {
                         <input
                             value={search}
                             placeholder="Search menu template..."
-                            onChange={(e) => {
-                                setSearch(e.target.value);
-                                setPage(1);
-                            }}
+                            onChange={(e) => setSearch(e.target.value)}
                         />
 
-                        <button className={styles.searchShortcut}>⌘K</button>
+                        <button type="button" className={styles.searchShortcut}>
+                            ⌘K
+                        </button>
                     </div>
                 </div>
             </header>
 
             <div className={styles.content}>
-                {groups.map((group, index) => (
-                    <section
-                        key={group.id}
-                        className={`${styles.group} ${groupColors[index % groupColors.length]}`}
-                    >
-                        <div className={styles.groupHeader}>
-                            <div className={styles.groupLeft}>
-                                <button className={styles.expand}>
-                                    <i className="bi bi-chevron-down" />
+                {groups.map((group, index) => {
+                    const collapsed = collapsedGroups.has(group.id);
+
+                    return (
+                        <section
+                            key={group.id}
+                            className={`${styles.group} ${groupColors[index % groupColors.length]}`}
+                        >
+                            <div className={styles.groupHeader}>
+                                <div className={styles.groupLeft}>
+                                    <button
+                                        type="button"
+                                        className={styles.expand}
+                                        aria-label={
+                                            collapsed
+                                                ? `Expand ${group.title}`
+                                                : `Collapse ${group.title}`
+                                        }
+                                        aria-expanded={!collapsed}
+                                        onClick={() => toggleGroup(group.id)}
+                                    >
+                                        <i
+                                            className={`bi ${
+                                                collapsed ? 'bi-chevron-right' : 'bi-chevron-down'
+                                            }`}
+                                        />
+                                    </button>
+
+                                    <div className={styles.groupInfo}>
+                                        <h3>{group.title}</h3>
+                                        <span>{group.menus.length}</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className={styles.groupMenu}
+                                    aria-label={`More options for ${group.title}`}
+                                >
+                                    <i className="bi bi-three-dots" />
                                 </button>
-
-                                <div className={styles.groupInfo}>
-                                    <h3>{group.title}</h3>
-                                    <span>{group.menus.length}</span>
-                                </div>
                             </div>
 
-                            <button className={styles.groupMenu}>
-                                <i className="bi bi-three-dots" />
-                            </button>
-                        </div>
-
-                        <div className={styles.table}>
-                            <div className={styles.tableHeader}>
-                                <div className={styles.colName}>
-                                    Name
-                                    <i className="bi bi-arrow-down-up" />
-                                </div>
-
-                                <div className={styles.colPath}>
-                                    Path
-                                    <i className="bi bi-arrow-down-up" />
-                                </div>
-
-                                <div className={styles.colIcon}>Icon</div>
-
-                                <div className={styles.colWebsiteType}>
-                                    Website Type
-                                    <i className="bi bi-arrow-down-up" />
-                                </div>
-
-                                <div className={styles.colArea}>
-                                    Area
-                                    <i className="bi bi-arrow-down-up" />
-                                </div>
-
-                                <div className={styles.colVisible}>Visible</div>
-
-                                <div className={styles.colSort}>
-                                    Sort
-                                    <i className="bi bi-arrow-down-up" />
-                                </div>
-
-                                <div className={styles.colActions}>Actions</div>
-                            </div>
-
-                            {group.menus.map((menu, menuIndex) => (
-                                <div key={menu.id} className={styles.row}>
-                                    <div className={styles.colName}>
-                                        <div className={styles.taskId}>
-                                            MT-{String(menuIndex + 1).padStart(3, '0')}
+                            {!collapsed && (
+                                <div className={styles.table}>
+                                    <div className={styles.tableHeader}>
+                                        <div className={styles.colName}>
+                                            Name
+                                            <i className="bi bi-arrow-down-up" />
                                         </div>
 
-                                        <div className={styles.taskContent}>
-                                            <div className={styles.taskTitle}>{menu.title}</div>
+                                        <div className={styles.colPath}>
+                                            Path
+                                            <i className="bi bi-arrow-down-up" />
                                         </div>
-                                    </div>
 
-                                    <div className={styles.colPath}>{menu.path ?? '-'}</div>
+                                        <div className={styles.colIcon}>Icon</div>
 
-                                    <div className={styles.colIcon}>
-                                        <div className={styles.iconBadge}>
-                                            {menu.icon ? (
-                                                <i className={`bi ${menu.icon}`} />
-                                            ) : (
-                                                <i className="bi bi-dash" />
-                                            )}
+                                        <div className={styles.colWebsiteType}>
+                                            Website Type
+                                            <i className="bi bi-arrow-down-up" />
                                         </div>
+
+                                        <div className={styles.colArea}>
+                                            Area
+                                            <i className="bi bi-arrow-down-up" />
+                                        </div>
+
+                                        <div className={styles.colVisible}>Visible</div>
+
+                                        <div className={styles.colSort}>
+                                            Sort
+                                            <i className="bi bi-arrow-down-up" />
+                                        </div>
+
+                                        <div className={styles.colActions}>Actions</div>
                                     </div>
 
-                                    <div className={styles.colWebsiteType}>
-                                        <span
-                                            className={`${styles.websiteBadge}
-                                    ${
-                                        menu.websiteType === WebsiteType.landing
-                                            ? styles.websiteLanding
-                                            : menu.websiteType === WebsiteType.blog
-                                              ? styles.websiteBlog
-                                              : menu.websiteType === WebsiteType.ecommerce
-                                                ? styles.websiteEcommerce
-                                                : menu.websiteType === WebsiteType.booking
-                                                  ? styles.websiteBooking
-                                                  : styles.websiteLms
-                                    }`}
-                                        >
-                                            {menu.websiteType}
-                                        </span>
-                                    </div>
+                                    {group.menus.map((menu, menuIndex) => (
+                                        <div key={menu.id} className={styles.row}>
+                                            <div className={styles.colName}>
+                                                <div className={styles.taskId}>
+                                                    MT-
+                                                    {String(menuIndex + 1).padStart(3, '0')}
+                                                </div>
 
-                                    <div className={styles.colArea}>
-                                        <span
-                                            className={`${styles.areaBadge} ${
-                                                menu.area === MenuArea.ADMIN
-                                                    ? styles.areaAdmin
-                                                    : menu.area === MenuArea.PLATFORM
-                                                      ? styles.areaPlatform
-                                                      : styles.areaSite
-                                            }`}
-                                        >
-                                            {menu.area}
-                                        </span>
-                                    </div>
+                                                <div className={styles.taskContent}>
+                                                    <div className={styles.taskTitle}>
+                                                        {menu.title}
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                    <div className={styles.colVisible}>
-                                        <label className={styles.switch}>
-                                            <input
-                                                type="checkbox"
-                                                checked={menu.visible}
-                                                onChange={(e) =>
-                                                    handleVisible(menu.id, e.target.checked)
-                                                }
-                                            />
+                                            <div className={styles.colPath}>{menu.path ?? '-'}</div>
 
-                                            <span className={styles.slider} />
-                                        </label>
-                                    </div>
+                                            <div className={styles.colIcon}>
+                                                <div className={styles.iconBadge}>
+                                                    {menu.icon ? (
+                                                        <i className={`bi ${menu.icon}`} />
+                                                    ) : (
+                                                        <i className="bi bi-dash" />
+                                                    )}
+                                                </div>
+                                            </div>
 
-                                    <div className={styles.colSort}>
-                                        <span className={styles.sortBadge}>{menu.sortOrder}</span>
-                                    </div>
+                                            <div className={styles.colWebsiteType}>
+                                                <span
+                                                    className={`${styles.websiteBadge} ${
+                                                        menu.websiteType === WebsiteType.landing
+                                                            ? styles.websiteLanding
+                                                            : menu.websiteType === WebsiteType.blog
+                                                              ? styles.websiteBlog
+                                                              : menu.websiteType ===
+                                                                  WebsiteType.ecommerce
+                                                                ? styles.websiteEcommerce
+                                                                : menu.websiteType ===
+                                                                    WebsiteType.booking
+                                                                  ? styles.websiteBooking
+                                                                  : styles.websiteLms
+                                                    }`}
+                                                >
+                                                    {menu.websiteType}
+                                                </span>
+                                            </div>
 
-                                    <div className={styles.actions}>
-                                        <button
-                                            className={styles.actionEdit}
-                                            title="Edit"
-                                            onClick={() => handleEdit(menu.id)}
-                                        >
-                                            <i className="bi bi-pencil-square" />
-                                        </button>
+                                            <div className={styles.colArea}>
+                                                <span
+                                                    className={`${styles.areaBadge} ${
+                                                        menu.area === MenuArea.ADMIN
+                                                            ? styles.areaAdmin
+                                                            : menu.area === MenuArea.PLATFORM
+                                                              ? styles.areaPlatform
+                                                              : styles.areaSite
+                                                    }`}
+                                                >
+                                                    {menu.area}
+                                                </span>
+                                            </div>
 
-                                        <button
-                                            className={styles.actionCopy}
-                                            title="Duplicate"
-                                            onClick={() => handleDuplicate(menu.id)}
-                                        >
-                                            <i className="bi bi-copy" />
-                                        </button>
+                                            <div className={styles.colVisible}>
+                                                <label className={styles.switch}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={menu.visible}
+                                                        onChange={(e) =>
+                                                            handleVisible(menu.id, e.target.checked)
+                                                        }
+                                                    />
+                                                    <span className={styles.slider} />
+                                                </label>
+                                            </div>
 
-                                        <button
-                                            className={styles.actionDelete}
-                                            title="Delete"
-                                            onClick={() => handleDelete(menu.id)}
-                                        >
-                                            <i className="bi bi-trash" />
-                                        </button>
-                                    </div>
+                                            <div className={styles.colSort}>
+                                                <span className={styles.sortBadge}>
+                                                    {menu.sortOrder}
+                                                </span>
+                                            </div>
+
+                                            <div className={styles.actions}>
+                                                <button
+                                                    type="button"
+                                                    className={styles.actionEdit}
+                                                    title="Edit"
+                                                    onClick={() => handleEdit(menu.id)}
+                                                >
+                                                    <i className="bi bi-pencil-square" />
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    className={styles.actionCopy}
+                                                    title="Duplicate"
+                                                    onClick={() => handleDuplicate(menu.id)}
+                                                >
+                                                    <i className="bi bi-copy" />
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    className={styles.actionDelete}
+                                                    title="Delete"
+                                                    onClick={() => handleDelete(menu.id)}
+                                                >
+                                                    <i className="bi bi-trash" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </section>
-                ))}
+                            )}
+                        </section>
+                    );
+                })}
             </div>
-            {pagination && pagination.totalPages > 1 && (
-                <footer className={styles.pagination}>
-                    <div className={styles.paginationInfo}>
-                        <span>
-                            Showing <strong>{(pagination.page - 1) * pagination.limit + 1}</strong>
-                            {' - '}
-                            <strong>
-                                {Math.min(pagination.page * pagination.limit, pagination.total)}
-                            </strong>
-                            {' of '}
-                            <strong>{pagination.total}</strong> menu templates
-                        </span>
-                    </div>
 
-                    <div className={styles.paginationActions}>
-                        <button
-                            className={styles.pageButton}
-                            disabled={pagination.page <= 1}
-                            onClick={() => setPage((prev) => prev - 1)}
-                        >
-                            <i className="bi bi-chevron-left" />
-                        </button>
-
-                        {Array.from({ length: pagination.totalPages }, (_, index) => index + 1)
-                            .filter((item) => {
-                                if (pagination.totalPages <= 7) return true;
-
-                                return (
-                                    item === 1 ||
-                                    item === pagination.totalPages ||
-                                    Math.abs(item - pagination.page) <= 1
-                                );
-                            })
-                            .map((item, index, array) => {
-                                const previous = array[index - 1];
-
-                                return (
-                                    <div key={item} className={styles.pageWrapper}>
-                                        {previous && item - previous > 1 && (
-                                            <span className={styles.pageDots}>...</span>
-                                        )}
-
-                                        <button
-                                            className={`${styles.pageButton} ${
-                                                pagination.page === item
-                                                    ? styles.pageButtonActive
-                                                    : ''
-                                            }`}
-                                            onClick={() => setPage(item)}
-                                        >
-                                            {item}
-                                        </button>
-                                    </div>
-                                );
-                            })}
-
-                        <button
-                            className={styles.pageButton}
-                            disabled={pagination.page >= pagination.totalPages}
-                            onClick={() => setPage((prev) => prev + 1)}
-                        >
-                            <i className="bi bi-chevron-right" />
-                        </button>
-                    </div>
-                </footer>
-            )}
             <CreateMenuTemplateModal
                 open={openCreateModal}
                 loading={loading}
                 categories={categories}
                 parentMenus={parentMenus}
                 menu={editingMenu}
-                onClose={() => {
-                    setEditingMenu(null);
-                    setOpenCreateModal(false);
-                }}
+                onClose={closeModal}
                 onSubmit={handleSubmitMenu}
             />
         </div>

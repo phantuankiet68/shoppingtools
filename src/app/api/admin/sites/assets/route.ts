@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
         }
 
         const formData = await req.formData();
-
         const siteId = String(formData.get('siteId') ?? '').trim();
 
         if (!siteId) {

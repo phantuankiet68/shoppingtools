@@ -18,13 +18,9 @@ import {
 
 type UseSiteFormProps = {
     active?: SiteLike | null;
-
     mode: SiteFormMode;
-
     t: (key: string) => string;
-
     onCreate: (payload: SiteFormState) => Promise<void>;
-
     onSave: (payload: SiteFormState) => Promise<void>;
 };
 
@@ -131,57 +127,36 @@ export function useSiteForm({ active, mode, t, onCreate, onSave }: UseSiteFormPr
 
         const validationErrors: FormErrors = {
             name: validateSiteName(normalizedName, t),
-
             domain: validateDomain(normalizedDomain, t),
-
             type: validateWebsiteType(form.type, t),
-
             contactEmail: validateEmail(form.contactEmail),
-
             contactPhone: validatePhone(form.contactPhone),
-
             seoTitle: validateSeoTitle(form.seoTitle),
-
             seoDescription: validateSeoDescription(form.seoDescription),
         };
-
         setErrors(validationErrors);
-
-        console.log('VALIDATION ERRORS', validationErrors);
-
         const hasError = Object.values(validationErrors).some(Boolean);
-
-        console.log('HAS ERROR', hasError);
-
         if (hasError) {
             console.log('BEFORE ONCREATE 1');
             return;
         }
-        console.log('BEFORE ONCREATE');
-
         const payload: SiteFormState = {
             ...form,
             name: normalizedName,
             domain: normalizedDomain,
         };
-
         if (mode === 'create') {
             await onCreate(payload);
-
             return;
         }
-
         await onSave(payload);
     }, [form, mode, onCreate, onSave, t]);
 
     return {
         form,
         errors,
-
         updateField,
-
         resetForm,
-
         submit,
     };
 }
