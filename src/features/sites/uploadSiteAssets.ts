@@ -12,8 +12,18 @@ const MAX_LOGO_SIZE = 10 * 1024 * 1024;
 const MAX_FAVICON_SIZE = 5 * 1024 * 1024;
 const MAX_INPUT_PIXELS = 40_000_000;
 
-function isSupportedImage(type: string) {
+function isSupportedLogoImage(type: string) {
     return ['image/jpeg', 'image/png', 'image/webp'].includes(type);
+}
+
+function isSupportedFaviconImage(type: string) {
+    return [
+        'image/x-icon',
+        'image/vnd.microsoft.icon',
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+    ].includes(type);
 }
 
 async function removePreviousFiles(dir: string, prefix: string) {
@@ -27,7 +37,7 @@ async function removePreviousFiles(dir: string, prefix: string) {
 }
 
 async function optimizeLogo(file: File) {
-    if (!isSupportedImage(file.type)) {
+    if (!isSupportedLogoImage(file.type)) {
         throw new Error(`Unsupported logo image type: ${file.type}`);
     }
 
@@ -53,7 +63,7 @@ async function optimizeLogo(file: File) {
 }
 
 async function optimizeFavicon(file: File) {
-    if (!isSupportedImage(file.type)) {
+    if (!isSupportedFaviconImage(file.type)) {
         throw new Error(`Unsupported favicon image type: ${file.type}`);
     }
 
@@ -63,7 +73,19 @@ async function optimizeFavicon(file: File) {
 
     const input = Buffer.from(await file.arrayBuffer());
 
-    return sharp(input, {
+    // Keep ICO files as ICO.
+    if (
+        file.type === 'image/x-icon' ||
+        file.type === 'image/vnd.microsoft.icon' ||
+        file.name.toLowerCase().endsWith('.ico')
+    ) {
+        return {
+            buffer: input,
+            extension: '.ico',
+        };
+    }
+
+    const buffer = await sharp(input, {
         limitInputPixels: MAX_INPUT_PIXELS,
     })
         .rotate()
@@ -71,11 +93,15 @@ async function optimizeFavicon(file: File) {
             fit: 'contain',
             withoutEnlargement: true,
         })
-        .webp({
-            quality: 85,
-            effort: 4,
+        .png({
+            compressionLevel: 9,
         })
         .toBuffer();
+
+    return {
+        buffer,
+        extension: '.png',
+    };
 }
 
 export async function uploadSiteAssets({ siteId, logoFile, faviconFile }: UploadSiteAssetsInput) {
@@ -106,10 +132,10 @@ export async function uploadSiteAssets({ siteId, logoFile, faviconFile }: Upload
 
         await removePreviousFiles(uploadDir, 'favicon');
 
-        const fileName = 'favicon.webp';
+        const fileName = `favicon${optimizedFavicon.extension}`;
         const filePath = path.join(uploadDir, fileName);
 
-        await fs.writeFile(filePath, optimizedFavicon);
+        await fs.writeFile(filePath, optimizedFavicon.buffer);
 
         faviconUrl = `/uploads/sites/${siteId}/${fileName}`;
     }

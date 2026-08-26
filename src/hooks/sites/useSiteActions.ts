@@ -16,6 +16,12 @@ type UseSiteActionsProps = {
     onWorkflowEvent?: (event: WorkflowEvent) => void;
 };
 
+function reloadPage() {
+    if (typeof window === 'undefined') return;
+
+    window.location.reload();
+}
+
 export function useSiteActions({
     active,
     modal,
@@ -41,10 +47,12 @@ export function useSiteActions({
                 );
                 return;
             }
+
             if (!workspaceId) {
                 modal.error(t('sites.messages.createFailed'), 'Workspace is not available.');
                 return;
             }
+
             try {
                 const result = await createSiteWorkflow({
                     form,
@@ -53,21 +61,32 @@ export function useSiteActions({
                     load,
                     onEvent: onWorkflowEvent,
                 });
+
                 if (result?.siteId) {
                     setActiveId(result.siteId);
                 }
+
                 modal.success(
                     t('sites.messages.success'),
                     t('sites.messages.createSuccess').replace('{name}', form.name),
                 );
+
+                // Reset toàn bộ page sau khi create thành công.
+                setTimeout(() => {
+                    reloadPage();
+                }, 300);
+
                 return result;
             } catch (error) {
                 console.error('[Create Site Workflow]', error);
+
                 modal.error(
                     t('sites.messages.createFailed'),
                     error instanceof Error ? error.message : t('sites.messages.createFailedDesc'),
                 );
-                throw error;
+
+                // Không throw lại để tránh unhandledRejection ở browser.
+                return;
             }
         },
         [
@@ -86,8 +105,10 @@ export function useSiteActions({
     const handleSave = useCallback(
         async (form: SiteFormState) => {
             if (!active) return;
+
             try {
                 const formData = new FormData();
+
                 formData.append('name', form.name);
                 formData.append('domain', form.domain);
                 formData.append('type', form.type);
@@ -99,34 +120,45 @@ export function useSiteActions({
                 formData.append('status', form.status);
                 formData.append('isPublic', String(form.isPublic));
                 formData.append('publishedAt', form.publishedAt || '');
+
                 if (form.logoFile) {
                     formData.append('logo', form.logoFile);
                 }
+
                 if (form.faviconFile) {
                     formData.append('favicon', form.faviconFile);
                 }
+
                 const response = await fetch(`/api/admin/sites/${active.id}`, {
                     method: 'PATCH',
                     body: formData,
                 });
+
                 const data = await response.json().catch(() => ({}));
+
                 if (!response.ok) {
                     throw new Error(data.message || data.error || 'Update failed');
                 }
-                await load();
+
                 modal.success(
                     t('sites.messages.success'),
                     t('sites.messages.updateSuccess').replace('{name}', form.name),
                 );
+
+                // Reset toàn bộ page sau khi update/upload thành công.
+                setTimeout(() => {
+                    reloadPage();
+                }, 300);
             } catch (error) {
                 console.error('[Update Site]', error);
+
                 modal.error(
                     'Update Failed',
                     error instanceof Error ? error.message : 'Unknown error',
                 );
             }
         },
-        [active, load, modal, t],
+        [active, modal, t],
     );
 
     const handleDelete = useCallback(
@@ -139,17 +171,25 @@ export function useSiteActions({
                         const response = await fetch(`/api/admin/sites/${site.id}`, {
                             method: 'DELETE',
                         });
+
                         const data = await response.json().catch(() => ({}));
+
                         if (!response.ok) {
                             throw new Error(data.message || data.error || 'Delete failed');
                         }
-                        await load();
+
                         modal.success(
                             t('sites.messages.success'),
                             t('sites.messages.deleteSuccess').replace('{name}', site.name),
                         );
+
+                        // Reset toàn bộ page sau khi delete thành công.
+                        setTimeout(() => {
+                            reloadPage();
+                        }, 300);
                     } catch (error) {
                         console.error('[Delete Site]', error);
+
                         modal.error(
                             'Delete Failed',
                             error instanceof Error ? error.message : 'Unknown error',
@@ -158,7 +198,7 @@ export function useSiteActions({
                 },
             );
         },
-        [load, modal, t],
+        [modal, t],
     );
 
     return {
