@@ -19,21 +19,15 @@ export default function LayoutA({ children }: Props) {
     const pathname = usePathname();
     const router = useRouter();
     const { meta } = useAdminTitle();
-
     const { currentSite } = useAdminAuth();
 
     const navRef = useRef<HTMLDivElement>(null);
 
     useRipple(navRef);
 
-    const sidebarOpen = useAdminLayoutStore((s) => s.sidebarOpen);
-
     const collapsed = useAdminLayoutStore((s) => s.collapsed);
 
-    const setSidebarOpen = useAdminLayoutStore((s) => s.setSidebarOpen);
-
     const loadMe = useAdminLayoutStore((s) => s.loadMe);
-
     const loadMenu = useAdminLayoutStore((s) => s.loadMenu);
 
     const syncActiveByPathname = useAdminLayoutStore((s) => s.syncActiveByPathname);
@@ -49,12 +43,37 @@ export default function LayoutA({ children }: Props) {
     }, [loadMe]);
 
     useEffect(() => {
-        if (!currentSite?.id) {
+        if (!pathname) {
             return;
         }
 
-        void loadMenu(currentSite.id);
-    }, [currentSite?.id, loadMenu]);
+        if (pathname.startsWith('/platform')) {
+            void loadMenu({
+                area: 'PLATFORM',
+            });
+
+            return;
+        }
+
+        if (pathname.startsWith('/admin')) {
+            if (!currentSite?.id) {
+                return;
+            }
+
+            void loadMenu({
+                area: 'ADMIN',
+                siteId: currentSite.id,
+            });
+        }
+    }, [pathname, currentSite?.id, loadMenu]);
+
+    useEffect(() => {
+        if (!pathname) {
+            return;
+        }
+
+        syncActiveByPathname(pathname);
+    }, [pathname, syncActiveByPathname]);
 
     useEffect(() => {
         function onEsc(e: KeyboardEvent) {
@@ -72,14 +91,6 @@ export default function LayoutA({ children }: Props) {
             document.removeEventListener('keydown', onEsc);
         };
     }, [setNotiOpen, setUserMenuOpen]);
-
-    useEffect(() => {
-        if (!pathname) {
-            return;
-        }
-
-        syncActiveByPathname(pathname);
-    }, [pathname, syncActiveByPathname]);
 
     const handleLogout = async () => {
         try {
