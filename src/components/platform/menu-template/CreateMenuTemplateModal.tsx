@@ -1,32 +1,20 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MenuArea, WebsiteType } from '@/generated/prisma';
 import styles from '@/styles/platform/menu-template/create-menu-template-modal.module.css';
-import type {
-    MenuTemplate,
-    MenuTemplateCategory,
-    MenuTemplateParent,
+import {
+    getMenuTemplates,
+    type MenuTemplate,
+    type MenuTemplateCategory,
+    type MenuTemplateParent,
+    type CreateMenuTemplatePayload,
 } from '@/services/platform/menu-template/index.service';
-
-type CreateMenuTemplatePayload = {
-    websiteType: WebsiteType;
-    categoryId: string;
-    parentId?: string | null;
-    key: string;
-    title: string;
-    path?: string | null;
-    icon?: string | null;
-    area: MenuArea;
-    visible?: boolean;
-    sortOrder?: number;
-};
 
 interface CreateMenuTemplateModalProps {
     open: boolean;
     loading: boolean;
     categories: MenuTemplateCategory[];
-    parentMenus: MenuTemplateParent[];
     menu?: MenuTemplate | null;
     onClose: () => void;
     onSubmit: (data: CreateMenuTemplatePayload) => Promise<void>;
@@ -43,27 +31,40 @@ function slugify(value: string) {
         .replace(/-+/g, '-');
 }
 
+function getPath(slug: string, area?: MenuArea) {
+    if (!slug) return '';
+
+    switch (area) {
+        case MenuArea.ADMIN:
+            return `/admin/${slug}`;
+        case MenuArea.PLATFORM:
+            return `/platform/${slug}`;
+        default:
+            return `/${slug}`;
+    }
+}
+
 export default function CreateMenuTemplateModal({
     open,
     loading,
     categories,
-    parentMenus,
     menu,
     onClose,
     onSubmit,
 }: CreateMenuTemplateModalProps) {
-    const [websiteType, setWebsiteType] = useState<WebsiteType | undefined>();
+    const [websiteType, setWebsiteType] = useState<WebsiteType>();
+    const [area, setArea] = useState<MenuArea>();
     const [categoryId, setCategoryId] = useState('');
+    const [parentId, setParentId] = useState<string | null>(null);
+    const [parentMenus, setParentMenus] = useState<MenuTemplateParent[]>([]);
     const [title, setTitle] = useState('');
     const [key, setKey] = useState('');
     const [path, setPath] = useState('');
     const [icon, setIcon] = useState('bi-house');
-    const [area, setArea] = useState<MenuArea | undefined>();
     const [sortOrder, setSortOrder] = useState(0);
     const [visible, setVisible] = useState(true);
     const [error, setError] = useState('');
-    const [parentId, setParentId] = useState<string | null>(null);
-    const categoryOptions = useMemo(() => categories, [categories]);
+    const [loadingParents, setLoadingParents] = useState(false);
 
     const isEdit = Boolean(menu);
 
@@ -72,107 +73,142 @@ export default function CreateMenuTemplateModal({
 
         if (menu) {
             setWebsiteType(menu.websiteType);
+            setArea(menu.area);
             setCategoryId(menu.categoryId);
             setParentId(menu.parentId);
             setTitle(menu.title);
             setKey(menu.key);
             setPath(menu.path ?? '');
             setIcon(menu.icon ?? '');
-            setArea(menu.area);
             setSortOrder(menu.sortOrder);
             setVisible(menu.visible);
-            setError('');
-            return;
+        } else {
+            setWebsiteType(WebsiteType.landing);
+            setArea(MenuArea.SITE);
+            setCategoryId(categories[0]?.id ?? '');
+            setParentId(null);
+            setTitle('');
+            setKey('');
+            setPath('');
+            setIcon('bi-house');
+            setSortOrder(0);
+            setVisible(true);
         }
 
-        setWebsiteType(WebsiteType.landing);
-        setCategoryId(categories[0]?.id ?? '');
-        setParentId(null);
-        setTitle('');
-        setKey('');
-        setPath('');
-        setIcon('bi-house');
-        setArea(MenuArea.SITE);
-        setSortOrder(0);
-        setVisible(true);
         setError('');
     }, [open, menu, categories]);
 
     useEffect(() => {
-        if (!open || menu) return;
-
-        const slug = slugify(title);
-
-        setKey(slug);
-
-        switch (area) {
-            case MenuArea.ADMIN:
-                setPath(slug ? `/admin/${slug}` : '');
-                break;
-
-            case MenuArea.PLATFORM:
-                setPath(slug ? `/platform/${slug}` : '');
-                break;
-
-            case MenuArea.SITE:
-            default:
-                setPath(slug ? `/${slug}` : '');
-                break;
+        if (!open || !categoryId) {
+            setParentMenus([]);
+            return;
         }
-    }, [title, area, open, menu]);
+
+        let cancelled = false;
+
+        async function loadParentMenus() {
+            try {
+                setLoadingParents(true);
+
+                const response = await getMenuTemplates({
+                    categoryId,
+                    limit: 100,
+                    sortBy: 'sortOrder',
+                    sortOrder: 'asc',
+                });
+
+                if (cancelled) return;
+
+                const currentId = menu?.id;
+
+                const parents = response.data
+                    .filter((item) => item.parentId === null)
+                    .filter((item) => item.id !== currentId)
+                    .map(({ id, title }) => ({ id, title }));
+
+                setParentMenus(parents);
+            } catch (err) {
+                if (!cancelled) {
+                    console.error('Failed to load parent menus:', err);
+                    setParentMenus([]);
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingParents(false);
+                }
+            }
+        }
+
+        loadParentMenus();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [open, categoryId, menu?.id]);
+
+    function handleTitleChange(value: string) {
+        setTitle(value);
+
+        if (isEdit) return;
+
+        const slug = slugify(value);
+        setKey(slug);
+        setPath(getPath(slug, area));
+    }
+
+    function handleAreaChange(value: MenuArea) {
+        setArea(value);
+
+        if (!isEdit) {
+            setPath(getPath(slugify(title), value));
+        }
+    }
+
+    function handleCategoryChange(value: string) {
+        setCategoryId(value);
+        setParentId(null);
+    }
+
+    function validate(): string {
+        if (!websiteType) return 'Website type is required.';
+        if (!area) return 'Area is required.';
+        if (!categoryId) return 'Category is required.';
+        if (!title.trim()) return 'Title is required.';
+        if (!key.trim()) return 'Key is required.';
+        if (!Number.isInteger(sortOrder) || sortOrder < 0) {
+            return 'Sort order must be a non-negative integer.';
+        }
+
+        return '';
+    }
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
+        const validationError = validate();
+
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
         setError('');
 
-        if (!websiteType) {
-            setError('Website type is required.');
-            return;
-        }
-
-        if (!categoryId) {
-            setError('Category is required.');
-            return;
-        }
-
-        if (!title.trim()) {
-            setError('Title is required.');
-            return;
-        }
-
-        if (!key.trim()) {
-            setError('Key is required.');
-            return;
-        }
-
-        if (!area) {
-            setError('Area is required.');
-            return;
-        }
-
-        if (sortOrder < 0) {
-            setError('Sort order cannot be negative.');
-            return;
-        }
-
         await onSubmit({
-            websiteType,
+            websiteType: websiteType!,
             categoryId,
             parentId,
             key: key.trim(),
             title: title.trim(),
             path: path.trim() || null,
             icon: icon.trim() || null,
-            area,
+            area: area!,
             sortOrder,
             visible,
         });
     }
 
-    if (!open) {
-        return null;
-    }
+    if (!open) return null;
 
     return (
         <div className={styles.overlay} onClick={onClose}>
@@ -193,6 +229,7 @@ export default function CreateMenuTemplateModal({
                         className={styles.closeButton}
                         onClick={onClose}
                         disabled={loading}
+                        aria-label="Close"
                     >
                         <i className="bi bi-x-lg" />
                     </button>
@@ -223,26 +260,6 @@ export default function CreateMenuTemplateModal({
                                 ))}
                             </select>
                         </div>
-                        <div className={styles.field}>
-                            <label htmlFor="parentId">Parent Menu</label>
-
-                            <select
-                                id="parentId"
-                                value={parentId ?? ''}
-                                onChange={(e) => setParentId(e.target.value || null)}
-                                disabled={loading}
-                            >
-                                <option value="">Root Menu</option>
-
-                                {parentMenus.map((item) => (
-                                    <option key={item.id} value={item.id}>
-                                        {item.title}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <small>Leave empty to create a root-level menu.</small>
-                        </div>
 
                         <div className={styles.field}>
                             <label htmlFor="area">Area</label>
@@ -250,7 +267,7 @@ export default function CreateMenuTemplateModal({
                             <select
                                 id="area"
                                 value={area ?? ''}
-                                onChange={(e) => setArea(e.target.value as MenuArea)}
+                                onChange={(e) => handleAreaChange(e.target.value as MenuArea)}
                                 disabled={loading}
                             >
                                 {Object.values(MenuArea).map((item) => (
@@ -267,19 +284,46 @@ export default function CreateMenuTemplateModal({
                             <select
                                 id="categoryId"
                                 value={categoryId}
-                                onChange={(e) => setCategoryId(e.target.value)}
+                                onChange={(e) => handleCategoryChange(e.target.value)}
                                 disabled={loading}
                             >
                                 <option value="" disabled>
                                     Select category
                                 </option>
 
-                                {categoryOptions.map((item) => (
+                                {categories.map((item) => (
                                     <option key={item.id} value={item.id}>
                                         {item.name}
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div className={styles.field}>
+                            <label htmlFor="parentId">Parent Menu</label>
+
+                            <select
+                                id="parentId"
+                                value={parentId ?? ''}
+                                onChange={(e) => setParentId(e.target.value || null)}
+                                disabled={loading || loadingParents || !categoryId}
+                            >
+                                <option value="">
+                                    {loadingParents ? 'Loading...' : 'Root Menu'}
+                                </option>
+
+                                {parentMenus.map((item) => (
+                                    <option key={item.id} value={item.id}>
+                                        {item.title}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <small>
+                                {categoryId
+                                    ? 'Only root menus from this category are available.'
+                                    : 'Select a category first.'}
+                            </small>
                         </div>
 
                         <div className={styles.field}>
@@ -289,8 +333,15 @@ export default function CreateMenuTemplateModal({
                                 id="sortOrder"
                                 type="number"
                                 min={0}
+                                step={1}
                                 value={sortOrder}
-                                onChange={(e) => setSortOrder(Math.max(0, Number(e.target.value)))}
+                                onChange={(e) => {
+                                    const value = Number(e.target.value);
+
+                                    setSortOrder(
+                                        Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0,
+                                    );
+                                }}
                                 disabled={loading}
                             />
                         </div>
@@ -303,7 +354,7 @@ export default function CreateMenuTemplateModal({
                                 type="text"
                                 placeholder="About Us"
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={(e) => handleTitleChange(e.target.value)}
                                 disabled={loading}
                             />
                         </div>

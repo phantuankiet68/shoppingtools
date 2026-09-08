@@ -3,22 +3,22 @@
 import type { CSSProperties, MouseEvent as ReactMouseEvent, RefObject } from 'react';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 
-import styles from '@/styles/admin/layouts/LayoutA.module.css';
+import styles from './Sidebar.module.css';
 
 import { useAdminLayoutStore } from '@/store/layout/layouta/index';
 
 import {
     SECTION_ORDER,
     SECTION_TITLES,
+    bestMatchWithTrail,
     sectionOfTopItem,
     type Item,
     type SectionKey,
 } from '@/utils/layout/menu.utils';
 
-import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
-
-import { toI18nKey } from '@/utils/layout/i18n';
+import type { MenuArea } from '@/generated/prisma';
 
 type SectionBucket = {
     flats: Item[];
@@ -27,37 +27,228 @@ type SectionBucket = {
 
 type CloseTimerMap = Record<string, ReturnType<typeof setTimeout> | number | undefined>;
 
+const DEFAULT_DASHBOARD: Item = {
+    area: 'ADMIN',
+    id: 'default-dashboard',
+    key: 'dashboard',
+    title: 'Dashboard',
+    icon: 'bi-house',
+    path: '/admin/dashboard',
+    parentId: null,
+    children: [],
+};
+
+const DEFAULT_WEBSITE: Item = {
+    area: 'ADMIN',
+    id: 'default-website',
+    key: 'website',
+    title: 'Website',
+    icon: 'bi-window-stack',
+    path: null,
+    parentId: null,
+    children: [
+        {
+            area: 'ADMIN',
+            id: 'default-sites',
+            key: 'sites',
+            title: 'Sites',
+            icon: 'bi-globe2',
+            path: '/admin/sites',
+            parentId: 'default-website',
+            children: [],
+        },
+        {
+            area: 'ADMIN',
+            id: 'default-menus',
+            key: 'menus',
+            title: 'Menus',
+            icon: 'bi-list-ul',
+            path: '/admin/menus',
+            parentId: 'default-website',
+            children: [],
+        },
+        {
+            area: 'ADMIN',
+            id: 'default-pages',
+            key: 'pages',
+            title: 'Pages',
+            icon: 'bi-file-earmark-text',
+            path: '/admin/pages',
+            parentId: 'default-website',
+            children: [],
+        },
+    ],
+};
+
+const DEFAULT_ADMIN_ITEMS: Item[] = [DEFAULT_DASHBOARD, DEFAULT_WEBSITE];
+
+function isDashboard(item: Item) {
+    return item.key === 'dashboard' || item.title.trim().toLowerCase() === 'dashboard';
+}
+
+function isWebsite(item: Item) {
+    return item.key === 'website' || item.title.trim().toLowerCase() === 'website';
+}
+
+function createEmptySectionBuckets(): Record<SectionKey, SectionBucket> {
+    return {
+        overview: {
+            flats: [],
+            groups: [],
+        },
+        marketing: {
+            flats: [],
+            groups: [],
+        },
+        content: {
+            flats: [],
+            groups: [],
+        },
+        account: {
+            flats: [],
+            groups: [],
+        },
+    };
+}
+
 function positionFlyout(groupEl: HTMLElement, flyEl: HTMLElement) {
     const groupRect = groupEl.getBoundingClientRect();
     const flyRect = flyEl.getBoundingClientRect();
+
     const viewportHeight = window.innerHeight;
-    const margin = 8;
+    const margin = 12;
 
     const centerY = groupRect.top + groupRect.height / 2;
-    const flyHalfHeight = flyRect.height / 2;
 
-    let top = centerY - flyHalfHeight;
+    let top = centerY - flyRect.height / 2;
 
-    if (top < margin) top = margin;
+    if (top < margin) {
+        top = margin;
+    }
 
     if (top + flyRect.height > viewportHeight - margin) {
         top = Math.max(margin, viewportHeight - margin - flyRect.height);
     }
 
     flyEl.style.top = `${top}px`;
-    flyEl.style.left = `${groupRect.right + 10}px`;
+    flyEl.style.left = `${groupRect.right + 12}px`;
 }
 
-function createEmptySectionBuckets(): Record<SectionKey, SectionBucket> {
-    return {
-        overview: { flats: [], groups: [] },
-        marketing: { flats: [], groups: [] },
-        content: { flats: [], groups: [] },
-        account: { flats: [], groups: [] },
-    };
+type MenuNodeProps = {
+    item: Item;
+    depth: number;
+    collapsed: boolean;
+    activeKey: string;
+    openGroups: Record<string, boolean>;
+    onItemClick: (item: Item) => void;
+    onToggleGroup: (item: Item, depth: number) => void;
+};
+
+function MenuNode({
+    item,
+    depth,
+    collapsed,
+    activeKey,
+    openGroups,
+    onItemClick,
+    onToggleGroup,
+}: MenuNodeProps) {
+    const children = item.children ?? [];
+    const hasChildren = children.length > 0;
+
+    const isOpen = Boolean(openGroups[item.key]);
+
+    const isActive = activeKey === item.key;
+
+    const icon = item.icon || 'bi bi-dot';
+
+    if (!hasChildren) {
+        return (
+            <Link
+                href={item.path ?? '#'}
+                className={
+                    depth === 0
+                        ? `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
+                        : `${styles.subItem} ${isActive ? styles.subItemActive : ''}`
+                }
+                title={collapsed ? item.title : undefined}
+                aria-label={item.title}
+                aria-current={isActive ? 'page' : undefined}
+                onClick={(event) => {
+                    if (!item.path || item.path === '#') {
+                        event.preventDefault();
+                    }
+
+                    onItemClick(item);
+                }}
+            >
+                <span className={styles.navIcon}>
+                    <i className={icon} />
+                </span>
+
+                {!collapsed && (
+                    <span className={depth === 0 ? styles.navLabel : styles.subLabel}>
+                        {item.title}
+                    </span>
+                )}
+            </Link>
+        );
+    }
+
+    return (
+        <div className={depth === 0 ? styles.navGroup : styles.subGroup}>
+            <button
+                type="button"
+                className={`${styles.navItem} ${
+                    depth === 0 ? styles.navGroupButton : styles.subItem
+                } ${isActive ? styles.navItemActive : ''} ${isOpen ? styles.navGroupOpen : ''}`}
+                aria-expanded={isOpen}
+                aria-label={item.title}
+                title={collapsed ? item.title : undefined}
+                onClick={() => onToggleGroup(item, depth)}
+            >
+                <span className={styles.navIcon}>
+                    <i className={icon} />
+                </span>
+
+                {!collapsed && (
+                    <span className={depth === 0 ? styles.navLabel : styles.subLabel}>
+                        {item.title}
+                    </span>
+                )}
+
+                {!collapsed && (
+                    <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}>
+                        <i className="bi bi-chevron-down" />
+                    </span>
+                )}
+            </button>
+
+            {!collapsed && isOpen && (
+                <div className={styles.submenu}>
+                    <div className={styles.submenuLine}>
+                        {children.map((child) => (
+                            <MenuNode
+                                key={child.key}
+                                item={child}
+                                depth={depth + 1}
+                                collapsed={false}
+                                activeKey={activeKey}
+                                openGroups={openGroups}
+                                onItemClick={onItemClick}
+                                onToggleGroup={onToggleGroup}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement | null> }) {
+    const pathname = usePathname();
+
     const {
         sidebarOpen,
         setSidebarOpen,
@@ -70,19 +261,129 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         openGroupExclusive,
     } = useAdminLayoutStore();
 
-    const { t } = useAdminI18n();
-
     const asideRef = useRef<HTMLElement | null>(null);
 
     const closeTimersRef = useRef<CloseTimerMap>({});
 
+    const currentArea: MenuArea = pathname.startsWith('/platform') ? 'PLATFORM' : 'ADMIN';
+
+    const sidebarItems = useMemo(() => {
+        const areaItems = items.filter((item) => item.area === currentArea);
+
+        if (currentArea === 'PLATFORM') {
+            return areaItems;
+        }
+
+        if (areaItems.length === 0) {
+            return DEFAULT_ADMIN_ITEMS;
+        }
+
+        const result = [...areaItems];
+
+        if (!result.some(isDashboard)) {
+            result.unshift(DEFAULT_DASHBOARD);
+        }
+
+        if (!result.some(isWebsite)) {
+            result.push(DEFAULT_WEBSITE);
+        }
+
+        return result;
+    }, [items, currentArea]);
+
+    const websiteInitializedRef = useRef(false);
+
+    useEffect(() => {
+        if (currentArea !== 'ADMIN') {
+            return;
+        }
+
+        if (websiteInitializedRef.current) {
+            return;
+        }
+
+        const website = sidebarItems.find(isWebsite);
+
+        if (!website) {
+            return;
+        }
+
+        websiteInitializedRef.current = true;
+
+        useAdminLayoutStore.setState((state) => ({
+            openGroups: {
+                ...state.openGroups,
+                [website.key]: true,
+            },
+        }));
+    }, [currentArea, sidebarItems]);
+
+    useEffect(() => {
+        if (!pathname) {
+            return;
+        }
+
+        if (sidebarItems.length === 0) {
+            return;
+        }
+
+        const result = bestMatchWithTrail(sidebarItems, pathname);
+
+        if (!result) {
+            return;
+        }
+
+        setActiveKey(result.hit.key);
+
+        if (result.trail.length === 0) {
+            return;
+        }
+
+        useAdminLayoutStore.setState((state) => {
+            const nextOpenGroups = {
+                ...state.openGroups,
+            };
+
+            for (const key of result.trail) {
+                nextOpenGroups[key] = true;
+            }
+
+            return {
+                openGroups: nextOpenGroups,
+            };
+        });
+    }, [pathname, sidebarItems, setActiveKey]);
+    /* =====================================================
+       SECTION BUCKETS
+       ===================================================== */
+
     const sectionBuckets = useMemo(() => {
         const buckets = createEmptySectionBuckets();
 
-        for (const item of items) {
-            const sectionKey = sectionOfTopItem(item.title);
+        for (const item of sidebarItems) {
+            let sectionKey: SectionKey;
 
-            if (item.children?.length) {
+            /*
+             * Dashboard → Overview
+             */
+            if (isDashboard(item)) {
+                sectionKey = 'overview';
+            } else if (isWebsite(item)) {
+                /*
+                 * Website → Overview
+                 *
+                 * Để Website nằm ngay dưới Dashboard.
+                 */
+                sectionKey = 'overview';
+            } else {
+                /*
+                 * Các menu còn lại dùng
+                 * logic section hiện tại.
+                 */
+                sectionKey = sectionOfTopItem(item.title);
+            }
+
+            if ((item.children ?? []).length > 0) {
                 buckets[sectionKey].groups.push(item);
             } else {
                 buckets[sectionKey].flats.push(item);
@@ -90,65 +391,116 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         }
 
         return buckets;
-    }, [items]);
+    }, [sidebarItems]);
 
-    const railStyle = useMemo<CSSProperties | undefined>(() => {
-        return collapsed ? { width: 84 } : undefined;
-    }, [collapsed]);
+    /* =====================================================
+       COLLAPSED RAIL
+       ===================================================== */
 
-    const clearCloseTimer = (groupKey: string) => {
-        const timerId = closeTimersRef.current[groupKey];
+    const railStyle = useMemo<CSSProperties | undefined>(
+        () =>
+            collapsed
+                ? {
+                      width: 84,
+                  }
+                : undefined,
+        [collapsed],
+    );
 
-        if (!timerId) return;
+    /* =====================================================
+       CLOSE TIMER
+       ===================================================== */
 
-        window.clearTimeout(timerId);
+    const clearCloseTimer = (key: string) => {
+        const timer = closeTimersRef.current[key];
 
-        closeTimersRef.current[groupKey] = undefined;
+        if (!timer) {
+            return;
+        }
+
+        window.clearTimeout(timer);
+
+        closeTimersRef.current[key] = undefined;
     };
 
     const clearAllCloseTimers = () => {
-        Object.values(closeTimersRef.current).forEach((timerId) => {
-            if (timerId) window.clearTimeout(timerId);
+        Object.values(closeTimersRef.current).forEach((timer) => {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
         });
 
         closeTimersRef.current = {};
     };
 
+    /* =====================================================
+       MOBILE
+       ===================================================== */
+
     const closeSidebarIfMobile = () => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined') {
+            return;
+        }
 
         if (window.matchMedia('(max-width: 900px)').matches) {
             setSidebarOpen(false);
         }
     };
 
-    const handleItemClick = (key: string) => {
-        setActiveKey(key);
+    /* =====================================================
+       ITEM CLICK
+       ===================================================== */
 
-        try {
-            localStorage.setItem('sb_active_key', key);
-        } catch {}
-
+    const handleItemClick = (item: Item) => {
+        setActiveKey(item.key);
         closeSidebarIfMobile();
     };
 
-    const scheduleCloseGroup = (groupKey: string, delay = 180) => {
-        clearCloseTimer(groupKey);
+    /* =====================================================
+       GROUP TOGGLE
+       ===================================================== */
 
-        closeTimersRef.current[groupKey] = window.setTimeout(() => {
+    const handleToggleGroup = (item: Item, depth: number) => {
+        if (depth === 0) {
+            toggleGroupExclusive(item.key);
+            return;
+        }
+
+        useAdminLayoutStore.setState((state) => ({
+            openGroups: {
+                ...state.openGroups,
+                [item.key]: !state.openGroups[item.key],
+            },
+        }));
+    };
+
+    /* =====================================================
+       COLLAPSED FLYOUT CLOSE
+       ===================================================== */
+
+    const scheduleCloseGroup = (key: string, delay = 220) => {
+        clearCloseTimer(key);
+
+        closeTimersRef.current[key] = window.setTimeout(() => {
             useAdminLayoutStore.setState((state) => ({
                 openGroups: {
                     ...state.openGroups,
-                    [groupKey]: false,
+                    [key]: false,
                 },
             }));
 
-            closeTimersRef.current[groupKey] = undefined;
+            closeTimersRef.current[key] = undefined;
         }, delay);
     };
 
+    /* =====================================================
+       COLLAPSED FLYOUT OPEN
+       ===================================================== */
+
     const handleGroupMouseEnter = (groupKey: string, event: ReactMouseEvent<HTMLDivElement>) => {
-        if (!collapsed) return;
+        if (!collapsed) {
+            return;
+        }
 
         clearCloseTimer(groupKey);
 
@@ -160,18 +512,26 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
             `[data-flyout="${groupKey}"]`,
         );
 
-        if (flyoutElement) {
-            requestAnimationFrame(() => {
-                positionFlyout(groupElement, flyoutElement);
-            });
+        if (!flyoutElement) {
+            return;
         }
+
+        requestAnimationFrame(() => {
+            positionFlyout(groupElement, flyoutElement);
+        });
     };
 
     const handleGroupMouseLeave = (groupKey: string) => {
-        if (!collapsed) return;
+        if (!collapsed) {
+            return;
+        }
 
-        scheduleCloseGroup(groupKey, 220);
+        scheduleCloseGroup(groupKey);
     };
+
+    /* =====================================================
+       CLEANUP
+       ===================================================== */
 
     useEffect(() => {
         return () => {
@@ -179,17 +539,29 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         };
     }, []);
 
+    /* =====================================================
+       CLOSE FLYOUT WHEN CLICK OUTSIDE
+       ===================================================== */
+
     useEffect(() => {
-        if (!collapsed) return;
+        if (!collapsed) {
+            return;
+        }
 
         const handleDocumentClick = (event: MouseEvent) => {
             const root = asideRef.current;
 
-            if (!root) return;
+            if (!root) {
+                return;
+            }
 
-            if (root.contains(event.target as Node)) return;
+            if (root.contains(event.target as Node)) {
+                return;
+            }
 
-            useAdminLayoutStore.setState({ openGroups: {} });
+            useAdminLayoutStore.setState({
+                openGroups: {},
+            });
         };
 
         document.addEventListener('click', handleDocumentClick);
@@ -199,14 +571,22 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         };
     }, [collapsed]);
 
+    /* =====================================================
+       RENDER
+       ===================================================== */
+
     return (
         <>
+            {/* =================================================
+                MOBILE BACKDROP
+               ================================================= */}
+
             {sidebarOpen && (
                 <button
-                    className={styles.backdrop}
-                    onClick={() => setSidebarOpen(false)}
-                    aria-label="Close sidebar"
                     type="button"
+                    className={styles.backdrop}
+                    aria-label="Close sidebar"
+                    onClick={() => setSidebarOpen(false)}
                 />
             )}
 
@@ -214,12 +594,16 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
                 ref={(element) => {
                     asideRef.current = element;
                 }}
+                className={styles.sidebar}
                 data-collapsed={collapsed ? 'true' : 'false'}
-                className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}
                 style={railStyle}
                 aria-label="Sidebar"
             >
                 <div className={styles.sidebarPanel}>
+                    {/* =================================================
+                        BRAND
+                       ================================================= */}
+
                     <div className={styles.brandWrap}>
                         <Link href="/admin" className={styles.brandLink}>
                             <div className={styles.brandLogo}>
@@ -228,235 +612,165 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
 
                             {!collapsed && (
                                 <div className={styles.brandText}>
-                                    <div className={styles.brandTop}>
-                                        <div className={styles.brandName}>{t('menus.manager')}</div>
-                                    </div>
+                                    <div className={styles.brandName}>Manager</div>
 
                                     <div className={styles.brandSub}>
-                                        <i className="bi bi-shield-lock" />
-                                        <span>{t('menus.dashboardPanel')}</span>
+                                        <i className="bi bi-shield-check" />
+                                        <span>Dashboard Panel</span>
                                     </div>
                                 </div>
                             )}
                         </Link>
                     </div>
 
-                    <nav className={styles.nav} ref={navRef}>
+                    {/* =================================================
+                        NAVIGATION
+                       ================================================= */}
+
+                    <nav ref={navRef} className={styles.nav}>
                         {SECTION_ORDER.map((sectionKey) => {
                             const bucket = sectionBuckets[sectionKey];
 
                             const hasItems = bucket.flats.length + bucket.groups.length > 0;
 
-                            if (!hasItems) return null;
+                            if (!hasItems) {
+                                return null;
+                            }
 
                             return (
-                                <div key={sectionKey} className={styles.section}>
+                                <section key={sectionKey} className={styles.section}>
                                     {!collapsed && (
-                                        <div className={styles.sectionTitle}>
-                                            {t(SECTION_TITLES[sectionKey])}
+                                        <div className={styles.sectionHeader}>
+                                            <span>{SECTION_TITLES[sectionKey]}</span>
                                         </div>
                                     )}
 
                                     <div className={styles.sectionList}>
+                                        {/* =================================================
+                                                FLAT ITEMS
+                                               ================================================= */}
+
                                         {bucket.flats.map((item) => (
-                                            <Link
+                                            <MenuNode
                                                 key={item.key}
-                                                href={item.path ?? '#'}
-                                                className={`${styles.navItem} ${activeKey === item.key ? styles.navItemActive : ''}`}
-                                                aria-current={
-                                                    activeKey === item.key ? 'page' : undefined
-                                                }
-                                                title={
-                                                    collapsed
-                                                        ? t(`menus.${toI18nKey(item.title)}`)
-                                                        : undefined
-                                                }
-                                                aria-label={t(`menus.${toI18nKey(item.title)}`)}
-                                                onClick={(event) => {
-                                                    if (!item.path || item.path === '#') {
-                                                        event.preventDefault();
-                                                    }
-
-                                                    handleItemClick(item.key);
-                                                }}
-                                            >
-                                                <span className={styles.navIcon}>
-                                                    <i className={item.icon} />
-                                                </span>
-
-                                                {!collapsed && (
-                                                    <span className={styles.navLabel}>
-                                                        {t(`menus.${toI18nKey(item.title)}`)}
-                                                    </span>
-                                                )}
-                                            </Link>
+                                                item={item}
+                                                depth={0}
+                                                collapsed={collapsed}
+                                                activeKey={activeKey}
+                                                openGroups={openGroups}
+                                                onItemClick={handleItemClick}
+                                                onToggleGroup={handleToggleGroup}
+                                            />
                                         ))}
-                                    </div>
-                                    {bucket.groups.map((group) => {
-                                        const isOpen = Boolean(openGroups[group.key]);
 
-                                        return (
-                                            <div
-                                                key={group.key}
-                                                className={styles.navGroup}
-                                                onMouseEnter={(event) =>
-                                                    handleGroupMouseEnter(group.key, event)
-                                                }
-                                                onMouseLeave={() =>
-                                                    handleGroupMouseLeave(group.key)
-                                                }
-                                            >
-                                                <button
-                                                    type="button"
-                                                    className={`${styles.navItem} ${styles.navGroupBtn} ${isOpen ? styles.navItemActive : ''}`}
-                                                    aria-expanded={isOpen}
-                                                    title={
-                                                        collapsed
-                                                            ? t(`menus.${toI18nKey(group.title)}`)
-                                                            : undefined
+                                        {/* =================================================
+                                                GROUP ITEMS
+                                               ================================================= */}
+
+                                        {bucket.groups.map((group) => {
+                                            const isOpen = Boolean(openGroups[group.key]);
+
+                                            return (
+                                                <div
+                                                    key={group.key}
+                                                    className={styles.navGroup}
+                                                    onMouseEnter={(event) =>
+                                                        handleGroupMouseEnter(group.key, event)
                                                     }
-                                                    aria-label={t(
-                                                        `menus.${toI18nKey(group.title)}`,
-                                                    )}
-                                                    onClick={(event) => {
-                                                        if (collapsed) return;
-
-                                                        event.preventDefault();
-
-                                                        toggleGroupExclusive(group.key);
-                                                    }}
+                                                    onMouseLeave={() =>
+                                                        handleGroupMouseLeave(group.key)
+                                                    }
                                                 >
-                                                    <div className={styles.navGroupLeft}>
-                                                        <span className={styles.navIcon}>
-                                                            <i className={group.icon} />
-                                                        </span>
+                                                    <MenuNode
+                                                        item={group}
+                                                        depth={0}
+                                                        collapsed={collapsed}
+                                                        activeKey={activeKey}
+                                                        openGroups={openGroups}
+                                                        onItemClick={handleItemClick}
+                                                        onToggleGroup={handleToggleGroup}
+                                                    />
 
-                                                        {!collapsed && (
-                                                            <span className={styles.navLabel}>
-                                                                {t(
-                                                                    `menus.${toI18nKey(group.title)}`,
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                    {/* =================================================
+                                                                COLLAPSED FLYOUT
+                                                               ================================================= */}
 
-                                                    {!collapsed && (
-                                                        <span
-                                                            className={`${styles.chev} ${isOpen ? styles.chevOpen : ''}`}
+                                                    {collapsed && isOpen && (
+                                                        <div
+                                                            data-flyout={group.key}
+                                                            className={styles.flyout}
                                                         >
-                                                            <i className="bi bi-chevron-down" />
-                                                        </span>
-                                                    )}
-                                                </button>
-
-                                                {!collapsed && (
-                                                    <div
-                                                        className={`${styles.submenu} ${isOpen ? styles.submenuOpen : ''}`}
-                                                    >
-                                                        {group.children?.map((subItem) => (
-                                                            <Link
-                                                                key={subItem.key}
-                                                                href={subItem.path ?? '#'}
-                                                                className={`${styles.subItem} ${activeKey === subItem.key ? styles.subItemActive : ''}`}
-                                                                title={t(
-                                                                    `menus.${toI18nKey(subItem.title)}`,
-                                                                )}
-                                                                aria-label={t(
-                                                                    `menus.${toI18nKey(subItem.title)}`,
-                                                                )}
-                                                                onClick={(event) => {
-                                                                    if (
-                                                                        !subItem.path ||
-                                                                        subItem.path === '#'
-                                                                    ) {
-                                                                        event.preventDefault();
-                                                                    }
-
-                                                                    handleItemClick(subItem.key);
-                                                                }}
-                                                            >
-                                                                <span className={styles.navIcon}>
-                                                                    <i className={subItem.icon} />
-                                                                </span>
-
-                                                                <span className={styles.subLabel}>
-                                                                    {t(
-                                                                        `menus.${toI18nKey(subItem.title)}`,
-                                                                    )}
-                                                                </span>
-                                                            </Link>
-                                                        ))}
-                                                    </div>
-                                                )}
-
-                                                {collapsed && isOpen && (
-                                                    <div
-                                                        data-flyout={group.key}
-                                                        className={styles.flyout}
-                                                    >
-                                                        <div className={styles.flyoutTitle}>
-                                                            {t(`menus.${toI18nKey(group.title)}`)}
-                                                        </div>
-
-                                                        <div className={styles.flyoutList}>
-                                                            {group.children?.map((subItem) => (
-                                                                <Link
-                                                                    key={subItem.key}
-                                                                    href={subItem.path ?? '#'}
-                                                                    className={`${styles.flyoutItem} ${
-                                                                        activeKey === subItem.key
-                                                                            ? styles.flyoutItemActive
-                                                                            : ''
-                                                                    }`}
-                                                                    aria-label={t(
-                                                                        `menus.${toI18nKey(subItem.title)}`,
-                                                                    )}
-                                                                    onClick={(event) => {
-                                                                        if (
-                                                                            !subItem.path ||
-                                                                            subItem.path === '#'
-                                                                        ) {
-                                                                            event.preventDefault();
+                                                            <div className={styles.flyoutHeader}>
+                                                                <span className={styles.flyoutIcon}>
+                                                                    <i
+                                                                        className={
+                                                                            group.icon ||
+                                                                            'bi bi-folder'
                                                                         }
+                                                                    />
+                                                                </span>
 
-                                                                        handleItemClick(
-                                                                            subItem.key,
-                                                                        );
+                                                                <span>{group.title}</span>
+                                                            </div>
 
-                                                                        toggleGroupExclusive(
-                                                                            group.key,
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    <span
-                                                                        className={styles.navIcon}
-                                                                    >
-                                                                        <i
-                                                                            className={subItem.icon}
+                                                            <div className={styles.flyoutList}>
+                                                                {(group.children ?? []).map(
+                                                                    (child) => (
+                                                                        <MenuNode
+                                                                            key={child.key}
+                                                                            item={child}
+                                                                            depth={1}
+                                                                            collapsed={false}
+                                                                            activeKey={activeKey}
+                                                                            openGroups={openGroups}
+                                                                            onItemClick={
+                                                                                handleItemClick
+                                                                            }
+                                                                            onToggleGroup={
+                                                                                handleToggleGroup
+                                                                            }
                                                                         />
-                                                                    </span>
-
-                                                                    <span>
-                                                                        {t(
-                                                                            `menus.${toI18nKey(subItem.title)}`,
-                                                                        )}
-                                                                    </span>
-                                                                </Link>
-                                                            ))}
+                                                                    ),
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
 
                                     {sectionKey !== 'account' && (
                                         <div className={styles.sectionDivider} />
                                     )}
-                                </div>
+                                </section>
                             );
                         })}
                     </nav>
+
+                    {/* =================================================
+                        USER
+                       ================================================= */}
+
+                    {!collapsed && (
+                        <div className={styles.userArea}>
+                            <div className={styles.userAvatar}>N</div>
+
+                            <div className={styles.userInfo}>
+                                <strong>Nguyễn Văn A</strong>
+
+                                <span>Administrator</span>
+                            </div>
+
+                            <button
+                                type="button"
+                                className={styles.userMore}
+                                aria-label="More options"
+                            >
+                                <i className="bi bi-three-dots" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </aside>
         </>

@@ -9,6 +9,11 @@ model MenuTemplate {
   websiteType WebsiteType
   categoryId  String           @map("category_id")
   category    TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  parentId    String?          @map("parent_id")
+  parent      MenuTemplate?    @relation("MenuTemplateToSelf", fields: [parentId], references: [id], onDelete: Restrict)
+  children    MenuTemplate[]   @relation("MenuTemplateToSelf")
+
   key         String           @db.VarChar(100)
   title       String           @db.VarChar(191)
   path        String?          @db.VarChar(255)
@@ -22,6 +27,7 @@ model MenuTemplate {
   @@unique([websiteType, categoryId, area, key])
   @@index([websiteType])
   @@index([categoryId])
+  @@index([parentId])
   @@index([websiteType, categoryId])
   @@index([websiteType, categoryId, area])
   @@index([websiteType, categoryId, area, sortOrder])

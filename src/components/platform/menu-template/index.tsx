@@ -71,7 +71,9 @@ export default function MenuTemplate() {
     const [categoryId] = useState<string>();
     const [area] = useState<MenuArea>();
     const [visible] = useState<boolean>();
-    const [sortBy] = useState<'sortOrder' | 'title' | 'createdAt' | 'updatedAt'>('sortOrder');
+    const [sortBy] = useState<'title' | 'key' | 'sortOrder' | 'createdAt' | 'updatedAt'>(
+        'sortOrder',
+    );
     const [sortOrder] = useState<'asc' | 'desc'>('asc');
 
     const [openCreateModal, setOpenCreateModal] = useState(false);
@@ -140,7 +142,6 @@ export default function MenuTemplate() {
 
         try {
             await deleteMenuTemplate(id);
-
             setMenus((prev) => prev.filter((item) => item.id !== id));
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to delete menu template.');
@@ -184,15 +185,6 @@ export default function MenuTemplate() {
         setOpenCreateModal(true);
     }
 
-    const parentMenus = useMemo(
-        () =>
-            menus.map((item) => ({
-                id: item.id,
-                title: item.title,
-            })),
-        [menus],
-    );
-
     async function handleSubmitMenu(data: CreateMenuTemplatePayload) {
         try {
             if (editingMenu) {
@@ -213,6 +205,11 @@ export default function MenuTemplate() {
     function closeModal() {
         setEditingMenu(null);
         setOpenCreateModal(false);
+    }
+
+    function openCreate() {
+        setEditingMenu(null);
+        setOpenCreateModal(true);
     }
 
     if (loading) {
@@ -270,14 +267,7 @@ export default function MenuTemplate() {
                 </div>
 
                 <div className={styles.toolbarRight}>
-                    <button
-                        type="button"
-                        className={styles.toolbarButton}
-                        onClick={() => {
-                            setEditingMenu(null);
-                            setOpenCreateModal(true);
-                        }}
-                    >
+                    <button type="button" className={styles.toolbarButton} onClick={openCreate}>
                         <i className="bi bi-plus-lg" />
                         <span>Create</span>
                     </button>
@@ -503,7 +493,6 @@ export default function MenuTemplate() {
                 open={openCreateModal}
                 loading={loading}
                 categories={categories}
-                parentMenus={parentMenus}
                 menu={editingMenu}
                 onClose={closeModal}
                 onSubmit={handleSubmitMenu}

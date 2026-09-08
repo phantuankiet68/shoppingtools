@@ -1,14 +1,14 @@
 'use client';
 
-import { useAdminTitle } from '@/components/admin/AdminTitleContext';
-import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
 import Sidebar from '@/components/admin/shared/layout/layoutA/Sidebar';
 import Topbar from '@/components/admin/shared/layout/layoutA/Topbar';
+import { useAdminTitle } from '@/components/admin/AdminTitleContext';
+import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
 import { useAdminLayoutStore } from '@/store/layout/layouta/index';
 import styles from '@/styles/admin/layouts/LayoutA.module.css';
 import { useRipple } from '@/utils/layout/ripple';
 import { usePathname, useRouter } from 'next/navigation';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 
 type Props = {
@@ -18,6 +18,7 @@ type Props = {
 export default function LayoutA({ children }: Props) {
     const pathname = usePathname();
     const router = useRouter();
+
     const { meta } = useAdminTitle();
     const { currentSite } = useAdminAuth();
 
@@ -25,18 +26,19 @@ export default function LayoutA({ children }: Props) {
 
     useRipple(navRef);
 
-    const collapsed = useAdminLayoutStore((s) => s.collapsed);
+    const collapsed = useAdminLayoutStore((state) => state.collapsed);
 
-    const loadMe = useAdminLayoutStore((s) => s.loadMe);
-    const loadMenu = useAdminLayoutStore((s) => s.loadMenu);
+    const loadMe = useAdminLayoutStore((state) => state.loadMe);
 
-    const syncActiveByPathname = useAdminLayoutStore((s) => s.syncActiveByPathname);
+    const loadMenu = useAdminLayoutStore((state) => state.loadMenu);
 
-    const setUserMenuOpen = useAdminLayoutStore((s) => s.setUserMenuOpen);
+    const syncActiveByPathname = useAdminLayoutStore((state) => state.syncActiveByPathname);
 
-    const setNotiOpen = useAdminLayoutStore((s) => s.setNotiOpen);
+    const setUserMenuOpen = useAdminLayoutStore((state) => state.setUserMenuOpen);
 
-    const logout = useAdminLayoutStore((s) => s.logout);
+    const setNotiOpen = useAdminLayoutStore((state) => state.setNotiOpen);
+
+    const logout = useAdminLayoutStore((state) => state.logout);
 
     useEffect(() => {
         void loadMe();
@@ -76,8 +78,8 @@ export default function LayoutA({ children }: Props) {
     }, [pathname, syncActiveByPathname]);
 
     useEffect(() => {
-        function onEsc(e: KeyboardEvent) {
-            if (e.key !== 'Escape') {
+        function onEsc(event: KeyboardEvent) {
+            if (event.key !== 'Escape') {
                 return;
             }
 
@@ -101,11 +103,27 @@ export default function LayoutA({ children }: Props) {
         }
     };
 
+    /*
+     * Desktop sidebar:
+     *
+     * collapsed = false
+     * → Sidebar = 248px
+     *
+     * collapsed = true
+     * → Sidebar = 84px
+     *
+     * sidebarOpen is intentionally not used here.
+     * It is reserved for mobile/sidebar drawer behavior.
+     */
+    const shellStyle: CSSProperties = {
+        gridTemplateColumns: collapsed ? '84px minmax(0, 1fr)' : '248px minmax(0, 1fr)',
+    };
+
     return (
         <div
-            className={`${styles.shell} ${
-                collapsed ? styles.shellSidebarClosed : styles.shellSidebarOpen
-            }`}
+            className={styles.shell}
+            style={shellStyle}
+            data-sidebar-collapsed={collapsed ? 'true' : 'false'}
         >
             <Sidebar navRef={navRef} />
 

@@ -14,6 +14,7 @@ export type SiteLocale = keyof typeof messagesMap;
 
 export type TranslateMenuItem = {
     id: string;
+    parentId: string | null;
     websiteType: string;
     categoryId: string;
     key: string;

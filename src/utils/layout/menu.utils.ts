@@ -1,101 +1,155 @@
-// utils/admin/menu.utils.ts
-import type { ApiMenuItem } from "@/services/layout/menu.service";
-import { stripLocale, normalize } from "./path.utils";
+import type { MenuArea } from '@/generated/prisma';
+import type { ApiMenuItem } from '@/services/layout/menu.service';
+import { normalize, stripLocale } from './path.utils';
 
 export type Item = {
-  key: string;
-  title: string;
-  icon: string;
-  path?: string | null;
-  parentKey?: string | null;
-  children?: Item[];
+    area: MenuArea;
+    id: string;
+    key: string;
+    title: string;
+    icon: string;
+    path: string | null;
+    parentId: string | null;
+    children: Item[];
 };
 
-export function buildTree(rows: ApiMenuItem[]): Item[] {
-  const vis = rows.filter((r) => r.visible);
-  const map = new Map<string, Item>();
+export function buildTree(rows: ApiMenuItem[] = []): Item[] {
+    const visibleRows = rows.filter((row) => row.visible);
+    const map = new Map<string, Item>();
 
-  vis.forEach((r) =>
-    map.set(r.id, {
-      key: r.id,
-      title: r.title,
-      icon: r.icon || "bi bi-dot",
-      path: normalize(r.path),
-      parentKey: r.parentId,
-      children: [],
-    }),
-  );
+    for (const row of visibleRows) {
+        map.set(row.id, {
+            area: row.area,
+            id: row.id,
+            key: row.id,
+            title: row.title,
+            icon: row.icon || 'bi bi-dot',
+            path: normalize(row.path),
+            parentId: row.parentId ?? null,
+            children: [],
+        });
+    }
 
-  const roots: Item[] = [];
-  vis.forEach((r) => {
-    const node = map.get(r.id)!;
-    if (r.parentId && map.has(r.parentId)) map.get(r.parentId)!.children!.push(node);
-    else roots.push(node);
-  });
+    const roots: Item[] = [];
 
-  const sortMap: Record<string, number> = {};
-  rows.forEach((r) => (sortMap[r.id] = r.sortOrder));
+    for (const row of visibleRows) {
+        const item = map.get(row.id);
 
-  const sortRec = (arr?: Item[]) => {
-    if (!arr) return;
-    arr.sort((a, b) => {
-      const sa = sortMap[a.key] ?? 0;
-      const sb = sortMap[b.key] ?? 0;
-      if (sa !== sb) return sa - sb;
-      return a.title.localeCompare(b.title);
-    });
-    arr.forEach((n) => sortRec(n.children));
-  };
+        if (!item) {
+            continue;
+        }
 
-  sortRec(roots);
-  return roots;
+        if (row.parentId) {
+            const parent = map.get(row.parentId);
+
+            if (parent) {
+                parent.children.push(item);
+                continue;
+            }
+        }
+
+        roots.push(item);
+    }
+
+    const sortMap = new Map(visibleRows.map((row) => [row.id, row.sortOrder]));
+
+    const sortRecursive = (items: Item[]) => {
+        items.sort((a, b) => {
+            const sortA = sortMap.get(a.id) ?? 0;
+            const sortB = sortMap.get(b.id) ?? 0;
+
+            if (sortA !== sortB) {
+                return sortA - sortB;
+            }
+
+            return a.title.localeCompare(b.title);
+        });
+
+        for (const item of items) {
+            sortRecursive(item.children);
+        }
+    };
+
+    sortRecursive(roots);
+
+    return roots;
 }
 
-type MatchResult = { hit: Item; trail: string[]; np: string } | null;
+type MatchResult = {
+    hit: Item;
+    trail: string[];
+    np: string;
+} | null;
 
 export function bestMatchWithTrail(items: Item[], currentNoLocale: string): MatchResult {
-  const stack: Item[] = [];
-  let best: MatchResult = null;
+    const stack: Item[] = [];
+    let best: MatchResult = null;
 
-  function dfs(arr: Item[]): void {
-    for (const n of arr) {
-      stack.push(n);
-      const np = stripLocale(n.path || "");
-      const ok =
-        !!np &&
-        (currentNoLocale === np || currentNoLocale.startsWith(np + "/") || (np === "/" && currentNoLocale === "/"));
+    function dfs(nodes: Item[]) {
+        for (const node of nodes) {
+            stack.push(node);
 
-      if (ok) {
-        const trail = stack.slice(0, -1).map((x) => x.key);
-        if (!best || np.length > best.np.length) best = { hit: n, trail, np };
-      }
+            const np = stripLocale(node.path || '');
 
-      if (n.children?.length) dfs(n.children);
-      stack.pop();
+            const matched =
+                !!np &&
+                (currentNoLocale === np ||
+                    currentNoLocale.startsWith(`${np}/`) ||
+                    (np === '/' && currentNoLocale === '/'));
+
+            if (matched) {
+                const trail = stack.slice(0, -1).map((item) => item.key);
+
+                if (!best || np.length > best.np.length) {
+                    best = {
+                        hit: node,
+                        trail,
+                        np,
+                    };
+                }
+            }
+
+            if (node.children.length) {
+                dfs(node.children);
+            }
+
+            stack.pop();
+        }
     }
-  }
 
-  dfs(items);
-  return best;
+    dfs(items);
+
+    return best;
 }
 
-export const isAccountItem = (t: string) => /(account|profile|setting|logout|sign\s*out|chat)/i.test(t);
+export const isAccountItem = (title: string) =>
+    /(account|profile|setting|logout|sign\s*out|chat)/i.test(title);
 
-export type SectionKey = "overview" | "marketing" | "content" | "account";
+export type SectionKey = 'overview' | 'marketing' | 'content' | 'account';
 
 export const SECTION_TITLES: Record<SectionKey, string> = {
-  overview: "OVERVIEW",
-  marketing: "MARKETING",
-  content: "CONTENT",
-  account: "ACCOUNT",
+    overview: 'OVERVIEW',
+    marketing: 'MARKETING',
+    content: 'CONTENT',
+    account: 'ACCOUNT',
 };
 
-export const SECTION_ORDER: SectionKey[] = ["overview", "marketing", "content", "account"];
+export const SECTION_ORDER: SectionKey[] = ['overview', 'marketing', 'content', 'account'];
 
 export function sectionOfTopItem(title: string): SectionKey {
-  const t = (title || "").toLowerCase();
-  if (isAccountItem(title)) return "account";
-  if (/(marketing|campaigns|discounts|coupons)/i.test(t)) return "marketing";
-  if (/(content|pages|media|blog|articles)/i.test(t)) return "content";
-  return "overview";
+    const value = title.toLowerCase();
+
+    if (isAccountItem(title)) {
+        return 'account';
+    }
+
+    if (/(marketing|campaigns|discounts|coupons)/i.test(value)) {
+        return 'marketing';
+    }
+
+    if (/(content|pages|media|blog|articles)/i.test(value)) {
+        return 'content';
+    }
+
+    return 'overview';
 }

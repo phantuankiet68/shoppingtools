@@ -30,21 +30,24 @@ type State = {
     notiTab: NotiTab;
 
     toggleSidebar: () => void;
-    setSidebarOpen: (v: boolean) => void;
-    setCollapsed: (v: boolean) => void;
+    setSidebarOpen: (value: boolean) => void;
 
-    setUserMenuOpen: (v: boolean) => void;
-    setNotiOpen: (v: boolean) => void;
-    setNotiTab: (v: NotiTab) => void;
+    toggleCollapsed: () => void;
+    setCollapsed: (value: boolean) => void;
+
+    setUserMenuOpen: (value: boolean) => void;
+    setNotiOpen: (value: boolean) => void;
+    setNotiTab: (value: NotiTab) => void;
 
     loadMe: () => Promise<void>;
     loadMenu: (options: LoadMenuOptions) => Promise<void>;
 
-    setActiveKey: (k: string) => void;
+    setActiveKey: (key: string) => void;
     syncActiveByPathname: (pathname: string) => void;
 
-    toggleGroupExclusive: (k: string) => void;
-    openGroupExclusive: (k: string) => void;
+    toggleGroupExclusive: (key: string) => void;
+
+    openGroupExclusive: (key: string) => void;
 
     logout: () => Promise<void>;
 };
@@ -75,6 +78,19 @@ export const useAdminLayoutStore = create<State>((set, get) => {
     };
 
     return {
+        /*
+         * Sidebar state
+         *
+         * sidebarOpen:
+         * Used for opening/closing the sidebar
+         * drawer, mainly useful on mobile.
+         *
+         * collapsed:
+         * Used for desktop sidebar collapse:
+         *
+         * false → 248px
+         * true  → 84px
+         */
         sidebarOpen: true,
         collapsed: false,
 
@@ -96,6 +112,11 @@ export const useAdminLayoutStore = create<State>((set, get) => {
             set({
                 sidebarOpen: value,
             }),
+
+        toggleCollapsed: () =>
+            set((state) => ({
+                collapsed: !state.collapsed,
+            })),
 
         setCollapsed: (value) =>
             set({
@@ -184,6 +205,7 @@ export const useAdminLayoutStore = create<State>((set, get) => {
             }
 
             const current = stripLocale(pathname);
+
             const result = bestMatchWithTrail(items, current);
 
             if (result?.hit) {
@@ -266,6 +288,7 @@ export const useAdminLayoutStore = create<State>((set, get) => {
 
                 try {
                     localStorage.removeItem(ACTIVE_STORAGE_KEYS.PLATFORM);
+
                     localStorage.removeItem(ACTIVE_STORAGE_KEYS.ADMIN);
                 } catch {}
             }

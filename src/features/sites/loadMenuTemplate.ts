@@ -66,6 +66,7 @@ export async function loadMenuTemplate({ type, category }: LoadMenuTemplateInput
         ],
         select: {
             id: true,
+            parentId: true,
             websiteType: true,
             categoryId: true,
             key: true,

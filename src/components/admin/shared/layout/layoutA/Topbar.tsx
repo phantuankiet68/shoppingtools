@@ -17,7 +17,6 @@ type Props = {
         title: string;
         subtitle?: string | null;
     };
-
     onLogout: () => void | Promise<void>;
 };
 
@@ -32,8 +31,8 @@ type NotificationItem = {
 
 export default function Topbar({ meta, onLogout }: Props) {
     const {
-        sidebarOpen,
-        toggleSidebar,
+        collapsed,
+        toggleCollapsed,
         user,
         userMenuOpen,
         setUserMenuOpen,
@@ -59,7 +58,7 @@ export default function Topbar({ meta, onLogout }: Props) {
 
     const chatRef = useRef<HTMLDivElement | null>(null);
 
-    const unreadCount = notifications.filter((x) => !x.isRead).length;
+    const unreadCount = notifications.filter((item) => !item.isRead).length;
 
     const loadNotifications = async () => {
         try {
@@ -67,57 +66,64 @@ export default function Topbar({ meta, onLogout }: Props) {
 
             const result = await response.json();
 
-            if (!result.success) return;
+            if (!result.success) {
+                return;
+            }
 
             setNotifications(result.data || []);
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error('[Topbar] Failed to load notifications:', error);
         }
     };
 
     useEffect(() => {
-        loadNotifications();
+        void loadNotifications();
     }, []);
 
     useEffect(() => {
-        function onDocMouseDown(e: MouseEvent) {
-            const t = e.target as Node;
+        function onDocumentMouseDown(event: MouseEvent) {
+            const target = event.target as Node;
 
-            if (userMenuRef.current && !userMenuRef.current.contains(t)) {
+            if (userMenuRef.current && !userMenuRef.current.contains(target)) {
                 setUserMenuOpen(false);
             }
 
-            if (notiRef.current && !notiRef.current.contains(t)) {
+            if (notiRef.current && !notiRef.current.contains(target)) {
                 setNotiOpen(false);
             }
 
-            if (chatRef.current && !chatRef.current.contains(t)) {
+            if (chatRef.current && !chatRef.current.contains(target)) {
                 setChatOpen(false);
             }
         }
 
-        function onEsc(e: KeyboardEvent) {
-            if (e.key !== 'Escape') return;
+        function onEscape(event: KeyboardEvent) {
+            if (event.key !== 'Escape') {
+                return;
+            }
 
             setUserMenuOpen(false);
             setNotiOpen(false);
             setChatOpen(false);
         }
 
-        document.addEventListener('mousedown', onDocMouseDown);
+        document.addEventListener('mousedown', onDocumentMouseDown);
 
-        document.addEventListener('keydown', onEsc);
+        document.addEventListener('keydown', onEscape);
 
         return () => {
-            document.removeEventListener('mousedown', onDocMouseDown);
+            document.removeEventListener('mousedown', onDocumentMouseDown);
 
-            document.removeEventListener('keydown', onEsc);
+            document.removeEventListener('keydown', onEscape);
         };
     }, [setNotiOpen, setUserMenuOpen]);
 
+    const handleSidebarToggle = () => {
+        toggleCollapsed();
+    };
+
     const handleLogoutClick = async () => {
         setUserMenuOpen(false);
-
         await onLogout();
     };
 
@@ -125,10 +131,12 @@ export default function Topbar({ meta, onLogout }: Props) {
         actions[key]?.();
     };
 
-    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
 
-        if (!searchValue.trim()) return;
+        if (!searchValue.trim()) {
+            return;
+        }
     };
 
     const handleMarkAsRead = async (id: string) => {
@@ -137,8 +145,8 @@ export default function Topbar({ meta, onLogout }: Props) {
                 method: 'PATCH',
             });
 
-            setNotifications((prev) =>
-                prev.map((item) =>
+            setNotifications((previous) =>
+                previous.map((item) =>
                     item.id === id
                         ? {
                               ...item,
@@ -147,8 +155,8 @@ export default function Topbar({ meta, onLogout }: Props) {
                         : item,
                 ),
             );
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error('[Topbar] Failed to mark notification as read:', error);
         }
     };
 
@@ -158,14 +166,14 @@ export default function Topbar({ meta, onLogout }: Props) {
                 method: 'PATCH',
             });
 
-            setNotifications((prev) =>
-                prev.map((item) => ({
+            setNotifications((previous) =>
+                previous.map((item) => ({
                     ...item,
                     isRead: true,
                 })),
             );
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error('[Topbar] Failed to mark all notifications as read:', error);
         }
     };
 
@@ -176,11 +184,16 @@ export default function Topbar({ meta, onLogout }: Props) {
                     <button
                         className={styles.sidebarToggle}
                         type="button"
-                        onClick={toggleSidebar}
-                        aria-label="Toggle sidebar"
-                        aria-expanded={sidebarOpen}
+                        onClick={handleSidebarToggle}
+                        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                        aria-expanded={!collapsed}
+                        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     >
-                        <i className={`bi ${sidebarOpen ? 'bi-text-indent-right' : 'bi-list'}`} />
+                        <i
+                            className={`bi ${
+                                collapsed ? 'bi-text-indent-right' : 'bi-text-indent-left'
+                            }`}
+                        />
                     </button>
                 </div>
 
@@ -194,7 +207,7 @@ export default function Topbar({ meta, onLogout }: Props) {
                             <input
                                 type="text"
                                 value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
+                                onChange={(event) => setSearchValue(event.target.value)}
                                 className={styles.topbarSearchInput}
                                 placeholder="Search"
                                 aria-label="Search help and features"
@@ -222,32 +235,30 @@ export default function Topbar({ meta, onLogout }: Props) {
 
                 <div className={styles.topbarRight}>
                     {isSystemAdmin && (
-                        <>
-                            <div className={styles.quickActions}>
-                                <div className={styles.chatWrap} ref={chatRef}>
-                                    <button
-                                        className={styles.iconBtn}
-                                        type="button"
-                                        aria-label="Open chats"
-                                        aria-haspopup="menu"
-                                        aria-expanded={chatOpen}
-                                        onClick={() => setChatOpen((prev) => !prev)}
-                                    >
-                                        <i className="bi bi-chat-dots" />
-                                        <span className={styles.chatBadge}>5</span>
-                                    </button>
-                                </div>
-
-                                <Link
-                                    href="/admin/settings"
+                        <div className={styles.quickActions}>
+                            <div className={styles.chatWrap} ref={chatRef}>
+                                <button
                                     className={styles.iconBtn}
-                                    aria-label="Settings"
-                                    title="Settings"
+                                    type="button"
+                                    aria-label="Open chats"
+                                    aria-haspopup="menu"
+                                    aria-expanded={chatOpen}
+                                    onClick={() => setChatOpen((previous) => !previous)}
                                 >
-                                    <i className="bi bi-gear" />
-                                </Link>
+                                    <i className="bi bi-chat-dots" />
+                                    <span className={styles.chatBadge}>5</span>
+                                </button>
                             </div>
-                        </>
+
+                            <Link
+                                href="/admin/settings"
+                                className={styles.iconBtn}
+                                aria-label="Settings"
+                                title="Settings"
+                            >
+                                <i className="bi bi-gear" />
+                            </Link>
+                        </div>
                     )}
 
                     <div className={styles.notiWrap} ref={notiRef}>
@@ -305,12 +316,16 @@ export default function Topbar({ meta, onLogout }: Props) {
                                         notifications.map((item) => (
                                             <button
                                                 key={item.id}
-                                                className={`${styles.notificationItem} ${!item.isRead ? styles.notificationUnread : ''}`}
+                                                className={`${styles.notificationItem} ${
+                                                    !item.isRead ? styles.notificationUnread : ''
+                                                }`}
                                                 type="button"
                                                 onClick={() => handleMarkAsRead(item.id)}
                                             >
                                                 <span
-                                                    className={`${styles.notificationAccent} ${styles[`accent_${item.type}`] || ''}`}
+                                                    className={`${styles.notificationAccent} ${
+                                                        styles[`accent_${item.type}`] || ''
+                                                    }`}
                                                 />
 
                                                 <span className={styles.notificationContent}>
@@ -374,7 +389,9 @@ export default function Topbar({ meta, onLogout }: Props) {
 
                             <span className={styles.chevron}>
                                 <i
-                                    className={`bi bi-chevron-down ${userMenuOpen ? styles.chevronOpen : ''}`}
+                                    className={`bi bi-chevron-down ${
+                                        userMenuOpen ? styles.chevronOpen : ''
+                                    }`}
                                 />
                             </span>
                         </button>

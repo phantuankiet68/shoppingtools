@@ -1,6 +1,8 @@
 import { MenuArea } from '@/generated/prisma';
 
 type MenuTemplateData = {
+    id: string;
+    parentId?: string | null;
     key: string;
     title: string;
     path?: string | null;
@@ -10,14 +12,30 @@ type MenuTemplateData = {
     visible?: boolean;
 };
 
+export type GeneratedMenuItem = {
+    templateId: string;
+    parentTemplateId: string | null;
+    key: string;
+    title: string;
+    path: string | null;
+    icon: string | null;
+    area: MenuArea;
+    sortOrder: number;
+    visible: boolean;
+};
+
 type GenerateMenuItemsInput = {
     siteId: string;
     menus: MenuTemplateData[];
 };
 
-export function generateMenuItems({ siteId, menus }: GenerateMenuItemsInput) {
+export function generateMenuItems({
+    siteId: _siteId,
+    menus,
+}: GenerateMenuItemsInput): GeneratedMenuItem[] {
     return menus.map((menu, index) => ({
-        siteId,
+        templateId: menu.id,
+        parentTemplateId: menu.parentId ?? null,
         key: buildMenuKey(menu, index),
         title: menu.title.trim(),
         path: menu.path ?? null,

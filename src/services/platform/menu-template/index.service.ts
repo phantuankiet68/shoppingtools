@@ -17,22 +17,17 @@ export interface MenuTemplateParent {
 export interface MenuTemplate {
     id: string;
     websiteType: WebsiteType;
-
     categoryId: string;
     category: MenuTemplateCategory;
-
     parentId: string | null;
     parent: MenuTemplateParent | null;
-
     key: string;
     title: string;
     path: string | null;
     icon: string | null;
-
     area: MenuArea;
     sortOrder: number;
     visible: boolean;
-
     createdAt: string;
     updatedAt: string;
 }
@@ -41,33 +36,16 @@ export interface CreateMenuTemplatePayload {
     websiteType: WebsiteType;
     categoryId: string;
     parentId?: string | null;
-
     key: string;
     title: string;
-
     path?: string | null;
     icon?: string | null;
-
     area: MenuArea;
     sortOrder?: number;
     visible?: boolean;
 }
 
-export interface UpdateMenuTemplatePayload {
-    websiteType?: WebsiteType;
-    categoryId?: string;
-    parentId?: string | null;
-
-    key?: string;
-    title?: string;
-
-    path?: string | null;
-    icon?: string | null;
-
-    area?: MenuArea;
-    sortOrder?: number;
-    visible?: boolean;
-}
+export type UpdateMenuTemplatePayload = Partial<CreateMenuTemplatePayload>;
 
 export interface Pagination {
     page: number;
@@ -84,7 +62,7 @@ export interface MenuTemplateQuery {
     categoryId?: string;
     area?: MenuArea;
     visible?: boolean;
-    sortBy?: 'title' | 'sortOrder' | 'createdAt' | 'updatedAt';
+    sortBy?: 'title' | 'key' | 'sortOrder' | 'createdAt' | 'updatedAt';
     sortOrder?: 'asc' | 'desc';
 }
 
@@ -111,7 +89,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
     const json = await response.json();
 
     if (!response.ok) {
-        throw new Error(json.message ?? 'Request failed.');
+        throw new Error(typeof json?.message === 'string' ? json.message : 'Request failed.');
     }
 
     return json as T;
@@ -124,7 +102,7 @@ export async function getMenuTemplates(
 
     Object.entries(query).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-            params.append(key, String(value));
+            params.set(key, String(value));
         }
     });
 
@@ -133,64 +111,50 @@ export async function getMenuTemplates(
     return request<MenuTemplateListResponse>(queryString ? `${BASE_URL}?${queryString}` : BASE_URL);
 }
 
-export async function getMenuTemplate(id: string): Promise<MenuTemplateResponse> {
+export function getMenuTemplate(id: string) {
     return request<MenuTemplateResponse>(`${BASE_URL}/${id}`);
 }
 
-export async function createMenuTemplate(
-    data: CreateMenuTemplatePayload,
-): Promise<MenuTemplateResponse> {
+export function createMenuTemplate(data: CreateMenuTemplatePayload) {
     return request<MenuTemplateResponse>(BASE_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+            ...data,
+            parentId: data.parentId || null,
+        }),
     });
 }
 
-export async function updateMenuTemplate(
-    id: string,
-    data: UpdateMenuTemplatePayload,
-): Promise<MenuTemplateResponse> {
-    return request<MenuTemplateResponse>(`${BASE_URL}/${id}`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-}
-
-export async function deleteMenuTemplate(id: string): Promise<{
-    success: boolean;
-    message?: string;
-}> {
-    return request<{
-        success: boolean;
-        message?: string;
-    }>(`${BASE_URL}/${id}`, {
-        method: 'DELETE',
-    });
-}
-
-export async function duplicateMenuTemplate(id: string): Promise<MenuTemplateResponse> {
-    return request<MenuTemplateResponse>(`${BASE_URL}/${id}/duplicate`, {
-        method: 'POST',
-    });
-}
-
-export async function toggleMenuTemplateVisible(
-    id: string,
-    visible: boolean,
-): Promise<MenuTemplateResponse> {
+export function updateMenuTemplate(id: string, data: UpdateMenuTemplatePayload) {
     return request<MenuTemplateResponse>(`${BASE_URL}/${id}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            visible,
+            ...data,
+            ...(data.parentId !== undefined && {
+                parentId: data.parentId || null,
+            }),
         }),
     });
+}
+
+export function deleteMenuTemplate(id: string) {
+    return request<{ success: boolean; message?: string }>(`${BASE_URL}/${id}`, {
+        method: 'DELETE',
+    });
+}
+
+export function duplicateMenuTemplate(id: string) {
+    return request<MenuTemplateResponse>(`${BASE_URL}/${id}/duplicate`, {
+        method: 'POST',
+    });
+}
+
+export function toggleMenuTemplateVisible(id: string, visible: boolean) {
+    return updateMenuTemplate(id, { visible });
 }
