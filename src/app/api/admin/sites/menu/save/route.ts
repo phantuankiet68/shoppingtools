@@ -6,6 +6,8 @@ import { MenuArea } from '@/generated/prisma';
 export const dynamic = 'force-dynamic';
 
 type MenuItemRequest = {
+    templateId: string;
+    parentTemplateId?: string | null;
     key: string;
     title: string;
     path?: string | null;
@@ -73,10 +75,15 @@ export async function POST(req: NextRequest) {
         const invalidItems = items.filter(
             (item) =>
                 !item ||
+                typeof item.templateId !== 'string' ||
+                !item.templateId.trim() ||
                 typeof item.key !== 'string' ||
                 !item.key.trim() ||
                 typeof item.title !== 'string' ||
                 !item.title.trim() ||
+                (item.parentTemplateId !== undefined &&
+                    item.parentTemplateId !== null &&
+                    typeof item.parentTemplateId !== 'string') ||
                 (item.area !== MenuArea.SITE && item.area !== MenuArea.ADMIN),
         );
 
