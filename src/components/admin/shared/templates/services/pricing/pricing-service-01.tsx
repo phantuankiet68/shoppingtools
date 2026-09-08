@@ -837,10 +837,6 @@ export function PricingService01(props: PricingService01Props) {
                             >
                                 <div className={styles.glow} />
 
-                                {card.badge && (
-                                    <div className={styles.badge}>🔥 {t(card.badge)}</div>
-                                )}
-
                                 <div className={styles.cardHeader}>
                                     <span className={styles.plan}>{t(card.plan)}</span>
 

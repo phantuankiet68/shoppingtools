@@ -123,7 +123,7 @@ const TEMPLATE_GROUPS_BY_PATH: Record<string, TemplateGroupHome[]> = {
     '/service': ['Service', 'Contact'],
     '/pricing': ['PricingPage'],
     '/project': ['Project'],
-    '/about': ['About', 'Contact'],
+    '/about-us': ['About', 'Contact'],
     '/blog': ['Blog', 'Contact'],
     '/sign-in': ['SignIn'],
 

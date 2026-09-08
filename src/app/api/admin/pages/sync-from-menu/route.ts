@@ -17,11 +17,17 @@ type Body = {
     siteId?: string;
 };
 
+type NormalizedItem = {
+    title: string;
+    slug: string;
+    path: string;
+};
+
 function normalizeSlug(raw: string) {
     const s = (raw || '').trim();
 
     if (!s || s === '/') {
-        return '/';
+        return '';
     }
 
     return s.replace(/^\/+/, '').replace(/\/+$/, '');
@@ -34,11 +40,56 @@ function ensureLeadingSlash(path: string) {
         return '/';
     }
 
-    return s.startsWith('/') ? s : `/${s}`;
+    const normalized = s.startsWith('/') ? s : `/${s}`;
+
+    if (normalized.length > 1) {
+        return normalized.replace(/\/+$/, '');
+    }
+
+    return '/';
 }
 
 function pathFromSlug(slug: string) {
-    return slug === '/' ? '/' : `/${slug}`;
+    if (!slug || slug === 'home') {
+        return '/';
+    }
+
+    return `/${slug}`;
+}
+
+function normalizeMenuItem(item: InItem): NormalizedItem {
+    const title = String(item.title || '').trim();
+    const rawSlug = String(item.slug || '').trim();
+    const rawPath = String(item.path || '').trim();
+
+    const slug = normalizeSlug(rawSlug);
+
+    /*
+     * Home page is always:
+     *
+     * slug = "home"
+     * path = "/"
+     *
+     * This prevents:
+     *
+     * slug = "home"
+     * path = "/home"
+     */
+    const isHome = slug.toLowerCase() === 'home' || rawPath === '/';
+
+    if (isHome) {
+        return {
+            title,
+            slug: 'home',
+            path: '/',
+        };
+    }
+
+    return {
+        title,
+        slug,
+        path: ensureLeadingSlash(rawPath || pathFromSlug(slug)),
+    };
 }
 
 async function resolveSiteId(req: Request, hinted?: string): Promise<string> {
@@ -108,17 +159,14 @@ export async function POST(req: Request) {
 
         const siteId = await resolveSiteId(req, body.siteId);
 
+        /*
+         * Normalize all menu items before touching the database.
+         */
         const normalizedItems = body.items
-            .filter((item) => item?.title && item?.slug)
-            .map((item) => {
-                const slug = normalizeSlug(item.slug);
-
-                return {
-                    title: String(item.title).trim(),
-                    slug,
-                    path: ensureLeadingSlash(item.path || pathFromSlug(slug)),
-                };
-            });
+            .filter(
+                (item) => item && String(item.title || '').trim() && String(item.slug || '').trim(),
+            )
+            .map(normalizeMenuItem);
 
         if (normalizedItems.length === 0) {
             return NextResponse.json({
@@ -129,6 +177,11 @@ export async function POST(req: Request) {
             });
         }
 
+        /*
+         * ---------------------------------------------------------
+         * Validate duplicate paths
+         * ---------------------------------------------------------
+         */
         const pathCounter = new Map<string, number>();
 
         for (const item of normalizedItems) {
@@ -144,6 +197,7 @@ export async function POST(req: Request) {
                 {
                     ok: false,
                     error: `Duplicate paths detected: ${duplicatePaths.join(', ')}`,
+                    duplicatePaths,
                 },
                 {
                     status: 400,
@@ -151,6 +205,42 @@ export async function POST(req: Request) {
             );
         }
 
+        /*
+         * ---------------------------------------------------------
+         * Validate duplicate slugs
+         * ---------------------------------------------------------
+         *
+         * This prevents two menu items from trying to use
+         * the same Page slug.
+         */
+        const slugCounter = new Map<string, number>();
+
+        for (const item of normalizedItems) {
+            slugCounter.set(item.slug, (slugCounter.get(item.slug) || 0) + 1);
+        }
+
+        const duplicateSlugs = [...slugCounter.entries()]
+            .filter(([, count]) => count > 1)
+            .map(([slug]) => slug);
+
+        if (duplicateSlugs.length > 0) {
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: `Duplicate slugs detected: ${duplicateSlugs.join(', ')}`,
+                    duplicateSlugs,
+                },
+                {
+                    status: 400,
+                },
+            );
+        }
+
+        /*
+         * ---------------------------------------------------------
+         * Save pages
+         * ---------------------------------------------------------
+         */
         const pages = await prisma.$transaction(async (tx) => {
             const results: Array<{
                 id: string;
@@ -160,22 +250,30 @@ export async function POST(req: Request) {
             }> = [];
 
             for (const item of normalizedItems) {
-                const existingPage = await tx.page.findFirst({
+                /*
+                 * First find by site + PATH.
+                 *
+                 * This is important because "/" is the actual
+                 * URL of Home.
+                 */
+                const existingPageByPath = await tx.page.findFirst({
                     where: {
                         siteId,
                         path: item.path,
                     },
                     select: {
                         id: true,
+                        slug: true,
+                        path: true,
                     },
                 });
 
                 let page;
 
-                if (existingPage) {
+                if (existingPageByPath) {
                     page = await tx.page.update({
                         where: {
-                            id: existingPage.id,
+                            id: existingPageByPath.id,
                         },
                         data: {
                             title: item.title,
@@ -190,31 +288,87 @@ export async function POST(req: Request) {
                         },
                     });
                 } else {
-                    page = await tx.page.create({
-                        data: {
-                            site: {
-                                connect: {
-                                    id: siteId,
-                                },
-                            },
-                            title: item.title,
+                    /*
+                     * If there is no page with this path,
+                     * also check by site + slug.
+                     *
+                     * This is especially important for an old
+                     * Home page that was previously saved as:
+                     *
+                     * slug = "home"
+                     * path = "/home"
+                     *
+                     * It can now be corrected to:
+                     *
+                     * slug = "home"
+                     * path = "/"
+                     */
+                    const existingPageBySlug = await tx.page.findFirst({
+                        where: {
+                            siteId,
                             slug: item.slug,
-                            path: item.path,
-                            status: 'DRAFT',
-                            blocks: [] as Prisma.JsonArray,
                         },
                         select: {
                             id: true,
-                            title: true,
                             slug: true,
                             path: true,
                         },
                     });
+
+                    if (existingPageBySlug) {
+                        page = await tx.page.update({
+                            where: {
+                                id: existingPageBySlug.id,
+                            },
+                            data: {
+                                title: item.title,
+                                slug: item.slug,
+                                path: item.path,
+                            },
+                            select: {
+                                id: true,
+                                title: true,
+                                slug: true,
+                                path: true,
+                            },
+                        });
+                    } else {
+                        page = await tx.page.create({
+                            data: {
+                                site: {
+                                    connect: {
+                                        id: siteId,
+                                    },
+                                },
+                                title: item.title,
+                                slug: item.slug,
+                                path: item.path,
+                                status: 'DRAFT',
+                                blocks: [] as Prisma.JsonArray,
+                            },
+                            select: {
+                                id: true,
+                                title: true,
+                                slug: true,
+                                path: true,
+                            },
+                        });
+                    }
                 }
 
                 results.push(page);
             }
 
+            /*
+             * -------------------------------------------------
+             * Remove obsolete DRAFT pages
+             * -------------------------------------------------
+             *
+             * Only delete DRAFT pages that are no longer
+             * represented by the current menu.
+             *
+             * Existing published pages are untouched.
+             */
             await tx.page.deleteMany({
                 where: {
                     siteId,
@@ -239,6 +393,7 @@ export async function POST(req: Request) {
             code: e?.code,
             meta: e?.meta,
             message: e?.message,
+            stack: e?.stack,
         });
 
         if (e?.code === 'P2002') {
@@ -247,7 +402,7 @@ export async function POST(req: Request) {
                     ok: false,
                     code: e.code,
                     meta: e.meta,
-                    error: 'Duplicate page path detected.',
+                    error: 'Duplicate page path or slug detected.',
                 },
                 {
                     status: 409,
