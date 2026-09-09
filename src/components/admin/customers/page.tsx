@@ -693,7 +693,7 @@ export default function CustomersPage() {
                 style={{
                     display: 'grid',
                     gridTemplateColumns: '330px minmax(0, 1fr)',
-                    gap: 16,
+                    gap: 12,
                     alignItems: 'start',
                 }}
             >
@@ -702,7 +702,7 @@ export default function CustomersPage() {
                         border: '1px solid #d7e3f4',
                         borderRadius: 6,
                         background: '#fff',
-                        padding: 16,
+                        padding: 12,
                         position: 'sticky',
                         top: 12,
                     }}
@@ -712,10 +712,10 @@ export default function CustomersPage() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            marginBottom: 14,
+                            marginBottom: 8,
                         }}
                     >
-                        <div style={{ fontSize: 18, fontWeight: 700, color: '#294f7d' }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: '#294f7d' }}>
                             <i
                                 className={
                                     leftFormMode === 'EDIT'
@@ -1203,8 +1203,6 @@ export default function CustomersPage() {
                                         <th>Tags</th>
                                         <th className={styles.thNum}>Orders</th>
                                         <th className={styles.thNum}>Total spent</th>
-                                        <th>Last order</th>
-                                        <th>Created</th>
                                         <th className={styles.thActions}>Actions</th>
                                     </tr>
                                 </thead>
@@ -1363,8 +1361,6 @@ export default function CustomersPage() {
                                                     <td className={styles.tdNum}>
                                                         {formatMoney(customer.totalSpent)}
                                                     </td>
-                                                    <td>{formatDate(customer.lastOrderAt)}</td>
-                                                    <td>{formatDate(customer.createdAt)}</td>
 
                                                     <td className={styles.tdActions}>
                                                         <div style={{ display: 'flex', gap: 8 }}>

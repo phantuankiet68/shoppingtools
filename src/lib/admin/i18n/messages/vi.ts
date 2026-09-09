@@ -926,7 +926,7 @@ const vi = {
                 subject: 'Chào mừng bạn đến với nền tảng của chúng tôi',
                 description: 'Dùng cho onboarding và chào đón người dùng mới.',
                 content:
-                    'Xin chào {{name}},\n\nCảm ơn bạn đã tham gia nền tảng của chúng tôi.\nChúng tôi rất vui khi có bạn đồng hành.\n\nTrân trọng,',
+                    'Xin chào {{name}},\n\nCảm ơn bạn đã đồng hành cùng chúng tôi!\n\nTrân trọng,',
             },
             promotion: {
                 name: 'Khuyến mãi',
@@ -2838,8 +2838,7 @@ const vi = {
 
             guide: {
                 title: 'Thiết lập Facebook API',
-                description:
-                    'Kết nối Facebook Page và cấu hình Meta Graph API để tự động đăng bài theo lịch.',
+                description: 'Kết nối Facebook và bật đăng bài tự động.',
             },
 
             form: {

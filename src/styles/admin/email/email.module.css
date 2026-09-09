@@ -1,296 +1,272 @@
 .container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-
-  padding: 15px;
-
-  border-radius: 12px;
-
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-
-  border: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
 }
 
 .headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .titleRowUp {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 .iconWrapper {
-  width: 59px;
-  height: 59px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ea4335, #fbbc05);
-  color: white;
-  font-size: 20px;
-  flex-shrink: 0;
-  box-shadow: 0 10px 30px rgba(234, 67, 53, 0.25);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ea4335, #fbbc05);
+    color: white;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    box-shadow: 0 10px 30px rgba(234, 67, 53, 0.25);
 }
 
 .titleRow {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  gap: 5px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 3px;
 }
 
 .title {
-  margin: 0;
-
-  font-size: 18px;
-  font-weight: 700;
-
-  color: #0f172a;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
 }
 
 .liveBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 6px 12px;
-
-  border-radius: 999px;
-
-  background: rgba(34, 197, 94, 0.12);
-
-  color: #16a34a;
-
-  font-size: 12px;
-  font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #16a34a;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 .liveDot {
-  width: 8px;
-  height: 8px;
+    width: 8px;
+    height: 8px;
 
-  border-radius: 50%;
+    border-radius: 50%;
 
-  background: #22c55e;
+    background: #22c55e;
 
-  animation: pulse 1.8s infinite;
+    animation: pulse 1.8s infinite;
 }
 
 .headerMeta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-
-  gap: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .metaItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 8px 12px;
-
-  border-radius: 12px;
-
-  background: #f8fafc;
-
-  border: 1px solid #e2e8f0;
-
-  color: #475569;
-
-  font-size: 13px;
-  font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    font-size: 1.3rem;
+    font-weight: 500;
+    min-height: 50px;
 }
 
 .metaItem i {
-  color: #ea4335;
+    color: #ea4335;
 }
 
 .tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .tabBtn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  min-width: 190px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 18px;
+    min-width: 160px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.25s ease;
 }
 
 .tabBtn:hover {
-  transform: translateY(-2px);
-  border-color: #cbd5e1;
-  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
 }
 
 .activeTab {
-  background: linear-gradient(135deg, #e59b46 0%, #f5ba89 40%, #eb8025 100%);
-  color: white;
+    background: linear-gradient(135deg, #e59b46 0%, #f5ba89 40%, #eb8025 100%);
+    color: white;
 }
 
 .activeTab .tabIcon {
-  background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.2);
 
-  color: white;
+    color: white;
 }
 
 .activeTab .tabTitle {
-  color: white;
+    color: white;
 }
 
 .tabIcon {
-  width: 32px;
-  height: 32px;
+    width: 32px;
+    height: 32px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  border-radius: 12px;
+    border-radius: 12px;
 
-  background: #f8fafc;
+    background: #f8fafc;
 
-  color: #ea4335;
+    color: #ea4335;
 
-  font-size: 16px;
+    font-size: 16px;
 
-  transition: all 0.25s ease;
+    transition: all 0.25s ease;
 }
 
 .tabContent {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .tabTitle {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
 }
 
 .content {
-  padding: 24px;
+    padding: 24px;
 
-  border-radius: 20px;
+    border-radius: 20px;
 
-  background: white;
+    background: white;
 
-  border: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
 
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
 }
 
 .card {
-  background: white;
+    background: white;
 
-  border-radius: 18px;
+    border-radius: 18px;
 
-  border: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
 
-  padding: 20px;
+    padding: 20px;
 
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
 }
 
 .grid {
-  display: grid;
+    display: grid;
 
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 
-  gap: 20px;
+    gap: 20px;
 }
 
 .statCard {
-  padding: 20px;
+    padding: 20px;
 
-  border-radius: 18px;
+    border-radius: 18px;
 
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
 
-  border: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
 }
 
 .statValue {
-  font-size: 28px;
-  font-weight: 700;
+    font-size: 28px;
+    font-weight: 700;
 
-  color: #0f172a;
+    color: #0f172a;
 }
 
 .statLabel {
-  margin-top: 6px;
+    margin-top: 6px;
 
-  font-size: 13px;
+    font-size: 13px;
 
-  color: #64748b;
+    color: #64748b;
 }
 
 @keyframes pulse {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
 
-  50% {
-    opacity: 0.4;
-    transform: scale(1.25);
-  }
+    50% {
+        opacity: 0.4;
+        transform: scale(1.25);
+    }
 
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @media (max-width: 992px) {
-  .tabs {
-    flex-direction: column;
-  }
+    .tabs {
+        flex-direction: column;
+    }
 
-  .tabBtn {
-    width: 100%;
-  }
+    .tabBtn {
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
-  .header {
-    padding: 18px;
-  }
+    .header {
+        padding: 18px;
+    }
 
-  .title {
-    font-size: 22px;
-  }
+    .title {
+        font-size: 22px;
+    }
 
-  .iconWrapper {
-    width: 58px;
-    height: 58px;
-
-    font-size: 24px;
-  }
-
-  .headerMeta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+    .headerMeta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

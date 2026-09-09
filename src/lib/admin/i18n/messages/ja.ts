@@ -921,7 +921,7 @@ const ja = {
                 subject: '私たちのプラットフォームへようこそ',
                 description: '新規ユーザーのオンボーディングと挨拶に使用します。',
                 content:
-                    'こんにちは {{name}} さん、\n\n私たちのプラットフォームにご参加いただきありがとうございます。\nご利用いただけることを嬉しく思います。\n\nよろしくお願いいたします。',
+                    'こんにちは、{{name}}さん。\n\nご参加いただきありがとうございます！\n\nよろしくお願いいたします。',
             },
             promotion: {
                 name: 'プロモーション',
@@ -2762,8 +2762,7 @@ const ja = {
 
             guide: {
                 title: 'Facebook API設定',
-                description:
-                    'Facebookページを接続し、Meta Graph APIを設定して自動投稿を有効化します。',
+                description: 'Facebookを接続して自動投稿を有効にします。',
             },
 
             form: {

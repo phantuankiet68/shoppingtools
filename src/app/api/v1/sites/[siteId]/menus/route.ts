@@ -1,11 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+
 type MenuNode = {
     label: string;
     href: string;
     icon: string | null;
     children: MenuNode[];
 };
+
+const MAIN_MENU_PATHS = ['/', '/service', '/project', '/about-us', '/pricing', '/blog', '/contact'];
+
 export async function GET(request: NextRequest, context: { params: Promise<{ siteId: string }> }) {
     try {
         const { siteId } = await context.params;
@@ -15,6 +19,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ sit
                 siteId,
                 area: 'SITE',
                 visible: true,
+                path: {
+                    in: MAIN_MENU_PATHS,
+                },
             },
             orderBy: {
                 sortOrder: 'asc',
@@ -32,7 +39,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ sit
             });
         }
 
-        const roots: any[] = [];
+        const roots: MenuNode[] = [];
 
         for (const menu of menus) {
             const item = menuMap.get(menu.id);
@@ -55,7 +62,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ sit
             data: roots,
         });
     } catch (error) {
-        console.error(error);
+        console.error('Failed to load menus:', error);
 
         return NextResponse.json(
             {

@@ -916,8 +916,7 @@ const en = {
                 name: 'Welcome',
                 subject: 'Welcome to our platform',
                 description: 'Used for onboarding and greeting new users.',
-                content:
-                    'Hello {{name}},\n\nThank you for joining our platform.\nWe are happy to have you with us.\n\nBest regards,',
+                content: 'Hello {{name}},\n\nThank you for joining us!\n\nBest regards,',
             },
             promotion: {
                 name: 'Promotion',
@@ -2747,8 +2746,7 @@ const en = {
 
             guide: {
                 title: 'Facebook API Setup',
-                description:
-                    'Connect your Facebook Page and configure Meta Graph API integration for automatic scheduled posting.',
+                description: 'Connect Facebook and enable automatic posting.',
             },
 
             form: {
