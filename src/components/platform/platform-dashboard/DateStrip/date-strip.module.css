@@ -1,0 +1,137 @@
+.dateStrip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.dateItem,
+.nextButton {
+    appearance: none;
+    border: 1px solid #e4ebf5;
+    background: #ffffff;
+    color: #74839c;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.dateItem {
+    width: 58px;
+    height: 54px;
+    flex: 0 0 58px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.day {
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 600;
+    color: #8290a8;
+}
+
+.date {
+    margin-top: 5px;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 700;
+    color: #14264d;
+}
+
+.dateItem:hover {
+    border-color: #bdd5f5;
+    color: #126cf2;
+    box-shadow: 0 5px 14px rgba(25, 83, 145, 0.08);
+    transform: translateY(-1px);
+}
+
+.dateItem:hover .day,
+.dateItem:hover .date {
+    color: #126cf2;
+}
+
+.active {
+    border-color: #126cf2;
+    background: #126cf2;
+    color: #ffffff;
+    box-shadow: 0 8px 18px rgba(18, 108, 242, 0.24);
+}
+
+.active .day,
+.active .date {
+    color: #ffffff;
+}
+
+.active:hover {
+    border-color: #0d62dc;
+    background: #0d67e8;
+}
+
+.active:hover .day,
+.active:hover .date {
+    color: #ffffff;
+}
+
+.nextButton {
+    width: 42px;
+    height: 54px;
+    flex: 0 0 42px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #71819b;
+    font-size: 12px;
+}
+
+.nextButton:hover {
+    border-color: #bdd5f5;
+    color: #126cf2;
+    box-shadow: 0 5px 14px rgba(25, 83, 145, 0.08);
+    transform: translateX(1px);
+}
+
+.dateItem:focus-visible,
+.nextButton:focus-visible {
+    outline: 2px solid rgba(18, 108, 242, 0.35);
+    outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+    .dateStrip {
+        width: 100%;
+        overflow-x: auto;
+        padding: 2px;
+        scrollbar-width: none;
+    }
+
+    .dateStrip::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .dateStrip {
+        gap: 7px;
+    }
+
+    .dateItem {
+        width: 52px;
+        height: 50px;
+        flex-basis: 52px;
+    }
+
+    .nextButton {
+        width: 38px;
+        height: 50px;
+        flex-basis: 38px;
+    }
+}

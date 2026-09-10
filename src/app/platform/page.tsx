@@ -1,15 +1,18 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import AdminPageTitle from "@/components/admin/layouts/AdminPageTitle";
+import dynamic from 'next/dynamic';
+import AdminPageTitle from '@/components/admin/layouts/AdminPageTitle';
 
-const DashboardA = dynamic(() => import("@/components/admin/dashboard/DashboardA"), { ssr: false });
+const DashboardPlatform = dynamic(
+    () => import('@/components/platform/platform-dashboard/DashboardPlatform/DashboardPlatform'),
+    { ssr: false },
+);
 
 export default function Page() {
-  return (
-    <main>
-      <AdminPageTitle title="Dashboard" />
-      <DashboardA />
-    </main>
-  );
+    return (
+        <main>
+            <AdminPageTitle title="Dashboard" />
+            <DashboardPlatform />
+        </main>
+    );
 }

@@ -1,0 +1,284 @@
+.kpiGrid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    box-sizing: border-box;
+}
+
+.card {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: 140px;
+    padding: 13px;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid #dfe8f3;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(31, 61, 95, 0.045);
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    width: 82px;
+    height: 82px;
+    right: -28px;
+    bottom: -31px;
+    border-radius: 50%;
+    background: rgba(18, 108, 242, 0.025);
+    pointer-events: none;
+}
+
+.iconBox {
+    position: absolute;
+    top: 14px;
+    left: 13px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    font-size: 18px;
+    z-index: 2;
+}
+
+.blue {
+    color: #126cf2;
+    background: #e9f2ff;
+}
+
+.purple {
+    color: #7a45e8;
+    background: #f0e8ff;
+}
+
+.green {
+    color: #16b784;
+    background: #e2f8ef;
+}
+
+.orange {
+    color: #f58b16;
+    background: #fff0dc;
+}
+
+.pink {
+    color: #f04468;
+    background: #ffe9ef;
+}
+
+.content {
+    min-width: 0;
+    margin-left: 50px;
+    position: relative;
+    z-index: 2;
+}
+
+.topRow {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+}
+
+.label {
+    min-width: 0;
+    max-width: 94px;
+    overflow: hidden;
+    color: #536782;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.arrowButton {
+    width: 15px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #9aa8ba;
+    cursor: pointer;
+    font-size: 8px;
+}
+
+.arrowButton:hover {
+    color: #126cf2;
+}
+
+.valueRow {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.value {
+    color: #72aafd;
+    font-size: 2rem;
+    font-weight: 750;
+    line-height: 1.1;
+}
+
+.change {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 5px;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.change i {
+    font-size: 7px;
+}
+
+.positive {
+    color: #16a875;
+    background: #e3f8ef;
+}
+
+.negative {
+    color: #ef4266;
+    background: #ffe8ee;
+}
+
+.description {
+    display: block;
+    max-width: 105px;
+    margin-top: 5px;
+    overflow: hidden;
+    color: #8b99ab;
+    font-size: 1.1rem;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bottomRow {
+    position: absolute;
+    left: 13px;
+    right: 10px;
+    bottom: 9px;
+    height: 43px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 3px;
+    z-index: 2;
+}
+
+.weekChange {
+    min-width: 38px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 2px;
+}
+
+.smallIcon {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 6px;
+    font-size: 9px;
+}
+
+.weekInfo {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.weekChange strong {
+    color: #4776b7;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.weekChange span {
+    color: #8c99aa;
+    font-size: 1.1rem;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.trendChart {
+    width: 76px;
+    height: 36px;
+    min-width: 45px;
+    flex: 1;
+    max-width: 76px;
+    overflow: visible;
+}
+
+.trendChart.blue {
+    color: #126cf2;
+}
+
+.trendChart.purple {
+    color: #7a45e8;
+}
+
+.trendChart.green {
+    color: #16b784;
+}
+
+.trendChart.orange {
+    color: #f58b16;
+}
+
+.trendChart.pink {
+    color: #f04468;
+}
+
+.gradientStart {
+    stop-color: currentColor;
+    stop-opacity: 0.18;
+}
+
+.gradientEnd {
+    stop-color: currentColor;
+    stop-opacity: 0;
+}
+
+@media (max-width: 700px) {
+    .kpiGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .kpiGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+        height: 150px;
+    }
+}
+
+@media (max-width: 350px) {
+    .kpiGrid {
+        grid-template-columns: 1fr;
+    }
+}

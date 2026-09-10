@@ -1,0 +1,468 @@
+.timeline {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: 1px solid #e3ebf5;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(35, 75, 122, 0.05);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px 14px;
+    border-bottom: 1px solid #edf1f6;
+}
+
+.titleGroup {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: #edf5ff;
+    color: #126cf2;
+    font-size: 14px;
+}
+
+.titleGroup > div:last-child {
+    min-width: 0;
+}
+
+.titleGroup h3 {
+    margin: 0;
+    color: #14264d;
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.titleGroup p {
+    max-width: 470px;
+    margin: 3px 0 0;
+    overflow: hidden;
+    color: #8491a8;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    flex: 0 0 auto;
+}
+
+.dateButton,
+.filterButton,
+.addButton,
+.moreButton {
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-sizing: border-box;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition:
+        border-color 0.18s ease,
+        background-color 0.18s ease,
+        color 0.18s ease;
+}
+
+.dateButton,
+.filterButton {
+    padding: 0 8px;
+    border: 1px solid #e0e8f3;
+    background: #ffffff;
+    color: #687894;
+}
+
+.dateButton:hover,
+.filterButton:hover {
+    border-color: #c7dbf4;
+    background: #f7fbff;
+    color: #126cf2;
+}
+
+.dateButton i:last-child {
+    margin-left: 2px;
+    font-size: 7px;
+}
+
+.addButton {
+    padding: 0 9px;
+    border: 1px solid #126cf2;
+    background: #126cf2;
+    color: #ffffff;
+    font-weight: 650;
+    box-shadow: 0 4px 10px rgba(18, 108, 242, 0.16);
+}
+
+.addButton:hover {
+    border-color: #075fd9;
+    background: #075fd9;
+}
+
+.moreButton {
+    width: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #8c9ab0;
+    font-size: 11px;
+}
+
+.moreButton:hover {
+    background: #f1f5fa;
+    color: #126cf2;
+}
+
+.timelineWrapper {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d9e3ef transparent;
+}
+
+.timelineWrapper::-webkit-scrollbar {
+    height: 5px;
+}
+
+.timelineWrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.timelineWrapper::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #d9e3ef;
+}
+
+.timeHeader {
+    display: grid;
+    grid-template-columns: 205px minmax(700px, 1fr);
+    min-width: 905px;
+    height: 36px;
+    border-bottom: 1px solid #edf1f6;
+    background: #fbfcfe;
+}
+
+.taskHeader {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-right: 1px solid #edf1f6;
+    color: #7c8ba3;
+    font-size: 1.1rem;
+    font-weight: 650;
+}
+
+.timeScale {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(70px, 1fr));
+    align-items: center;
+}
+
+.timeScale span {
+    padding-left: 7px;
+    color: #8491a8;
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+.timelineContent {
+    display: grid;
+    grid-template-columns: 205px minmax(700px, 1fr);
+    min-width: 905px;
+    height: 320px;
+}
+
+.taskColumn {
+    border-right: 1px solid #edf1f6;
+    background: #ffffff;
+}
+
+.taskRow {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f0f3f7;
+}
+
+.taskIndicator {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    border-radius: 2px;
+}
+
+.taskIndicator.blue {
+    background: #4d9cf5;
+}
+
+.taskIndicator.purple {
+    background: #9560e8;
+}
+
+.taskIndicator.green {
+    background: #43c996;
+}
+
+.taskIndicator.orange {
+    background: #f2a044;
+}
+
+.taskName {
+    min-width: 0;
+    overflow: hidden;
+    color: #50627f;
+    font-size: 1.1rem;
+    line-height: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.scheduleColumn {
+    position: relative;
+    min-width: 700px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.verticalLines {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(10, minmax(70px, 1fr));
+    pointer-events: none;
+}
+
+.verticalLines span {
+    border-right: 1px dashed #e9eef5;
+}
+
+.verticalLines span:first-child {
+    border-left: 1px solid #edf1f6;
+}
+
+.currentTime {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 28%;
+    z-index: 4;
+    width: 1px;
+    background: rgba(239, 73, 94, 0.35);
+    pointer-events: none;
+}
+
+.currentTime span {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: #ef4d63;
+    color: #ffffff;
+    font-size: 6px;
+    line-height: 1;
+}
+
+.scheduleBar {
+    position: absolute;
+    z-index: 3;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-sizing: border-box;
+    min-width: 70px;
+    padding: 0 5px;
+    overflow: hidden;
+    border: 1px solid;
+    border-radius: 5px;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(35, 75, 122, 0.04);
+}
+
+.scheduleBar.blue {
+    border-color: #9bc9fa;
+    background: #edf7ff;
+    color: #1975dc;
+}
+
+.scheduleBar.purple {
+    border-color: #cbb0f2;
+    background: #f5efff;
+    color: #8251d3;
+}
+
+.scheduleBar.green {
+    border-color: #a8e5ce;
+    background: #ecfbf5;
+    color: #149c6d;
+}
+
+.scheduleBar.orange {
+    border-color: #f4cb9d;
+    background: #fff5e9;
+    color: #df851b;
+}
+
+.barIcon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    display: grid;
+    place-items: center;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.72);
+    font-size: 1rem;
+}
+
+.barTitle {
+    min-width: 0;
+    overflow: hidden;
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+}
+
+.avatars {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.avatars span {
+    width: 14px;
+    height: 14px;
+    display: grid;
+    place-items: center;
+    margin-left: -3px;
+    border: 1px solid #ffffff;
+    border-radius: 50%;
+    background: #dbeaff;
+    color: #3175c7;
+    font-size: 5px;
+    font-weight: 700;
+}
+
+.avatars span:nth-child(2) {
+    background: #ffe1d8;
+    color: #c96b55;
+}
+
+.footer {
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 13px;
+    box-sizing: border-box;
+    border-top: 1px solid #edf1f6;
+    background: #fcfdff;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #7b89a1;
+    font-size: 1.1rem;
+}
+
+.legendDot {
+    width: 6px;
+    height: 6px;
+    display: inline-block;
+    border-radius: 2px;
+}
+
+.legendDot.blue {
+    background: #4d9cf5;
+}
+
+.legendDot.purple {
+    background: #9560e8;
+}
+
+.legendDot.green {
+    background: #43c996;
+}
+
+.legendDot.orange {
+    background: #f2a044;
+}
+
+.total {
+    color: #8a97aa;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 900px) {
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .titleGroup p {
+        display: none;
+    }
+
+    .filterButton span,
+    .dateButton span,
+    .addButton span {
+        display: none;
+    }
+
+    .dateButton,
+    .filterButton,
+    .addButton {
+        width: 30px;
+        padding: 0;
+    }
+
+    .legend {
+        gap: 7px;
+    }
+
+    .legend span:nth-child(n + 3) {
+        display: none;
+    }
+}

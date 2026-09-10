@@ -1,0 +1,379 @@
+.card {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: 1px solid #e3ebf5;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(35, 75, 122, 0.05);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    padding: 9px 13px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #edf1f6;
+}
+
+.titleGroup {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: #edf5ff;
+    color: #126cf2;
+    font-size: 14px;
+}
+
+.titleGroup h3 {
+    margin: 0;
+    color: #14264d;
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.titleGroup p {
+    margin: 2px 0 0;
+    color: #9aa6b8;
+    font-size: 7px;
+    line-height: 1;
+}
+
+.viewAll {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 7px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #126cf2;
+    cursor: pointer;
+    font-size: 8px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.viewAll:hover {
+    background: #edf5ff;
+}
+
+.viewAll i {
+    font-size: 8px;
+}
+
+.dateHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 11px 7px;
+}
+
+.dateHeader strong,
+.dateHeader span {
+    display: block;
+}
+
+.dateHeader strong {
+    color: #2a3e60;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.dateHeader span:not(.todayBadge) {
+    margin-top: 2px;
+    color: #8a97aa;
+    font-size: 7px;
+}
+
+.todayBadge {
+    padding: 4px 7px;
+    border-radius: 6px;
+    background: #eaf3ff;
+    color: #126cf2;
+    font-size: 7px;
+    font-weight: 650;
+}
+
+.scheduleList {
+    padding: 0 11px;
+}
+
+.scheduleItem {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    min-height: 51px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.scheduleItem:last-child {
+    border-bottom: 0;
+}
+
+.time {
+    align-self: start;
+    padding-top: 15px;
+    color: #4c607e;
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.timeline {
+    position: relative;
+    align-self: stretch;
+    width: 12px;
+}
+
+.timeline::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 5px;
+    width: 1px;
+    background: #e8edf4;
+    content: '';
+}
+
+.scheduleItem:first-child .timeline::before {
+    top: 25px;
+}
+
+.scheduleItem:last-child .timeline::before {
+    bottom: 25px;
+}
+
+.timelineDot {
+    position: absolute;
+    top: 20px;
+    left: 2px;
+    z-index: 2;
+    width: 7px;
+    height: 7px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-sizing: content-box;
+}
+
+.timeline.blue .timelineDot {
+    background: #4b9cf4;
+    box-shadow: 0 0 0 2px #dcecff;
+}
+
+.timeline.green .timelineDot {
+    background: #3bc993;
+    box-shadow: 0 0 0 2px #dff7ed;
+}
+
+.timeline.orange .timelineDot {
+    background: #f29a38;
+    box-shadow: 0 0 0 2px #fff0dc;
+}
+
+.timeline.purple .timelineDot {
+    background: #8a55df;
+    box-shadow: 0 0 0 2px #eee5fc;
+}
+
+.scheduleContent {
+    min-width: 0;
+    padding: 7px 0;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.itemIcon {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    font-size: 9px;
+}
+
+.itemIcon.blue {
+    background: #eaf3ff;
+    color: #277ce8;
+}
+
+.itemIcon.green {
+    background: #e8faf2;
+    color: #12a46c;
+}
+
+.itemIcon.orange {
+    background: #fff0df;
+    color: #eb891b;
+}
+
+.itemIcon.purple {
+    background: #f0eaff;
+    color: #8250db;
+}
+
+.titleRow strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #354967;
+    font-size: 8px;
+    line-height: 1.3;
+    font-weight: 650;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.scheduleContent p {
+    margin: 3px 0 0;
+    overflow: hidden;
+    color: #909daf;
+    font-size: 7px;
+    line-height: 1.25;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.typeBadge {
+    align-self: center;
+    padding: 4px 6px;
+    border-radius: 5px;
+    font-size: 6px;
+    line-height: 1;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.typeBadge.blue {
+    background: #eaf3ff;
+    color: #277ce8;
+}
+
+.typeBadge.green {
+    background: #e7faf1;
+    color: #0fa16a;
+}
+
+.typeBadge.orange {
+    background: #fff0df;
+    color: #e98619;
+}
+
+.typeBadge.purple {
+    background: #f0eaff;
+    color: #804bd7;
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 43px;
+    padding: 7px 11px;
+    box-sizing: border-box;
+    border-top: 1px solid #edf1f6;
+    background: #fcfdff;
+}
+
+.summary {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.summaryIcon {
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: #e8faf2;
+    color: #12a36b;
+    font-size: 11px;
+}
+
+.summary div {
+    min-width: 0;
+}
+
+.summary strong,
+.summary div span {
+    display: block;
+}
+
+.summary strong {
+    color: #415473;
+    font-size: 8px;
+    line-height: 1.2;
+}
+
+.summary div span {
+    margin-top: 2px;
+    color: #96a2b4;
+    font-size: 7px;
+}
+
+.addButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    border: 1px solid #dce7f4;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #61728d;
+    cursor: pointer;
+    font-size: 8px;
+    font-weight: 650;
+}
+
+.addButton:hover {
+    border-color: #c4daf4;
+    background: #f7fbff;
+    color: #126cf2;
+}
+
+.addButton i {
+    color: #126cf2;
+    font-size: 8px;
+}
+
+@media (max-width: 600px) {
+    .titleGroup p {
+        display: none;
+    }
+
+    .typeBadge {
+        display: none;
+    }
+
+    .scheduleItem {
+        grid-template-columns: 34px 12px minmax(0, 1fr);
+    }
+}
