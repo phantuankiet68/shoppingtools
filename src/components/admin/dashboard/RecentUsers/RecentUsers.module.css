@@ -1,0 +1,385 @@
+.card {
+    width: 100%;
+    min-width: 0;
+    padding: 12px 15px;
+    box-sizing: border-box;
+
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 16px;
+
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(246, 250, 255, 0.58));
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    box-shadow:
+        0 12px 30px rgba(57, 91, 135, 0.055),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.header {
+    height: 34px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.header h3 {
+    margin: 0;
+
+    color: #173b65;
+
+    font-size: 14px;
+    font-weight: 800;
+
+    letter-spacing: -0.25px;
+}
+
+.viewButton {
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    border: 0;
+    background: transparent;
+
+    color: #3188e8;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 650;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.viewButton:hover {
+    color: #126bd0;
+    transform: translateX(2px);
+}
+
+.viewButton i {
+    font-size: 9px;
+}
+
+/* =========================================
+   USER LIST
+========================================= */
+
+.userList {
+    width: 100%;
+}
+
+.userRow {
+    min-height: 58px;
+
+    display: grid;
+    grid-template-columns:
+        40px
+        minmax(140px, 1fr)
+        76px
+        91px
+        62px
+        22px;
+
+    align-items: center;
+
+    gap: 10px;
+
+    border-top: 1px solid rgba(91, 130, 166, 0.08);
+}
+
+/* =========================================
+   AVATAR
+========================================= */
+
+.avatar {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    border: 2px solid rgba(255, 255, 255, 0.9);
+
+    color: #fff;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    box-shadow: 0 5px 12px rgba(51, 91, 135, 0.12);
+}
+
+.blue {
+    background: linear-gradient(145deg, #60b8ee, #467fe2);
+}
+
+.purple {
+    background: linear-gradient(145deg, #ad8ff0, #725bd9);
+}
+
+.orange {
+    background: linear-gradient(145deg, #ffbf69, #ed8e45);
+}
+
+.green {
+    background: linear-gradient(145deg, #63d3af, #35a98c);
+}
+
+/* =========================================
+   USER INFO
+========================================= */
+
+.userInfo {
+    min-width: 0;
+}
+
+.userInfo strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: #21456f;
+
+    font-size: 11px;
+    font-weight: 750;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.userInfo span {
+    display: block;
+
+    margin-top: 3px;
+
+    overflow: hidden;
+
+    color: #8ba0b6;
+
+    font-size: 8px;
+    font-weight: 500;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* =========================================
+   ROLE
+========================================= */
+
+.role {
+    width: fit-content;
+
+    padding: 5px 9px;
+
+    border: 1px solid rgba(85, 136, 186, 0.15);
+    border-radius: 999px;
+
+    color: #52769b;
+
+    background: rgba(255, 255, 255, 0.4);
+
+    font-size: 8px;
+    font-weight: 650;
+
+    white-space: nowrap;
+}
+
+/* =========================================
+   STATUS
+========================================= */
+
+.status {
+    width: fit-content;
+
+    min-height: 25px;
+
+    padding: 0 9px;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    border-radius: 999px;
+
+    font-size: 8px;
+    font-weight: 650;
+
+    white-space: nowrap;
+}
+
+.statusDot {
+    width: 7px;
+    height: 7px;
+
+    flex: 0 0 7px;
+
+    border-radius: 50%;
+}
+
+/* ACTIVE */
+
+.active {
+    color: #1eaa7d;
+    background: rgba(40, 199, 148, 0.09);
+}
+
+.active .statusDot {
+    background: #19bb82;
+    box-shadow: 0 0 0 3px rgba(25, 187, 130, 0.1);
+}
+
+/* PENDING */
+
+.pending {
+    color: #e79a20;
+    background: rgba(250, 180, 45, 0.1);
+}
+
+.pending .statusDot {
+    background: #ffad18;
+}
+
+/* INACTIVE */
+
+.inactive {
+    color: #7892ae;
+    background: rgba(121, 151, 180, 0.09);
+}
+
+.inactive .statusDot {
+    background: #91aaca;
+}
+
+/* =========================================
+   TIME
+========================================= */
+
+.time {
+    color: #8ba0b6;
+
+    font-size: 8px;
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+/* =========================================
+   MENU
+========================================= */
+
+.menuButton {
+    width: 22px;
+    height: 30px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #55779b;
+
+    font-size: 11px;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.menuButton:hover {
+    color: #287bd5;
+
+    background: rgba(62, 137, 217, 0.06);
+
+    border-radius: 8px;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1100px) {
+    .userRow {
+        grid-template-columns:
+            40px
+            minmax(120px, 1fr)
+            70px
+            85px
+            55px
+            22px;
+
+        gap: 7px;
+    }
+}
+
+@media (max-width: 800px) {
+    .card {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .userRow {
+        grid-template-columns:
+            40px
+            minmax(130px, 1fr)
+            70px
+            22px;
+    }
+
+    .status,
+    .time {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 16px 12px 8px;
+        border-radius: 16px;
+    }
+
+    .userRow {
+        grid-template-columns:
+            36px
+            minmax(0, 1fr)
+            65px
+            22px;
+
+        min-height: 55px;
+    }
+
+    .avatar {
+        width: 34px;
+        height: 34px;
+    }
+
+    .role {
+        padding: 4px 7px;
+        font-size: 7px;
+    }
+
+    .userInfo strong {
+        font-size: 10px;
+    }
+}

@@ -6,14 +6,36 @@
 }
 
 .card {
-    overflow: auto;
-    height: 81vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 78vh;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.25) transparent;
+}
+
+/* Chrome / Edge / Safari */
+.card::-webkit-scrollbar {
+    width: 3px;
+}
+
+.card::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.card::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.25);
+    border-radius: 999px;
+}
+
+.card::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.4);
 }
 .itemContainer {
     padding: 20px 15px;
     border-radius: 8px;
     border: 1px dashed rgba(15, 23, 42, 0.22);
-    background: #fff;
     margin-bottom: 12px;
 }
 
@@ -23,7 +45,7 @@
     gap: 5px;
     padding: 8px 12px;
     border-radius: 6px;
-    background: #ffffff;
+    background: linear-gradient(120deg, #ffffff26, #fbfbfb00);
     border: 1px solid rgba(15, 23, 42, 0.1);
     transition:
         transform 120ms ease,
@@ -194,7 +216,7 @@
     padding: 10px 10px 12px;
     border-radius: 6px;
     border: 1px dashed rgba(15, 23, 42, 0.18);
-    background: rgba(248, 250, 252, 0.6);
+    background: linear-gradient(120deg, #ffffff26, #fbfbfb00);
 }
 
 .smallHelp {
@@ -275,7 +297,6 @@
 
 .card {
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.86);
 }
 
 .headerRight {
@@ -445,7 +466,6 @@
     padding: 12px;
     border-radius: 8px;
     border: 1px solid rgba(2, 6, 23, 0.08);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.7));
     position: relative;
 }
 

@@ -95,12 +95,23 @@ function isHomePage(path: string) {
     return path === '/' || path === '/home';
 }
 
-function buildMetaTitle(t: TranslateFn, title: string, siteName: string, isHome: boolean) {
+function buildMetaTitle(
+    t: TranslateFn,
+    title: string,
+    siteName: string,
+    category: string,
+    isHome: boolean,
+) {
     if (isHome) {
-        return t('seo.homeMetaTitle').replace('{siteName}', siteName);
+        return t('seo.homeMetaTitle')
+            .replace('{siteName}', siteName)
+            .replace('{category}', category);
     }
 
-    return t('seo.pageMetaTitle').replace('{title}', title).replace('{siteName}', siteName);
+    return t('seo.pageMetaTitle')
+        .replace('{title}', title)
+        .replace('{siteName}', siteName)
+        .replace('{category}', category);
 }
 
 function buildOgTitle(t: TranslateFn, title: string, siteName: string, isHome: boolean) {
@@ -158,7 +169,7 @@ export function fillAutoSEO(
 
     const isHome = isHomePage(path);
 
-    const metaTitle = buildMetaTitle(t, title, siteName, isHome).slice(0, 70);
+    const metaTitle = buildMetaTitle(t, title, siteName, category, isHome).slice(0, 70);
 
     const metaDescription = (
         isHome

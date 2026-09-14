@@ -29,7 +29,8 @@
 
 .container {
     color: #4e4e52;
-    min-height: 86.5vh;
+    margin-top: 12px;
+    padding-right: 12px;
 }
 
 /* Topbar */
@@ -39,10 +40,12 @@
     justify-content: space-between;
     margin-bottom: 0.75rem;
     font-size: 13px;
-    background: var(--background);
-    padding: 10px;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
+    padding: 9px;
     border-radius: 5px;
-    border: var(--bd-header);
 }
 .h4 {
     font-size: 1.25rem;
@@ -88,9 +91,8 @@
 /* Grid */
 .grid {
     gap: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 0.5fr 1fr;
     width: 100%;
 }
 .leftCol,
@@ -100,14 +102,6 @@
 }
 
 @media (max-width: 1636px) {
-    .leftCol {
-        max-width: 500px;
-    }
-
-    .rightCol {
-        max-width: 80%;
-        min-width: 60%;
-    }
     .grid2 {
         display: grid;
         grid-template-columns: 1fr 165px;
@@ -121,12 +115,11 @@
     scrollbar-gutter: stable both-edges;
     scrollbar-width: thin;
     scrollbar-color: #a7b0b2 #adadad26;
-    background: #fff;
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
     border-radius: 5px;
     padding: 10px;
-    width: 50%;
-    height: 84vh;
-    border: var(--bd-header);
+    height: 80vh;
 }
 
 .searchInput {
@@ -134,8 +127,8 @@
     height: 45px;
     width: 500px;
     border-radius: 8px;
-    border: var(--bd-header);
-    background: var(--card-bg, #fff);
+    background: #ffffff59;
+    border: 1.5px solid #ffffffad;
     color: var(--text);
 }
 
@@ -211,7 +204,7 @@
 .blocksGrid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
+    gap: 1rem;
     height: 81vh;
     overflow: auto;
     scrollbar-width: none; /* Firefox */
@@ -237,12 +230,12 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem;
+    padding: 1.8rem;
     border-radius: 6px;
     cursor: -webkit-grab;
     cursor: grab;
     font-size: 14px;
-    border: var(--bd-header);
+    border: 1px solid #c9e3ff;
 }
 .blockCard:hover {
     filter: brightness(1.05);
@@ -254,12 +247,12 @@
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    background: var(--bg-pro);
-    color: var(--text);
+    background: linear-gradient(135deg, #ceecff, #86a6cd) !important;
+    color: #ffffff;
     border: 1px dashed var(--bd, #cbd5e1);
 }
 .blockTitle {
-    color: var(--text);
+    color: #a0beff;
     font-size: 1.3rem;
 }
 
@@ -352,10 +345,13 @@
     border: var(--bd-header);
 }
 .formSelectSm {
-    padding: 15px;
+    padding: 12px 15px;
     width: 195px;
     color: var(--text);
-    background: var(--white);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
     outline: none;
     font-size: 13px;
 }
@@ -794,16 +790,6 @@
     .grid2 {
         grid-template-columns: 1fr 182px;
     }
-    .leftCol {
-        width: 50%;
-    }
-    .leftCol {
-        max-width: 800px;
-    }
-    .rightCol {
-        min-width: 42%;
-        width: 50%;
-    }
     .blocksGrid,
     .blocksGridRight {
         height: 78vh;
@@ -859,7 +845,10 @@
 .inlineLimit {
     font-weight: 500;
     padding: 12px 15px;
-    border: var(--bd-header);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
     border-radius: 6px;
     display: flex;
     gap: 10px;

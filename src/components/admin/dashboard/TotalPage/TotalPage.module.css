@@ -1,8 +1,9 @@
 /* GRID FIX */
 .grid {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
 }
 
 /* CARD */
@@ -10,15 +11,15 @@
     border-radius: 14px;
     justify-content: space-between;
     align-items: center;
-    padding: 25px 15px;
+    padding: 15px;
     transition: all 0.25s;
     display: flex;
-    background: #ffffff;
-    border: var(--bd-header);
-    min-width: 250px;
-    box-shadow:
-        0 10px 30px #0f172a0d,
-        inset 0 1px #fffc;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.68);
+    background: linear-gradient(135deg, #ffffff40, #74b2e336);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
 }
 
 .card:hover {
@@ -33,7 +34,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 130px;
+    min-width: 110px;
 }
 
 .left i {
@@ -87,7 +88,7 @@
 
 /* VALUE */
 .value {
-    font-size: 16px;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #00c2ff;
 }
@@ -104,15 +105,4 @@
 
 .down {
     color: #ef4444;
-}
-
-@media (max-width: 1600px) {
-    .card {
-        min-width: 258px;
-        padding: 10px;
-    }
-    .grid {
-        margin-bottom: 10px;
-        gap: 12px;
-    }
 }

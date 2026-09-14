@@ -163,17 +163,6 @@ function PageList({
                             {currentSitePageCount} / {maxPages}
                         </strong>
                     </div>
-
-                    <button
-                        className={styles.refreshBtn}
-                        type="button"
-                        onClick={() => void handleRefresh()}
-                        disabled={loading}
-                        aria-label={t('pageList.common.refresh')}
-                        title={t('pageList.common.refresh')}
-                    >
-                        <i className={`bi bi-arrow-repeat ${styles.iconLeft}`} />
-                    </button>
                 </div>
                 <div className={styles.searchBox}>
                     <i className={`bi bi-search ${styles.searchIcon}`} />
@@ -270,9 +259,9 @@ function PageList({
                                     </span>
                                 </div>
                                 <div className={styles.itemTime}>{dateText}</div>
-                            </div>
-                            <div className={styles.meta}>
-                                <code className={styles.code}>{p.path}</code>
+                                <div className={styles.meta}>
+                                    <code className={styles.code}>{p.path}</code>
+                                </div>
                             </div>
                         </button>
                     );

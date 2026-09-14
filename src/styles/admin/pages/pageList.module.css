@@ -4,12 +4,14 @@
 .leftPane {
     display: flex;
     flex-direction: column;
-    height: calc(92vh); /* tuỳ chiều cao topbar của bạn */
-    min-width: 360px;
+    height: calc(89vh); /* tuỳ chiều cao topbar của bạn */
+    min-width: 211px;
     max-width: 520px;
-    width: 420px;
-    background: var(--bg-header);
-    border: var(--bd-header);
+    width: 233px;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
     border-radius: 8px;
 
     overflow: hidden;
@@ -17,9 +19,8 @@
 
 /* Header (search + toolbar) */
 .leftHead {
-    padding: 12px 12px 10px;
+    padding: 10px;
     border-bottom: 1px solid rgba(17, 24, 39, 0.08);
-    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
 }
 
@@ -47,8 +48,8 @@
     align-items: center;
     padding: 8px 12px 8px 38px;
     border-radius: 6px;
-    background: #fff;
-    border: var(--bd-header);
+    background: #ffffff59;
+    border: 1.5px solid #ffffffad;
     transition:
         border-color 160ms ease,
         background 160ms ease;
@@ -107,11 +108,10 @@
    Toolbar
 ========================= */
 .toolbar {
-    display: flex;
+    display: grid;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    gap: 5px;
+    grid-template-columns: 1fr 1fr;
 }
 
 /* Nếu bạn vẫn dùng bootstrap select, class này sẽ không ảnh hưởng.
@@ -120,8 +120,8 @@
     height: 37px;
     padding: 3px 10px;
     border-radius: 6px;
-    border: var(--bd-header);
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff59;
+    border: 1.5px solid #ffffffad;
     font-size: 12px;
     color: var(--muted);
     outline: none;
@@ -243,10 +243,10 @@
     width: 100%;
     text-align: left;
     display: grid;
-    grid-template-columns: 40px 1fr auto;
+    grid-template-columns: 40px 1fr;
     gap: 12px;
     align-items: center;
-    padding: 10px 12px;
+    padding: 6px 12px;
     border-radius: 6px;
     border: var(--bd-header);
     background: rgba(255, 255, 255, 0.75);
@@ -290,7 +290,7 @@
     font-size: 16px;
     font-weight: 900;
     letter-spacing: 0.06em;
-    background: var(--bg-primary);
+    background: linear-gradient(135deg, #ceecff, #86a6cd) !important;
     color: var(--color-white);
 }
 
@@ -328,8 +328,7 @@
     margin-top: 3px;
     display: flex;
     align-items: center;
-
-    font-size: 12px;
+    font-size: 0.8rem;
     color: rgba(17, 24, 39, 0.65);
 
     white-space: nowrap;
@@ -347,7 +346,7 @@
     font-family:
         ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
         monospace;
-    font-size: 11px;
+    font-size: 0.8rem;
     color: rgba(17, 24, 39, 0.78);
 
     max-width: 160px;
@@ -397,8 +396,8 @@
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
-    border-top: var(--bd-header);
-    background: rgba(255, 255, 255, 0.85);
+    background: #ffffff59;
+    border-top: 1.5px solid #ffffffad;
 }
 
 .pageBtn {
@@ -433,7 +432,7 @@
 
 .pageInfo {
     flex: 1;
-    font-size: 13px;
+    font-size: 1.2rem;
     color: rgba(17, 24, 39, 0.75);
     white-space: nowrap;
     overflow: hidden;
@@ -484,7 +483,7 @@
     gap: 8px;
     background: var(--bg-add);
     color: var(--color-add);
-    font-size: 13px;
+    font-size: 1.2rem;
     font-weight: 500;
     cursor: pointer;
     transition:
@@ -519,9 +518,9 @@
     justify-content: space-between;
     padding: 8px 12px;
     border-radius: 8px;
-    border: var(--bd-header);
+    border: 1px solid #a2d1ffb8;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 1.2rem;
     font-weight: 500;
     gap: 6px;
     height: 38px;
@@ -529,7 +528,7 @@
 
 .limitBox strong {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 1.2rem;
     font-weight: 500;
 }
 
@@ -543,17 +542,8 @@
         display: none;
     }
     .item {
-        grid-template-columns: 42px 1fr 42px;
+        grid-template-columns: 42px 1fr;
         gap: 10px;
-    }
-    .meta {
-        margin-top: 0px;
-    }
-    .leftPane {
-        width: 285px;
-        min-width: 0;
-        max-width: 520px;
-        height: 90.5vh;
     }
     .select {
         min-width: 46%;
@@ -561,12 +551,8 @@
         height: 36px;
     }
     .grid {
-        grid-template-columns: 23.5% 1fr;
+        grid-template-columns: 17.5% 1fr;
         margin-top: 0;
-    }
-    .itemIcon {
-        width: 42px;
-        height: 42px;
     }
     .itemTitle {
         font-size: 11px;
@@ -576,6 +562,6 @@
         font-weight: 500;
     }
     .item {
-        min-height: 68px;
+        min-height: 50px;
     }
 }

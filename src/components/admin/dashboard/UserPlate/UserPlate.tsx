@@ -1,7 +1,7 @@
 'use client';
 
 import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
-import styles from '@/styles/admin/dashboard/UserPlate.module.css';
+import styles from './UserPlate.module.css';
 import Image from 'next/image';
 
 export default function SupportManagerCard() {
@@ -14,7 +14,7 @@ export default function SupportManagerCard() {
                 <div className={styles.avatarWrap}>
                     <div className={styles.avatarRing}>
                         <Image
-                            src="/assets/images/avatar.png"
+                            src="/assets/images/avatar/avatar.png"
                             alt="Manager"
                             width={78}
                             height={78}
@@ -30,7 +30,7 @@ export default function SupportManagerCard() {
                 <div className={styles.info}>
                     <div className={styles.badge}>
                         <i className="bi bi-patch-check-fill"></i>
-                        Shopping Tool
+                        Kbuilder
                     </div>
 
                     {/* ACTION */}

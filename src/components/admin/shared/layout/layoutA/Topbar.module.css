@@ -1,0 +1,1109 @@
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.topbar {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    padding: 10px 0px 0;
+    box-sizing: border-box;
+    z-index: 20;
+}
+
+.topbarShell {
+    position: relative;
+    min-height: 52px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.68);
+    border-radius: 16px;
+    background: linear-gradient(120deg, #ffffff00, #fbfbfb00);
+    box-shadow:
+        0 15px 40px rgba(58, 101, 151, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.86);
+
+    backdrop-filter: blur(22px) saturate(145%);
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+/* =========================================================
+   AMBIENT LIGHT
+========================================================= */
+
+.topbarShell::before {
+    content: '';
+
+    position: absolute;
+
+    width: 220px;
+    height: 100px;
+
+    left: 20%;
+
+    top: -55px;
+
+    border-radius: 50%;
+
+    background: radial-gradient(circle, rgba(126, 202, 255, 0.1), transparent 70%);
+
+    filter: blur(20px);
+
+    pointer-events: none;
+}
+
+/* =========================================================
+   LEFT
+========================================================= */
+
+.topbarLeft {
+    display: flex;
+    align-items: center;
+
+    flex: 0 0 auto;
+
+    gap: 9px;
+}
+
+/* =========================================================
+   SIDEBAR TOGGLE
+========================================================= */
+
+.sidebarToggle {
+    position: relative;
+
+    display: grid;
+    place-items: center;
+
+    width: 39px;
+    height: 39px;
+
+    flex: 0 0 39px;
+
+    border: 1px solid rgba(255, 255, 255, 0.72);
+
+    border-radius: 12px;
+
+    color: #627b9d;
+
+    background: rgba(255, 255, 255, 0.34);
+
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+
+    cursor: pointer;
+
+    transition:
+        color 0.18s ease,
+        background 0.18s ease,
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.sidebarToggle:hover {
+    color: #3476c9;
+
+    background: rgba(255, 255, 255, 0.68);
+
+    box-shadow: 0 7px 18px rgba(70, 126, 205, 0.09);
+
+    transform: translateY(-1px);
+}
+
+.sidebarToggle:active {
+    transform: translateY(0) scale(0.96);
+}
+
+.sidebarToggle i {
+    font-size: 16px;
+}
+
+/* =========================================================
+   PAGE IDENTITY
+========================================================= */
+
+.pageIdentity {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+    padding-left: 5px;
+    white-space: nowrap;
+}
+
+.titleEyebrow {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.pageEyebrow {
+    color: #8c9db5;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.pageTitle {
+    overflow: hidden;
+    color: #72abff;
+    font-size: 13px;
+    font-weight: 780;
+    letter-spacing: -0.015em;
+    text-overflow: ellipsis;
+}
+
+.pageSubtitle {
+    overflow: hidden;
+    max-width: 180px;
+    color: #91a1b6;
+    font-size: 1.1rem;
+    text-overflow: ellipsis;
+}
+
+.pageSubtitle::before {
+    content: '/';
+
+    margin-right: 8px;
+
+    color: #c4cfdd;
+}
+
+/* =========================================================
+   CENTER
+========================================================= */
+
+.topbarCenter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 0 18px;
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.topbarSearch {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    width: min(440px, 100%);
+
+    height: 39px;
+
+    padding: 0 10px;
+
+    box-sizing: border-box;
+
+    border: 1px solid rgba(255, 255, 255, 0.76);
+
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.35);
+
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+
+    transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.topbarSearch:focus-within {
+    border-color: rgba(83, 157, 232, 0.28);
+
+    background: rgba(255, 255, 255, 0.62);
+
+    box-shadow:
+        0 0 0 3px rgba(83, 157, 232, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.topbarSearchIcon {
+    display: grid;
+    place-items: center;
+
+    width: 27px;
+    min-width: 27px;
+
+    color: #91a4bd;
+
+    font-size: 13px;
+}
+
+.topbarSearchInput {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 8px;
+    border: 0;
+    outline: none;
+    color: #415a7e;
+    background: transparent;
+    font-family: inherit;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.topbarSearchInput::placeholder {
+    color: #a4b1c2;
+}
+
+.searchShortcut {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 35px;
+    height: 21px;
+
+    padding: 0 6px;
+
+    border: 1px solid rgba(181, 196, 215, 0.34);
+
+    border-radius: 6px;
+
+    color: #94a4b9;
+
+    background: rgba(255, 255, 255, 0.4);
+
+    font-size: 8px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+/* =========================================================
+   FUNCTION BAR
+========================================================= */
+
+.functionBarWrap {
+    display: flex;
+    align-items: center;
+
+    max-width: 100%;
+
+    overflow: hidden;
+}
+
+/* =========================================================
+   RIGHT
+========================================================= */
+
+.topbarRight {
+    display: flex;
+    align-items: center;
+
+    flex: 0 0 auto;
+
+    gap: 5px;
+}
+
+.quickActions {
+    display: flex;
+    align-items: center;
+
+    gap: 3px;
+}
+
+.actionDivider {
+    width: 1px;
+    height: 25px;
+
+    margin: 0 5px;
+
+    background: rgba(156, 174, 199, 0.18);
+}
+
+/* =========================================================
+   LOCALE
+========================================================= */
+
+.localeWrap {
+    display: flex;
+    align-items: center;
+
+    margin-right: 4px;
+}
+
+/* =========================================================
+   ICON BUTTON
+========================================================= */
+
+.iconBtn {
+    position: relative;
+
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+
+    border: 1px solid transparent;
+
+    border-radius: 11px;
+
+    color: #7187a5;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    transition:
+        color 0.18s ease,
+        background 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.iconBtn:hover {
+    color: #3e78c7;
+
+    border-color: rgba(255, 255, 255, 0.66);
+
+    background: rgba(255, 255, 255, 0.48);
+
+    transform: translateY(-1px);
+}
+
+.iconBtn i {
+    font-size: 15px;
+}
+
+/* =========================================================
+   BADGE
+========================================================= */
+
+.actionBadge,
+.chatBadge {
+    position: absolute;
+    top: 0px;
+    right: 2px;
+    display: grid;
+    place-items: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
+    border: 2px solid rgba(248, 252, 255, 0.9);
+    border-radius: 999px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #62bcff, #6172e8);
+    box-shadow: 0 3px 8px rgba(74, 128, 219, 0.2);
+    font-size: 7px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* =========================================================
+   WRAPPERS
+========================================================= */
+
+.actionWrap,
+.chatWrap,
+.notiWrap,
+.userMenu {
+    position: relative;
+}
+
+/* =========================================================
+   USER
+========================================================= */
+
+.userTrigger {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    min-height: 42px;
+
+    margin-left: 3px;
+
+    padding: 3px 7px 3px 4px;
+
+    border: 1px solid transparent;
+
+    border-radius: 13px;
+
+    color: inherit;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.userTrigger:hover {
+    border-color: rgba(255, 255, 255, 0.68);
+
+    background: rgba(255, 255, 255, 0.42);
+
+    box-shadow: 0 5px 15px rgba(63, 112, 180, 0.05);
+}
+
+.avatarWrap {
+    position: relative;
+
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+
+    width: 34px;
+    height: 34px;
+
+    border: 1px solid rgba(255, 255, 255, 0.74);
+
+    border-radius: 50%;
+
+    color: #ffffff;
+
+    background: linear-gradient(145deg, #3c4655, #161c25);
+
+    box-shadow: 0 5px 13px rgba(15, 23, 42, 0.13);
+
+    font-size: 11px;
+
+    font-weight: 750;
+}
+
+.onlineDot {
+    position: absolute;
+
+    right: -1px;
+    bottom: 0;
+
+    width: 8px;
+    height: 8px;
+
+    border: 2px solid #f7fbff;
+
+    border-radius: 50%;
+
+    background: #56c98a;
+
+    box-shadow: 0 2px 6px rgba(50, 170, 106, 0.22);
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 65px;
+
+    gap: 2px;
+
+    text-align: left;
+}
+
+.userName {
+    max-width: 110px;
+    overflow: hidden;
+    color: #344e76;
+    font-size: 1.2rem;
+    font-weight: 750;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.userRole {
+    color: #94a4b8;
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+.userChevron {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: #91a1b5;
+    font-size: 1.3rem;
+    transition: transform 0.18s ease;
+}
+
+.chevronOpen {
+    color: #4d7bc2;
+
+    transform: rotate(180deg);
+}
+
+/* =========================================================
+   DROPDOWN
+========================================================= */
+
+.dropdownCard,
+.chatDropdown,
+.userDropdown {
+    position: absolute;
+
+    top: calc(100% + 10px);
+
+    right: 0;
+
+    z-index: 999;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.76);
+
+    border-radius: 17px;
+
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(240, 247, 255, 0.7));
+
+    backdrop-filter: blur(28px) saturate(140%);
+
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+
+    box-shadow:
+        0 24px 55px rgba(42, 80, 137, 0.13),
+        0 8px 20px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+
+    animation: dropdownIn 0.17s ease-out both;
+}
+
+@keyframes dropdownIn {
+    from {
+        opacity: 0;
+
+        transform: translateY(-5px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* =========================================================
+   NOTIFICATION
+========================================================= */
+
+.dropdownCard {
+    width: 350px;
+}
+
+.dropdownHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    min-height: 61px;
+
+    padding: 0 15px;
+
+    border-bottom: 1px solid rgba(157, 176, 202, 0.12);
+}
+
+.dropdownTitle {
+    color: #304c77;
+
+    font-size: 12px;
+
+    font-weight: 800;
+}
+
+.dropdownSubtitle {
+    color: #98a7ba;
+    font-size: 1.1rem;
+}
+
+.textButton {
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 7px;
+    color: #4b82cf;
+    background: rgba(222, 238, 255, 0.4);
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.textButton:hover {
+    background: rgba(211, 233, 255, 0.65);
+}
+
+.notificationList {
+    max-height: 310px;
+
+    overflow-y: auto;
+
+    padding: 5px;
+
+    scrollbar-width: thin;
+}
+
+.notificationList::-webkit-scrollbar {
+    width: 3px;
+}
+
+.notificationItem {
+    position: relative;
+
+    display: flex;
+    align-items: flex-start;
+
+    width: 100%;
+
+    gap: 9px;
+
+    padding: 10px;
+
+    border: 1px solid transparent;
+
+    border-radius: 11px;
+
+    text-align: left;
+
+    color: inherit;
+
+    background: transparent;
+
+    cursor: pointer;
+}
+
+.notificationItem:hover {
+    border-color: rgba(255, 255, 255, 0.56);
+
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.notificationUnread {
+    background: rgba(226, 241, 255, 0.32);
+}
+
+.notificationAccent {
+    width: 3px;
+    min-width: 3px;
+
+    height: 30px;
+
+    margin-top: 2px;
+
+    border-radius: 999px;
+
+    background: linear-gradient(180deg, #5ebcff, #6374e6);
+}
+
+.notificationContent {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+
+    gap: 3px;
+
+    flex: 1;
+}
+
+.notificationTitle {
+    overflow: hidden;
+    color: #405a7e;
+    font-size: 1.2rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.notificationDesc {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #8495aa;
+    font-size: 1.1rem;
+    line-height: 1.45;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.notificationMeta {
+    color: #a4b0bf;
+    font-size: 1rem;
+}
+
+.unreadDot {
+    width: 6px;
+    height: 6px;
+
+    margin-top: 5px;
+
+    flex: 0 0 6px;
+
+    border-radius: 50%;
+
+    background: #4aaaf0;
+
+    box-shadow: 0 0 0 3px rgba(74, 170, 240, 0.08);
+}
+
+.emptyNotification {
+    padding: 35px 15px;
+
+    color: #97a6b9;
+
+    text-align: center;
+
+    font-size: 9px;
+}
+
+.dropdownFooter {
+    padding: 8px 10px;
+
+    border-top: 1px solid rgba(157, 176, 202, 0.12);
+}
+
+.ghostInlineBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 6px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.54);
+    border-radius: 9px;
+    color: #63809f;
+    background: rgba(255, 255, 255, 0.26);
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.ghostInlineBtn:hover {
+    color: #3975c1;
+
+    background: rgba(255, 255, 255, 0.48);
+}
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+.chatDropdown {
+    width: 280px;
+
+    padding: 12px;
+}
+
+.chatEmpty {
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 150px;
+
+    text-align: center;
+}
+
+.emptyIcon {
+    display: grid;
+    place-items: center;
+
+    width: 42px;
+    height: 42px;
+
+    margin-bottom: 10px;
+
+    border-radius: 13px;
+
+    color: #5c8ed1;
+
+    background: rgba(220, 238, 255, 0.55);
+
+    font-size: 17px;
+}
+
+.chatEmpty strong {
+    color: #4c668a;
+
+    font-size: 10px;
+}
+
+.chatEmpty span {
+    max-width: 200px;
+
+    margin-top: 4px;
+
+    color: #9aa9bb;
+
+    font-size: 8px;
+
+    line-height: 1.5;
+}
+
+/* =========================================================
+   USER DROPDOWN
+========================================================= */
+
+.userDropdown {
+    width: 220px;
+
+    padding: 7px;
+}
+
+.userDropdownProfile {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    padding: 10px;
+
+    border-radius: 11px;
+
+    background: rgba(226, 241, 255, 0.28);
+}
+
+.dropdownAvatar {
+    display: grid;
+    place-items: center;
+
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+
+    background: linear-gradient(145deg, #3d4857, #171d25);
+
+    font-size: 10px;
+
+    font-weight: 750;
+}
+
+.userDropdownProfile strong {
+    display: block;
+    overflow: hidden;
+    color: #405879;
+    font-size: 1.2rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.userDropdownProfile span {
+    display: block;
+    margin-top: 2px;
+    color: #9aa9ba;
+    font-size: 1.1rem;
+}
+
+.dropdownDivider {
+    height: 1px;
+
+    margin: 6px 4px;
+
+    background: rgba(157, 176, 202, 0.13);
+}
+
+.dropdownItem {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 9px;
+    min-height: 35px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 9px;
+    color: #617894;
+    background: transparent;
+    text-decoration: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.dropdownItem:hover {
+    color: #3976c3;
+
+    background: rgba(224, 240, 255, 0.48);
+}
+
+.dropdownItemIcon {
+    display: grid;
+    place-items: center;
+
+    width: 21px;
+    height: 21px;
+
+    border-radius: 6px;
+
+    color: #7090b5;
+
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.dropdownItemDanger {
+    color: #d26e7d;
+}
+
+.dropdownItemDanger:hover {
+    color: #c95467;
+
+    background: rgba(255, 230, 235, 0.42);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1100px) {
+    .pageIdentity {
+        display: none;
+    }
+
+    .topbarCenter {
+        justify-content: flex-start;
+
+        padding-left: 10px;
+    }
+
+    .topbarSearch {
+        max-width: 360px;
+    }
+}
+
+@media (max-width: 900px) {
+    .topbar {
+        padding: 8px 9px 3px;
+    }
+
+    .topbarShell {
+        min-height: 58px;
+
+        padding: 7px 8px;
+
+        border-radius: 17px;
+    }
+
+    .topbarCenter {
+        padding: 0 8px;
+    }
+
+    .topbarSearch {
+        height: 37px;
+    }
+
+    .userInfo,
+    .userChevron {
+        display: none;
+    }
+
+    .userTrigger {
+        padding-right: 3px;
+    }
+}
+
+@media (max-width: 650px) {
+    .topbarCenter {
+        flex: 1;
+    }
+
+    .topbarSearch {
+        width: 100%;
+    }
+
+    .quickActions {
+        display: none;
+    }
+
+    .localeWrap {
+        display: none;
+    }
+
+    .dropdownCard {
+        position: fixed;
+
+        top: 76px;
+
+        left: 9px;
+        right: 9px;
+
+        width: auto;
+    }
+
+    .chatDropdown {
+        position: fixed;
+
+        top: 76px;
+
+        left: 9px;
+        right: 9px;
+
+        width: auto;
+    }
+
+    .userDropdown {
+        right: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    .topbarSearchIcon {
+        width: 22px;
+        min-width: 22px;
+    }
+
+    .searchShortcut {
+        display: none;
+    }
+
+    .topbarSearchInput {
+        font-size: 9px;
+    }
+
+    .sidebarToggle {
+        width: 36px;
+        height: 36px;
+
+        flex-basis: 36px;
+    }
+
+    .avatarWrap,
+    .avatar {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebarToggle,
+    .iconBtn,
+    .userTrigger,
+    .flyout,
+    .dropdownCard,
+    .chatDropdown,
+    .userDropdown {
+        transition: none;
+        animation: none;
+    }
+}

@@ -20,7 +20,7 @@ type Props = {
 };
 
 const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
-    const { t, tf } = useAdminI18n();
+    const { t } = useAdminI18n();
 
     const { form, errors, updateField, resetForm, submit } = useSiteForm({
         active,
@@ -103,9 +103,6 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                         </select>
                     </div>
                 </div>
-            </div>
-
-            <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                     <label className={styles.label}>{t('sites.form.category')}</label>
 
@@ -127,6 +124,9 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                         </select>
                     </div>
                 </div>
+            </div>
+
+            <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                     <label className={styles.label}>{t('sites.form.contactEmail')}</label>
 
@@ -158,8 +158,6 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                         />
                     </div>
                 </div>
-            </div>
-            <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                     <label className={styles.label}>{t('sites.form.publishedAt')}</label>
 
@@ -174,17 +172,6 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                             onChange={(e) => updateField('publishedAt', e.target.value)}
                         />
                     </div>
-                </div>
-                <div className={styles.switchWrap}>
-                    <input
-                        id="is-public"
-                        type="checkbox"
-                        checked={form.isPublic}
-                        disabled={busy}
-                        onChange={(e) => updateField('isPublic', e.target.checked)}
-                    />
-
-                    <label htmlFor="is-public">{t('sites.form.publicSite')}</label>
                 </div>
                 <div className={styles.formGroup}>
                     <label className={styles.label}>{t('sites.form.seoTitle')}</label>
@@ -201,8 +188,21 @@ const SiteForm = memo(({ active, busy, mode, onSave, onCreate }: Props) => {
                     </div>
                 </div>
             </div>
+            <div className={`${styles.formGrid} ${styles.hidden}`}>
+                <div className={styles.switchWrap}>
+                    <input
+                        id="is-public"
+                        type="checkbox"
+                        checked={form.isPublic}
+                        disabled={busy}
+                        onChange={(e) => updateField('isPublic', e.target.checked)}
+                    />
 
-            <div className={styles.formRow}>
+                    <label htmlFor="is-public">{t('sites.form.publicSite')}</label>
+                </div>
+            </div>
+
+            <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                     <label className={styles.label}>{t('sites.form.seoDescription')}</label>
 

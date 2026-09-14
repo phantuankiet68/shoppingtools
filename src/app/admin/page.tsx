@@ -1,12 +1,14 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-const DashboardA = dynamic(() => import("@/components/admin/dashboard/DashboardA"), { ssr: false });
+import dynamic from 'next/dynamic';
+const DashboardA = dynamic(() => import('@/components/admin/dashboard/DashboardA/DashboardA'), {
+    ssr: false,
+});
 
 export default function Page() {
-  return (
-    <main>
-      <DashboardA />
-    </main>
-  );
+    return (
+        <main>
+            <DashboardA />
+        </main>
+    );
 }

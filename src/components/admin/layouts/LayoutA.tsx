@@ -27,17 +27,11 @@ export default function LayoutA({ children }: Props) {
     useRipple(navRef);
 
     const collapsed = useAdminLayoutStore((state) => state.collapsed);
-
     const loadMe = useAdminLayoutStore((state) => state.loadMe);
-
     const loadMenu = useAdminLayoutStore((state) => state.loadMenu);
-
     const syncActiveByPathname = useAdminLayoutStore((state) => state.syncActiveByPathname);
-
     const setUserMenuOpen = useAdminLayoutStore((state) => state.setUserMenuOpen);
-
     const setNotiOpen = useAdminLayoutStore((state) => state.setNotiOpen);
-
     const logout = useAdminLayoutStore((state) => state.logout);
 
     useEffect(() => {
@@ -103,18 +97,6 @@ export default function LayoutA({ children }: Props) {
         }
     };
 
-    /*
-     * Desktop sidebar:
-     *
-     * collapsed = false
-     * → Sidebar = 248px
-     *
-     * collapsed = true
-     * → Sidebar = 84px
-     *
-     * sidebarOpen is intentionally not used here.
-     * It is reserved for mobile/sidebar drawer behavior.
-     */
     const shellStyle: CSSProperties = {
         gridTemplateColumns: collapsed ? '84px minmax(0, 1fr)' : '248px minmax(0, 1fr)',
     };
@@ -125,12 +107,18 @@ export default function LayoutA({ children }: Props) {
             style={shellStyle}
             data-sidebar-collapsed={collapsed ? 'true' : 'false'}
         >
+            <div className={styles.background} aria-hidden="true">
+                <div className={styles.backgroundImage} />
+                <div className={styles.backgroundGlowBlue} />
+                <div className={styles.backgroundGlowPurple} />
+                <div className={styles.backgroundGlowCyan} />
+                <div className={styles.backgroundMist} />
+            </div>
             <Sidebar navRef={navRef} />
-
             <div className={styles.main}>
                 <Topbar meta={meta} onLogout={handleLogout} />
 
-                <div className={styles.content}>{children}</div>
+                <main className={styles.content}>{children}</main>
             </div>
         </div>
     );

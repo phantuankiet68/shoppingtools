@@ -4,21 +4,24 @@
     align-items: center;
     gap: 12px;
     padding: 12px 15px;
-    background: #ffffff;
-    border: var(--bd-header);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
     border-radius: 8px;
 }
 
 .left {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px;
 }
 
 .titleRow {
     display: flex;
     align-items: center;
     gap: 12px;
+    color: #72abff;
 }
 
 .titleRow span {
@@ -27,9 +30,9 @@
 
 .title {
     margin: 0;
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--muted);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #72abff;
     line-height: 1.2;
 }
 
@@ -96,7 +99,8 @@
 }
 
 .secondaryBtn {
-    border: var(--bd-header);
+    border: 1.5px solid #ffffffad;
+    color: #72abff;
 }
 
 .secondaryBtn:hover {

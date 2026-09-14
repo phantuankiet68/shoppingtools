@@ -1,7 +1,9 @@
 .shell {
-    min-height: 100vh;
-    background: #f5f7fb;
+    height: 89vh;
     color: #1e293b;
+    margin-top: 12px;
+    padding-right: 10px;
+    overflow: auto;
 }
 
 /* =========================
@@ -135,11 +137,6 @@
     flex-direction: column;
     gap: 10px;
 }
-
-.left {
-    min-height: 400px;
-}
-
 /* =========================
    CARD GRID
 ========================= */
@@ -222,7 +219,6 @@
 }
 
 .panel {
-    background: white;
     border: var(--bd-header);
     border-radius: 8px;
 }
@@ -235,8 +231,12 @@
     min-height: 69px;
     padding: 15px 20px;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(245, 250, 255, 0.96), rgba(248, 252, 255, 0.82));
-    border-bottom: 1px solid rgba(100, 130, 160, 0.12);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #ffffff7d, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
 }
 
 /* Decorative background */
@@ -288,14 +288,15 @@
     color: #718096;
     font-size: 1.3rem;
     line-height: 1.4;
+    margin-top: 3px;
 }
 
 .panelBody {
-    padding: 14px;
     overflow: auto;
 
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #ffffff7d, #fbfbfb00);
 }
 /* Chrome, Edge, Safari */
 .panelBody::-webkit-scrollbar {
@@ -365,12 +366,19 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding: 12px;
+    border: 1px solid #a2d1ffb8;
 }
-.formGrid,
+
 .formRow {
     display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+.formGrid {
+    display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
+    gap: 10px;
 }
 
 @media (max-width: 900px) {
@@ -390,7 +398,9 @@
     flex-direction: column;
     gap: 8px;
 }
-
+.hidden {
+    display: none;
+}
 .label {
     font-size: 13px;
     font-weight: 500;
@@ -563,25 +573,27 @@
     overflow: hidden;
     border: 1px solid #e7edf4;
     border-radius: 14px;
-    background: #fff;
     box-shadow: 0 4px 18px rgba(30, 60, 90, 0.04);
 }
 
 .tableHeader {
     display: grid;
     grid-template-columns:
-        minmax(220px, 1.6fr) minmax(130px, 0.8fr) minmax(100px, 0.85fr) minmax(150px, 1.1fr)
+        minmax(220px, 1.6fr) minmax(140px, 0.8fr) minmax(100px, 0.85fr) minmax(150px, 1.1fr)
         minmax(140px, 1fr) minmax(150px, 1.1fr) minmax(90px, 0.8fr) minmax(110px, 0.85fr) 120px;
     align-items: center;
     min-height: 54px;
     padding: 0 14px;
-    border-bottom: 1px solid #edf1f5;
-    background: linear-gradient(180deg, #fbfcfe, #f8fafc);
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #ffffff7d, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
     color: #64748b;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
 .tableBody {
@@ -591,13 +603,14 @@
 .tableRow {
     display: grid;
     grid-template-columns:
-        minmax(220px, 1.6fr) minmax(130px, 0.8fr) minmax(100px, 0.85fr) minmax(150px, 1.1fr)
+        minmax(220px, 1.6fr) minmax(140px, 0.8fr) minmax(100px, 0.85fr) minmax(150px, 1.1fr)
         minmax(140px, 1fr) minmax(150px, 1.1fr) minmax(90px, 0.8fr) minmax(110px, 0.85fr) 120px;
     align-items: center;
     min-height: 90px;
     padding: 10px;
-    border-bottom: 1px solid #edf1f5;
-    background: #fff;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #a2d1ffb8;
     cursor: pointer;
     transition:
         background 0.18s ease,
@@ -605,7 +618,8 @@
 }
 
 .tableRow:last-child {
-    border-bottom: 0;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
 }
 
 .tableRow:hover {
@@ -1589,12 +1603,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    min-height: 58px;
-    padding: 10px 12px;
-    border: 1px solid #e7edf4;
+    min-height: 40px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #fbfdff, #f8fafc);
-    box-shadow: 0 3px 14px rgba(30, 60, 90, 0.035);
 }
 
 .searchWrap {
@@ -1728,7 +1738,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    min-height: 56px;
+    min-height: 40px;
     padding: 0 4px;
 }
 

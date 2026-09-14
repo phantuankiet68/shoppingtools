@@ -32,7 +32,7 @@ const DEFAULT_DASHBOARD: Item = {
     id: 'default-dashboard',
     key: 'dashboard',
     title: 'Dashboard',
-    icon: 'bi-house',
+    icon: 'bi-speedometer2',
     path: '/admin/dashboard',
     parentId: null,
     children: [],
@@ -116,7 +116,7 @@ function positionFlyout(groupEl: HTMLElement, flyEl: HTMLElement) {
     const flyRect = flyEl.getBoundingClientRect();
 
     const viewportHeight = window.innerHeight;
-    const margin = 12;
+    const margin = 14;
 
     const centerY = groupRect.top + groupRect.height / 2;
 
@@ -157,7 +157,6 @@ function MenuNode({
     const hasChildren = children.length > 0;
 
     const isOpen = Boolean(openGroups[item.key]);
-
     const isActive = activeKey === item.key;
 
     const icon = item.icon || 'bi bi-dot';
@@ -199,9 +198,14 @@ function MenuNode({
         <div className={depth === 0 ? styles.navGroup : styles.subGroup}>
             <button
                 type="button"
-                className={`${styles.navItem} ${
-                    depth === 0 ? styles.navGroupButton : styles.subItem
-                } ${isActive ? styles.navItemActive : ''} ${isOpen ? styles.navGroupOpen : ''}`}
+                className={[
+                    styles.navItem,
+                    depth === 0 ? styles.navGroupButton : styles.subItem,
+                    isActive ? styles.navItemActive : '',
+                    isOpen ? styles.navGroupOpen : '',
+                ]
+                    .filter(Boolean)
+                    .join(' ')}
                 aria-expanded={isOpen}
                 aria-label={item.title}
                 title={collapsed ? item.title : undefined}
@@ -291,6 +295,9 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         return result;
     }, [items, currentArea]);
 
+    /**
+     * Open Website group by default.
+     */
     const websiteInitializedRef = useRef(false);
 
     useEffect(() => {
@@ -318,6 +325,9 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         }));
     }, [currentArea, sidebarItems]);
 
+    /**
+     * Synchronize active menu with URL.
+     */
     useEffect(() => {
         if (!pathname) {
             return;
@@ -353,33 +363,21 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
             };
         });
     }, [pathname, sidebarItems, setActiveKey]);
-    /* =====================================================
-       SECTION BUCKETS
-       ===================================================== */
 
+    /**
+     * Split menu into visual sections.
+     */
     const sectionBuckets = useMemo(() => {
         const buckets = createEmptySectionBuckets();
 
         for (const item of sidebarItems) {
             let sectionKey: SectionKey;
 
-            /*
-             * Dashboard → Overview
-             */
             if (isDashboard(item)) {
                 sectionKey = 'overview';
             } else if (isWebsite(item)) {
-                /*
-                 * Website → Overview
-                 *
-                 * Để Website nằm ngay dưới Dashboard.
-                 */
                 sectionKey = 'overview';
             } else {
-                /*
-                 * Các menu còn lại dùng
-                 * logic section hiện tại.
-                 */
                 sectionKey = sectionOfTopItem(item.title);
             }
 
@@ -393,10 +391,9 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         return buckets;
     }, [sidebarItems]);
 
-    /* =====================================================
-       COLLAPSED RAIL
-       ===================================================== */
-
+    /**
+     * Collapsed rail width.
+     */
     const railStyle = useMemo<CSSProperties | undefined>(
         () =>
             collapsed
@@ -407,10 +404,9 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         [collapsed],
     );
 
-    /* =====================================================
-       CLOSE TIMER
-       ===================================================== */
-
+    /**
+     * Close timer helpers.
+     */
     const clearCloseTimer = (key: string) => {
         const timer = closeTimersRef.current[key];
 
@@ -433,10 +429,9 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         closeTimersRef.current = {};
     };
 
-    /* =====================================================
-       MOBILE
-       ===================================================== */
-
+    /**
+     * Mobile behavior.
+     */
     const closeSidebarIfMobile = () => {
         if (typeof window === 'undefined') {
             return;
@@ -447,19 +442,17 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         }
     };
 
-    /* =====================================================
-       ITEM CLICK
-       ===================================================== */
-
+    /**
+     * Menu item click.
+     */
     const handleItemClick = (item: Item) => {
         setActiveKey(item.key);
         closeSidebarIfMobile();
     };
 
-    /* =====================================================
-       GROUP TOGGLE
-       ===================================================== */
-
+    /**
+     * Group toggle.
+     */
     const handleToggleGroup = (item: Item, depth: number) => {
         if (depth === 0) {
             toggleGroupExclusive(item.key);
@@ -474,10 +467,9 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         }));
     };
 
-    /* =====================================================
-       COLLAPSED FLYOUT CLOSE
-       ===================================================== */
-
+    /**
+     * Collapsed flyout.
+     */
     const scheduleCloseGroup = (key: string, delay = 220) => {
         clearCloseTimer(key);
 
@@ -492,10 +484,6 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
             closeTimersRef.current[key] = undefined;
         }, delay);
     };
-
-    /* =====================================================
-       COLLAPSED FLYOUT OPEN
-       ===================================================== */
 
     const handleGroupMouseEnter = (groupKey: string, event: ReactMouseEvent<HTMLDivElement>) => {
         if (!collapsed) {
@@ -529,20 +517,18 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         scheduleCloseGroup(groupKey);
     };
 
-    /* =====================================================
-       CLEANUP
-       ===================================================== */
-
+    /**
+     * Cleanup timers.
+     */
     useEffect(() => {
         return () => {
             clearAllCloseTimers();
         };
     }, []);
 
-    /* =====================================================
-       CLOSE FLYOUT WHEN CLICK OUTSIDE
-       ===================================================== */
-
+    /**
+     * Close flyout outside click.
+     */
     useEffect(() => {
         if (!collapsed) {
             return;
@@ -571,16 +557,11 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
         };
     }, [collapsed]);
 
-    /* =====================================================
-       RENDER
-       ===================================================== */
-
+    /**
+     * Render.
+     */
     return (
         <>
-            {/* =================================================
-                MOBILE BACKDROP
-               ================================================= */}
-
             {sidebarOpen && (
                 <button
                     type="button"
@@ -594,38 +575,38 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
                 ref={(element) => {
                     asideRef.current = element;
                 }}
-                className={styles.sidebar}
+                className={`${styles.sidebar} ${
+                    sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed
+                }`}
                 data-collapsed={collapsed ? 'true' : 'false'}
                 style={railStyle}
                 aria-label="Sidebar"
             >
                 <div className={styles.sidebarPanel}>
-                    {/* =================================================
-                        BRAND
-                       ================================================= */}
-
                     <div className={styles.brandWrap}>
-                        <Link href="/admin" className={styles.brandLink}>
+                        <Link
+                            href="/admin/dashboard"
+                            className={styles.brandLink}
+                            aria-label="KBuilder Dashboard"
+                        >
                             <div className={styles.brandLogo}>
-                                <span className={styles.brandLogoText}>A</span>
+                                <span className={styles.brandMark}>
+                                    <i className="bi bi-boxes" />
+                                </span>
                             </div>
 
                             {!collapsed && (
                                 <div className={styles.brandText}>
-                                    <div className={styles.brandName}>Manager</div>
+                                    <div className={styles.brandName}>KBuilder</div>
 
                                     <div className={styles.brandSub}>
-                                        <i className="bi bi-shield-check" />
-                                        <span>Dashboard Panel</span>
+                                        <span>Website Builder</span>
+                                        <i className="bi bi-patch-check-fill" />
                                     </div>
                                 </div>
                             )}
                         </Link>
                     </div>
-
-                    {/* =================================================
-                        NAVIGATION
-                       ================================================= */}
 
                     <nav ref={navRef} className={styles.nav}>
                         {SECTION_ORDER.map((sectionKey) => {
@@ -646,10 +627,6 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
                                     )}
 
                                     <div className={styles.sectionList}>
-                                        {/* =================================================
-                                                FLAT ITEMS
-                                               ================================================= */}
-
                                         {bucket.flats.map((item) => (
                                             <MenuNode
                                                 key={item.key}
@@ -662,10 +639,6 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
                                                 onToggleGroup={handleToggleGroup}
                                             />
                                         ))}
-
-                                        {/* =================================================
-                                                GROUP ITEMS
-                                               ================================================= */}
 
                                         {bucket.groups.map((group) => {
                                             const isOpen = Boolean(openGroups[group.key]);
@@ -690,10 +663,6 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
                                                         onItemClick={handleItemClick}
                                                         onToggleGroup={handleToggleGroup}
                                                     />
-
-                                                    {/* =================================================
-                                                                COLLAPSED FLYOUT
-                                                               ================================================= */}
 
                                                     {collapsed && isOpen && (
                                                         <div
@@ -748,17 +717,15 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
                         })}
                     </nav>
 
-                    {/* =================================================
-                        USER
-                       ================================================= */}
-
                     {!collapsed && (
                         <div className={styles.userArea}>
-                            <div className={styles.userAvatar}>N</div>
+                            <div className={styles.userAvatar}>
+                                N
+                                <span className={styles.userOnline} />
+                            </div>
 
                             <div className={styles.userInfo}>
                                 <strong>Nguyễn Văn A</strong>
-
                                 <span>Administrator</span>
                             </div>
 

@@ -3,7 +3,7 @@
 import { useAdminAuth } from '@/components/admin/providers/AdminAuthProvider';
 import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 import { useDashboardStats } from '@/store/dashboard/useDashboardStats';
-import styles from '@/styles/admin/dashboard/TotalPage.module.css';
+import styles from './TotalPage.module.css';
 
 const calcPercent = (value: number, max?: number | null) => {
     if (!max || max === 0) return 100;

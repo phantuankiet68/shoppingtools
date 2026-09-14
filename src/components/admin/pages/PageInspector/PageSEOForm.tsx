@@ -28,19 +28,17 @@ export default function PageSEOForm({ seo, onChange }: Props) {
     const metaDescriptionLength = seo.metaDescription?.length ?? 0;
 
     const titlePercent = Math.min((metaTitleLength / 70) * 100, 100);
-
     const descPercent = Math.min((metaDescriptionLength / 500) * 100, 100);
 
     const seoScore = useMemo(() => {
         let score = 0;
 
-        if (seo.metaTitle) score += 20;
-        if (seo.metaDescription) score += 20;
+        if (seo.metaTitle) score += 25;
+        if (seo.metaDescription) score += 25;
         if (seo.focusKeyword) score += 15;
         if (seo.canonicalUrl) score += 15;
-        if (seo.ogTitle) score += 10;
-        if (seo.ogDescription) score += 10;
-        if (seo.ogImage) score += 10;
+        if (seo.robots) score += 10;
+        if (seo.structuredData) score += 10;
 
         return score;
     }, [seo]);
@@ -88,15 +86,14 @@ export default function PageSEOForm({ seo, onChange }: Props) {
 
                 <div className={styles.field}>
                     <div className={styles.fieldHeader}>
-                        <label>{t('seo.metaTitle')}</label>
+                        <label htmlFor="seo-meta-title">{t('seo.metaTitle')}</label>
 
-                        <span>
-                            {metaTitleLength}
-                            /70
-                        </span>
+                        <span>{metaTitleLength}/70</span>
                     </div>
 
                     <input
+                        id="seo-meta-title"
+                        type="text"
                         maxLength={70}
                         className={styles.input}
                         value={seo.metaTitle ?? ''}
@@ -115,15 +112,13 @@ export default function PageSEOForm({ seo, onChange }: Props) {
 
                 <div className={styles.field}>
                     <div className={styles.fieldHeader}>
-                        <label>{t('seo.metaDescription')}</label>
+                        <label htmlFor="seo-meta-description">{t('seo.metaDescription')}</label>
 
-                        <span>
-                            {metaDescriptionLength}
-                            /500
-                        </span>
+                        <span>{metaDescriptionLength}/500</span>
                     </div>
 
                     <textarea
+                        id="seo-meta-description"
                         rows={5}
                         maxLength={500}
                         className={styles.textarea}
@@ -147,9 +142,11 @@ export default function PageSEOForm({ seo, onChange }: Props) {
 
                 <div className={styles.grid}>
                     <div className={styles.field}>
-                        <label>{t('seo.focusKeyword')}</label>
+                        <label htmlFor="seo-focus-keyword">{t('seo.focusKeyword')}</label>
 
                         <input
+                            id="seo-focus-keyword"
+                            type="text"
                             className={styles.input}
                             value={seo.focusKeyword ?? ''}
                             onChange={(e) => update('focusKeyword', e.target.value)}
@@ -157,9 +154,10 @@ export default function PageSEOForm({ seo, onChange }: Props) {
                     </div>
 
                     <div className={styles.field}>
-                        <label>{t('seo.canonicalUrl')}</label>
+                        <label htmlFor="seo-canonical-url">{t('seo.canonicalUrl')}</label>
 
                         <input
+                            id="seo-canonical-url"
                             type="url"
                             className={styles.input}
                             value={seo.canonicalUrl ?? ''}
@@ -168,9 +166,10 @@ export default function PageSEOForm({ seo, onChange }: Props) {
                     </div>
 
                     <div className={styles.field}>
-                        <label>{t('seo.robots')}</label>
+                        <label htmlFor="seo-robots">{t('seo.robots')}</label>
 
                         <select
+                            id="seo-robots"
                             className={styles.select}
                             value={seo.robots ?? 'index,follow'}
                             onChange={(e) => update('robots', e.target.value)}
@@ -184,9 +183,10 @@ export default function PageSEOForm({ seo, onChange }: Props) {
                     </div>
 
                     <div className={styles.field}>
-                        <label>{t('seo.ogType')}</label>
+                        <label htmlFor="seo-og-type">{t('seo.ogType')}</label>
 
                         <select
+                            id="seo-og-type"
                             className={styles.select}
                             value={seo.ogType ?? 'website'}
                             onChange={(e) => update('ogType', e.target.value)}
@@ -202,91 +202,53 @@ export default function PageSEOForm({ seo, onChange }: Props) {
             </section>
 
             <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>{t('seo.openGraphPreview')}</h3>
-
-                <div className={styles.ogPreview}>
-                    <div className={styles.ogImage}>
-                        {seo.ogImage ? (
-                            <img src={seo.ogImage} alt={seo.ogImageAlt ?? ''} />
-                        ) : (
-                            <span>{t('seo.noImage')}</span>
-                        )}
-                    </div>
-
-                    <div className={styles.ogContent}>
-                        <strong>{seo.ogTitle || t('seo.ogTitlePlaceholder')}</strong>
-
-                        <p>{seo.ogDescription || t('seo.ogDescriptionPlaceholder')}</p>
-                    </div>
-                </div>
-
-                <div className={styles.grid}>
-                    <input
-                        className={styles.input}
-                        placeholder={t('seo.ogTitle')}
-                        value={seo.ogTitle ?? ''}
-                        onChange={(e) => update('ogTitle', e.target.value)}
-                    />
-
-                    <input
-                        className={styles.input}
-                        placeholder={t('seo.ogImageUrl')}
-                        value={seo.ogImage ?? ''}
-                        onChange={(e) => update('ogImage', e.target.value)}
-                    />
-
-                    <textarea
-                        rows={4}
-                        className={styles.textarea}
-                        placeholder={t('seo.ogDescription')}
-                        value={seo.ogDescription ?? ''}
-                        onChange={(e) => update('ogDescription', e.target.value)}
-                    />
-
-                    <input
-                        className={styles.input}
-                        placeholder={t('seo.ogImageAlt')}
-                        value={seo.ogImageAlt ?? ''}
-                        onChange={(e) => update('ogImageAlt', e.target.value)}
-                    />
-                </div>
-            </section>
-
-            <section className={styles.section}>
                 <h3 className={styles.sectionTitle}>{t('seo.sitemap')}</h3>
 
                 <div className={styles.grid}>
-                    <select
-                        className={styles.select}
-                        value={seo.sitemapChangefreq}
-                        onChange={(e) =>
-                            update('sitemapChangefreq', e.target.value as SEO['sitemapChangefreq'])
-                        }
-                    >
-                        <option value="always">{t('seo.always')}</option>
+                    <div className={styles.field}>
+                        <label htmlFor="seo-sitemap-changefreq">{t('seo.changefreq')}</label>
 
-                        <option value="hourly">{t('seo.hourly')}</option>
+                        <select
+                            id="seo-sitemap-changefreq"
+                            className={styles.select}
+                            value={seo.sitemapChangefreq}
+                            onChange={(e) =>
+                                update(
+                                    'sitemapChangefreq',
+                                    e.target.value as SEO['sitemapChangefreq'],
+                                )
+                            }
+                        >
+                            <option value="always">{t('seo.always')}</option>
 
-                        <option value="daily">{t('seo.daily')}</option>
+                            <option value="hourly">{t('seo.hourly')}</option>
 
-                        <option value="weekly">{t('seo.weekly')}</option>
+                            <option value="daily">{t('seo.daily')}</option>
 
-                        <option value="monthly">{t('seo.monthly')}</option>
+                            <option value="weekly">{t('seo.weekly')}</option>
 
-                        <option value="yearly">{t('seo.yearly')}</option>
+                            <option value="monthly">{t('seo.monthly')}</option>
 
-                        <option value="never">{t('seo.never')}</option>
-                    </select>
+                            <option value="yearly">{t('seo.yearly')}</option>
 
-                    <input
-                        type="number"
-                        min={0}
-                        max={1}
-                        step={0.1}
-                        className={styles.input}
-                        value={seo.sitemapPriority}
-                        onChange={(e) => handlePriorityChange(e.target.value)}
-                    />
+                            <option value="never">{t('seo.never')}</option>
+                        </select>
+                    </div>
+
+                    <div className={styles.field}>
+                        <label htmlFor="seo-sitemap-priority">{t('seo.priority')}</label>
+
+                        <input
+                            id="seo-sitemap-priority"
+                            type="number"
+                            min={0}
+                            max={1}
+                            step={0.1}
+                            className={styles.input}
+                            value={seo.sitemapPriority}
+                            onChange={(e) => handlePriorityChange(e.target.value)}
+                        />
+                    </div>
                 </div>
             </section>
 
@@ -294,7 +256,7 @@ export default function PageSEOForm({ seo, onChange }: Props) {
                 <h3 className={styles.sectionTitle}>{t('seo.structuredData')}</h3>
 
                 <textarea
-                    rows={12}
+                    rows={8}
                     className={styles.codeEditor}
                     value={seo.structuredData ?? ''}
                     onChange={(e) => update('structuredData', e.target.value)}

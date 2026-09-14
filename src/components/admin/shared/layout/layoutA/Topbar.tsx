@@ -8,7 +8,7 @@ import {
 } from '@/components/admin/shared/layout/function-keys';
 import { useFunctionKeysContext } from '@/components/admin/shared/layout/function-keys/FunctionKeysProvider';
 import { useAdminLayoutStore } from '@/store/layout/layouta/index';
-import styles from '@/styles/admin/layouts/Topbar.module.css';
+import styles from './Topbar.module.css';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
@@ -33,6 +33,8 @@ export default function Topbar({ meta, onLogout }: Props) {
     const {
         collapsed,
         toggleCollapsed,
+        sidebarOpen,
+        setSidebarOpen,
         user,
         userMenuOpen,
         setUserMenuOpen,
@@ -60,6 +62,20 @@ export default function Topbar({ meta, onLogout }: Props) {
 
     const unreadCount = notifications.filter((item) => !item.isRead).length;
 
+    const displayTitle = meta.title || 'Dashboard';
+
+    const displaySubtitle = meta.subtitle || 'Overview';
+
+    const userName = user?.name ?? 'admin';
+
+    const userRole = user?.role ?? 'Admin';
+
+    const userInitial = userName.charAt(0).toUpperCase() || 'A';
+
+    /* =====================================================
+       NOTIFICATIONS
+    ===================================================== */
+
     const loadNotifications = async () => {
         try {
             const response = await fetch('/api/admin/notifications');
@@ -79,6 +95,10 @@ export default function Topbar({ meta, onLogout }: Props) {
     useEffect(() => {
         void loadNotifications();
     }, []);
+
+    /* =====================================================
+       OUTSIDE CLICK / ESCAPE
+    ===================================================== */
 
     useEffect(() => {
         function onDocumentMouseDown(event: MouseEvent) {
@@ -119,17 +139,34 @@ export default function Topbar({ meta, onLogout }: Props) {
     }, [setNotiOpen, setUserMenuOpen]);
 
     const handleSidebarToggle = () => {
+        if (typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches) {
+            setSidebarOpen(!sidebarOpen);
+            return;
+        }
+
         toggleCollapsed();
     };
+
+    /* =====================================================
+       USER
+    ===================================================== */
 
     const handleLogoutClick = async () => {
         setUserMenuOpen(false);
         await onLogout();
     };
 
+    /* =====================================================
+       FUNCTION KEYS
+    ===================================================== */
+
     const handleFunctionClick = (key: FunctionKeyCode) => {
         actions[key]?.();
     };
+
+    /* =====================================================
+       SEARCH
+    ===================================================== */
 
     const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -137,7 +174,13 @@ export default function Topbar({ meta, onLogout }: Props) {
         if (!searchValue.trim()) {
             return;
         }
+
+        // Search action can be connected later.
     };
+
+    /* =====================================================
+       NOTIFICATION
+    ===================================================== */
 
     const handleMarkAsRead = async (id: string) => {
         try {
@@ -180,22 +223,37 @@ export default function Topbar({ meta, onLogout }: Props) {
     return (
         <header className={styles.topbar}>
             <div className={styles.topbarShell}>
+                {/* =================================================
+                    LEFT
+                ================================================= */}
+
                 <div className={styles.topbarLeft}>
                     <button
                         className={styles.sidebarToggle}
                         type="button"
                         onClick={handleSidebarToggle}
-                        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                        aria-expanded={!collapsed}
-                        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                        aria-label={collapsed ? 'Open sidebar' : 'Collapse sidebar'}
+                        title={collapsed ? 'Open sidebar' : 'Collapse sidebar'}
                     >
                         <i
                             className={`bi ${
-                                collapsed ? 'bi-text-indent-right' : 'bi-text-indent-left'
+                                collapsed ? 'bi-layout-sidebar' : 'bi-layout-sidebar-inset'
                             }`}
                         />
                     </button>
+
+                    <div className={styles.pageIdentity}>
+                        <div className={styles.pageEyebrow}>KBUILDER</div>
+                        <div className={styles.titleEyebrow}>
+                            <div className={styles.pageTitle}>{displayTitle}</div>
+                            <div className={styles.pageSubtitle}>{displaySubtitle}</div>
+                        </div>
+                    </div>
                 </div>
+
+                {/* =================================================
+                    CENTER
+                ================================================= */}
 
                 <div className={styles.topbarCenter}>
                     {isSystemAdmin ? (
@@ -209,34 +267,41 @@ export default function Topbar({ meta, onLogout }: Props) {
                                 value={searchValue}
                                 onChange={(event) => setSearchValue(event.target.value)}
                                 className={styles.topbarSearchInput}
-                                placeholder="Search"
-                                aria-label="Search help and features"
+                                placeholder="Search anything..."
+                                aria-label="Search"
                             />
 
-                            <button
-                                type="submit"
-                                className={styles.topbarSearchVisual}
-                                aria-label="Submit search"
-                                title="Search"
-                            >
-                                <img
-                                    src="/assets/images/iconSearch.png"
-                                    alt=""
-                                    className={styles.topbarSearchImage}
-                                />
-                            </button>
+                            <span className={styles.searchShortcut}>⌘ K</span>
                         </form>
                     ) : (
-                        <FunctionKeyBar items={items} onClick={handleFunctionClick} />
+                        <div className={styles.functionBarWrap}>
+                            <FunctionKeyBar items={items} onClick={handleFunctionClick} />
+                        </div>
                     )}
                 </div>
 
-                <AdminLocaleSwitcher />
+                {/* =================================================
+                    RIGHT
+                ================================================= */}
 
                 <div className={styles.topbarRight}>
+                    {/* Locale */}
+
+                    <div className={styles.localeWrap}>
+                        <AdminLocaleSwitcher />
+                    </div>
+
+                    {/* Divider */}
+
+                    <div className={styles.actionDivider} />
+
+                    {/* Quick actions */}
+
                     {isSystemAdmin && (
                         <div className={styles.quickActions}>
-                            <div className={styles.chatWrap} ref={chatRef}>
+                            {/* CHAT */}
+
+                            <div className={styles.actionWrap} ref={chatRef}>
                                 <button
                                     className={styles.iconBtn}
                                     type="button"
@@ -245,10 +310,41 @@ export default function Topbar({ meta, onLogout }: Props) {
                                     aria-expanded={chatOpen}
                                     onClick={() => setChatOpen((previous) => !previous)}
                                 >
-                                    <i className="bi bi-chat-dots" />
-                                    <span className={styles.chatBadge}>5</span>
+                                    <i className="bi bi-chat-square-dots" />
+
+                                    <span className={styles.actionBadge}>5</span>
                                 </button>
+
+                                {chatOpen && (
+                                    <div className={styles.chatDropdown}>
+                                        <div className={styles.dropdownHeader}>
+                                            <div>
+                                                <div className={styles.dropdownTitle}>Messages</div>
+
+                                                <div className={styles.dropdownSubtitle}>
+                                                    5 new messages
+                                                </div>
+                                            </div>
+
+                                            <span className={styles.headerIcon}>
+                                                <i className="bi bi-chat-dots" />
+                                            </span>
+                                        </div>
+
+                                        <div className={styles.chatEmpty}>
+                                            <div className={styles.emptyIcon}>
+                                                <i className="bi bi-chat-heart" />
+                                            </div>
+
+                                            <strong>Your messages</strong>
+
+                                            <span>Recent conversations will appear here.</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
+
+                            {/* SETTINGS */}
 
                             <Link
                                 href="/admin/settings"
@@ -256,12 +352,14 @@ export default function Topbar({ meta, onLogout }: Props) {
                                 aria-label="Settings"
                                 title="Settings"
                             >
-                                <i className="bi bi-gear" />
+                                <i className="bi bi-sliders2" />
                             </Link>
                         </div>
                     )}
 
-                    <div className={styles.notiWrap} ref={notiRef}>
+                    {/* NOTIFICATIONS */}
+
+                    <div className={styles.actionWrap} ref={notiRef}>
                         <button
                             className={styles.iconBtn}
                             type="button"
@@ -279,7 +377,9 @@ export default function Topbar({ meta, onLogout }: Props) {
                             <i className="bi bi-bell" />
 
                             {unreadCount > 0 && (
-                                <span className={styles.chatBadge}>{unreadCount}</span>
+                                <span className={styles.actionBadge}>
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
                             )}
                         </button>
 
@@ -287,7 +387,7 @@ export default function Topbar({ meta, onLogout }: Props) {
                             <div
                                 className={styles.dropdownCard}
                                 role="menu"
-                                aria-label="Notifications menu"
+                                aria-label="Notifications"
                             >
                                 <div className={styles.dropdownHeader}>
                                     <div>
@@ -310,7 +410,13 @@ export default function Topbar({ meta, onLogout }: Props) {
                                 <div className={styles.notificationList}>
                                     {notifications.length === 0 ? (
                                         <div className={styles.emptyNotification}>
-                                            No notifications yet
+                                            <div className={styles.emptyIcon}>
+                                                <i className="bi bi-bell-slash" />
+                                            </div>
+
+                                            <strong>No notifications</strong>
+
+                                            <span>You're all caught up.</span>
                                         </div>
                                     ) : (
                                         notifications.map((item) => (
@@ -327,6 +433,10 @@ export default function Topbar({ meta, onLogout }: Props) {
                                                         styles[`accent_${item.type}`] || ''
                                                     }`}
                                                 />
+
+                                                <span className={styles.notificationIcon}>
+                                                    <i className="bi bi-info-circle" />
+                                                </span>
 
                                                 <span className={styles.notificationContent}>
                                                     <span className={styles.notificationTitle}>
@@ -350,19 +460,27 @@ export default function Topbar({ meta, onLogout }: Props) {
                                     )}
                                 </div>
 
-                                <div className={styles.dropdownFooter}>
-                                    <button
-                                        className={styles.ghostInlineBtn}
-                                        type="button"
-                                        onClick={handleMarkAllAsRead}
-                                    >
-                                        <i className="bi bi-check2" />
-                                        Mark all as read
-                                    </button>
-                                </div>
+                                {notifications.length > 0 && (
+                                    <div className={styles.dropdownFooter}>
+                                        <button
+                                            className={styles.ghostInlineBtn}
+                                            type="button"
+                                            onClick={handleMarkAllAsRead}
+                                        >
+                                            <i className="bi bi-check2-all" />
+                                            Mark all as read
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
+
+                    {/* DIVIDER */}
+
+                    <div className={styles.actionDivider} />
+
+                    {/* USER */}
 
                     <div className={styles.userMenu} ref={userMenuRef}>
                         <button
@@ -374,20 +492,18 @@ export default function Topbar({ meta, onLogout }: Props) {
                             onClick={() => setUserMenuOpen(!userMenuOpen)}
                         >
                             <div className={styles.avatarWrap}>
-                                <div className={styles.avatar}>
-                                    {user?.name?.charAt(0)?.toUpperCase() ?? 'A'}
-                                </div>
+                                <div className={styles.avatar}>{userInitial}</div>
 
                                 <span className={styles.onlineDot} />
                             </div>
 
                             <div className={styles.userInfo}>
-                                <div className={styles.userName}>{user?.name ?? 'admin'}</div>
+                                <div className={styles.userName}>{userName}</div>
 
-                                <div className={styles.userRole}>{user?.role ?? 'Admin'}</div>
+                                <div className={styles.userRole}>{userRole}</div>
                             </div>
 
-                            <span className={styles.chevron}>
+                            <span className={styles.userChevron}>
                                 <i
                                     className={`bi bi-chevron-down ${
                                         userMenuOpen ? styles.chevronOpen : ''
@@ -402,14 +518,31 @@ export default function Topbar({ meta, onLogout }: Props) {
                                 role="menu"
                                 aria-label="User options"
                             >
+                                <div className={styles.userDropdownProfile}>
+                                    <div className={styles.dropdownAvatar}>{userInitial}</div>
+
+                                    <div>
+                                        <strong>{userName}</strong>
+
+                                        <span>{userRole}</span>
+                                    </div>
+                                </div>
+
+                                <div className={styles.dropdownDivider} />
+
                                 <Link
                                     className={styles.dropdownItem}
                                     href="/admin/profile"
                                     role="menuitem"
                                     onClick={() => setUserMenuOpen(false)}
                                 >
-                                    <i className="bi bi-person" />
+                                    <span className={styles.dropdownItemIcon}>
+                                        <i className="bi bi-person" />
+                                    </span>
+
                                     <span>Profile</span>
+
+                                    <i className="bi bi-chevron-right" />
                                 </Link>
 
                                 <Link
@@ -418,8 +551,13 @@ export default function Topbar({ meta, onLogout }: Props) {
                                     role="menuitem"
                                     onClick={() => setUserMenuOpen(false)}
                                 >
-                                    <i className="bi bi-gear" />
+                                    <span className={styles.dropdownItemIcon}>
+                                        <i className="bi bi-gear" />
+                                    </span>
+
                                     <span>Settings</span>
+
+                                    <i className="bi bi-chevron-right" />
                                 </Link>
 
                                 <div className={styles.dropdownDivider} />
@@ -430,7 +568,10 @@ export default function Topbar({ meta, onLogout }: Props) {
                                     role="menuitem"
                                     onClick={handleLogoutClick}
                                 >
-                                    <i className="bi bi-box-arrow-right" />
+                                    <span className={styles.dropdownItemIcon}>
+                                        <i className="bi bi-box-arrow-right" />
+                                    </span>
+
                                     <span>Logout</span>
                                 </button>
                             </div>
