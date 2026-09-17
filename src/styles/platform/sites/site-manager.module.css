@@ -2,4 +2,5 @@
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
     gap: 12px;
+    margin-top: 12px;
 }

@@ -38,8 +38,8 @@
 
 .closeBtn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 10px;
+    right: 10px;
 
     width: 42px;
     height: 42px;
@@ -67,8 +67,7 @@
     justify-content: space-between;
     gap: 15px;
     padding: 15px;
-    background: var(--bg-primary);
-
+    background: linear-gradient(135deg, #a2cbf6 0%, #2486ff7a 50%, #82d0fe 100%);
     color: #fff;
 }
 
@@ -134,11 +133,12 @@
 .headerInfo {
     display: flex;
     gap: 10px;
+    align-items: center;
 }
 
 .title {
     margin: 0;
-    font-size: 25px;
+    font-size: 1.8rem;
     font-weight: 800;
     line-height: 1.2;
 }
@@ -165,9 +165,9 @@
 
 .body {
     display: grid;
-    grid-template-columns: 1.7fr 1fr;
-    gap: 15px;
-    padding: 20px;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 10px;
+    padding: 15px;
 }
 
 .left,
@@ -186,26 +186,48 @@
 }
 
 .card {
-    padding: 15px;
+    padding: 12px;
 }
 
 .cardHeader {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 5px;
-    font-size: 15px;
+    margin-bottom: 8px;
+    font-size: 1.3rem;
     font-weight: 500;
     color: var(--muted);
 }
 
 .description {
     color: #475569;
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.8;
-
     white-space: pre-line;
+    margin: 0;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    height: 30vh;
+    overflow: auto;
+
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.description::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+}
+
+.description::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.description::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+.description::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 .progressTop {
@@ -218,20 +240,18 @@
 
 .progressTop span {
     color: #64748b;
+    font-size: 1.3rem;
 }
 
 .progressTop strong {
     color: #18cd8c;
-    font-size: 18px;
+    font-size: 1.3rem;
 }
 
 .progressBar {
-    height: 12px;
-
+    height: 8px;
     overflow: hidden;
-
     border-radius: 999px;
-
     background: #e2e8f0;
 }
 
@@ -244,9 +264,7 @@
 
 .slider {
     width: 100%;
-
-    margin-top: 15px;
-
+    margin-top: 8px;
     cursor: pointer;
 }
 
@@ -256,7 +274,7 @@
 }
 
 .infoCard {
-    padding: 20px;
+    padding: 12px;
 }
 
 .infoItem {
@@ -270,8 +288,8 @@
 }
 
 .infoItem i {
-    font-size: 20px;
-    color: #6366f1;
+    font-size: 1.5rem;
+    color: #76bef8;
 }
 
 .infoItem span {
@@ -280,12 +298,12 @@
     margin-bottom: 4px;
 
     color: #64748b;
-    font-size: 13px;
+    font-size: 1.2rem;
 }
 
 .infoItem strong {
     color: var(--muted);
-    font-size: 14px;
+    font-size: 1.3rem;
     font-weight: 500;
 }
 
@@ -296,10 +314,8 @@
 }
 
 .metaCard {
-    padding: 18px;
-
+    padding: 15px;
     text-align: center;
-
     transition: all 0.25s ease;
 }
 
@@ -311,29 +327,27 @@
 
 .metaCard i {
     display: block;
-    font-size: 20px;
+    font-size: 1.8rem;
     color: #6366f1;
 }
 
 .metaCard span {
     display: block;
-
     color: #64748b;
-
-    font-size: 13px;
+    font-size: 1.3rem;
 }
 
 .metaCard strong {
     display: block;
     color: var(--muted);
-    margin-top: 10px;
-    font-size: 14px;
+    margin-top: 5px;
+    font-size: 1.2rem;
 }
 
 .actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5px;
 }
 
 .saveBtn,
@@ -342,8 +356,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    height: 53px;
+    gap: 6px;
+    height: 43px;
     border: none;
     border-radius: 12px;
     font-size: 14px;

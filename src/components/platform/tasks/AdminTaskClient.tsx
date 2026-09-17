@@ -5,7 +5,6 @@ import { useMemo, useState } from 'react';
 import CreateTaskModal from '@/components/platform/tasks/CreateTaskModal';
 import TaskAnalytics from '@/components/platform/tasks/TaskAnalytics';
 import TaskBoard from '@/components/platform/tasks/TaskBoard';
-import TaskCalendar from '@/components/platform/tasks/TaskCalendar';
 import TaskToolbar from '@/components/platform/tasks/TaskToolbar';
 import TaskViewModal from '@/components/platform/tasks/TaskViewModal';
 import { useTasks } from '@/hooks/tasks/useTasks';
@@ -72,14 +71,6 @@ export default function AdminTaskClient() {
             {view === 'board' && (
                 <TaskBoard
                     tasks={filteredTasks}
-                    onViewTask={(task) => {
-                        setSelectedTask(task);
-                        setOpenView(true);
-                    }}
-                />
-            )}
-            {view === 'calendar' && (
-                <TaskCalendar
                     onViewTask={(task) => {
                         setSelectedTask(task);
                         setOpenView(true);

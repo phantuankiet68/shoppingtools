@@ -1,184 +1,176 @@
 .container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
 }
 
 .hero {
-  position: relative;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 15px 32px;
-
-  border-radius: 12px;
-
-  overflow: hidden;
-
-  background: linear-gradient(135deg, #d6ebff, #85aaed, #95bff3);
-
-  color: white;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
 }
 
 .hero::before {
-  content: "";
+    content: '';
 
-  position: absolute;
+    position: absolute;
 
-  top: -80px;
-  right: -80px;
+    top: -80px;
+    right: -80px;
 
-  width: 240px;
-  height: 240px;
+    width: 240px;
+    height: 240px;
 
-  border-radius: 50%;
+    border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .hero::after {
-  content: "";
+    content: '';
 
-  position: absolute;
+    position: absolute;
 
-  bottom: -100px;
-  left: -100px;
+    bottom: -100px;
+    left: -100px;
 
-  width: 280px;
-  height: 280px;
+    width: 280px;
+    height: 280px;
 
-  border-radius: 50%;
+    border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .heroLeft {
-  position: relative;
-  z-index: 2;
+    position: relative;
+    z-index: 2;
 
-  display: flex;
-  align-items: center;
-  gap: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
 }
 
 .heroContent {
-  display: flex;
-  gap: 15px;
+    display: flex;
+    gap: 15px;
 }
 
 .heroIcon {
-  width: 50px;
-  height: 50px;
-
-  flex-shrink: 0;
-
-  border-radius: 24px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: #3177d15c;
-
-  backdrop-filter: blur(10px);
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .heroIcon i {
-  font-size: 20px;
+    font-size: 1.5rem;
+    color: var(--muted);
 }
 
 .heroContent h1 {
-  margin: 10px 0;
-  font-size: 34px;
-  font-weight: 800;
-  color: white;
+    margin: 10px 0;
+    font-size: 34px;
+    font-weight: 800;
+    color: white;
 }
 
 .heroContent p {
-  margin: 0;
-  max-width: 700px;
+    margin: 0;
+    max-width: 700px;
 
-  color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.9);
 
-  font-size: 15px;
-  line-height: 1.7;
+    font-size: 15px;
+    line-height: 1.7;
 }
 
 .badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 15px;
-
-  border-radius: 999px;
-
-  background: #3177d15c;
-
-  backdrop-filter: blur(10px);
-
-  font-size: 14px;
-  font-weight: 700;
-
-  letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 15px;
+    border-radius: 999px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    color: var(--muted);
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .heroStats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .heroStat {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 8px 14px;
-
-  border-radius: 12px;
-
-  background: #3177d15c;
-
-  backdrop-filter: blur(10px);
-
-  font-size: 13px;
-  font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    color: var(--muted);
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .heroActions {
-  position: relative;
-  z-index: 2;
+    position: relative;
+    z-index: 2;
 }
 
 /* =======================
    Create Button
 ======================= */
 .createButton {
-  height: 50px;
-  border: none;
-  padding: 0 24px;
-  border-radius: 14px;
-  background: white;
-  color: #4f46e5;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.25s ease;
+    height: 50px;
+    border: none;
+    padding: 0 24px;
+    border-radius: 14px;
+    background: white;
+    color: #4f46e5;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
 }
 
 .createButton i {
-  font-size: 18px;
+    font-size: 18px;
 }
 
 .createButton:hover {
-  transform: translateY(-2px);
+    transform: translateY(-2px);
 
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 /* =======================
@@ -186,67 +178,67 @@
 ======================= */
 
 .statsGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
 }
 
 .statCard {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+    background: #fff;
+    border: 1px solid #e2e8f0;
 
-  border-radius: 20px;
+    border-radius: 20px;
 
-  padding: 20px;
+    padding: 20px;
 
-  display: flex;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 
-  transition: all 0.25s ease;
+    transition: all 0.25s ease;
 
-  box-shadow:
-    0 1px 3px rgba(15, 23, 42, 0.05),
-    0 8px 24px rgba(15, 23, 42, 0.04);
+    box-shadow:
+        0 1px 3px rgba(15, 23, 42, 0.05),
+        0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 .statCard:hover {
-  transform: translateY(-3px);
+    transform: translateY(-3px);
 
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
 .statIcon {
-  width: 56px;
-  height: 56px;
+    width: 56px;
+    height: 56px;
 
-  border-radius: 16px;
+    border-radius: 16px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
 
-  color: #2563eb;
+    color: #2563eb;
 }
 
 .statIcon i {
-  font-size: 24px;
+    font-size: 24px;
 }
 
 .statCard span {
-  display: block;
-  color: #64748b;
-  font-size: 13px;
-  margin-bottom: 6px;
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 6px;
 }
 
 .statCard h3 {
-  margin: 0;
-  color: #0f172a;
-  font-size: 30px;
-  font-weight: 800;
+    margin: 0;
+    color: #0f172a;
+    font-size: 30px;
+    font-weight: 800;
 }
 
 /* =======================
@@ -254,9 +246,9 @@
 ======================= */
 
 .toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 /* =======================
@@ -264,45 +256,45 @@
 ======================= */
 
 .segmented {
-  display: inline-flex;
-  gap: 6px;
+    display: inline-flex;
+    gap: 6px;
 
-  padding: 6px;
+    padding: 6px;
 
-  border-radius: 16px;
+    border-radius: 16px;
 
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
 }
 
 .segment {
-  border: none;
-  background: transparent;
-  height: 44px;
-  padding: 0 18px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #64748b;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .segment:hover {
-  color: #0f172a;
+    color: #0f172a;
 }
 
 .segmentActive {
-  background: #fff;
-  color: #2563eb;
-  border: var(--bd-s-save);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    background: #fff;
+    color: #2563eb;
+    border: var(--bd-s-save);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
 .segment i {
-  font-size: 15px;
+    font-size: 15px;
 }
 
 /* =======================
@@ -310,12 +302,17 @@
 ======================= */
 
 .contentCard {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  padding: 15px;
-  min-height: 79vh;
-  overflow: hidden;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    border-radius: 12px;
+    padding: 14px;
+    min-height: 79vh;
+    overflow: hidden;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 /* =======================
@@ -323,37 +320,37 @@
 ======================= */
 
 .loadingState {
-  height: 400px;
+    height: 400px;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
-  gap: 16px;
+    gap: 16px;
 }
 
 .loadingState span {
-  color: #64748b;
-  font-size: 14px;
+    color: #64748b;
+    font-size: 14px;
 }
 
 .spinner {
-  width: 42px;
-  height: 42px;
+    width: 42px;
+    height: 42px;
 
-  border-radius: 50%;
+    border-radius: 50%;
 
-  border: 4px solid #dbeafe;
-  border-top-color: #2563eb;
+    border: 4px solid #dbeafe;
+    border-top-color: #2563eb;
 
-  animation: spin 0.8s linear infinite;
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* =======================
@@ -361,20 +358,20 @@
 ======================= */
 
 .contentCard::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 
 .contentCard::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 .contentCard::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
+    background: #cbd5e1;
+    border-radius: 999px;
 }
 
 .contentCard::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+    background: #94a3b8;
 }
 
 /* =======================
@@ -382,60 +379,60 @@
 ======================= */
 
 @media (max-width: 1200px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 992px) {
-  .hero {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+    .hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-  .createButton {
-    width: 100%;
-    justify-content: center;
-  }
+    .createButton {
+        width: 100%;
+        justify-content: center;
+    }
 
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
 
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-  .segmented {
-    width: 100%;
-  }
+    .segmented {
+        width: 100%;
+    }
 
-  .segment {
-    flex: 1;
-    justify-content: center;
-  }
+    .segment {
+        flex: 1;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 16px;
-  }
+    .container {
+        padding: 16px;
+    }
 
-  .heroContent h1 {
-    font-size: 28px;
-  }
+    .heroContent h1 {
+        font-size: 28px;
+    }
 
-  .contentCard {
-    padding: 16px;
-    border-radius: 18px;
-  }
+    .contentCard {
+        padding: 16px;
+        border-radius: 18px;
+    }
 
-  .statCard {
-    padding: 16px;
-  }
+    .statCard {
+        padding: 16px;
+    }
 
-  .statCard h3 {
-    font-size: 24px;
-  }
+    .statCard h3 {
+        font-size: 24px;
+    }
 }

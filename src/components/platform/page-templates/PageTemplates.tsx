@@ -726,7 +726,7 @@ function TemplateGrid({ templates }: { templates: PageTemplate[] }) {
                     </div>
 
                     <div className={styles.gridContent}>
-                        <div>
+                        <div className={styles.gridContentTitle}>
                             <strong>{template.title}</strong>
                             <span>{template.slug ? `/${template.slug}` : template.path}</span>
                         </div>

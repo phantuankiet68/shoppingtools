@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    margin-top: 50px;
+    margin-top: 20px;
 }
 
 /* ======================================================
@@ -13,9 +13,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 15px;
+    gap: 12px;
     overflow: hidden;
-    padding: 15px;
+    padding: 12px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.6);
 
@@ -33,8 +33,8 @@
 }
 
 .iconBox {
-    width: 52px;
-    height: 52px;
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
 
     display: flex;
@@ -58,11 +58,11 @@
 }
 
 .headerContent h2 {
-    margin: 0 0 6px;
-    font-size: 2rem;
-    line-height: 1;
-    font-weight: 800;
     color: #31a8cd;
+    margin: 0 0 3px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
 }
 
 .headerContent p {
@@ -82,14 +82,14 @@
     background: var(--bg-primary);
     color: #fff;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     outline: none;
     align-items: center;
     gap: 10px;
-    height: 55px;
-    padding: 0 22px;
-    font-size: 14px;
-    font-weight: 600;
+    height: 45px;
+    padding: 0 15px;
+    font-size: 1.3rem;
+    font-weight: 500;
     transition: all 0.25s;
     display: inline-flex;
 }
@@ -100,11 +100,11 @@
 }
 
 .button i:first-child {
-    font-size: 2rem;
+    font-size: 1.3rem;
 }
 
 .button i:last-child {
-    font-size: 22px;
+    font-size: 1.3rem;
     margin-left: 10px;
 }
 
@@ -197,7 +197,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 12px;
-    margin-top: 24px;
 }
 
 .empty {

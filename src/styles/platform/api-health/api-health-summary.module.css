@@ -8,10 +8,15 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    background: var(--bg-card);
-    border: var(--bd-default);
-    border-radius: var(--radius-md);
+    padding: 8px;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    border-radius: 12px;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
     transition: 0.25s;
 }
 

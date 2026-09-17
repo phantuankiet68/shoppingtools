@@ -42,7 +42,10 @@
 .canvas {
     position: relative;
     padding: 2px 1px !important;
-    background: #ffffff;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
     border-radius: 5px;
     transition:
         border-color 0.2s ease,
@@ -50,7 +53,6 @@
         background 0.25s ease;
     height: 91vh;
     overflow: auto;
-    border: 1.5px dashed #d6dbe4;
 }
 
 /* Rulers — sáng, mảnh */
@@ -93,7 +95,9 @@
     gap: 10px;
     text-align: center;
     padding: 28px 24px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    box-sizing: border-box;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
 }
 
 .emptyIconWrap {
@@ -118,7 +122,7 @@
 .emptyTitle {
     font-size: 18px;
     font-weight: 700;
-    color: var(--ink-1);
+    color: #72abff;
     letter-spacing: 0.2px;
 }
 
@@ -126,7 +130,7 @@
     max-width: 300px;
     font-size: 13px;
     line-height: 1.6;
-    color: var(--ink-3);
+    color: var(--muted);
 }
 
 /* Drop overlay */
@@ -307,6 +311,6 @@
 
 @media (max-width: 1600px) {
     .canvas {
-        height: 90vh;
+        height: 89vh;
     }
 }

@@ -2,8 +2,13 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
     border-radius: 12px;
     transition:
         transform 0.25s ease,
@@ -100,8 +105,8 @@
 
 .heading h3 {
     margin: 0;
-    color: #0f172a;
-    font-size: 1.4rem;
+    color: #72abff;
+    font-size: 1.3rem;
     font-weight: 600;
     line-height: 1.35;
 }
@@ -117,11 +122,11 @@
 .more {
     width: 36px;
     height: 36px;
-    border: none;
     border-radius: 10px;
-    background: transparent;
-    color: #64748b;
+    box-sizing: border-box;
     cursor: pointer;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
     transition: 0.2s;
 }
 
@@ -138,7 +143,7 @@
     padding: 8px 12px;
     border-radius: 10px;
     color: #2563eb;
-    background: #eff6ff;
+    background: #cae1ff;
     font-size: 1.1rem;
     font-weight: 500;
 }
@@ -151,23 +156,27 @@
 
 .stats > div {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 10px;
-    border-radius: 14px;
-    background: #f8fafc;
+    justify-content: space-between;
+    gap: 3px;
+    padding: 8px;
+    border-radius: 10px;
+    background: #ffffff2e;
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .stats i {
     color: #2563eb;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
 }
 
 .stats strong {
     color: var(--muted);
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
 .stats span {
@@ -179,8 +188,7 @@
     display: flex;
     justify-content: space-between;
     gap: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #edf2f7;
+    padding-top: 6px;
 }
 
 .footer div {
@@ -214,9 +222,8 @@
     height: 42px;
     border: 1px solid #dbe3ef;
     border-radius: 12px;
-    background: #fff;
     color: #334155;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 500;
     cursor: pointer;
     transition: 0.2s;

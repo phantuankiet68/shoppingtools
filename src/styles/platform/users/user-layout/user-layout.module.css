@@ -2,7 +2,8 @@
     display: grid;
     grid-template-columns: 300px minmax(0, 1fr);
     gap: 10px;
-    min-height: 100vh;
+    min-height: 83vh;
+    margin-top: 12px;
 }
 
 .sidebar {
@@ -21,14 +22,10 @@
 
 .body {
     border-radius: 8px;
-    border: 1px dashed #d8dee8;
-    background: #ffffff;
     color: #94a3b8;
     font-weight: 600;
     overflow: auto;
-    height: 89vh;
-    padding: 12px;
-
+    height: 87vh;
     /* Firefox */
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;

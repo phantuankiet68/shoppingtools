@@ -2,11 +2,11 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 15px;
+    gap: 8px;
+    padding: 12px;
     border-radius: 12px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
     transition: all 0.25s ease;
     cursor: pointer;
 }
@@ -61,23 +61,17 @@
 
 .priorityBadge {
     display: inline-flex;
-
     align-items: center;
-
     gap: 6px;
-
-    padding: 8px 12px;
-
+    padding: 6px 12px;
     border-radius: 999px;
-
     font-size: 12px;
     font-weight: 700;
 }
 
 .low {
-    background: #ecfdf5;
-
     color: #059669;
+    background: #c5ffe4;
 }
 
 .medium {
@@ -103,19 +97,13 @@
 ========================= */
 
 .menuBtn {
-    width: 34px;
-    height: 34px;
-
+    width: 28px;
+    height: 28px;
     border: none;
-
     border-radius: 10px;
-
     background: transparent;
-
     cursor: pointer;
-
     color: #64748b;
-
     transition: all 0.2s ease;
 }
 
@@ -131,14 +119,12 @@
 .title {
     color: var(--muted);
     margin: 0;
-    font-size: 14px;
+    font-size: 1.2rem;
     font-weight: 700;
     line-height: 1.5;
-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
     min-width: 0;
     width: 100%;
 }
@@ -150,7 +136,7 @@
 .description {
     margin: 0;
 
-    font-size: 13px;
+    font-size: 1.1rem;
 
     color: #64748b;
 
@@ -185,7 +171,7 @@
     border-radius: 999px;
     background: #d3e9ffbf;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 1.1rem;
     font-weight: 500;
 }
 
@@ -217,7 +203,7 @@
 
     align-items: center;
 
-    font-size: 13px;
+    font-size: 1.1rem;
 
     color: #475569;
 }
@@ -263,8 +249,8 @@
 }
 
 .avatar {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
 
     border-radius: 50%;
 
@@ -282,13 +268,13 @@
 }
 
 .openBtn {
-    height: 38px;
+    height: 32px;
     padding: 0 14px;
     border: none;
     border-radius: 10px;
     background: #eef2ff;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 1.2rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.25s ease;

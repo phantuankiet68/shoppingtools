@@ -1,11 +1,11 @@
 .wrapper {
-    min-height: 100vh;
+    padding-right: 12px;
 }
 
 .dashboard {
     display: grid;
     grid-template-columns: 480px 1fr;
-    gap: 15px;
+    gap: 12px;
 }
 
 /* =====================================
@@ -13,20 +13,24 @@
 ===================================== */
 
 .leftPanel {
-    background: white;
     border-radius: 12px;
     padding: 15px;
-    border: var(--bd-header);
-    height: calc(100vh - 140px);
+    height: calc(96vh - 135px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .workspaceHeader {
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-
+    margin-bottom: 12px;
+    padding-bottom: 12px;
     border-bottom: 1px solid #e2e8f0;
 }
 
@@ -38,7 +42,7 @@
 }
 .workspaceHeader h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--muted);
 }
@@ -62,8 +66,7 @@
     background: var(--bg-add);
     color: var(--color-add);
     border: var(--bd-add);
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 1.2rem;
 }
 
 .searchWrapper {
@@ -87,13 +90,16 @@
 
 .searchInput {
     width: 100%;
-    height: 46px;
+    height: 42px;
     padding-left: 42px;
-    border: var(--bd-header);
     border-radius: 12px;
-    background: #fff;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
     transition: all 0.25s ease;
-    font-size: 14px;
+    font-size: 1.3rem;
+    box-shadow:
+        0 15px 40px #3a659712,
+        0 1px #ffffffdb;
 }
 
 .searchInput:focus {
@@ -106,19 +112,22 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 15px 0;
+    gap: 10px;
+    padding: 12px 0 0;
 }
 
 .taskItem {
-    background: #ffffff;
-    border: var(--bd-header);
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
     border-radius: 12px;
-    padding: 16px;
+    padding: 13px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: 0.25s ease;
+    box-shadow:
+        0 15px 40px #3a659712,
+        0 1px #ffffffdb;
 }
 
 .taskItem:hover {
@@ -129,9 +138,9 @@
 
 .taskItem h4 {
     margin: 0;
-    font-size: 14px;
+    font-size: 1.2rem;
     color: var(--muted);
-    max-width: 250px;
+    max-width: 350px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -139,18 +148,18 @@
 
 .taskItem span {
     display: block;
-    margin-top: 4px;
-    font-size: 12px;
+    margin-top: 2px;
+    font-size: 1.1rem;
     color: #2e84ff;
 }
 
 .priority {
-    padding: 6px 12px;
+    padding: 5px 12px;
     border-radius: 999px;
     background: var(--bg-warning);
     color: var(--color-warning);
     border: var(--bd-warning);
-    font-size: 12px;
+    font-size: 1.1rem;
     font-weight: 500;
 }
 
@@ -165,10 +174,13 @@
 }
 
 .productivityCard {
-    background: var(--bg-primary);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
     border-radius: 12px;
     padding: 15px;
-    color: white;
+    color: #72abff;
     overflow: hidden;
     position: relative;
 }
@@ -181,52 +193,46 @@
 
 .productivityLabel {
     display: block;
-
-    font-size: 13px;
-
-    text-transform: uppercase;
-
-    letter-spacing: 1px;
-
+    font-size: 1.2rem;
     opacity: 0.8;
 }
 
 .productivityHeader h2 {
     margin-bottom: 0;
-    font-size: 32px;
+    font-size: 2rem;
     font-weight: 700;
 }
 
 .productivityIcon {
-    width: 64px;
-    height: 64px;
-
-    border-radius: 18px;
-
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    background: rgba(255, 255, 255, 0.15);
-
+    background: linear-gradient(105deg, #ffffffdb, #e0efff9e);
+    border-color: #ffffffd1;
+    box-shadow:
+        0 8px 22px #447ecd14,
+        inset 0 1px #fffffff2;
     backdrop-filter: blur(10px);
 }
 
 .productivityIcon i {
-    font-size: 28px;
+    font-size: 2rem;
 }
 
 .scoreStatus {
-    margin-top: 10px;
+    margin-top: 5px;
     font-size: 14px;
     font-weight: 600;
     opacity: 0.9;
 }
 
 .progressBar {
-    height: 10px;
+    height: 6px;
     margin-top: 8px;
-    background: rgba(255, 255, 255, 0.2);
+    background: #c6e2ff;
     border-radius: 999px;
     overflow: hidden;
 }
@@ -258,16 +264,18 @@
 
 .productivityFooter strong {
     display: block;
-
-    margin-top: 4px;
-
-    font-size: 18px;
+    margin-top: 2px;
+    font-size: 1.5rem;
 }
 
 .productivityFooterItem {
-    border: 1px solid #fff;
     border-radius: 12px;
     padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(105deg, #ffffffdb, #e0efff9e);
+    border: 1px solid #ffffffad;
 }
 /* =====================================
    Charts
@@ -275,8 +283,7 @@
 
 .chartGrid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 15px;
+    grid-template-columns: 1fr;
 }
 
 .card {
@@ -296,43 +303,171 @@
     margin: 0 0 20px;
     color: #0f172a;
 }
-
-/* =====================================
-   Focus Analytics
-===================================== */
-
 .focusGrid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
 }
 
 .focusCard {
-    background: white;
-    border-radius: 20px;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
-    transition: 0.25s ease;
+    position: relative;
+    min-width: 0;
+    padding: 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.focusCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--focus-accent);
+}
+
+.focusCard::after {
+    content: '';
+    position: absolute;
+    right: -35px;
+    bottom: -45px;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: var(--focus-glow);
+    filter: blur(25px);
+    pointer-events: none;
 }
 
 .focusCard:hover {
-    transform: translateY(-2px);
-
-    box-shadow: 0 15px 25px rgba(15, 23, 42, 0.06);
+    transform: translateY(-3px);
+    border-color: rgba(203, 213, 225, 0.9);
+    box-shadow:
+        0 4px 8px rgba(15, 23, 42, 0.04),
+        0 16px 32px rgba(15, 23, 42, 0.08);
 }
 
-.focusCard span {
-    font-size: 13px;
+.focusPrimary {
+    --focus-accent: #6366f1;
+    --focus-glow: rgba(99, 102, 241, 0.14);
+}
+
+.focusSuccess {
+    --focus-accent: #10b981;
+    --focus-glow: rgba(16, 185, 129, 0.14);
+}
+
+.focusWarning {
+    --focus-accent: #f59e0b;
+    --focus-glow: rgba(245, 158, 11, 0.14);
+}
+
+.focusInfo {
+    --focus-accent: #0ea5e9;
+    --focus-glow: rgba(14, 165, 233, 0.14);
+}
+
+.focusHeader {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.focusIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border-radius: 11px;
+    color: var(--focus-accent);
+    background: color-mix(in srgb, var(--focus-accent) 10%, transparent);
+    font-size: 1.5rem;
+}
+
+.focusLabel {
     color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
-.focusCard h3 {
-    margin-top: 10px;
-    margin-bottom: 0;
-    color: #0f172a;
-    font-size: 28px;
+.focusValue {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 12px;
 }
 
+.focusValue h3 {
+    margin: 0;
+    color: #72abff;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 750;
+    letter-spacing: -0.04em;
+}
+
+.focusValue span {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.focusFooter {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.focusFooter i {
+    color: var(--focus-accent);
+    font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+    .focusGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .focusGrid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .focusCard {
+        padding: 16px;
+    }
+
+    .focusValue h3 {
+        font-size: 27px;
+    }
+}
 /* =====================================
    Loading
 ===================================== */
@@ -421,31 +556,22 @@
     display: flex;
     justify-content: center;
     align-items: center;
-
     gap: 12px;
-
-    margin-top: 16px;
-
-    padding-top: 16px;
-
-    border-top: 1px solid #e2e8f0;
 }
 
 .pagination button {
     width: 36px;
     height: 36px;
-
     border: none;
-
     border-radius: 10px;
-
-    background: #f1f5f9;
-
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
     color: #334155;
-
     cursor: pointer;
-
     transition: all 0.25s ease;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .pagination button:hover:not(:disabled) {
@@ -464,17 +590,20 @@
     color: #64748b;
 }
 .analyticsCard {
-    background: white;
-    border: 1px solid #e2e8f0;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
     border-radius: 12px;
     padding: 15px;
     transition: all 0.25s ease;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .analyticsCard:hover {
     transform: translateY(-3px);
-
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 }
 
 .cardHeader {
@@ -501,10 +630,9 @@
 
 .cardHeader h3 {
     margin: 0;
-
-    font-size: 20px;
-
-    color: #0f172a;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #72abff;
 }
 
 .cardMetric {
@@ -513,9 +641,7 @@
 
 .cardMetric strong {
     display: block;
-
-    font-size: 24px;
-
+    font-size: 2rem;
     color: #4f46e5;
 }
 

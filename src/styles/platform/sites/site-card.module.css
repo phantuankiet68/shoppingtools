@@ -3,10 +3,15 @@
     flex-direction: column;
     gap: 15px;
     padding: 12px;
-    border: var(--bd-header);
     border-radius: 12px;
-    background: #ffffff;
     transition: 0.3s ease;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .card:hover {
@@ -70,8 +75,8 @@
     align-items: center;
     justify-content: center;
 
-    width: 47px;
-    height: 47px;
+    width: 39px;
+    height: 39px;
 
     border-radius: 12px;
 
@@ -90,7 +95,7 @@
 }
 .site h3 {
     margin: 0;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     color: var(--foreground);
 }
 
@@ -101,7 +106,7 @@
     margin-top: 2px;
     color: var(--muted);
     text-decoration: none;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
 }
 
 .site a:hover {
@@ -127,16 +132,25 @@
 .tags span:nth-child(1) {
     background: #eaf8f0;
     color: #15803d;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .tags span:nth-child(2) {
     background: #f5efff;
     color: #7c3aed;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .tags span:nth-child(3) {
     background: #edf5ff;
     color: #2563eb;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .storage {
@@ -164,7 +178,7 @@
     height: 10px;
     overflow: hidden;
     border-radius: 999px;
-    background: #edf1f7;
+    background: #afcefd;
 }
 
 .progressBar {

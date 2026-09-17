@@ -1,8 +1,13 @@
 .card {
-    background: #fff;
     border-radius: 12px;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
     overflow: hidden;
-    border: 1px solid #e5e7eb;
     transition: 0.25s;
 }
 
@@ -70,7 +75,7 @@
 }
 
 .body {
-    padding: 15px;
+    padding: 12px;
 }
 
 .heading {
@@ -81,8 +86,8 @@
 
 .heading h3 {
     margin: 0;
-    font-size: 1.6rem;
-    color: #0f172a;
+    font-size: 1.3rem;
+    color: #72abff;
 }
 
 .heading p {
@@ -101,7 +106,7 @@
 }
 
 .workspace {
-    margin-top: 12px;
+    margin-top: 8px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -122,11 +127,14 @@
     align-items: center;
     gap: 10px;
     padding: 10px;
-    background: #f8fafc;
     border-radius: 12px;
     font-size: 1.2rem;
     font-weight: 500;
-    border: var(--bd-header);
+    background: #ffffff2e;
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .stats i {
@@ -143,13 +151,13 @@
 .dates label {
     display: block;
     color: #94a3b8;
-    font-size: 12px;
-    margin-bottom: 6px;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
 }
 
 .dates strong {
     color: #0f172a;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 500;
 }
 

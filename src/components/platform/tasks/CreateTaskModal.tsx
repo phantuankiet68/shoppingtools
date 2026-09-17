@@ -115,19 +115,9 @@ export default function CreateTaskModal({ open, onClose, onSuccess }: Props) {
 
                 <div className={styles.header}>
                     <div>
-                        <div className={styles.badge}>
-                            <i className="bi bi-stars" />
-                            Create New Task
-                        </div>
-
                         <h2>Task Workspace</h2>
-
                         <p>Organize your work, deadlines, priorities and productivity.</p>
                     </div>
-
-                    <button className={styles.closeBtn} onClick={onClose}>
-                        <i className="bi bi-x-lg" />
-                    </button>
                 </div>
 
                 {/* BODY */}

@@ -8,11 +8,13 @@
 .dateItem,
 .nextButton {
     appearance: none;
-    border: 1px solid #e4ebf5;
     background: #ffffff;
     color: #74839c;
     cursor: pointer;
     box-sizing: border-box;
+    cursor: pointer;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
     transition:
         border-color 0.2s ease,
         background-color 0.2s ease,
@@ -60,10 +62,10 @@
 }
 
 .active {
-    border-color: #126cf2;
-    background: #126cf2;
-    color: #ffffff;
-    box-shadow: 0 8px 18px rgba(18, 108, 242, 0.24);
+    color: #fff;
+    background: #126cf23d;
+    border-color: #98b8e7;
+    box-shadow: 0 8px 18px #126cf23d;
 }
 
 .active .day,

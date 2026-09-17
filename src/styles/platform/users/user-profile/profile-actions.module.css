@@ -1,11 +1,11 @@
 .actions {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
 
 .actions button {
-    height: 50px;
+    height: 54px;
     border: none;
     border-radius: 14px;
     background: #f8fafc;
@@ -15,7 +15,7 @@
     justify-content: center;
     gap: 10px;
     font-weight: 500;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     transition: 0.25s;
     border: var(--bd-header);
 }

@@ -1,17 +1,6 @@
 'use client';
 
-import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import styles from '@/styles/platform/tasks/TaskAnalytics.module.css';
 import { useEffect, useMemo, useState } from 'react';
@@ -49,8 +38,6 @@ type AnalyticsResponse = {
         value: number;
     }[];
 };
-
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
 export default function TaskAnalytics() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -280,84 +267,83 @@ export default function TaskAnalytics() {
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
-                        <div className={styles.analyticsCard}>
-                            <div className={styles.cardHeader}>
-                                <div>
-                                    <span className={styles.cardLabel}>Overview</span>
-
-                                    <h3>Task Status</h3>
-                                </div>
-                            </div>
-
-                            <div className={styles.statusWrapper}>
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <PieChart>
-                                        <Pie
-                                            data={analytics.statusDistribution}
-                                            dataKey="value"
-                                            innerRadius={75}
-                                            outerRadius={100}
-                                            paddingAngle={4}
-                                        >
-                                            {analytics.statusDistribution.map((_, index) => (
-                                                <Cell
-                                                    key={index}
-                                                    fill={COLORS[index % COLORS.length]}
-                                                />
-                                            ))}
-                                        </Pie>
-
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-
-                                <div className={styles.statusLegend}>
-                                    {analytics.statusDistribution.map((item, index) => (
-                                        <div key={index} className={styles.legendItem}>
-                                            <div className={styles.legendLeft}>
-                                                <span
-                                                    className={styles.legendDot}
-                                                    style={{
-                                                        background: COLORS[index % COLORS.length],
-                                                    }}
-                                                />
-
-                                                {item.name}
-                                            </div>
-
-                                            <strong>{item.value}</strong>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Focus Analytics */}
-
                     <div className={styles.focusGrid}>
-                        <div className={styles.focusCard}>
-                            <span>Focus Time</span>
+                        <div className={`${styles.focusCard} ${styles.focusPrimary}`}>
+                            <div className={styles.focusHeader}>
+                                <div className={styles.focusIcon}>
+                                    <i className="bi bi-bullseye" />
+                                </div>
+                                <span className={styles.focusLabel}>Focus Time</span>
+                            </div>
 
-                            <h3>{analytics.focus.totalFocusMinutes}m</h3>
+                            <div className={styles.focusValue}>
+                                <h3>{analytics.focus.totalFocusMinutes}</h3>
+                                <span>min</span>
+                            </div>
+
+                            <div className={styles.focusFooter}>
+                                <i className="bi bi-clock-history" />
+                                <span>Total focused time</span>
+                            </div>
                         </div>
 
-                        <div className={styles.focusCard}>
-                            <span>Actual Time</span>
+                        <div className={`${styles.focusCard} ${styles.focusSuccess}`}>
+                            <div className={styles.focusHeader}>
+                                <div className={styles.focusIcon}>
+                                    <i className="bi bi-lightning-charge-fill" />
+                                </div>
+                                <span className={styles.focusLabel}>Actual Time</span>
+                            </div>
 
-                            <h3>{analytics.focus.actualMinutes}m</h3>
+                            <div className={styles.focusValue}>
+                                <h3>{analytics.focus.actualMinutes}</h3>
+                                <span>min</span>
+                            </div>
+
+                            <div className={styles.focusFooter}>
+                                <i className="bi bi-check2-circle" />
+                                <span>Completed focus</span>
+                            </div>
                         </div>
 
-                        <div className={styles.focusCard}>
-                            <span>Pause Time</span>
+                        <div className={`${styles.focusCard} ${styles.focusWarning}`}>
+                            <div className={styles.focusHeader}>
+                                <div className={styles.focusIcon}>
+                                    <i className="bi bi-pause-circle-fill" />
+                                </div>
+                                <span className={styles.focusLabel}>Pause Time</span>
+                            </div>
 
-                            <h3>{analytics.focus.totalPauseMinutes}m</h3>
+                            <div className={styles.focusValue}>
+                                <h3>{analytics.focus.totalPauseMinutes}</h3>
+                                <span>min</span>
+                            </div>
+
+                            <div className={styles.focusFooter}>
+                                <i className="bi bi-hourglass-split" />
+                                <span>Total paused time</span>
+                            </div>
                         </div>
 
-                        <div className={styles.focusCard}>
-                            <span>Estimated</span>
+                        <div className={`${styles.focusCard} ${styles.focusInfo}`}>
+                            <div className={styles.focusHeader}>
+                                <div className={styles.focusIcon}>
+                                    <i className="bi bi-calendar2-check-fill" />
+                                </div>
+                                <span className={styles.focusLabel}>Estimated</span>
+                            </div>
 
-                            <h3>{analytics.focus.estimatedMinutes}m</h3>
+                            <div className={styles.focusValue}>
+                                <h3>{analytics.focus.estimatedMinutes}</h3>
+                                <span>min</span>
+                            </div>
+
+                            <div className={styles.focusFooter}>
+                                <i className="bi bi-graph-up-arrow" />
+                                <span>Expected focus time</span>
+                            </div>
                         </div>
                     </div>
                 </section>

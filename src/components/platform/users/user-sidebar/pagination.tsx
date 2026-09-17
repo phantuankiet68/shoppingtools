@@ -18,10 +18,6 @@ export default function Pagination({
     pageSize = 6,
     onChange,
 }: PaginationProps) {
-    const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
-
-    const end = totalItems === 0 ? 0 : Math.min(page * pageSize, totalItems);
-
     const pages = useMemo<(number | '...')[]>(() => {
         if (totalPages <= 1) return [1];
 
@@ -56,11 +52,6 @@ export default function Pagination({
 
     return (
         <div className={styles.wrapper}>
-            <p>
-                Showing <strong>{start}</strong> to <strong>{end}</strong> of{' '}
-                <strong>{totalItems.toLocaleString()}</strong> users
-            </p>
-
             <div className={styles.pagination}>
                 <button
                     type="button"

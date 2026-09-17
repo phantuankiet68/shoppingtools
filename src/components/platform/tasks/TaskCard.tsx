@@ -120,18 +120,6 @@ export default function TaskCard({ task, onView }: Props) {
                     />
                 </div>
             </div>
-
-            <div className={styles.footer}>
-                <div className={styles.avatar}>
-                    <i className="bi bi-person-fill" />
-                </div>
-
-                <button className={styles.openBtn} onClick={handleView}>
-                    <i className="bi bi-clipboard-check" />
-
-                    <span>View Task</span>
-                </button>
-            </div>
         </div>
     );
 }

@@ -2,10 +2,8 @@
     display: flex;
     justify-content: space-between;
     gap: 15px;
-    padding: 12px;
-    background: var(--bg-card);
-    border: var(--bd-default);
     border-radius: var(--radius-md);
+    margin-top: 12px;
 }
 
 .left {
@@ -93,7 +91,7 @@
 .buttons button {
     flex: 1;
     min-width: 110px;
-    height: 60px;
+    height: 51px;
     border: none;
     border-radius: 12px;
     cursor: pointer;

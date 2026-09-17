@@ -18,7 +18,7 @@
 
 .modal {
     width: 100%;
-    max-width: 960px;
+    max-width: 650px;
     max-height: 92vh;
     overflow: hidden;
     overflow-y: auto;
@@ -41,8 +41,8 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 15px;
-    padding: 20px;
-    background: linear-gradient(135deg, #4694e5 0%, #3a8aed 50%, #33a6ea 100%);
+    padding: 12px;
+    background: linear-gradient(135deg, #a2cbf6 0%, #2486ff7a 50%, #82d0fe 100%);
     color: white;
     z-index: 1;
 }
@@ -65,7 +65,7 @@
 }
 
 .header h2 {
-    margin: 10px 0 6px;
+    margin: 0px 0 3px;
     font-size: 1.5rem;
     font-weight: 800;
 }
@@ -129,7 +129,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 15px;
-    padding: 25px;
+    padding: 15px;
 }
 
 .field {
@@ -152,7 +152,7 @@
     align-items: center;
     gap: 10px;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 1.3rem;
 }
 
 .field label i,
@@ -169,7 +169,7 @@
     background: #f8fafc;
     border-radius: 12px;
     padding: 0px 16px;
-    font-size: 14px;
+    font-size: 1.3rem;
     transition: all 0.25s ease;
 }
 
@@ -179,7 +179,7 @@
 
 .field input,
 .field select {
-    height: 45px;
+    height: 42px;
 }
 
 .field textarea,
@@ -273,7 +273,7 @@
 }
 
 .cancelBtn {
-    height: 54px;
+    height: 42px;
     padding: 0 22px;
     border-radius: 12px;
     border: 1px solid #e2e8f0;
@@ -283,7 +283,7 @@
     gap: 8px;
     font-weight: 500;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 1.2rem;
     cursor: pointer;
     transition: all 0.25s ease;
 }
@@ -293,7 +293,7 @@
 }
 
 .createBtn {
-    height: 54px;
+    height: 42px;
     padding: 0 24px;
     border: none;
     border-radius: 12px;
@@ -302,7 +302,7 @@
     gap: 10px;
     color: white;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 1.2rem;
     font-weight: 500;
     background: var(--bg-primary);
 

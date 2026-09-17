@@ -14,9 +14,11 @@
     padding: 13px;
     box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid #dfe8f3;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
     border-radius: 15px;
-    background: #fff;
     box-shadow: 0 3px 12px rgba(31, 61, 95, 0.045);
 }
 

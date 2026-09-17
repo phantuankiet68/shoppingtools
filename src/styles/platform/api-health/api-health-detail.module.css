@@ -1,17 +1,22 @@
 .card {
     position: relative;
     display: grid;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
     padding: 12px;
-    background: var(--bg-card);
-    border: var(--bd-default);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
     border-radius: 12px;
     transition:
         border-color 0.25s ease,
         box-shadow 0.25s ease;
     overflow: auto;
-    height: 78vh;
+    height: 81vh;
 
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
@@ -56,7 +61,7 @@
     align-items: center;
     gap: 7px;
     color: #2563eb;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 650;
 }
 
@@ -65,9 +70,9 @@
 }
 
 .heading h2 {
-    margin: 12px 0 10px;
+    margin: 5px 0 5px;
     color: #172033;
-    font-size: 2.15rem;
+    font-size: 1.5rem;
     line-height: 1.2;
     font-weight: 700;
     letter-spacing: -0.025em;
@@ -145,7 +150,7 @@
     background: #eff6ff;
     color: #2563eb;
     cursor: pointer;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 650;
     transition:
         background 0.2s ease,
@@ -379,7 +384,6 @@
     overflow: hidden;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
-    background: #f8fafc;
 }
 
 .codeTop {
@@ -403,7 +407,8 @@
     margin: 0;
     padding: 15px;
     color: #334155;
-    background: #ffffff;
+    background: #ffffff2e;
+    border-top: 1px solid #ffffff8f;
     font-family: Consolas, 'SFMono-Regular', monospace;
     font-size: 1.15rem;
     line-height: 1.7;

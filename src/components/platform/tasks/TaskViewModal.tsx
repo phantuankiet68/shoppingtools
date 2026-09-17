@@ -193,17 +193,6 @@ export default function TaskViewModal({ open, task, onClose, onRefresh }: Props)
 
                 <div className={styles.hero}>
                     <div className={styles.heroContent}>
-                        <div className={styles.badges}>
-                            <span className={`${styles.badge} ${statusConfig.className}`}>
-                                <i className={`bi ${statusConfig.icon}`} />
-                                {statusConfig.label}
-                            </span>
-
-                            <span className={`${styles.badge} ${priorityConfig.className}`}>
-                                <i className="bi bi-lightning-charge-fill" />
-                                {priorityConfig.label}
-                            </span>
-                        </div>
                         <div className={styles.headerInfo}>
                             <h1 className={styles.title}>{task.title}</h1>
                             <p className={styles.subtitle}>{task.category || 'Task Management'}</p>
@@ -244,6 +233,9 @@ export default function TaskViewModal({ open, task, onClose, onRefresh }: Props)
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div className={styles.right}>
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
                                 <i className="bi bi-bar-chart-fill" />
@@ -274,9 +266,6 @@ export default function TaskViewModal({ open, task, onClose, onRefresh }: Props)
                                 className={styles.slider}
                             />
                         </div>
-                    </div>
-
-                    <div className={styles.right}>
                         <div className={styles.metaGrid}>
                             <div className={styles.metaCard}>
                                 <i className="bi bi-bookmark-fill" />

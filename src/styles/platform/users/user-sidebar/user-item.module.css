@@ -4,13 +4,16 @@
     gap: 8px;
     width: 100%;
     border: none;
-    background: #fff;
+    background: #ffffff2e;
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 8px 16px;
     cursor: pointer;
     transition: 0.25s;
     text-align: left;
-    border: var(--bd-header);
 }
 
 .item:hover {
@@ -32,11 +35,11 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .content strong {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 600;
 
     overflow: hidden;

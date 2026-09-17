@@ -279,22 +279,8 @@ export default function UserProfile({ userId }: UserProfileProps) {
                             </div>
 
                             <div>
-                                <i className="bi bi-geo-alt" />
-                                {[user.profile?.city, user.profile?.country]
-                                    .filter(Boolean)
-                                    .join(', ') || '--'}
-                            </div>
-
-                            <div>
                                 <i className="bi bi-calendar3" />
                                 {new Date(user.createdAt).toLocaleDateString()}
-                            </div>
-
-                            <div>
-                                <i className="bi bi-clock-history" />
-                                {user.lastLoginAt
-                                    ? new Date(user.lastLoginAt).toLocaleString()
-                                    : 'Never logged in'}
                             </div>
                         </div>
                     </div>

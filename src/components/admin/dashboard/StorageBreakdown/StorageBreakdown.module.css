@@ -3,18 +3,11 @@
     min-width: 0;
     padding: 18px 20px 18px;
     box-sizing: border-box;
-
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 20px;
-
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(246, 250, 255, 0.58));
-
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
-    box-shadow:
-        0 12px 30px rgba(57, 91, 135, 0.055),
-        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    border-radius: 16px;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1.5px solid #ffffffad;
 }
 
 /* =========================================

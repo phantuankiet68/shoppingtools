@@ -2,11 +2,14 @@
     width: 100%;
     min-width: 0;
     overflow: hidden;
-    box-sizing: border-box;
-    border: 1px solid #e3ebf5;
     border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 5px 18px rgba(35, 75, 122, 0.05);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1.5px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .header {

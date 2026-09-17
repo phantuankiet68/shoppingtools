@@ -57,7 +57,7 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
                         <i className={`bi ${item.icon}`} />
                     </div>
 
-                    <div>
+                    <div className={styles.key}>
                         <span>{item.title}</span>
 
                         <strong>{values[item.key]}</strong>

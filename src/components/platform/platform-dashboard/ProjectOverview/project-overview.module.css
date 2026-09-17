@@ -11,12 +11,15 @@
     min-width: 0;
     height: 235px;
     padding: 13px;
-    box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid #dfe8f3;
     border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 3px 12px rgba(35, 64, 99, 0.045);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1.5px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
 }
 
 .cardHeader {

@@ -710,7 +710,7 @@ export default function AdminTemplatesPage() {
                                     onClick={() => setPage((current) => current - 1)}
                                     type="button"
                                 >
-                                    Previous
+                                    <i className="bi bi-chevron-left"></i>
                                 </button>
 
                                 {Array.from({ length: totalPages }, (_, index) => index + 1).map(
@@ -731,7 +731,7 @@ export default function AdminTemplatesPage() {
                                     onClick={() => setPage((current) => current + 1)}
                                     type="button"
                                 >
-                                    Next
+                                    <i className="bi bi-chevron-right"></i>
                                 </button>
                             </div>
                         </div>

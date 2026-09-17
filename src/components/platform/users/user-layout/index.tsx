@@ -13,9 +13,7 @@ export default function UserLayout() {
 
     return (
         <main className={styles.page}>
-            <aside className={styles.sidebar}>
-                <UserSidebar selectedUserId={selectedUserId} onSelect={setSelectedUserId} />
-            </aside>
+            <UserSidebar selectedUserId={selectedUserId} onSelect={setSelectedUserId} />
 
             <section className={styles.content}>
                 <div className={styles.body}>

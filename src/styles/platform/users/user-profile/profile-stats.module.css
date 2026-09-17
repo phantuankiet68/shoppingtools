@@ -1,14 +1,14 @@
 .stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 5px;
 }
 
 .card {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    padding: 15px;
+    border-radius: 12px;
+    padding: 8px;
     transition: 0.25s;
     display: flex;
     gap: 10px;
@@ -20,9 +20,9 @@
 }
 
 .icon {
-    width: 70px;
-    height: 80px;
-    border-radius: 12px;
+    width: 25px;
+    height: 25px;
+    border-radius: 8px;
     color: #fff;
     display: flex;
     align-items: center;
@@ -30,17 +30,22 @@
 }
 
 .icon i {
-    font-size: 18px;
+    font-size: 1.4rem;
+}
+.key {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
 }
 
 .card span {
     display: block;
     color: #64748b;
-    font-size: 13px;
-    margin-bottom: 6px;
+    font-size: 1.2rem;
 }
 
 .card strong {
     color: #4cbbff;
-    font-size: 2.2rem;
+    font-size: 1.8rem;
+    line-height: 1;
 }
