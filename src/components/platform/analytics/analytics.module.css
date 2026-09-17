@@ -1,0 +1,819 @@
+/* Analytics.module.css */
+.page {
+    --text: #172554;
+    --muted: #71809a;
+    --border: rgba(139, 164, 201, 0.2);
+    --card: rgba(255, 255, 255, 0.48);
+    --card-strong: rgba(255, 255, 255, 0.64);
+    --shadow: 0 8px 28px rgba(64, 100, 150, 0.06);
+    display: grid;
+    grid-template-columns: minmax(0, 2.05fr) minmax(390px, 0.95fr);
+    gap: 12px;
+    width: 100%;
+    min-height: 100%;
+    margin-top: 12px;
+    color: var(--text);
+}
+
+.mainColumn,
+.sideColumn {
+    min-width: 0;
+}
+
+.chartCard {
+    min-width: 0;
+}
+
+.chartHeader {
+    min-width: 0;
+}
+
+.chartTools {
+    min-width: 0;
+}
+
+.chartWrap {
+    min-width: 0;
+}
+
+.mainColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sideColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pageHeader,
+.kpiCard,
+.chartCard,
+.listCard,
+.notificationsCard,
+.subscriptionCard,
+.expiringCard {
+    border: 1px solid var(--border);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+}
+
+.pageHeader {
+    min-height: 53px;
+    border-radius: 15px;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.headingIcon {
+    display: grid;
+    place-items: center;
+    color: #1f83e7;
+    font-size: 2.5rem;
+    flex: 0 0 auto;
+}
+
+.heading h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.05;
+    letter-spacing: -0.8px;
+    font-weight: 750;
+    color: #72abff;
+}
+
+.heading p {
+    margin: 5px 0 0;
+    color: #7890ae;
+    font-size: 1.2rem;
+}
+
+.yearSelect,
+.periodSelect {
+    appearance: none;
+    border: 1px solid rgba(140, 164, 202, 0.24);
+    background: rgba(255, 255, 255, 0.56);
+    color: #4c607d;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    height: 40px;
+    padding: 0 13px;
+    font-size: 13px;
+}
+
+.yearSelect {
+    min-width: 178px;
+    justify-content: space-between;
+}
+
+.yearSelect i:first-child {
+    color: #7286a5;
+    font-size: 16px;
+}
+
+.kpiGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.kpiCard {
+    min-height: 90px;
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.kpiIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    font-size: 1.5rem;
+}
+
+.kpiIcon.green {
+    color: #12b981;
+    background: rgba(83, 222, 181, 0.18);
+}
+
+.kpiIcon.pink {
+    color: #f34e86;
+    background: rgba(245, 118, 171, 0.16);
+}
+
+.kpiIcon.blue {
+    color: #2387ec;
+    background: rgba(89, 166, 241, 0.16);
+}
+
+.kpiIcon.orange {
+    color: #f18a0a;
+    background: rgba(247, 157, 60, 0.16);
+}
+
+.kpiContent {
+    min-width: 0;
+}
+
+.kpiLabel {
+    display: block;
+    color: #68809f;
+    font-size: 12px;
+    line-height: 1.25;
+    margin: 2px 0 5px;
+}
+
+.kpiContent strong {
+    display: block;
+    font-size: 20px;
+    line-height: 1.15;
+    white-space: nowrap;
+    color: #143778;
+    letter-spacing: -0.3px;
+}
+
+.expenseCard .kpiContent strong {
+    color: #ec3467;
+}
+
+.pendingCard .kpiContent strong {
+    color: #126fe0;
+}
+
+.negativeCard .kpiContent strong {
+    color: #ed342e;
+}
+
+.kpiContent small {
+    display: block;
+    margin-top: 6px;
+    color: #8292a8;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.kpiContent .positive {
+    color: #15ae76;
+}
+
+.chartCard {
+    border-radius: 14px;
+    padding: 12px;
+    min-height: 280px;
+}
+
+.chartHeader {
+    min-height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.sectionTitle {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.sectionTitle h2,
+.sectionTitle h3,
+.sideTitle h2 {
+    margin: 0;
+    font-weight: 720;
+    color: #17336f;
+}
+
+.sectionTitle h2 {
+    font-size: 1.5rem;
+    color: #72abff;
+}
+
+.chartTitleIcon {
+    color: #177de0;
+    font-size: 16px;
+}
+
+.chartTools {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #6d809d;
+    font-size: 11px;
+}
+
+.legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.legendDot {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.dotRevenue {
+    background: #4b8ff0;
+}
+.dotPending {
+    background: #8cccf0;
+}
+.dotExpense {
+    background: #ef73b7;
+}
+
+.periodSelect {
+    height: 34px;
+    gap: 19px;
+    padding: 0 10px;
+    border-radius: 9px;
+}
+
+.chartWrap {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: 224px;
+    min-height: 224px;
+    margin-top: 2px;
+    overflow: hidden;
+}
+
+.paymentGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.listCard {
+    min-width: 0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.listHeader,
+.sideHeader {
+    min-height: 47px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.listHeader {
+    border-bottom: 1px solid rgba(140, 164, 202, 0.13);
+}
+
+.listHeader .sectionTitle {
+    gap: 7px;
+}
+
+.listHeader .sectionTitle h3 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.sectionIcon {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    color: #1c83e8;
+    font-size: 13px;
+}
+
+.textButton {
+    border: 0;
+    background: transparent;
+    color: #3187e8;
+    font-size: 11px;
+    padding: 4px 0;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.listColumns,
+.paymentRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) 70px 56px;
+    align-items: center;
+    column-gap: 8px;
+    padding: 0 12px;
+}
+
+.listColumns {
+    min-height: 33px;
+    color: #8796ad;
+    font-size: 10px;
+}
+
+.paymentRows {
+    padding-bottom: 3px;
+}
+
+.paymentRow {
+    min-height: 37px;
+    border-top: 1px solid rgba(140, 164, 202, 0.1);
+    color: #566b89;
+    font-size: 10.5px;
+}
+
+.siteCell {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.siteCell > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.siteIcon,
+.expiringSiteIcon {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    color: #3688e8;
+    background: rgba(80, 146, 239, 0.12);
+    flex: 0 0 auto;
+    font-size: 12px;
+}
+
+.amount {
+    white-space: nowrap;
+    color: #657a97;
+}
+
+.date {
+    white-space: nowrap;
+    color: #657a97;
+}
+
+.notificationsCard,
+.subscriptionCard,
+.expiringCard {
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.notificationsCard {
+    min-height: 170px;
+}
+
+.sideTitle {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.sideTitle h2 {
+    font-size: 1.4rem;
+}
+
+.bellIcon {
+    color: #267fdf;
+    font-size: 16px;
+}
+
+.notificationList {
+    border-top: 1px solid rgba(140, 164, 202, 0.12);
+}
+
+.notificationItem {
+    min-height: 34px;
+    padding: 0 12px;
+    display: grid;
+    grid-template-columns: 9px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    color: #536986;
+    font-size: 10.5px;
+    border-bottom: 1px solid rgba(140, 164, 202, 0.1);
+}
+
+.notificationItem:last-child {
+    border-bottom: 0;
+}
+
+.notificationItem span:nth-child(2) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notificationItem time {
+    color: #8290a5;
+    white-space: nowrap;
+    font-size: 10px;
+}
+
+.notificationDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.notificationDot.warning {
+    background: #f79a16;
+}
+.notificationDot.success {
+    background: #16b878;
+}
+.notificationDot.danger {
+    background: #f23e63;
+}
+
+.subscriptionCard {
+    min-height: 235px;
+    padding-bottom: 13px;
+}
+
+.blueCircle {
+    color: #2384e4;
+    font-size: 15px;
+}
+
+.donutGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 4px 12px 0;
+}
+
+.donutItem {
+    min-width: 0;
+}
+
+.donutChart {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    margin: 0 auto;
+}
+
+.donutCenter {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.donutCenter strong {
+    font-size: 17px;
+    line-height: 1;
+    color: #183d7e;
+}
+
+.donutCenter span {
+    margin-top: 6px;
+    color: #687b96;
+    font-size: 9.5px;
+}
+
+.statsLegendGrid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 4px;
+    padding: 3px 12px 0;
+}
+
+.statsLegendGrid p {
+    margin: 7px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #71839e;
+    font-size: 9.5px;
+    white-space: nowrap;
+}
+
+.statsLegendGrid p b {
+    margin-left: auto;
+    color: #647895;
+    font-weight: 650;
+}
+
+.statsLegendGrid p i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.legendGreen {
+    background: #17b980;
+}
+.legendCyan {
+    background: #63b9ee;
+}
+.legendGray {
+    background: #9ba8bc;
+}
+.legendBlue {
+    background: #438bed;
+}
+.legendLightBlue {
+    background: #a8d3f6;
+}
+.legendOrange {
+    background: #f49313;
+}
+.legendLightOrange {
+    background: #f5d4a6;
+}
+
+.expiringCard {
+    min-height: 286px;
+}
+
+.expiringIcon {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    color: #2384e4;
+    font-size: 13px;
+}
+
+.expiringList {
+    border-top: 1px solid rgba(140, 164, 202, 0.12);
+}
+
+.expiringRow {
+    min-height: 47px;
+    padding: 0 12px;
+    display: grid;
+    grid-template-columns: 27px minmax(90px, 1fr) auto auto;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(140, 164, 202, 0.1);
+}
+
+.expiringRow:last-child {
+    border-bottom: 0;
+}
+
+.expiringSiteIcon {
+    color: #4389e7;
+}
+
+.expiringSite {
+    color: #566b89;
+    font-size: 10.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.planBadge {
+    padding: 5px 7px;
+    border-radius: 5px;
+    color: #647895;
+    background: rgba(116, 144, 185, 0.1);
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+.expiringRow strong {
+    color: #f04a58;
+    font-size: 9.5px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+@media (max-width: 1280px) {
+    .page {
+        grid-template-columns: minmax(0, 1.65fr) minmax(350px, 0.85fr);
+    }
+
+    .kpiGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chartTools {
+        gap: 10px;
+    }
+
+    .legend {
+        gap: 8px;
+    }
+
+    .paymentGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .listCard {
+        min-height: 260px;
+    }
+}
+
+@media (max-width: 1000px) {
+    .page {
+        grid-template-columns: 1fr;
+    }
+
+    .sideColumn {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+
+    .notificationsCard {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 720px) {
+    .page {
+        padding: 0;
+    }
+
+    .pageHeader {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .yearSelect {
+        width: 100%;
+    }
+
+    .kpiGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .chartHeader {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .chartTools {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .legend {
+        flex-wrap: wrap;
+    }
+
+    .sideColumn {
+        grid-template-columns: 1fr;
+    }
+
+    .notificationsCard {
+        grid-column: auto;
+    }
+
+    .donutGrid {
+        gap: 0;
+    }
+
+    .donutChart {
+        width: 92px;
+        height: 92px;
+    }
+
+    .statsLegendGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .statsLegendGrid > div:last-child {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.donutChart {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    min-width: 104px;
+    min-height: 104px;
+    margin: 0 auto;
+}
+.chartCard {
+    min-width: 0;
+    width: 100%;
+    border-radius: 14px;
+    padding: 12px 14px 10px;
+}
+
+.chartHeader {
+    min-width: 0;
+    min-height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.chartTools {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.chartWrap {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: 224px;
+    min-height: 224px;
+    margin-top: 2px;
+    overflow: hidden;
+}
+
+.donutChart {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    min-width: 104px;
+    min-height: 104px;
+    margin: 0 auto;
+}

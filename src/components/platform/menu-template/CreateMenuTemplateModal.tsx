@@ -214,14 +214,32 @@ export default function CreateMenuTemplateModal({
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                 <header className={styles.header}>
-                    <div>
-                        <h2>{isEdit ? 'Edit Menu Template' : 'Create Menu Template'}</h2>
+                    <div className={styles.headerContent}>
+                        <div className={styles.headerIcon}>
+                            <i
+                                className={
+                                    isEdit
+                                        ? 'bi bi-pencil-square'
+                                        : 'bi bi-layout-text-window-reverse'
+                                }
+                            />
+                        </div>
 
-                        <p>
-                            {isEdit
-                                ? 'Update an existing menu template.'
-                                : 'Create a reusable menu template for your website builder.'}
-                        </p>
+                        <div className={styles.headerText}>
+                            <div className={styles.eyebrow}>
+                                <span>Menu Template</span>
+                                <span className={styles.dot} />
+                                <span>{isEdit ? 'Edit' : 'New'}</span>
+                            </div>
+
+                            <h2>{isEdit ? 'Edit Menu Template' : 'Create Menu Template'}</h2>
+
+                            <p>
+                                {isEdit
+                                    ? 'Update an existing menu template.'
+                                    : 'Create a reusable menu template for your website builder.'}
+                            </p>
+                        </div>
                     </div>
 
                     <button
@@ -318,12 +336,6 @@ export default function CreateMenuTemplateModal({
                                     </option>
                                 ))}
                             </select>
-
-                            <small>
-                                {categoryId
-                                    ? 'Only root menus from this category are available.'
-                                    : 'Select a category first.'}
-                            </small>
                         </div>
 
                         <div className={styles.field}>
