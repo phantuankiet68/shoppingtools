@@ -1,0 +1,37 @@
+model Testimonial {
+  id           String                   @id @default(cuid())
+  siteId       String                   @map("site_id")
+  avatar       String
+  website      String?
+  accentColor  String?
+  rating       Int                      @default(5)
+  sortOrder    Int                      @default(0)
+  isActive     Boolean                  @default(true)
+
+  site         Site                     @relation(fields: [siteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  translations TestimonialTranslation[]
+
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([siteId])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("testimonials")
+}
+
+model TestimonialTranslation {
+  id            String      @id @default(cuid())
+  testimonialId String      @map("testimonial_id")
+  locale        Locale
+  name          String
+  role          String
+  websiteLabel  String?
+  quote         String
+
+  testimonial   Testimonial @relation(fields: [testimonialId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([testimonialId, locale])
+  @@index([locale])
+  @@map("testimonial_translations")
+}

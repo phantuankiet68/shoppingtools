@@ -148,13 +148,40 @@ const DEFAULT_PROPS: About01Props = {
 
     whyBadge: {
         sourceLocale: 'en',
-        default: 'Why Kbuilder',
+        default: 'Why Choose Kbuilder',
         translations: {
             vi: 'Tại sao chọn Kbuilder',
             ja: 'Kbuilderを選ぶ理由',
         },
     },
 
+    whyTitle: {
+        sourceLocale: 'en',
+        default: 'Build websites',
+        translations: {
+            vi: 'Xây dựng website',
+            ja: 'Webサイトを',
+        },
+    },
+
+    whyTitleAccent: {
+        sourceLocale: 'en',
+        default: 'easier than ever',
+        translations: {
+            vi: 'dễ dàng hơn bao giờ hết',
+            ja: 'これまで以上に簡単に',
+        },
+    },
+
+    whyDescription: {
+        sourceLocale: 'en',
+        default:
+            'Kbuilder gives you everything you need to build professional websites faster, save time, and focus on growing your business.',
+        translations: {
+            vi: 'Kbuilder mang đến mọi công cụ cần thiết để bạn xây dựng website chuyên nghiệp nhanh hơn, tiết kiệm thời gian và tập trung phát triển doanh nghiệp.',
+            ja: 'Kbuilderは、プロフェッショナルなWebサイトをより速く構築し、時間を節約しながらビジネスの成長に集中できる環境を提供します。',
+        },
+    },
     /* ==========================================================================
        Hero
     ========================================================================== */
@@ -189,10 +216,10 @@ const DEFAULT_PROPS: About01Props = {
     heroDescription: {
         sourceLocale: 'en',
         default:
-            'Kbuilder is an all-in-one no-code website builder that helps creators, businesses, agencies, and development teams build professional websites with an intuitive drag-and-drop editor. Create responsive landing pages, business websites, eCommerce stores, portfolios, blogs, and custom web experiences using modern templates, reusable components, visual editing tools, AI-powered features, and one-click publishing without writing a single line of code.',
+            'KBuilder is an all-in-one no-code website builder that helps creators and businesses build professional websites with a simple drag-and-drop editor, modern templates, AI-powered tools, and one-click publishing.',
         translations: {
-            vi: 'Kbuilder là nền tảng xây dựng website không cần lập trình (no-code) giúp cá nhân, doanh nghiệp, agency và đội ngũ phát triển tạo website chuyên nghiệp bằng trình chỉnh sửa kéo thả trực quan. Dễ dàng xây dựng landing page, website doanh nghiệp, cửa hàng thương mại điện tử, portfolio, blog và nhiều loại website khác với template hiện đại, component tái sử dụng, công cụ chỉnh sửa trực quan, tính năng AI và xuất bản chỉ với một cú nhấp mà không cần viết bất kỳ dòng mã nào.',
-            ja: 'Kbuilderは、個人・企業・制作会社・開発チーム向けのオールインワンノーコードWebサイトビルダーです。直感的なドラッグ＆ドロップエディターを使用して、ランディングページ、企業サイト、ECサイト、ポートフォリオ、ブログなどを簡単に作成できます。モダンなテンプレート、再利用可能なコンポーネント、ビジュアル編集、AI機能、ワンクリック公開を備え、コードを書くことなくプロフェッショナルなWebサイトを構築できます。',
+            vi: 'KBuilder là nền tảng xây dựng website không cần lập trình, giúp cá nhân và doanh nghiệp tạo website chuyên nghiệp với trình kéo thả trực quan, template hiện đại, công cụ AI và xuất bản chỉ với một cú nhấp.',
+            ja: 'KBuilderは、直感的なドラッグ＆ドロップでプロフェッショナルなWebサイトを作成できるオールインワンのノーコードWebサイトビルダーです。モダンなテンプレート、AI機能、ワンクリック公開にも対応しています。',
         },
     },
 
@@ -214,7 +241,7 @@ const DEFAULT_PROPS: About01Props = {
         },
     },
 
-    image: '/assets/images/about/about-hero.png',
+    image: '/assets/images/hero-about.png',
 
     performanceScore: {
         sourceLocale: 'en',
@@ -881,7 +908,7 @@ const DEFAULT_PROPS: About01Props = {
                     ja: 'AIと自動化で未来のWeb制作を実現します。',
                 },
             },
-            image: '/assets/images/about/story-02.png',
+            image: '/assets/images/hero-about.png',
             imageAlt: {
                 sourceLocale: 'en',
                 default: 'Future Vision',
@@ -1285,7 +1312,7 @@ const DEFAULT_PROPS: About01Props = {
                 default:
                     'We are committed to delivering reliable, scalable and high-quality digital experiences.',
                 translations: {
-                    vi: 'Chúng tôi cam kết mang đến những sản phẩm chất lượng cao, ổn định và có khả năng mở rộng.',
+                    vi: 'Chúng tôi cam kết mang đến những sản phẩm chất lượng cao và có khả năng mở rộng.',
                     ja: '高品質で信頼性が高く、拡張性のあるデジタル体験を提供します。',
                 },
             },
@@ -1748,429 +1775,479 @@ export function About01(props: About01Props) {
 
     return (
         <>
-            <div className={styles.headingSection}>
-                <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-                    <Link href="/" className={styles.breadcrumbItem}>
-                        {t(breadcrumbHome)}
-                    </Link>
-
-                    <i className="bi bi-chevron-right" />
-
-                    <span className={styles.breadcrumbCurrent}>{t(breadcrumbCurrent)}</span>
-                </nav>
-            </div>
-            <section className={styles.hero}>
-                <div className={styles.grid} />
-                <div className={styles.blurOne} />
-                <div className={styles.blurTwo} />
-                <div className={styles.blurThree} />
-                <div className={styles.container}>
-                    <div className={styles.content}>
-                        <a
-                            href="/"
-                            className={`${styles.badge} ${styles.r}`}
-                            style={{ '--i': 0 } as React.CSSProperties}
-                        >
-                            <span className={styles.badgeIcon}>
-                                <i className="bi bi-stars" />
-                            </span>
-
-                            <span>{t(badge)}</span>
-
-                            <i className="bi bi-arrow-right" />
-                        </a>
-
-                        <h1>{t(heroTitle)}</h1>
-
-                        <h2>{t(heroTitleAccent)}</h2>
-
-                        <p>{t(heroDescription)}</p>
-
-                        <div className={styles.actions}>
-                            <button className={styles.primaryButton}>
-                                {t(primaryButtonLabel)}
-                                <i className="bi bi-arrow-right" />
-                            </button>
-
-                            <button className={styles.secondaryButton}>
-                                {t(secondaryButtonLabel)}
-                                <i className="bi bi-grid-3x3-gap" />
-                            </button>
-                        </div>
-
-                        <div className={styles.stats}>
-                            {statsData.map((stat, index) => (
-                                <div key={index} className={styles.statCard}>
-                                    <div className={styles.statIcon}>
-                                        <span className={styles.iconGlow} />
-                                        <i className={`bi ${stat.icon}`} />
-                                    </div>
-
-                                    <strong className={styles.statValue}>{t(stat.value)}</strong>
-
-                                    <span className={styles.statLabel}>{t(stat.label)}</span>
-                                </div>
-                            ))}
-                        </div>
+            <div className={styles.main}>
+                <section className={styles.hero}>
+                    <div className={styles.background}>
+                        <div className={styles.grid} />
+                        <div className={styles.orbOne} />
+                        <div className={styles.orbTwo} />
+                        <div className={styles.orbThree} />
                     </div>
 
-                    <div className={styles.visual}>
-                        <div className={styles.featureGrid}>
-                            {featuresData.map((feature, index) => (
-                                <div key={index} className={styles.featureCard}>
-                                    <div className={styles.featureIcon}>
-                                        <i className={`bi ${feature.icon}`} />
-                                    </div>
+                    <div className={styles.container}>
+                        <div className={styles.heroMain}>
+                            <div className={styles.content}>
+                                <a
+                                    href="/"
+                                    className={styles.badge}
+                                    style={{ '--i': 0 } as React.CSSProperties}
+                                >
+                                    <span className={styles.badgeIcon}>
+                                        <i className="bi bi-stars" />
+                                    </span>
 
-                                    <h4>{t(feature.title)}</h4>
+                                    <span>{t(badge)}</span>
+
+                                    <i className={`bi bi-arrow-up-right ${styles.badgeArrow}`} />
+                                </a>
+
+                                <h1 className={styles.title}>
+                                    {t(heroTitle)}
+                                    <span>{t(heroTitleAccent)}</span>
+                                </h1>
+
+                                <p className={styles.description}>{t(heroDescription)}</p>
+
+                                <div className={styles.actions}>
+                                    <button className={styles.primaryButton}>
+                                        <span>{t(primaryButtonLabel)}</span>
+                                        <i className="bi bi-arrow-right" />
+                                    </button>
+
+                                    <button className={styles.secondaryButton}>
+                                        <i className="bi bi-grid-3x3-gap" />
+                                        <span>{t(secondaryButtonLabel)}</span>
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
+                                <div className={styles.metrics}>
+                                    {statsData.map((stat, index) => (
+                                        <div key={index} className={styles.metric}>
+                                            <div className={styles.metricIcon}>
+                                                <i className={`bi ${stat.icon}`} />
+                                            </div>
 
-                        <div className={styles.canvasWrapper}>
-                            <div className={styles.glow} />
+                                            <div className={styles.metricContent}>
+                                                <strong>{t(stat.value)}</strong>
+                                                <span>{t(stat.label)}</span>
+                                            </div>
 
-                            <div className={styles.canvas}>
-                                <img src={image} alt={t(heroTitle)} />
-                            </div>
-
-                            <div className={styles.performanceCard}>
-                                <div className={styles.performanceIcon}>
-                                    <i className="bi bi-rocket-takeoff-fill" />
-                                </div>
-
-                                <div>
-                                    <strong>{t(performanceScore)}</strong>
-
-                                    <span>{t(performanceLabel)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section className={styles.coreValuesSection}>
-                <div className={styles.coreValuesBlurOne} />
-                <div className={styles.coreValuesBlurTwo} />
-                <div className={styles.coreValuesBackgroundGrid} />
-
-                <div className={styles.coreValuesContainer}>
-                    <div className={styles.coreValuesGrid}>
-                        {coreValuesData.map((value, index) => (
-                            <article
-                                key={index}
-                                className={`${styles.coreValueCard} ${styles[value.color]}`}
-                            >
-                                <div className={styles.cardGlow} />
-
-                                <div className={styles.cardNoise} />
-
-                                <div className={styles.cardOrbit}>
-                                    <span />
-                                    <span />
-                                    <span />
-                                </div>
-
-                                <div className={styles.cardWave}>
-                                    <svg viewBox="0 0 1200 180" preserveAspectRatio="none">
-                                        <path d="M0,80 C160,20 340,150 560,120 C780,90 930,10 1200,70 L1200,180 L0,180 Z" />
-                                    </svg>
-                                </div>
-
-                                <div className={styles.iconSection}>
-                                    <div className={styles.iconHalo} />
-
-                                    <div className={styles.iconCircle}>
-                                        <i className={`bi ${value.icon}`} />
-                                    </div>
-
-                                    <span className={styles.orbitDot} />
-                                </div>
-
-                                <div className={styles.numberCard}>{t(value.id)}</div>
-
-                                <div className={styles.content}>
-                                    <h3>{t(value.title)}</h3>
-
-                                    <div className={styles.heartDivider}>
-                                        <span />
-
-                                        <i className="bi bi-heart-fill" />
-
-                                        <span />
-                                    </div>
-
-                                    <p>{t(value.description)}</p>
-                                </div>
-
-                                <div className={styles.tagRow}>
-                                    {value.tags.map((tag, tagIndex) => (
-                                        <div key={tagIndex} className={styles.tag}>
-                                            <i className="bi bi-check2-circle" />
-
-                                            {t(tag)}
+                                            {index !== statsData.length - 1 && (
+                                                <div className={styles.metricDivider} />
+                                            )}
                                         </div>
                                     ))}
                                 </div>
-
-                                <div className={styles.sparkles}>
-                                    <span />
-                                    <span />
-                                    <span />
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-                </div>
-            </section>
-            <section className={styles.aboutVisionRoot}>
-                <div className={styles.aboutVisionGlowLeft} />
-                <div className={styles.aboutVisionGlowRight} />
-
-                <div className={styles.aboutVisionShell}>
-                    <div className={styles.aboutVisionNarrative}>
-                        <span className={styles.aboutVisionPill}>
-                            <i className="bi bi-stars" />
-                            {t(missionBadge)}
-                        </span>
-
-                        <h2 className={styles.aboutVisionHeadline}>
-                            {t(missionTitle)}
-                            <br />
-                            {t(missionTitleAccent)}
-                        </h2>
-
-                        <p className={styles.aboutVisionSummary}>{t(missionDescription)}</p>
-
-                        <div className={styles.aboutVisionValueGrid}>
-                            {valuesData.map((item, index) => (
-                                <article key={index} className={styles.aboutVisionValueCard}>
-                                    <div className={styles.aboutVisionValueHeader}>
-                                        <div className={styles.aboutVisionValueIcon}>
-                                            <i className={`bi ${item.icon}`} />
-                                        </div>
-
-                                        <h3>{t(item.title)}</h3>
+                                <div className={styles.trust}>
+                                    <div className={styles.trustAvatars}>
+                                        <span>J</span>
+                                        <span>M</span>
+                                        <span>K</span>
+                                        <span>T</span>
                                     </div>
 
-                                    <p>{t(item.description)}</p>
-                                </article>
-                            ))}
-                        </div>
-                    </div>
+                                    <div className={styles.trustText}>
+                                        <div className={styles.stars}>
+                                            <i className="bi bi-star-fill" />
+                                            <i className="bi bi-star-fill" />
+                                            <i className="bi bi-star-fill" />
+                                            <i className="bi bi-star-fill" />
+                                            <i className="bi bi-star-fill" />
+                                        </div>
 
-                    <div className={styles.aboutVisionDiagram}>
-                        <div className={styles.aboutVisionCanvas}>
-                            <div className={styles.aboutVisionAuraOne} />
-                            <div className={styles.aboutVisionAuraTwo} />
-                            <div className={styles.aboutVisionAuraThree} />
-
-                            <svg
-                                className={styles.aboutVisionOrbit}
-                                viewBox="0 0 800 800"
-                                preserveAspectRatio="xMidYMid meet"
-                            >
-                                <circle
-                                    cx="400"
-                                    cy="400"
-                                    r="280"
-                                    fill="none"
-                                    stroke="url(#orbitGradient)"
-                                    strokeWidth="3"
-                                    strokeDasharray="10 12"
-                                    strokeLinecap="round"
-                                />
-
-                                <defs>
-                                    <linearGradient
-                                        id="orbitGradient"
-                                        x1="0"
-                                        y1="0"
-                                        x2="800"
-                                        y2="800"
-                                    >
-                                        <stop offset="0%" stopColor="#8B5CF6" />
-                                        <stop offset="100%" stopColor="#6366F1" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-
-                            <div className={styles.aboutVisionCenter}>
-                                <div className={styles.aboutVisionBrand}>K</div>
-
-                                <h3>{t(missionCenterTitle)}</h3>
-
-                                <p>{t(missionCenterDescription)}</p>
+                                        <span>Trusted by modern teams</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            {missionNodesData.map((node, index) => {
-                                const positions = [
-                                    styles.aboutVisionNodeTop,
-                                    styles.aboutVisionNodeRight,
-                                    styles.aboutVisionNodeBottom,
-                                    styles.aboutVisionNodeLeft,
-                                ];
+                            <div className={styles.visual}>
+                                <div className={styles.visualGlow} />
 
-                                return (
-                                    <div
-                                        key={index}
-                                        className={`${styles.aboutVisionNode} ${positions[index]}`}
-                                    >
-                                        <div className={styles.aboutVisionNodeIcon}>
-                                            <i className={`bi ${node.icon}`} />
+                                <div className={styles.visualTopLabel}>
+                                    <span className={styles.liveDot} />
+                                    <span>Live website builder</span>
+                                </div>
+
+                                <div className={styles.canvasWrapper}>
+                                    <div className={styles.canvasShadow} />
+
+                                    <div className={styles.canvas}>
+                                        <div className={styles.canvasToolbar}>
+                                            <div className={styles.windowDots}>
+                                                <span />
+                                                <span />
+                                                <span />
+                                            </div>
+
+                                            <div className={styles.toolbarTitle}>
+                                                <span className={styles.logoMark}>K</span>
+                                                <strong>KBuilder</strong>
+                                            </div>
+
+                                            <div className={styles.toolbarActions}>
+                                                <span />
+                                                <span />
+                                            </div>
                                         </div>
 
-                                        <h4>{t(node.title)}</h4>
-
-                                        <p>{t(node.description)}</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section className={styles.journeySection}>
-                <div className={styles.journeyContainer}>
-                    <div className={styles.journeyHeader}>
-                        <span className={styles.eyebrow}>
-                            <i className="bi bi-stars" />
-                            {t(journeyBadge)}
-                        </span>
-
-                        <h2>
-                            {t(journeyTitle)} <span>{t(journeyTitleAccent)}</span>
-                        </h2>
-
-                        <p>{t(journeyDescription)}</p>
-                    </div>
-
-                    <div className={styles.journeyTimeline}>
-                        <div className={styles.journeyTrack}>
-                            <div className={styles.journeyProgress} />
-                        </div>
-
-                        <div className={styles.journeyGrid}>
-                            {journeysData.map((item, index) => (
-                                <article
-                                    key={index}
-                                    className={`${styles.journeyItem} ${
-                                        item.active ? styles.journeyItemActive : ''
-                                    }`}
-                                >
-                                    <div className={styles.journeyIconWrapper}>
-                                        <div className={styles.journeyIcon}>
-                                            <i className={`bi ${item.icon}`} />
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.journeyContent}>
-                                        <span className={styles.journeyDate}>{t(item.date)}</span>
-
-                                        <h3 className={styles.journeyTitle}>{t(item.title)}</h3>
-
-                                        <p className={styles.journeyDescription}>
-                                            {t(item.description)}
-                                        </p>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-                <div className={styles.storySection}>
-                    <div className={styles.storyContainer}>
-                        <div className={styles.storyGrid}>
-                            {storiesData.map((story, index) => (
-                                <article key={index} className={styles.storyCard}>
-                                    <div className={styles.storyContentTop}>
-                                        <div className={styles.storyContent}>
-                                            <span className={styles.storyBadge}>
-                                                {t(story.badge)}
-                                            </span>
-
-                                            <h3>
-                                                {t(story.title)}
-                                                <span>{t(story.titleAccent)}</span>
-                                            </h3>
-
-                                            <p>{t(story.description)}</p>
-                                        </div>
-
-                                        <div className={styles.storyVisual}>
-                                            <Image
-                                                src={
-                                                    story.image ??
-                                                    '/assets/images/about/story-placeholder.png'
-                                                }
-                                                alt={t(story.imageAlt)}
-                                                fill
-                                                sizes="(max-width:768px)100vw,50vw"
-                                                className={styles.storyImage}
+                                        <div className={styles.canvasContent}>
+                                            <img
+                                                src={image}
+                                                alt={t(heroTitle)}
+                                                className={styles.heroImage}
                                             />
                                         </div>
                                     </div>
 
-                                    <div className={styles.storyFeatures}>
-                                        {storyFeaturesData.map((feature, featureIndex) => (
-                                            <article
-                                                key={featureIndex}
-                                                className={styles.storyFeature}
-                                            >
-                                                <div className={styles.storyFeatureIcon}>
-                                                    <i className={`bi ${feature.icon}`} />
-                                                </div>
+                                    <div
+                                        className={`${styles.floatingCard} ${styles.floatingCardOne}`}
+                                    >
+                                        <div className={styles.floatingIcon}>
+                                            <i className="bi bi-magic" />
+                                        </div>
+                                        <div>
+                                            <strong>AI powered</strong>
+                                            <span>Build faster with AI</span>
+                                        </div>
+                                    </div>
 
-                                                <div className={styles.storyFeatureContent}>
-                                                    <div className={styles.storyFeatureHeader}>
-                                                        <strong>{t(feature.title)}</strong>
+                                    <div
+                                        className={`${styles.floatingCard} ${styles.floatingCardTwo}`}
+                                    >
+                                        <div className={styles.successIcon}>
+                                            <i className="bi bi-check-lg" />
+                                        </div>
+                                        <div>
+                                            <strong>{t(performanceScore)}</strong>
+                                            <span>{t(performanceLabel)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section className={styles.coreValuesSection}>
+                    <div className={styles.coreValuesBlurOne} />
+                    <div className={styles.coreValuesBlurTwo} />
+                    <div className={styles.coreValuesBackgroundGrid} />
 
-                                                        <span>{t(feature.badge)}</span>
-                                                    </div>
+                    <div className={styles.coreValuesContainer}>
+                        <div className={styles.coreValuesGrid}>
+                            {coreValuesData.map((value, index) => (
+                                <article
+                                    key={index}
+                                    className={`${styles.coreValueCard} ${styles[value.color]}`}
+                                >
+                                    <div className={styles.cardGlow} />
 
-                                                    <p>{t(feature.description)}</p>
-                                                </div>
-                                            </article>
+                                    <div className={styles.cardNoise} />
+
+                                    <div className={styles.cardOrbit}>
+                                        <span />
+                                        <span />
+                                        <span />
+                                    </div>
+                                    <div className={styles.iconSection}>
+                                        <div className={styles.iconHalo} />
+
+                                        <div className={styles.iconCircle}>
+                                            <i className={`bi ${value.icon}`} />
+                                        </div>
+
+                                        <span className={styles.orbitDot} />
+                                    </div>
+
+                                    <div className={styles.content}>
+                                        <h3>{t(value.title)}</h3>
+
+                                        <div className={styles.heartDivider}>
+                                            <span />
+
+                                            <i className="bi bi-heart-fill" />
+
+                                            <span />
+                                        </div>
+
+                                        <p>{t(value.description)}</p>
+                                    </div>
+
+                                    <div className={styles.tagRow}>
+                                        {value.tags.map((tag, tagIndex) => (
+                                            <div key={tagIndex} className={styles.tag}>
+                                                <i className="bi bi-check2-circle" />
+
+                                                {t(tag)}
+                                            </div>
                                         ))}
                                     </div>
                                 </article>
                             ))}
                         </div>
                     </div>
-                </div>
-            </section>
-            <section className={styles.whyKbuilder}>
-                <div className={styles.backgroundBlurOne} />
-                <div className={styles.backgroundBlurTwo} />
+                </section>
+                <section className={styles.aboutVisionRoot}>
+                    <div className={styles.aboutVisionGlowLeft} />
+                    <div className={styles.aboutVisionGlowRight} />
 
-                <div className={styles.whyKbuilderContainer}>
-                    <div className={styles.whyKbuilderHero}>
-                        <div className={styles.whyKbuilderContent}>
-                            <span className={styles.whyKbuilderEyebrow}>
-                                <span className={styles.whyKbuilderLogo}>
-                                    <i className="bi bi-stars" />
-                                </span>
-
-                                {t(whyBadge)}
+                    <div className={styles.aboutVisionShell}>
+                        <div className={styles.aboutVisionNarrative}>
+                            <span className={styles.aboutVisionPill}>
+                                <i className="bi bi-stars" />
+                                {t(missionBadge)}
                             </span>
 
-                            <h2 className={styles.whyKbuilderTitle}>
-                                {t(whyTitle)}
-                                <span>{t(whyTitleAccent)}</span>
+                            <h2 className={styles.aboutVisionHeadline}>
+                                {t(missionTitle)}
+                                <br />
+                                <span>{t(missionTitleAccent)}</span>
                             </h2>
 
-                            <div className={styles.whyKbuilderDivider} />
+                            <p className={styles.aboutVisionSummary}>{t(missionDescription)}</p>
 
-                            <p className={styles.whyKbuilderDescription}>{t(whyDescription)}</p>
+                            <div className={styles.aboutVisionValueGrid}>
+                                {valuesData.map((item, index) => (
+                                    <article key={index} className={styles.aboutVisionValueCard}>
+                                        <div className={styles.aboutVisionValueHeader}>
+                                            <div className={styles.aboutVisionValueIcon}>
+                                                <i className={`bi ${item.icon}`} />
+                                            </div>
 
-                            <div className={styles.problemsGrid}>
-                                {problemsData.map((item, index) => (
-                                    <article key={index} className={styles.problemCard}>
-                                        <div className={styles.problemCardIcon}>
+                                            <h3>{t(item.title)}</h3>
+                                        </div>
+
+                                        <p>{t(item.description)}</p>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className={styles.aboutVisionDiagram}>
+                            <div className={styles.aboutVisionCanvas}>
+                                <div className={styles.aboutVisionAuraOne} />
+                                <div className={styles.aboutVisionAuraTwo} />
+                                <div className={styles.aboutVisionAuraThree} />
+
+                                <svg
+                                    className={styles.aboutVisionOrbit}
+                                    viewBox="0 0 800 800"
+                                    preserveAspectRatio="xMidYMid meet"
+                                >
+                                    <circle
+                                        cx="400"
+                                        cy="400"
+                                        r="350"
+                                        fill="none"
+                                        stroke="url(#orbitGradient)"
+                                        strokeWidth="3"
+                                        strokeDasharray="10 12"
+                                        strokeLinecap="round"
+                                    />
+
+                                    <defs>
+                                        <linearGradient
+                                            id="orbitGradient"
+                                            x1="0"
+                                            y1="0"
+                                            x2="800"
+                                            y2="800"
+                                        >
+                                            <stop offset="0%" stopColor="#8B5CF6" />
+                                            <stop offset="100%" stopColor="#6366F1" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+
+                                <div className={styles.aboutVisionCenter}>
+                                    <div className={styles.aboutVisionBrand}>K</div>
+
+                                    <h3>{t(missionCenterTitle)}</h3>
+
+                                    <p>{t(missionCenterDescription)}</p>
+                                </div>
+
+                                {missionNodesData.map((node, index) => {
+                                    const positions = [
+                                        styles.aboutVisionNodeTop,
+                                        styles.aboutVisionNodeRight,
+                                        styles.aboutVisionNodeBottom,
+                                        styles.aboutVisionNodeLeft,
+                                    ];
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={`${styles.aboutVisionNode} ${positions[index]}`}
+                                        >
+                                            <div className={styles.aboutVisionNodeContent}>
+                                                <div className={styles.aboutVisionNodeIcon}>
+                                                    <i className={`bi ${node.icon}`} />
+                                                </div>
+                                                <h4>{t(node.title)}</h4>
+                                            </div>
+                                            <p>{t(node.description)}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section className={styles.journeySection}>
+                    <div className={styles.journeyContainer}>
+                        <div className={styles.teamHero}>
+                            <div className={styles.teamHeroGlow} />
+
+                            <div className={styles.teamHeroLeft}>
+                                <div className={styles.teamHeroIcon}>
+                                    <i className="bi bi-rocket-takeoff-fill" />
+                                </div>
+
+                                <div className={styles.teamHeroContent}>
+                                    <h2>
+                                        {t(journeyTitle)}
+                                        <span>{t(journeyTitleAccent)}</span>
+                                    </h2>
+
+                                    <p>{t(journeyDescription)}</p>
+                                </div>
+                            </div>
+
+                            <div className={styles.teamHeroBadge}>
+                                <i className="bi bi-stars" />
+                                {t(journeyBadge)}
+                            </div>
+                        </div>
+
+                        <div className={styles.journeyTimeline}>
+                            <div className={styles.journeyLine}>
+                                <span />
+                                <span />
+                                <span />
+                            </div>
+
+                            <div className={styles.journeyItems}>
+                                {journeysData.slice(0, 4).map((item, index) => (
+                                    <article key={index} className={styles.journeyItem}>
+                                        <div className={styles.journeyIconWrap}>
+                                            <div className={styles.journeyIcon}>
+                                                <i className={`bi ${item.icon}`} />
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.journeyInfo}>
+                                            <span className={styles.journeyYear}>
+                                                {t(item.date)}
+                                            </span>
+
+                                            <h3 className={styles.journeyItemTitle}>
+                                                {t(item.title)}
+                                            </h3>
+
+                                            <p className={styles.journeyItemDescription}>
+                                                {t(item.description)}
+                                            </p>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section className={styles.whyKbuilder}>
+                    <div className={styles.backgroundBlurOne} />
+                    <div className={styles.backgroundBlurTwo} />
+                    <div className={styles.backgroundBlurThree} />
+
+                    <div className={styles.whyKbuilderContainer}>
+                        <div className={styles.whyKbuilderMain}>
+                            <div className={styles.whyKbuilderContent}>
+                                <span className={styles.whyKbuilderEyebrow}>
+                                    <span className={styles.whyKbuilderLogo}>
+                                        <i className="bi bi-stars" />
+                                    </span>
+
+                                    {t(whyBadge)}
+                                </span>
+
+                                <h2 className={styles.whyKbuilderTitle}>
+                                    {t(whyTitle)}
+                                    <span>{t(whyTitleAccent)}</span>
+                                </h2>
+
+                                <p className={styles.whyKbuilderDescription}>{t(whyDescription)}</p>
+
+                                <div className={styles.problemsGrid}>
+                                    {problemsData.slice(0, 4).map((item, index) => (
+                                        <article
+                                            key={index}
+                                            className={`${styles.problemCard} ${styles[`problemCard${index + 1}`]}`}
+                                        >
+                                            <div className={styles.problemCardIcon}>
+                                                <i className={`bi ${item.icon}`} />
+                                            </div>
+
+                                            <div className={styles.problemCardContent}>
+                                                <h4>{t(item.title)}</h4>
+
+                                                <p>{t(item.description)}</p>
+                                            </div>
+                                        </article>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className={styles.builderVisual}>
+                                <div className={styles.builderGlow} />
+
+                                <div className={styles.builderOrbOne} />
+                                <div className={styles.builderOrbTwo} />
+                                <div className={styles.builderOrbThree} />
+
+                                <div className={styles.builderDots} />
+
+                                <div className={styles.builderPreview}>
+                                    <Image
+                                        src={
+                                            builderPreviewImage ??
+                                            '/assets/images/builder-why-builder.png'
+                                        }
+                                        alt={t(whyTitle)}
+                                        fill
+                                        priority
+                                        sizes="(max-width: 900px) 100vw, 52vw"
+                                        className={styles.builderPreviewImage}
+                                    />
+                                </div>
+
+                                <div className={styles.builderDecorationTop}>
+                                    <span>Build</span>
+                                    <span>Better</span>
+                                    <span>Together</span>
+
+                                    <i className="bi bi-arrow-down-right" />
+                                </div>
+
+                                <div className={styles.builderDecorationBottom}>
+                                    <span>Drag</span>
+                                    <span>&amp; Drop</span>
+
+                                    <i className="bi bi-arrow-up-right" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={styles.solutionSection}>
+                            <div className={styles.solutionGrid}>
+                                {solutionsData.slice(0, 4).map((item, index) => (
+                                    <article
+                                        key={index}
+                                        className={`${styles.solutionCard} ${styles[`solutionCard${index + 1}`]}`}
+                                    >
+                                        <div className={styles.solutionCardIcon}>
                                             <i className={`bi ${item.icon}`} />
                                         </div>
 
-                                        <div>
+                                        <div className={styles.solutionCardContent}>
                                             <h4>{t(item.title)}</h4>
 
                                             <p>{t(item.description)}</p>
@@ -2179,153 +2256,134 @@ export function About01(props: About01Props) {
                                 ))}
                             </div>
                         </div>
-
-                        <div className={styles.builderBrowserBody}>
-                            <Image
-                                src={builderPreviewImage ?? '/assets/images/builder-preview.png'}
-                                alt={t(whyTitle)}
-                                width={860}
-                                height={520}
-                                priority
-                                className={styles.builderPreviewImage}
-                            />
-                        </div>
                     </div>
+                </section>
+                <section className={styles.teamWrapper}>
+                    <div className={styles.teamBlurPrimary} />
+                    <div className={styles.teamBlurSecondary} />
+                    <div className={styles.teamBackgroundGrid} />
 
-                    <div className={styles.solutionSection}>
-                        <div className={styles.solutionGrid}>
-                            {solutionsData.map((item, index) => (
-                                <div key={index} className={styles.solutionCard}>
-                                    <div className={styles.solutionCardIcon}>
-                                        <i className={`bi ${item.icon}`} />
-                                    </div>
+                    <div className={styles.teamContainer}>
+                        <div className={styles.teamHero}>
+                            <div className={styles.teamHeroGlow} />
 
-                                    <div>
-                                        <h4>{t(item.title)}</h4>
-
-                                        <p>{t(item.description)}</p>
-                                    </div>
+                            <div className={styles.teamHeroLeft}>
+                                <div className={styles.teamHeroIcon}>
+                                    <i className="bi bi-people-fill" />
                                 </div>
+
+                                <div className={styles.teamHeroContent}>
+                                    <h2>
+                                        {t(teamTitle)}
+                                        <span>{t(teamTitleAccent)}</span>
+                                    </h2>
+
+                                    <p>{t(teamDescription)}</p>
+                                </div>
+                            </div>
+
+                            <div className={styles.teamHeroBadge}>
+                                <i className="bi bi-stars" />
+                                {t(teamBadge)}
+                            </div>
+                        </div>
+
+                        <div className={styles.team02Grid}>
+                            {teamData.map((member, index) => (
+                                <article
+                                    key={index}
+                                    className={`${styles.team02Card} ${styles[member.color]}`}
+                                >
+                                    {/* Background Glow */}
+                                    <div className={styles.team02Glow} />
+
+                                    {/* Border */}
+                                    <div className={styles.team02Border} />
+
+                                    {/* Decorative Dots */}
+                                    <div className={styles.team02Dots}>
+                                        {Array.from({ length: 9 }).map((_, dotIndex) => (
+                                            <span key={dotIndex} />
+                                        ))}
+                                    </div>
+
+                                    {/* Bottom Wave */}
+                                    <div className={styles.team02Wave} />
+
+                                    {/* Avatar */}
+                                    <div className={styles.team02AvatarArea}>
+                                        <div className={styles.team02OrbitOuter} />
+
+                                        <div className={styles.team02OrbitInner} />
+
+                                        <div className={styles.team02OrbitDot} />
+
+                                        <div className={styles.team02AvatarCircle}>
+                                            <Image
+                                                src={member.image ?? '/assets/images/avatar-1.png'}
+                                                alt={t(member.name)}
+                                                width={320}
+                                                height={320}
+                                                className={styles.team02Avatar}
+                                            />
+                                        </div>
+
+                                        <div className={styles.team02FloatingBadge}>
+                                            <div className={styles.team02BadgeBox}>
+                                                <i className={`bi ${member.icon}`} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className={styles.team02Content}>
+                                        <div className={styles.team02Heading}>
+                                            <h3 className={styles.team02Name}>{t(member.name)}</h3>
+
+                                            <span className={styles.team02Role}>
+                                                {t(member.role)}
+                                            </span>
+                                        </div>
+
+                                        <div className={styles.team02AccentLine}>
+                                            <span />
+                                        </div>
+
+                                        <p className={styles.team02Description}>
+                                            {t(member.description)}
+                                        </p>
+
+                                        <div className={styles.team02Footer}>
+                                            <div className={styles.team02Socials}>
+                                                <button
+                                                    type="button"
+                                                    className={styles.team02Social}
+                                                >
+                                                    <i className="bi bi-linkedin" />
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    className={styles.team02Social}
+                                                >
+                                                    <i className="bi bi-twitter-x" />
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    className={styles.team02Social}
+                                                >
+                                                    <i className="bi bi-envelope-fill" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </article>
                             ))}
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <section className={styles.teamWrapper}>
-                <div className={styles.teamBlurPrimary} />
-                <div className={styles.teamBlurSecondary} />
-                <div className={styles.teamBackgroundGrid} />
-
-                <div className={styles.teamContainer}>
-                    <div className={styles.teamHero}>
-                        <div className={styles.teamHeroGlow} />
-
-                        <div className={styles.teamHeroLeft}>
-                            <div className={styles.teamHeroIcon}>
-                                <i className="bi bi-people-fill" />
-                            </div>
-
-                            <div className={styles.teamHeroContent}>
-                                <h2>
-                                    {t(teamTitle)}
-                                    <span>{t(teamTitleAccent)}</span>
-                                </h2>
-
-                                <p>{t(teamDescription)}</p>
-                            </div>
-                        </div>
-
-                        <div className={styles.teamHeroBadge}>
-                            <i className="bi bi-stars" />
-                            {t(teamBadge)}
-                        </div>
-                    </div>
-
-                    <div className={styles.team02Grid}>
-                        {teamData.map((member, index) => (
-                            <article
-                                key={index}
-                                className={`${styles.team02Card} ${styles[member.color]}`}
-                            >
-                                {/* Background Glow */}
-                                <div className={styles.team02Glow} />
-
-                                {/* Border */}
-                                <div className={styles.team02Border} />
-
-                                {/* Decorative Dots */}
-                                <div className={styles.team02Dots}>
-                                    {Array.from({ length: 9 }).map((_, dotIndex) => (
-                                        <span key={dotIndex} />
-                                    ))}
-                                </div>
-
-                                {/* Bottom Wave */}
-                                <div className={styles.team02Wave} />
-
-                                {/* Avatar */}
-                                <div className={styles.team02AvatarArea}>
-                                    <div className={styles.team02OrbitOuter} />
-
-                                    <div className={styles.team02OrbitInner} />
-
-                                    <div className={styles.team02OrbitDot} />
-
-                                    <div className={styles.team02AvatarCircle}>
-                                        <Image
-                                            src={member.image ?? '/assets/images/avatar-1.png'}
-                                            alt={t(member.name)}
-                                            width={320}
-                                            height={320}
-                                            className={styles.team02Avatar}
-                                        />
-                                    </div>
-
-                                    <div className={styles.team02FloatingBadge}>
-                                        <div className={styles.team02BadgeBox}>
-                                            <i className={`bi ${member.icon}`} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Content */}
-                                <div className={styles.team02Content}>
-                                    <div className={styles.team02Heading}>
-                                        <h3 className={styles.team02Name}>{t(member.name)}</h3>
-
-                                        <span className={styles.team02Role}>{t(member.role)}</span>
-                                    </div>
-
-                                    <div className={styles.team02AccentLine}>
-                                        <span />
-                                    </div>
-
-                                    <p className={styles.team02Description}>
-                                        {t(member.description)}
-                                    </p>
-
-                                    <div className={styles.team02Footer}>
-                                        <div className={styles.team02Socials}>
-                                            <button type="button" className={styles.team02Social}>
-                                                <i className="bi bi-linkedin" />
-                                            </button>
-
-                                            <button type="button" className={styles.team02Social}>
-                                                <i className="bi bi-twitter-x" />
-                                            </button>
-
-                                            <button type="button" className={styles.team02Social}>
-                                                <i className="bi bi-envelope-fill" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </>
     );
 }

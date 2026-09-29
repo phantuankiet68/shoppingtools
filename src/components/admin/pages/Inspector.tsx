@@ -6,7 +6,6 @@ import type { InspectorField } from '@/lib/ui-builder/types';
 import cls from '@/styles/admin/pages/inspector.module.css';
 import React from 'react';
 import type { LocalizedText } from '@/lib/ui-builder/localization';
-import LocalizedTextField from '@/components/admin/shared/inspector/LocalizedTextField';
 import ArrayField from '@/components/admin/shared/inspector/ArrayField';
 
 type Props = {
@@ -24,18 +23,55 @@ export type ArrayInspectorField = {
     fields: InspectorField[];
 };
 
-export default React.memo(function Inspector({ active, move, remove, updateActive }: Props) {
-    const { reg, CustomEditor } = React.useMemo(() => {
-        const kind = active?.kind;
-        if (!kind) return { reg: undefined, CustomEditor: undefined };
+const LOCALES = [
+    { value: 'en', label: 'English' },
+    { value: 'vi', label: 'Tiếng Việt' },
+    { value: 'ja', label: '日本語' },
+] as const;
+
+type Locale = (typeof LOCALES)[number]['value'];
+
+const getLocalizedText = (value: unknown, locale: Locale) => {
+    const localized = value as LocalizedText | undefined;
+    if (!localized) return '';
+    return locale === localized.sourceLocale
+        ? (localized.default ?? '')
+        : (localized.translations?.[locale] ?? '');
+};
+
+const updateLocalizedText = (value: unknown, locale: Locale, text: string): LocalizedText => {
+    const localized: LocalizedText = (value as LocalizedText | undefined) ?? {
+        sourceLocale: 'en',
+        default: '',
+        translations: {},
+    };
+
+    if (locale === localized.sourceLocale) {
         return {
-            reg: REGISTRY.find((r) => r.kind === kind),
+            ...localized,
+            default: text,
         };
+    }
+
+    return {
+        ...localized,
+        translations: {
+            ...localized.translations,
+            [locale]: text,
+        },
+    };
+};
+
+export default React.memo(function Inspector({ active, move, remove, updateActive }: Props) {
+    const reg = React.useMemo(() => {
+        const kind = active?.kind;
+        return kind ? REGISTRY.find((r) => r.kind === kind) : undefined;
     }, [active?.kind]);
 
     const fileInputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
     const [uploadingKey, setUploadingKey] = React.useState<string | null>(null);
     const [uploadError, setUploadError] = React.useState<string>('');
+    const [selectedLocale, setSelectedLocale] = React.useState<Locale>('en');
 
     const handlePickImage = React.useCallback((key: string) => {
         setUploadError('');
@@ -52,6 +88,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
         });
 
         const data = await res.json().catch(() => null);
+
         console.log('upload status:', res.status);
         console.log('upload response:', data);
 
@@ -60,6 +97,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
         }
 
         const url = data?.url || data?.urls?.[0];
+
         if (!url || typeof url !== 'string') {
             throw new Error('Upload response missing image url');
         }
@@ -79,20 +117,20 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                 updateActive({ [key]: url });
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Upload failed';
+
                 setUploadError(message);
             } finally {
                 setUploadingKey(null);
 
                 const input = fileInputRefs.current[key];
-                if (input) input.value = '';
+
+                if (input) {
+                    input.value = '';
+                }
             }
         },
         [updateActive, uploadImage],
     );
-
-    const isImageField = React.useCallback((field: InspectorField) => {
-        return field.kind === 'image';
-    }, []);
 
     if (!active) {
         return (
@@ -104,7 +142,24 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
     const props = active.props ?? {};
 
-    if (!reg && !CustomEditor) {
+    const localizedFields = reg?.inspector.filter((field) => field.kind === 'localized-text') ?? [];
+
+    const firstLocalizedValue =
+        localizedFields.length > 0 ? props[localizedFields[0].key] : undefined;
+
+    const defaultLocale: Locale =
+        firstLocalizedValue &&
+        typeof firstLocalizedValue === 'object' &&
+        'sourceLocale' in firstLocalizedValue &&
+        LOCALES.some((locale) => locale.value === firstLocalizedValue.sourceLocale)
+            ? (firstLocalizedValue.sourceLocale as Locale)
+            : 'en';
+
+    React.useEffect(() => {
+        setSelectedLocale(defaultLocale);
+    }, [active?.id, active?.kind]);
+
+    if (!reg) {
         return (
             <div className={cls.panel}>
                 <div className={cls.empty}>
@@ -116,21 +171,47 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
     return (
         <div className={cls.panel}>
-            {reg?.inspector && reg.inspector.length > 0 && (
+            {reg.inspector && reg.inspector.length > 0 && (
                 <div className={cls.section}>
                     <div className={cls.sectionHeadSimple}>
                         <span className={cls.sectionTitle}>Properties</span>
                     </div>
+
                     <div className={cls.sectionBody}>
-                        {reg.inspector.map((field: InspectorField) => {
+                        {localizedFields.length > 0 && (
+                            <div className={cls.row}>
+                                <div className={cls.rowLabel}>LANGUAGE</div>
+
+                                <div className={cls.rowField}>
+                                    <select
+                                        className={cls.select}
+                                        value={selectedLocale}
+                                        onChange={(e) =>
+                                            setSelectedLocale(e.target.value as Locale)
+                                        }
+                                    >
+                                        {LOCALES.map((locale) => (
+                                            <option key={locale.value} value={locale.value}>
+                                                {locale.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {reg.inspector.map((field: InspectorField, index: number) => {
                             const value = props[field.key];
+
+                            const fieldKey = `${active.kind}-${field.key}-${index}`;
 
                             if (field.kind === 'image') {
                                 const imageSrc = typeof value === 'string' ? value : '';
+
                                 const isUploading = uploadingKey === field.key;
 
                                 return (
-                                    <Row key={field.key} label={field.label} stack>
+                                    <Row key={fieldKey} label={field.label} stack>
                                         <div className={cls.fieldUpload}>
                                             <button
                                                 type="button"
@@ -160,6 +241,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                                 margin: '0 auto 10px',
                                                             }}
                                                         />
+
                                                         <div
                                                             style={{
                                                                 fontSize: 13,
@@ -172,7 +254,11 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div style={{ color: '#5b6472' }}>
+                                                    <div
+                                                        style={{
+                                                            color: '#5b6472',
+                                                        }}
+                                                    >
                                                         <div
                                                             style={{
                                                                 fontSize: 28,
@@ -182,6 +268,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                         >
                                                             <i className="bi bi-upload" />
                                                         </div>
+
                                                         <div
                                                             style={{
                                                                 fontWeight: 600,
@@ -192,6 +279,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                                 ? 'Đang upload...'
                                                                 : 'Upload your files here'}
                                                         </div>
+
                                                         {!isUploading && (
                                                             <div
                                                                 style={{
@@ -212,7 +300,9 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                 }}
                                                 type="file"
                                                 accept="image/*"
-                                                style={{ display: 'none' }}
+                                                style={{
+                                                    display: 'none',
+                                                }}
                                                 onChange={(e) =>
                                                     handleImageChange(
                                                         field.key,
@@ -221,7 +311,11 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                                 }
                                             />
 
-                                            <div style={{ marginTop: 10 }}>
+                                            <div
+                                                style={{
+                                                    marginTop: 10,
+                                                }}
+                                            >
                                                 <input
                                                     className={cls.input}
                                                     value={imageSrc}
@@ -252,12 +346,14 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
                             if (field.kind === 'text') {
                                 return (
-                                    <Row key={field.key} label={field.label}>
+                                    <Row key={fieldKey} label={field.label}>
                                         <input
                                             className={cls.input}
                                             value={(value as string) ?? ''}
                                             onChange={(e) =>
-                                                updateActive({ [field.key]: e.target.value })
+                                                updateActive({
+                                                    [field.key]: e.target.value,
+                                                })
                                             }
                                         />
                                     </Row>
@@ -266,12 +362,17 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
                             if (field.kind === 'localized-text') {
                                 return (
-                                    <Row key={field.key} label={field.label} stack>
-                                        <LocalizedTextField
-                                            value={value as LocalizedText}
-                                            onChange={(v) =>
+                                    <Row key={fieldKey} label={field.label}>
+                                        <input
+                                            className={cls.input}
+                                            value={getLocalizedText(value, selectedLocale)}
+                                            onChange={(e) =>
                                                 updateActive({
-                                                    [field.key]: v,
+                                                    [field.key]: updateLocalizedText(
+                                                        value,
+                                                        selectedLocale,
+                                                        e.target.value,
+                                                    ),
                                                 })
                                             }
                                         />
@@ -281,7 +382,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
                             if (field.kind === 'number') {
                                 return (
-                                    <Row key={field.key} label={field.label}>
+                                    <Row key={fieldKey} label={field.label}>
                                         <input
                                             type="number"
                                             className={cls.input}
@@ -301,13 +402,15 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
                             if (field.kind === 'textarea') {
                                 return (
-                                    <Row key={field.key} label={field.label} stack>
+                                    <Row key={fieldKey} label={field.label} stack>
                                         <textarea
                                             className={cls.textarea}
                                             rows={field.rows ?? 8}
                                             value={(value as string) ?? ''}
                                             onChange={(e) =>
-                                                updateActive({ [field.key]: e.target.value })
+                                                updateActive({
+                                                    [field.key]: e.target.value,
+                                                })
                                             }
                                         />
                                     </Row>
@@ -316,12 +419,14 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
                             if (field.kind === 'select') {
                                 return (
-                                    <Row key={field.key} label={field.label}>
+                                    <Row key={fieldKey} label={field.label}>
                                         <select
                                             className={cls.select}
                                             value={(value as string) ?? ''}
                                             onChange={(e) =>
-                                                updateActive({ [field.key]: e.target.value })
+                                                updateActive({
+                                                    [field.key]: e.target.value,
+                                                })
                                             }
                                         >
                                             {field.options.map((opt) => (
@@ -336,20 +441,23 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
 
                             if (field.kind === 'check') {
                                 return (
-                                    <Row key={field.key} label={field.label}>
+                                    <Row key={fieldKey} label={field.label}>
                                         <input
                                             type="checkbox"
                                             checked={Boolean(value)}
                                             onChange={(e) =>
-                                                updateActive({ [field.key]: e.target.checked })
+                                                updateActive({
+                                                    [field.key]: e.target.checked,
+                                                })
                                             }
                                         />
                                     </Row>
                                 );
                             }
+
                             if (field.kind === 'toggle') {
                                 return (
-                                    <Row key={field.key} label={field.label}>
+                                    <Row key={fieldKey} label={field.label}>
                                         <div className={cls.toggle}>
                                             <button
                                                 type="button"
@@ -378,9 +486,10 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                                     </Row>
                                 );
                             }
+
                             if (field.kind === 'array') {
                                 return (
-                                    <Row key={field.key} label={field.label} stack>
+                                    <Row key={fieldKey} label={field.label} stack>
                                         <ArrayField
                                             field={field}
                                             value={value}
@@ -409,6 +518,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                 >
                     <i className="bi bi-arrow-up" />
                 </button>
+
                 <button
                     type="button"
                     className={cls.btnGhost}
@@ -417,6 +527,7 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
                 >
                     <i className="bi bi-arrow-down" />
                 </button>
+
                 <button type="button" className={cls.btnDanger} onClick={remove} title="Delete">
                     <i className="bi bi-trash" />
                 </button>

@@ -50,3 +50,34 @@ tạo DEFAULT_PROPS giúp tôi nhé
 Hiện tại tôi muốn tạo list site mannager để quản lý toàn bộ site đã được đăng ký. tôi đang sử dụng công nghệ next 16, prisma 7.8.0, và css module. Bạn hãy ở cương vị là serior front-end developer hãy tạo bố cục giống với ảnh nhưng khác về nội dụng. và hãy độ lại có thêm icon mắt để link đến domain site để kiểm tra và thêm nút khóa nửa nhé
 
 Bạn ở vị trí serior back end developer với 8 năm kinh nghiệm hãy review lại giúp tôi xem có bug ẩn hay không chỉnh, và kiểm tra xem có thể tạo help rồi rút gon code sách hơn nhé. Lưu ý hãy check giúp tôi xem đã có check auth chưa nhé import { getCurrentSession } from '@/lib/auth/session'; và ghi lại toàn bộ file hoàn chỉnh sau khi đã chỉnh sửa nhé
+Vui long chỉnh sửa và ghi lại toàn bộ testimonial-list.tsx. ngoài ra tôi đã có import { useModal } from "@/components/admin/shared/common/modal"; const modal = useModal();   cách sử dụng modal.error(t("brands.modal.loadFailed"), error instanceof Error ? error.message : t("brands.modal.loadFailed"));  modal.confirmDelete(
+
+        t("brands.modal.deleteBrand"),
+
+        t("brands.modal.deleteBrandConfirm").replace("{name}", brand.name),
+
+        async () => {
+
+          try {
+
+            setSelectedBrandId(brand.id);
+
+            await deleteBrand();
+
+            modal.success(t("brands.modal.success"), t("brands.modal.deletedSuccess").replace("{name}", brand.name));
+
+          } catch (error: unknown) {
+
+            modal.error(
+
+              t("brands.modal.deleteFailed"),
+
+              error instanceof Error ? error.message : t("brands.modal.deleteFailed"),
+
+            );
+
+          }
+
+        },
+
+      ); vui long hãy chỉnh sửa và thêm giúp tôi nhé. Thêm phần về translate ngôn ngữ tôi đã có import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";  const { t } = useAdminI18n(); cách sửa dung {t("brands.form.brandName")}

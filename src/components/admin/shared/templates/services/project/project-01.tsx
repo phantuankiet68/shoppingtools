@@ -1051,220 +1051,204 @@ export function ProjectPage01(props: ProjectPage01Props) {
 
     return (
         <>
-            <section className={styles.section}>
-                <div className={styles.container}>
-                    <div className={styles.headingSection}>
-                        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-                            <Link href="/" className={styles.breadcrumbItem}>
-                                {t(breadcrumbHome)}
-                            </Link>
+            <div className={styles.main}>
+                <section className={styles.section}>
+                    <div className={styles.container}>
+                        <div className={styles.heroGrid}>
+                            {/* ================= LEFT ================= */}
 
-                            <i className="bi bi-chevron-right" />
+                            <div className={styles.heroVisual}>
+                                <div className={styles.visualGlow} />
 
-                            <span className={styles.breadcrumbCurrent}>{t(breadcrumbCurrent)}</span>
-                        </nav>
-                    </div>
-                    <div className={styles.heroGrid}>
-                        {/* ================= LEFT ================= */}
+                                <div className={styles.visualNoise} />
 
-                        <div className={styles.heroVisual}>
-                            <div className={styles.visualGlow} />
-
-                            <div className={styles.visualNoise} />
-
-                            <div className={styles.visualBadgeLeft}>
-                                <i className="bi bi-code-slash" />
-                                {t(heroBadgeLeft)}
-                            </div>
-
-                            <div className={styles.visualBadgeRight}>
-                                <i className="bi bi-stars" />
-                                {t(heroBadgeTop)}
-                            </div>
-
-                            <div className={styles.visualContent}>
-                                <div className={styles.visualText}>
-                                    <h1>
-                                        {t(heroTitle)
-                                            .split('\n')
-                                            .map((line, index, arr) => (
-                                                <span key={index}>
-                                                    {line}
-                                                    {index < arr.length - 1 && <br />}
-                                                </span>
-                                            ))}
-
-                                        <span className={styles.visualTextAi}>AI</span>
-                                    </h1>
-
-                                    <p>{t(heroDescription)}</p>
-
-                                    <div className={styles.visualActions}>
-                                        <button type="button" className={styles.primaryButton}>
-                                            <i className="bi bi-rocket-takeoff-fill" />
-                                            {t(heroButtonLabel)}
-                                        </button>
-
-                                        <button type="button" className={styles.secondaryButton}>
-                                            <i className="bi bi-play-circle" />
-                                            Live Demo
-                                        </button>
-                                    </div>
+                                <div className={styles.visualBadgeLeft}>
+                                    <i className="bi bi-code-slash" />
+                                    {t(heroBadgeLeft)}
                                 </div>
 
-                                <div className={styles.browserWrapper}>
-                                    <Image
-                                        src="/assets/images/hero-browser.png"
-                                        alt="Browser Preview"
-                                        width={620}
-                                        height={720}
-                                        priority
-                                        className={styles.browserImage}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className={styles.visualOrbit}>
-                                <span />
-                            </div>
-
-                            <div className={styles.visualStars}>
-                                <span />
-                                <span />
-                                <span />
-                            </div>
-
-                            <div className={styles.trustPanel}>
-                                <div className={styles.trustItem}>
-                                    <i className="bi bi-credit-card-2-front" />
-
-                                    <div>
-                                        <strong>No Credit Card</strong>
-                                        <span>Required</span>
-                                    </div>
-                                </div>
-
-                                <div className={styles.trustItem}>
-                                    <i className="bi bi-shield-check" />
-
-                                    <div>
-                                        <strong>Secure Hosting</strong>
-                                        <span>Always safe</span>
-                                    </div>
-                                </div>
-
-                                <div className={styles.trustItem}>
-                                    <i className="bi bi-lightning-charge" />
-
-                                    <div>
-                                        <strong>Instant Setup</strong>
-                                        <span>Get started</span>
-                                    </div>
-                                </div>
-
-                                <div className={styles.trustItem}>
-                                    <i className="bi bi-lock" />
-
-                                    <div>
-                                        <strong>Free SSL</strong>
-                                        <span>Included</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ================= RIGHT ================= */}
-
-                        <div className={styles.heroInfo}>
-                            <span className={styles.infoBadge}>{t(sectionBadge)}</span>
-
-                            <h2 className={styles.infoTitle}>
-                                {t(sectionTitle)}
-
-                                <span>{t(sectionTitleAccent)}</span>
-                            </h2>
-
-                            <p className={styles.infoDescription}>{t(sectionDescription)}</p>
-
-                            <div className={styles.infoButtons}>
-                                <button className={styles.primaryButton}>
-                                    <i className="bi bi-rocket-takeoff-fill" />
-                                    {t(heroButtonLabel)}
-                                </button>
-
-                                <button className={styles.secondaryButton}>
-                                    <i className="bi bi-play-circle" />
-                                    Live Demo
-                                </button>
-                            </div>
-
-                            <div className={styles.statsGrid}>
-                                {stats.map((item, index) => (
-                                    <article key={index} className={styles.statCard}>
-                                        <div className={`${styles.iconBox} ${styles[item.tone]}`}>
-                                            <i className={`bi ${item.icon}`} />
-                                        </div>
-
-                                        <div className={styles.statContent}>
-                                            <strong>{t(item.value)}</strong>
-
-                                            <span>{t(item.label)}</span>
-                                        </div>
-
-                                        <i className={`bi bi-arrow-up-right ${styles.cardArrow}`} />
-                                    </article>
-                                ))}
-                            </div>
-
-                            <div className={styles.featureRow}>
-                                <div className={styles.featurePill}>
+                                <div className={styles.visualBadgeRight}>
                                     <i className="bi bi-stars" />
-                                    AI Assisted Content
+                                    {t(heroBadgeTop)}
                                 </div>
 
-                                <div className={styles.featurePill}>
-                                    <i className="bi bi-grid-3x3-gap-fill" />
-                                    500+ Templates
+                                <div className={styles.visualContent}>
+                                    <div className={styles.visualText}>
+                                        <h1>
+                                            {t(heroTitle)
+                                                .split('\n')
+                                                .map((line, index, arr) => (
+                                                    <span key={index}>
+                                                        {line}
+                                                        {index < arr.length - 1 && <br />}
+                                                    </span>
+                                                ))}
+
+                                            <span className={styles.visualTextAi}>AI</span>
+                                        </h1>
+
+                                        <p>{t(heroDescription)}</p>
+
+                                        <div className={styles.visualActions}>
+                                            <button type="button" className={styles.primaryButton}>
+                                                <i className="bi bi-rocket-takeoff-fill" />
+                                                {t(heroButtonLabel)}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className={styles.secondaryButton}
+                                            >
+                                                <i className="bi bi-play-circle" />
+                                                Live Demo
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.browserWrapper}>
+                                        <Image
+                                            src="/assets/images/hero-browser.png"
+                                            alt="Browser Preview"
+                                            width={620}
+                                            height={720}
+                                            priority
+                                            className={styles.browserImage}
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className={styles.featurePill}>
-                                    <i className="bi bi-cloud-check-fill" />
-                                    Cloud Deployment
+                                <div className={styles.visualOrbit}>
+                                    <span />
+                                </div>
+
+                                <div className={styles.visualStars}>
+                                    <span />
+                                    <span />
+                                    <span />
+                                </div>
+
+                                <div className={styles.trustPanel}>
+                                    <div className={styles.trustItem}>
+                                        <i className="bi bi-credit-card-2-front" />
+
+                                        <div>
+                                            <strong>No Credit Card</strong>
+                                            <span>Required</span>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.trustItem}>
+                                        <i className="bi bi-shield-check" />
+
+                                        <div>
+                                            <strong>Secure Hosting</strong>
+                                            <span>Always safe</span>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.trustItem}>
+                                        <i className="bi bi-lightning-charge" />
+
+                                        <div>
+                                            <strong>Instant Setup</strong>
+                                            <span>Get started</span>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.trustItem}>
+                                        <i className="bi bi-lock" />
+
+                                        <div>
+                                            <strong>Free SSL</strong>
+                                            <span>Included</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ================= RIGHT ================= */}
+
+                            <div className={styles.heroInfo}>
+                                <span className={styles.infoBadge}>{t(sectionBadge)}</span>
+
+                                <h2 className={styles.infoTitle}>
+                                    {t(sectionTitle)}
+
+                                    <span>{t(sectionTitleAccent)}</span>
+                                </h2>
+
+                                <div className={styles.statsGrid}>
+                                    {stats.map((item, index) => (
+                                        <article key={index} className={styles.statCard}>
+                                            <div
+                                                className={`${styles.iconBox} ${styles[item.tone]}`}
+                                            >
+                                                <i className={`bi ${item.icon}`} />
+                                            </div>
+
+                                            <div className={styles.statContent}>
+                                                <strong>{t(item.value)}</strong>
+
+                                                <span>{t(item.label)}</span>
+                                            </div>
+
+                                            <i
+                                                className={`bi bi-arrow-up-right ${styles.cardArrow}`}
+                                            />
+                                        </article>
+                                    ))}
+                                </div>
+
+                                <div className={styles.featureRow}>
+                                    <div className={styles.featurePill}>
+                                        <i className="bi bi-stars" />
+                                        AI Assisted Content
+                                    </div>
+
+                                    <div className={styles.featurePill}>
+                                        <i className="bi bi-grid-3x3-gap-fill" />
+                                        500+ Templates
+                                    </div>
+
+                                    <div className={styles.featurePill}>
+                                        <i className="bi bi-cloud-check-fill" />
+                                        Cloud Deployment
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-            <section className={styles.solutions}>
-                <FeatureSectionHeader
-                    eyebrow={eyebrowText1}
-                    accent={eyebrowAccentText1}
-                    highlight={highlightText1}
-                    t={t}
-                />
+                </section>
+                <section className={styles.solutions}>
+                    <FeatureSectionHeader
+                        eyebrow={eyebrowText1}
+                        accent={eyebrowAccentText1}
+                        highlight={highlightText1}
+                        t={t}
+                    />
 
-                <div className={styles.grid}>
-                    {FEATURES_WEBSITE.map((feature, index) => (
-                        <FeatureCard key={index} feature={feature} t={t} />
-                    ))}
-                </div>
-            </section>
+                    <div className={styles.grid}>
+                        {FEATURES_WEBSITE.map((feature, index) => (
+                            <FeatureCard key={index} feature={feature} t={t} />
+                        ))}
+                    </div>
+                </section>
 
-            <section className={styles.solutions}>
-                <FeatureSectionHeader
-                    eyebrow={eyebrowText2}
-                    accent={eyebrowAccentText2}
-                    highlight={highlightText2}
-                    t={t}
-                />
+                <section className={styles.solutions}>
+                    <FeatureSectionHeader
+                        eyebrow={eyebrowText2}
+                        accent={eyebrowAccentText2}
+                        highlight={highlightText2}
+                        t={t}
+                    />
 
-                <div className={styles.grid}>
-                    {FEATURES_DEVELOPMENT.map((feature, index) => (
-                        <FeatureCard key={index} feature={feature} t={t} />
-                    ))}
-                </div>
-            </section>
+                    <div className={styles.grid}>
+                        {FEATURES_DEVELOPMENT.map((feature, index) => (
+                            <FeatureCard key={index} feature={feature} t={t} />
+                        ))}
+                    </div>
+                </section>
+            </div>
         </>
     );
 }
@@ -1288,12 +1272,10 @@ function createHeroInspector(): InspectorField[] {
     return [
         createTextField('breadcrumbHome', 'Breadcrumb Home'),
         createTextField('breadcrumbCurrent', 'Breadcrumb Current'),
-
         createTextField('heroBadgeTop', 'Hero Badge Top'),
         createTextField('heroBadgeLeft', 'Hero Badge Left'),
         createTextField('heroBadgeBottom', 'Hero Badge Bottom'),
         createTextField('heroBadgeSsl', 'Hero Badge SSL'),
-
         createTextareaField('heroTitle', 'Hero Title'),
         createTextareaField('heroDescription', 'Hero Description'),
         createTextField('heroButtonLabel', 'Hero Button'),
@@ -1306,11 +1288,9 @@ function createSectionInspector(): InspectorField[] {
         createTextareaField('sectionTitle', 'Section Title'),
         createTextField('sectionTitleAccent', 'Section Title Accent'),
         createTextareaField('sectionDescription', 'Section Description'),
-
         createTextField('eyebrowText1', 'Header 1'),
         createTextField('eyebrowAccentText1', 'Header 1 Accent'),
         createTextField('highlightText1', 'Header 1 Highlight'),
-
         createTextField('eyebrowText2', 'Header 2'),
         createTextField('eyebrowAccentText2', 'Header 2 Accent'),
         createTextField('highlightText2', 'Header 2 Highlight'),
@@ -1321,13 +1301,10 @@ function createStatsInspector(): InspectorField[] {
     return [
         createTextField('stat1Value', 'Stat 1 Value'),
         createTextField('stat1Label', 'Stat 1 Label'),
-
         createTextField('stat2Value', 'Stat 2 Value'),
         createTextField('stat2Label', 'Stat 2 Label'),
-
         createTextField('stat3Value', 'Stat 3 Value'),
         createTextField('stat3Label', 'Stat 3 Label'),
-
         createTextField('stat4Value', 'Stat 4 Value'),
         createTextField('stat4Label', 'Stat 4 Label'),
     ];

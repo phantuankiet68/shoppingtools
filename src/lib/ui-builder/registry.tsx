@@ -21,6 +21,8 @@ import { FOOTER_SERVICE_07 } from '@/components/admin/shared/templates/services/
 import { FOOTER_SERVICE_08 } from '@/components/admin/shared/templates/services/footers/footer-service-08';
 import { FOOTER_SERVICE_09 } from '@/components/admin/shared/templates/services/footers/footer-service-09';
 
+import { HOME_SERVICE_01 } from '@/components/admin/shared/templates/services/home/home-01';
+
 import { HERO_SERVICE_01 } from '@/components/admin/shared/templates/services/heros/hero-service-01';
 
 import { SHOWCASE_SERVICE_01 } from '@/components/admin/shared/templates/services/showcase/showcase-service-01';
@@ -72,6 +74,7 @@ export const REGISTRY_HOME: RegItem[] = [
     FOOTER_SERVICE_07,
     FOOTER_SERVICE_08,
     FOOTER_SERVICE_09,
+    HOME_SERVICE_01,
     HERO_SERVICE_01,
     SHOWCASE_SERVICE_01,
     BENEFIT_SERVICE_01,

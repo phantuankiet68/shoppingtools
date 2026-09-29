@@ -1,0 +1,21 @@
+.homeWapper {
+    --ink: #111936;
+    --ink-soft: #27345b;
+    --line: #e5ebf5;
+    --primary: #4658ef;
+    --primary-2: #7856ee;
+    --blue-soft: #eef2ff;
+    --green: #36c987;
+    --pink: #ee6cc7;
+    width: 100%;
+    min-height: 100%;
+    color: var(--ink);
+    opacity: 0.9;
+    background-image:
+        linear-gradient(135deg, #e6f6ff9e, #f5f3ff80), url(/assets/images/admin-dashboard-bg.png);
+    background-position: top;
+    background-repeat: no-repeat;
+    background-size: 100% 100vh;
+    background-attachment: fixed;
+    padding: 35px 0;
+}

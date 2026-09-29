@@ -23,16 +23,6 @@
 
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
     --dur: 0.28s;
-
-    background: var(--bg);
-    color: var(--t1);
-    font-family:
-        'Inter',
-        -apple-system,
-        BlinkMacSystemFont,
-        'Segoe UI',
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
 }
 
 /* ═══════════════════════
@@ -44,7 +34,7 @@
     padding: 50px 24px 80px;
     display: grid;
     grid-template-columns: 0.7fr 2fr;
-    gap: 36px;
+    gap: 20px;
 }
 
 /* ═══════════════════════
@@ -77,61 +67,52 @@
 }
 
 .eyebrow {
-    display: inline-flex;
+    color: #5860ea;
+    letter-spacing: 0.025em;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
+    border-radius: 999px;
     align-items: center;
     gap: 8px;
-
-    padding: 8px 18px;
-
-    border-radius: 999px;
-
-    background: #eef4ff;
-
-    color: #4f46e5;
-
-    font-size: 13px;
-    font-weight: 700;
-
-    margin-bottom: 22px;
+    width: fit-content;
+    min-height: 31px;
+    padding: 0 12px;
+    font-family: Poppins, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    text-transform: uppercase;
 }
 
 .headline {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 800;
-    line-height: 1.08;
-    font-weight: 800;
-    color: #111827;
+    max-width: 472px;
+    color: var(--text);
+    margin: 15px 0 0;
+    font-size: 3.8rem;
+    font-weight: 700;
+    line-height: 1.15;
 }
 
 .accent {
-    display: block;
-
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
-
+    color: #0000;
+    -webkit-text-fill-color: transparent;
+    background: linear-gradient(90deg, #5d63ff 0%, #8d5dff 35%, #b46bff 70%, #ff7bd5 100%);
     -webkit-background-clip: text;
-    color: transparent;
+    background-clip: text;
 }
 
 .sub {
-    margin-top: 22px;
-
-    font-size: 17px;
-
-    line-height: 1.8;
-
-    color: #6b7280;
-
-    max-width: 650px;
+    color: #62657d;
+    max-width: 640px;
+    margin: 15px 0 0;
+    font-size: 1.4rem;
+    line-height: 1.9;
 }
 
 .meta {
     display: flex;
-
     gap: 18px;
-
     flex-wrap: wrap;
-
     margin-top: 30px;
 }
 
@@ -139,21 +120,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
-
     padding: 10px 18px;
-
     border-radius: 999px;
-
     background: white;
-
     border: 1px solid #eceff5;
-
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-
-    font-size: 14px;
-
-    font-weight: 600;
-
+    font-size: 1.4rem;
     color: #374151;
 }
 
@@ -226,11 +198,9 @@
 /* ================= FILTER ================= */
 
 .filters {
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
 }
 
 .filterBtn {
@@ -247,16 +217,14 @@
     padding: 12px 20px;
 
     border-radius: 999px;
-
-    background: white;
-
-    border: 1px solid #e7ebf3;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
 
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
 
     transition: 0.3s ease;
 
-    font-weight: 600;
+    font-weight: 500;
 
     color: #4b5563;
 }
@@ -280,8 +248,7 @@
 }
 
 .filterLabel {
-    font-size: 14px;
-
+    font-size: 1.4rem;
     white-space: nowrap;
 }
 
@@ -298,7 +265,7 @@
 
     justify-content: center;
 
-    font-size: 12px;
+    font-size: 1.2rem;
 
     font-weight: 700;
 
@@ -448,7 +415,7 @@
 }
 
 .hoverTitle {
-    font-size: 1rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: #fff;
     margin: 0;
@@ -457,7 +424,7 @@
 }
 
 .hoverDesc {
-    font-size: 0.78rem;
+    font-size: 1.3rem;
     color: rgba(255, 255, 255, 0.75);
     margin: 0;
     line-height: 1.5;
@@ -498,8 +465,8 @@
     padding: 5px 11px;
     background: rgba(255, 255, 255, 0.92);
     border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 700;
+    font-size: 1.2rem;
+    font-weight: 500;
     color: var(--t1);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -511,7 +478,7 @@
 }
 
 .badge i {
-    font-size: 0.65rem;
+    font-size: 1.3rem;
     color: var(--blue);
 }
 
@@ -525,29 +492,30 @@
    BOTTOM CTA BAR
 ═══════════════════════ */
 .bottomCta {
-    border-top: 1px solid var(--border);
+    border-top: 1px solid #b6d0fb;
     padding-top: 28px;
 }
 
 .bottomCtaInner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     gap: 24px;
-    flex-wrap: wrap;
+    display: flex;
+    padding: 32px 24px;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
+    border-radius: 16px;
 }
 
 .bottomCtaCopy {
     display: flex;
-    align-items: center;
     gap: 10px;
-    font-size: 0.95rem;
+    font-size: 1.4rem;
     color: var(--t2);
     font-weight: 500;
 }
 
 .bottomCtaCopy i {
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     color: var(--blue);
 }
 
@@ -555,8 +523,8 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font-size: 0.875rem;
-    font-weight: 700;
+    font-size: 1.4rem;
+    font-weight: 500;
     color: var(--blue);
     text-decoration: none;
     white-space: nowrap;

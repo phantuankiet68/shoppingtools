@@ -1,355 +1,530 @@
 'use client';
 
 import styles from '@/components/admin/shared/templates/services/portfolios/styles/portfolio-service-01.module.css';
-import type { RegItem } from '@/lib/ui-builder/types';
+import { getLocalizedValue, LocalizedText } from '@/lib/ui-builder/localization';
+import type { InspectorField, RegItem } from '@/lib/ui-builder/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
 
-/* ─────────────────────────────────────────────────
-   Types
-───────────────────────────────────────────────── */
+type WebsiteType = 'landing' | 'blog' | 'ecommerce' | 'booking' | 'lms';
+type PortfolioSize = 'tall' | 'wide' | 'normal';
+type SupportedLocale = 'en' | 'vi' | 'ja';
+
+interface PortfolioApiItem {
+    id: string;
+    siteId: string;
+    imageUrl: string;
+    category: WebsiteType;
+    size: PortfolioSize;
+    href: string | null;
+    sortOrder: number;
+    isActive: boolean;
+    imageAlt: string;
+    title: string;
+    description: string | null;
+    locale: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface PortfolioApiResponse {
+    success: boolean;
+    portfolios: PortfolioApiItem[];
+    pagination?: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+    };
+}
+
 export interface PortfolioItem {
     id: string;
     imageUrl: string;
     imageAlt: string;
-    category: string;
+    category: WebsiteType;
     title: string;
     description?: string;
-    /** 'tall' = spans 2 rows; 'wide' = spans 2 cols; 'normal' = 1×1 */
-    size?: 'tall' | 'wide' | 'normal';
+    size: PortfolioSize;
     href?: string;
 }
 
 export interface PortfolioService01Props {
     siteId?: string;
 
-    eyebrow?: string;
-    headline?: string;
-    headlineAccent?: string;
-    subheadline?: string;
+    eyebrow?: LocalizedText;
+    headline?: LocalizedText;
+    headlineAccent?: LocalizedText;
+    subheadline?: LocalizedText;
 
-    filterAllText?: string;
-    detailText?: string;
+    filterAllText?: LocalizedText;
+    detailText?: LocalizedText;
 
-    ctaDescription?: string;
-    ctaText?: string;
+    ctaDescription?: LocalizedText;
+    ctaText?: LocalizedText;
     ctaHref?: string;
-
-    // Portfolio 1
-    item1Image?: string;
-    item1ImageAlt?: string;
-    item1Category?: string;
-    item1Title?: string;
-    item1Description?: string;
-    item1Href?: string;
-
-    // Portfolio 2
-    item2Image?: string;
-    item2ImageAlt?: string;
-    item2Category?: string;
-    item2Title?: string;
-    item2Description?: string;
-    item2Href?: string;
-
-    // Portfolio 3
-    item3Image?: string;
-    item3ImageAlt?: string;
-    item3Category?: string;
-    item3Title?: string;
-    item3Description?: string;
-    item3Href?: string;
-
-    // Portfolio 4
-    item4Image?: string;
-    item4ImageAlt?: string;
-    item4Category?: string;
-    item4Title?: string;
-    item4Description?: string;
-    item4Href?: string;
-
-    // Portfolio 5
-    item5Image?: string;
-    item5ImageAlt?: string;
-    item5Category?: string;
-    item5Title?: string;
-    item5Description?: string;
-    item5Href?: string;
-
-    // Portfolio 6
-    item6Image?: string;
-    item6ImageAlt?: string;
-    item6Category?: string;
-    item6Title?: string;
-    item6Description?: string;
-    item6Href?: string;
 
     showFilters?: boolean;
     showCta?: boolean;
 }
 
-/* ─────────────────────────────────────────────────
-   Hook
-───────────────────────────────────────────────── */
-function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.05) {
+const WEBSITE_TYPES: WebsiteType[] = ['landing', 'blog', 'ecommerce', 'booking', 'lms'];
+
+const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'vi', 'ja'];
+
+const SAMPLE_ITEM: PortfolioItem = {
+    id: 'sample-portfolio',
+    imageUrl: '/assets/portfolio/landing-01.jpg',
+    imageAlt: 'Modern SaaS Landing Page',
+    category: 'landing',
+    title: 'AI SaaS Platform',
+    description: 'Modern landing page designed to maximize conversions.',
+    size: 'tall',
+    href: '#',
+};
+
+function createLocalizedText(defaultValue: string, vi?: string, ja?: string): LocalizedText {
+    return {
+        sourceLocale: 'en',
+        default: defaultValue,
+        translations: {
+            ...(vi ? { vi } : {}),
+            ...(ja ? { ja } : {}),
+        },
+    };
+}
+
+function normalizeLocale(value: string | null | undefined): SupportedLocale {
+    return SUPPORTED_LOCALES.includes(value as SupportedLocale) ? (value as SupportedLocale) : 'en';
+}
+
+function isValidImageUrl(url: string) {
+    return (
+        url.startsWith('/') ||
+        url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('blob:')
+    );
+}
+
+function isExternalImage(url: string) {
+    return url.startsWith('http://') || url.startsWith('https://');
+}
+
+function getPlaceholderConfig(category: WebsiteType) {
+    switch (category) {
+        case 'landing':
+            return {
+                background: '#EBF5FB',
+                icon: 'window-stack',
+            };
+
+        case 'blog':
+            return {
+                background: '#E8F8F5',
+                icon: 'journal-richtext',
+            };
+
+        case 'ecommerce':
+            return {
+                background: '#FEF9E7',
+                icon: 'bag-check',
+            };
+
+        case 'booking':
+            return {
+                background: '#FDF2F8',
+                icon: 'calendar-check',
+            };
+
+        case 'lms':
+            return {
+                background: '#EAF2FF',
+                icon: 'mortarboard-fill',
+            };
+
+        default:
+            return {
+                background: '#F0F4FF',
+                icon: 'image',
+            };
+    }
+}
+
+function getCategoryLabel(category: WebsiteType, locale: SupportedLocale) {
+    const labels: Record<WebsiteType, Record<SupportedLocale, string>> = {
+        landing: {
+            en: 'Landing Page',
+            vi: 'Landing Page',
+            ja: 'ランディングページ',
+        },
+        blog: {
+            en: 'Blog',
+            vi: 'Blog',
+            ja: 'ブログ',
+        },
+        ecommerce: {
+            en: 'E-commerce',
+            vi: 'E-commerce',
+            ja: 'Eコマース',
+        },
+        booking: {
+            en: 'Booking',
+            vi: 'Đặt lịch',
+            ja: '予約',
+        },
+        lms: {
+            en: 'LMS',
+            vi: 'LMS',
+            ja: 'LMS',
+        },
+    };
+
+    return labels[category][locale] ?? labels[category].en;
+}
+
+function useInView(ref: RefObject<HTMLElement | null>, threshold = 0.05) {
     const [inView, setInView] = useState(false);
+
     useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const obs = new IntersectionObserver(
-            ([e]) => {
-                if (e.isIntersecting) {
-                    setInView(true);
-                    obs.disconnect();
+        const element = ref.current;
+
+        if (!element || inView) {
+            return;
+        }
+
+        if (typeof IntersectionObserver === 'undefined') {
+            setInView(true);
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry?.isIntersecting) {
+                    return;
                 }
+
+                setInView(true);
+                observer.disconnect();
             },
             { threshold },
         );
-        obs.observe(el);
-        return () => obs.disconnect();
-    }, [ref, threshold]);
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [inView, ref, threshold]);
+
     return inView;
 }
 
-/* ─────────────────────────────────────────────────
-   Placeholder image (when no real image provided)
-───────────────────────────────────────────────── */
-const PLACEHOLDER_COLORS: Record<string, string> = {
-    'Khám tổng quát': '#EBF5FB',
-    'Tẩy trắng răng': '#E8F8F5',
-    Implant: '#FEF9E7',
-    'Veneer sứ': '#FDF2F8',
-    'Niềng răng': '#EAF2FF',
-    'Bọc răng sứ': '#F9F9F9',
-};
-
-const PLACEHOLDER_ICONS: Record<string, string> = {
-    'Khám tổng quát': 'heart-pulse-fill',
-    'Tẩy trắng răng': 'brightness-high-fill',
-    Implant: 'tools',
-    'Veneer sứ': 'gem',
-    'Niềng răng': 'stars',
-    'Bọc răng sứ': 'shield-fill-check',
-};
-
-function PlaceholderCard({ category, title }: { category: string; title: string }) {
-    const bg = PLACEHOLDER_COLORS[category] ?? '#F0F4FF';
-    const icon = PLACEHOLDER_ICONS[category] ?? 'image';
+function PlaceholderCard({ category, title }: { category: WebsiteType; title: string }) {
+    const config = getPlaceholderConfig(category);
 
     return (
-        <div className={styles.placeholder} style={{ background: bg }}>
-            <i className={`bi bi-${icon}`} />
+        <div className={styles.placeholder} style={{ background: config.background }}>
+            <i className={`bi bi-${config.icon}`} aria-hidden="true" />
             <span>{title}</span>
         </div>
     );
 }
 
-/* ─────────────────────────────────────────────────
-   Component
-───────────────────────────────────────────────── */
-export function PortfolioService01({
-    eyebrow = 'Website Builder Platform',
-    headline = 'Build Professional Websites',
-    headlineAccent = '10x Faster',
-    subheadline = 'Generate beautiful websites with AI, customize every section visually, and publish instantly with your own domain and secure hosting.',
+function mapPortfolioItem(item: PortfolioApiItem): PortfolioItem {
+    return {
+        id: item.id,
+        imageUrl: item.imageUrl,
+        imageAlt: item.imageAlt || item.title,
+        category: item.category,
+        title: item.title || 'Untitled Portfolio',
+        description: item.description ?? undefined,
+        size: item.size,
+        href: item.href ?? undefined,
+    };
+}
 
-    filterAllText = 'Tất cả',
-    detailText = 'Xem chi tiết',
+export const DEFAULT_PROPS: Required<Omit<PortfolioService01Props, 'siteId'>> & {
+    siteId?: string;
+} = {
+    siteId: undefined,
 
-    ctaDescription = 'Bạn muốn biết thêm về dịch vụ của chúng tôi?',
-    ctaText = 'Start Building',
-    ctaHref = '/services',
+    eyebrow: createLocalizedText(
+        'Website Builder Platform',
+        'Nền tảng xây dựng website',
+        'Webサイトビルダープラットフォーム',
+    ),
 
-    // Item 1
-    item1Image = '/assets/portfolio/landing-01.jpg',
-    item1ImageAlt = 'Modern SaaS Landing Page',
-    item1Category = 'Landing Page',
-    item1Title = 'AI SaaS Platform',
-    item1Description = 'Modern landing page designed to maximize conversions.',
-    item1Href = '#',
+    headline: createLocalizedText(
+        'Build Professional Websites',
+        'Xây dựng website chuyên nghiệp',
+        'プロフェッショナルなWebサイトを構築',
+    ),
 
-    // Item 2
-    item2Image = '/assets/portfolio/blog-01.jpg',
-    item2ImageAlt = 'Technology Blog Website',
-    item2Category = 'Blog',
-    item2Title = 'Tech Insights',
-    item2Description = 'A clean and responsive blog for creators and publishers.',
-    item2Href = '#',
+    headlineAccent: createLocalizedText('10x Faster', 'Nhanh hơn 10 lần', '10倍速く'),
 
-    // Item 3
-    item3Image = '/assets/portfolio/ecommerce-01.jpg',
-    item3ImageAlt = 'Fashion Ecommerce Website',
-    item3Category = 'E-commerce',
-    item3Title = 'Fashion Store',
-    item3Description = 'Complete online store with shopping cart and secure checkout.',
-    item3Href = '#',
+    subheadline: createLocalizedText(
+        'Generate beautiful websites with AI, customize every section visually, and publish instantly with your own domain and secure hosting.',
+        'Tạo website đẹp bằng AI, tùy chỉnh trực quan từng section và xuất bản ngay với tên miền riêng cùng hệ thống hosting bảo mật.',
+        'AIで美しいWebサイトを生成し、各セクションをビジュアルに編集。独自ドメインと安全なホスティングで即座に公開できます。',
+    ),
 
-    // Item 4
-    item4Image = '/assets/portfolio/booking-01.jpg',
-    item4ImageAlt = 'Hotel Booking Website',
-    item4Category = 'Booking',
-    item4Title = 'Hotel Reservation',
-    item4Description = 'Online booking system with real-time availability.',
-    item4Href = '#',
+    filterAllText: createLocalizedText('All', 'Tất cả', 'すべて'),
 
-    // Item 5
-    item5Image = '/assets/portfolio/lms-01.jpg',
-    item5ImageAlt = 'Online Learning Platform',
-    item5Category = 'LMS',
-    item5Title = 'Online Academy',
-    item5Description = 'Learning platform with courses, lessons, and student dashboard.',
-    item5Href = '#',
+    detailText: createLocalizedText('View details', 'Xem chi tiết', '詳細を見る'),
 
-    // Item 6
-    item6Image = '/assets/portfolio/landing-02.jpg',
-    item6ImageAlt = 'Corporate Business Website',
-    item6Category = 'Business',
-    item6Title = 'Corporate Website',
-    item6Description = 'Professional company website with modern branding and responsive design.',
-    item6Href = '#',
+    ctaDescription: createLocalizedText(
+        'Ready to build your next website?',
+        'Bạn đã sẵn sàng xây dựng website tiếp theo?',
+        '次のWebサイトを構築する準備はできましたか？',
+    ),
 
-    showFilters = true,
-    showCta = true,
-}: PortfolioService01Props) {
+    ctaText: createLocalizedText('Start Building', 'Bắt đầu xây dựng', '構築を始める'),
+
+    ctaHref: '/services',
+
+    showFilters: true,
+    showCta: true,
+};
+
+export function PortfolioService01(props: PortfolioService01Props) {
+    const mergedProps = {
+        ...DEFAULT_PROPS,
+        ...props,
+    };
+
+    const {
+        siteId,
+        eyebrow,
+        headline,
+        headlineAccent,
+        subheadline,
+        filterAllText,
+        detailText,
+        ctaDescription,
+        ctaText,
+        ctaHref,
+        showFilters,
+        showCta,
+    } = mergedProps;
+
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
-    const items: PortfolioItem[] = [
-        {
-            id: 'p1',
-            imageUrl: item1Image,
-            imageAlt: item1ImageAlt,
-            category: item1Category,
-            title: item1Title,
-            description: item1Description,
-            size: 'tall',
-            href: item1Href,
-        },
-        {
-            id: 'p2',
-            imageUrl: item2Image,
-            imageAlt: item2ImageAlt,
-            category: item2Category,
-            title: item2Title,
-            description: item2Description,
-            size: 'normal',
-            href: item2Href,
-        },
-        {
-            id: 'p3',
-            imageUrl: item3Image,
-            imageAlt: item3ImageAlt,
-            category: item3Category,
-            title: item3Title,
-            description: item3Description,
-            size: 'normal',
-            href: item3Href,
-        },
-        {
-            id: 'p4',
-            imageUrl: item4Image,
-            imageAlt: item4ImageAlt,
-            category: item4Category,
-            title: item4Title,
-            description: item4Description,
-            size: 'wide',
-            href: item4Href,
-        },
-        {
-            id: 'p5',
-            imageUrl: item5Image,
-            imageAlt: item5ImageAlt,
-            category: item5Category,
-            title: item5Title,
-            description: item5Description,
-            size: 'normal',
-            href: item5Href,
-        },
-        {
-            id: 'p6',
-            imageUrl: item6Image,
-            imageAlt: item6ImageAlt,
-            category: item6Category,
-            title: item6Title,
-            description: item6Description,
-            size: 'normal',
-            href: item6Href,
-        },
-    ];
-    /* Filter state */
-    const allCategories = [
-        filterAllText,
-        ...Array.from(new Set(items.map((item) => item.category))),
-    ];
 
-    const [activeFilter, setActiveFilter] = useState(filterAllText);
+    const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>('en');
 
-    const filtered =
-        activeFilter === filterAllText
-            ? items
-            : items.filter((item) => item.category === activeFilter);
+    const [items, setItems] = useState<PortfolioItem[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [activeFilter, setActiveFilter] = useState('all');
     const [hoveredId, setHoveredId] = useState<string | null>(null);
-    /* Determine grid cell class */
-    function sizeClass(item: PortfolioItem) {
-        if (item.size === 'tall') return styles.cellTall;
-        if (item.size === 'wide') return styles.cellWide;
-        return '';
-    }
 
-    /* Check if image is a real URL (not placeholder path) */
-    function isRealImage(url: string) {
-        return url.startsWith('http') || url.startsWith('https') || url.startsWith('blob');
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const storedLocale = normalizeLocale(window.localStorage.getItem('locale'));
+
+        setSelectedLocale(storedLocale);
+
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            const nextLocale = normalizeLocale(customEvent.detail);
+
+            setSelectedLocale(nextLocale);
+        };
+
+        window.addEventListener('locale-change', handleLocaleChange as EventListener);
+
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
+        };
+    }, []);
+
+    useEffect(() => {
+        setActiveFilter('all');
+
+        if (!siteId) {
+            setItems([SAMPLE_ITEM]);
+            setLoading(false);
+            return;
+        }
+
+        const controller = new AbortController();
+
+        async function loadPortfolios() {
+            if (!siteId) {
+                setItems([SAMPLE_ITEM]);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const params = new URLSearchParams();
+                params.set('siteId', siteId);
+                params.set('locale', selectedLocale);
+                params.set('limit', '50');
+
+                const response = await fetch(`/api/v1/portfolios?${params.toString()}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Portfolio API failed: ${response.status}`);
+                }
+
+                const data: PortfolioApiResponse = await response.json();
+
+                if (
+                    !data.success ||
+                    !Array.isArray(data.portfolios) ||
+                    data.portfolios.length === 0
+                ) {
+                    setItems([SAMPLE_ITEM]);
+                    return;
+                }
+
+                const nextItems = data.portfolios
+                    .filter((item) => item.isActive)
+                    .map(mapPortfolioItem);
+
+                setItems(nextItems.length > 0 ? nextItems : [SAMPLE_ITEM]);
+            } catch (error) {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return;
+                }
+
+                console.error('[PORTFOLIO_SERVICE_01]', error);
+
+                setItems([SAMPLE_ITEM]);
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        void loadPortfolios();
+
+        return () => {
+            controller.abort();
+        };
+    }, [siteId, selectedLocale]);
+
+    const t = (value: LocalizedText) => getLocalizedValue(value, selectedLocale);
+
+    const localizedFilterAllText = t(filterAllText);
+
+    const categories = useMemo(
+        () => WEBSITE_TYPES.filter((category) => items.some((item) => item.category === category)),
+        [items],
+    );
+
+    const filteredItems = useMemo(
+        () =>
+            activeFilter === 'all' ? items : items.filter((item) => item.category === activeFilter),
+        [activeFilter, items],
+    );
+
+    useEffect(() => {
+        if (activeFilter !== 'all' && !categories.includes(activeFilter as WebsiteType)) {
+            setActiveFilter('all');
+        }
+    }, [activeFilter, categories]);
+
+    function sizeClass(item: PortfolioItem) {
+        switch (item.size) {
+            case 'tall':
+                return styles.cellTall;
+
+            case 'wide':
+                return styles.cellWide;
+
+            default:
+                return '';
+        }
     }
 
     return (
         <section
             ref={rootRef}
             className={`${styles.root} ${inView ? styles.inView : ''}`}
-            aria-label="Portfolio"
+            aria-label={t(headline)}
         >
             <div className={styles.wrap}>
-                {/* ─── Section header ─── */}
                 <div
                     className={`${styles.header} ${styles.r}`}
-                    style={{ '--i': 0 } as React.CSSProperties}
+                    style={
+                        {
+                            '--i': 0,
+                        } as CSSProperties
+                    }
                 >
                     <div className={styles.headerLeft}>
                         <span className={styles.eyebrow}>
-                            <i className="bi bi-grid-3x3-gap-fill" />
-                            {eyebrow}
+                            <i className="bi bi-grid-3x3-gap-fill" aria-hidden="true" />
+                            {t(eyebrow)}
                         </span>
 
                         <h2 className={styles.headline}>
-                            {headline} <span className={styles.accent}>{headlineAccent}</span>
+                            {t(headline)} <span className={styles.accent}>{t(headlineAccent)}</span>
                         </h2>
 
-                        <p className={styles.sub}>{subheadline}</p>
+                        <p className={styles.sub}>{t(subheadline)}</p>
                     </div>
-                    {showFilters && allCategories.length > 2 && (
+
+                    {showFilters && categories.length > 0 && (
                         <div
                             className={`${styles.filters} ${styles.r}`}
-                            style={{ '--i': 1 } as React.CSSProperties}
+                            style={
+                                {
+                                    '--i': 1,
+                                } as CSSProperties
+                            }
                             role="tablist"
-                            aria-label="Filter website type"
+                            aria-label="Portfolio filters"
                         >
-                            {allCategories.map((cat) => {
-                                const count =
-                                    cat === filterAllText
-                                        ? items.length
-                                        : items.filter((item) => item.category === cat).length;
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={activeFilter === 'all'}
+                                onClick={() => setActiveFilter('all')}
+                                className={`${styles.filterBtn} ${
+                                    activeFilter === 'all' ? styles.filterActive : ''
+                                }`}
+                            >
+                                <span className={styles.filterLabel}>{localizedFilterAllText}</span>
 
-                                const active = activeFilter === cat;
+                                <span className={styles.filterBadge}>{items.length}</span>
+                            </button>
+
+                            {categories.map((category) => {
+                                const count = items.filter(
+                                    (item) => item.category === category,
+                                ).length;
+
+                                const active = activeFilter === category;
 
                                 return (
                                     <button
-                                        key={cat}
+                                        key={category}
+                                        type="button"
                                         role="tab"
                                         aria-selected={active}
-                                        onClick={() => setActiveFilter(cat)}
+                                        onClick={() => setActiveFilter(category)}
                                         className={`${styles.filterBtn} ${
                                             active ? styles.filterActive : ''
                                         }`}
                                     >
-                                        <span className={styles.filterLabel}>{cat}</span>
+                                        <span className={styles.filterLabel}>
+                                            {getCategoryLabel(category, selectedLocale)}
+                                        </span>
 
                                         <span className={styles.filterBadge}>{count}</span>
                                     </button>
@@ -357,84 +532,111 @@ export function PortfolioService01({
                             })}
                         </div>
                     )}
-                    {/* ─── Bottom CTA (mobile-friendly) ─── */}
+
                     {showCta && (
                         <div
                             className={`${styles.bottomCta} ${styles.r}`}
-                            style={{ '--i': 3 } as React.CSSProperties}
+                            style={
+                                {
+                                    '--i': 3,
+                                } as CSSProperties
+                            }
                         >
                             <div className={styles.bottomCtaInner}>
                                 <div className={styles.bottomCtaCopy}>
-                                    <i className="bi bi-stars" />
-                                    <span>{ctaDescription}</span>
+                                    <i className="bi bi-stars" aria-hidden="true" />
+
+                                    <span>{t(ctaDescription)}</span>
                                 </div>
+
                                 <Link href={ctaHref} className={styles.bottomCtaLink}>
-                                    {ctaText}
-                                    <i className="bi bi-arrow-right" />
+                                    {t(ctaText)}
+
+                                    <i className="bi bi-arrow-right" aria-hidden="true" />
                                 </Link>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* ─── Bento grid ─── */}
                 <div
                     className={`${styles.bentoGrid} ${styles.r}`}
-                    style={{ '--i': 2 } as React.CSSProperties}
+                    style={
+                        {
+                            '--i': 2,
+                        } as CSSProperties
+                    }
                 >
-                    {filtered.map((item, idx) => (
+                    {filteredItems.map((item, index) => (
                         <article
                             key={item.id}
                             className={`${styles.cell} ${sizeClass(item)}`}
-                            style={{ '--delay': `${idx * 60}ms` } as React.CSSProperties}
+                            style={
+                                {
+                                    '--delay': `${index * 60}ms`,
+                                } as CSSProperties
+                            }
                             onMouseEnter={() => setHoveredId(item.id)}
                             onMouseLeave={() => setHoveredId(null)}
                         >
-                            {/* Image or placeholder */}
                             <div className={styles.cellMedia}>
-                                {isRealImage(item.imageUrl) ? (
+                                {isValidImageUrl(item.imageUrl) ? (
                                     <Image
                                         src={item.imageUrl}
-                                        alt={item.imageAlt}
+                                        alt={item.imageAlt || item.title}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
                                         className={styles.cellImg}
+                                        unoptimized={isExternalImage(item.imageUrl)}
                                     />
                                 ) : (
                                     <PlaceholderCard category={item.category} title={item.title} />
                                 )}
 
-                                {/* Gradient overlay */}
-                                <div className={styles.overlay} />
+                                <div className={styles.overlay} aria-hidden="true" />
 
-                                {/* Hover reveal overlay */}
                                 <div
-                                    className={`${styles.hoverOverlay} ${hoveredId === item.id ? styles.hoverVisible : ''}`}
+                                    className={`${styles.hoverOverlay} ${
+                                        hoveredId === item.id ? styles.hoverVisible : ''
+                                    }`}
                                 >
                                     <div className={styles.hoverContent}>
                                         <h3 className={styles.hoverTitle}>{item.title}</h3>
+
                                         {item.description && (
                                             <p className={styles.hoverDesc}>{item.description}</p>
                                         )}
+
                                         {item.href && (
                                             <Link href={item.href} className={styles.hoverLink}>
-                                                {detailText}
-                                                <i className="bi bi-arrow-up-right" />
+                                                {t(detailText)}
+
+                                                <i
+                                                    className="bi bi-arrow-up-right"
+                                                    aria-hidden="true"
+                                                />
                                             </Link>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Category badge — always visible */}
                             <div className={styles.badge}>
                                 <i
-                                    className={`bi bi-${PLACEHOLDER_ICONS[item.category] ?? 'circle-fill'}`}
+                                    className={`bi bi-${getPlaceholderConfig(item.category).icon}`}
+                                    aria-hidden="true"
                                 />
-                                {item.category}
+
+                                {getCategoryLabel(item.category, selectedLocale)}
                             </div>
                         </article>
                     ))}
+
+                    {loading && (
+                        <div className={styles.r} aria-live="polite">
+                            Loading portfolio...
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
@@ -442,337 +644,59 @@ export function PortfolioService01({
 }
 
 /* ─────────────────────────────────────────────────
-   Registry
+   Inspector
 ───────────────────────────────────────────────── */
+
+function createLocalizedTextField(
+    key: keyof PortfolioService01Props,
+    label: string,
+    kind: 'localized-text' | 'textarea' = 'localized-text',
+): InspectorField {
+    return {
+        key,
+        label,
+        kind,
+    };
+}
+
+function createTextField(key: keyof PortfolioService01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'text',
+    };
+}
+
+function createCheckField(key: keyof PortfolioService01Props, label: string): InspectorField {
+    return {
+        key,
+        label,
+        kind: 'check',
+    };
+}
+
+function createInspector(): InspectorField[] {
+    return [
+        createLocalizedTextField('eyebrow', 'Eyebrow'),
+        createLocalizedTextField('headline', 'Headline'),
+        createLocalizedTextField('headlineAccent', 'Headline Accent'),
+        createLocalizedTextField('subheadline', 'Subheadline', 'textarea'),
+        createLocalizedTextField('filterAllText', 'Filter All Text'),
+        createLocalizedTextField('detailText', 'Detail Button Text'),
+        createLocalizedTextField('ctaDescription', 'CTA Description', 'textarea'),
+        createLocalizedTextField('ctaText', 'CTA Text'),
+        createTextField('ctaHref', 'CTA Link'),
+        createCheckField('showFilters', 'Show Filter Tabs'),
+        createCheckField('showCta', 'Show CTA'),
+    ];
+}
+
 export const PORTFOLIO_SERVICE_01: RegItem = {
     kind: 'portfolio-service-01',
     label: 'Portfolio Service 01',
-
-    defaults: {
-        eyebrow: 'Website Builder Platform',
-        headline: 'Build Professional Websites',
-        headlineAccent: '10x Faster',
-        subheadline:
-            'Generate beautiful websites with AI, customize every section visually, and publish instantly with your own domain and secure hosting.',
-
-        filterAllText: 'Tất cả',
-        detailText: 'Xem chi tiết',
-
-        ctaDescription: 'Bạn muốn biết thêm về dịch vụ của chúng tôi?',
-        ctaText: 'Start Building',
-        ctaHref: '/services',
-
-        // Item 1
-        item1Image: '/assets/portfolio/landing-01.jpg',
-        item1ImageAlt: 'Modern SaaS Landing Page',
-        item1Category: 'Landing Page',
-        item1Title: 'AI SaaS Platform',
-        item1Description: 'Modern landing page designed to maximize conversions.',
-        item1Href: '#',
-
-        // Item 2
-        item2Image: '/assets/portfolio/blog-01.jpg',
-        item2ImageAlt: 'Technology Blog Website',
-        item2Category: 'Blog',
-        item2Title: 'Tech Insights',
-        item2Description: 'A clean and responsive blog for creators and publishers.',
-        item2Href: '#',
-
-        // Item 3
-        item3Image: '/assets/portfolio/ecommerce-01.jpg',
-        item3ImageAlt: 'Fashion Ecommerce Website',
-        item3Category: 'E-commerce',
-        item3Title: 'Fashion Store',
-        item3Description: 'Complete online store with shopping cart and secure checkout.',
-        item3Href: '#',
-
-        // Item 4
-        item4Image: '/assets/portfolio/booking-01.jpg',
-        item4ImageAlt: 'Hotel Booking Website',
-        item4Category: 'Booking',
-        item4Title: 'Hotel Reservation',
-        item4Description: 'Online booking system with real-time availability.',
-        item4Href: '#',
-
-        // Item 5
-        item5Image: '/assets/portfolio/lms-01.jpg',
-        item5ImageAlt: 'Online Learning Platform',
-        item5Category: 'LMS',
-        item5Title: 'Online Academy',
-        item5Description: 'Learning platform with courses, lessons, and student dashboard.',
-        item5Href: '#',
-
-        // Item 6
-        item6Image: '/assets/portfolio/landing-02.jpg',
-        item6ImageAlt: 'Corporate Business Website',
-        item6Category: 'Business',
-        item6Title: 'Corporate Website',
-        item6Description:
-            'Professional company website with modern branding and responsive design.',
-        item6Href: '#',
-
-        showFilters: true,
-        showCta: true,
-    },
-
-    inspector: [
-        { key: 'eyebrow', label: 'Eyebrow', kind: 'text' },
-        { key: 'headline', label: 'Headline', kind: 'text' },
-        {
-            key: 'headlineAccent',
-            label: 'Headline Accent',
-            kind: 'text',
-        },
-        {
-            key: 'subheadline',
-            label: 'Subheadline',
-            kind: 'textarea',
-        },
-
-        {
-            key: 'filterAllText',
-            label: 'Filter All Text',
-            kind: 'text',
-        },
-        {
-            key: 'detailText',
-            label: 'Detail Button Text',
-            kind: 'text',
-        },
-
-        {
-            key: 'ctaDescription',
-            label: 'CTA Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'ctaText',
-            label: 'CTA Text',
-            kind: 'text',
-        },
-        {
-            key: 'ctaHref',
-            label: 'CTA Link',
-            kind: 'text',
-        },
-
-        // Item 1
-        {
-            key: 'item1Image',
-            label: 'Portfolio 1 Image',
-            kind: 'image',
-            folder: 'services/portfolios',
-            accept: 'image/*',
-        },
-        {
-            key: 'item1ImageAlt',
-            label: 'Portfolio 1 Image Alt',
-            kind: 'text',
-        },
-        {
-            key: 'item1Category',
-            label: 'Portfolio 1 Category',
-            kind: 'text',
-        },
-        {
-            key: 'item1Title',
-            label: 'Portfolio 1 Title',
-            kind: 'text',
-        },
-        {
-            key: 'item1Description',
-            label: 'Portfolio 1 Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'item1Href',
-            label: 'Portfolio 1 Link',
-            kind: 'text',
-        },
-
-        // Item 2
-        {
-            key: 'item2Image',
-            label: 'Portfolio 2 Image',
-            kind: 'image',
-            folder: 'services/portfolios',
-            accept: 'image/*',
-        },
-        {
-            key: 'item2ImageAlt',
-            label: 'Portfolio 2 Image Alt',
-            kind: 'text',
-        },
-        {
-            key: 'item2Category',
-            label: 'Portfolio 2 Category',
-            kind: 'text',
-        },
-        {
-            key: 'item2Title',
-            label: 'Portfolio 2 Title',
-            kind: 'text',
-        },
-        {
-            key: 'item2Description',
-            label: 'Portfolio 2 Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'item2Href',
-            label: 'Portfolio 2 Link',
-            kind: 'text',
-        },
-
-        // Item 3
-        {
-            key: 'item3Image',
-            label: 'Portfolio 3 Image',
-            kind: 'image',
-            folder: 'services/portfolios',
-            accept: 'image/*',
-        },
-        {
-            key: 'item3ImageAlt',
-            label: 'Portfolio 3 Image Alt',
-            kind: 'text',
-        },
-        {
-            key: 'item3Category',
-            label: 'Portfolio 3 Category',
-            kind: 'text',
-        },
-        {
-            key: 'item3Title',
-            label: 'Portfolio 3 Title',
-            kind: 'text',
-        },
-        {
-            key: 'item3Description',
-            label: 'Portfolio 3 Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'item3Href',
-            label: 'Portfolio 3 Link',
-            kind: 'text',
-        },
-
-        // Item 4
-        {
-            key: 'item4Image',
-            label: 'Portfolio 4 Image',
-            kind: 'image',
-            folder: 'services/portfolios',
-            accept: 'image/*',
-        },
-        {
-            key: 'item4ImageAlt',
-            label: 'Portfolio 4 Image Alt',
-            kind: 'text',
-        },
-        {
-            key: 'item4Category',
-            label: 'Portfolio 4 Category',
-            kind: 'text',
-        },
-        {
-            key: 'item4Title',
-            label: 'Portfolio 4 Title',
-            kind: 'text',
-        },
-        {
-            key: 'item4Description',
-            label: 'Portfolio 4 Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'item4Href',
-            label: 'Portfolio 4 Link',
-            kind: 'text',
-        },
-
-        // Item 5
-        {
-            key: 'item5Image',
-            label: 'Portfolio 5 Image',
-            kind: 'image',
-            folder: 'services/portfolios',
-            accept: 'image/*',
-        },
-        {
-            key: 'item5ImageAlt',
-            label: 'Portfolio 5 Image Alt',
-            kind: 'text',
-        },
-        {
-            key: 'item5Category',
-            label: 'Portfolio 5 Category',
-            kind: 'text',
-        },
-        {
-            key: 'item5Title',
-            label: 'Portfolio 5 Title',
-            kind: 'text',
-        },
-        {
-            key: 'item5Description',
-            label: 'Portfolio 5 Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'item5Href',
-            label: 'Portfolio 5 Link',
-            kind: 'text',
-        },
-
-        // Item 6
-        {
-            key: 'item6Image',
-            label: 'Portfolio 6 Image',
-            kind: 'image',
-            folder: 'services/portfolios',
-            accept: 'image/*',
-        },
-        {
-            key: 'item6ImageAlt',
-            label: 'Portfolio 6 Image Alt',
-            kind: 'text',
-        },
-        {
-            key: 'item6Category',
-            label: 'Portfolio 6 Category',
-            kind: 'text',
-        },
-        {
-            key: 'item6Title',
-            label: 'Portfolio 6 Title',
-            kind: 'text',
-        },
-        {
-            key: 'item6Description',
-            label: 'Portfolio 6 Description',
-            kind: 'textarea',
-        },
-        {
-            key: 'item6Href',
-            label: 'Portfolio 6 Link',
-            kind: 'text',
-        },
-
-        {
-            key: 'showFilters',
-            label: 'Show Filter Tabs',
-            kind: 'toggle',
-        },
-        {
-            key: 'showCta',
-            label: 'Show CTA',
-            kind: 'toggle',
-        },
-    ],
-
-    render: (props) => <PortfolioService01 {...(props as unknown as PortfolioService01Props)} />,
+    defaults: DEFAULT_PROPS,
+    inspector: createInspector(),
+    render: (props) => <PortfolioService01 {...(props as PortfolioService01Props)} />,
 };
 
 export default PortfolioService01;

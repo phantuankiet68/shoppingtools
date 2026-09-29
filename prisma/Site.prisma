@@ -168,6 +168,10 @@ model Site {
   payments     Payment[]
   paymentSites PaymentSite[]
 
+  portfolios Portfolio[]
+  projectFeatures ProjectFeature[]
+  testimonials Testimonial[]
+
   @@index([ownerUserId])
   @@index([workspaceId])
   @@index([status])

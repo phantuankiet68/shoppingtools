@@ -238,7 +238,7 @@ export const DEFAULT_PROPS: Required<Blog01Props> = {
         default: '4.9/5',
         translations: { vi: '4.9/5', ja: '4.9/5' },
     },
-    heroImage: '/assets/images/blog/hero.jpg',
+    heroImage: '/assets/images/builder-why-builder.png',
 
     feature1Icon: 'bi-magic',
     feature2Icon: 'bi-grid-3x3-gap-fill',
@@ -659,73 +659,104 @@ export const DEFAULT_PROPS: Required<Blog01Props> = {
 
     reviewerName: {
         sourceLocale: 'en',
-        default: 'Mario Kingston',
-        translations: { vi: 'Mario Kingston', ja: 'Mario Kingston' },
+        default: 'Phan Duy Linh',
+        translations: {
+            vi: 'Phan Duy Linh',
+            ja: 'ファン・ズイ・リン',
+        },
     },
+
     reviewerRole: {
         sourceLocale: 'en',
-        default: 'Travel Creator',
-        translations: { vi: 'Nhà sáng tạo nội dung du lịch', ja: '旅行クリエイター' },
+        default: 'Personal Brand & Digital Creator',
+        translations: {
+            vi: 'Xây dựng thương hiệu cá nhân & Sáng tạo số',
+            ja: 'パーソナルブランド・デジタルクリエイター',
+        },
     },
+
     reviewerVerified: {
         sourceLocale: 'en',
-        default: 'Verified Creator',
-        translations: { vi: 'Nhà sáng tạo đã xác minh', ja: '認証済みクリエイター' },
+        default: 'Professional Profile',
+        translations: {
+            vi: 'Hồ sơ chuyên nghiệp',
+            ja: 'プロフェッショナルプロフィール',
+        },
     },
+
     reviewerQuote: {
         sourceLocale: 'en',
         default:
-            'Kbuilder completely transformed the way I build websites. Everything feels effortless, fast and beautifully designed. I launched my travel blog within a single afternoon.',
+            'I believe a personal website should do more than introduce who you are. It should tell your story, showcase your work and create meaningful opportunities. KBuilder makes it possible to turn that vision into a professional website quickly and beautifully.',
         translations: {
-            vi: 'Kbuilder đã thay đổi hoàn toàn cách tôi xây dựng website. Mọi thứ đều nhanh chóng, đơn giản và được thiết kế rất đẹp. Tôi đã xuất bản blog du lịch của mình chỉ trong một buổi chiều.',
-            ja: 'Kbuilderのおかげでウェブサイト制作の方法が一変しました。すべてが簡単で高速、美しく設計されています。旅行ブログもわずか半日で公開できました。',
+            vi: 'Tôi tin rằng một website cá nhân không chỉ đơn giản là giới thiệu bạn là ai. Đó còn là nơi kể câu chuyện, thể hiện năng lực và mở ra những cơ hội mới. Với KBuilder, tôi có thể biến ý tưởng đó thành một website chuyên nghiệp một cách nhanh chóng và ấn tượng.',
+            ja: '個人サイトは、自分が何者なのかを紹介するだけのものではないと考えています。自分のストーリーや実績を伝え、新しい可能性につなげる場所でもあります。KBuilderなら、その想いをプロフェッショナルで魅力的なウェブサイトとして素早く形にできます。',
         },
     },
+
     reviewButton: {
         sourceLocale: 'en',
-        default: 'Read Full Story',
-        translations: { vi: 'Đọc toàn bộ câu chuyện', ja: 'ストーリー全文を見る' },
+        default: 'Explore My Profile',
+        translations: {
+            vi: 'Khám phá hồ sơ',
+            ja: 'プロフィールを見る',
+        },
     },
 
     community1Title: {
         sourceLocale: 'en',
-        default: 'Lots of Choices',
-        translations: { vi: 'Nhiều lựa chọn', ja: '豊富な選択肢' },
+        default: 'Professional Profile',
+        translations: {
+            vi: 'Hồ sơ chuyên nghiệp',
+            ja: 'プロフェッショナルプロフィール',
+        },
     },
+
     community1Description: {
         sourceLocale: 'en',
-        default: 'Browse hundreds of carefully selected destinations and travel experiences.',
+        default:
+            'Discover my background, skills, experience and professional journey through a clear and modern personal profile.',
         translations: {
-            vi: 'Khám phá hàng trăm điểm đến và trải nghiệm du lịch được tuyển chọn kỹ lưỡng.',
-            ja: '厳選された数百もの旅行先や体験を見つけましょう。',
+            vi: 'Khám phá hành trình, kỹ năng, kinh nghiệm và những giá trị tôi theo đuổi thông qua một hồ sơ cá nhân hiện đại và rõ ràng.',
+            ja: 'これまでの経験やスキル、キャリア、そして大切にしている価値観を、わかりやすくモダンなプロフィールでご紹介します。',
         },
     },
 
     community2Title: {
         sourceLocale: 'en',
-        default: 'Best Tour Guide',
-        translations: { vi: 'Hướng dẫn viên chuyên nghiệp', ja: '最高のツアーガイド' },
+        default: 'Selected Projects',
+        translations: {
+            vi: 'Dự án tiêu biểu',
+            ja: '主なプロジェクト',
+        },
     },
+
     community2Description: {
         sourceLocale: 'en',
-        default: 'Professional local guides help you discover authentic places and stories.',
+        default:
+            'Explore selected projects, creative work and digital experiences that demonstrate my skills and approach to building meaningful products.',
         translations: {
-            vi: 'Những hướng dẫn viên địa phương giàu kinh nghiệm sẽ đưa bạn đến với những địa điểm và câu chuyện chân thực.',
-            ja: '経験豊富な現地ガイドが本物の魅力やストーリーをご案内します。',
+            vi: 'Khám phá những dự án, sản phẩm và trải nghiệm số tiêu biểu thể hiện năng lực, tư duy sáng tạo và cách tôi biến ý tưởng thành sản phẩm thực tế.',
+            ja: 'これまでに手がけたプロジェクトやデジタル作品を通して、スキルや創造力、アイデアを実際のプロダクトへ形にするアプローチをご紹介します。',
         },
     },
 
     community3Title: {
         sourceLocale: 'en',
-        default: 'Easy Booking',
-        translations: { vi: 'Đặt chỗ dễ dàng', ja: '簡単予約' },
+        default: 'Connect & Collaborate',
+        translations: {
+            vi: 'Kết nối & hợp tác',
+            ja: 'つながる・協業する',
+        },
     },
+
     community3Description: {
         sourceLocale: 'en',
-        default: 'Book your next adventure in just a few clicks with instant confirmation.',
+        default:
+            'Interested in working together? Get in touch to discuss projects, ideas, collaborations and new opportunities.',
         translations: {
-            vi: 'Đặt chuyến đi tiếp theo chỉ với vài thao tác và nhận xác nhận ngay lập tức.',
-            ja: '数クリックで次の旅行を予約し、すぐに確認を受け取れます。',
+            vi: 'Bạn đang tìm kiếm cơ hội hợp tác? Hãy kết nối để cùng trao đổi về dự án, ý tưởng, sản phẩm và những cơ hội mới.',
+            ja: 'プロジェクトやアイデア、プロダクト、コラボレーションなどについて、一緒に新しい可能性を探してみませんか。',
         },
     },
 
@@ -1244,539 +1275,456 @@ export function BlogPage01(props: Blog01Props) {
 
     return (
         <>
-            <section className={styles.hero}>
-                <div className={styles.headingSection}>
-                    <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-                        <Link href="/" className={styles.breadcrumbItem}>
-                            {t(breadcrumbHome)}
-                        </Link>
+            <div className={styles.main}>
+                <section className={styles.trekkerSection}>
+                    <div className={styles.trekkerBlurOne} />
+                    <div className={styles.trekkerBlurTwo} />
+                    <div className={styles.trekkerDots} />
 
-                        <i className="bi bi-chevron-right" />
+                    <div className={styles.trekkerShell}>
+                        <div className={styles.trekkerGrid}>
+                            {/* LEFT */}
 
-                        <span className={styles.breadcrumbCurrent}>{t(breadcrumbCurrent)}</span>
-                    </nav>
-                </div>
-
-                <div className={styles.blurOne} />
-                <div className={styles.blurTwo} />
-                <div className={styles.gridBackground} />
-
-                <div className={styles.container}>
-                    <div className={styles.grid}>
-                        <div className={styles.content}>
-                            <a
-                                href="/"
-                                className={`${styles.badge} ${styles.r}`}
-                                style={{ '--i': 0 } as React.CSSProperties}
-                            >
-                                <span className={styles.badgeIcon}>
-                                    <i className="bi bi-stars" />
+                            <div className={styles.trekkerIntro}>
+                                <span className={styles.trekkerBadge}>
+                                    <i className="bi bi-people-fill" />
+                                    {t(trekkerBadge)}
                                 </span>
 
-                                <span>{t(heroBadge)}</span>
-
-                                <i className="bi bi-arrow-right" />
-                            </a>
-
-                            <h1>
-                                {t(heroTitle)}
-                                <span>{t(heroTitleAccent)}</span>
-                            </h1>
-
-                            <p>{t(heroDescription)}</p>
-
-                            <div className={styles.stats}>
-                                {FEATURES.map((item, index) => (
-                                    <div key={index} className={styles.statCard}>
-                                        <div className={styles.statIcon}>
-                                            <span className={styles.iconGlow} />
-                                            <i className={`bi ${item.icon}`} />
-                                        </div>
-
-                                        <strong className={styles.statValue}>
-                                            {t(item.title)}
-                                        </strong>
-
-                                        <span className={styles.statLabel}>
-                                            {t(item.description)}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className={styles.actions}>
-                                <button className={styles.primaryButton}>
-                                    {t(heroPrimaryButton)}
-                                    <i className="bi bi-arrow-right" />
-                                </button>
-
-                                <button className={styles.secondaryButton}>
-                                    <i className="bi bi-play-fill" />
-                                    {t(heroSecondaryButton)}
-                                </button>
-                            </div>
-
-                            <div className={styles.review}>
-                                <div className={styles.avatarGroup}>
-                                    {[1, 2, 3, 4, 5].map((item) => (
-                                        <Image
-                                            key={item}
-                                            src={`/assets/images/avatar-${item}.png`}
-                                            alt=""
-                                            width={46}
-                                            height={46}
-                                        />
-                                    ))}
-                                </div>
-
-                                <div className={styles.reviewContent}>
-                                    <span>{t(heroReviewText)}</span>
-
-                                    <div className={styles.rating}>
-                                        <strong>{t(heroRating)}</strong>
-
-                                        <div>
-                                            {[1, 2, 3, 4, 5].map((item) => (
-                                                <i key={item} className="bi bi-star-fill" />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className={styles.visual}>
-                            <Image
-                                src={heroImage}
-                                alt={t(heroTitle)}
-                                fill
-                                priority
-                                sizes="(max-width:768px)100vw,(max-width:1200px)60vw,50vw"
-                                className={styles.heroImage}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section className={styles.blogSection}>
-                <div className={styles.blogContainer}>
-                    {/* Header */}
-
-                    <div className={styles.teamHero}>
-                        <div className={styles.teamHeroGlow} />
-
-                        <div className={styles.teamHeroLeft}>
-                            <div className={styles.teamHeroIcon}>
-                                <i className="bi bi-stars" />
-                            </div>
-
-                            <div className={styles.teamHeroContent}>
-                                <h2>
-                                    {t(blogSectionTitle)}
-                                    <span>{t(blogSectionTitleAccent)}</span>
+                                <h2 className={styles.trekkerHeading}>
+                                    {t(trekkerTitle)}
+                                    <span>{t(trekkerTitleAccent)}</span>
                                 </h2>
 
-                                <p>{t(blogSectionDescription)}</p>
+                                <p className={styles.trekkerSummary}>{t(trekkerDescription)}</p>
+
+                                <article className={styles.trekkerReview}>
+                                    <div className={styles.trekkerReviewer}>
+                                        <div className={styles.trekkerAvatar}>
+                                            <Image
+                                                src={reviewerAvatar}
+                                                alt={t(reviewerName)}
+                                                width={72}
+                                                height={72}
+                                            />
+                                        </div>
+
+                                        <div className={styles.trekkerIdentity}>
+                                            <h4>{t(reviewerName)}</h4>
+                                            <span>{t(reviewerRole)}</span>
+                                        </div>
+
+                                        <div className={styles.trekkerStar}>
+                                            <div className={styles.trekkerVerified}>
+                                                <i className="bi bi-patch-check-fill" />
+                                                {t(reviewerVerified)}
+                                            </div>
+
+                                            <div className={styles.trekkerStars}>
+                                                {[1, 2, 3, 4, 5].map((item) => (
+                                                    <i key={item} className="bi bi-star-fill" />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <blockquote className={styles.trekkerQuote}>
+                                        <i className="bi bi-quote" />
+
+                                        <p>{t(reviewerQuote)}</p>
+                                    </blockquote>
+
+                                    <div className={styles.gridStatus}>
+                                        {COMMUNITIES.map((item, index) => (
+                                            <article
+                                                key={index}
+                                                className={`${styles.card} ${
+                                                    item.featured ? styles.featured : ''
+                                                }`}
+                                            >
+                                                <div className={styles.icon}>
+                                                    <i className={`bi ${item.icon}`} />
+                                                </div>
+
+                                                <h3>{t(item.title)}</h3>
+
+                                                <p>{t(item.description)}</p>
+                                            </article>
+                                        ))}
+                                    </div>
+                                </article>
+                            </div>
+
+                            <div className={styles.trekkerVisual}>
+                                <article className={styles.trekkerJourney}>
+                                    <div className={styles.trekkerJourneyMedia}>
+                                        <Image
+                                            src={travelVideoImage}
+                                            alt={t(travelVideoTitle)}
+                                            fill
+                                            sizes="(max-width:768px)100vw,(max-width:1200px)50vw,420px"
+                                            className={styles.trekkerJourneyImage}
+                                        />
+
+                                        <div className={styles.trekkerJourneyMask} />
+
+                                        <button className={styles.trekkerPlayButton}>
+                                            <i className="bi bi-play-fill" />
+                                        </button>
+
+                                        <div className={styles.trekkerDuration}>
+                                            <i className="bi bi-camera-video-fill" />
+                                            {t(travelVideoDuration)}
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.trekkerJourneyContent}>
+                                        <span className={styles.trekkerJourneyBadge}>
+                                            <i className="bi bi-film" />
+                                            {t(travelVideoBadge)}
+                                        </span>
+
+                                        <h3 className={styles.trekkerJourneyTitle}>
+                                            {t(travelVideoTitle)}
+                                        </h3>
+
+                                        <p className={styles.trekkerJourneyDescription}>
+                                            {t(travelVideoDescription)}
+                                        </p>
+
+                                        <div className={styles.trekkerJourneyFooter}>
+                                            <div className={styles.trekkerJourneyStats}>
+                                                <div className={styles.trekkerJourneyStat}>
+                                                    <strong>{t(travelViews)}</strong>
+                                                    <span>{t(travelViewsLabel)}</span>
+                                                </div>
+                                                <div className={styles.trekkerJourneyDivider} />
+                                                <div className={styles.trekkerJourneyStat}>
+                                                    <strong>{t(travelRating)}</strong>
+                                                    <span>{t(travelRatingLabel)}</span>
+                                                </div>
+                                                <div className={styles.trekkerJourneyDivider} />
+                                                <div className={styles.trekkerJourneyStat}>
+                                                    <strong>{t(travelComments)}</strong>
+                                                    <span>{t(travelCommentsLabel)}</span>
+                                                </div>
+                                            </div>
+
+                                            <a href="#" className={styles.trekkerJourneyButton}>
+                                                {t(travelButton)}
+                                                <i className="bi bi-arrow-up-right" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </article>
+                                <section className={styles.offer}>
+                                    <div className={styles.glow} />
+                                    <div className={styles.glowBlue} />
+
+                                    <div className={styles.content}>
+                                        <div className={styles.badge}>
+                                            <i className="bi bi-lightning-charge-fill" />
+                                            <span>Ưu đãi có hạn</span>
+                                        </div>
+
+                                        <h2 className={styles.title}>
+                                            <span>5 tài khoản đầu tiên</span>
+                                            <strong>Sử dụng miễn phí!</strong>
+                                        </h2>
+
+                                        <p className={styles.description}>
+                                            Trải nghiệm toàn bộ tính năng KBuilder hoàn toàn miễn
+                                            phí cho 5 tài khoản đăng ký mới đầu tiên.
+                                        </p>
+
+                                        <div className={styles.bottom}>
+                                            <button type="button" className={styles.button}>
+                                                <span>Đăng ký ngay</span>
+                                                <i className="bi bi-arrow-up-right" />
+                                            </button>
+
+                                            <div className={styles.urgency}>
+                                                <i className="bi bi-clock" />
+                                                <span>Chỉ còn 5 suất</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.visual}>
+                                        <div className={styles.confettiOne} />
+                                        <div className={styles.confettiTwo} />
+                                        <div className={styles.confettiThree} />
+
+                                        <div className={styles.limitBadge}>
+                                            <span>Chỉ</span>
+                                            <strong>5</strong>
+                                            <small>suất</small>
+                                        </div>
+
+                                        <div className={styles.gift}>
+                                            <div className={styles.giftBody}>
+                                                <div className={styles.ribbonVertical} />
+                                                <div className={styles.ribbonHorizontal} />
+                                            </div>
+
+                                            <div className={styles.giftLid}>
+                                                <div className={styles.lidRibbon} />
+                                            </div>
+
+                                            <div className={styles.bow}>
+                                                <span className={styles.bowLeft} />
+                                                <span className={styles.bowRight} />
+                                                <span className={styles.bowCenter} />
+                                            </div>
+
+                                            <div className={styles.freeTag}>FREE</div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section className={styles.storySphere}>
+                    <div className={styles.storyGlowLeft} />
+                    <div className={styles.storyGlowRight} />
+
+                    <div className={styles.storyShell}>
+                        <div className={styles.teamHero}>
+                            <div className={styles.teamHeroGlow} />
+
+                            <div className={styles.teamHeroLeft}>
+                                <div className={styles.teamHeroIcon}>
+                                    <i className="bi bi-stars" />
+                                </div>
+
+                                <div className={styles.teamHeroContent}>
+                                    <h2>
+                                        {t(storyTitle)}
+                                        <span>{t(storyTitleAccent)}</span>
+                                    </h2>
+
+                                    <p>{t(storyDescription)}</p>
+                                </div>
+                            </div>
+
+                            <div className={styles.teamHeroBadge}>
+                                {t(storyActionText)}
+                                <i className="bi bi-arrow-right" />
                             </div>
                         </div>
 
-                        <div className={styles.teamHeroBadge}>
-                            {t(blogActionButton)} <i className="bi bi-arrow-right" />
-                        </div>
-                    </div>
-
-                    {/* Blog List */}
-
-                    <div className={styles.blogGrid}>
-                        {BLOGS.map((blog) => (
-                            <article key={blog.id} className={styles.blogCard}>
-                                {/* Cover */}
-
-                                <div className={styles.blogCover}>
+                        <div className={styles.storyShowcase}>
+                            <article className={styles.storyFeatureCard}>
+                                <div className={styles.storyMedia}>
                                     <Image
-                                        src={blog.image}
-                                        alt={t(blog.title)}
+                                        src={featuredImage}
+                                        alt={t(featuredTitle)}
                                         fill
-                                        sizes="100vw, (min-width:768px) 50vw, (min-width:1200px) 33vw"
-                                        className={styles.blogCoverImage}
+                                        priority
+                                        sizes="(max-width:768px)100vw,(max-width:1200px)60vw,50vw"
+                                        className={styles.heroImage}
                                     />
 
-                                    <button className={styles.blogBookmark}>
+                                    <span className={styles.storyFeatureBadge}>
+                                        {t(featuredBadge)}
+                                    </span>
+
+                                    <button className={styles.storyBookmark}>
                                         <i className="bi bi-bookmark" />
                                     </button>
                                 </div>
 
-                                {/* Content */}
+                                <div className={styles.storyBody}>
+                                    <span className={styles.storyCategory}>
+                                        <i className={`bi ${featuredCategoryIcon}`} />
+                                        {t(featuredCategory)}
+                                    </span>
 
-                                <div className={styles.blogContent}>
-                                    <div className={styles.blogMeta}>
-                                        <span className={styles.blogCategory}>
-                                            {t(blog.category)}
-                                        </span>
+                                    <h3 className={styles.storyHeading}>{t(featuredTitle)}</h3>
 
-                                        <span className={styles.blogDate}>
+                                    <div className={styles.storyMeta}>
+                                        <div className={styles.storyMetaItem}>
                                             <i className="bi bi-calendar3" />
-                                            {t(blog.date)}
-                                        </span>
-                                    </div>
-
-                                    <h3 className={styles.blogCardTitle}>{t(blog.title)}</h3>
-
-                                    <p className={styles.blogExcerpt}>{t(blog.description)}</p>
-
-                                    <div className={styles.blogCardFooter}>
-                                        <div className={styles.blogAuthor}>
-                                            <Image
-                                                src={blog.avatar}
-                                                alt={t(blog.author)}
-                                                width={48}
-                                                height={48}
-                                            />
-
-                                            <div className={styles.blogAuthorInfo}>
-                                                <strong>{t(blog.author)}</strong>
-
-                                                <span>{t(blog.role)}</span>
-                                            </div>
+                                            {t(featuredDate)}
                                         </div>
 
-                                        <button className={styles.blogArrowButton}>
-                                            <i className="bi bi-arrow-right" />
-                                        </button>
+                                        <span className={styles.storyDot} />
+
+                                        <div className={styles.storyMetaItem}>
+                                            <i className="bi bi-clock" />
+                                            {t(featuredReadTime)}
+                                        </div>
                                     </div>
+
+                                    <p className={styles.storyExcerpt}>{t(featuredDescription)}</p>
+
+                                    <a href="#" className={styles.storyReadMore}>
+                                        {t(featuredButton)}
+                                        <i className="bi bi-arrow-right" />
+                                    </a>
                                 </div>
                             </article>
-                        ))}
-                    </div>
 
-                    {/* Pagination */}
+                            <div className={styles.storySideList}>
+                                {STORIES.map((story, index) => (
+                                    <article key={index} className={styles.storyMiniCard}>
+                                        <div className={styles.storyMiniThumb}>
+                                            <Image
+                                                src={story.image}
+                                                alt={t(story.title)}
+                                                fill
+                                                sizes="(max-width:768px)100vw,220px"
+                                                className={styles.storyMiniImage}
+                                            />
+                                        </div>
 
-                    <div className={styles.blogPagination}>
-                        <span className={styles.blogPaginationActive} />
-                        <span />
-                        <span />
-                        <span />
-                    </div>
-                </div>
-            </section>
-            <section className={styles.storySphere}>
-                <div className={styles.storyGlowLeft} />
-                <div className={styles.storyGlowRight} />
+                                        <div className={styles.storyMiniContent}>
+                                            <span className={styles.storyMiniCategory}>
+                                                <i className={`bi ${story.categoryIcon}`} />
+                                                {t(story.category)}
+                                            </span>
 
-                <div className={styles.storyShell}>
-                    <div className={styles.teamHero}>
-                        <div className={styles.teamHeroGlow} />
+                                            <h4 className={styles.storyMiniTitle}>
+                                                {t(story.title)}
+                                            </h4>
 
-                        <div className={styles.teamHeroLeft}>
-                            <div className={styles.teamHeroIcon}>
-                                <i className="bi bi-stars" />
+                                            <p className={styles.storyMiniDescription}>
+                                                {t(story.description)}
+                                            </p>
+
+                                            <div className={styles.storyMiniMeta}>
+                                                <div className={styles.storyMiniMetaItem}>
+                                                    <i className="bi bi-calendar3" />
+                                                    {t(story.date)}
+                                                </div>
+
+                                                <span className={styles.storyMiniDot} />
+
+                                                <div className={styles.storyMiniMetaItem}>
+                                                    <i className="bi bi-clock" />
+                                                    {t(story.readTime)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
                             </div>
 
-                            <div className={styles.teamHeroContent}>
-                                <h2>
-                                    {t(storyTitle)}
-                                    <span>{t(storyTitleAccent)}</span>
-                                </h2>
-
-                                <p>{t(storyDescription)}</p>
-                            </div>
-                        </div>
-
-                        <div className={styles.teamHeroBadge}>
-                            {t(storyActionText)}
-                            <i className="bi bi-arrow-right" />
-                        </div>
-                    </div>
-
-                    <div className={styles.storyShowcase}>
-                        <article className={styles.storyFeatureCard}>
-                            <div className={styles.storyMedia}>
-                                <Image
-                                    src={featuredImage}
-                                    alt={t(featuredTitle)}
-                                    fill
-                                    priority
-                                    sizes="(max-width:768px)100vw,(max-width:1200px)60vw,50vw"
-                                    className={styles.heroImage}
+                            <div className={styles.storyPager}>
+                                <span
+                                    className={`${styles.storyPagerItem} ${styles.storyPagerActive}`}
                                 />
-
-                                <span className={styles.storyFeatureBadge}>{t(featuredBadge)}</span>
-
-                                <button className={styles.storyBookmark}>
-                                    <i className="bi bi-bookmark" />
-                                </button>
+                                <span className={styles.storyPagerItem} />
+                                <span className={styles.storyPagerItem} />
+                                <span className={styles.storyPagerItem} />
+                                <span className={styles.storyPagerItem} />
                             </div>
+                        </div>
+                    </div>
+                </section>
+                <section className={styles.blogSection}>
+                    <div className={styles.blogContainer}>
+                        {/* Header */}
 
-                            <div className={styles.storyBody}>
-                                <span className={styles.storyCategory}>
-                                    <i className={`bi ${featuredCategoryIcon}`} />
-                                    {t(featuredCategory)}
-                                </span>
+                        <div className={styles.teamHero}>
+                            <div className={styles.teamHeroGlow} />
 
-                                <h3 className={styles.storyHeading}>{t(featuredTitle)}</h3>
-
-                                <div className={styles.storyMeta}>
-                                    <div className={styles.storyMetaItem}>
-                                        <i className="bi bi-calendar3" />
-                                        {t(featuredDate)}
-                                    </div>
-
-                                    <span className={styles.storyDot} />
-
-                                    <div className={styles.storyMetaItem}>
-                                        <i className="bi bi-clock" />
-                                        {t(featuredReadTime)}
-                                    </div>
+                            <div className={styles.teamHeroLeft}>
+                                <div className={styles.teamHeroIcon}>
+                                    <i className="bi bi-stars" />
                                 </div>
 
-                                <p className={styles.storyExcerpt}>{t(featuredDescription)}</p>
+                                <div className={styles.teamHeroContent}>
+                                    <h2>
+                                        {t(blogSectionTitle)}
+                                        <span>{t(blogSectionTitleAccent)}</span>
+                                    </h2>
 
-                                <a href="#" className={styles.storyReadMore}>
-                                    {t(featuredButton)}
-                                    <i className="bi bi-arrow-right" />
-                                </a>
+                                    <p>{t(blogSectionDescription)}</p>
+                                </div>
                             </div>
-                        </article>
 
-                        <div className={styles.storySideList}>
-                            {STORIES.map((story, index) => (
-                                <article key={index} className={styles.storyMiniCard}>
-                                    <div className={styles.storyMiniThumb}>
+                            <div className={styles.teamHeroBadge}>
+                                {t(blogActionButton)} <i className="bi bi-arrow-right" />
+                            </div>
+                        </div>
+
+                        {/* Blog List */}
+
+                        <div className={styles.blogGrid}>
+                            {BLOGS.map((blog) => (
+                                <article key={blog.id} className={styles.blogCard}>
+                                    {/* Cover */}
+
+                                    <div className={styles.blogCover}>
                                         <Image
-                                            src={story.image}
-                                            alt={t(story.title)}
+                                            src={blog.image}
+                                            alt={t(blog.title)}
                                             fill
-                                            sizes="(max-width:768px)100vw,220px"
-                                            className={styles.storyMiniImage}
+                                            sizes="100vw, (min-width:768px) 50vw, (min-width:1200px) 33vw"
+                                            className={styles.blogCoverImage}
                                         />
+
+                                        <button className={styles.blogBookmark}>
+                                            <i className="bi bi-bookmark" />
+                                        </button>
                                     </div>
 
-                                    <div className={styles.storyMiniContent}>
-                                        <span className={styles.storyMiniCategory}>
-                                            <i className={`bi ${story.categoryIcon}`} />
-                                            {t(story.category)}
-                                        </span>
+                                    {/* Content */}
 
-                                        <h4 className={styles.storyMiniTitle}>{t(story.title)}</h4>
+                                    <div className={styles.blogContent}>
+                                        <div className={styles.blogMeta}>
+                                            <span className={styles.blogCategory}>
+                                                {t(blog.category)}
+                                            </span>
 
-                                        <p className={styles.storyMiniDescription}>
-                                            {t(story.description)}
-                                        </p>
-
-                                        <div className={styles.storyMiniMeta}>
-                                            <div className={styles.storyMiniMetaItem}>
+                                            <span className={styles.blogDate}>
                                                 <i className="bi bi-calendar3" />
-                                                {t(story.date)}
+                                                {t(blog.date)}
+                                            </span>
+                                        </div>
+
+                                        <h3 className={styles.blogCardTitle}>{t(blog.title)}</h3>
+
+                                        <p className={styles.blogExcerpt}>{t(blog.description)}</p>
+
+                                        <div className={styles.blogCardFooter}>
+                                            <div className={styles.blogAuthor}>
+                                                <Image
+                                                    src={blog.avatar}
+                                                    alt={t(blog.author)}
+                                                    width={48}
+                                                    height={48}
+                                                />
+
+                                                <div className={styles.blogAuthorInfo}>
+                                                    <strong>{t(blog.author)}</strong>
+
+                                                    <span>{t(blog.role)}</span>
+                                                </div>
                                             </div>
 
-                                            <span className={styles.storyMiniDot} />
-
-                                            <div className={styles.storyMiniMetaItem}>
-                                                <i className="bi bi-clock" />
-                                                {t(story.readTime)}
-                                            </div>
+                                            <button className={styles.blogArrowButton}>
+                                                <i className="bi bi-arrow-right" />
+                                            </button>
                                         </div>
                                     </div>
                                 </article>
                             ))}
                         </div>
 
-                        <div className={styles.storyPager}>
-                            <span
-                                className={`${styles.storyPagerItem} ${styles.storyPagerActive}`}
-                            />
-                            <span className={styles.storyPagerItem} />
-                            <span className={styles.storyPagerItem} />
-                            <span className={styles.storyPagerItem} />
-                            <span className={styles.storyPagerItem} />
+                        {/* Pagination */}
+
+                        <div className={styles.blogPagination}>
+                            <span className={styles.blogPaginationActive} />
+                            <span />
+                            <span />
+                            <span />
                         </div>
                     </div>
-                </div>
-            </section>
-            <section className={styles.trekkerSection}>
-                <div className={styles.trekkerBlurOne} />
-                <div className={styles.trekkerBlurTwo} />
-                <div className={styles.trekkerDots} />
-
-                <div className={styles.trekkerShell}>
-                    <div className={styles.trekkerGrid}>
-                        {/* LEFT */}
-
-                        <div className={styles.trekkerIntro}>
-                            <span className={styles.trekkerBadge}>
-                                <i className="bi bi-people-fill" />
-                                {t(trekkerBadge)}
-                            </span>
-
-                            <h2 className={styles.trekkerHeading}>
-                                {t(trekkerTitle)}
-                                <span>{t(trekkerTitleAccent)}</span>
-                            </h2>
-
-                            <p className={styles.trekkerSummary}>{t(trekkerDescription)}</p>
-
-                            <article className={styles.trekkerReview}>
-                                <div className={styles.trekkerReviewer}>
-                                    <div className={styles.trekkerAvatar}>
-                                        <Image
-                                            src={reviewerAvatar}
-                                            alt={t(reviewerName)}
-                                            width={72}
-                                            height={72}
-                                        />
-                                    </div>
-
-                                    <div className={styles.trekkerIdentity}>
-                                        <h4>{t(reviewerName)}</h4>
-                                        <span>{t(reviewerRole)}</span>
-                                    </div>
-
-                                    <div className={styles.trekkerStar}>
-                                        <div className={styles.trekkerVerified}>
-                                            <i className="bi bi-patch-check-fill" />
-                                            {t(reviewerVerified)}
-                                        </div>
-
-                                        <div className={styles.trekkerStars}>
-                                            {[1, 2, 3, 4, 5].map((item) => (
-                                                <i key={item} className="bi bi-star-fill" />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <blockquote className={styles.trekkerQuote}>
-                                    <i className="bi bi-quote" />
-
-                                    <p>{t(reviewerQuote)}</p>
-                                </blockquote>
-
-                                <div className={styles.trekkerActions}>
-                                    <a href="#">{t(reviewButton)}</a>
-
-                                    <button className={styles.trekkerFavorite}>
-                                        <i className="bi bi-heart" />
-                                    </button>
-                                </div>
-
-                                <div className={styles.gridStatus}>
-                                    {COMMUNITIES.map((item, index) => (
-                                        <article
-                                            key={index}
-                                            className={`${styles.card} ${
-                                                item.featured ? styles.featured : ''
-                                            }`}
-                                        >
-                                            <div className={styles.icon}>
-                                                <i className={`bi ${item.icon}`} />
-                                            </div>
-
-                                            <h3>{t(item.title)}</h3>
-
-                                            <p>{t(item.description)}</p>
-                                        </article>
-                                    ))}
-                                </div>
-                            </article>
-                        </div>
-
-                        <div className={styles.trekkerVisual}>
-                            <div className={styles.trekkerHeroCard}>
-                                <Image
-                                    src={travelHeroImage}
-                                    alt={t(travelHeroTitle)}
-                                    fill
-                                    sizes="(max-width:768px)100vw,(max-width:1200px)50vw,560px"
-                                    className={styles.trekkerHeroImage}
-                                />
-
-                                <div className={styles.trekkerOverlay} />
-
-                                <div className={styles.trekkerFloating}>
-                                    <div className={styles.trekkerFloatingIcon}>
-                                        <i className="bi bi-people-fill" />
-                                    </div>
-
-                                    <div>
-                                        <h5>{t(travelHeroTitle)}</h5>
-                                        <span>{t(travelHeroStories)}</span>
-                                    </div>
-                                </div>
-
-                                <div className={styles.trekkerLocation}>
-                                    <i className="bi bi-geo-alt-fill" />
-                                    {t(travelHeroLocation)}
-                                </div>
-
-                                <button className={styles.trekkerBookmark}>
-                                    <i className="bi bi-bookmark-heart-fill" />
-                                </button>
-                            </div>
-                            <article className={styles.trekkerJourney}>
-                                <div className={styles.trekkerJourneyMedia}>
-                                    <Image
-                                        src={travelVideoImage}
-                                        alt={t(travelVideoTitle)}
-                                        fill
-                                        sizes="(max-width:768px)100vw,(max-width:1200px)50vw,420px"
-                                        className={styles.trekkerJourneyImage}
-                                    />
-
-                                    <div className={styles.trekkerJourneyMask} />
-
-                                    <button className={styles.trekkerPlayButton}>
-                                        <i className="bi bi-play-fill" />
-                                    </button>
-
-                                    <div className={styles.trekkerDuration}>
-                                        <i className="bi bi-camera-video-fill" />
-                                        {t(travelVideoDuration)}
-                                    </div>
-                                </div>
-
-                                <div className={styles.trekkerJourneyContent}>
-                                    <span className={styles.trekkerJourneyBadge}>
-                                        <i className="bi bi-film" />
-                                        {t(travelVideoBadge)}
-                                    </span>
-
-                                    <h3 className={styles.trekkerJourneyTitle}>
-                                        {t(travelVideoTitle)}
-                                    </h3>
-
-                                    <p className={styles.trekkerJourneyDescription}>
-                                        {t(travelVideoDescription)}
-                                    </p>
-
-                                    <div className={styles.trekkerJourneyFooter}>
-                                        <div className={styles.trekkerJourneyStats}>
-                                            <div className={styles.trekkerJourneyStat}>
-                                                <strong>{t(travelViews)}</strong>
-                                                <span>{t(travelViewsLabel)}</span>
-                                            </div>
-                                            <div className={styles.trekkerJourneyDivider} />
-                                            <div className={styles.trekkerJourneyStat}>
-                                                <strong>{t(travelRating)}</strong>
-                                                <span>{t(travelRatingLabel)}</span>
-                                            </div>
-                                            <div className={styles.trekkerJourneyDivider} />
-                                            <div className={styles.trekkerJourneyStat}>
-                                                <strong>{t(travelComments)}</strong>
-                                                <span>{t(travelCommentsLabel)}</span>
-                                            </div>
-                                        </div>
-
-                                        <a href="#" className={styles.trekkerJourneyButton}>
-                                            {t(travelButton)}
-                                            <i className="bi bi-arrow-up-right" />
-                                        </a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </>
     );
 }

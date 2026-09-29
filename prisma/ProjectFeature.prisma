@@ -1,0 +1,77 @@
+enum ProjectFeatureStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProjectFeatureCategory {
+  WEBSITE_BUILDER
+  SAAS
+  ECOMMERCE
+  MOBILE_APP
+  AI
+  DESIGN
+  DEVELOPMENT
+  OTHER
+}
+
+model ProjectFeature {
+  id            String                 @id @default(cuid())
+  siteId        String                 @map("site_id")
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  slug          String
+  status        ProjectFeatureStatus   @default(DRAFT)
+  category      ProjectFeatureCategory @default(OTHER)
+  logo          String?
+  thumbnail     String?
+  version       String?
+  license       String?
+  developer     String?
+  releaseDate   DateTime?              @map("release_date")
+  lastUpdatedAt DateTime?              @map("last_updated_at")
+  translations  Json
+  tags          Json
+  stats         Json
+  capabilities  Json
+  documents     Json
+  reviews       Json
+  support       Json
+  community     Json
+  actionUrl     String?                @map("action_url")
+  documentUrl   String?                @map("document_url")
+  contactUrl    String?                @map("contact_url")
+  communityUrl  String?                @map("community_url")
+  sortOrder     Int                    @default(0) @map("sort_order")
+  isFeatured    Boolean                @default(false) @map("is_featured")
+  viewCount     Int                    @default(0) @map("view_count")
+  favoriteCount Int                    @default(0) @map("favorite_count")
+  shareCount    Int                    @default(0) @map("share_count")
+  publishedAt   DateTime?              @map("published_at")
+  images        ProjectFeatureImage[]
+  createdAt     DateTime               @default(now()) @map("created_at")
+  updatedAt     DateTime               @updatedAt @map("updated_at")
+  @@unique([siteId, slug])
+  @@index([siteId])
+  @@index([status])
+  @@index([category])
+  @@index([sortOrder])
+  @@index([isFeatured])
+  @@map("project_features")
+}
+
+model ProjectFeatureImage {
+  id          String         @id @default(cuid())
+  featureId   String         @map("feature_id")
+  feature ProjectFeature @relation(fields: [featureId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  image       String
+  thumbnail   String?
+  alt         Json?
+  caption     Json?
+  sortOrder   Int            @default(0) @map("sort_order")
+  isPrimary   Boolean        @default(false) @map("is_primary")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  @@index([featureId])
+  @@index([sortOrder])
+  @@map("project_feature_images")
+}

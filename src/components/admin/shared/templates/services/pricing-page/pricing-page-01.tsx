@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 
 import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
@@ -17,7 +16,24 @@ type Tone = 'green' | 'blue' | 'purple' | 'orange';
 
 type BillingType = 'monthly' | 'yearly';
 
-type ComparisonValue = string | boolean;
+type ComparisonValue = LocalizedText | number | boolean;
+
+type HeroTrustItem = { id: string; label: LocalizedText };
+
+type PricingUi = {
+    heroTrust: HeroTrustItem[];
+    visualSaving: LocalizedText;
+    visualBuild: LocalizedText;
+    visualBetter: LocalizedText;
+    visualTogether: LocalizedText;
+    platformHighlightsLabel: LocalizedText;
+    billingAriaLabel: LocalizedText;
+    popularLabel: LocalizedText;
+    contactPriceLabel: LocalizedText;
+    comingSoonLabel: LocalizedText;
+    yearLabel: LocalizedText;
+    monthLabel: LocalizedText;
+};
 
 type ButtonProps = {
     label: LocalizedText;
@@ -74,9 +90,9 @@ type ComparisonRow = {
     label: LocalizedText;
     icon?: string;
     highlight?: 'primary' | 'success';
-    free: ComparisonValue;
     starter: ComparisonValue;
-    pro: ComparisonValue;
+    professional: ComparisonValue;
+    business: ComparisonValue;
     enterprise: ComparisonValue;
 };
 
@@ -110,6 +126,14 @@ type ContactBox = {
     button: ButtonProps;
 };
 
+type TrustStat = {
+    id: string;
+    value: string;
+    label: LocalizedText;
+    icon: string;
+    tone: Tone;
+};
+
 export interface PricingPage01Props {
     breadcrumbHome?: LocalizedText;
     breadcrumbHomeHref?: string;
@@ -123,6 +147,7 @@ export interface PricingPage01Props {
         defaultType: BillingType;
     };
     pricingPlans?: PricingPlan[];
+    trustStats?: TrustStat[];
     comparison?: SectionHeading;
     compareFeatureTitle?: LocalizedText;
     comparePopularLabel?: LocalizedText;
@@ -137,6 +162,7 @@ export interface PricingPage01Props {
         description: LocalizedText;
         button: ButtonProps;
     };
+    ui?: PricingUi;
 }
 
 export const DEFAULT_PROPS: Required<PricingPage01Props> = {
@@ -249,6 +275,97 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
         },
 
         defaultType: 'monthly',
+    },
+
+    ui: {
+        heroTrust: [
+            {
+                id: 'trial',
+                label: {
+                    sourceLocale: 'en',
+                    default: 'Free 14-day trial',
+                    translations: { vi: 'Dùng thử miễn phí 14 ngày', ja: '14日間無料トライアル' },
+                },
+            },
+            {
+                id: 'card',
+                label: {
+                    sourceLocale: 'en',
+                    default: 'No credit card required',
+                    translations: { vi: 'Không cần thẻ tín dụng', ja: 'クレジットカード不要' },
+                },
+            },
+            {
+                id: 'support',
+                label: {
+                    sourceLocale: 'en',
+                    default: '24/7 support',
+                    translations: { vi: 'Hỗ trợ 24/7', ja: '24時間365日サポート' },
+                },
+            },
+            {
+                id: 'businesses',
+                label: {
+                    sourceLocale: 'en',
+                    default: 'Trusted by 2,000+ businesses',
+                    translations: {
+                        vi: 'Hơn 2.000+ doanh nghiệp tin dùng',
+                        ja: '2,000社以上の企業に利用されています',
+                    },
+                },
+            },
+        ],
+        visualSaving: {
+            sourceLocale: 'en',
+            default: 'Save up to 20%',
+            translations: { vi: 'Tiết kiệm đến 20%', ja: '最大20%お得' },
+        },
+        visualBuild: {
+            sourceLocale: 'en',
+            default: 'Build',
+            translations: { vi: 'Xây dựng', ja: 'Build' },
+        },
+        visualBetter: {
+            sourceLocale: 'en',
+            default: 'Better',
+            translations: { vi: 'Tốt hơn', ja: 'Better' },
+        },
+        visualTogether: {
+            sourceLocale: 'en',
+            default: 'Together',
+            translations: { vi: 'Cùng nhau', ja: 'Together' },
+        },
+        platformHighlightsLabel: {
+            sourceLocale: 'en',
+            default: 'Platform highlights',
+            translations: { vi: 'Điểm nổi bật của nền tảng', ja: 'プラットフォームの特徴' },
+        },
+        billingAriaLabel: {
+            sourceLocale: 'en',
+            default: 'Change billing period',
+            translations: { vi: 'Thay đổi chu kỳ thanh toán', ja: '請求期間を変更' },
+        },
+        popularLabel: {
+            sourceLocale: 'en',
+            default: 'Most Popular',
+            translations: { vi: 'Phổ biến nhất', ja: '人気プラン' },
+        },
+        contactPriceLabel: {
+            sourceLocale: 'en',
+            default: 'Contact Us',
+            translations: { vi: 'Liên hệ', ja: 'お問い合わせ' },
+        },
+        comingSoonLabel: {
+            sourceLocale: 'en',
+            default: 'Pricing coming soon',
+            translations: { vi: 'Bảng giá sắp ra mắt', ja: '料金は近日公開' },
+        },
+        yearLabel: { sourceLocale: 'en', default: 'year', translations: { vi: 'năm', ja: '年' } },
+        monthLabel: {
+            sourceLocale: 'en',
+            default: 'month',
+            translations: { vi: 'tháng', ja: '月' },
+        },
     },
 
     /* ==========================================================
@@ -749,6 +866,65 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
         },
     ],
 
+    trustStats: [
+        {
+            id: 'businesses',
+            value: '2,000+',
+            label: {
+                sourceLocale: 'en',
+                default: 'Businesses using Kbuilder',
+                translations: {
+                    vi: 'Doanh nghiệp tin dùng',
+                    ja: '導入企業数',
+                },
+            },
+            icon: 'bi bi-buildings',
+            tone: 'purple',
+        },
+        {
+            id: 'templates',
+            value: '300+',
+            label: {
+                sourceLocale: 'en',
+                default: 'Premium templates',
+                translations: {
+                    vi: 'Template chuyên nghiệp',
+                    ja: 'プロテンプレート',
+                },
+            },
+            icon: 'bi bi-window-stack',
+            tone: 'blue',
+        },
+        {
+            id: 'uptime',
+            value: '99.9%',
+            label: {
+                sourceLocale: 'en',
+                default: 'Platform uptime',
+                translations: {
+                    vi: 'Thời gian hoạt động',
+                    ja: '稼働率',
+                },
+            },
+            icon: 'bi bi-speedometer2',
+            tone: 'blue',
+        },
+        {
+            id: 'support',
+            value: '24/7',
+            label: {
+                sourceLocale: 'en',
+                default: 'Customer support',
+                translations: {
+                    vi: 'Hỗ trợ khách hàng',
+                    ja: 'カスタマーサポート',
+                },
+            },
+            icon: 'bi bi-headset',
+            tone: 'purple',
+        },
+    ],
+
     /* ==========================================================
        Comparison
     ========================================================== */
@@ -946,10 +1122,14 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: '1',
-                    starter: '5',
-                    pro: '15',
-                    enterprise: 'Unlimited',
+                    starter: 1,
+                    professional: 5,
+                    business: 15,
+                    enterprise: {
+                        sourceLocale: 'en',
+                        default: 'Unlimited',
+                        translations: { vi: 'Không giới hạn', ja: '無制限' },
+                    },
                 },
 
                 {
@@ -966,9 +1146,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
 
                     highlight: 'primary',
 
-                    free: true,
                     starter: true,
-                    pro: true,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
 
@@ -984,9 +1164,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: false,
-                    starter: true,
-                    pro: true,
+                    starter: false,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
 
@@ -1002,9 +1182,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: true,
                     starter: true,
-                    pro: true,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
             ],
@@ -1037,9 +1217,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: true,
                     starter: true,
-                    pro: true,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
 
@@ -1055,9 +1235,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: false,
-                    starter: true,
-                    pro: true,
+                    starter: false,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
 
@@ -1073,9 +1253,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: false,
-                    starter: true,
-                    pro: true,
+                    starter: false,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
 
@@ -1091,9 +1271,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: false,
                     starter: false,
-                    pro: true,
+                    professional: false,
+                    business: true,
                     enterprise: true,
                 },
             ],
@@ -1126,9 +1306,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: true,
                     starter: true,
-                    pro: true,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
 
@@ -1144,9 +1324,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: false,
-                    starter: true,
-                    pro: true,
+                    starter: false,
+                    professional: true,
+                    business: true,
                     enterprise: true,
                 },
 
@@ -1162,9 +1342,9 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
                         },
                     },
 
-                    free: false,
                     starter: false,
-                    pro: false,
+                    professional: false,
+                    business: false,
                     enterprise: true,
                 },
             ],
@@ -1536,16 +1716,16 @@ export const DEFAULT_PROPS: Required<PricingPage01Props> = {
     },
 };
 
-type PlanKey = 'free' | 'starter' | 'pro' | 'enterprise';
-
-const PLAN_KEYS: PlanKey[] = ['free', 'starter', 'pro', 'enterprise'];
+type PlanKey = 'starter' | 'professional' | 'business' | 'enterprise';
 
 function ComparisonCell({
     value,
     highlight,
+    t,
 }: {
     value: ComparisonValue;
     highlight?: ComparisonRow['highlight'];
+    t: (value: LocalizedText) => string;
 }) {
     if (typeof value === 'boolean') {
         return value ? (
@@ -1557,6 +1737,8 @@ function ComparisonCell({
         );
     }
 
+    const content = typeof value === 'object' ? t(value) : value;
+
     return (
         <span
             className={[
@@ -1567,16 +1749,39 @@ function ComparisonCell({
                 .filter(Boolean)
                 .join(' ')}
         >
-            {value}
+            {content}
         </span>
     );
 }
 
-export function PricingPage01(props: PricingPage01Props) {
-    const mergedProps: Required<PricingPage01Props> = {
+function mergePricingProps(props: PricingPage01Props): Required<PricingPage01Props> {
+    return {
         ...DEFAULT_PROPS,
         ...props,
+        hero: { ...DEFAULT_PROPS.hero, ...props.hero },
+        billing: { ...DEFAULT_PROPS.billing, ...props.billing },
+        comparison: { ...DEFAULT_PROPS.comparison, ...props.comparison },
+        contact: {
+            ...DEFAULT_PROPS.contact,
+            ...props.contact,
+            button: { ...DEFAULT_PROPS.contact.button, ...props.contact?.button },
+        },
+        faq: { ...DEFAULT_PROPS.faq, ...props.faq },
+        sidebarHelp: {
+            ...DEFAULT_PROPS.sidebarHelp,
+            ...props.sidebarHelp,
+            button: { ...DEFAULT_PROPS.sidebarHelp.button, ...props.sidebarHelp?.button },
+        },
+        ui: {
+            ...DEFAULT_PROPS.ui,
+            ...props.ui,
+            heroTrust: props.ui?.heroTrust ?? DEFAULT_PROPS.ui.heroTrust,
+        },
     };
+}
+
+export function PricingPage01(props: PricingPage01Props) {
+    const mergedProps = mergePricingProps(props);
 
     const {
         breadcrumbHome,
@@ -1585,6 +1790,7 @@ export function PricingPage01(props: PricingPage01Props) {
         hero,
         billing,
         pricingPlans,
+        trustStats,
         comparison,
         compareFeatureTitle,
         comparePopularLabel,
@@ -1595,6 +1801,7 @@ export function PricingPage01(props: PricingPage01Props) {
         categories,
         faqs,
         sidebarHelp,
+        ui,
     } = mergedProps;
 
     const [selectedLocale, setSelectedLocale] = useState(() => {
@@ -1623,11 +1830,17 @@ export function PricingPage01(props: PricingPage01Props) {
         [selectedLocale],
     );
 
-    const [activeCategory, setActiveCategory] = React.useState('general');
-    const [openFaqId, setOpenFaqId] = React.useState<string | null>(null);
+    const [activeCategory, setActiveCategory] = useState(() => categories?.[0]?.id ?? 'general');
+    const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+    const [billingType, setBillingType] = useState<BillingType>(billing.defaultType);
+
+    useEffect(() => {
+        setBillingType(billing.defaultType);
+    }, [billing.defaultType]);
 
     const PLANS =
         comparePlans?.map((plan) => ({
+            id: plan.id,
             name: t(plan.name),
             description: t(plan.description),
             icon: plan.icon,
@@ -1638,14 +1851,24 @@ export function PricingPage01(props: PricingPage01Props) {
     const COMPARISON_GROUPS: ComparisonGroup[] = comparisonGroups ?? [];
 
     const PRICING_PLANS: PricingPlan[] = pricingPlans ?? [];
+    const TRUST_STATS: TrustStat[] = trustStats ?? [];
 
     const FAQ_CATEGORIES: FaqCategory[] = categories ?? [];
 
     const FAQ_ITEMS: FaqItem[] = faqs ?? [];
 
-    const filteredFaqs = React.useMemo(() => {
+    const filteredFaqs = useMemo(() => {
         return FAQ_ITEMS.filter((item) => item.categoryId === activeCategory);
     }, [FAQ_ITEMS, activeCategory]);
+
+    useEffect(() => {
+        if (
+            FAQ_CATEGORIES.length > 0 &&
+            !FAQ_CATEGORIES.some((category) => category.id === activeCategory)
+        ) {
+            setActiveCategory(FAQ_CATEGORIES[0].id);
+        }
+    }, [FAQ_CATEGORIES, activeCategory]);
 
     useEffect(() => {
         if (filteredFaqs.length > 0) {
@@ -1655,355 +1878,483 @@ export function PricingPage01(props: PricingPage01Props) {
         }
     }, [filteredFaqs]);
 
-    const toggleFaq = React.useCallback((id: string) => {
+    const toggleFaq = useCallback((id: string) => {
         setOpenFaqId((currentId) => (currentId === id ? null : id));
     }, []);
 
     return (
         <>
-            <div className={styles.headingSection}>
-                <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-                    <Link href={breadcrumbHomeHref ?? '/'} className={styles.breadcrumbItem}>
-                        {t(breadcrumbHome)}
-                    </Link>
-
-                    <i className="bi bi-chevron-right" />
-
-                    <span className={styles.breadcrumbCurrent}>{t(breadcrumbCurrent)}</span>
+            <div className={styles.main}>
+                <nav
+                    aria-label={t(breadcrumbCurrent)}
+                    style={{
+                        position: 'absolute',
+                        width: 1,
+                        height: 1,
+                        padding: 0,
+                        margin: -1,
+                        overflow: 'hidden',
+                        clip: 'rect(0, 0, 0, 0)',
+                        whiteSpace: 'nowrap',
+                        border: 0,
+                    }}
+                >
+                    <Link href={breadcrumbHomeHref}>{t(breadcrumbHome)}</Link>
+                    <span aria-hidden="true"> / </span>
+                    <span>{t(breadcrumbCurrent)}</span>
                 </nav>
-            </div>
-            <section className={styles.section}>
-                <div className={styles.container}>
-                    <div className={styles.heading}>
-                        <div className={styles.headingContent}>
-                            <span className={styles.eyebrow}>
-                                <i className="bi bi-bag-check" />
-                                {t(hero.eyebrow)}
-                            </span>
-
-                            <h2>
-                                {t(hero.title)}
-
-                                {hero.titleAccent && (
-                                    <>
-                                        {' '}
-                                        <span className={styles.titleAccent}>
-                                            {t(hero.titleAccent)}
-                                        </span>
-                                    </>
-                                )}
-                            </h2>
-
-                            {hero.description && (
-                                <p className={styles.description}>{t(hero.description)}</p>
-                            )}
-                        </div>
-
-                        <div className={styles.headingActions}>
-                            <p>{t(billing.note)}</p>
-
-                            <div className={styles.billing}>
-                                <span className={styles.discount}>{t(billing.discountLabel)}</span>
-
-                                <span className={styles.activeBilling}>
-                                    {t(billing.yearlyLabel)}
+                <section className={`${styles.section} ${styles.heroSection}`}>
+                    <div className={styles.container}>
+                        <div className={styles.heading}>
+                            <div className={styles.headingContent}>
+                                <span className={styles.eyebrow}>
+                                    <i className="bi bi-bag-check" />
+                                    {t(hero.eyebrow)}
                                 </span>
 
-                                <button
-                                    type="button"
-                                    className={styles.billingToggle}
-                                    aria-label="Change billing period"
-                                >
-                                    <span />
-                                </button>
+                                <h2>
+                                    {t(hero.title)}
 
-                                <span>{t(billing.monthlyLabel)}</span>
-                            </div>
-                        </div>
-                    </div>
+                                    {hero.titleAccent && (
+                                        <>
+                                            {' '}
+                                            <span className={styles.titleAccent}>
+                                                {t(hero.titleAccent)}
+                                            </span>
+                                        </>
+                                    )}
+                                </h2>
 
-                    <div className={styles.pricingGrid}>
-                        {PRICING_PLANS.map((plan) => (
-                            <PricingCard key={plan.id} plan={plan} t={t} />
-                        ))}
-                    </div>
-                </div>
-            </section>
-            <section className={styles.section}>
-                <div className={styles.backgroundGlow} />
-
-                <div className={styles.container}>
-                    <header className={styles.heading}>
-                        <div className={styles.headingContent}>
-                            <span className={styles.eyebrow}>
-                                <i className="bi bi-bag-check" />
-                                {t(comparison.eyebrow)}
-                            </span>
-
-                            <h2 className={styles.title}>
-                                {t(comparison.title)}
-
-                                {comparison.titleAccent && (
-                                    <>
-                                        {' '}
-                                        <span className={styles.titleAccent}>
-                                            {t(comparison.titleAccent)}
-                                        </span>
-                                    </>
+                                {hero.description && (
+                                    <p className={styles.description}>{t(hero.description)}</p>
                                 )}
-                            </h2>
 
-                            {comparison.description && (
-                                <p className={styles.description}>{t(comparison.description)}</p>
-                            )}
-                        </div>
-                    </header>
-
-                    <div className={styles.tableCard}>
-                        <div className={styles.tableScroll}>
-                            <div className={styles.comparisonTable}>
-                                <div className={styles.planHeader}>
-                                    <div className={styles.featureHeader}>
-                                        <span className={styles.featureHeaderIcon}>
-                                            <i className="bi bi-stars" />
+                                <div className={styles.heroTrust}>
+                                    {ui.heroTrust.map((item) => (
+                                        <span key={item.id}>
+                                            <i className="bi bi-check-circle-fill" />
+                                            {t(item.label)}
                                         </span>
-
-                                        <span>{t(compareFeatureTitle)}</span>
-                                    </div>
-
-                                    {PLANS.map((plan) => (
-                                        <div
-                                            key={plan.name}
-                                            className={`${styles.plan} ${styles[plan.tone]}`}
-                                        >
-                                            {plan.popular && (
-                                                <span className={styles.popularBadge}>
-                                                    {t(comparePopularLabel)}
-                                                </span>
-                                            )}
-
-                                            <span className={styles.planIcon}>
-                                                <i className={`bi ${plan.icon}`} />
-                                            </span>
-
-                                            <strong>{plan.name}</strong>
-
-                                            <span className={styles.planDescription}>
-                                                {plan.description}
-                                            </span>
-                                        </div>
                                     ))}
                                 </div>
+                            </div>
 
-                                {COMPARISON_GROUPS.map((group) => (
-                                    <div key={group.id} className={styles.comparisonGroup}>
-                                        <div className={styles.groupHeader}>
-                                            <div className={styles.groupTitle}>
-                                                <i className={`bi ${group.icon}`} />
-                                                <strong>{t(group.title)}</strong>
-                                            </div>
+                            <div className={styles.headingVisual}>
+                                <div className={styles.visualGlow} />
 
-                                            {PLANS.map((plan) => (
-                                                <span
-                                                    key={plan.name}
-                                                    className={styles.groupPlanName}
-                                                >
-                                                    {plan.name}
-                                                </span>
-                                            ))}
+                                <div className={styles.visualBrowser}>
+                                    <div className={styles.browserDots}>
+                                        <span />
+                                        <span />
+                                        <span />
+                                    </div>
+
+                                    <div className={styles.browserContent}>
+                                        <span />
+                                        <span />
+                                        <span />
+                                        <span />
+                                    </div>
+                                </div>
+
+                                <div className={styles.visualOrb}>
+                                    <div className={styles.visualOrbInner}>
+                                        <i className="bi bi-crown-fill" />
+                                    </div>
+                                </div>
+
+                                <div className={styles.visualSaving}>{t(ui.visualSaving)}</div>
+
+                                <div className={styles.visualText}>
+                                    <span>{t(ui.visualBuild)}</span>
+                                    <span>{t(ui.visualBetter)}</span>
+                                    <span>{t(ui.visualTogether)}</span>
+                                </div>
+
+                                <div className={styles.visualArrow}>
+                                    <i className="bi bi-arrow-up-right" />
+                                </div>
+
+                                <div className={styles.headingActions}>
+                                    <p>{t(billing.note)}</p>
+
+                                    <div className={styles.billing}>
+                                        <span className={styles.discount}>
+                                            {t(billing.discountLabel)}
+                                        </span>
+
+                                        <span
+                                            className={
+                                                billingType === 'yearly' ? styles.activeBilling : ''
+                                            }
+                                        >
+                                            {t(billing.yearlyLabel)}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            className={`${styles.billingToggle} ${
+                                                billingType === 'yearly'
+                                                    ? styles.billingToggleYearly
+                                                    : ''
+                                            }`}
+                                            aria-label={t(ui.billingAriaLabel)}
+                                            aria-pressed={billingType === 'yearly'}
+                                            onClick={() =>
+                                                setBillingType((current) =>
+                                                    current === 'monthly' ? 'yearly' : 'monthly',
+                                                )
+                                            }
+                                        >
+                                            <span />
+                                        </button>
+
+                                        <span
+                                            className={
+                                                billingType === 'monthly'
+                                                    ? styles.activeBilling
+                                                    : ''
+                                            }
+                                        >
+                                            {t(billing.monthlyLabel)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={styles.pricingGrid}>
+                            {PRICING_PLANS.map((plan) => (
+                                <PricingCard
+                                    key={plan.id}
+                                    plan={plan}
+                                    t={t}
+                                    billingType={billingType}
+                                    ui={ui}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section className={styles.trustSection} aria-label={t(ui.platformHighlightsLabel)}>
+                    <div className={styles.container}>
+                        <div className={styles.trustGrid}>
+                            {TRUST_STATS.map((stat) => (
+                                <div
+                                    key={stat.id}
+                                    className={`${styles.trustCard} ${styles[stat.tone]}`}
+                                >
+                                    <span className={styles.trustIcon}>
+                                        <i className={`bi ${stat.icon}`} />
+                                    </span>
+                                    <div>
+                                        <strong>{stat.value}</strong>
+                                        <span>{t(stat.label)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section className={`${styles.section} ${styles.comparisonSection}`}>
+                    <div className={styles.backgroundGlow} />
+
+                    <div className={styles.container}>
+                        <header className={styles.heading}>
+                            <div className={styles.headingContent}>
+                                <span className={styles.eyebrow}>
+                                    <i className="bi bi-bar-chart" />
+                                    {t(comparison.eyebrow)}
+                                </span>
+                                <h2>
+                                    {t(comparison.title)}
+                                    {comparison.titleAccent && (
+                                        <>
+                                            {' '}
+                                            <span className={styles.titleAccent}>
+                                                {t(comparison.titleAccent)}
+                                            </span>
+                                        </>
+                                    )}
+                                </h2>
+                                {comparison.description && (
+                                    <p className={styles.description}>
+                                        {t(comparison.description)}
+                                    </p>
+                                )}
+                            </div>
+                        </header>
+                        <div className={styles.tableCard}>
+                            <div className={styles.tableScroll}>
+                                <div className={styles.comparisonTable}>
+                                    <div className={styles.planHeader}>
+                                        <div className={styles.featureHeader}>
+                                            <span className={styles.featureHeaderIcon}>
+                                                <i className="bi bi-stars" />
+                                            </span>
+
+                                            <span>{t(compareFeatureTitle)}</span>
                                         </div>
 
-                                        {group.rows.map((row) => (
-                                            <div key={row.id} className={styles.comparisonRow}>
-                                                <div className={styles.featureName}>
-                                                    {row.icon && <i className={`bi ${row.icon}`} />}
+                                        {PLANS.map((plan) => (
+                                            <div
+                                                key={plan.id}
+                                                className={`${styles.plan} ${styles[plan.tone]}`}
+                                            >
+                                                {plan.popular && (
+                                                    <span className={styles.popularBadge}>
+                                                        {t(comparePopularLabel)}
+                                                    </span>
+                                                )}
 
-                                                    <span>{t(row.label)}</span>
+                                                <span className={styles.planIcon}>
+                                                    <i className={`bi ${plan.icon}`} />
+                                                </span>
 
-                                                    <i
-                                                        className={`bi bi-info-circle ${styles.infoIcon}`}
-                                                    />
-                                                </div>
+                                                <strong>{plan.name}</strong>
 
-                                                {PLAN_KEYS.map((key) => (
-                                                    <div
-                                                        key={key}
-                                                        className={styles.comparisonCell}
-                                                    >
-                                                        <ComparisonCell
-                                                            value={row[key]}
-                                                            highlight={row.highlight}
-                                                        />
-                                                    </div>
-                                                ))}
+                                                <span className={styles.planDescription}>
+                                                    {plan.description}
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
 
-                        <footer className={styles.contactFooter}>
-                            <div className={styles.contactContent}>
-                                <span className={styles.contactIcon}>
-                                    <i className="bi bi-stars" />
-                                </span>
+                                    {COMPARISON_GROUPS.map((group) => (
+                                        <div key={group.id} className={styles.comparisonGroup}>
+                                            <div className={styles.groupHeader}>
+                                                <div className={styles.groupTitle}>
+                                                    <i className={`bi ${group.icon}`} />
+                                                    <strong>{t(group.title)}</strong>
+                                                </div>
 
-                                <div>
-                                    <strong>{t(contact.title)}</strong>
+                                                {PLANS.map((plan) => (
+                                                    <span
+                                                        key={plan.id}
+                                                        className={styles.groupPlanName}
+                                                    >
+                                                        {plan.name}
+                                                    </span>
+                                                ))}
+                                            </div>
 
-                                    <p>{t(contact.description)}</p>
+                                            {group.rows.map((row) => (
+                                                <div key={row.id} className={styles.comparisonRow}>
+                                                    <div className={styles.featureName}>
+                                                        {row.icon && (
+                                                            <i className={`bi ${row.icon}`} />
+                                                        )}
+
+                                                        <span>{t(row.label)}</span>
+
+                                                        <i
+                                                            className={`bi bi-info-circle ${styles.infoIcon}`}
+                                                        />
+                                                    </div>
+
+                                                    {PLANS.map((plan) => {
+                                                        const key = plan.id as PlanKey;
+                                                        return (
+                                                            <div
+                                                                key={key}
+                                                                className={styles.comparisonCell}
+                                                            >
+                                                                <ComparisonCell
+                                                                    value={row[key]}
+                                                                    highlight={row.highlight}
+                                                                    t={t}
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
-                            <Link
-                                href={contact.button.href ?? '#'}
-                                target={contact.button.target}
-                                className={styles.contactButton}
-                            >
-                                <span>{t(contact.button.label)}</span>
+                            <footer className={styles.contactFooter}>
+                                <div className={styles.contactContent}>
+                                    <span className={styles.contactIcon}>
+                                        <i className="bi bi-stars" />
+                                    </span>
 
-                                <i className="bi bi-arrow-right" />
-                            </Link>
-                        </footer>
-                    </div>
-                </div>
-            </section>
-            <section className={styles.section}>
-                <div className={styles.glow} />
+                                    <div>
+                                        <strong>{t(contact.title)}</strong>
 
-                <div className={styles.container}>
-                    <header className={styles.heading}>
-                        <div className={styles.headingContent}>
-                            <span className={styles.eyebrow}>
-                                <i className="bi bi-question-circle" />
-                                {t(faq.eyebrow)}
-                            </span>
-
-                            <h2 className={styles.title}>
-                                {t(faq.title)}
-
-                                {faq.titleAccent && (
-                                    <>
-                                        {' '}
-                                        <span className={styles.titleAccent}>
-                                            {t(faq.titleAccent)}
-                                        </span>
-                                    </>
-                                )}
-                            </h2>
-
-                            {faq.description && (
-                                <p className={styles.description}>{t(faq.description)}</p>
-                            )}
-                        </div>
-                    </header>
-
-                    <div className={styles.faqLayout}>
-                        <aside className={styles.categories}>
-                            <div className={styles.categoryList}>
-                                {FAQ_CATEGORIES.map((category) => {
-                                    const isActive = activeCategory === category.id;
-
-                                    return (
-                                        <button
-                                            key={category.id}
-                                            type="button"
-                                            className={`${styles.categoryButton} ${
-                                                isActive ? styles.categoryButtonActive : ''
-                                            }`}
-                                            onClick={() => setActiveCategory(category.id)}
-                                        >
-                                            <span className={styles.categoryIcon}>
-                                                <i className={`bi ${category.icon}`} />
-                                            </span>
-
-                                            <span>{t(category.label)}</span>
-
-                                            <i
-                                                className={`bi bi-arrow-right-short ${styles.categoryArrow}`}
-                                            />
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <div className={styles.sidebarHelp}>
-                                <span className={styles.sidebarHelpIcon}>
-                                    <i className="bi bi-headset" />
-                                </span>
-
-                                <div>
-                                    <strong>{t(sidebarHelp.title)}</strong>
-
-                                    <p>{t(sidebarHelp.description)}</p>
+                                        <p>{t(contact.description)}</p>
+                                    </div>
                                 </div>
 
                                 <Link
-                                    href={sidebarHelp.button.href ?? '#'}
-                                    target={sidebarHelp.button.target}
+                                    href={contact.button.href ?? '#'}
+                                    target={contact.button.target}
+                                    rel={
+                                        contact.button.target === '_blank'
+                                            ? 'noopener noreferrer'
+                                            : undefined
+                                    }
+                                    className={styles.contactButton}
                                 >
-                                    {t(sidebarHelp.button.label)}
+                                    <span>{t(contact.button.label)}</span>
+
                                     <i className="bi bi-arrow-right" />
                                 </Link>
+                            </footer>
+                        </div>
+                    </div>
+                </section>
+                <section className={`${styles.section} ${styles.faqSection}`}>
+                    <div className={styles.glow} />
+
+                    <div className={styles.container}>
+                        <header className={styles.heading}>
+                            <div className={styles.headingContent}>
+                                <span className={styles.eyebrow}>
+                                    <i className="bi bi-question-circle" />
+                                    {t(faq.eyebrow)}
+                                </span>
+
+                                <h2 className={styles.title}>
+                                    {t(faq.title)}
+
+                                    {faq.titleAccent && (
+                                        <>
+                                            {' '}
+                                            <span className={styles.titleAccent}>
+                                                {t(faq.titleAccent)}
+                                            </span>
+                                        </>
+                                    )}
+                                </h2>
+
+                                {faq.description && (
+                                    <p className={styles.description}>{t(faq.description)}</p>
+                                )}
                             </div>
-                        </aside>
+                        </header>
 
-                        <div className={styles.faqPanel}>
-                            <div className={styles.faqList}>
-                                {filteredFaqs.map((item) => {
-                                    const isOpen = openFaqId === item.id;
+                        <div className={styles.faqLayout}>
+                            <aside className={styles.categories}>
+                                <div className={styles.categoryList}>
+                                    {FAQ_CATEGORIES.map((category) => {
+                                        const isActive = activeCategory === category.id;
 
-                                    return (
-                                        <article
-                                            key={item.id}
-                                            className={`${styles.faqItem} ${
-                                                isOpen ? styles.faqItemOpen : ''
-                                            }`}
-                                        >
+                                        return (
                                             <button
+                                                key={category.id}
                                                 type="button"
-                                                className={styles.faqQuestion}
-                                                onClick={() => toggleFaq(item.id)}
-                                                aria-expanded={isOpen}
+                                                className={`${styles.categoryButton} ${
+                                                    isActive ? styles.categoryButtonActive : ''
+                                                }`}
+                                                onClick={() => setActiveCategory(category.id)}
                                             >
-                                                <span>{t(item.question)}</span>
-
-                                                <span className={styles.faqToggle}>
-                                                    <i
-                                                        className={`bi ${
-                                                            isOpen
-                                                                ? 'bi-chevron-up'
-                                                                : 'bi-chevron-down'
-                                                        }`}
-                                                    />
+                                                <span className={styles.categoryIcon}>
+                                                    <i className={`bi ${category.icon}`} />
                                                 </span>
-                                            </button>
 
-                                            <div
-                                                className={`${styles.answerGrid} ${
-                                                    isOpen ? styles.answerGridOpen : ''
+                                                <span>{t(category.label)}</span>
+
+                                                <i
+                                                    className={`bi bi-arrow-right-short ${styles.categoryArrow}`}
+                                                />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className={styles.sidebarHelp}>
+                                    <span className={styles.sidebarHelpIcon}>
+                                        <i className="bi bi-headset" />
+                                    </span>
+                                    <strong>{t(sidebarHelp.title)}</strong>
+                                    <div>
+                                        <p>{t(sidebarHelp.description)}</p>
+                                    </div>
+
+                                    <Link
+                                        href={sidebarHelp.button.href ?? '#'}
+                                        target={sidebarHelp.button.target}
+                                        rel={
+                                            sidebarHelp.button.target === '_blank'
+                                                ? 'noopener noreferrer'
+                                                : undefined
+                                        }
+                                    >
+                                        {t(sidebarHelp.button.label)}
+                                        <i className="bi bi-arrow-right" />
+                                    </Link>
+                                </div>
+                            </aside>
+
+                            <div className={styles.faqPanel}>
+                                <div className={styles.faqList}>
+                                    {filteredFaqs.map((item) => {
+                                        const isOpen = openFaqId === item.id;
+
+                                        return (
+                                            <article
+                                                key={item.id}
+                                                className={`${styles.faqItem} ${
+                                                    isOpen ? styles.faqItemOpen : ''
                                                 }`}
                                             >
-                                                <div className={styles.answerOverflow}>
-                                                    <div className={styles.faqAnswer}>
-                                                        <p>{t(item.answer)}</p>
+                                                <button
+                                                    type="button"
+                                                    className={styles.faqQuestion}
+                                                    onClick={() => toggleFaq(item.id)}
+                                                    aria-expanded={isOpen}
+                                                >
+                                                    <span>{t(item.question)}</span>
+
+                                                    <span className={styles.faqToggle}>
+                                                        <i
+                                                            className={`bi ${
+                                                                isOpen
+                                                                    ? 'bi-chevron-up'
+                                                                    : 'bi-chevron-down'
+                                                            }`}
+                                                        />
+                                                    </span>
+                                                </button>
+
+                                                <div
+                                                    className={`${styles.answerGrid} ${
+                                                        isOpen ? styles.answerGridOpen : ''
+                                                    }`}
+                                                >
+                                                    <div className={styles.answerOverflow}>
+                                                        <div className={styles.faqAnswer}>
+                                                            <p>{t(item.answer)}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </article>
-                                    );
-                                })}
+                                            </article>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </>
     );
 }
 
-function PricingCard({ plan, t }: { plan: PricingPlan; t: (value: LocalizedText) => string }) {
+function PricingCard({
+    plan,
+    t,
+    billingType,
+    ui,
+}: {
+    plan: PricingPlan;
+    t: (value: LocalizedText) => string;
+    billingType: BillingType;
+    ui: PricingUi;
+}) {
     return (
         <article
             className={`${styles.card} ${styles[plan.tone]} ${plan.popular ? styles.popular : ''}`}
@@ -2011,7 +2362,7 @@ function PricingCard({ plan, t }: { plan: PricingPlan; t: (value: LocalizedText)
             {plan.popular && (
                 <div className={styles.popularBadgeTop}>
                     <i className="bi bi-gem" />
-                    Most Popular
+                    {t(ui.popularLabel)}
                 </div>
             )}
 
@@ -2031,17 +2382,25 @@ function PricingCard({ plan, t }: { plan: PricingPlan; t: (value: LocalizedText)
                 <div className={styles.priceArea}>
                     {plan.comingSoon ? (
                         <>
-                            <strong className={styles.customPrice}>Contact Us</strong>
+                            <strong className={styles.customPrice}>
+                                {t(ui.contactPriceLabel)}
+                            </strong>
 
-                            <span className={styles.comingSoon}>Pricing coming soon</span>
+                            <span className={styles.comingSoon}>{t(ui.comingSoonLabel)}</span>
                         </>
                     ) : (
                         <div className={styles.price}>
                             <span className={styles.currency}>$</span>
 
-                            <strong>{plan.monthlyPrice}</strong>
+                            <strong>
+                                {billingType === 'yearly'
+                                    ? (plan.yearlyPrice ?? plan.monthlyPrice)
+                                    : plan.monthlyPrice}
+                            </strong>
 
-                            <span className={styles.period}>/ month</span>
+                            <span className={styles.period}>
+                                /{t(billingType === 'yearly' ? ui.yearLabel : ui.monthLabel)}
+                            </span>
                         </div>
                     )}
                 </div>
@@ -2053,6 +2412,7 @@ function PricingCard({ plan, t }: { plan: PricingPlan; t: (value: LocalizedText)
                 <Link
                     href={plan.button.href ?? '#'}
                     target={plan.button.target}
+                    rel={plan.button.target === '_blank' ? 'noopener noreferrer' : undefined}
                     className={styles.planButton}
                 >
                     {t(plan.button.label)}
@@ -2135,6 +2495,25 @@ function createBillingInspector(): InspectorField[] {
         createTextField('billing.monthlyLabel', 'Monthly Label'),
 
         createTextField('billing.yearlyLabel', 'Yearly Label'),
+    ];
+}
+
+function createUiInspector(): InspectorField[] {
+    return [
+        ...Array.from({ length: 4 }, (_, index) =>
+            createTextField(`ui.heroTrust.${index}.label`, `Hero Trust ${index + 1}`),
+        ),
+        createTextField('ui.visualSaving', 'Visual Saving Label'),
+        createTextField('ui.visualBuild', 'Visual Build Text'),
+        createTextField('ui.visualBetter', 'Visual Better Text'),
+        createTextField('ui.visualTogether', 'Visual Together Text'),
+        createTextField('ui.platformHighlightsLabel', 'Platform Highlights Label'),
+        createTextField('ui.billingAriaLabel', 'Billing Accessibility Label'),
+        createTextField('ui.popularLabel', 'Popular Label'),
+        createTextField('ui.contactPriceLabel', 'Contact Price Label'),
+        createTextField('ui.comingSoonLabel', 'Coming Soon Label'),
+        createTextField('ui.yearLabel', 'Year Label'),
+        createTextField('ui.monthLabel', 'Month Label'),
     ];
 }
 
@@ -2261,7 +2640,7 @@ function createPricingPlansInspector(): InspectorField[] {
                 ],
             ),
 
-            ...Array.from({ length: 10 }, (_, feature) =>
+            ...Array.from({ length: 6 }, (_, feature) =>
                 createTextField(
                     `pricingPlans.${index}.features.${feature}.label`,
                     `Plan ${plan + 1} Feature ${feature + 1}`,
@@ -2270,6 +2649,20 @@ function createPricingPlansInspector(): InspectorField[] {
         ];
     }).flat();
 }
+function createTrustStatsInspector(): InspectorField[] {
+    return Array.from({ length: 4 }, (_, index) => [
+        createTextField(`trustStats.${index}.value`, `Trust Stat ${index + 1} Value`),
+        createTextField(`trustStats.${index}.label`, `Trust Stat ${index + 1} Label`),
+        createTextField(`trustStats.${index}.icon`, `Trust Stat ${index + 1} Icon`),
+        createSelectField(`trustStats.${index}.tone`, `Trust Stat ${index + 1} Tone`, [
+            { label: 'Green', value: 'green' },
+            { label: 'Blue', value: 'blue' },
+            { label: 'Purple', value: 'purple' },
+            { label: 'Orange', value: 'orange' },
+        ]),
+    ]).flat();
+}
+
 function createComparisonInspector(): InspectorField[] {
     return [
         createTextField('comparison.eyebrow', 'Comparison Eyebrow'),
@@ -2324,54 +2717,37 @@ function createComparisonGroupsInspector(): InspectorField[] {
 
     return rowCounts.flatMap((rowCount, groupIndex) => [
         createTextField(`comparisonGroups.${groupIndex}.title`, `Group ${groupIndex + 1} Title`),
-
         createTextField(`comparisonGroups.${groupIndex}.icon`, `Group ${groupIndex + 1} Icon`),
-
         ...Array.from({ length: rowCount }, (_, rowIndex) => [
             createTextField(
                 `comparisonGroups.${groupIndex}.rows.${rowIndex}.label`,
                 `Group ${groupIndex + 1} Row ${rowIndex + 1} Label`,
             ),
-
             createTextField(
                 `comparisonGroups.${groupIndex}.rows.${rowIndex}.icon`,
                 `Group ${groupIndex + 1} Row ${rowIndex + 1} Icon`,
             ),
-
             createSelectField(
                 `comparisonGroups.${groupIndex}.rows.${rowIndex}.highlight`,
                 `Group ${groupIndex + 1} Row ${rowIndex + 1} Highlight`,
                 [
-                    {
-                        label: 'None',
-                        value: '',
-                    },
-                    {
-                        label: 'Primary',
-                        value: 'primary',
-                    },
-                    {
-                        label: 'Success',
-                        value: 'success',
-                    },
+                    { label: 'None', value: '' },
+                    { label: 'Primary', value: 'primary' },
+                    { label: 'Success', value: 'success' },
                 ],
             ),
-
-            createTextField(
-                `comparisonGroups.${groupIndex}.rows.${rowIndex}.free`,
-                `Group ${groupIndex + 1} Row ${rowIndex + 1} Free`,
-            ),
-
             createTextField(
                 `comparisonGroups.${groupIndex}.rows.${rowIndex}.starter`,
                 `Group ${groupIndex + 1} Row ${rowIndex + 1} Starter`,
             ),
-
             createTextField(
-                `comparisonGroups.${groupIndex}.rows.${rowIndex}.pro`,
-                `Group ${groupIndex + 1} Row ${rowIndex + 1} Pro`,
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.professional`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Professional`,
             ),
-
+            createTextField(
+                `comparisonGroups.${groupIndex}.rows.${rowIndex}.business`,
+                `Group ${groupIndex + 1} Row ${rowIndex + 1} Business`,
+            ),
             createTextField(
                 `comparisonGroups.${groupIndex}.rows.${rowIndex}.enterprise`,
                 `Group ${groupIndex + 1} Row ${rowIndex + 1} Enterprise`,
@@ -2384,8 +2760,10 @@ function createInspector(): RegItem['inspector'] {
     return [
         ...createHeroInspector(),
         ...createBillingInspector(),
+        ...createUiInspector(),
 
         ...createPricingPlansInspector(),
+        ...createTrustStatsInspector(),
 
         ...createComparisonInspector(),
         ...createComparePlansInspector(),
@@ -2395,6 +2773,7 @@ function createInspector(): RegItem['inspector'] {
 
         ...createFaqInspector(),
         ...createCategoriesInspector(),
+        ...createFaqItemsInspector(),
         ...createSidebarHelpInspector(),
     ];
 }

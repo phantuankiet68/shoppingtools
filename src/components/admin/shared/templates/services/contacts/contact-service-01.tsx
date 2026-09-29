@@ -1,9 +1,9 @@
 'use client';
 
-import styles from '@/components/admin/shared/templates/services/contacts/styles/contact-service-01.module.css';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
-import { useEffect, useRef, useState, useMemo } from 'react';
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
+import styles from '@/components/admin/shared/templates/services/contacts/styles/contact-service-01.module.css';
 
 export interface ContactInfoItem {
     id: string;
@@ -16,270 +16,126 @@ export interface ContactInfoItem {
 
 export interface ContactService01Props {
     siteId?: string;
+    eyebrow?: LocalizedText;
     socialTitle?: LocalizedText;
     headline?: LocalizedText;
     headlineAccent?: LocalizedText;
     subheadline?: LocalizedText;
+    privacyText?: LocalizedText;
 
     emailLabel?: LocalizedText;
     emailPlaceholder?: LocalizedText;
-
     phoneLabel?: LocalizedText;
     phonePlaceholder?: LocalizedText;
-
     nameLabel?: LocalizedText;
     namePlaceholder?: LocalizedText;
-
     messageLabel?: LocalizedText;
     messagePlaceholder?: LocalizedText;
 
     formButtonText?: LocalizedText;
     formSuccessText?: LocalizedText;
 
-    // Contact 1
     contact1Label?: LocalizedText;
     contact1Value?: LocalizedText;
     contact1Description?: LocalizedText;
-
-    // Contact 2
     contact2Label?: LocalizedText;
     contact2Value?: LocalizedText;
     contact2Description?: LocalizedText;
-
-    // Contact 3
     contact3Label?: LocalizedText;
     contact3Value?: LocalizedText;
     contact3Description?: LocalizedText;
 }
+
+const lt = (en: string, vi: string, ja: string): LocalizedText => ({
+    sourceLocale: 'en',
+    default: en,
+    translations: { vi, ja },
+});
+
 export const DEFAULT_PROPS: Required<ContactService01Props> = {
     siteId: '',
-    socialTitle: {
-        sourceLocale: 'en',
-        default: 'Follow us',
-        translations: {
-            vi: 'Theo dõi chúng tôi',
-            ja: 'フォローしてください',
-        },
-    },
-    headline: {
-        sourceLocale: 'en',
-        default: "Let's build something",
-        translations: {
-            vi: 'Hãy cùng xây dựng điều gì đó tuyệt vời.',
-            ja: '一緒に素晴らしいものを作りましょう。',
-        },
-    },
-
-    headlineAccent: {
-        sourceLocale: 'en',
-        default: 'great together.',
-        translations: {
-            vi: 'cùng nhau.',
-            ja: '一緒に。',
-        },
-    },
-
-    subheadline: {
-        sourceLocale: 'en',
-        default:
-            'Have a question about Kbuilder, need a demo, or just want to say hi? Fill out the form and our team will get back to you shortly.',
-        translations: {
-            vi: 'Bạn có câu hỏi về Kbuilder, cần bản demo hoặc chỉ muốn liên hệ? Hãy điền vào biểu mẫu và đội ngũ của chúng tôi sẽ phản hồi bạn sớm nhất.',
-            ja: 'Kbuilderについてのご質問やデモのご希望、またはお問い合わせがございましたら、フォームにご記入ください。担当チームよりできるだけ早くご連絡いたします。',
-        },
-    },
-
-    emailLabel: {
-        sourceLocale: 'en',
-        default: 'Email',
-        translations: {
-            vi: 'Email',
-            ja: 'メール',
-        },
-    },
-
-    emailPlaceholder: {
-        sourceLocale: 'en',
-        default: 'you@company.com',
-        translations: {
-            vi: 'ban@congty.com',
-            ja: 'your@company.com',
-        },
-    },
-
-    phoneLabel: {
-        sourceLocale: 'en',
-        default: 'Phone',
-        translations: {
-            vi: 'Điện thoại',
-            ja: '電話番号',
-        },
-    },
-
-    phonePlaceholder: {
-        sourceLocale: 'en',
-        default: '+84 000 000 000',
-        translations: {
-            vi: '+84 000 000 000',
-            ja: '+81 000 000 000',
-        },
-    },
-
-    nameLabel: {
-        sourceLocale: 'en',
-        default: 'Name',
-        translations: {
-            vi: 'Họ và tên',
-            ja: 'お名前',
-        },
-    },
-
-    namePlaceholder: {
-        sourceLocale: 'en',
-        default: 'Your full name',
-        translations: {
-            vi: 'Nhập họ và tên',
-            ja: 'お名前をご入力ください',
-        },
-    },
-
-    messageLabel: {
-        sourceLocale: 'en',
-        default: 'Message',
-        translations: {
-            vi: 'Nội dung',
-            ja: 'メッセージ',
-        },
-    },
-
-    messagePlaceholder: {
-        sourceLocale: 'en',
-        default: 'Tell us a bit about your project...',
-        translations: {
-            vi: 'Hãy chia sẻ đôi chút về dự án của bạn...',
-            ja: 'あなたのプロジェクトについて教えてください。',
-        },
-    },
-
-    formButtonText: {
-        sourceLocale: 'en',
-        default: 'Send Message',
-        translations: {
-            vi: 'Gửi tin nhắn',
-            ja: 'メッセージを送信',
-        },
-    },
-
-    formSuccessText: {
-        sourceLocale: 'en',
-        default: 'Message Sent',
-        translations: {
-            vi: 'Đã gửi thành công',
-            ja: '送信が完了しました',
-        },
-    },
-
-    contact1Label: {
-        sourceLocale: 'en',
-        default: 'Call Us',
-        translations: {
-            vi: 'Gọi cho chúng tôi',
-            ja: 'お電話はこちら',
-        },
-    },
-
-    contact1Value: {
-        sourceLocale: 'en',
-        default: '(+84) 765 665 991',
-        translations: {
-            vi: '(+84) 765 665 991',
-            ja: '(+81) 03-1234-5678',
-        },
-    },
-
-    contact1Description: {
-        sourceLocale: 'en',
-        default: 'Mon – Fri, 8:00 to 17:00',
-        translations: {
-            vi: 'Thứ Hai - Thứ Sáu, 8:00 - 17:00',
-            ja: '月曜日〜金曜日 8:00〜17:00',
-        },
-    },
-
-    contact2Label: {
-        sourceLocale: 'en',
-        default: 'Email Us',
-        translations: {
-            vi: 'Gửi email',
-            ja: 'メールでお問い合わせ',
-        },
-    },
-
-    contact2Value: {
-        sourceLocale: 'en',
-        default: 'hello@kbuilder.io',
-        translations: {
-            vi: 'hello@kbuilder.io',
-            ja: 'hello@kbuilder.io',
-        },
-    },
-
-    contact2Description: {
-        sourceLocale: 'en',
-        default: 'We reply within 24 hours',
-        translations: {
-            vi: 'Chúng tôi sẽ phản hồi trong vòng 24 giờ.',
-            ja: '24時間以内に返信いたします。',
-        },
-    },
-
-    contact3Label: {
-        sourceLocale: 'en',
-        default: 'Visit Us',
-        translations: {
-            vi: 'Đến văn phòng',
-            ja: 'オフィスへお越しください',
-        },
-    },
-
-    contact3Value: {
-        sourceLocale: 'en',
-        default: 'District 1, Ho Chi Minh City',
-        translations: {
-            vi: 'Quận 1, TP. Hồ Chí Minh',
-            ja: 'ホーチミン市第1区',
-        },
-    },
-
-    contact3Description: {
-        sourceLocale: 'en',
-        default: 'Our office is open for walk-ins',
-        translations: {
-            vi: 'Văn phòng luôn sẵn sàng đón tiếp khách.',
-            ja: 'ご予約なしでもお気軽にお越しください。',
-        },
-    },
+    eyebrow: lt('CONTACT US', 'LIÊN HỆ VỚI CHÚNG TÔI', 'お問い合わせ'),
+    socialTitle: lt('Follow us', 'Theo dõi chúng tôi', 'フォローしてください'),
+    headline: lt("Let's build something", 'Cùng nhau tạo nên', '一緒に素晴らしいものを'),
+    headlineAccent: lt('great together.', 'những điều tuyệt vời.', '作りましょう。'),
+    subheadline: lt(
+        'Have a question about KBuilder, need a demo, or simply want to say hello? Fill out the form below and our team will get back to you as soon as possible.',
+        'KBuilder luôn sẵn sàng lắng nghe ý kiến, câu hỏi và đề xuất của bạn. Hãy điền vào biểu mẫu bên dưới, đội ngũ của chúng tôi sẽ phản hồi sớm nhất có thể.',
+        'KBuilderについてのご質問やデモのご希望、またはご相談がございましたら、以下のフォームよりお気軽にお問い合わせください。',
+    ),
+    privacyText: lt(
+        'Your information is protected and used only to contact you.',
+        'Thông tin của bạn được bảo mật và chỉ sử dụng để liên hệ.',
+        'お客様の情報は保護され、お問い合わせへの対応のみに使用されます。',
+    ),
+    emailLabel: lt('Email', 'Email', 'メール'),
+    emailPlaceholder: lt('you@company.com', 'your@company.com', 'your@company.com'),
+    phoneLabel: lt('Phone', 'Số điện thoại', '電話番号'),
+    phonePlaceholder: lt('+84 000 000 000', '+84 000 000 000', '+81 000 000 000'),
+    nameLabel: lt('Full name', 'Họ và tên', 'お名前'),
+    namePlaceholder: lt('Enter your full name', 'Nhập họ và tên của bạn', 'お名前をご入力ください'),
+    messageLabel: lt('Message', 'Nội dung tin nhắn', 'メッセージ'),
+    messagePlaceholder: lt(
+        'What would you like to talk about?',
+        'Bạn muốn trao đổi về vấn đề gì?',
+        'ご相談内容をお聞かせください',
+    ),
+    formButtonText: lt('Send Message', 'Gửi tin nhắn', 'メッセージを送信'),
+    formSuccessText: lt('Message Sent', 'Đã gửi thành công', '送信が完了しました'),
+    contact1Label: lt('Call us', 'Gọi cho chúng tôi', 'お電話はこちら'),
+    contact1Value: lt('(+84) 023-444-6666-5678', '(+84) 023-444-6666-5678', '(+81) 03-1234-5678'),
+    contact1Description: lt(
+        'Mon – Fri, 8:00 – 17:00',
+        'Thứ 2 – Thứ 6, 8:00 – 17:00',
+        '月曜日〜金曜日 8:00〜17:00',
+    ),
+    contact2Label: lt('Email us', 'Email cho chúng tôi', 'メールでお問い合わせ'),
+    contact2Value: lt('hello@kbuilder.io', 'hello@kbuilder.io', 'hello@kbuilder.io'),
+    contact2Description: lt(
+        'We reply within 24 hours',
+        'Chúng tôi sẽ phản hồi trong vòng 24 giờ.',
+        '24時間以内に返信いたします。',
+    ),
+    contact3Label: lt('Our office', 'Văn phòng của chúng tôi', 'オフィス所在地'),
+    contact3Value: lt(
+        'District 1, Ho Chi Minh City',
+        'Quận 1, TP. Hồ Chí Minh',
+        'ホーチミン市第1区',
+    ),
+    contact3Description: lt(
+        'We are happy to welcome you',
+        'Rất hân hạnh được đón tiếp bạn.',
+        '皆様のお越しをお待ちしております。',
+    ),
 };
-/* ─────────────────────────────────────────────────
-   Hook
-───────────────────────────────────────────────── */
-function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.05) {
+
+function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.08) {
     const [inView, setInView] = useState(false);
+
     useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const obs = new IntersectionObserver(
-            ([e]) => {
-                if (e.isIntersecting) {
+        const element = ref.current;
+        if (!element) return;
+
+        if (!('IntersectionObserver' in window)) {
+            setInView(true);
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
                     setInView(true);
-                    obs.disconnect();
+                    observer.disconnect();
                 }
             },
             { threshold },
         );
-        obs.observe(el);
-        return () => obs.disconnect();
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
     }, [ref, threshold]);
+
     return inView;
 }
 
@@ -298,46 +154,35 @@ function createContact(
         accentColor,
     };
 }
-/* ─────────────────────────────────────────────────
-   Component
-───────────────────────────────────────────────── */
+
 export function ContactService01(props: ContactService01Props) {
     const mergedProps: Required<ContactService01Props> = {
         ...DEFAULT_PROPS,
         ...props,
     };
 
-    const {
-        socialTitle,
-        headline,
-        headlineAccent,
-        subheadline,
-        emailLabel,
-        emailPlaceholder,
-        phoneLabel,
-        phonePlaceholder,
-        nameLabel,
-        namePlaceholder,
-        messageLabel,
-        messagePlaceholder,
-        formButtonText,
-        formSuccessText,
-    } = mergedProps;
     const rootRef = useRef<HTMLElement>(null);
     const inView = useInView(rootRef);
 
     const [selectedLocale, setSelectedLocale] = useState(() => {
-        if (typeof window === 'undefined') {
-            return 'en';
-        }
-
+        if (typeof window === 'undefined') return 'en';
         return localStorage.getItem('locale') ?? 'en';
     });
+
+    const [formState, setFormState] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        message: '',
+    });
+    const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         const handleLocaleChange = (event: Event) => {
             const customEvent = event as CustomEvent<string>;
-            setSelectedLocale(customEvent.detail);
+            setSelectedLocale(customEvent.detail || 'en');
         };
 
         window.addEventListener('locale-change', handleLocaleChange as EventListener);
@@ -357,21 +202,29 @@ export function ContactService01(props: ContactService01Props) {
         ],
         [mergedProps],
     );
-    const [formState, setFormState] = useState({ email: '', phone: '', name: '', message: '' });
-    const [newsletterEmail, setNewsletterEmail] = useState('');
-    const [submitted, setSubmitted] = useState(false);
 
     const handleFormChange =
         (field: keyof typeof formState) =>
-        (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            setFormState((prev) => ({ ...prev, [field]: e.target.value }));
+        (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            setFormState((previous) => ({
+                ...previous,
+                [field]: event.target.value,
+            }));
+
+            if (error) setError(false);
+            if (submitted) setSubmitted(false);
         };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        if (submitting) return;
+
+        setSubmitting(true);
+        setError(false);
 
         try {
-            const res = await fetch('/api/contact', {
+            const response = await fetch('/api/contact', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -379,163 +232,264 @@ export function ContactService01(props: ContactService01Props) {
                 body: JSON.stringify(formState),
             });
 
-            const data = await res.json();
+            const data = await response.json().catch(() => null);
 
-            if (data.success) {
-                setSubmitted(true);
-
-                setFormState({
-                    email: '',
-                    phone: '',
-                    name: '',
-                    message: '',
-                });
-
-                setTimeout(() => {
-                    setSubmitted(false);
-                }, 3000);
+            if (!response.ok || !data?.success) {
+                throw new Error('Contact request failed');
             }
-        } catch (err) {
-            console.error(err);
+
+            setSubmitted(true);
+            setFormState({
+                name: '',
+                email: '',
+                phone: '',
+                message: '',
+            });
+
+            window.setTimeout(() => {
+                setSubmitted(false);
+            }, 3000);
+        } catch (submitError) {
+            console.error(submitError);
+            setError(true);
+        } finally {
+            setSubmitting(false);
         }
-    };
+    }
 
     return (
         <section
             ref={rootRef}
             className={`${styles.root} ${inView ? styles.inView : ''}`}
-            aria-label="Contact"
+            aria-label={t(mergedProps.eyebrow)}
         >
-            {/* Decorative background */}
+            <div className={styles.bgGlowA} aria-hidden="true" />
+            <div className={styles.bgGlowB} aria-hidden="true" />
+            <div className={styles.bgGlowC} aria-hidden="true" />
             <div className={styles.bgDots} aria-hidden="true" />
-            <div className={styles.bgOrbA} aria-hidden="true" />
-            <div className={styles.bgOrbB} aria-hidden="true" />
+            <div className={styles.bgCurve} aria-hidden="true" />
 
             <div className={styles.wrap}>
                 <div className={styles.contactCard}>
-                    {/* LEFT */}
-
                     <div
-                        className={`${styles.left} ${styles.r}`}
-                        style={{ '--i': 1 } as React.CSSProperties}
+                        className={`${styles.left} ${styles.reveal}`}
+                        style={
+                            {
+                                '--i': 1,
+                            } as React.CSSProperties
+                        }
                     >
                         <div className={styles.heroContent}>
-                            <h2 className={styles.heading}>
-                                {t(headline)}
+                            <span className={styles.badge}>
+                                <i className="bi bi-person-lines-fill" />
+                                {t(mergedProps.eyebrow)}
+                            </span>
 
-                                <span className={styles.accent}>{t(headlineAccent)}</span>
+                            <h2 className={styles.heading}>
+                                <span>{t(mergedProps.headline)}</span>
+                                <span className={styles.accent}>
+                                    {t(mergedProps.headlineAccent)}
+                                </span>
                             </h2>
 
-                            <p className={styles.sub}>{t(subheadline)}</p>
+                            <p className={styles.sub}>{t(mergedProps.subheadline)}</p>
                         </div>
 
                         <form className={styles.form} onSubmit={handleSubmit}>
                             <label className={styles.field}>
-                                <span>
+                                <span className={styles.fieldLabel}>
                                     <i className="bi bi-person" />
-
-                                    {t(nameLabel)}
+                                    {t(mergedProps.nameLabel)}
                                 </span>
 
-                                <input
-                                    type="text"
-                                    placeholder={t(namePlaceholder)}
-                                    value={formState.name}
-                                    onChange={handleFormChange('name')}
-                                    required
-                                />
+                                <span className={styles.inputShell}>
+                                    <i className="bi bi-person" />
+                                    <input
+                                        type="text"
+                                        placeholder={t(mergedProps.namePlaceholder)}
+                                        value={formState.name}
+                                        onChange={handleFormChange('name')}
+                                        autoComplete="name"
+                                        required
+                                    />
+                                </span>
                             </label>
 
                             <label className={styles.field}>
-                                <span>
+                                <span className={styles.fieldLabel}>
                                     <i className="bi bi-envelope" />
-                                    {t(emailLabel)}
+                                    {t(mergedProps.emailLabel)}
                                 </span>
 
-                                <input
-                                    type="email"
-                                    placeholder={t(emailPlaceholder)}
-                                    value={formState.email}
-                                    onChange={handleFormChange('email')}
-                                    required
-                                />
-                            </label>
-
-                            <label className={styles.field}>
-                                <span>
+                                <span className={styles.inputShell}>
                                     <i className="bi bi-envelope" />
-                                    {t(phoneLabel)}
+                                    <input
+                                        type="email"
+                                        placeholder={t(mergedProps.emailPlaceholder)}
+                                        value={formState.email}
+                                        onChange={handleFormChange('email')}
+                                        autoComplete="email"
+                                        required
+                                    />
                                 </span>
-
-                                <input
-                                    type="phone"
-                                    placeholder={t(phonePlaceholder)}
-                                    value={formState.phone}
-                                    onChange={handleFormChange('email')}
-                                    required
-                                />
                             </label>
 
                             <label className={styles.field}>
-                                <span>
+                                <span className={styles.fieldLabel}>
+                                    <i className="bi bi-telephone" />
+                                    {t(mergedProps.phoneLabel)}
+                                </span>
+
+                                <span className={styles.inputShell}>
+                                    <i className="bi bi-telephone" />
+                                    <input
+                                        type="tel"
+                                        inputMode="tel"
+                                        placeholder={t(mergedProps.phonePlaceholder)}
+                                        value={formState.phone}
+                                        onChange={handleFormChange('phone')}
+                                        autoComplete="tel"
+                                        required
+                                    />
+                                </span>
+                            </label>
+
+                            <label className={styles.field}>
+                                <span className={styles.fieldLabel}>
                                     <i className="bi bi-chat-left-text" />
-                                    {t(messageLabel)}
+                                    {t(mergedProps.messageLabel)}
                                 </span>
 
-                                <textarea
-                                    rows={5}
-                                    placeholder={t(messagePlaceholder)}
-                                    value={formState.message}
-                                    onChange={handleFormChange('message')}
-                                    required
-                                />
+                                <span className={`${styles.textareaShell} ${styles.inputShell}`}>
+                                    <i className="bi bi-chat-left-text" />
+                                    <textarea
+                                        rows={5}
+                                        maxLength={500}
+                                        placeholder={t(mergedProps.messagePlaceholder)}
+                                        value={formState.message}
+                                        onChange={handleFormChange('message')}
+                                        required
+                                    />
+                                    <small>
+                                        {formState.message.length}
+                                        /500
+                                    </small>
+                                </span>
                             </label>
-                            <button type="submit" className={styles.formButton}>
-                                <span>{submitted ? t(formSuccessText) : t(formButtonText)}</span>
 
-                                <i className={`bi ${submitted ? 'bi-check2' : 'bi-send-fill'}`} />
+                            {error && (
+                                <div className={styles.error} role="alert">
+                                    <i className="bi bi-exclamation-circle" />
+                                    <span>
+                                        {selectedLocale === 'vi'
+                                            ? 'Không thể gửi tin nhắn. Vui lòng thử lại.'
+                                            : selectedLocale === 'ja'
+                                              ? '送信できませんでした。もう一度お試しください。'
+                                              : 'We could not send your message. Please try again.'}
+                                    </span>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className={styles.formButton}
+                                disabled={submitting}
+                            >
+                                <span>
+                                    {submitted
+                                        ? t(mergedProps.formSuccessText)
+                                        : submitting
+                                          ? selectedLocale === 'vi'
+                                              ? 'Đang gửi...'
+                                              : selectedLocale === 'ja'
+                                                ? '送信中...'
+                                                : 'Sending...'
+                                          : t(mergedProps.formButtonText)}
+                                </span>
+
+                                <i
+                                    className={`bi ${
+                                        submitted
+                                            ? 'bi-check2'
+                                            : submitting
+                                              ? 'bi-arrow-repeat'
+                                              : 'bi-send-fill'
+                                    }`}
+                                />
                             </button>
+
+                            <p className={styles.privacy}>
+                                <i className="bi bi-lock-fill" />
+                                <span>{t(mergedProps.privacyText)}</span>
+                            </p>
                         </form>
                     </div>
 
                     <div
-                        className={`${styles.right} ${styles.r}`}
-                        style={{ '--i': 2 } as React.CSSProperties}
+                        className={`${styles.right} ${styles.reveal}`}
+                        style={
+                            {
+                                '--i': 2,
+                            } as React.CSSProperties
+                        }
                     >
-                        {/* Illustration */}
-
-                        <div className={styles.heroIllustration}>
-                            <div className={styles.heroCircle} />
-
-                            <div className={styles.heroRing} />
-
-                            <div className={styles.mailCard}>
-                                <i className="bi bi-envelope-paper-heart-fill" />
+                        <div className={styles.illustrationHeader}>
+                            <div className={styles.illustrationCopy}>
+                                <span>LET&apos;S</span>
+                                <strong>Build Together</strong>
                             </div>
 
-                            <span className={styles.paperPlane}>
-                                <i className="bi bi-send-fill" />
-                            </span>
+                            <div className={styles.sparkle}>✦</div>
+                        </div>
+
+                        <div className={styles.heroIllustration}>
+                            <div className={styles.illustrationGlow} />
+                            <div className={styles.illustrationOrb} />
+                            <div className={styles.illustrationRing} />
+
+                            <div className={styles.networkLineOne} />
+                            <div className={styles.networkLineTwo} />
+                            <div className={styles.networkLineThree} />
 
                             <span className={styles.chatBubble}>
                                 <i className="bi bi-chat-dots-fill" />
                             </span>
 
-                            <span className={styles.likeBubble}>
-                                <i className="bi bi-hand-thumbs-up-fill" />
+                            <span className={styles.planeBubble}>
+                                <i className="bi bi-send-fill" />
                             </span>
-                            {['dotOne', 'dotTwo', 'dotThree'].map((cls) => (
-                                <span key={cls} className={styles[cls]} />
-                            ))}
 
-                            {['crossOne', 'crossTwo'].map((cls) => (
-                                <span key={cls} className={styles[cls]}>
-                                    +
+                            <span className={styles.peopleBubble}>
+                                <i className="bi bi-people-fill" />
+                            </span>
+
+                            <div className={styles.mailCard}>
+                                <div className={styles.mailBack} />
+                                <div className={styles.mailEnvelope}>
+                                    <div className={styles.mailHeart}>
+                                        <i className="bi bi-heart-fill" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={styles.messageCard}>
+                                <strong>
+                                    {selectedLocale === 'vi'
+                                        ? 'Mọi ý tưởng đều bắt đầu'
+                                        : selectedLocale === 'ja'
+                                          ? 'すべてのアイデアは'
+                                          : 'Every great idea'}
+                                </strong>
+                                <span>
+                                    {selectedLocale === 'vi'
+                                        ? 'bằng một cuộc trò chuyện'
+                                        : selectedLocale === 'ja'
+                                          ? '会話から始まります'
+                                          : 'starts with a conversation'}
                                 </span>
-                            ))}
+                                <b>—</b>
+                            </div>
                         </div>
-
-                        {/* Contact */}
 
                         <div className={styles.contactList}>
                             {contacts.map((contact) => {
@@ -545,55 +499,63 @@ export function ContactService01(props: ContactService01Props) {
                                     <div key={contact.id} className={styles.contactItem}>
                                         <div
                                             className={styles.contactIcon}
-                                            style={{
-                                                background: `${accent}15`,
-                                                color: accent,
-                                            }}
+                                            style={
+                                                {
+                                                    '--contact-accent': accent,
+                                                } as React.CSSProperties
+                                            }
                                         >
                                             <i className={`bi bi-${contact.icon}`} />
                                         </div>
 
                                         <div className={styles.contactContent}>
                                             <h4>{t(contact.label)}</h4>
-
                                             <strong>{t(contact.value)}</strong>
-
                                             {contact.description && <p>{t(contact.description)}</p>}
                                         </div>
+
+                                        <i
+                                            className={`${styles.contactArrow} bi bi-chevron-right`}
+                                        />
                                     </div>
                                 );
                             })}
                         </div>
+
                         <div className={styles.divider} />
-                        {/* Social */}
 
                         <div className={styles.socialSection}>
-                            <span className={styles.socialTitle}>{t(socialTitle)}</span>
+                            <div>
+                                <span className={styles.socialTitle}>
+                                    {t(mergedProps.socialTitle)}
+                                </span>
+                                <small>
+                                    {selectedLocale === 'vi'
+                                        ? 'Cập nhật tin tức và sản phẩm mới nhất.'
+                                        : selectedLocale === 'ja'
+                                          ? '最新のお知らせや製品情報をお届けします。'
+                                          : 'Stay updated with our latest news and products.'}
+                                </small>
+                            </div>
 
                             <div className={styles.socialList}>
                                 <a href="#" className={styles.socialItem} aria-label="Facebook">
                                     <i className="bi bi-facebook" />
                                 </a>
-
-                                <a href="#" className={styles.socialItem} aria-label="Twitter">
+                                <a href="#" className={styles.socialItem} aria-label="X">
                                     <i className="bi bi-twitter-x" />
                                 </a>
-
                                 <a href="#" className={styles.socialItem} aria-label="Instagram">
                                     <i className="bi bi-instagram" />
                                 </a>
-
                                 <a href="#" className={styles.socialItem} aria-label="LinkedIn">
                                     <i className="bi bi-linkedin" />
                                 </a>
                             </div>
                         </div>
 
-                        <span className={styles.blurOne} />
-
-                        <span className={styles.blurTwo} />
-
-                        <span className={styles.gridDecoration} />
+                        <span className={styles.decorBlurOne} aria-hidden="true" />
+                        <span className={styles.decorBlurTwo} aria-hidden="true" />
                     </div>
                 </div>
             </div>
@@ -619,35 +581,28 @@ function createContactInspector(index: 1 | 2 | 3): InspectorField[] {
 
 function createInspector(): InspectorField[] {
     return [
+        createLocalizedTextField('eyebrow', 'Eyebrow'),
         createLocalizedTextField('headline', 'Headline'),
         createLocalizedTextField('headlineAccent', 'Headline Accent'),
         createLocalizedTextField('subheadline', 'Subheadline'),
-
         createLocalizedTextField('nameLabel', 'Name Label'),
         createLocalizedTextField('namePlaceholder', 'Name Placeholder'),
-
         createLocalizedTextField('emailLabel', 'Email Label'),
         createLocalizedTextField('emailPlaceholder', 'Email Placeholder'),
-
         createLocalizedTextField('phoneLabel', 'Phone Label'),
         createLocalizedTextField('phonePlaceholder', 'Phone Placeholder'),
-
         createLocalizedTextField('messageLabel', 'Message Label'),
         createLocalizedTextField('messagePlaceholder', 'Message Placeholder'),
-
         createLocalizedTextField('formButtonText', 'Form Button Text'),
         createLocalizedTextField('formSuccessText', 'Form Success Text'),
-
+        createLocalizedTextField('privacyText', 'Privacy Text'),
         createLocalizedTextField('socialTitle', 'Social Title'),
-
         ...createContactInspector(1),
         ...createContactInspector(2),
         ...createContactInspector(3),
     ];
 }
-/* ─────────────────────────────────────────────────
-   Registry
-───────────────────────────────────────────────── */
+
 export const CONTACT_SERVICE_01: RegItem = {
     kind: 'contact-page-01',
     label: 'Contact Service 01',

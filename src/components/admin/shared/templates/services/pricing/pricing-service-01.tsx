@@ -748,12 +748,13 @@ export function PricingService01(props: PricingService01Props) {
             <div className={styles.container}>
                 <div className={styles.leftPanel}>
                     <div className={styles.heroCard}>
-                        <div className={styles.heroIcon}>
-                            <i className="bi bi-stars" />
+                        <div className={styles.heroCardTop}>
+                            <div className={styles.heroIcon}>
+                                <i className="bi bi-stars" />
+                            </div>
+
+                            <h2 className={styles.heroTitle}>{t(heroTitle)}</h2>
                         </div>
-
-                        <h2 className={styles.heroTitle}>{t(heroTitle)}</h2>
-
                         <p className={styles.heroDesc}>{t(heroDescription)}</p>
 
                         <div className={styles.statsRow}>
@@ -805,9 +806,7 @@ export function PricingService01(props: PricingService01Props) {
                 <div className={styles.rightPanel}>
                     <div className={styles.header}>
                         <div className={styles.headerLeft}>
-                            <span className={styles.badge}>{t(pricingBadge)}</span>
                             <h2 className={styles.title}>{t(pricingTitle)}</h2>
-                            <p className={styles.subtitle}>{t(pricingSubtitle)}</p>
                         </div>
 
                         <div className={styles.headerRight}>
@@ -836,17 +835,14 @@ export function PricingService01(props: PricingService01Props) {
                                     .join(' ')}
                             >
                                 <div className={styles.glow} />
-
                                 <div className={styles.cardHeader}>
-                                    <span className={styles.plan}>{t(card.plan)}</span>
-
-                                    <h3>{t(card.websites)}</h3>
-
+                                    <div className={styles.planTop}>
+                                        <span className={styles.plan}>{t(card.plan)}</span>
+                                        <p className={styles.planTitle}>{t(card.websites)}</p>
+                                    </div>
                                     <div className={styles.price}>
                                         <span>$</span>
-
                                         {card.price}
-
                                         <small>{t(priceSuffix)}</small>
                                     </div>
                                 </div>

@@ -61,6 +61,7 @@ type TemplateGroupHome =
     | 'Header'
     | 'Footer'
     | 'Sidebar'
+    | 'Home'
     | 'Hero'
     | 'Showcase'
     | 'Benefit'
@@ -98,7 +99,7 @@ function inferGroupFromKind(kind?: string | null): TemplateGroupHome | null {
     if (normalizedKind.startsWith('header')) return 'Header';
     if (normalizedKind.startsWith('footer')) return 'Footer';
     if (normalizedKind.startsWith('sidebar')) return 'Sidebar';
-
+    if (normalizedKind.startsWith('home')) return 'Home';
     if (normalizedKind.startsWith('hero')) return 'Hero';
     if (normalizedKind.startsWith('showcase')) return 'Showcase';
     if (normalizedKind.startsWith('benefit')) return 'Benefit';
@@ -116,14 +117,15 @@ function inferGroupFromKind(kind?: string | null): TemplateGroupHome | null {
 }
 
 const TEMPLATE_GROUPS_BY_PATH: Record<string, TemplateGroupHome[]> = {
-    '/': ['Hero', 'Showcase', 'Benefit', 'Pricing', 'Portfolio', 'Testimonial', 'Contact'],
+    '/': ['Home', 'Hero', 'Showcase', 'Benefit', 'Pricing', 'Portfolio', 'Testimonial', 'Contact'],
 
-    '/home': ['Hero', 'Showcase', 'Benefit', 'Pricing', 'Portfolio', 'Testimonial', 'Contact'],
+    '/home': ['Home', 'Showcase', 'Benefit', 'Pricing', 'Portfolio', 'Testimonial', 'Contact'],
 
     '/service': ['Service', 'Contact'],
     '/pricing': ['PricingPage'],
     '/project': ['Project'],
     '/about-us': ['About', 'Contact'],
+    '/about': ['About', 'Contact'],
     '/blog': ['Blog', 'Contact'],
     '/sign-in': ['SignIn'],
 

@@ -48,6 +48,7 @@ export const TEMPLATES: readonly BuilderTemplate[] = [
         'FooterService08',
         'FooterService09',
     ]),
+    tpl('tpl-home', 'Home', ['HomeService01']),
     tpl('tpl-hero', 'Hero', ['HeroService01']),
     tpl('tpl-sidebar', 'Sidebar', [
         'SidebarAnnouncement',

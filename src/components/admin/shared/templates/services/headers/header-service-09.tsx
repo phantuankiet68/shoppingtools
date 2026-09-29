@@ -1,35 +1,19 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from '@/components/admin/shared/templates/services/headers/styles/header-service-09.module.css';
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 import { useSite } from '@/hooks/v1/useSiteHook';
-
 import { useAuth } from '@/components/admin/providers/auth-provider';
-
 import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
+
 const LOCALES = [
-    {
-        value: 'en',
-        label: 'English',
-        description: 'United States',
-        flag: '/flags/us.png',
-    },
-    {
-        value: 'vi',
-        label: 'Tiếng Việt',
-        description: 'Việt Nam',
-        flag: '/flags/vn.png',
-    },
-    {
-        value: 'ja',
-        label: '日本語',
-        description: 'Japan',
-        flag: '/flags/jp.png',
-    },
+    { value: 'en', label: 'English', description: 'United States', flag: '/flags/us.png' },
+    { value: 'vi', label: 'Tiếng Việt', description: 'Việt Nam', flag: '/flags/vn.png' },
+    { value: 'ja', label: '日本語', description: 'Japan', flag: '/flags/jp.png' },
 ];
 
 export type MenuTranslation = {
@@ -56,12 +40,14 @@ export interface HeaderService09Props {
     checkoutHref?: string;
     logo?: string;
     logoTitle?: LocalizedText;
+    logoSubtitle?: LocalizedText;
     loginTitle?: LocalizedText;
     loginSubtitle?: LocalizedText;
     loginHref?: string;
     offerTitle?: LocalizedText;
     offerSubtitle?: LocalizedText;
     offerHref?: string;
+    searchPlaceholder?: LocalizedText;
     primaryColor?: string;
     secondaryColor?: string;
     accentColor?: string;
@@ -72,10 +58,8 @@ export interface HeaderService09Props {
     showLogin?: boolean;
     profileText?: LocalizedText;
     profileHref?: string;
-
     accountText?: LocalizedText;
     accountHref?: string;
-
     logoutText?: LocalizedText;
 }
 
@@ -95,23 +79,15 @@ function useSiteMenus(siteId?: string) {
                 const res = await fetch(`/api/v1/sites/${siteId}/menus`, {
                     signal: controller.signal,
                 });
-
-                if (!res.ok) {
-                    throw new Error('Failed to load menus');
-                }
-
+                if (!res.ok) throw new Error('Failed to load menus');
                 const data = await res.json();
-
                 setMenus(Array.isArray(data?.data) ? data.data : []);
             } catch (error) {
-                if ((error as Error).name !== 'AbortError') {
-                    setMenus([]);
-                }
+                if ((error as Error).name !== 'AbortError') setMenus([]);
             }
         }
 
         loadMenus();
-
         return () => controller.abort();
     }, [siteId]);
 
@@ -122,12 +98,10 @@ function localeText(en: string, vi: string, ja: string): LocalizedText {
     return {
         sourceLocale: 'en',
         default: en,
-        translations: {
-            vi,
-            ja,
-        },
+        translations: { vi, ja },
     };
 }
+
 export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     siteId: '',
     supportLabel: localeText('Need Help?', 'Cần hỗ trợ?', 'サポートが必要ですか？'),
@@ -137,7 +111,8 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     checkoutText: localeText('Checkout', 'Thanh toán', 'チェックアウト'),
     checkoutHref: '/checkout',
     logo: '/assets/images/logo.png',
-    logoTitle: localeText('ETRO STORES', 'ETRO STORES', 'ETRO STORES'),
+    logoTitle: localeText('KBuilder', 'KBuilder', 'KBuilder'),
+    logoSubtitle: localeText('Website Builder', 'Trình xây dựng website', 'ウェブサイトビルダー'),
     loginTitle: localeText('Login', 'Đăng nhập', 'ログイン'),
     loginSubtitle: localeText('Welcome Guest', 'Chào mừng Quý khách', 'ようこそ、ゲスト様'),
     loginHref: '/sign-in',
@@ -148,9 +123,14 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     ),
     offerSubtitle: localeText('Documentation', 'Tài liệu hướng dẫn', 'ドキュメント'),
     offerHref: '/docs',
-    primaryColor: '#7C3AED',
-    secondaryColor: '#EC4899',
-    accentColor: '#FF8A00',
+    searchPlaceholder: localeText(
+        'Search templates, features, guides...',
+        'Tìm kiếm template, tính năng, hướng dẫn...',
+        'テンプレート、機能、ガイドを検索...',
+    ),
+    primaryColor: '#4F8FF7',
+    secondaryColor: '#A855F7',
+    accentColor: '#7C5CFC',
     showTopbar: true,
     showOfferCard: true,
     showWishlist: true,
@@ -164,10 +144,7 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
 };
 
 export function menuTranslation(vi: string, ja: string): MenuTranslation {
-    return {
-        vi,
-        ja,
-    };
+    return { vi, ja };
 }
 
 function themeStyle(primary: string, secondary: string, accent: string): React.CSSProperties {
@@ -180,13 +157,13 @@ function themeStyle(primary: string, secondary: string, accent: string): React.C
 
 function renderBadge(badge?: string) {
     if (!badge) return null;
-
     return (
         <span className={`${styles.badge} ${badge === 'HOT' ? styles.hot : styles.new}`}>
             {badge}
         </span>
     );
 }
+
 const MENU_TRANSLATIONS = {
     '/': menuTranslation('Trang chủ', 'ホーム'),
     '/service': menuTranslation('Dịch vụ', 'サービス'),
@@ -196,6 +173,20 @@ const MENU_TRANSLATIONS = {
     '/blog': menuTranslation('Blog', 'ブログ'),
     '/contact': menuTranslation('Liên hệ', 'お問い合わせ'),
 } as const;
+
+const MENU_ICONS: Record<string, string> = {
+    '/': 'bi-house-door-fill',
+    '/service': 'bi-grid-fill',
+    '/project': 'bi-folder2-open',
+    '/about': 'bi-info-circle',
+    '/pricing': 'bi-crown',
+    '/blog': 'bi-journal-text',
+    '/contact': 'bi-chat-dots',
+};
+
+function getMenuIcon(href: string, fallback?: string | null) {
+    return fallback || MENU_ICONS[href] || 'bi-circle';
+}
 
 function HeaderService09(props: HeaderService09Props) {
     const {
@@ -208,12 +199,14 @@ function HeaderService09(props: HeaderService09Props) {
         checkoutHref,
         logo,
         logoTitle,
+        logoSubtitle,
         loginTitle,
         loginSubtitle,
         loginHref,
         offerTitle,
         offerSubtitle,
         offerHref,
+        searchPlaceholder,
         primaryColor,
         secondaryColor,
         accentColor,
@@ -227,40 +220,32 @@ function HeaderService09(props: HeaderService09Props) {
         accountHref,
         accountText,
         logoutText,
-    } = {
-        ...DEFAULT_PROPS,
-        ...props,
-    };
+    } = { ...DEFAULT_PROPS, ...props };
+
     const site = useSite(siteId);
     const menus = useSiteMenus(siteId);
+    const pathname = usePathname();
+    const { user, loading, logout } = useAuth();
 
     const [mobileOpen, setMobileOpen] = useState(false);
-    const pathname = usePathname();
-
-    const siteLogo = site?.logoUrl || logo || '/assets/images/logo.png';
-    const isActive = (href: string) => {
-        if (href === '/') {
-            return pathname === '/';
-        }
-
-        return pathname === href || pathname.startsWith(`${href}/`);
-    };
-
     const [languageOpen, setLanguageOpen] = useState(false);
-
+    const [searchValue, setSearchValue] = useState('');
     const [selectedLocale, setSelectedLocale] = useState(() => {
-        if (typeof window === 'undefined') {
-            return 'en';
-        }
-
+        if (typeof window === 'undefined') return 'en';
         return localStorage.getItem('locale') ?? 'en';
     });
 
-    const currentLocale = LOCALES.find((item) => item.value === selectedLocale) ?? LOCALES[0];
-
     const languageRef = useRef<HTMLDivElement>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
 
+    const currentLocale = LOCALES.find((item) => item.value === selectedLocale) ?? LOCALES[0];
+    const siteLogo = site?.logoUrl || logo || '/assets/images/logo.png';
     const siteName = site?.name ?? getLocalizedValue(logoTitle, selectedLocale);
+
+    const isActive = (href: string) => {
+        if (href === '/') return pathname === '/';
+        return pathname === href || pathname.startsWith(`${href}/`);
+    };
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -270,32 +255,33 @@ function HeaderService09(props: HeaderService09Props) {
         }
 
         document.addEventListener('mousedown', handleClickOutside);
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
     useEffect(() => {
-        function onEscape(e: KeyboardEvent) {
-            if (e.key === 'Escape') {
+        function onEscape(event: KeyboardEvent) {
+            if (event.key === 'Escape') {
                 setLanguageOpen(false);
+                setMobileOpen(false);
+                searchRef.current?.blur();
+            }
+
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                event.preventDefault();
+                searchRef.current?.focus();
             }
         }
 
         document.addEventListener('keydown', onEscape);
-
-        return () => {
-            document.removeEventListener('keydown', onEscape);
-        };
+        return () => document.removeEventListener('keydown', onEscape);
     }, []);
 
-    const { user, loading, logout } = useAuth();
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [pathname]);
 
     function getMenuLabel(href: string, fallback: string, locale: string) {
-        if (locale === 'en') {
-            return fallback;
-        }
-
+        if (locale === 'en') return fallback;
         return (
             MENU_TRANSLATIONS[href as keyof typeof MENU_TRANSLATIONS]?.[locale as 'vi' | 'ja'] ??
             fallback
@@ -304,16 +290,73 @@ function HeaderService09(props: HeaderService09Props) {
 
     function handleLocaleChange(locale: string) {
         setSelectedLocale(locale);
-
         localStorage.setItem('locale', locale);
-
-        window.dispatchEvent(
-            new CustomEvent('locale-change', {
-                detail: locale,
-            }),
-        );
-
+        window.dispatchEvent(new CustomEvent('locale-change', { detail: locale }));
         setLanguageOpen(false);
+    }
+
+    function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (!searchValue.trim()) {
+            searchRef.current?.focus();
+            return;
+        }
+        const query = encodeURIComponent(searchValue.trim());
+        window.location.href = `/search?q=${query}`;
+    }
+
+    function renderUserMenu() {
+        if (loading) return null;
+
+        if (user) {
+            return (
+                <div className={styles.userMenu}>
+                    <button type="button" className={styles.userButton} aria-label="Account">
+                        <Image
+                            src={user.avatar ?? '/assets/images/avatar.png'}
+                            alt={user.name ?? 'User Avatar'}
+                            width={34}
+                            height={34}
+                            className={styles.userAvatar}
+                        />
+                        <span className={styles.userInfo}>
+                            <strong>{user.name}</strong>
+                            <small>{user.systemRole}</small>
+                        </span>
+                        <i className="bi bi-chevron-down" />
+                    </button>
+
+                    <div className={styles.dropdown}>
+                        <Link href={profileHref}>
+                            <i className="bi bi-person" />
+                            {getLocalizedValue(profileText, selectedLocale)}
+                        </Link>
+                        <Link href={accountHref}>
+                            <i className="bi bi-gear" />
+                            {getLocalizedValue(accountText, selectedLocale)}
+                        </Link>
+                        <button type="button" onClick={logout}>
+                            <i className="bi bi-box-arrow-right" />
+                            {getLocalizedValue(logoutText, selectedLocale)}
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        if (!showLogin) return null;
+
+        return (
+            <Link href={loginHref} className={styles.login}>
+                <span className={styles.avatar}>
+                    <i className="bi bi-person" />
+                </span>
+                <span className={styles.loginText}>
+                    <strong>{getLocalizedValue(loginTitle, selectedLocale)}</strong>
+                    <small>{getLocalizedValue(loginSubtitle, selectedLocale)}</small>
+                </span>
+            </Link>
+        );
     }
 
     return (
@@ -321,13 +364,16 @@ function HeaderService09(props: HeaderService09Props) {
             className={`${styles.header} ${styles.sticky}`}
             style={themeStyle(primaryColor, secondaryColor, accentColor)}
         >
+            <div className={styles.headerGlow} />
+
             {showTopbar && (
                 <div className={styles.topbar}>
                     <div className={styles.container}>
                         <div className={styles.topbarLeft}>
-                            <span>
+                            <span className={styles.support}>
                                 <i className="bi bi-headset" />
-                                {getLocalizedValue(supportLabel, selectedLocale)} {supportPhone}
+                                <span>{getLocalizedValue(supportLabel, selectedLocale)}</span>
+                                <b>{supportPhone}</b>
                             </span>
 
                             <span className={styles.separator} />
@@ -337,19 +383,16 @@ function HeaderService09(props: HeaderService09Props) {
                                     type="button"
                                     className={styles.languageButton}
                                     onClick={() => setLanguageOpen((prev) => !prev)}
+                                    aria-expanded={languageOpen}
                                 >
                                     <Image
                                         src={currentLocale.flag}
                                         alt={currentLocale.label}
-                                        width={32}
-                                        height={22}
+                                        width={22}
+                                        height={15}
                                         className={styles.flag}
                                     />
-
-                                    <span className={styles.languageLabel}>
-                                        {currentLocale.label}
-                                    </span>
-
+                                    <span>{currentLocale.label}</span>
                                     <i
                                         className={`bi ${
                                             languageOpen ? 'bi-chevron-up' : 'bi-chevron-down'
@@ -371,20 +414,19 @@ function HeaderService09(props: HeaderService09Props) {
                                                     }`}
                                                     onClick={() => handleLocaleChange(item.value)}
                                                 >
-                                                    <div className={styles.languageItemLeft}>
+                                                    <span className={styles.languageItemLeft}>
                                                         <Image
                                                             src={item.flag}
                                                             alt={item.label}
-                                                            width={32}
-                                                            height={22}
+                                                            width={24}
+                                                            height={16}
                                                             className={styles.flag}
                                                         />
-
-                                                        <div>
+                                                        <span>
                                                             <strong>{item.label}</strong>
-                                                        </div>
-                                                    </div>
-
+                                                            <small>{item.description}</small>
+                                                        </span>
+                                                    </span>
                                                     {active && <i className="bi bi-check2" />}
                                                 </button>
                                             );
@@ -392,46 +434,53 @@ function HeaderService09(props: HeaderService09Props) {
                                     </div>
                                 )}
                             </div>
-
-                            <span className={styles.separator} />
                         </div>
 
                         <div className={styles.topbarRight}>
                             {showWishlist && (
-                                <Link href={wishlistHref}>
+                                <Link href={wishlistHref} className={styles.topbarAction}>
                                     <i className="bi bi-heart" />
-                                    {getLocalizedValue(wishlistText, selectedLocale)}
+                                    <span>{getLocalizedValue(wishlistText, selectedLocale)}</span>
                                 </Link>
                             )}
 
-                            <Link href={checkoutHref}>
-                                <i className="bi bi-bag" />
-                                {getLocalizedValue(checkoutText, selectedLocale)}
-                            </Link>
+                            {showCheckout && (
+                                <Link href={checkoutHref} className={styles.topbarAction}>
+                                    <i className="bi bi-bag" />
+                                    <span>{getLocalizedValue(checkoutText, selectedLocale)}</span>
+                                </Link>
+                            )}
+
+                            {(showWishlist || showCheckout) && (
+                                <span className={styles.userDivider} />
+                            )}
+
+                            {renderUserMenu()}
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ================= MIDDLE ================= */}
-
-            <div className={styles.middle}>
-                <div className={styles.container}>
-                    {/* Logo */}
-
-                    <Link href="/" className={styles.logo}>
-                        <Image
-                            src={siteLogo}
-                            alt={siteName}
-                            width={60}
-                            height={60}
-                            className={styles.logoImage}
-                            unoptimized
-                        />
+            <div className={styles.mainShell}>
+                <div className={styles.mainInner}>
+                    <Link href="/" className={styles.logo} aria-label={siteName}>
+                        <span className={styles.logoMark}>
+                            <Image
+                                src={siteLogo}
+                                alt={siteName}
+                                width={44}
+                                height={44}
+                                className={styles.logoImage}
+                                unoptimized
+                            />
+                        </span>
+                        <span className={styles.logoContent}>
+                            <strong>{siteName}</strong>
+                            <small>{getLocalizedValue(logoSubtitle, selectedLocale)}</small>
+                        </span>
                     </Link>
 
-                    {/* Search */}
-                    <nav className={styles.menu}>
+                    <nav className={styles.menu} aria-label="Main navigation">
                         {menus.map((item) => (
                             <Link
                                 key={item.href}
@@ -440,115 +489,84 @@ function HeaderService09(props: HeaderService09Props) {
                                     isActive(item.href) ? styles.active : ''
                                 }`}
                             >
-                                {getMenuLabel(item.href, item.label, selectedLocale)}
-                                {renderBadge(item.badge)}
-                            </Link>
-                        ))}
-                    </nav>
-                    {/* Right */}
-
-                    <div className={styles.rightArea}>
-                        {showOfferCard && (
-                            <Link href={offerHref} className={styles.offerCard}>
-                                <div className={styles.offerIcon}>
-                                    <i className="bi bi-gift" />
-                                </div>
-
-                                <div className={styles.offerContent}>
-                                    <strong>
-                                        {getLocalizedValue(offerSubtitle, selectedLocale)}
-                                    </strong>
-                                    <span>{getLocalizedValue(offerTitle, selectedLocale)}</span>
-                                </div>
-
-                                <i className="bi bi-chevron-right" />
-                            </Link>
-                        )}
-
-                        {loading ? null : user ? (
-                            <div className={styles.userMenu}>
-                                <button className={styles.userButton}>
-                                    <Image
-                                        src={user.avatar ?? '/assets/images/avatar.png'}
-                                        alt={user.name ?? 'User Avatar'}
-                                        width={42}
-                                        height={42}
-                                        className={styles.userAvatar}
-                                    />
-
-                                    <div className={styles.userInfo}>
-                                        <strong>{user.name}</strong>
-
-                                        <span>{user.systemRole}</span>
-                                    </div>
-
-                                    <i className="bi bi-chevron-down" />
-                                </button>
-
-                                <div className={styles.dropdown}>
-                                    <Link href={profileHref}>
-                                        <i className="bi bi-person" />
-                                        {getLocalizedValue(profileText, selectedLocale)}
-                                    </Link>
-
-                                    <Link href={accountHref}>
-                                        <i className="bi bi-gear" />
-                                        {getLocalizedValue(accountText, selectedLocale)}
-                                    </Link>
-
-                                    <button onClick={logout}>
-                                        <i className="bi bi-box-arrow-right" />
-                                        {getLocalizedValue(logoutText, selectedLocale)}
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            showLogin && (
-                                <Link href={loginHref} className={styles.login}>
-                                    <div className={styles.avatar}>
-                                        <i className="bi bi-person" />
-                                    </div>
-
-                                    <div>
-                                        <strong>
-                                            {getLocalizedValue(loginTitle, selectedLocale)}
-                                        </strong>
-
-                                        <span>
-                                            {getLocalizedValue(loginSubtitle, selectedLocale)}
-                                        </span>
-                                    </div>
-                                </Link>
-                            )
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* ================= MOBILE BUTTON ================= */}
-
-            <button
-                type="button"
-                className={styles.mobileButton}
-                onClick={() => setMobileOpen(!mobileOpen)}
-            >
-                <i className={`bi ${mobileOpen ? 'bi-x-lg' : 'bi-list'}`} />
-            </button>
-            {mobileOpen && (
-                <div className={styles.mobileMenu}>
-                    <div className={styles.mobileNav}>
-                        {menus.map((item) => (
-                            <Link
-                                key={`${item.label}-${item.href}`}
-                                href={item.href}
-                                className={styles.mobileItem}
-                                onClick={() => setMobileOpen(false)}
-                            >
+                                <i className={`bi ${getMenuIcon(item.href, item.icon)}`} />
                                 <span>{getMenuLabel(item.href, item.label, selectedLocale)}</span>
                                 {renderBadge(item.badge)}
                             </Link>
                         ))}
-                    </div>
+                    </nav>
+
+                    <form className={styles.searchWrapper} onSubmit={handleSearchSubmit}>
+                        <div className={styles.searchBox}>
+                            <i className="bi bi-search" />
+                            <input
+                                ref={searchRef}
+                                type="search"
+                                value={searchValue}
+                                onChange={(event) => setSearchValue(event.target.value)}
+                                placeholder={getLocalizedValue(searchPlaceholder, selectedLocale)}
+                                aria-label={getLocalizedValue(searchPlaceholder, selectedLocale)}
+                            />
+                        </div>
+                    </form>
+
+                    {showOfferCard && (
+                        <Link href={offerHref} className={styles.offerCard}>
+                            <span className={styles.offerIcon}>
+                                <i className="bi bi-gift-fill" />
+                            </span>
+                            <span className={styles.offerContent}>
+                                <strong>{getLocalizedValue(offerSubtitle, selectedLocale)}</strong>
+                                <small>{getLocalizedValue(offerTitle, selectedLocale)}</small>
+                            </span>
+                            <i className="bi bi-chevron-right" />
+                        </Link>
+                    )}
+                </div>
+            </div>
+
+            <button
+                type="button"
+                className={styles.mobileButton}
+                onClick={() => setMobileOpen((prev) => !prev)}
+                aria-label="Toggle navigation"
+                aria-expanded={mobileOpen}
+            >
+                <i className={`bi ${mobileOpen ? 'bi-x-lg' : 'bi-list'}`} />
+            </button>
+
+            {mobileOpen && (
+                <div className={styles.mobileMenu}>
+                    <form className={styles.mobileSearch} onSubmit={handleSearchSubmit}>
+                        <i className="bi bi-search" />
+                        <input
+                            type="search"
+                            value={searchValue}
+                            onChange={(event) => setSearchValue(event.target.value)}
+                            placeholder={getLocalizedValue(searchPlaceholder, selectedLocale)}
+                        />
+                    </form>
+
+                    <nav className={styles.mobileNav}>
+                        {menus.map((item) => (
+                            <Link
+                                key={`${item.label}-${item.href}`}
+                                href={item.href}
+                                className={`${styles.mobileItem} ${
+                                    isActive(item.href) ? styles.mobileItemActive : ''
+                                }`}
+                                onClick={() => setMobileOpen(false)}
+                            >
+                                <span className={styles.mobileItemLabel}>
+                                    <i className={`bi ${getMenuIcon(item.href, item.icon)}`} />
+                                    <span>
+                                        {getMenuLabel(item.href, item.label, selectedLocale)}
+                                    </span>
+                                </span>
+                                {renderBadge(item.badge)}
+                            </Link>
+                        ))}
+                    </nav>
 
                     <div className={styles.mobileActions}>
                         {showWishlist && (
@@ -557,13 +575,13 @@ function HeaderService09(props: HeaderService09Props) {
                                 {getLocalizedValue(wishlistText, selectedLocale)}
                             </Link>
                         )}
-
                         {showCheckout && (
                             <Link href={checkoutHref}>
                                 <i className="bi bi-bag" />
                                 {getLocalizedValue(checkoutText, selectedLocale)}
                             </Link>
                         )}
+                        {renderUserMenu()}
                     </div>
                 </div>
             )}
@@ -572,36 +590,19 @@ function HeaderService09(props: HeaderService09Props) {
 }
 
 function textField(key: string, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'text',
-    };
+    return { key, label, kind: 'text' };
 }
 
 function localizedTextField(key: string, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'localized-text',
-    };
+    return { key, label, kind: 'localized-text' };
 }
 
 function checkField(key: string, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'check',
-    };
+    return { key, label, kind: 'check' };
 }
 
 function imageField(key: string, label: string, folder?: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'image',
-        folder,
-    };
+    return { key, label, kind: 'image', folder };
 }
 
 function createAccountInspector(): RegItem['inspector'] {
@@ -613,6 +614,7 @@ function createAccountInspector(): RegItem['inspector'] {
         localizedTextField('logoutText', 'Logout Text'),
     ];
 }
+
 function createTopbarInspector(): RegItem['inspector'] {
     return [
         localizedTextField('supportLabel', 'Support Label'),
@@ -621,8 +623,13 @@ function createTopbarInspector(): RegItem['inspector'] {
         localizedTextField('checkoutText', 'Checkout Text'),
     ];
 }
+
 function createLogoInspector(): RegItem['inspector'] {
-    return [localizedTextField('logoTitle', 'Logo Title'), imageField('logo', 'Logo', 'logos')];
+    return [
+        localizedTextField('logoTitle', 'Logo Title'),
+        localizedTextField('logoSubtitle', 'Logo Subtitle'),
+        imageField('logo', 'Logo', 'logos'),
+    ];
 }
 
 function createLoginInspector(): RegItem['inspector'] {
@@ -637,6 +644,7 @@ function createOfferInspector(): RegItem['inspector'] {
     return [
         localizedTextField('offerTitle', 'Offer Title'),
         localizedTextField('offerSubtitle', 'Offer Subtitle'),
+        localizedTextField('searchPlaceholder', 'Search Placeholder'),
         textField('offerHref', 'Offer Url'),
     ];
 }
@@ -658,9 +666,11 @@ function createLayoutInspector(): RegItem['inspector'] {
         checkField('showLogin', 'Show Login'),
     ];
 }
+
 function inspectorGroup(...groups: RegItem['inspector'][]): RegItem['inspector'] {
     return groups.flat();
 }
+
 function createInspector(): RegItem['inspector'] {
     return inspectorGroup(
         createTopbarInspector(),
@@ -672,6 +682,7 @@ function createInspector(): RegItem['inspector'] {
         createAccountInspector(),
     );
 }
+
 export const HEADER_SERVICE_09: RegItem = {
     kind: 'header-service-09',
     label: 'Header Service 09',

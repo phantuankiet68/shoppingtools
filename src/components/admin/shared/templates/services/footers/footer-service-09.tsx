@@ -20,7 +20,9 @@ export interface FooterService09Props {
     siteId?: string;
     address?: LocalizedText;
     tagline?: LocalizedText;
+    brandSubline?: LocalizedText;
     ctaTitle?: LocalizedText;
+    ctaTitleAccent?: LocalizedText;
     ctaDescription?: LocalizedText;
     ctaButtonText?: LocalizedText;
     ctaButtonHref?: string;
@@ -35,6 +37,13 @@ export interface FooterService09Props {
     subscribeSuccessDescription?: LocalizedText;
     subscribeButtonText?: LocalizedText;
     subscribeNote?: LocalizedText;
+    googlePlayBadge?: LocalizedText;
+    appStoreBadge?: LocalizedText;
+    contactHours?: LocalizedText;
+    appsDescription?: LocalizedText;
+    handwrittenBuild?: LocalizedText;
+    handwrittenBetter?: LocalizedText;
+    handwrittenTogether?: LocalizedText;
     companyTitle?: LocalizedText;
     resourcesTitle?: LocalizedText;
     contactTitle?: LocalizedText;
@@ -110,12 +119,27 @@ export const DEFAULT_PROPS: Required<FooterService09Props> = {
         },
     },
 
+    brandSubline: {
+        sourceLocale: 'en',
+        default: 'Website Builder',
+        translations: { vi: 'Trình xây dựng website', ja: 'ウェブサイトビルダー' },
+    },
+
     ctaTitle: {
         sourceLocale: 'en',
         default: 'Get the inside edge',
         translations: {
             vi: 'Đón đầu xu hướng',
             ja: '最新情報を手に入れよう',
+        },
+    },
+
+    ctaTitleAccent: {
+        sourceLocale: 'en',
+        default: 'with KBuilder',
+        translations: {
+            vi: 'cùng KBuilder',
+            ja: 'KBuilderとともに',
         },
     },
 
@@ -238,6 +262,60 @@ export const DEFAULT_PROPS: Required<FooterService09Props> = {
         },
     },
 
+    googlePlayBadge: {
+        sourceLocale: 'en',
+        default: 'Get it on',
+        translations: {
+            vi: 'Tải về trên',
+            ja: 'Google Playで',
+        },
+    },
+
+    appStoreBadge: {
+        sourceLocale: 'en',
+        default: 'Download on',
+        translations: {
+            vi: 'Tải về trên',
+            ja: 'App Storeで',
+        },
+    },
+
+    contactHours: {
+        sourceLocale: 'en',
+        default: 'Mon – Fri, 8:00 – 17:00',
+        translations: {
+            vi: 'Thứ 2 – Thứ 6, 8:00 – 17:00',
+            ja: '月曜日〜金曜日、8:00〜17:00',
+        },
+    },
+
+    appsDescription: {
+        sourceLocale: 'en',
+        default: 'Experience KBuilder anytime, anywhere.',
+        translations: {
+            vi: 'Trải nghiệm KBuilder mọi lúc, mọi nơi.',
+            ja: 'いつでもどこでもKBuilderを体験できます。',
+        },
+    },
+
+    handwrittenBuild: {
+        sourceLocale: 'en',
+        default: 'Build',
+        translations: { vi: 'Xây dựng', ja: 'Build' },
+    },
+
+    handwrittenBetter: {
+        sourceLocale: 'en',
+        default: 'Better',
+        translations: { vi: 'Tốt hơn', ja: 'Better' },
+    },
+
+    handwrittenTogether: {
+        sourceLocale: 'en',
+        default: 'Together',
+        translations: { vi: 'Cùng nhau', ja: 'Together' },
+    },
+
     companyTitle: {
         sourceLocale: 'en',
         default: 'Company',
@@ -318,11 +396,8 @@ export const DEFAULT_PROPS: Required<FooterService09Props> = {
             ja: '無断転載を禁じます。',
         },
     },
-
     appStoreHref: '#',
-
     googlePlayHref: '#',
-
     showAppDownload: true,
 };
 
@@ -339,7 +414,9 @@ export function FooterService09(props: FooterService09Props) {
         siteId,
         address,
         tagline,
+        brandSubline,
         ctaTitle,
+        ctaTitleAccent,
         ctaDescription,
         ctaButtonText,
         ctaButtonHref,
@@ -354,6 +431,13 @@ export function FooterService09(props: FooterService09Props) {
         subscribeSuccessDescription,
         subscribeButtonText,
         subscribeNote,
+        googlePlayBadge,
+        appStoreBadge,
+        contactHours,
+        appsDescription,
+        handwrittenBuild,
+        handwrittenBetter,
+        handwrittenTogether,
         companyTitle,
         resourcesTitle,
         contactTitle,
@@ -369,13 +453,9 @@ export function FooterService09(props: FooterService09Props) {
     } = mergedProps;
 
     const site = useSite(siteId);
-
     const menus = useSiteMenus(siteId);
-
     const rootRef = useRef<HTMLElement>(null);
-
     const inView = useInView(rootRef);
-
     const [selectedLocale, setSelectedLocale] = useState(() => {
         if (typeof window === 'undefined') {
             return 'en';
@@ -389,27 +469,18 @@ export function FooterService09(props: FooterService09Props) {
             const customEvent = event as CustomEvent<string>;
             setSelectedLocale(customEvent.detail);
         };
-
         window.addEventListener('locale-change', handleLocaleChange as EventListener);
-
         return () => {
             window.removeEventListener('locale-change', handleLocaleChange as EventListener);
         };
     }, []);
-
     const t = (value: LocalizedText) => getLocalizedValue(value, selectedLocale);
-
     const [email, setEmail] = useState('');
-
     const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'success'>('idle');
-
     const siteLogo = site?.logoUrl ?? '/assets/images/logo.png';
-
     const siteName = site?.name ?? 'Website';
-
     const { companyMenus, resourceMenus } = useMemo(() => {
         const half = Math.ceil(menus.length / 2);
-
         return {
             companyMenus: menus.slice(0, half),
             resourceMenus: menus.slice(half),
@@ -449,7 +520,6 @@ export function FooterService09(props: FooterService09Props) {
 
     const SOCIALS = [
         { id: 'facebook', label: 'Facebook' },
-        { id: 'instagram', label: 'Instagram' },
         { id: 'linkedin', label: 'LinkedIn' },
         { id: 'youtube', label: 'YouTube' },
         { id: 'tiktok', label: 'TikTok' },
@@ -496,7 +566,6 @@ export function FooterService09(props: FooterService09Props) {
         if (locale === 'en') {
             return fallback;
         }
-
         return (
             MENU_TRANSLATIONS[href as keyof typeof MENU_TRANSLATIONS]?.[locale as 'vi' | 'ja'] ??
             fallback
@@ -508,18 +577,19 @@ export function FooterService09(props: FooterService09Props) {
             <div className={styles.wrap}>
                 <section className={styles.newsletter}>
                     <div className={styles.newsletterGlow} />
-
                     <div className={styles.newsletterGrid}>
                         <div className={styles.newsletterContent}>
                             <span className={styles.newsletterBadge}>
                                 <i className="bi bi-stars" />
                                 {t(newsletterBadge)}
                             </span>
-
-                            <h2 className={styles.newsletterTitle}>{t(ctaTitle)}</h2>
-
+                            <h2 className={styles.newsletterTitle}>
+                                <span>{t(ctaTitle)}</span>
+                                <span className={styles.newsletterTitleAccent}>
+                                    {t(ctaTitleAccent)}
+                                </span>
+                            </h2>
                             <p className={styles.newsletterDescription}>{t(ctaDescription)}</p>
-
                             <div className={styles.subscriberRow}>
                                 <div className={styles.avatarGroup}>
                                     {AVATARS.map((avatar) => (
@@ -532,41 +602,41 @@ export function FooterService09(props: FooterService09Props) {
                                             />
                                         </div>
                                     ))}
+                                    <span className={styles.avatarCount}>+2K</span>
                                 </div>
-
                                 <div className={styles.subscriberText}>
                                     <strong>{t(subscriberCount)}</strong>
-
                                     <span>{t(subscriberText)}</span>
                                 </div>
                             </div>
                         </div>
                         <div className={styles.newsletterVisual}>
                             <div className={styles.visualCircle} />
-
                             <div className={styles.visualCard}>
-                                <div className={styles.visualIcon}>
-                                    <i className="bi bi-envelope-paper-heart-fill" />
+                                <div className={styles.visualPaper}>
+                                    <span />
+                                    <span />
+                                    <span />
                                 </div>
-
-                                <div className={styles.visualMail}>
-                                    <div className={styles.mailLine} />
-                                    <div className={styles.mailLine} />
-                                    <div className={styles.mailLineSmall} />
+                                <div className={styles.visualEnvelope}>
+                                    <div className={styles.visualHeart}>
+                                        <i className="bi bi-heart-fill" />
+                                    </div>
                                 </div>
+                                <div className={styles.visualCardGlow} />
                             </div>
 
                             {[
                                 {
-                                    icon: 'bi-send-fill',
+                                    icon: 'bi-bell-fill',
                                     className: styles.floatIcon1,
                                 },
                                 {
-                                    icon: 'bi-lightning-charge-fill',
+                                    icon: 'bi-send-fill',
                                     className: styles.floatIcon2,
                                 },
                                 {
-                                    icon: 'bi-stars',
+                                    icon: 'bi-bar-chart-fill',
                                     className: styles.floatIcon3,
                                 },
                             ].map((item) => (
@@ -574,22 +644,27 @@ export function FooterService09(props: FooterService09Props) {
                                     <i className={`bi ${item.icon}`} />
                                 </span>
                             ))}
+                            <span className={styles.floatIcon4}>
+                                <i className="bi bi-stars" />
+                            </span>
+                            <div className={styles.handwritten} aria-hidden="true">
+                                <span>Build</span>
+                                <span>Better</span>
+                                <span>Together</span>
+                                <i />
+                            </div>
                         </div>
 
                         <div className={styles.subscribeCard}>
                             <span className={styles.subscribeLabel}>{t(subscribeLabel)}</span>
-
                             <h3 className={styles.subscribeTitle}>{t(subscribeTitle)}</h3>
-
                             {subStatus === 'success' ? (
                                 <div className={styles.subscribeSuccess}>
                                     <div className={styles.successIcon}>
                                         <i className="bi bi-check-lg" />
                                     </div>
-
                                     <div>
                                         <strong>{t(subscribeSuccessTitle)}</strong>
-
                                         <p>{t(subscribeSuccessDescription)}</p>
                                     </div>
                                 </div>
@@ -619,13 +694,11 @@ export function FooterService09(props: FooterService09Props) {
                                         {subStatus === 'loading' ? (
                                             <>
                                                 <span className={styles.spinner} />
-
                                                 {t(subscribeLoadingText)}
                                             </>
                                         ) : (
                                             <>
                                                 {t(subscribeButtonText)}
-
                                                 <i className="bi bi-arrow-right" />
                                             </>
                                         )}
@@ -633,7 +706,6 @@ export function FooterService09(props: FooterService09Props) {
 
                                     <p className={styles.subscribeNote}>
                                         <i className="bi bi-shield-check" />
-
                                         {t(subscribeNote)}
                                     </p>
                                 </>
@@ -657,9 +729,8 @@ export function FooterService09(props: FooterService09Props) {
                             <span className={styles.brandTitle}>{siteName}</span>
                         </Link>
 
-                        <p className={styles.brandDescription}>
-                            {site?.seoDescription ?? t(tagline)}
-                        </p>
+                        <p className={styles.brandDescription}>{t(appsDescription)}</p>
+                        <p className={styles.brandDescription}>{t(ctaDescription)}</p>
 
                         <div className={styles.socialList}>
                             {SOCIALS.map(({ id, label }) => (
@@ -677,10 +748,8 @@ export function FooterService09(props: FooterService09Props) {
 
                     <div className={styles.footerCards}>
                         {/* Company */}
-
                         <article className={styles.footerCard}>
                             <span className={styles.cardLabel}>{t(companyTitle)}</span>
-
                             <ul className={styles.footerLinks}>
                                 {companyMenus.map((item) => (
                                     <li key={item.href}>
@@ -694,10 +763,8 @@ export function FooterService09(props: FooterService09Props) {
                         </article>
 
                         {/* Resources */}
-
                         <article className={styles.footerCard}>
                             <span className={styles.cardLabel}>{t(resourcesTitle)}</span>
-
                             <ul className={styles.footerLinks}>
                                 {resourceMenus.map((item) => (
                                     <li key={item.href}>
@@ -709,12 +776,9 @@ export function FooterService09(props: FooterService09Props) {
                                 ))}
                             </ul>
                         </article>
-
                         {/* Contact */}
-
                         <article className={styles.footerCard}>
                             <span className={styles.cardLabel}>{t(contactTitle)}</span>
-
                             <div className={styles.contactList}>
                                 {site?.contactPhone && (
                                     <a
@@ -726,22 +790,22 @@ export function FooterService09(props: FooterService09Props) {
                                         <span>{site.contactPhone}</span>
                                     </a>
                                 )}
-
                                 {site?.contactEmail && (
                                     <a
                                         href={`mailto:${site.contactEmail}`}
                                         className={styles.contactItem}
                                     >
                                         <i className="bi bi-envelope-fill" />
-
                                         <span>{site.contactEmail}</span>
                                     </a>
                                 )}
-
                                 <div className={styles.contactItem}>
                                     <i className="bi bi-geo-alt-fill" />
-
                                     <span>{t(address)}</span>
+                                </div>
+                                <div className={styles.contactItem}>
+                                    <i className="bi bi-clock-fill" />
+                                    <span>{t(contactHours)}</span>
                                 </div>
                             </div>
                         </article>
@@ -751,29 +815,21 @@ export function FooterService09(props: FooterService09Props) {
                         {showAppDownload && (
                             <article className={styles.footerCard}>
                                 <span className={styles.cardLabel}>{t(mobileAppsTitle)}</span>
-
                                 <div className={styles.appButtons}>
                                     <a href={googlePlayHref} className={styles.storeButton}>
                                         <i className="bi bi-google-play" />
-
                                         <div>
-                                            <small>Get it on</small>
-
+                                            <small>{t(googlePlayBadge)}</small>
                                             <strong>Google Play</strong>
                                         </div>
-
                                         <i className="bi bi-arrow-up-right" />
                                     </a>
-
                                     <a href={appStoreHref} className={styles.storeButton}>
                                         <i className="bi bi-apple" />
-
                                         <div>
-                                            <small>Download on</small>
-
+                                            <small>{t(appStoreBadge)}</small>
                                             <strong>App Store</strong>
                                         </div>
-
                                         <i className="bi bi-arrow-up-right" />
                                     </a>
                                 </div>
@@ -790,13 +846,9 @@ export function FooterService09(props: FooterService09Props) {
 
                     <nav className={styles.footerLegal} aria-label="Legal">
                         <Link href="/privacy">{t(privacyText)}</Link>
-
                         <span />
-
                         <Link href="/terms">{t(termsText)}</Link>
-
                         <span />
-
                         <Link href="/cookies">{t(cookiesText)}</Link>
                     </nav>
 
@@ -854,59 +906,41 @@ function createCheckField(key: keyof FooterService09Props, label: string): Inspe
 function createInspector(): InspectorField[] {
     return [
         createLocalizedTextField('address', 'Address'),
-
         createLocalizedTextField('tagline', 'Brand Tagline'),
-
+        createLocalizedTextField('brandSubline', 'Brand Subline'),
         createLocalizedTextField('ctaTitle', 'Newsletter Title'),
-
+        createLocalizedTextField('ctaTitleAccent', 'Newsletter Title Accent'),
         createLocalizedTextField('ctaDescription', 'Newsletter Description'),
-
         createLocalizedTextField('newsletterBadge', 'Newsletter Badge'),
-
         createLocalizedTextField('subscriberCount', 'Subscriber Count'),
-
         createLocalizedTextField('subscriberText', 'Subscriber Text'),
-
         createLocalizedTextField('subscribeLabel', 'Subscribe Label'),
-
         createLocalizedTextField('subscribeTitle', 'Subscribe Title'),
-
         createLocalizedTextField('subscribePlaceholder', 'Email Placeholder'),
-
         createLocalizedTextField('subscribeButtonText', 'Subscribe Button'),
-
         createLocalizedTextField('subscribeLoadingText', 'Loading Text'),
-
         createLocalizedTextField('subscribeSuccessTitle', 'Success Title'),
-
         createLocalizedTextField('subscribeSuccessDescription', 'Success Description'),
-
         createLocalizedTextField('subscribeNote', 'Subscribe Note'),
-
+        createLocalizedTextField('googlePlayBadge', 'Google Play Badge'),
+        createLocalizedTextField('appStoreBadge', 'App Store Badge'),
+        createLocalizedTextField('contactHours', 'Contact Hours'),
+        createLocalizedTextField('appsDescription', 'Apps Description'),
+        createLocalizedTextField('handwrittenBuild', 'Illustration Line 1'),
+        createLocalizedTextField('handwrittenBetter', 'Illustration Line 2'),
+        createLocalizedTextField('handwrittenTogether', 'Illustration Line 3'),
         createLocalizedTextField('companyTitle', 'Company Title'),
-
         createLocalizedTextField('resourcesTitle', 'Resources Title'),
-
         createLocalizedTextField('contactTitle', 'Contact Title'),
-
         createLocalizedTextField('mobileAppsTitle', 'Apps Title'),
-
         createLocalizedTextField('privacyText', 'Privacy'),
-
         createLocalizedTextField('termsText', 'Terms'),
-
         createLocalizedTextField('cookiesText', 'Cookies'),
-
         createLocalizedTextField('languageLabel', 'Language'),
-
         createLocalizedTextField('copyrightText', 'Copyright'),
-
         createTextField('ctaButtonHref', 'CTA Button URL'),
-
         createTextField('googlePlayHref', 'Google Play URL'),
-
         createTextField('appStoreHref', 'App Store URL'),
-
         createCheckField('showAppDownload', 'Show Mobile Apps'),
     ];
 }
@@ -915,13 +949,9 @@ function createInspector(): InspectorField[] {
 ───────────────────────────────────────────────── */
 export const FOOTER_SERVICE_09: RegItem = {
     kind: 'footer-service-09',
-
     label: 'Footer Service 09',
-
     defaults: DEFAULT_PROPS,
-
     inspector: createInspector(),
-
     render: (props) => <FooterService09 {...(props as FooterService09Props)} />,
 };
 

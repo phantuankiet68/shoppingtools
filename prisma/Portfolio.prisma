@@ -1,0 +1,46 @@
+enum Locale {
+  vi
+  en
+  ja
+}
+enum PortfolioSize {
+  tall
+  wide
+  normal
+}
+
+model Portfolio {
+  id           String                 @id @default(cuid())
+  siteId       String                 @map("site_id")
+  imageUrl     String
+  category     WebsiteType
+  size         PortfolioSize          @default(normal)
+  href         String?
+  sortOrder    Int                    @default(0)
+  isActive     Boolean                @default(true)
+
+  site         Site                   @relation(fields: [siteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  translations PortfolioTranslation[]
+
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@index([siteId])
+  @@index([category])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("portfolios")
+}
+
+model PortfolioTranslation {
+  id          String   @id @default(cuid())
+  portfolioId String
+  locale      Locale
+  imageAlt    String
+  title       String
+  description String?
+  portfolio Portfolio @relation(fields: [portfolioId],references: [id],onDelete: Cascade)
+  @@unique([portfolioId, locale])
+  @@index([locale])
+  @@map("portfolio_translations")
+}

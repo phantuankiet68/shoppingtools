@@ -6,7 +6,7 @@
 .section {
     position: relative;
     overflow: hidden;
-    margin-top: 70px;
+    margin-top: 50px;
 }
 
 .container {
@@ -72,7 +72,7 @@
 .grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 24px;
+    gap: 15px;
 }
 
 /* ==========================================================
@@ -84,15 +84,19 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 15px;
     height: 100%;
-    padding: 24px;
+    padding: 20px;
     border-radius: 16px;
-    border: 1px solid rgba(90, 110, 255, 0.12);
-    background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
+    box-shadow:
+        0 15px 40px #3a659712,
+        inset 0 1px #ffffffdb;
     transition: 0.35s ease;
 }
-
 .card:hover {
     transform: translateY(-12px);
     border-color: #6f67ff;
@@ -142,18 +146,12 @@
 .iconBox {
     width: 42px;
     height: 42px;
-
     border-radius: 12px;
-
     display: grid;
     place-items: center;
-
     color: white;
-
-    background: linear-gradient(135deg, #6255ff 0%, #7b61ff 45%, #b26eff 100%);
-
+    background: linear-gradient(135deg, #4e5ee861, #6656ed94);
     font-size: 22px;
-
     transition: 0.35s;
 }
 
@@ -193,6 +191,11 @@
     color: #64748b;
     font-size: 1.4rem;
     line-height: 1.9;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .card:hover .tags span {
@@ -205,7 +208,7 @@
     justify-content: space-between;
     align-items: center;
     padding-top: 15px;
-    border-top: 1px solid #edf2f7;
+    border-top: 1px solid #b6d0fb;
 }
 
 .footer span {
@@ -351,18 +354,18 @@
 
 .tags {
     display: flex;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 5px;
     flex-wrap: wrap;
 }
 
 .tags span {
-    padding: 8px 14px;
+    padding: 8px 7px;
     border-radius: 999px;
-    background: #f4f7fb;
-    border: 1px solid #e5edf8;
+    background: #ffffff59;
+    border: 1px solid #ffffffc2;
     color: #475467;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 500;
     transition: all 0.3s ease;
 }

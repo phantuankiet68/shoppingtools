@@ -5,6 +5,7 @@ import type { RegItem } from '@/lib/ui-builder/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 
 /* ─────────────────────────────────────────────────
@@ -303,16 +304,12 @@ export function HeroService01(props: HeroService01Props) {
             className={`${styles.root} ${inView ? styles.inView : ''}`}
             aria-label="Hero"
         >
-            <div className={styles.grid} />
-            <div className={styles.blurOne} />
-            <div className={styles.blurTwo} />
-            <div className={styles.blurThree} />
             <div className={styles.container}>
                 <div className={styles.content}>
                     <a
                         href={badgeHref}
                         className={`${styles.badge} ${styles.r}`}
-                        style={{ '--i': 0 } as React.CSSProperties}
+                        style={{ '--i': 0 } as CSSProperties}
                     >
                         <span className={styles.badgeIcon}>
                             <i className="bi bi-stars" />
@@ -322,7 +319,7 @@ export function HeroService01(props: HeroService01Props) {
                     </a>
                     <div
                         className={`${styles.heading} ${styles.r}`}
-                        style={{ '--i': 1 } as React.CSSProperties}
+                        style={{ '--i': 1 } as CSSProperties}
                     >
                         <h1 className={styles.title}>
                             {headlineLines.map((item, index) => (
@@ -341,7 +338,7 @@ export function HeroService01(props: HeroService01Props) {
                     </div>
                     <div
                         className={`${styles.actions} ${styles.r}`}
-                        style={{ '--i': 2 } as React.CSSProperties}
+                        style={{ '--i': 2 } as CSSProperties}
                     >
                         <Link href={primaryCtaHref} className={styles.primaryButton}>
                             <span>{getLocalizedValue(primaryCtaText, selectedLocale)}</span>
@@ -357,7 +354,7 @@ export function HeroService01(props: HeroService01Props) {
                     </div>
                     <div
                         className={`${styles.features} ${styles.r}`}
-                        style={{ '--i': 3 } as React.CSSProperties}
+                        style={{ '--i': 3 } as CSSProperties}
                     >
                         {getLocalizedValue(trustText, selectedLocale)
                             .split(' · ')
@@ -402,18 +399,14 @@ export function HeroService01(props: HeroService01Props) {
                         </div>
                     </div>
                     <div className={styles.previewImage}>
-                        <div className={styles.previewImage}>
-                            <div className={styles.previewImage}>
-                                <Image
-                                    src={imageSrc}
-                                    alt={getLocalizedValue(imageAlt, selectedLocale)}
-                                    fill
-                                    priority
-                                    sizes="50vw"
-                                    className={styles.heroImage}
-                                />
-                            </div>
-                        </div>
+                        <Image
+                            src={imageSrc}
+                            alt={getLocalizedValue(imageAlt, selectedLocale)}
+                            fill
+                            priority
+                            sizes="50vw"
+                            className={styles.heroImage}
+                        />
                     </div>
                     <div className={styles.platform}>
                         <div className={styles.platformRing} />
