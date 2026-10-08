@@ -787,7 +787,7 @@ export function PricingService01(props: PricingService01Props) {
                             <div className={styles.testimonialUser}>
                                 <div className={styles.avatar}>
                                     <Image
-                                        src="/assets/images/avatar.png"
+                                        src="/assets/images/avatar/avatar.png"
                                         alt="Avatar"
                                         fill
                                         sizes="64px"

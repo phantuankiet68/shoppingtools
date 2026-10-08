@@ -3531,6 +3531,590 @@ const en = {
             portfolios: 'portfolios',
         },
     },
+    teamMember: {
+        stats: {
+            total: 'Total members',
+            active: 'Active',
+            hidden: 'Hidden',
+            comparedToLastMonth: 'compared to last month',
+            activated: 'activated',
+            notDisplayed: 'not displayed',
+            supportedLanguages: 'supported languages',
+            languages: 'Languages',
+        },
+        search: {
+            placeholder: 'Search name, role, email...',
+        },
+
+        filter: {
+            status: 'Status',
+            role: 'Role',
+            all: 'All',
+            published: 'Visible',
+            draft: 'Hidden',
+            archived: 'Archived',
+        },
+
+        actions: {
+            add: 'Add member',
+            edit: 'Edit',
+            delete: 'Delete',
+            duplicate: 'Duplicate',
+            resetFilters: 'Clear filters',
+            previous: 'Previous page',
+            next: 'Next page',
+            show: 'Show',
+            hide: 'Hide',
+            sort: 'Sort',
+            visible: 'Visible',
+        },
+        pagination: {
+            showing: 'Showing',
+        },
+        table: {
+            information: 'Information',
+            role: 'Role',
+            links: 'Links',
+            order: 'Order',
+            status: 'Status',
+            actions: 'Actions',
+        },
+
+        empty: {
+            title: 'No team members found',
+            description: 'Try changing your search keyword or filters.',
+        },
+
+        modal: {
+            success: 'Success',
+            loadFailed: 'Failed to load team members.',
+            updateFailed: 'Failed to update team member.',
+            deleteMember: 'Delete team member',
+            deleteMemberConfirm: 'Are you sure you want to delete "{name}"?',
+            deleteFailed: 'Failed to delete team member.',
+            deletedSuccess: 'Team member "{name}" was deleted successfully.',
+
+            createFailed: 'Create team member failed.',
+
+            createdSuccess: 'Team member created successfully.',
+            updatedSuccess: 'Team member updated successfully.',
+        },
+        form: {
+            addTitle: 'Thêm thành viên',
+            addDescription: 'Tạo hồ sơ thành viên mới và thêm nội dung đa ngôn ngữ.',
+            editTitle: 'Chỉnh sửa thành viên',
+            editDescription: 'Cập nhật thông tin thành viên và nội dung đa ngôn ngữ.',
+
+            profile: 'Hồ sơ',
+            profileDescription: 'Thông tin cơ bản và hình ảnh đại diện.',
+
+            icon: 'Biểu tượng',
+            experience: 'Kinh nghiệm',
+            color: 'Màu sắc',
+
+            translations: 'Nội dung đa ngôn ngữ',
+            translationsDescription: 'Thêm nội dung cho từng ngôn ngữ được hỗ trợ.',
+
+            name: 'Họ và tên',
+            role: 'Vai trò',
+            department: 'Phòng ban',
+            description: 'Mô tả',
+            descriptionPlaceholder: 'Giới thiệu ngắn về thành viên này...',
+
+            contact: 'Liên hệ & hiển thị',
+            email: 'Email',
+            sortOrder: 'Thứ tự hiển thị',
+
+            active: 'Thành viên đang hoạt động',
+            activeDescription: 'Hiển thị thành viên này trên website.',
+
+            uploadAvatar: 'Tải ảnh đại diện',
+            dragDrop: 'Kéo thả hoặc nhấp để chọn hình ảnh',
+            removeImage: 'Xóa hình ảnh',
+
+            invalidImage: 'Vui lòng chọn hình ảnh PNG, JPG hoặc WEBP.',
+            emptyImage: 'Hình ảnh được chọn không hợp lệ.',
+            imageTooLarge: 'Kích thước hình ảnh phải nhỏ hơn 5MB.',
+            uploadFailed: 'Không thể tải hình ảnh lên.',
+
+            create: 'Thêm thành viên',
+            update: 'Cập nhật thành viên',
+
+            createFailed: 'Không thể tạo thành viên.',
+            updateFailed: 'Không thể cập nhật thành viên.',
+        },
+    },
+    projectFeature: {
+        stats: {
+            total: 'Total Features',
+            allFeatures: 'All project features',
+            views: 'Views',
+            totalViews: 'Total views',
+            favorites: 'Favorites',
+            userFavorites: 'User favorites',
+            shares: 'Shares',
+            totalShares: 'Total shares',
+        },
+        actions: {
+            add: 'Add Project Feature',
+            edit: 'Edit',
+            view: 'View details',
+            delete: 'Delete',
+            create: 'Create Project Feature',
+            creating: 'Creating...',
+            cancel: 'Cancel',
+            close: 'Close',
+            remove: 'Remove image',
+        },
+        search: {
+            placeholder: 'Search project features...',
+            label: 'Search project features',
+        },
+        category: {
+            all: 'All Categories',
+            websiteBuilder: 'Website Builder',
+            saas: 'SaaS',
+            ecommerce: 'E-commerce',
+            mobileApp: 'Mobile App',
+            ai: 'AI',
+            design: 'Design',
+            development: 'Development',
+            other: 'Other',
+            website_builder: 'Website Builder',
+            mobile_app: 'Mobile App',
+        },
+        status: {
+            all: 'All',
+            published: 'Published',
+            draft: 'Draft',
+            archived: 'Archived',
+        },
+        sort: {
+            sortOrder: 'Sort Order',
+            newest: 'Newest',
+            views: 'Most Views',
+            favorites: 'Most Favorites',
+        },
+        table: {
+            feature: 'Feature',
+            category: 'Category',
+            developer: 'Developer',
+            stats: 'Stats',
+            status: 'Status',
+            sort: 'Sort',
+            created: 'Created',
+            actions: 'Actions',
+        },
+        empty: {
+            title: 'No project features found',
+            description: 'Try changing your search or filter settings.',
+            clearFilters: 'Clear filters',
+        },
+        pagination: {
+            showing: 'Showing {from} to {to} of {total} features',
+            previous: 'Previous page',
+            next: 'Next page',
+        },
+        modal: {
+            success: 'Success',
+            loadFailed: 'Failed to load project features.',
+            deleteFeature: 'Delete Project Feature',
+            deleteFeatureConfirm: 'Are you sure you want to delete "{name}"?',
+            deleteFailed: 'Failed to delete project feature.',
+            deletedSuccess: '"{name}" was deleted successfully.',
+            addTitle: 'Add Project Feature',
+            addDescription: 'Create a new project feature for your website.',
+            basicInfo: 'Basic Information',
+            basicInfoDescription: 'Configure the main project feature information.',
+            translations: 'Translations',
+            translationsDescription: 'Add content for each supported language.',
+            images: 'Images',
+            imagesDescription: 'Add up to 5 images and choose one primary image.',
+            requiredHint: 'Fields marked with * are required.',
+            createdSuccess: 'Project feature created successfully.',
+            createFailed: 'Failed to create project feature.',
+            invalidImageType: 'Please select a PNG, JPG, or WEBP image.',
+            invalidImage: 'The selected image is invalid.',
+            imageTooLarge: 'Image size must not exceed 5MB.',
+            maxImages: 'You can add up to {count} images.',
+            invalidUploadResponse: 'Invalid upload response.',
+            uploadFailed: 'Failed to upload image.',
+            invalidServerResponse: 'Invalid server response.',
+            siteRequired: 'Please select a website first.',
+            englishTitleRequired: 'English title is required.',
+            slugRequired: 'Slug is required.',
+            imageRequired: 'Please add at least one image.',
+        },
+        form: {
+            slug: 'Slug',
+            slugPlaceholder: 'my-project-feature',
+            slugHint: 'Slug must be unique within the current website.',
+            category: 'Category',
+            developer: 'Developer',
+            developerPlaceholder: 'KBuilder Team',
+            status: 'Status',
+            sortOrder: 'Sort Order',
+            featured: 'Featured Project',
+            featuredHint: 'Show this project feature in featured areas.',
+            title: 'Title',
+            titlePlaceholder: 'Enter project feature title...',
+            description: 'Description',
+            descriptionPlaceholder: 'Enter project feature description...',
+            descriptionHint: 'Content will be stored as JSON.',
+            uploadTitle: 'Drag & drop images here',
+            uploadDescription: 'or click to browse from your computer',
+            primary: 'Primary',
+            setPrimary: 'Set as primary',
+            tags: 'Tags',
+            tagsPlaceholder: 'Next.js, React, SaaS, AI',
+            tagsHint: 'Separate multiple tags with commas.',
+        },
+    },
+    blogManagement: {
+        header: {
+            eyebrow: 'Blog Management',
+            description: 'Manage blog posts, categories, Wiki content, and tags in one workspace.',
+        },
+
+        tabs: {
+            posts: 'Posts',
+            taxonomy: 'Categories & Tags',
+        },
+
+        actions: {
+            createPost: 'Create new post',
+            createTaxonomy: 'Add category / tag',
+            refresh: 'Refresh',
+            edit: 'Edit',
+            delete: 'Delete',
+            cancel: 'Cancel',
+        },
+
+        stats: {
+            posts: 'Total Posts',
+            postsDescription: 'Posts in the system',
+
+            blogCategories: 'Blog Categories',
+            blogCategoriesDescription: 'Post categories',
+
+            wikiCategories: 'Wiki Categories',
+            wikiCategoriesDescription: 'Documentation categories',
+
+            tags: 'Post Tags',
+            tagsDescription: 'Tags in use',
+        },
+
+        taxonomyTabs: {
+            blog: 'Blog Categories',
+            wiki: 'Wiki Categories',
+            tag: 'Post Tags',
+        },
+
+        taxonomy: {
+            blog: {
+                title: 'Blog Categories',
+                description: 'Organize your blog post content',
+            },
+
+            wiki: {
+                title: 'Wiki Categories',
+                description: 'Organize documentation and Wiki content',
+            },
+
+            tag: {
+                title: 'Post Tags',
+                description: 'Manage tags used in your posts',
+            },
+        },
+
+        list: {
+            title: 'List of',
+        },
+
+        search: {
+            posts: 'Search posts, categories, tags...',
+            category: 'Search categories...',
+            tag: 'Search tags...',
+        },
+
+        filters: {
+            all: 'All',
+            displaying: 'Showing',
+            posts: 'posts',
+        },
+
+        table: {
+            index: '#',
+            image: 'Image',
+            title: 'Title',
+            name: 'Name',
+            icon: 'Icon',
+            slug: 'Slug',
+            posts: 'Posts',
+            blogCategory: 'Blog Category',
+            wikiCategory: 'Wiki Category',
+            tags: 'Tags',
+            status: 'Status',
+            views: 'Views',
+            publishedAt: 'Published',
+            actions: 'Actions',
+            loading: 'Loading data...',
+            empty: 'No data found',
+            postsEmpty: 'No posts found',
+            postsEmptyDescription: 'Try changing your search keyword or filters.',
+        },
+
+        form: {
+            editTitle: 'Edit',
+
+            createBlogCategory: 'Create Blog Category',
+            createWikiCategory: 'Create Wiki Category',
+            createTag: 'Create Blog Tag',
+            createCategory: 'Create Category',
+
+            tagDescription: 'Add a new tag to use with your posts',
+            categoryDescription: 'Add a new category to organize your content',
+
+            siteId: 'Site ID',
+            siteIdPlaceholder: 'Enter Site ID...',
+
+            name: 'Name',
+            nameVI: 'Vietnamese Name',
+            nameEN: 'English Name',
+            nameJA: 'Japanese Name',
+
+            namePlaceholderVI: 'Enter Vietnamese name...',
+            namePlaceholderEN: 'Enter English name...',
+            namePlaceholderJA: 'Enter Japanese name...',
+
+            tagNamePlaceholder: 'Enter tag name...',
+
+            slug: 'Slug',
+            icon: 'Icon',
+            description: 'Description',
+            descriptionPlaceholder: 'Enter tag description...',
+
+            color: 'Color',
+            status: 'Status',
+            sortOrder: 'Sort Order',
+
+            isFeatured: 'Mark as featured',
+            isVisible: 'Show category',
+
+            saving: 'Saving...',
+            update: 'Update',
+        },
+
+        status: {
+            draft: 'Draft',
+            review: 'In Review',
+            published: 'Published',
+            archived: 'Archived',
+        },
+
+        validation: {
+            siteIdRequired: 'Please enter the Site ID.',
+            slugRequired: 'Please enter a slug.',
+            tagNameRequired: 'Please enter the tag name.',
+            translationRequired: 'Please enter at least one category name.',
+        },
+
+        modal: {
+            success: 'Success',
+
+            validation: 'Invalid data',
+
+            loadFailed: 'Failed to load taxonomy data.',
+            loadPostsFailed: 'Failed to load posts.',
+
+            createFailed: 'Failed to create data.',
+            updateFailed: 'Failed to update data.',
+            saveFailed: 'Failed to save data.',
+
+            deleteFailed: 'Failed to delete data.',
+
+            deleteItem: 'Delete item',
+            deleteItemConfirm: 'Are you sure you want to delete "{name}"?',
+
+            deletedSuccess: '"{name}" was deleted successfully.',
+
+            deletePost: 'Delete post',
+            deletePostConfirm: 'Are you sure you want to delete the post "{name}"?',
+            postDeletedSuccess: 'The post was deleted successfully.',
+
+            createdSuccess: 'Created successfully.',
+            updatedSuccess: 'Updated successfully.',
+        },
+
+        pagination: {
+            showing: 'Showing {count} posts',
+        },
+    },
+    blog: {
+        header: {
+            title: 'Blog Management',
+            description: 'Manage blog posts, content, and translations.',
+            create: 'Create Post',
+            search: 'Search posts...',
+            filter: 'Filters',
+            refresh: 'Refresh',
+        },
+
+        form: {
+            sections: {
+                basic: {
+                    title: 'Basic Information',
+                    description: 'Title, categories, and tags',
+                },
+                content: {
+                    title: 'Content',
+                    description: 'Write and edit your blog content',
+                },
+                seo: {
+                    title: 'SEO',
+                    description: 'Optimize search engine visibility',
+                },
+                media: {
+                    title: 'Media',
+                    description: 'Thumbnail and cover image',
+                },
+            },
+
+            basic: {
+                title: 'Basic Information',
+                description: 'Configure the main information for your blog post.',
+            },
+
+            title: 'Title',
+            titlePlaceholder: 'Enter post title...',
+            titleHint: 'Keep the title clear and engaging.',
+            slug: 'Slug',
+            slugPlaceholder: 'blog-post-url',
+            subtitle: 'Subtitle',
+            subtitlePlaceholder: 'Enter subtitle...',
+            blogCategory: 'Blog Category',
+            blogCategoryPlaceholder: 'Select blog category',
+            wikiCategory: 'Wiki Category',
+            wikiCategoryPlaceholder: 'Select wiki category',
+            tags: 'Tags',
+            loadingTags: 'Loading tags...',
+            noTags: 'No tags available.',
+            excerpt: 'Excerpt',
+            excerptPlaceholder: 'Enter a short description for the post...',
+
+            content: {
+                title: 'Post Content',
+                description: 'Write your blog content using the rich text editor.',
+                placeholder: 'Start writing your content',
+            },
+
+            seo: {
+                title: 'SEO Optimization',
+                description: 'Configure SEO information to improve search engine visibility.',
+                titleField: 'SEO Title',
+                titlePlaceholder: 'Enter SEO title...',
+                descriptionField: 'SEO Description',
+                descriptionPlaceholder: 'Enter SEO description...',
+                focusKeyword: 'Focus Keyword',
+                canonicalUrl: 'Canonical URL',
+                searchPreview: 'Search Preview',
+                searchPreviewDescription: 'Preview how the post will appear in search engines.',
+                noIndex: 'No Index',
+                noIndexDescription: 'Ask search engines not to index this post.',
+                noFollow: 'No Follow',
+                noFollowDescription: 'Ask search engines not to follow links in this post.',
+            },
+
+            media: {
+                title: 'Media',
+                description: 'Add a cover image and thumbnail for your blog post.',
+                cover: {
+                    title: 'Cover Image',
+                    description: 'The main image for the blog post.',
+                },
+                thumbnail: {
+                    title: 'Thumbnail',
+                    description: 'The representative image for the blog post.',
+                },
+                uploading: 'Uploading image...',
+                chooseImage: 'Choose Image',
+                imageHint: 'PNG, JPG or WebP',
+                removeImage: 'Remove Image',
+            },
+
+            publish: {
+                title: 'Publish',
+                description: 'Configure the post status.',
+                status: 'Status',
+                draft: 'Draft',
+                review: 'In Review',
+                published: 'Published',
+                archived: 'Archived',
+                publishedAt: 'Publication Date',
+                featured: 'Featured Post',
+                featuredDescription: 'Display the post in a featured position.',
+                allowComments: 'Allow Comments',
+                allowCommentsDescription: 'Allow users to comment on this post.',
+            },
+
+            language: {
+                title: 'Languages',
+                description: 'Track the translation status of your blog post.',
+            },
+
+            tip: {
+                title: 'Tip',
+                description:
+                    'Complete the title, slug, and content for each language before publishing.',
+            },
+        },
+
+        modal: {
+            eyebrow: 'BLOG MANAGEMENT',
+            createTitle: 'Create Blog Post',
+            contentLabel: 'CONTENT',
+            multilingual: 'Multilingual',
+            multilingualDescription: 'Content is available in VI, EN, and JA.',
+            close: 'Close',
+            cancel: 'Cancel',
+            create: 'Create Post',
+            creating: 'Creating...',
+            noSite: 'No website selected',
+
+            success: 'Success',
+            createdSuccess: 'The blog post was created successfully.',
+            createFailed: 'Failed to create blog post',
+            unknownError: 'An unknown error occurred.',
+
+            loadFailed: 'Failed to load data',
+            loadOptionsFailed: 'Failed to load categories and tags.',
+
+            uploadFailed: 'Image upload failed',
+            siteNotFound: 'Current website was not found.',
+            invalidFile: 'Invalid File',
+            invalidImage: 'Please select a valid image file.',
+            fileTooLarge: 'File Too Large',
+            fileTooLargeDescription: 'The image size must not exceed 10MB.',
+            uploadUrlMissing: 'The image URL was not returned after upload.',
+            uploadImageFailed: 'Failed to upload image.',
+
+            validationFailed: 'Invalid Data',
+        },
+
+        validation: {
+            siteNotFound: 'Current website was not found.',
+            categoryRequired: 'Please select either a blog category or a wiki category.',
+            categoryExclusive: 'You can only select either a blog category or a wiki category.',
+            translationRequired:
+                'Please complete at least one translation with a title, slug, and content.',
+        },
+
+        language: {
+            vi: 'Vietnamese',
+            en: 'English',
+            ja: 'Japanese',
+        },
+    },
 };
 
 export default en;

@@ -1,0 +1,170 @@
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+model BlogCategory {
+  id          String @id @default(cuid())
+  siteId      String
+  slug        String
+  icon        String?
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int     @default(0)
+  isFeatured  Boolean @default(false)
+  isVisible   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  site         Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  translations BlogCategoryTranslation[]
+  posts        BlogPost[]
+  @@unique([siteId, slug])
+  @@index([siteId])
+  @@index([siteId, status])
+}
+
+model BlogCategoryTranslation {
+  id         String @id @default(cuid())
+  categoryId String
+  locale     Locale
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  category BlogCategory @relation(fields: [categoryId],references: [id],onDelete: Cascade)
+  @@unique([categoryId, locale])
+  @@index([locale])
+}
+
+model WikiCategory {
+  id          String @id @default(cuid())
+  siteId      String
+  slug        String
+  icon        String?
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int     @default(0)
+  isFeatured  Boolean @default(false)
+  isVisible   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  site         Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  translations WikiCategoryTranslation[]
+  posts        BlogPost[]
+  @@unique([siteId, slug])
+  @@index([siteId])
+  @@index([siteId, status])
+}
+
+model WikiCategoryTranslation {
+  id         String @id @default(cuid())
+  categoryId String
+  locale     Locale
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  category WikiCategory @relation(fields: [categoryId],references: [id],onDelete: Cascade)
+  @@unique([categoryId, locale])
+  @@index([locale])
+}
+
+model BlogPost {
+  id            String @id @default(cuid())
+  siteId        String
+  categoryId     String?
+  wikiCategoryId String?
+  authorId String?
+  status        ContentStatus @default(DRAFT)
+  featured      Boolean @default(false)
+  allowComments Boolean @default(true)
+  thumbnail  String?
+  coverImage String?
+  readingTime Int?
+  wordCount   Int?
+  viewCount    Int @default(0)
+  likeCount    Int @default(0)
+  shareCount   Int @default(0)
+  commentCount Int @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  site Site @relation(fields: [siteId],references: [id],onDelete: Cascade)
+  category BlogCategory? @relation(fields: [categoryId],references: [id],onDelete: SetNull)
+  wikiCategory WikiCategory? @relation(fields: [wikiCategoryId],references: [id],onDelete: SetNull)
+  translations BlogPostTranslation[]
+  tags         BlogPostTag[]
+  @@index([siteId])
+  @@index([siteId, status])
+  @@index([siteId, categoryId])
+  @@index([siteId, wikiCategoryId])
+  @@index([siteId, publishedAt])
+  @@index([siteId, featured])
+}
+
+model BlogPostTranslation {
+  id     String @id @default(cuid())
+  postId String
+  locale Locale
+  title    String
+  slug     String
+  subtitle String?
+  excerpt  String?
+  content  String
+  toc         Json?
+  keywords    Json?
+  searchTerms Json?
+  synonyms    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  post BlogPost @relation(fields: [postId],references: [id],onDelete: Cascade)
+  seo BlogPostSEO?
+  @@unique([postId, locale])
+  @@index([locale])
+  @@index([locale, slug])
+}
+
+model BlogPostSEO {
+  id            String @id @default(cuid())
+  translationId String @unique
+  title         String?
+  description   String?
+  focusKeyword  String?
+  keywords Json?
+  synonyms Json?
+  canonicalUrl String?
+  noIndex   Boolean @default(false)
+  noFollow  Boolean @default(false)
+  noArchive Boolean @default(false)
+  schemaType String? @default("BlogPosting")
+  schemaJson Json?
+  searchPreviewEnabled Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  translation BlogPostTranslation @relation(fields: [translationId],references: [id],onDelete: Cascade)
+}
+
+model BlogTag {
+  id       String @id @default(cuid())
+  siteId   String
+  slug     String
+  name     String
+  description String?
+  icon     String?
+  color    String?
+  usageCount Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  site Site @relation(fields: [siteId],references: [id],onDelete: Cascade)
+  posts BlogPostTag[]
+  @@unique([siteId, slug])
+  @@index([siteId])
+  @@index([siteId, name])
+}
+
+model BlogPostTag {
+  postId String
+  tagId  String
+  post BlogPost @relation(fields: [postId],references: [id],onDelete: Cascade)
+  tag BlogTag @relation(fields: [tagId],references: [id],onDelete: Cascade)
+  @@id([postId, tagId])
+  @@index([tagId])
+}

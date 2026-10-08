@@ -3546,6 +3546,593 @@ const ja = {
             portfolios: '件',
         },
     },
+    teamMember: {
+        stats: {
+            total: 'Total members',
+            comparedToLastMonth: 'compared to last month',
+            active: '表示中',
+            hidden: '非表示',
+            activated: 'activated',
+            notDisplayed: 'not displayed',
+            supportedLanguages: 'supported languages',
+            languages: 'Languages',
+        },
+
+        search: {
+            placeholder: '名前、役職、メールを検索...',
+        },
+
+        filter: {
+            status: 'ステータス',
+            role: '役職',
+            all: 'すべて',
+            published: '表示中',
+            draft: '非表示',
+            archived: 'アーカイブ',
+        },
+
+        actions: {
+            add: 'メンバーを追加',
+            edit: '編集',
+            delete: '削除',
+            duplicate: '複製',
+            resetFilters: 'フィルターをクリア',
+            previous: '前のページ',
+            next: '次のページ',
+            show: '表示',
+            hide: '非表示',
+            sort: '並び替え',
+            visible: '表示中',
+        },
+        pagination: {
+            showing: '表示',
+        },
+        table: {
+            information: '情報',
+            role: '役職',
+            links: 'リンク',
+            order: '順序',
+            status: 'ステータス',
+            actions: '操作',
+        },
+
+        empty: {
+            title: 'メンバーが見つかりません',
+            description: '検索キーワードまたはフィルターを変更してください。',
+        },
+
+        modal: {
+            success: '成功',
+            loadFailed: 'メンバーの読み込みに失敗しました。',
+            updateFailed: 'メンバーの更新に失敗しました。',
+            deleteMember: 'メンバーを削除',
+            deleteMemberConfirm: '「{name}」を削除してもよろしいですか？',
+            deleteFailed: 'メンバーの削除に失敗しました。',
+            deletedSuccess: '「{name}」を削除しました。',
+
+            createFailed: 'メンバーの追加に失敗しました。',
+
+            createdSuccess: 'メンバーを正常に追加しました。',
+            updatedSuccess: 'メンバーを正常に更新しました。',
+        },
+        form: {
+            addTitle: 'メンバーを追加',
+            addDescription: '新しいメンバープロフィールを作成し、多言語情報を追加します。',
+            editTitle: 'メンバーを編集',
+            editDescription: 'メンバー情報と多言語コンテンツを更新します。',
+
+            profile: 'プロフィール',
+            profileDescription: '基本情報とプロフィール画像。',
+
+            icon: 'アイコン',
+            experience: '経験',
+            color: 'カラー',
+
+            translations: '多言語コンテンツ',
+            translationsDescription: '対応する各言語のコンテンツを追加します。',
+
+            name: '名前',
+            role: '役職',
+            department: '部署',
+            description: '説明',
+            descriptionPlaceholder: 'このメンバーについての簡単な紹介...',
+
+            contact: '連絡先と表示設定',
+            email: 'メールアドレス',
+            sortOrder: '表示順',
+
+            active: '有効なメンバー',
+            activeDescription: 'このメンバーをWebサイトに表示します。',
+
+            uploadAvatar: 'プロフィール画像をアップロード',
+            dragDrop: 'ドラッグ＆ドロップまたはクリックして選択',
+            removeImage: '画像を削除',
+
+            invalidImage: 'PNG、JPG、またはWEBP画像を選択してください。',
+            emptyImage: '選択した画像が空です。',
+            imageTooLarge: '画像サイズは5MB未満にしてください。',
+            uploadFailed: '画像のアップロードに失敗しました。',
+
+            create: 'メンバーを追加',
+            update: 'メンバーを更新',
+
+            createFailed: 'メンバーの作成に失敗しました。',
+            updateFailed: 'メンバーの更新に失敗しました。',
+        },
+    },
+    projectFeature: {
+        stats: {
+            total: '機能数',
+            allFeatures: 'すべてのプロジェクト機能',
+            views: '閲覧数',
+            totalViews: '総閲覧数',
+            favorites: 'お気に入り',
+            userFavorites: 'お気に入り数',
+            shares: 'シェア数',
+            totalShares: '総シェア数',
+        },
+        actions: {
+            add: 'プロジェクト機能を追加',
+            edit: '編集',
+            view: '詳細を見る',
+            delete: '削除',
+            create: 'プロジェクト機能を作成',
+            creating: '作成中...',
+            cancel: 'キャンセル',
+            close: '閉じる',
+            remove: '画像を削除',
+        },
+        search: {
+            placeholder: 'プロジェクト機能を検索...',
+            label: 'プロジェクト機能を検索',
+        },
+        category: {
+            all: 'すべてのカテゴリー',
+            websiteBuilder: 'ウェブサイトビルダー',
+            saas: 'SaaS',
+            ecommerce: 'Eコマース',
+            mobileApp: 'モバイルアプリ',
+            ai: 'AI',
+            design: 'デザイン',
+            development: '開発',
+            other: 'その他',
+            website_builder: 'ウェブサイトビルダー',
+            mobile_app: 'モバイルアプリ',
+        },
+        status: {
+            all: 'すべて',
+            published: '公開済み',
+            draft: '下書き',
+            archived: 'アーカイブ',
+        },
+        sort: {
+            sortOrder: '並び順',
+            newest: '新着順',
+            views: '閲覧数順',
+            favorites: 'お気に入り順',
+        },
+        table: {
+            feature: '機能',
+            category: 'カテゴリー',
+            developer: '開発者',
+            stats: '統計',
+            status: 'ステータス',
+            sort: '順序',
+            created: '作成日',
+            actions: '操作',
+        },
+        empty: {
+            title: 'プロジェクト機能が見つかりません',
+            description: '検索条件やフィルターを変更してください。',
+            clearFilters: 'フィルターをクリア',
+        },
+        pagination: {
+            showing: '{total}件中 {from}〜{to}件を表示',
+            previous: '前のページ',
+            next: '次のページ',
+        },
+        modal: {
+            success: '成功',
+            loadFailed: 'プロジェクト機能の読み込みに失敗しました。',
+            deleteFeature: 'プロジェクト機能を削除',
+            deleteFeatureConfirm: '「{name}」を削除してもよろしいですか？',
+            deleteFailed: 'プロジェクト機能の削除に失敗しました。',
+            deletedSuccess: '「{name}」を削除しました。',
+            addTitle: 'プロジェクト機能を追加',
+            addDescription: '新しいプロジェクト機能を作成します。',
+            basicInfo: '基本情報',
+            basicInfoDescription: 'プロジェクト機能の基本情報を設定します。',
+            translations: '多言語コンテンツ',
+            translationsDescription: '各言語のコンテンツを入力してください。',
+            images: '画像',
+            imagesDescription: '最大5枚の画像を追加し、メイン画像を選択できます。',
+            requiredHint: '* は必須項目です。',
+            createdSuccess: 'プロジェクト機能を作成しました。',
+            createFailed: 'プロジェクト機能の作成に失敗しました。',
+            invalidImageType: 'PNG、JPG、WEBP画像を選択してください。',
+            invalidImage: '選択した画像が無効です。',
+            imageTooLarge: '画像サイズは5MB以下にしてください。',
+            maxImages: '最大{count}枚まで画像を追加できます。',
+            invalidUploadResponse: 'アップロードレスポンスが無効です。',
+            uploadFailed: '画像のアップロードに失敗しました。',
+            invalidServerResponse: 'サーバーレスポンスが無効です。',
+            siteRequired: '先にウェブサイトを選択してください。',
+            englishTitleRequired: '英語タイトルは必須です。',
+            slugRequired: 'Slugは必須です。',
+            imageRequired: '少なくとも1枚の画像を追加してください。',
+        },
+        form: {
+            slug: 'Slug',
+            slugPlaceholder: 'my-project-feature',
+            slugHint: 'Slugは現在のウェブサイト内で一意である必要があります。',
+            category: 'カテゴリー',
+            developer: '開発者',
+            developerPlaceholder: 'KBuilder Team',
+            status: 'ステータス',
+            sortOrder: '並び順',
+            featured: '注目プロジェクト',
+            featuredHint: 'このプロジェクト機能を注目エリアに表示します。',
+            title: 'タイトル',
+            titlePlaceholder: 'プロジェクト機能のタイトルを入力...',
+            description: '説明',
+            descriptionPlaceholder: 'プロジェクト機能の説明を入力...',
+            descriptionHint: 'コンテンツはJSON形式で保存されます。',
+            uploadTitle: '画像をドラッグ＆ドロップ',
+            uploadDescription: 'またはクリックしてコンピューターから選択',
+            primary: 'メイン画像',
+            setPrimary: 'メイン画像に設定',
+            tags: 'タグ',
+            tagsPlaceholder: 'Next.js, React, SaaS, AI',
+            tagsHint: '複数のタグはカンマで区切って入力してください。',
+        },
+    },
+    blogManagement: {
+        header: {
+            eyebrow: 'ブログ管理',
+            description:
+                'ブログ記事、カテゴリー、Wikiコンテンツ、タグを1つのワークスペースで管理します。',
+        },
+
+        tabs: {
+            posts: '記事',
+            taxonomy: 'カテゴリーとタグ',
+        },
+
+        actions: {
+            createPost: '新しい記事を作成',
+            createTaxonomy: 'カテゴリー / タグを追加',
+            refresh: '更新',
+            edit: '編集',
+            delete: '削除',
+            cancel: 'キャンセル',
+        },
+
+        stats: {
+            posts: '記事総数',
+            postsDescription: 'システム内の記事',
+
+            blogCategories: 'ブログカテゴリー',
+            blogCategoriesDescription: '記事カテゴリー',
+
+            wikiCategories: 'Wikiカテゴリー',
+            wikiCategoriesDescription: 'ドキュメントカテゴリー',
+
+            tags: '記事タグ',
+            tagsDescription: '使用中のタグ',
+        },
+
+        taxonomyTabs: {
+            blog: 'ブログカテゴリー',
+            wiki: 'Wikiカテゴリー',
+            tag: '記事タグ',
+        },
+
+        taxonomy: {
+            blog: {
+                title: 'ブログカテゴリー',
+                description: 'ブログ記事のコンテンツを分類します',
+            },
+
+            wiki: {
+                title: 'Wikiカテゴリー',
+                description: 'ドキュメントとWikiコンテンツを整理します',
+            },
+
+            tag: {
+                title: '記事タグ',
+                description: '記事で使用するタグを管理します',
+            },
+        },
+
+        list: {
+            title: '一覧',
+        },
+
+        search: {
+            posts: '記事、カテゴリー、タグを検索...',
+            category: 'カテゴリーを検索...',
+            tag: 'タグを検索...',
+        },
+
+        filters: {
+            all: 'すべて',
+            displaying: '表示中',
+            posts: '件の記事',
+        },
+
+        table: {
+            index: '#',
+            image: '画像',
+            title: 'タイトル',
+            name: '名前',
+            icon: 'アイコン',
+            slug: 'スラッグ',
+            posts: '記事数',
+            blogCategory: 'ブログカテゴリー',
+            wikiCategory: 'Wikiカテゴリー',
+            tags: 'タグ',
+            status: 'ステータス',
+            views: '閲覧数',
+            publishedAt: '公開日',
+            actions: '操作',
+            loading: 'データを読み込んでいます...',
+            empty: 'データがありません',
+            postsEmpty: '記事が見つかりません',
+            postsEmptyDescription: '検索キーワードまたはフィルターを変更してください。',
+        },
+
+        form: {
+            editTitle: '編集',
+
+            createBlogCategory: 'ブログカテゴリーを作成',
+            createWikiCategory: 'Wikiカテゴリーを作成',
+            createTag: 'ブログタグを作成',
+            createCategory: 'カテゴリーを作成',
+
+            tagDescription: '記事に使用する新しいタグを追加します',
+            categoryDescription: 'コンテンツを分類する新しいカテゴリーを追加します',
+
+            siteId: 'サイトID',
+            siteIdPlaceholder: 'サイトIDを入力...',
+
+            name: '名前',
+            nameVI: 'ベトナム語名',
+            nameEN: '英語名',
+            nameJA: '日本語名',
+
+            namePlaceholderVI: 'ベトナム語名を入力...',
+            namePlaceholderEN: '英語名を入力...',
+            namePlaceholderJA: '日本語名を入力...',
+
+            tagNamePlaceholder: 'タグ名を入力...',
+
+            slug: 'スラッグ',
+            icon: 'アイコン',
+            description: '説明',
+            descriptionPlaceholder: 'タグの説明を入力...',
+
+            color: 'カラー',
+            status: 'ステータス',
+            sortOrder: '表示順',
+
+            isFeatured: 'おすすめとして設定',
+            isVisible: 'カテゴリーを表示',
+
+            saving: '保存中...',
+            update: '更新',
+        },
+
+        status: {
+            draft: '下書き',
+            review: 'レビュー中',
+            published: '公開済み',
+            archived: 'アーカイブ済み',
+        },
+
+        validation: {
+            siteIdRequired: 'サイトIDを入力してください。',
+            slugRequired: 'スラッグを入力してください。',
+            tagNameRequired: 'タグ名を入力してください。',
+            translationRequired: '少なくとも1つのカテゴリー名を入力してください。',
+        },
+
+        modal: {
+            success: '成功',
+
+            validation: '入力内容が正しくありません',
+
+            loadFailed: 'カテゴリー・タグのデータを読み込めませんでした。',
+            loadPostsFailed: '記事一覧を読み込めませんでした。',
+
+            createFailed: 'データを作成できませんでした。',
+            updateFailed: 'データを更新できませんでした。',
+            saveFailed: 'データを保存できませんでした。',
+
+            deleteFailed: 'データを削除できませんでした。',
+
+            deleteItem: 'データを削除',
+            deleteItemConfirm: '「{name}」を削除してもよろしいですか？',
+
+            deletedSuccess: '「{name}」を削除しました。',
+
+            deletePost: '記事を削除',
+            deletePostConfirm: '記事「{name}」を削除してもよろしいですか？',
+            postDeletedSuccess: '記事を削除しました。',
+
+            createdSuccess: '作成しました。',
+            updatedSuccess: '更新しました。',
+        },
+
+        pagination: {
+            showing: '{count}件の記事を表示',
+        },
+    },
+    blog: {
+        header: {
+            title: 'ブログ管理',
+            description: 'ブログ記事、コンテンツ、翻訳を管理します。',
+            create: '記事を作成',
+            search: '記事を検索...',
+            filter: 'フィルター',
+            refresh: '更新',
+        },
+
+        form: {
+            sections: {
+                basic: {
+                    title: '基本情報',
+                    description: 'タイトル、カテゴリー、タグ',
+                },
+                content: {
+                    title: 'コンテンツ',
+                    description: 'ブログ記事の内容を作成・編集',
+                },
+                seo: {
+                    title: 'SEO',
+                    description: '検索エンジンでの表示を最適化',
+                },
+                media: {
+                    title: 'メディア',
+                    description: 'サムネイルとカバー画像',
+                },
+            },
+
+            basic: {
+                title: '基本情報',
+                description: 'ブログ記事の基本情報を設定します。',
+            },
+
+            title: 'タイトル',
+            titlePlaceholder: '記事のタイトルを入力...',
+            titleHint: '分かりやすく、読者を引きつけるタイトルを入力してください。',
+            slug: 'スラッグ',
+            slugPlaceholder: 'blog-post-url',
+            subtitle: 'サブタイトル',
+            subtitlePlaceholder: 'サブタイトルを入力...',
+            blogCategory: 'ブログカテゴリー',
+            blogCategoryPlaceholder: 'ブログカテゴリーを選択',
+            wikiCategory: 'Wikiカテゴリー',
+            wikiCategoryPlaceholder: 'Wikiカテゴリーを選択',
+            tags: 'タグ',
+            loadingTags: 'タグを読み込んでいます...',
+            noTags: '利用可能なタグはありません。',
+            excerpt: '概要',
+            excerptPlaceholder: '記事の概要を入力...',
+
+            content: {
+                title: '記事コンテンツ',
+                description: 'リッチテキストエディターを使用して記事を作成します。',
+                placeholder: 'コンテンツの入力を開始',
+            },
+
+            seo: {
+                title: 'SEO最適化',
+                description: '検索エンジンでの表示を改善するためのSEO情報を設定します。',
+                titleField: 'SEOタイトル',
+                titlePlaceholder: 'SEOタイトルを入力...',
+                descriptionField: 'SEO説明',
+                descriptionPlaceholder: 'SEO説明を入力...',
+                focusKeyword: 'フォーカスキーワード',
+                canonicalUrl: '正規URL',
+                searchPreview: '検索結果プレビュー',
+                searchPreviewDescription: '検索エンジンでの記事の表示をプレビューします。',
+                noIndex: 'インデックスしない',
+                noIndexDescription: '検索エンジンにこの記事をインデックスしないよう指定します。',
+                noFollow: 'リンクを追跡しない',
+                noFollowDescription: '検索エンジンに記事内のリンクを追跡しないよう指定します。',
+            },
+
+            media: {
+                title: 'メディア',
+                description: 'ブログ記事のカバー画像とサムネイルを追加します。',
+                cover: {
+                    title: 'カバー画像',
+                    description: 'ブログ記事のメイン画像です。',
+                },
+                thumbnail: {
+                    title: 'サムネイル',
+                    description: 'ブログ記事の代表画像です。',
+                },
+                uploading: '画像をアップロード中...',
+                chooseImage: '画像を選択',
+                imageHint: 'PNG、JPG、WebP',
+                removeImage: '画像を削除',
+            },
+
+            publish: {
+                title: '公開設定',
+                description: '記事の公開状態を設定します。',
+                status: 'ステータス',
+                draft: '下書き',
+                review: 'レビュー中',
+                published: '公開済み',
+                archived: 'アーカイブ',
+                publishedAt: '公開日時',
+                featured: '注目記事',
+                featuredDescription: '記事を注目コンテンツとして表示します。',
+                allowComments: 'コメントを許可',
+                allowCommentsDescription: 'ユーザーがこの記事にコメントできるようにします。',
+            },
+
+            language: {
+                title: '言語',
+                description: 'ブログ記事の翻訳状況を確認します。',
+            },
+
+            tip: {
+                title: 'ヒント',
+                description:
+                    '公開する前に、各言語のタイトル、スラッグ、コンテンツを完成させてください。',
+            },
+        },
+
+        modal: {
+            eyebrow: 'ブログ管理',
+            createTitle: 'ブログ記事を作成',
+            contentLabel: 'コンテンツ',
+            multilingual: '多言語',
+            multilingualDescription: 'VI、EN、JAの3言語に対応しています。',
+            close: '閉じる',
+            cancel: 'キャンセル',
+            create: '記事を作成',
+            creating: '作成中...',
+            noSite: 'ウェブサイトが選択されていません',
+
+            success: '成功',
+            createdSuccess: 'ブログ記事を作成しました。',
+            createFailed: 'ブログ記事の作成に失敗しました',
+            unknownError: '不明なエラーが発生しました。',
+
+            loadFailed: 'データの読み込みに失敗しました',
+            loadOptionsFailed: 'カテゴリーとタグの読み込みに失敗しました。',
+
+            uploadFailed: '画像のアップロードに失敗しました',
+            siteNotFound: '現在のウェブサイトが見つかりません。',
+            invalidFile: '無効なファイル',
+            invalidImage: '有効な画像ファイルを選択してください。',
+            fileTooLarge: 'ファイルサイズが大きすぎます',
+            fileTooLargeDescription: '画像サイズは10MB以下にしてください。',
+            uploadUrlMissing: 'アップロード後の画像URLを取得できませんでした。',
+            uploadImageFailed: '画像のアップロードに失敗しました。',
+
+            validationFailed: '入力内容に問題があります',
+        },
+
+        validation: {
+            siteNotFound: '現在のウェブサイトが見つかりません。',
+            categoryRequired: 'ブログカテゴリーまたはWikiカテゴリーを選択してください。',
+            categoryExclusive:
+                'ブログカテゴリーまたはWikiカテゴリーのどちらか一方だけを選択してください。',
+            translationRequired:
+                '少なくとも1つの言語で、タイトル、スラッグ、コンテンツを入力してください。',
+        },
+
+        language: {
+            vi: 'ベトナム語',
+            en: '英語',
+            ja: '日本語',
+        },
+    },
 };
 
 export default ja;

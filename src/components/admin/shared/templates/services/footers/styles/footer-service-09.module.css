@@ -28,6 +28,7 @@
     background-repeat: no-repeat;
     background-size: 100% 100vh;
     background-attachment: fixed;
+    z-index: 1;
 }
 
 .root,
@@ -108,11 +109,10 @@
 .newsletter {
     position: relative;
     overflow: hidden;
-    min-height: 339px;
+    min-height: 319px;
     margin-bottom: 24px;
     border-radius: 16px;
-    background: linear-gradient(120deg, #fff0, #fbfbfb00);
-    border: 1px solid #cedfffad;
+    border: 1.5px solid #ffffffc2;
 }
 
 .newsletter::before {
@@ -149,10 +149,10 @@
     z-index: 2;
     display: grid;
     grid-template-columns: minmax(330px, 1.04fr) minmax(350px, 1.04fr) minmax(330px, 0.92fr);
-    gap: 28px;
+    gap: 18px;
     align-items: center;
-    min-height: 339px;
-    padding: 26px 28px;
+    min-height: 300px;
+    padding: 24px;
 }
 
 .newsletterContent {
@@ -171,15 +171,12 @@
     min-height: 34px;
     margin-bottom: 12px;
     padding: 8px 14px;
-    border: 1px solid rgba(112, 126, 235, 0.1);
     border-radius: 999px;
     color: #6575ed;
-    background: linear-gradient(100deg, rgba(255, 255, 255, 0.92), rgba(244, 243, 255, 0.8));
-    box-shadow:
-        0 9px 22px rgba(91, 111, 208, 0.075),
-        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    background: #ffffff59;
+    border: 1.5px solid #ffffffc2;
     font-size: 1.3rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.035em;
 }
 
@@ -210,9 +207,9 @@
 
 .newsletterDescription {
     max-width: 520px;
-    margin: 20px 0 0;
+    margin: 15px 0 0;
     color: #637b9e;
-    font-size: 15px;
+    font-size: 1.4rem;
     font-weight: 500;
     line-height: 1.65;
 }
@@ -221,7 +218,7 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-top: 24px;
+    margin-top: 15px;
 }
 
 .avatarGroup {
@@ -560,7 +557,7 @@
     position: relative;
     z-index: 5;
     min-width: 0;
-    padding: 28px 28px 25px;
+    padding: 20px 20px 25px;
     background: #ffffff59;
     border: 1px solid #ffffffc2;
     border-radius: 16px;
@@ -597,7 +594,7 @@
 .subscribeTitle {
     position: relative;
     max-width: 320px;
-    margin: 12px 0 15px;
+    margin: 8px 0 12px;
     color: #112956;
     font-size: 2.8rem;
     font-weight: 700;
@@ -774,7 +771,7 @@
 
 .footerMain {
     display: grid;
-    grid-template-columns: 235px minmax(0, 4fr);
+    grid-template-columns: 250px minmax(0, 4fr);
     gap: 15px;
     align-items: stretch;
     margin-bottom: 27px;
@@ -786,7 +783,7 @@
     overflow: hidden;
     box-sizing: border-box;
     background: linear-gradient(120deg, #fff0, #fbfbfb00);
-    border: 1px solid #cedfffad;
+    border: 1.5px solid #ffffffc2;
 }
 
 .brandCard {
@@ -950,10 +947,10 @@
     margin-bottom: 10px;
     border-radius: 12px;
     color: var(--muted);
-    background: #ffffff59;
+    background: #0e83f21c;
     border: 1px solid #ffffffc2;
     font-size: 1.2rem;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .cardLabel i {
@@ -1177,7 +1174,7 @@
     align-items: center;
     gap: 20px;
     min-height: 61px;
-    padding: 14px 0 0;
+    padding: 14px 0;
     border-top: 1px solid rgba(103, 135, 201, 0.12);
 }
 
@@ -1255,18 +1252,16 @@
 }
 
 .topButton {
-    width: 49px;
-    height: 49px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 0;
     border-radius: 50%;
     color: #fff;
-    background: linear-gradient(145deg, #4d92f1, #7862ee, #ca55db);
-    box-shadow:
-        0 14px 26px rgba(93, 91, 218, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    background: linear-gradient(135deg, #4e5ee861, #6656ed94);
+    box-shadow: 0 10px 22px #5058e130;
     cursor: pointer;
     transition:
         transform 0.25s ease,

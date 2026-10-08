@@ -313,7 +313,7 @@ function HeaderService01(props: HeaderService01Props) {
                 <div className={styles.userMenu}>
                     <button type="button" className={styles.userButton} aria-label="Account">
                         <Image
-                            src={user.avatar ?? '/assets/images/avatar.png'}
+                            src={user.avatar ?? '/assets/images/avatar/avatar.png'}
                             alt={user.name ?? 'User Avatar'}
                             width={34}
                             height={34}
@@ -388,9 +388,10 @@ function HeaderService01(props: HeaderService01Props) {
                                     <Image
                                         src={currentLocale.flag}
                                         alt={currentLocale.label}
-                                        width={22}
-                                        height={15}
+                                        width={24}
+                                        height={16}
                                         className={styles.flag}
+                                        style={{ width: 'auto', height: 'auto' }}
                                     />
                                     <span>{currentLocale.label}</span>
                                     <i

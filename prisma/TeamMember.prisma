@@ -1,0 +1,64 @@
+enum TeamMemberStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TeamMemberColor {
+  blue
+  pink
+  green
+  orange
+}
+
+model TeamMember {
+  id           String            @id @default(cuid())
+  siteId       String
+
+  imageUrl     String?
+  icon         String?
+  experience   String?
+  color        TeamMemberColor   @default(blue)
+
+  linkedinUrl  String?
+  twitterUrl   String?
+  email        String?
+
+  sortOrder    Int               @default(0)
+  status       TeamMemberStatus  @default(PUBLISHED)
+  isActive     Boolean           @default(true)
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  translations TeamMemberTranslation[]
+
+  site Site @relation(fields: [siteId],references: [id],onDelete: Cascade)
+
+  @@index([siteId])
+  @@index([siteId, status])
+  @@index([siteId, isActive])
+  @@index([siteId, sortOrder])
+  @@map("team_members")
+}
+
+model TeamMemberTranslation {
+  id           String     @id @default(cuid())
+  teamMemberId String
+  locale       Locale
+
+  name         String
+  role         String
+  department   String?
+  description  String?
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([teamMemberId, locale])
+  @@index([teamMemberId])
+  @@index([locale])
+  @@map("team_member_translations")
+}

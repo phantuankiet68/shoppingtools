@@ -10,7 +10,15 @@ export const dynamic = 'force-dynamic';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-const ALLOWED_FOLDERS = ['portfolios', 'projects', 'pages', 'templates', 'media'] as const;
+const ALLOWED_FOLDERS = [
+    'portfolios',
+    'projects',
+    'pages',
+    'templates',
+    'media',
+    'team-members',
+    'project-features',
+] as const;
 
 type UploadFolder = (typeof ALLOWED_FOLDERS)[number];
 

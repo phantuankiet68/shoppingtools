@@ -116,12 +116,8 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     loginTitle: localeText('Login', 'Đăng nhập', 'ログイン'),
     loginSubtitle: localeText('Welcome Guest', 'Chào mừng Quý khách', 'ようこそ、ゲスト様'),
     loginHref: '/sign-in',
-    offerTitle: localeText(
-        'Developer Docs',
-        'Tài liệu dành cho lập trình viên',
-        '開発者向けドキュメント',
-    ),
-    offerSubtitle: localeText('Documentation', 'Tài liệu hướng dẫn', 'ドキュメント'),
+    offerTitle: localeText('Developer Docs', 'Tài liệu Dev', '開発者Docs'),
+    offerSubtitle: localeText('Docs', 'Hướng dẫn', 'ドキュメント'),
     offerHref: '/docs',
     searchPlaceholder: localeText(
         'Search templates, features, guides...',
@@ -313,7 +309,7 @@ function HeaderService09(props: HeaderService09Props) {
                 <div className={styles.userMenu}>
                     <button type="button" className={styles.userButton} aria-label="Account">
                         <Image
-                            src={user.avatar ?? '/assets/images/avatar.png'}
+                            src={user.avatar ?? '/assets/images/avatar/avatar.png'}
                             alt={user.name ?? 'User Avatar'}
                             width={34}
                             height={34}

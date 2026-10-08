@@ -1,142 +1,97 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-
 import Image from 'next/image';
-import Link from 'next/link';
-
+import { useRouter } from 'next/navigation';
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
 import type { InspectorField, RegItem } from '@/lib/ui-builder/types';
-
 import styles from '@/components/admin/shared/templates/services/blog/styles/blog-01.module.css';
 
+type SupportedLocale = 'en' | 'vi' | 'ja';
+
 type BlogItem = {
-    id: number;
+    id: string;
     image: string;
-    category: LocalizedText;
-    date: LocalizedText;
-    title: LocalizedText;
-    description: LocalizedText;
-    author: LocalizedText;
-    role: LocalizedText;
+    category: string;
+    date: string;
+    title: string;
+    description: string;
+    author: string;
+    role: string;
     avatar: string;
 };
 
-type StoryItem = {
-    image: string;
-    category: LocalizedText;
-    categoryIcon: string;
-    title: LocalizedText;
-    description: LocalizedText;
-    date: LocalizedText;
-    readTime: LocalizedText;
+type BlogTagItem = {
+    id: string;
+    slug: string;
+    name: string;
+    count: number;
+    color: 'purple' | 'pink' | 'blue' | 'orange' | 'green' | 'cyan';
 };
-type CommunityItem = {
-    icon: string;
-    title: LocalizedText;
-    description: LocalizedText;
-    featured?: boolean;
+
+type BlogTranslation = {
+    locale: SupportedLocale;
+    title: string;
+    excerpt: string | null;
+    content: string;
+    slug: string;
+};
+
+type CategoryTranslation = {
+    locale: SupportedLocale;
+    name: string;
+};
+
+type BlogCategory = {
+    id: string;
+    slug: string;
+    icon: string | null;
+    translations: CategoryTranslation[];
+};
+
+type BlogTag = {
+    id: string;
+    slug: string;
+    name: string;
+    color: string | null;
+    usageCount: number;
+};
+
+type BlogApiPost = {
+    id: string;
+    thumbnail: string | null;
+    coverImage: string | null;
+    wordCount: number | null;
+    viewCount: number;
+    publishedAt: string | null;
+    createdAt: string;
+    category: BlogCategory | null;
+    wikiCategory: BlogCategory | null;
+    translations: BlogTranslation[];
+    tags: { tag: BlogTag }[];
+};
+
+type BlogApiResponse = {
+    success: boolean;
+    data: BlogApiPost[];
+    pagination?: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+};
+
+type CategoryItem = {
+    id: string;
+    label: string;
+    icon?: string;
+    count: number;
+    color?: string;
 };
 
 export interface Blog01Props {
-    breadcrumbHome?: LocalizedText;
-    breadcrumbCurrent?: LocalizedText;
-    heroBadge?: LocalizedText;
-    heroTitle?: LocalizedText;
-    heroTitleAccent?: LocalizedText;
-    heroDescription?: LocalizedText;
-    heroPrimaryButton?: LocalizedText;
-    heroSecondaryButton?: LocalizedText;
-    heroReviewText?: LocalizedText;
-    heroRating?: LocalizedText;
-    heroImage?: string;
-    feature1Icon?: string;
-    feature1Title?: LocalizedText;
-    feature1Description?: LocalizedText;
-    feature2Icon?: string;
-    feature2Title?: LocalizedText;
-    feature2Description?: LocalizedText;
-    feature3Icon?: string;
-    feature3Title?: LocalizedText;
-    feature3Description?: LocalizedText;
-    feature4Icon?: string;
-    feature4Title?: LocalizedText;
-    feature4Description?: LocalizedText;
-    blogSectionTitle?: LocalizedText;
-    blogSectionTitleAccent?: LocalizedText;
-    blogSectionDescription?: LocalizedText;
-    blogActionButton?: LocalizedText;
-    blog1Id?: number;
-    blog1Image?: string;
-    blog1category?: LocalizedText;
-    blog1Date?: LocalizedText;
-    blog1Title?: LocalizedText;
-    blog1Description?: LocalizedText;
-    blog1Author?: LocalizedText;
-    blog1Role?: LocalizedText;
-    blog1Avatar?: string;
-    blog2Id?: number;
-    blog2Image?: string;
-    blog2category?: LocalizedText;
-    blog2Date?: LocalizedText;
-    blog2Title?: LocalizedText;
-    blog2Description?: LocalizedText;
-    blog2Author?: LocalizedText;
-    blog2Role?: LocalizedText;
-    blog2Avatar?: string;
-    blog3Id?: number;
-    blog3Image?: string;
-    blog3category?: LocalizedText;
-    blog3Date?: LocalizedText;
-    blog3Title?: LocalizedText;
-    blog3Description?: LocalizedText;
-    blog3Author?: LocalizedText;
-    blog3Role?: LocalizedText;
-    blog3Avatar?: string;
-    blog4Id?: number;
-    blog4Image?: string;
-    blog4category?: LocalizedText;
-    blog4Date?: LocalizedText;
-    blog4Title?: LocalizedText;
-    blog4Description?: LocalizedText;
-    blog4Author?: LocalizedText;
-    blog4Role?: LocalizedText;
-    blog4Avatar?: string;
-    storyTitle?: LocalizedText;
-    storyTitleAccent?: LocalizedText;
-    storyDescription?: LocalizedText;
-    storyActionText?: LocalizedText;
-    storyActionLink?: string;
-    featuredImage?: string;
-    featuredBadge?: LocalizedText;
-    featuredCategory?: LocalizedText;
-    featuredCategoryIcon?: string;
-    featuredTitle?: LocalizedText;
-    featuredDate?: LocalizedText;
-    featuredReadTime?: LocalizedText;
-    featuredDescription?: LocalizedText;
-    featuredButton?: LocalizedText;
-    story1Image?: string;
-    story1Category?: LocalizedText;
-    story1CategoryIcon?: string;
-    story1Title?: LocalizedText;
-    story1Description?: LocalizedText;
-    story1Date?: LocalizedText;
-    story1ReadTime?: LocalizedText;
-    story2Image?: string;
-    story2Category?: LocalizedText;
-    story2CategoryIcon?: string;
-    story2Title?: LocalizedText;
-    story2Description?: LocalizedText;
-    story2Date?: LocalizedText;
-    story2ReadTime?: LocalizedText;
-    story3Image?: string;
-    story3Category?: LocalizedText;
-    story3CategoryIcon?: string;
-    story3Title?: LocalizedText;
-    story3Description?: LocalizedText;
-    story3Date?: LocalizedText;
-    story3ReadTime?: LocalizedText;
+    siteId?: string;
     trekkerBadge?: LocalizedText;
     trekkerTitle?: LocalizedText;
     trekkerTitleAccent?: LocalizedText;
@@ -146,7 +101,6 @@ export interface Blog01Props {
     reviewerRole?: LocalizedText;
     reviewerVerified?: LocalizedText;
     reviewerQuote?: LocalizedText;
-    reviewButton?: LocalizedText;
     community1Icon?: string;
     community1Title?: LocalizedText;
     community1Description?: LocalizedText;
@@ -157,10 +111,6 @@ export interface Blog01Props {
     community3Icon?: string;
     community3Title?: LocalizedText;
     community3Description?: LocalizedText;
-    travelHeroImage?: string;
-    travelHeroTitle?: LocalizedText;
-    travelHeroStories?: LocalizedText;
-    travelHeroLocation?: LocalizedText;
     travelVideoImage?: string;
     travelVideoDuration?: LocalizedText;
     travelVideoBadge?: LocalizedText;
@@ -173,894 +123,314 @@ export interface Blog01Props {
     travelComments?: LocalizedText;
     travelCommentsLabel?: LocalizedText;
     travelButton?: LocalizedText;
+    searchTitle?: LocalizedText;
+    searchPlaceholder?: LocalizedText;
+    searchAriaLabel?: LocalizedText;
+    clearSearchAriaLabel?: LocalizedText;
+    blogCategoryTitle?: LocalizedText;
+    blogCategoryAriaLabel?: LocalizedText;
+    wikiCategoryTitle?: LocalizedText;
+    wikiCategoryAriaLabel?: LocalizedText;
+    blogTagTitle?: LocalizedText;
+    blogTagMoreAriaLabel?: LocalizedText;
+    noBlogTagsText?: LocalizedText;
+    noCategoryText?: LocalizedText;
+    allCategoriesText?: LocalizedText;
+    bookmarkAriaLabel?: LocalizedText;
+    readArticleAriaLabel?: LocalizedText;
+    previousPageAriaLabel?: LocalizedText;
+    nextPageAriaLabel?: LocalizedText;
+    paginationAriaLabel?: LocalizedText;
+    supportTitle?: LocalizedText;
+    supportDescription?: LocalizedText;
+    supportButton?: LocalizedText;
 }
 
-export const DEFAULT_PROPS: Required<Blog01Props> = {
-    breadcrumbHome: {
-        sourceLocale: 'en',
-        default: 'Home',
-        translations: { vi: 'Trang chủ', ja: 'ホーム' },
-    },
-    breadcrumbCurrent: {
-        sourceLocale: 'en',
-        default: 'Blog',
-        translations: { vi: 'Blog', ja: 'ブログ' },
-    },
+const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'vi', 'ja'];
 
-    heroBadge: {
-        sourceLocale: 'en',
-        default: 'AI-Powered Website Builder',
-        translations: { vi: 'Trình tạo website tích hợp AI', ja: 'AI搭載ウェブサイトビルダー' },
-    },
-    heroTitle: {
-        sourceLocale: 'en',
-        default: 'Build Beautiful Websites Visually',
-        translations: {
-            vi: 'Thiết kế website đẹp bằng trình chỉnh sửa trực quan',
-            ja: 'ビジュアルエディターで美しいウェブサイトを構築',
+function getSampleBlogs(locale: SupportedLocale): BlogItem[] {
+    const content = {
+        en: {
+            category: 'Web Design',
+            date: 'May 20, 2024',
+            title: '10 Web Design Trends That Will Shape Modern Websites',
+            description:
+                'Discover practical UI, UX and web design trends for creating better digital experiences.',
+            role: 'Content Team',
         },
-    },
-    heroTitleAccent: {
-        sourceLocale: 'en',
-        default: 'Launch Instantly.',
-        translations: { vi: 'Xuất bản ngay lập tức.', ja: 'すぐに公開できます。' },
-    },
-    heroDescription: {
-        sourceLocale: 'en',
-        default:
-            'Kbuilder is the all-in-one platform to create, customize and publish stunning websites — without coding, without limits.',
-        translations: {
-            vi: 'Kbuilder là nền tảng tất cả trong một giúp bạn tạo, tùy chỉnh và xuất bản website chuyên nghiệp mà không cần lập trình.',
-            ja: 'Kbuilderは、コーディング不要で美しいウェブサイトを作成・カスタマイズ・公開できるオールインワンプラットフォームです。',
+        vi: {
+            category: 'Thiết kế Web',
+            date: '20 tháng 5, 2024',
+            title: '10 xu hướng thiết kế Web định hình website hiện đại',
+            description:
+                'Khám phá các xu hướng UI, UX và thiết kế Web thực tế để tạo ra trải nghiệm số tốt hơn.',
+            role: 'Đội ngũ nội dung',
         },
-    },
-
-    heroPrimaryButton: {
-        sourceLocale: 'en',
-        default: 'Start Building Free',
-        translations: { vi: 'Bắt đầu miễn phí', ja: '無料で始める' },
-    },
-    heroSecondaryButton: {
-        sourceLocale: 'en',
-        default: 'Watch Demo',
-        translations: { vi: 'Xem demo', ja: 'デモを見る' },
-    },
-    heroReviewText: {
-        sourceLocale: 'en',
-        default: 'Trusted by 10,000+ creators and businesses',
-        translations: {
-            vi: 'Được hơn 10.000 nhà sáng tạo và doanh nghiệp tin dùng',
-            ja: '10,000人以上のクリエイターと企業に信頼されています',
+        ja: {
+            category: 'Webデザイン',
+            date: '2024年5月20日',
+            title: '現代的なWebサイトを形作る10のデザイントレンド',
+            description:
+                'より良いデジタル体験を実現するための実践的なUI・UX・Webデザインのトレンドをご紹介します。',
+            role: 'コンテンツチーム',
         },
-    },
-    heroRating: {
-        sourceLocale: 'en',
-        default: '4.9/5',
-        translations: { vi: '4.9/5', ja: '4.9/5' },
-    },
-    heroImage: '/assets/images/builder-why-builder.png',
-
-    feature1Icon: 'bi-magic',
-    feature2Icon: 'bi-grid-3x3-gap-fill',
-    feature3Icon: 'bi-robot',
-    feature4Icon: 'bi-cloud-upload-fill',
-
-    feature1Title: {
-        sourceLocale: 'en',
-        default: 'Drag & Drop',
-        translations: { vi: 'Kéo và thả', ja: 'ドラッグ＆ドロップ' },
-    },
-    feature1Description: {
-        sourceLocale: 'en',
-        default: 'No code needed',
-        translations: { vi: 'Không cần lập trình', ja: 'コード不要' },
-    },
-
-    feature2Title: {
-        sourceLocale: 'en',
-        default: 'Templates',
-        translations: { vi: 'Mẫu giao diện', ja: 'テンプレート' },
-    },
-    feature2Description: {
-        sourceLocale: 'en',
-        default: '100+ professional',
-        translations: { vi: 'Hơn 100 mẫu chuyên nghiệp', ja: '100種類以上のプロ向けテンプレート' },
-    },
-
-    feature3Title: {
-        sourceLocale: 'en',
-        default: 'AI Automation',
-        translations: { vi: 'Tự động hóa bằng AI', ja: 'AI自動化' },
-    },
-    feature3Description: {
-        sourceLocale: 'en',
-        default: 'Save time & effort',
-        translations: { vi: 'Tiết kiệm thời gian và công sức', ja: '時間と労力を節約' },
-    },
-
-    feature4Title: {
-        sourceLocale: 'en',
-        default: 'Publish',
-        translations: { vi: 'Xuất bản', ja: '公開' },
-    },
-    feature4Description: {
-        sourceLocale: 'en',
-        default: 'Go live in minutes',
-        translations: { vi: 'Đưa website lên chỉ trong vài phút', ja: '数分で公開' },
-    },
-
-    blogSectionTitle: {
-        sourceLocale: 'en',
-        default: 'Insights &',
-        translations: { vi: 'Kiến thức &', ja: 'インサイト＆' },
-    },
-    blogSectionTitleAccent: {
-        sourceLocale: 'en',
-        default: 'Inspiration',
-        translations: { vi: 'Cảm hứng', ja: 'インスピレーション' },
-    },
-    blogSectionDescription: {
-        sourceLocale: 'en',
-        default:
-            'Explore industry trends, tutorials and stories to help you build better websites and grow your business.',
-        translations: {
-            vi: 'Khám phá xu hướng, hướng dẫn và những câu chuyện hữu ích giúp bạn xây dựng website tốt hơn và phát triển doanh nghiệp.',
-            ja: '業界トレンドやチュートリアル、ストーリーを通じて、より優れたウェブサイト制作とビジネス成長をサポートします。',
+    }[locale];
+    return [
+        {
+            id: 'sample-blog-01',
+            image: '/assets/images/blogs/blog-01.png',
+            category: content.category,
+            date: content.date,
+            title: content.title,
+            description: content.description,
+            author: 'KBuilder',
+            role: content.role,
+            avatar: '/assets/images/avatar-1.png',
         },
-    },
-    blogActionButton: {
-        sourceLocale: 'en',
-        default: 'View all articles',
-        translations: { vi: 'Xem tất cả bài viết', ja: 'すべての記事を見る' },
-    },
+    ];
+}
 
-    blog1category: {
-        sourceLocale: 'en',
-        default: 'Web Design',
-        translations: { vi: 'Thiết kế web', ja: 'Webデザイン' },
-    },
-    blog1Date: {
-        sourceLocale: 'en',
-        default: 'May 20, 2024',
-        translations: { vi: '20 tháng 5, 2024', ja: '2024年5月20日' },
-    },
-    blog1Title: {
-        sourceLocale: 'en',
-        default: '10 Web Design Trends That Will Dominate 2024',
-        translations: {
-            vi: '10 xu hướng thiết kế web sẽ dẫn đầu năm 2024',
-            ja: '2024年をリードする10のWebデザイントレンド',
+function normalizeLocale(value: string | null | undefined): SupportedLocale {
+    return SUPPORTED_LOCALES.includes(value as SupportedLocale) ? (value as SupportedLocale) : 'en';
+}
+
+function localizedText(defaultValue: string, vi: string, ja: string): LocalizedText {
+    return { sourceLocale: 'en', default: defaultValue, translations: { vi, ja } };
+}
+
+function localeValue(
+    locale: SupportedLocale,
+    values: { en: string; vi: string; ja: string },
+): string {
+    return values[locale];
+}
+
+function getLocalizedCategory(category: BlogCategory | null, locale: SupportedLocale): string {
+    if (!category) return locale === 'vi' ? 'Khác' : locale === 'ja' ? 'その他' : 'Other';
+    return (
+        category.translations.find((item) => item.locale === locale)?.name ??
+        category.translations.find((item) => item.locale === 'en')?.name ??
+        category.slug
+    );
+}
+
+function formatDate(value: string | null, locale: SupportedLocale): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat(
+        locale === 'vi' ? 'vi-VN' : locale === 'ja' ? 'ja-JP' : 'en-US',
+        {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
         },
-    },
-    blog1Description: {
-        sourceLocale: 'en',
-        default:
-            'Discover the latest UI, UX and web design trends that are shaping modern digital experiences.',
-        translations: {
-            vi: 'Khám phá những xu hướng UI, UX và thiết kế web mới nhất đang định hình trải nghiệm số hiện đại.',
-            ja: '現代のデジタル体験を形作る最新のUI・UX・Webデザインのトレンドをご紹介します。',
-        },
-    },
-    blog1Author: {
-        sourceLocale: 'en',
-        default: 'Michael Chen',
-        translations: { vi: 'Michael Chen', ja: 'Michael Chen' },
-    },
-    blog1Role: {
-        sourceLocale: 'en',
-        default: 'Product Designer',
-        translations: { vi: 'Nhà thiết kế sản phẩm', ja: 'プロダクトデザイナー' },
-    },
+    ).format(date);
+}
 
-    blog2category: {
-        sourceLocale: 'en',
-        default: 'Tutorials',
-        translations: { vi: 'Hướng dẫn', ja: 'チュートリアル' },
-    },
-    blog2Date: {
-        sourceLocale: 'en',
-        default: 'May 18, 2024',
-        translations: { vi: '18 tháng 5, 2024', ja: '2024年5月18日' },
-    },
-    blog2Title: {
-        sourceLocale: 'en',
-        default: 'How To Build A Stunning Portfolio Website',
-        translations: {
-            vi: 'Cách xây dựng website portfolio chuyên nghiệp',
-            ja: '魅力的なポートフォリオサイトの作り方',
-        },
-    },
-    blog2Description: {
-        sourceLocale: 'en',
-        default:
-            'Learn how to create a modern portfolio website using reusable components and responsive layouts.',
-        translations: {
-            vi: 'Tìm hiểu cách tạo website portfolio hiện đại với các thành phần tái sử dụng và giao diện đáp ứng.',
-            ja: '再利用可能なコンポーネントとレスポンシブレイアウトでモダンなポートフォリオサイトを作成する方法を学びましょう。',
-        },
-    },
-    blog2Author: {
-        sourceLocale: 'en',
-        default: 'Sophia Martinez',
-        translations: { vi: 'Sophia Martinez', ja: 'Sophia Martinez' },
-    },
-    blog2Role: {
-        sourceLocale: 'en',
-        default: 'UI/UX Designer',
-        translations: { vi: 'Nhà thiết kế UI/UX', ja: 'UI/UXデザイナー' },
-    },
+function getTagColor(index: number): BlogTagItem['color'] {
+    return ['purple', 'pink', 'blue', 'orange', 'green', 'cyan'][index % 6] as BlogTagItem['color'];
+}
 
-    blog3category: {
-        sourceLocale: 'en',
-        default: 'Marketing',
-        translations: { vi: 'Tiếp thị', ja: 'マーケティング' },
-    },
-    blog3Date: {
-        sourceLocale: 'en',
-        default: 'May 15, 2024',
-        translations: { vi: '15 tháng 5, 2024', ja: '2024年5月15日' },
-    },
-    blog3Title: {
-        sourceLocale: 'en',
-        default: 'Content Marketing Strategies For SaaS Startups',
-        translations: {
-            vi: 'Chiến lược tiếp thị nội dung cho startup SaaS',
-            ja: 'SaaSスタートアップ向けコンテンツマーケティング戦略',
-        },
-    },
-    blog3Description: {
-        sourceLocale: 'en',
-        default:
-            'Grow your SaaS business with proven content marketing strategies that convert visitors.',
-        translations: {
-            vi: 'Phát triển doanh nghiệp SaaS với các chiến lược tiếp thị nội dung đã được chứng minh giúp tăng tỷ lệ chuyển đổi.',
-            ja: '実績あるコンテンツマーケティング戦略でSaaSビジネスを成長させ、訪問者を顧客へと転換しましょう。',
-        },
-    },
-    blog3Author: {
-        sourceLocale: 'en',
-        default: 'David Park',
-        translations: { vi: 'David Park', ja: 'David Park' },
-    },
-    blog3Role: {
-        sourceLocale: 'en',
-        default: 'Marketing Manager',
-        translations: { vi: 'Quản lý tiếp thị', ja: 'マーケティングマネージャー' },
-    },
+function mapBlogPost(post: BlogApiPost, locale: SupportedLocale): BlogItem {
+    const translation =
+        post.translations.find((item) => item.locale === locale) ?? post.translations[0];
+    const image = post.thumbnail || post.coverImage || getSampleBlogs(locale)[0].image;
+    const title =
+        translation?.title ||
+        localeValue(locale, {
+            en: 'Untitled article',
+            vi: 'Bài viết chưa có tiêu đề',
+            ja: '無題の記事',
+        });
+    return {
+        id: post.id,
+        image,
+        category: getLocalizedCategory(post.category ?? post.wikiCategory, locale),
+        date: formatDate(post.publishedAt || post.createdAt, locale),
+        title,
+        description:
+            translation?.excerpt ||
+            translation?.content?.replace(/<[^>]+>/g, '').slice(0, 180) ||
+            '',
+        author: 'KBuilder',
+        role: localeValue(locale, {
+            en: 'Content Team',
+            vi: 'Đội ngũ nội dung',
+            ja: 'コンテンツチーム',
+        }),
+        avatar: getSampleBlogs(locale)[0].avatar,
+    };
+}
 
-    blog4category: {
-        sourceLocale: 'en',
-        default: 'Business',
-        translations: { vi: 'Kinh doanh', ja: 'ビジネス' },
-    },
-    blog4Date: {
-        sourceLocale: 'en',
-        default: 'May 12, 2024',
-        translations: { vi: '12 tháng 5, 2024', ja: '2024年5月12日' },
-    },
-    blog4Title: {
-        sourceLocale: 'en',
-        default: 'Scaling Your Business With No-Code Tools',
-        translations: {
-            vi: 'Mở rộng doanh nghiệp với các công cụ No-Code',
-            ja: 'ノーコードツールでビジネスを拡大する方法',
-        },
-    },
-    blog4Description: {
-        sourceLocale: 'en',
-        default: 'Discover how automation and no-code platforms help businesses scale much faster.',
-        translations: {
-            vi: 'Khám phá cách tự động hóa và nền tảng No-Code giúp doanh nghiệp phát triển nhanh hơn.',
-            ja: '自動化とノーコードプラットフォームがビジネスの成長を加速させる方法をご紹介します。',
-        },
-    },
-    blog4Author: {
-        sourceLocale: 'en',
-        default: 'Emily Johnson',
-        translations: { vi: 'Emily Johnson', ja: 'Emily Johnson' },
-    },
-    blog4Role: {
-        sourceLocale: 'en',
-        default: 'Business Consultant',
-        translations: { vi: 'Chuyên gia tư vấn doanh nghiệp', ja: 'ビジネスコンサルタント' },
-    },
+function mapTags(posts: BlogApiPost[]): BlogTagItem[] {
+    const map = new Map<string, BlogTagItem>();
+    posts.forEach((post) => {
+        post.tags.forEach(({ tag }) => {
+            const current = map.get(tag.id);
+            map.set(tag.id, {
+                id: tag.id,
+                slug: tag.slug,
+                name: tag.name,
+                count: tag.usageCount || (current ? current.count + 1 : 1),
+                color:
+                    current?.color ??
+                    (['purple', 'pink', 'blue', 'orange', 'green', 'cyan'].includes(tag.color ?? '')
+                        ? (tag.color as BlogTagItem['color'])
+                        : getTagColor(map.size)),
+            });
+        });
+    });
+    return Array.from(map.values());
+}
 
-    storyTitle: {
-        sourceLocale: 'en',
-        default: 'Latest',
-        translations: { vi: 'Mới nhất', ja: '最新' },
-    },
-    storyTitleAccent: {
-        sourceLocale: 'en',
-        default: 'Stories',
-        translations: { vi: 'Câu chuyện', ja: 'ストーリー' },
-    },
-    storyDescription: {
-        sourceLocale: 'en',
-        default:
-            'Fresh insights, expert tips and inspiring stories to help you build, grow and succeed with confidence and succeed with confidence.',
-        translations: {
-            vi: 'Những góc nhìn mới, mẹo từ chuyên gia và các câu chuyện truyền cảm hứng giúp bạn xây dựng, phát triển và thành công một cách tự tin.',
-            ja: '新しい知見や専門家のアドバイス、インスピレーションあふれるストーリーを通じて、自信を持って成長し成功へ導きます。',
-        },
-    },
-    storyActionText: {
-        sourceLocale: 'en',
-        default: 'See all articles',
-        translations: { vi: 'Xem tất cả bài viết', ja: 'すべての記事を見る' },
-    },
-
-    featuredBadge: {
-        sourceLocale: 'en',
-        default: 'FEATURED',
-        translations: { vi: 'NỔI BẬT', ja: '注目記事' },
-    },
-    featuredCategory: {
-        sourceLocale: 'en',
-        default: 'Food & Drink',
-        translations: { vi: 'Ẩm thực', ja: 'グルメ' },
-    },
-    featuredTitle: {
-        sourceLocale: 'en',
-        default: 'Los Angeles food & drink guide: 10 things to try in Los Angeles, California',
-        translations: {
-            vi: 'Cẩm nang ẩm thực Los Angeles: 10 món nhất định phải thử tại California',
-            ja: 'ロサンゼルスグルメガイド：カリフォルニアで味わうべき10の名物',
-        },
-    },
-    featuredDate: {
-        sourceLocale: 'en',
-        default: 'Aug 12, 2024',
-        translations: { vi: '12 tháng 8, 2024', ja: '2024年8月12日' },
-    },
-    featuredReadTime: {
-        sourceLocale: 'en',
-        default: '6 min read',
-        translations: { vi: 'Đọc trong 6 phút', ja: '6分で読めます' },
-    },
-    featuredDescription: {
-        sourceLocale: 'en',
-        default:
-            'From iconic landmarks to hidden local gems, discover the best restaurants, cafes and unforgettable culinary experiences throughout Los Angeles.',
-        translations: {
-            vi: 'Khám phá những nhà hàng, quán cà phê và trải nghiệm ẩm thực đáng nhớ từ các địa danh nổi tiếng đến những góc nhỏ ít người biết tại Los Angeles.',
-            ja: '有名スポットから地元の隠れた名店まで、ロサンゼルスで最高のレストランやカフェ、忘れられないグルメ体験をご紹介します。',
-        },
-    },
-    featuredButton: {
-        sourceLocale: 'en',
-        default: 'Read article',
-        translations: { vi: 'Đọc bài viết', ja: '記事を読む' },
-    },
-
-    story1Category: {
-        sourceLocale: 'en',
-        default: 'Travel',
-        translations: { vi: 'Du lịch', ja: '旅行' },
-    },
-    story1Title: {
-        sourceLocale: 'en',
-        default: "15 South London Markets You'll Love: From Markets to South London",
-        translations: {
-            vi: '15 khu chợ nổi tiếng ở Nam London mà bạn không nên bỏ lỡ',
-            ja: '南ロンドンで訪れたい15の人気マーケット',
-        },
-    },
-    story1Description: {
-        sourceLocale: 'en',
-        default:
-            'Explore vibrant weekend markets, discover unique local shops, enjoy authentic street food, and uncover hidden gems across South London with this complete travel guide.',
-        translations: {
-            vi: 'Khám phá những khu chợ cuối tuần sôi động, cửa hàng địa phương độc đáo và ẩm thực đường phố hấp dẫn tại Nam London.',
-            ja: '南ロンドンの活気あるマーケットや個性的なショップ、本格的なストリートフードを満喫できる旅行ガイドです。',
-        },
-    },
-    story1Date: {
-        sourceLocale: 'en',
-        default: 'Jul 28, 2024',
-        translations: { vi: '28 tháng 7, 2024', ja: '2024年7月28日' },
-    },
-    story1ReadTime: {
-        sourceLocale: 'en',
-        default: '5 min read',
-        translations: { vi: 'Đọc trong 5 phút', ja: '5分で読めます' },
-    },
-
-    story2Category: {
-        sourceLocale: 'en',
-        default: 'Health',
-        translations: { vi: 'Sức khỏe', ja: '健康' },
-    },
-    story2Title: {
-        sourceLocale: 'en',
-        default: '10 incredible healthy recipes you can cook using plants in 2024',
-        translations: {
-            vi: '10 món ăn lành mạnh từ thực vật bạn nên thử trong năm 2024',
-            ja: '2024年に試したい植物ベースのヘルシーレシピ10選',
-        },
-    },
-    story2Description: {
-        sourceLocale: 'en',
-        default:
-            'Discover simple plant-based recipes packed with fresh ingredients, essential nutrients, and delicious flavors to support a healthier lifestyle every day.',
-        translations: {
-            vi: 'Khám phá những công thức món ăn từ thực vật đơn giản, giàu dinh dưỡng và thơm ngon cho cuộc sống khỏe mạnh.',
-            ja: '新鮮な食材と豊富な栄養を取り入れた、美味しい植物ベースレシピをご紹介します。',
-        },
-    },
-    story2Date: {
-        sourceLocale: 'en',
-        default: 'Jul 20, 2024',
-        translations: { vi: '20 tháng 7, 2024', ja: '2024年7月20日' },
-    },
-    story2ReadTime: {
-        sourceLocale: 'en',
-        default: '4 min read',
-        translations: { vi: 'Đọc trong 4 phút', ja: '4分で読めます' },
-    },
-
-    story3Category: {
-        sourceLocale: 'en',
-        default: 'Tips & Culture',
-        translations: { vi: 'Mẹo & Văn hóa', ja: 'ヒント＆カルチャー' },
-    },
-    story3Title: {
-        sourceLocale: 'en',
-        default: 'Visiting Chicago on a Budget: Affordable Eats and Attraction Deals',
-        translations: {
-            vi: 'Du lịch Chicago tiết kiệm: Ăn ngon và khám phá với chi phí hợp lý',
-            ja: '節約しながら楽しむシカゴ旅行：お得なグルメと観光情報',
-        },
-    },
-    story3Description: {
-        sourceLocale: 'en',
-        default:
-            'Plan an unforgettable Chicago adventure with budget-friendly restaurants, free attractions, transportation tips, and local experiences without overspending.',
-        translations: {
-            vi: 'Lên kế hoạch khám phá Chicago với các nhà hàng giá hợp lý, điểm tham quan miễn phí và nhiều trải nghiệm thú vị.',
-            ja: '手頃なレストランや無料観光スポット、お得な移動方法でシカゴを満喫しましょう。',
-        },
-    },
-    story3Date: {
-        sourceLocale: 'en',
-        default: 'Jul 08, 2024',
-        translations: { vi: '08 tháng 7, 2024', ja: '2024年7月8日' },
-    },
-    story3ReadTime: {
-        sourceLocale: 'en',
-        default: '6 min read',
-        translations: { vi: 'Đọc trong 6 phút', ja: '6分で読めます' },
-    },
-
-    trekkerBadge: {
-        sourceLocale: 'en',
-        default: 'Community Highlights',
-        translations: { vi: 'Điểm nổi bật cộng đồng', ja: 'コミュニティハイライト' },
-    },
-    trekkerTitle: {
-        sourceLocale: 'en',
-        default: "Trekker's",
-        translations: { vi: 'Hành trình của', ja: 'トレッカーの' },
-    },
-    trekkerTitleAccent: {
-        sourceLocale: 'en',
-        default: 'Highlights',
-        translations: { vi: 'Cộng đồng', ja: 'ハイライト' },
-    },
-    trekkerDescription: {
-        sourceLocale: 'en',
-        default:
-            'Discover inspiring journeys, authentic stories and unforgettable experiences shared by creators who build, explore and grow with Kbuilder.',
-        translations: {
-            vi: 'Khám phá những hành trình truyền cảm hứng, câu chuyện chân thực và trải nghiệm đáng nhớ được chia sẻ bởi các nhà sáng tạo đồng hành cùng Kbuilder.',
-            ja: 'Kbuilderとともに成長するクリエイターたちが共有する感動的な旅やリアルなストーリー、忘れられない体験をご覧ください。',
-        },
-    },
-
-    reviewerName: {
-        sourceLocale: 'en',
-        default: 'Phan Duy Linh',
-        translations: {
-            vi: 'Phan Duy Linh',
-            ja: 'ファン・ズイ・リン',
-        },
-    },
-
-    reviewerRole: {
-        sourceLocale: 'en',
-        default: 'Personal Brand & Digital Creator',
-        translations: {
-            vi: 'Xây dựng thương hiệu cá nhân & Sáng tạo số',
-            ja: 'パーソナルブランド・デジタルクリエイター',
-        },
-    },
-
-    reviewerVerified: {
-        sourceLocale: 'en',
-        default: 'Professional Profile',
-        translations: {
-            vi: 'Hồ sơ chuyên nghiệp',
-            ja: 'プロフェッショナルプロフィール',
-        },
-    },
-
-    reviewerQuote: {
-        sourceLocale: 'en',
-        default:
-            'I believe a personal website should do more than introduce who you are. It should tell your story, showcase your work and create meaningful opportunities. KBuilder makes it possible to turn that vision into a professional website quickly and beautifully.',
-        translations: {
-            vi: 'Tôi tin rằng một website cá nhân không chỉ đơn giản là giới thiệu bạn là ai. Đó còn là nơi kể câu chuyện, thể hiện năng lực và mở ra những cơ hội mới. Với KBuilder, tôi có thể biến ý tưởng đó thành một website chuyên nghiệp một cách nhanh chóng và ấn tượng.',
-            ja: '個人サイトは、自分が何者なのかを紹介するだけのものではないと考えています。自分のストーリーや実績を伝え、新しい可能性につなげる場所でもあります。KBuilderなら、その想いをプロフェッショナルで魅力的なウェブサイトとして素早く形にできます。',
-        },
-    },
-
-    reviewButton: {
-        sourceLocale: 'en',
-        default: 'Explore My Profile',
-        translations: {
-            vi: 'Khám phá hồ sơ',
-            ja: 'プロフィールを見る',
-        },
-    },
-
-    community1Title: {
-        sourceLocale: 'en',
-        default: 'Professional Profile',
-        translations: {
-            vi: 'Hồ sơ chuyên nghiệp',
-            ja: 'プロフェッショナルプロフィール',
-        },
-    },
-
-    community1Description: {
-        sourceLocale: 'en',
-        default:
-            'Discover my background, skills, experience and professional journey through a clear and modern personal profile.',
-        translations: {
-            vi: 'Khám phá hành trình, kỹ năng, kinh nghiệm và những giá trị tôi theo đuổi thông qua một hồ sơ cá nhân hiện đại và rõ ràng.',
-            ja: 'これまでの経験やスキル、キャリア、そして大切にしている価値観を、わかりやすくモダンなプロフィールでご紹介します。',
-        },
-    },
-
-    community2Title: {
-        sourceLocale: 'en',
-        default: 'Selected Projects',
-        translations: {
-            vi: 'Dự án tiêu biểu',
-            ja: '主なプロジェクト',
-        },
-    },
-
-    community2Description: {
-        sourceLocale: 'en',
-        default:
-            'Explore selected projects, creative work and digital experiences that demonstrate my skills and approach to building meaningful products.',
-        translations: {
-            vi: 'Khám phá những dự án, sản phẩm và trải nghiệm số tiêu biểu thể hiện năng lực, tư duy sáng tạo và cách tôi biến ý tưởng thành sản phẩm thực tế.',
-            ja: 'これまでに手がけたプロジェクトやデジタル作品を通して、スキルや創造力、アイデアを実際のプロダクトへ形にするアプローチをご紹介します。',
-        },
-    },
-
-    community3Title: {
-        sourceLocale: 'en',
-        default: 'Connect & Collaborate',
-        translations: {
-            vi: 'Kết nối & hợp tác',
-            ja: 'つながる・協業する',
-        },
-    },
-
-    community3Description: {
-        sourceLocale: 'en',
-        default:
-            'Interested in working together? Get in touch to discuss projects, ideas, collaborations and new opportunities.',
-        translations: {
-            vi: 'Bạn đang tìm kiếm cơ hội hợp tác? Hãy kết nối để cùng trao đổi về dự án, ý tưởng, sản phẩm và những cơ hội mới.',
-            ja: 'プロジェクトやアイデア、プロダクト、コラボレーションなどについて、一緒に新しい可能性を探してみませんか。',
-        },
-    },
-
-    travelHeroTitle: {
-        sourceLocale: 'en',
-        default: 'Adventure',
-        translations: { vi: 'Phiêu lưu', ja: 'アドベンチャー' },
-    },
-    travelHeroStories: {
-        sourceLocale: 'en',
-        default: '+120 Stories',
-        translations: { vi: '+120 câu chuyện', ja: '120件以上のストーリー' },
-    },
-    travelHeroLocation: {
-        sourceLocale: 'en',
-        default: 'Cappadocia, Turkey',
-        translations: { vi: 'Cappadocia, Thổ Nhĩ Kỳ', ja: 'トルコ・カッパドキア' },
-    },
-
-    travelVideoDuration: {
-        sourceLocale: 'en',
-        default: '03:28',
-        translations: { vi: '03:28', ja: '03:28' },
-    },
-    travelVideoBadge: {
-        sourceLocale: 'en',
-        default: 'Travel Story',
-        translations: { vi: 'Câu chuyện du lịch', ja: 'トラベルストーリー' },
-    },
-    travelVideoTitle: {
-        sourceLocale: 'en',
-        default: 'Explore breathtaking destinations through inspiring creator stories.',
-        translations: {
-            vi: 'Khám phá những điểm đến tuyệt đẹp qua các câu chuyện truyền cảm hứng từ những nhà sáng tạo.',
-            ja: 'クリエイターたちの感動的なストーリーを通して、息をのむような絶景を発見しましょう。',
-        },
-    },
-    travelVideoDescription: {
-        sourceLocale: 'en',
-        default:
-            'Watch how creators capture unforgettable adventures, share authentic experiences, and inspire millions with beautiful visual storytelling built using Kbuilder.',
-        translations: {
-            vi: 'Theo dõi cách các nhà sáng tạo ghi lại những chuyến phiêu lưu đáng nhớ, chia sẻ trải nghiệm chân thực và truyền cảm hứng đến hàng triệu người bằng Kbuilder.',
-            ja: 'Kbuilderを活用した美しいビジュアルストーリーで、クリエイターたちが忘れられない冒険や本物の体験を世界中へ届ける様子をご覧ください。',
-        },
-    },
-
-    travelViews: { sourceLocale: 'en', default: '18K+', translations: { vi: '18K+', ja: '18K+' } },
-    travelViewsLabel: {
-        sourceLocale: 'en',
-        default: 'Views',
-        translations: { vi: 'Lượt xem', ja: '再生数' },
-    },
-
-    travelRating: { sourceLocale: 'en', default: '4.9', translations: { vi: '4.9', ja: '4.9' } },
-    travelRatingLabel: {
-        sourceLocale: 'en',
-        default: 'Rating',
-        translations: { vi: 'Đánh giá', ja: '評価' },
-    },
-
-    travelComments: { sourceLocale: 'en', default: '245', translations: { vi: '245', ja: '245' } },
-    travelCommentsLabel: {
-        sourceLocale: 'en',
-        default: 'Comments',
-        translations: { vi: 'Bình luận', ja: 'コメント' },
-    },
-
-    travelButton: {
-        sourceLocale: 'en',
-        default: 'Watch Journey',
-        translations: { vi: 'Xem hành trình', ja: '旅を見る' },
-    },
-    blog1Id: 1,
-    blog1Image: '/assets/images/blogs/blog-01.png',
-    blog1Avatar: '/assets/images/avatar-1.png',
-
-    blog2Id: 2,
-    blog2Image: '/assets/images/blogs/blog-02.png',
-    blog2Avatar: '/assets/images/avatar-2.png',
-
-    blog3Id: 3,
-    blog3Image: '/assets/images/blogs/blog-03.png',
-    blog3Avatar: '/assets/images/avatar-3.png',
-
-    blog4Id: 4,
-    blog4Image: '/assets/images/blogs/blog-04.png',
-    blog4Avatar: '/assets/images/avatar-4.png',
-
-    storyActionLink: '/blog',
-
-    featuredImage: '/assets/images/blogs/featured.png',
-    featuredCategoryIcon: 'bi-cup-hot-fill',
-
-    story1Image: '/assets/images/blogs/story-01.png',
-    story1CategoryIcon: 'bi-geo-alt-fill',
-
-    story2Image: '/assets/images/blogs/story-02.png',
-    story2CategoryIcon: 'bi-heart-pulse-fill',
-
-    story3Image: '/assets/images/blogs/story-03.png',
-    story3CategoryIcon: 'bi-globe',
-
+export const DEFAULT_PROPS: Required<Omit<Blog01Props, 'siteId'>> & { siteId?: string } = {
+    siteId: undefined,
+    trekkerBadge: localizedText(
+        'Community Highlights',
+        'Điểm nổi bật cộng đồng',
+        'コミュニティハイライト',
+    ),
+    trekkerTitle: localizedText("Trekker's ", 'Hành trình của ', 'トレッカーの '),
+    trekkerTitleAccent: localizedText('Highlights', 'Cộng đồng', 'ハイライト'),
+    trekkerDescription: localizedText(
+        'Discover inspiring journeys, authentic stories and unforgettable experiences shared by creators who build, explore and grow with Kbuilder.',
+        'Khám phá những hành trình truyền cảm hứng, câu chuyện chân thực và trải nghiệm đáng nhớ được chia sẻ bởi các nhà sáng tạo đồng hành cùng Kbuilder.',
+        'Kbuilderとともに成長するクリエイターたちが共有する感動的な旅やリアルなストーリー、忘れられない体験をご覧ください。',
+    ),
     reviewerAvatar: '/assets/images/avatar-1.png',
-
+    reviewerName: localizedText('Phan Duy Linh', 'Phan Duy Linh', 'ファン・ズイ・リン'),
+    reviewerRole: localizedText(
+        'Personal Brand & Digital Creator',
+        'Xây dựng thương hiệu cá nhân & Sáng tạo số',
+        'パーソナルブランド・デジタルクリエイター',
+    ),
+    reviewerVerified: localizedText(
+        'Professional Profile',
+        'Hồ sơ chuyên nghiệp',
+        'プロフェッショナルプロフィール',
+    ),
+    reviewerQuote: localizedText(
+        'I believe a personal website should do more than introduce who you are. It should tell your story, showcase your work and create meaningful opportunities. KBuilder makes it possible to turn that vision into a professional website quickly and beautifully.',
+        'Tôi tin rằng một website cá nhân không chỉ đơn giản là giới thiệu bạn là ai. Đó còn là nơi kể câu chuyện, thể hiện năng lực và mở ra những cơ hội mới. Với KBuilder, tôi có thể biến ý tưởng đó thành một website chuyên nghiệp một cách nhanh chóng và ấn tượng.',
+        '個人サイトは、自分が何者なのかを紹介するだけのものではないと考えています。自分のストーリーや実績を伝え、新しい可能性につなげる場所でもあります。KBuilderなら、その想いをプロフェッショナルで魅力的なウェブサイトとして素早く形にできます。',
+    ),
     community1Icon: 'bi-compass',
+    community1Title: localizedText(
+        'Professional Profile',
+        'Hồ sơ chuyên nghiệp',
+        'プロフェッショナルプロフィール',
+    ),
+    community1Description: localizedText(
+        'Discover my background, skills, experience and professional journey through a clear and modern personal profile.',
+        'Khám phá hành trình, kỹ năng, kinh nghiệm và những giá trị tôi theo đuổi thông qua một hồ sơ cá nhân hiện đại và rõ ràng.',
+        'これまでの経験やスキル、キャリア、そして大切にしている価値観を、わかりやすくモダンなプロフィールでご紹介します。',
+    ),
     community2Icon: 'bi-person-badge',
+    community2Title: localizedText('Selected Projects', 'Dự án tiêu biểu', '主なプロジェクト'),
+    community2Description: localizedText(
+        'Explore selected projects, creative work and digital experiences that demonstrate my skills and approach to building meaningful products.',
+        'Khám phá những dự án, sản phẩm và trải nghiệm số tiêu biểu thể hiện năng lực, tư duy sáng tạo và cách tôi biến ý tưởng thành sản phẩm thực tế.',
+        'これまでに手がけたプロジェクトやデジタル作品を通して、スキルや創造力、アイデアを実際のプロダクトへ形にするアプローチをご紹介します。',
+    ),
     community2Featured: true,
     community3Icon: 'bi-calendar-check',
-
-    travelHeroImage: '/assets/images/blogs/travel-hero.png',
+    community3Title: localizedText(
+        'Connect & Collaborate',
+        'Kết nối & hợp tác',
+        'つながる・協業する',
+    ),
+    community3Description: localizedText(
+        'Interested in working together? Get in touch to discuss projects, ideas, collaborations and new opportunities.',
+        'Bạn đang tìm kiếm cơ hội hợp tác? Hãy kết nối để cùng trao đổi về dự án, ý tưởng, sản phẩm và những cơ hội mới.',
+        'プロジェクトやアイデア、プロダクト、コラボレーションなどについて、一緒に新しい可能性を探してみませんか。',
+    ),
     travelVideoImage: '/assets/images/blogs/travel-video.png',
+    travelVideoDuration: localizedText('03:28', '03:28', '03:28'),
+    travelVideoBadge: localizedText('Travel Story', 'Câu chuyện du lịch', 'トラベルストーリー'),
+    travelVideoTitle: localizedText(
+        'Explore breathtaking destinations through inspiring creator stories.',
+        'Khám phá những điểm đến tuyệt đẹp qua các câu chuyện truyền cảm hứng từ những nhà sáng tạo.',
+        'クリエイターたちの感動的なストーリーを通して、息をのむような絶景を発見しましょう。',
+    ),
+    travelVideoDescription: localizedText(
+        'Watch how creators capture unforgettable adventures, share authentic experiences, and inspire millions with beautiful visual storytelling built using Kbuilder.',
+        'Theo dõi cách các nhà sáng tạo ghi lại những chuyến phiêu lưu đáng nhớ, chia sẻ trải nghiệm chân thực và truyền cảm hứng đến hàng triệu người bằng Kbuilder.',
+        'Kbuilderを活用した美しいビジュアルストーリーで、クリエイターたちが忘れられない冒険や本物の体験を世界中へ届ける様子をご覧ください。',
+    ),
+    travelViews: localizedText('18K+', '18K+', '18K+'),
+    travelViewsLabel: localizedText('Views', 'Lượt xem', '再生数'),
+    travelRating: localizedText('4.9', '4.9', '4.9'),
+    travelRatingLabel: localizedText('Rating', 'Đánh giá', '評価'),
+    travelComments: localizedText('245', '245', '245'),
+    travelCommentsLabel: localizedText('Comments', 'Bình luận', 'コメント'),
+    travelButton: localizedText('Watch Journey', 'Xem hành trình', '旅を見る'),
+    searchTitle: localizedText('Search', 'Tìm kiếm', '検索'),
+    searchPlaceholder: localizedText('Search articles...', 'Tìm kiếm bài viết...', '記事を検索...'),
+    searchAriaLabel: localizedText('Search articles', 'Tìm kiếm bài viết', '記事を検索'),
+    clearSearchAriaLabel: localizedText('Clear search', 'Xóa tìm kiếm', '検索をクリア'),
+    blogCategoryTitle: localizedText('Blog Categories', 'Danh mục Blog', 'ブログカテゴリ'),
+    blogCategoryAriaLabel: localizedText('Blog Categories', 'Danh mục Blog', 'ブログカテゴリ'),
+    wikiCategoryTitle: localizedText('Wiki Categories', 'Danh mục Wiki', 'Wikiカテゴリ'),
+    wikiCategoryAriaLabel: localizedText('Wiki Categories', 'Danh mục Wiki', 'Wikiカテゴリ'),
+    blogTagTitle: localizedText('Blog Tags', 'Thẻ Blog', 'ブログタグ'),
+    blogTagMoreAriaLabel: localizedText(
+        'View more Blog Tags',
+        'Xem thêm thẻ Blog',
+        'ブログタグをさらに表示',
+    ),
+    noBlogTagsText: localizedText(
+        'No Blog Tags found',
+        'Không tìm thấy BlogTag',
+        'BlogTagが見つかりません',
+    ),
+    noCategoryText: localizedText(
+        'No Wiki Categories found',
+        'Không tìm thấy danh mục Wiki',
+        'Wikiカテゴリが見つかりません',
+    ),
+    allCategoriesText: localizedText('All', 'Tất cả', 'すべて'),
+    bookmarkAriaLabel: localizedText('Bookmark article', 'Lưu bài viết', '記事をブックマーク'),
+    readArticleAriaLabel: localizedText('Read article', 'Đọc bài viết', '記事を読む'),
+    previousPageAriaLabel: localizedText('Previous page', 'Trang trước', '前のページ'),
+    nextPageAriaLabel: localizedText('Next page', 'Trang sau', '次のページ'),
+    paginationAriaLabel: localizedText(
+        'Blog pagination',
+        'Phân trang Blog',
+        'ブログページネーション',
+    ),
+    supportTitle: localizedText('Need support?', 'Cần hỗ trợ?', 'サポートが必要ですか？'),
+    supportDescription: localizedText(
+        'Our team is always ready to help you.',
+        'Đội ngũ của chúng tôi luôn sẵn sàng giúp bạn.',
+        '私たちのチームがいつでもサポートします。',
+    ),
+    supportButton: localizedText('Contact support', 'Liên hệ hỗ trợ', 'サポートに連絡'),
 };
 
-function createFeature(icon: string, title: LocalizedText, description: LocalizedText) {
-    return {
-        icon,
-        title,
-        description,
-    };
-}
-
-function createBlog(
-    id: number,
-    image: string,
-    category: LocalizedText,
-    date: LocalizedText,
-    title: LocalizedText,
-    description: LocalizedText,
-    author: LocalizedText,
-    role: LocalizedText,
-    avatar: string,
-): BlogItem {
-    return {
-        id,
-        image,
-        category,
-        date,
-        title,
-        description,
-        author,
-        role,
-        avatar,
-    };
-}
-
-function createStory(
-    image: string,
-    category: LocalizedText,
-    categoryIcon: string,
-    title: LocalizedText,
-    description: LocalizedText,
-    date: LocalizedText,
-    readTime: LocalizedText,
-): StoryItem {
-    return {
-        image,
-        category,
-        categoryIcon,
-        title,
-        description,
-        date,
-        readTime,
-    };
-}
-
 export function BlogPage01(props: Blog01Props) {
-    const mergedProps = {
-        ...DEFAULT_PROPS,
-        ...props,
-    };
+    const mergedProps = { ...DEFAULT_PROPS, ...props };
     const {
-        breadcrumbHome,
-        breadcrumbCurrent,
-        heroBadge,
-        heroTitle,
-        heroTitleAccent,
-        heroDescription,
-        heroPrimaryButton,
-        heroSecondaryButton,
-        heroReviewText,
-        heroRating,
-        heroImage,
-        feature1Icon,
-        feature1Title,
-        feature1Description,
-        feature2Icon,
-        feature2Title,
-        feature2Description,
-        feature3Icon,
-        feature3Title,
-        feature3Description,
-        feature4Icon,
-        feature4Title,
-        feature4Description,
-
-        blogSectionTitle,
-        blogSectionTitleAccent,
-        blogSectionDescription,
-        blogActionButton,
-
-        blog1Id,
-        blog1Image,
-        blog1category,
-        blog1Date,
-        blog1Title,
-        blog1Description,
-        blog1Author,
-        blog1Role,
-        blog1Avatar,
-
-        blog2Id,
-        blog2Image,
-        blog2category,
-        blog2Date,
-        blog2Title,
-        blog2Description,
-        blog2Author,
-        blog2Role,
-        blog2Avatar,
-
-        blog3Id,
-        blog3Image,
-        blog3category,
-        blog3Date,
-        blog3Title,
-        blog3Description,
-        blog3Author,
-        blog3Role,
-        blog3Avatar,
-
-        blog4Id,
-        blog4Image,
-        blog4category,
-        blog4Date,
-        blog4Title,
-        blog4Description,
-        blog4Author,
-        blog4Role,
-        blog4Avatar,
-
-        storyTitle,
-        storyTitleAccent,
-        storyDescription,
-        storyActionText,
-        storyActionLink,
-        featuredImage,
-        featuredBadge,
-        featuredCategory,
-        featuredCategoryIcon,
-        featuredTitle,
-        featuredDate,
-        featuredReadTime,
-        featuredDescription,
-        featuredButton,
-        story1Image,
-        story1Category,
-        story1CategoryIcon,
-        story1Title,
-        story1Description,
-        story1Date,
-        story1ReadTime,
-        story2Image,
-        story2Category,
-        story2CategoryIcon,
-        story2Title,
-        story2Description,
-        story2Date,
-        story2ReadTime,
-        story3Image,
-        story3Category,
-        story3CategoryIcon,
-        story3Title,
-        story3Description,
-        story3Date,
-        story3ReadTime,
+        siteId,
         trekkerBadge,
         trekkerTitle,
         trekkerTitleAccent,
         trekkerDescription,
-
         reviewerAvatar,
         reviewerName,
         reviewerRole,
         reviewerVerified,
         reviewerQuote,
-        reviewButton,
         community1Icon,
         community1Title,
         community1Description,
-
         community2Icon,
         community2Title,
         community2Description,
-
+        community2Featured,
         community3Icon,
         community3Title,
         community3Description,
-
-        travelHeroImage,
-        travelHeroTitle,
-        travelHeroStories,
-        travelHeroLocation,
-
         travelVideoImage,
         travelVideoDuration,
         travelVideoBadge,
@@ -1073,206 +443,231 @@ export function BlogPage01(props: Blog01Props) {
         travelComments,
         travelCommentsLabel,
         travelButton,
+        searchTitle,
+        searchPlaceholder,
+        searchAriaLabel,
+        clearSearchAriaLabel,
+        blogCategoryTitle,
+        blogCategoryAriaLabel,
+        wikiCategoryTitle,
+        wikiCategoryAriaLabel,
+        blogTagTitle,
+        blogTagMoreAriaLabel,
+        noBlogTagsText,
+        noCategoryText,
+        allCategoriesText,
+        bookmarkAriaLabel,
+        readArticleAriaLabel,
+        previousPageAriaLabel,
+        nextPageAriaLabel,
+        paginationAriaLabel,
+        supportTitle,
+        supportDescription,
+        supportButton,
     } = mergedProps;
 
-    const [selectedLocale, setSelectedLocale] = useState(() => {
-        if (typeof window === 'undefined') {
-            return 'en';
-        }
-
-        return localStorage.getItem('locale') ?? 'en';
-    });
+    const router = useRouter();
+    const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>('en');
+    const [blogs, setBlogs] = useState<BlogItem[]>(getSampleBlogs('en'));
+    const [tags, setTags] = useState<BlogTagItem[]>([]);
+    const [activeTagId, setActiveTagId] = useState<string | null>(null);
+    const [categoryItems, setCategoryItems] = useState<CategoryItem[]>([]);
+    const [wikiCategoryItems, setWikiCategoryItems] = useState<CategoryItem[]>([]);
+    const [activeCategoryType, setActiveCategoryType] = useState<'all' | 'blog' | 'wiki'>('all');
+    const [activeCategory, setActiveCategory] = useState('all');
+    const [search, setSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const t = (value?: LocalizedText) => (value ? getLocalizedValue(value, selectedLocale) : '');
+    const tText = (key: keyof Blog01Props) => t(mergedProps[key] as LocalizedText | undefined);
 
     useEffect(() => {
-        const handleLocaleChange = (event: Event) => {
-            const customEvent = event as CustomEvent<string>;
-            setSelectedLocale(customEvent.detail);
-        };
-
+        const storedLocale = normalizeLocale(window.localStorage.getItem('locale'));
+        setSelectedLocale(storedLocale);
+        const handleLocaleChange = (event: Event) =>
+            setSelectedLocale(normalizeLocale((event as CustomEvent<string>).detail));
         window.addEventListener('locale-change', handleLocaleChange as EventListener);
-
-        return () => {
+        return () =>
             window.removeEventListener('locale-change', handleLocaleChange as EventListener);
-        };
     }, []);
 
-    const t = (value?: LocalizedText) => (value ? getLocalizedValue(value, selectedLocale) : '');
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [siteId, selectedLocale, activeCategory, activeCategoryType, activeTagId, search]);
 
-    const FEATURES = useMemo(
+    useEffect(() => {
+        const controller = new AbortController();
+        const timer = window.setTimeout(
+            async () => {
+                const sampleBlogs = getSampleBlogs(selectedLocale);
+                if (!siteId) {
+                    setBlogs(sampleBlogs);
+                    setTags([]);
+                    setCategoryItems([
+                        {
+                            id: 'all',
+                            label: tText('allCategoriesText'),
+                            icon: 'bi-house-fill',
+                            count: sampleBlogs.length,
+                        },
+                    ]);
+                    setWikiCategoryItems([]);
+                    setTotalPages(1);
+                    return;
+                }
+                try {
+                    const params = new URLSearchParams({
+                        siteId,
+                        locale: selectedLocale,
+                        status: 'PUBLISHED',
+                        page: String(currentPage),
+                        limit: '6',
+                    });
+                    if (search.trim()) params.set('search', search.trim());
+                    if (activeTagId) params.set('tagId', activeTagId);
+                    if (activeCategoryType === 'blog' && activeCategory !== 'all')
+                        params.set('categoryId', activeCategory);
+                    if (activeCategoryType === 'wiki' && activeCategory !== 'all')
+                        params.set('wikiCategoryId', activeCategory);
+                    const response = await fetch(`/api/v1/blog?${params.toString()}`, {
+                        credentials: 'include',
+                        cache: 'no-store',
+                        signal: controller.signal,
+                    });
+                    if (!response.ok) throw new Error(`Blog API failed: ${response.status}`);
+                    const result: BlogApiResponse = await response.json();
+                    const posts = result.success && Array.isArray(result.data) ? result.data : [];
+                    const hasFilter = Boolean(
+                        search.trim() ||
+                        activeTagId ||
+                        (activeCategoryType !== 'all' && activeCategory !== 'all'),
+                    );
+                    setBlogs(
+                        posts.length
+                            ? posts.map((post) => mapBlogPost(post, selectedLocale))
+                            : hasFilter
+                              ? []
+                              : sampleBlogs,
+                    );
+                    setTags(mapTags(posts));
+                    setTotalPages(Math.max(1, result.pagination?.totalPages ?? 1));
+                    const blogMap = new Map<string, CategoryItem>();
+                    const wikiMap = new Map<string, CategoryItem>();
+                    posts.forEach((post) => {
+                        if (post.category) {
+                            const current = blogMap.get(post.category.id);
+                            blogMap.set(post.category.id, {
+                                id: post.category.id,
+                                label: getLocalizedCategory(post.category, selectedLocale),
+                                icon: post.category.icon ?? 'bi-folder',
+                                count: (current?.count ?? 0) + 1,
+                            });
+                        }
+                        if (post.wikiCategory) {
+                            const current = wikiMap.get(post.wikiCategory.id);
+                            wikiMap.set(post.wikiCategory.id, {
+                                id: post.wikiCategory.id,
+                                label: getLocalizedCategory(post.wikiCategory, selectedLocale),
+                                icon: post.wikiCategory.icon ?? 'bi-journal-text',
+                                count: (current?.count ?? 0) + 1,
+                            });
+                        }
+                    });
+                    setCategoryItems(Array.from(blogMap.values()));
+                    setWikiCategoryItems(Array.from(wikiMap.values()));
+                } catch (error) {
+                    if (error instanceof DOMException && error.name === 'AbortError') return;
+                    console.error('[BLOG_PAGE_01]', error);
+                    setBlogs(sampleBlogs);
+                    setTags([]);
+                    setCategoryItems([]);
+                    setWikiCategoryItems([]);
+                    setTotalPages(1);
+                } finally {
+                }
+            },
+            search.trim() ? 250 : 0,
+        );
+        return () => {
+            window.clearTimeout(timer);
+            controller.abort();
+        };
+    }, [
+        siteId,
+        selectedLocale,
+        activeCategory,
+        activeCategoryType,
+        activeTagId,
+        search,
+        currentPage,
+    ]);
+    const filteredTags = useMemo(() => {
+        const query = search.trim().toLowerCase();
+        return query
+            ? tags.filter(
+                  (tag) =>
+                      tag.name.toLowerCase().includes(query) ||
+                      tag.slug.toLowerCase().includes(query),
+              )
+            : tags;
+    }, [tags, search]);
+    const categories = useMemo(
         () => [
-            createFeature(feature1Icon, feature1Title, feature1Description),
-            createFeature(feature2Icon, feature2Title, feature2Description),
-            createFeature(feature3Icon, feature3Title, feature3Description),
-            createFeature(feature4Icon, feature4Title, feature4Description),
+            {
+                id: 'all',
+                label: tText('allCategoriesText'),
+                icon: 'bi-house-fill',
+                count: blogs.length,
+            },
+            ...categoryItems,
+        ],
+        [categoryItems, blogs.length, selectedLocale],
+    );
+    const communities = useMemo(
+        () => [
+            { icon: community1Icon, title: community1Title, description: community1Description },
+            {
+                icon: community2Icon,
+                title: community2Title,
+                description: community2Description,
+                featured: community2Featured,
+            },
+            { icon: community3Icon, title: community3Title, description: community3Description },
         ],
         [
-            feature1Icon,
-            feature1Title,
-            feature1Description,
-            feature2Icon,
-            feature2Title,
-            feature2Description,
-            feature3Icon,
-            feature3Title,
-            feature3Description,
-            feature4Icon,
-            feature4Title,
-            feature4Description,
+            community1Icon,
+            community1Title,
+            community1Description,
+            community2Icon,
+            community2Title,
+            community2Description,
+            community2Featured,
+            community3Icon,
+            community3Title,
+            community3Description,
         ],
     );
 
-    const BLOGS = useMemo(
-        () => [
-            createBlog(
-                blog1Id,
-                blog1Image,
-                blog1category,
-                blog1Date,
-                blog1Title,
-                blog1Description,
-                blog1Author,
-                blog1Role,
-                blog1Avatar,
-            ),
-            createBlog(
-                blog2Id,
-                blog2Image,
-                blog2category,
-                blog2Date,
-                blog2Title,
-                blog2Description,
-                blog2Author,
-                blog2Role,
-                blog2Avatar,
-            ),
-            createBlog(
-                blog3Id,
-                blog3Image,
-                blog3category,
-                blog3Date,
-                blog3Title,
-                blog3Description,
-                blog3Author,
-                blog3Role,
-                blog3Avatar,
-            ),
-            createBlog(
-                blog4Id,
-                blog4Image,
-                blog4category,
-                blog4Date,
-                blog4Title,
-                blog4Description,
-                blog4Author,
-                blog4Role,
-                blog4Avatar,
-            ),
-        ],
-        [
-            blog1Id,
-            blog1Image,
-            blog1category,
-            blog1Date,
-            blog1Title,
-            blog1Description,
-            blog1Author,
-            blog1Role,
-            blog1Avatar,
-            blog2Id,
-            blog2Image,
-            blog2category,
-            blog2Date,
-            blog2Title,
-            blog2Description,
-            blog2Author,
-            blog2Role,
-            blog2Avatar,
-            blog3Id,
-            blog3Image,
-            blog3category,
-            blog3Date,
-            blog3Title,
-            blog3Description,
-            blog3Author,
-            blog3Role,
-            blog3Avatar,
-            blog4Id,
-            blog4Image,
-            blog4category,
-            blog4Date,
-            blog4Title,
-            blog4Description,
-            blog4Author,
-            blog4Role,
-            blog4Avatar,
-        ],
-    );
+    const handlePageChange = (page: number) => {
+        if (page < 1 || page > totalPages) return;
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
-    const STORIES = useMemo(
-        () => [
-            createStory(
-                story1Image,
-                story1Category,
-                story1CategoryIcon,
-                story1Title,
-                story1Description,
-                story1Date,
-                story1ReadTime,
-            ),
-            createStory(
-                story2Image,
-                story2Category,
-                story2CategoryIcon,
-                story2Title,
-                story2Description,
-                story2Date,
-                story2ReadTime,
-            ),
-            createStory(
-                story3Image,
-                story3Category,
-                story3CategoryIcon,
-                story3Title,
-                story3Description,
-                story3Date,
-                story3ReadTime,
-            ),
-        ],
-        [
-            story1Image,
-            story1Category,
-            story1CategoryIcon,
-            story1Title,
-            story1Description,
-            story1Date,
-            story1ReadTime,
-            story2Image,
-            story2Category,
-            story2CategoryIcon,
-            story2Title,
-            story2Description,
-            story2Date,
-            story2ReadTime,
-            story3Image,
-            story3Category,
-            story3CategoryIcon,
-            story3Title,
-            story3Description,
-            story3Date,
-            story3ReadTime,
-        ],
-    );
-    const COMMUNITIES: CommunityItem[] = [
-        { icon: community1Icon, title: community1Title, description: community1Description },
-        {
-            icon: community2Icon,
-            title: community2Title,
-            description: community2Description,
-            featured: true,
-        },
-        { icon: community3Icon, title: community3Title, description: community3Description },
-    ];
+    const handleCategoryChange = (categoryId: string, type: 'all' | 'blog' | 'wiki') => {
+        setActiveCategory(categoryId);
+        setActiveCategoryType(type);
+        setActiveTagId(null);
+        setCurrentPage(1);
+    };
 
+    const handleTagSearch = (tag: BlogTagItem) => {
+        setActiveTagId(tag.id);
+        setSearch('');
+        setActiveCategory('all');
+        setActiveCategoryType('all');
+        setCurrentPage(1);
+    };
     return (
         <>
             <div className={styles.main}>
@@ -1283,8 +678,6 @@ export function BlogPage01(props: Blog01Props) {
 
                     <div className={styles.trekkerShell}>
                         <div className={styles.trekkerGrid}>
-                            {/* LEFT */}
-
                             <div className={styles.trekkerIntro}>
                                 <span className={styles.trekkerBadge}>
                                     <i className="bi bi-people-fill" />
@@ -1300,18 +693,20 @@ export function BlogPage01(props: Blog01Props) {
 
                                 <article className={styles.trekkerReview}>
                                     <div className={styles.trekkerReviewer}>
-                                        <div className={styles.trekkerAvatar}>
-                                            <Image
-                                                src={reviewerAvatar}
-                                                alt={t(reviewerName)}
-                                                width={72}
-                                                height={72}
-                                            />
-                                        </div>
+                                        <div className={styles.trekkerHeader}>
+                                            <div className={styles.trekkerAvatar}>
+                                                <Image
+                                                    src={reviewerAvatar}
+                                                    alt={t(reviewerName)}
+                                                    width={72}
+                                                    height={72}
+                                                />
+                                            </div>
 
-                                        <div className={styles.trekkerIdentity}>
-                                            <h4>{t(reviewerName)}</h4>
-                                            <span>{t(reviewerRole)}</span>
+                                            <div className={styles.trekkerIdentity}>
+                                                <h4>{t(reviewerName)}</h4>
+                                                <span>{t(reviewerRole)}</span>
+                                            </div>
                                         </div>
 
                                         <div className={styles.trekkerStar}>
@@ -1333,26 +728,27 @@ export function BlogPage01(props: Blog01Props) {
 
                                         <p>{t(reviewerQuote)}</p>
                                     </blockquote>
-
-                                    <div className={styles.gridStatus}>
-                                        {COMMUNITIES.map((item, index) => (
-                                            <article
-                                                key={index}
-                                                className={`${styles.card} ${
-                                                    item.featured ? styles.featured : ''
-                                                }`}
-                                            >
+                                </article>
+                                <div className={styles.gridStatus}>
+                                    {communities.map((item, index) => (
+                                        <article
+                                            key={index}
+                                            className={`${styles.card} ${
+                                                item.featured ? styles.featured : ''
+                                            }`}
+                                        >
+                                            <div className={styles.cardFeatured}>
                                                 <div className={styles.icon}>
                                                     <i className={`bi ${item.icon}`} />
                                                 </div>
 
                                                 <h3>{t(item.title)}</h3>
+                                            </div>
 
-                                                <p>{t(item.description)}</p>
-                                            </article>
-                                        ))}
-                                    </div>
-                                </article>
+                                            <p>{t(item.description)}</p>
+                                        </article>
+                                    ))}
+                                </div>
                             </div>
 
                             <div className={styles.trekkerVisual}>
@@ -1417,310 +813,323 @@ export function BlogPage01(props: Blog01Props) {
                                         </div>
                                     </div>
                                 </article>
-                                <section className={styles.offer}>
-                                    <div className={styles.glow} />
-                                    <div className={styles.glowBlue} />
-
-                                    <div className={styles.content}>
-                                        <div className={styles.badge}>
-                                            <i className="bi bi-lightning-charge-fill" />
-                                            <span>Ưu đãi có hạn</span>
-                                        </div>
-
-                                        <h2 className={styles.title}>
-                                            <span>5 tài khoản đầu tiên</span>
-                                            <strong>Sử dụng miễn phí!</strong>
-                                        </h2>
-
-                                        <p className={styles.description}>
-                                            Trải nghiệm toàn bộ tính năng KBuilder hoàn toàn miễn
-                                            phí cho 5 tài khoản đăng ký mới đầu tiên.
-                                        </p>
-
-                                        <div className={styles.bottom}>
-                                            <button type="button" className={styles.button}>
-                                                <span>Đăng ký ngay</span>
-                                                <i className="bi bi-arrow-up-right" />
-                                            </button>
-
-                                            <div className={styles.urgency}>
-                                                <i className="bi bi-clock" />
-                                                <span>Chỉ còn 5 suất</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.visual}>
-                                        <div className={styles.confettiOne} />
-                                        <div className={styles.confettiTwo} />
-                                        <div className={styles.confettiThree} />
-
-                                        <div className={styles.limitBadge}>
-                                            <span>Chỉ</span>
-                                            <strong>5</strong>
-                                            <small>suất</small>
-                                        </div>
-
-                                        <div className={styles.gift}>
-                                            <div className={styles.giftBody}>
-                                                <div className={styles.ribbonVertical} />
-                                                <div className={styles.ribbonHorizontal} />
-                                            </div>
-
-                                            <div className={styles.giftLid}>
-                                                <div className={styles.lidRibbon} />
-                                            </div>
-
-                                            <div className={styles.bow}>
-                                                <span className={styles.bowLeft} />
-                                                <span className={styles.bowRight} />
-                                                <span className={styles.bowCenter} />
-                                            </div>
-
-                                            <div className={styles.freeTag}>FREE</div>
-                                        </div>
-                                    </div>
-                                </section>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <section className={styles.storySphere}>
-                    <div className={styles.storyGlowLeft} />
-                    <div className={styles.storyGlowRight} />
-
-                    <div className={styles.storyShell}>
-                        <div className={styles.teamHero}>
-                            <div className={styles.teamHeroGlow} />
-
-                            <div className={styles.teamHeroLeft}>
-                                <div className={styles.teamHeroIcon}>
-                                    <i className="bi bi-stars" />
-                                </div>
-
-                                <div className={styles.teamHeroContent}>
-                                    <h2>
-                                        {t(storyTitle)}
-                                        <span>{t(storyTitleAccent)}</span>
-                                    </h2>
-
-                                    <p>{t(storyDescription)}</p>
-                                </div>
-                            </div>
-
-                            <div className={styles.teamHeroBadge}>
-                                {t(storyActionText)}
-                                <i className="bi bi-arrow-right" />
-                            </div>
-                        </div>
-
-                        <div className={styles.storyShowcase}>
-                            <article className={styles.storyFeatureCard}>
-                                <div className={styles.storyMedia}>
-                                    <Image
-                                        src={featuredImage}
-                                        alt={t(featuredTitle)}
-                                        fill
-                                        priority
-                                        sizes="(max-width:768px)100vw,(max-width:1200px)60vw,50vw"
-                                        className={styles.heroImage}
-                                    />
-
-                                    <span className={styles.storyFeatureBadge}>
-                                        {t(featuredBadge)}
-                                    </span>
-
-                                    <button className={styles.storyBookmark}>
-                                        <i className="bi bi-bookmark" />
-                                    </button>
-                                </div>
-
-                                <div className={styles.storyBody}>
-                                    <span className={styles.storyCategory}>
-                                        <i className={`bi ${featuredCategoryIcon}`} />
-                                        {t(featuredCategory)}
-                                    </span>
-
-                                    <h3 className={styles.storyHeading}>{t(featuredTitle)}</h3>
-
-                                    <div className={styles.storyMeta}>
-                                        <div className={styles.storyMetaItem}>
-                                            <i className="bi bi-calendar3" />
-                                            {t(featuredDate)}
-                                        </div>
-
-                                        <span className={styles.storyDot} />
-
-                                        <div className={styles.storyMetaItem}>
-                                            <i className="bi bi-clock" />
-                                            {t(featuredReadTime)}
-                                        </div>
-                                    </div>
-
-                                    <p className={styles.storyExcerpt}>{t(featuredDescription)}</p>
-
-                                    <a href="#" className={styles.storyReadMore}>
-                                        {t(featuredButton)}
-                                        <i className="bi bi-arrow-right" />
-                                    </a>
-                                </div>
-                            </article>
-
-                            <div className={styles.storySideList}>
-                                {STORIES.map((story, index) => (
-                                    <article key={index} className={styles.storyMiniCard}>
-                                        <div className={styles.storyMiniThumb}>
-                                            <Image
-                                                src={story.image}
-                                                alt={t(story.title)}
-                                                fill
-                                                sizes="(max-width:768px)100vw,220px"
-                                                className={styles.storyMiniImage}
-                                            />
-                                        </div>
-
-                                        <div className={styles.storyMiniContent}>
-                                            <span className={styles.storyMiniCategory}>
-                                                <i className={`bi ${story.categoryIcon}`} />
-                                                {t(story.category)}
-                                            </span>
-
-                                            <h4 className={styles.storyMiniTitle}>
-                                                {t(story.title)}
-                                            </h4>
-
-                                            <p className={styles.storyMiniDescription}>
-                                                {t(story.description)}
-                                            </p>
-
-                                            <div className={styles.storyMiniMeta}>
-                                                <div className={styles.storyMiniMetaItem}>
-                                                    <i className="bi bi-calendar3" />
-                                                    {t(story.date)}
-                                                </div>
-
-                                                <span className={styles.storyMiniDot} />
-
-                                                <div className={styles.storyMiniMetaItem}>
-                                                    <i className="bi bi-clock" />
-                                                    {t(story.readTime)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </article>
-                                ))}
-                            </div>
-
-                            <div className={styles.storyPager}>
-                                <span
-                                    className={`${styles.storyPagerItem} ${styles.storyPagerActive}`}
-                                />
-                                <span className={styles.storyPagerItem} />
-                                <span className={styles.storyPagerItem} />
-                                <span className={styles.storyPagerItem} />
-                                <span className={styles.storyPagerItem} />
                             </div>
                         </div>
                     </div>
                 </section>
                 <section className={styles.blogSection}>
                     <div className={styles.blogContainer}>
-                        {/* Header */}
-
-                        <div className={styles.teamHero}>
-                            <div className={styles.teamHeroGlow} />
-
-                            <div className={styles.teamHeroLeft}>
-                                <div className={styles.teamHeroIcon}>
-                                    <i className="bi bi-stars" />
-                                </div>
-
-                                <div className={styles.teamHeroContent}>
-                                    <h2>
-                                        {t(blogSectionTitle)}
-                                        <span>{t(blogSectionTitleAccent)}</span>
-                                    </h2>
-
-                                    <p>{t(blogSectionDescription)}</p>
-                                </div>
-                            </div>
-
-                            <div className={styles.teamHeroBadge}>
-                                {t(blogActionButton)} <i className="bi bi-arrow-right" />
-                            </div>
-                        </div>
-
-                        {/* Blog List */}
-
                         <div className={styles.blogGrid}>
-                            {BLOGS.map((blog) => (
+                            {blogs.map((blog) => (
                                 <article key={blog.id} className={styles.blogCard}>
-                                    {/* Cover */}
-
                                     <div className={styles.blogCover}>
                                         <Image
                                             src={blog.image}
-                                            alt={t(blog.title)}
+                                            alt={blog.title}
                                             fill
-                                            sizes="100vw, (min-width:768px) 50vw, (min-width:1200px) 33vw"
+                                            sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw"
                                             className={styles.blogCoverImage}
                                         />
 
-                                        <button className={styles.blogBookmark}>
+                                        <button
+                                            type="button"
+                                            className={styles.blogBookmark}
+                                            aria-label={t(bookmarkAriaLabel)}
+                                        >
                                             <i className="bi bi-bookmark" />
                                         </button>
                                     </div>
-
-                                    {/* Content */}
-
                                     <div className={styles.blogContent}>
                                         <div className={styles.blogMeta}>
                                             <span className={styles.blogCategory}>
-                                                {t(blog.category)}
+                                                {blog.category}
                                             </span>
 
                                             <span className={styles.blogDate}>
                                                 <i className="bi bi-calendar3" />
-                                                {t(blog.date)}
+                                                {blog.date}
                                             </span>
                                         </div>
 
-                                        <h3 className={styles.blogCardTitle}>{t(blog.title)}</h3>
+                                        <h3 className={styles.blogCardTitle}>{blog.title}</h3>
 
-                                        <p className={styles.blogExcerpt}>{t(blog.description)}</p>
+                                        <p className={styles.blogExcerpt}>{blog.description}</p>
 
                                         <div className={styles.blogCardFooter}>
                                             <div className={styles.blogAuthor}>
                                                 <Image
                                                     src={blog.avatar}
-                                                    alt={t(blog.author)}
+                                                    alt={blog.author}
                                                     width={48}
                                                     height={48}
                                                 />
 
                                                 <div className={styles.blogAuthorInfo}>
-                                                    <strong>{t(blog.author)}</strong>
+                                                    <strong>{blog.author}</strong>
 
-                                                    <span>{t(blog.role)}</span>
+                                                    <span>{blog.role}</span>
                                                 </div>
                                             </div>
 
-                                            <button className={styles.blogArrowButton}>
+                                            <button
+                                                type="button"
+                                                className={styles.blogArrowButton}
+                                                aria-label={t(readArticleAriaLabel)}
+                                                onClick={() => router.push(`/blog/${blog.id}`)}
+                                            >
                                                 <i className="bi bi-arrow-right" />
                                             </button>
                                         </div>
                                     </div>
                                 </article>
                             ))}
+                            {totalPages > 1 && (
+                                <nav
+                                    className={styles.pagination}
+                                    aria-label={t(paginationAriaLabel)}
+                                >
+                                    <button
+                                        type="button"
+                                        className={styles.paginationButton}
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        aria-label={t(previousPageAriaLabel)}
+                                    >
+                                        <i className="bi bi-chevron-left" />
+                                    </button>
+                                    <div className={styles.paginationPages}>
+                                        {Array.from(
+                                            { length: totalPages },
+                                            (_, index) => index + 1,
+                                        ).map((page) => (
+                                            <button
+                                                key={page}
+                                                type="button"
+                                                className={`${styles.paginationButton} ${
+                                                    currentPage === page
+                                                        ? styles.paginationActive
+                                                        : ''
+                                                }`}
+                                                onClick={() => handlePageChange(page)}
+                                                aria-current={
+                                                    currentPage === page ? 'page' : undefined
+                                                }
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className={styles.paginationButton}
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        aria-label={t(nextPageAriaLabel)}
+                                    >
+                                        <i className="bi bi-chevron-right" />
+                                    </button>
+                                </nav>
+                            )}
                         </div>
 
-                        {/* Pagination */}
+                        <div className={styles.blogSearch}>
+                            <aside className={styles.sidebar}>
+                                <section className={styles.section}>
+                                    <div className={styles.sectionHeader}>
+                                        <h3 className={styles.sectionTitle}>{t(searchTitle)}</h3>
 
-                        <div className={styles.blogPagination}>
-                            <span className={styles.blogPaginationActive} />
-                            <span />
-                            <span />
-                            <span />
+                                        <kbd className={styles.shortcut}>Ctrl K</kbd>
+                                    </div>
+
+                                    <div className={styles.searchBox}>
+                                        <i className={`bi bi-search ${styles.searchIcon}`} />
+
+                                        <input
+                                            type="text"
+                                            value={search}
+                                            onChange={(event) => {
+                                                setSearch(event.target.value);
+                                                setActiveTagId(null);
+                                                setCurrentPage(1);
+                                            }}
+                                            placeholder={t(searchPlaceholder)}
+                                            aria-label={t(searchAriaLabel)}
+                                        />
+
+                                        {search && (
+                                            <button
+                                                type="button"
+                                                className={styles.clearButton}
+                                                onClick={() => {
+                                                    setSearch('');
+                                                    setActiveTagId(null);
+                                                    setCurrentPage(1);
+                                                }}
+                                                aria-label={t(clearSearchAriaLabel)}
+                                            >
+                                                <i className="bi bi-x-lg" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </section>
+                                <section className={styles.section}>
+                                    <div className={styles.sectionHeader}>
+                                        <h3 className={styles.sectionTitle}>
+                                            {t(blogCategoryTitle)}
+                                        </h3>
+
+                                        <button
+                                            type="button"
+                                            className={styles.headerIconButton}
+                                            aria-label={t(blogCategoryAriaLabel)}
+                                        >
+                                            <i className="bi bi-grid" />
+                                        </button>
+                                    </div>
+
+                                    <div className={styles.categoryList}>
+                                        {categories.map((category) => {
+                                            const isActive =
+                                                category.id === 'all'
+                                                    ? activeCategoryType === 'all'
+                                                    : activeCategoryType === 'blog' &&
+                                                      activeCategory === category.id;
+
+                                            return (
+                                                <button
+                                                    key={category.id}
+                                                    type="button"
+                                                    className={`${styles.categoryItem} ${
+                                                        isActive ? styles.categoryActive : ''
+                                                    }`}
+                                                    onClick={() =>
+                                                        handleCategoryChange(category.id, 'blog')
+                                                    }
+                                                >
+                                                    <span className={styles.categoryContent}>
+                                                        {category.id === 'all' ? (
+                                                            <span className={styles.homeIcon}>
+                                                                <i
+                                                                    className={`bi ${category.icon}`}
+                                                                />
+                                                            </span>
+                                                        ) : (
+                                                            <span
+                                                                className={`${styles.statusDot} ${
+                                                                    styles[`dot-${category.color}`]
+                                                                }`}
+                                                            />
+                                                        )}
+
+                                                        <span>{category.label}</span>
+                                                    </span>
+
+                                                    <span
+                                                        className={`${styles.countBadge} ${
+                                                            isActive ? styles.countActive : ''
+                                                        }`}
+                                                    >
+                                                        {category.count}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                                <section className={`${styles.section} ${styles.filterSection}`}>
+                                    <div className={styles.sectionHeader}>
+                                        <h3 className={styles.sectionTitle}>
+                                            {t(wikiCategoryTitle)}
+                                        </h3>
+                                        <button
+                                            type="button"
+                                            className={styles.headerIconButton}
+                                            aria-label={t(wikiCategoryAriaLabel)}
+                                        >
+                                            <i className="bi bi-journal-text" />
+                                        </button>
+                                    </div>
+                                    <div className={styles.filterList}>
+                                        {wikiCategoryItems.map((category) => (
+                                            <button
+                                                type="button"
+                                                className={`${styles.filterItem} ${activeCategoryType === 'wiki' && activeCategory === category.id ? styles.categoryActive : ''}`}
+                                                key={category.id}
+                                                onClick={() =>
+                                                    handleCategoryChange(category.id, 'wiki')
+                                                }
+                                            >
+                                                <span className={styles.filterLeft}>
+                                                    <i className={`bi ${category.icon}`} />
+                                                    <span>{category.label}</span>
+                                                </span>
+                                                <span className={styles.tagCount}>
+                                                    {category.count}
+                                                </span>
+                                            </button>
+                                        ))}
+                                        {wikiCategoryItems.length === 0 && (
+                                            <div className={styles.emptyState}>
+                                                <i className="bi bi-journal-x" />
+                                                <span>{t(noCategoryText)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+                                <section className={styles.section}>
+                                    <div className={styles.sectionHeader}>
+                                        <h3 className={styles.sectionTitle}>{t(blogTagTitle)}</h3>
+
+                                        <button
+                                            type="button"
+                                            className={styles.moreButton}
+                                            aria-label={t(blogTagMoreAriaLabel)}
+                                        >
+                                            <i className="bi bi-three-dots" />
+                                        </button>
+                                    </div>
+
+                                    <div className={styles.tagList}>
+                                        {filteredTags.map((tag) => (
+                                            <button
+                                                key={tag.id}
+                                                type="button"
+                                                className={`${styles.tagRow} ${styles[`tag-${tag.color}`]}`}
+                                                onClick={() => handleTagSearch(tag)}
+                                            >
+                                                <span className={styles.jobTag}>{tag.name}</span>
+                                                <span className={styles.tagCount}>{tag.count}</span>
+                                            </button>
+                                        ))}
+
+                                        {filteredTags.length === 0 && (
+                                            <div className={styles.emptyState}>
+                                                <i className="bi bi-search" />
+                                                <span>{t(noBlogTagsText)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+                                <section className={styles.supportCard}>
+                                    <div className={styles.supportGlow} />
+
+                                    <div className={styles.supportIcon}>
+                                        <i className="bi bi-headset" />
+                                    </div>
+
+                                    <div className={styles.supportContent}>
+                                        <h4>{t(supportTitle)}</h4>
+
+                                        <p>{t(supportDescription)}</p>
+
+                                        <button type="button" className={styles.supportButton}>
+                                            <span>{t(supportButton)}</span>
+
+                                            <i className="bi bi-arrow-right" />
+                                        </button>
+                                    </div>
+                                </section>
+                            </aside>
                         </div>
                     </div>
                 </section>
@@ -1730,112 +1139,23 @@ export function BlogPage01(props: Blog01Props) {
 }
 
 function createTextField(key: keyof Blog01Props, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'localized-text',
-    };
+    return { key, label, kind: 'localized-text' };
 }
 
 function createTextareaField(key: keyof Blog01Props, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'localized-text',
-    };
+    return { key, label, kind: 'localized-text' };
 }
 
 function createImageField(key: keyof Blog01Props, label: string): InspectorField {
-    return {
-        key,
-        label,
-        kind: 'image',
-        folder: 'blogs',
-        accept: 'image/*',
-    };
-}
-function createFeatureInspector(count: number): RegItem['inspector'] {
-    return Array.from({ length: count }, (_, index) => {
-        const no = index + 1;
-
-        return [
-            createTextField(`feature${no}Icon` as keyof Blog01Props, `Feature ${no} Icon`),
-            createTextField(`feature${no}Title` as keyof Blog01Props, `Feature ${no} Title`),
-            createTextareaField(
-                `feature${no}Description` as keyof Blog01Props,
-                `Feature ${no} Description`,
-            ),
-        ];
-    }).flat() as RegItem['inspector'];
+    return { key, label, kind: 'image', folder: 'media', accept: 'image/*' };
 }
 
-function createBlogInspector(count: number): RegItem['inspector'] {
-    const inspector: RegItem['inspector'] = [];
-    for (let i = 1; i <= count; i++) {
-        inspector.push(
-            {
-                key: `blog${i}Id`,
-                label: `Blog ${i} ID`,
-                kind: 'number',
-            },
-            createImageField(`blog${i}Image` as keyof Blog01Props, `Blog ${i} Image`),
-            createTextField(`blog${i}category` as keyof Blog01Props, `Blog ${i} Category`),
-            createTextField(`blog${i}Date` as keyof Blog01Props, `Blog ${i} Date`),
-            createTextField(`blog${i}Title` as keyof Blog01Props, `Blog ${i} Title`),
-            createTextareaField(
-                `blog${i}Description` as keyof Blog01Props,
-                `Blog ${i} Description`,
-            ),
-            createTextField(`blog${i}Author` as keyof Blog01Props, `Blog ${i} Author`),
-            createTextField(`blog${i}Role` as keyof Blog01Props, `Blog ${i} Role`),
-            createImageField(`blog${i}Avatar` as keyof Blog01Props, `Blog ${i} Avatar`),
-        );
-    }
-
-    return inspector;
+function createCheckField(key: keyof Blog01Props, label: string): InspectorField {
+    return { key, label, kind: 'check' };
 }
 
-function createStoryInspector(count: number): RegItem['inspector'] {
-    const inspector: RegItem['inspector'] = [
-        createTextField('storyTitle', 'Story Title'),
-        createTextField('storyTitleAccent', 'Story Title Accent'),
-        createTextareaField('storyDescription', 'Story Description'),
-        createTextField('storyActionText', 'Action Button'),
-        createTextField('storyActionLink', 'Action Link'),
-        createImageField('featuredImage', 'Featured Image'),
-        createTextField('featuredBadge', 'Featured Badge'),
-        createTextField('featuredCategory', 'Featured Category'),
-        createTextField('featuredCategoryIcon', 'Featured Category Icon'),
-        createTextField('featuredTitle', 'Featured Title'),
-        createTextField('featuredDate', 'Featured Date'),
-        createTextField('featuredReadTime', 'Featured Read Time'),
-        createTextareaField('featuredDescription', 'Featured Description'),
-        createTextField('featuredButton', 'Featured Button'),
-    ];
-
-    for (let i = 1; i <= count; i++) {
-        inspector.push(
-            createImageField(`story${i}Image` as keyof Blog01Props, `Story ${i} Image`),
-            createTextField(`story${i}Category` as keyof Blog01Props, `Story ${i} Category`),
-            createTextField(
-                `story${i}CategoryIcon` as keyof Blog01Props,
-                `Story ${i} Category Icon`,
-            ),
-            createTextField(`story${i}Title` as keyof Blog01Props, `Story ${i} Title`),
-            createTextareaField(
-                `story${i}Description` as keyof Blog01Props,
-                `Story ${i} Description`,
-            ),
-            createTextField(`story${i}Date` as keyof Blog01Props, `Story ${i} Date`),
-            createTextField(`story${i}ReadTime` as keyof Blog01Props, `Story ${i} Read Time`),
-        );
-    }
-
-    return inspector;
-}
-
-function createCommunityInspector(count: number): RegItem['inspector'] {
-    const inspector: RegItem['inspector'] = [
+function createInspector(): RegItem['inspector'] {
+    return [
         createTextField('trekkerBadge', 'Community Badge'),
         createTextField('trekkerTitle', 'Community Title'),
         createTextField('trekkerTitleAccent', 'Community Title Accent'),
@@ -1845,59 +1165,49 @@ function createCommunityInspector(count: number): RegItem['inspector'] {
         createTextField('reviewerRole', 'Reviewer Role'),
         createTextField('reviewerVerified', 'Reviewer Verified'),
         createTextareaField('reviewerQuote', 'Reviewer Quote'),
-        createTextField('reviewButton', 'Review Button'),
-    ];
-
-    for (let i = 1; i <= count; i++) {
-        inspector.push(
-            createTextField(`community${i}Icon` as keyof Blog01Props, `Community ${i} Icon`),
-            createTextField(`community${i}Title` as keyof Blog01Props, `Community ${i} Title`),
-            createTextareaField(
-                `community${i}Description` as keyof Blog01Props,
-                `Community ${i} Description`,
-            ),
-        );
-
-        if (i === 2) {
-            inspector.push({
-                key: 'community2Featured',
-                label: 'Community 2 Featured',
-                kind: 'check',
-            });
-        }
-    }
-    return inspector;
-}
-
-function createInspector(): RegItem['inspector'] {
-    return [
-        createTextField('breadcrumbHome', 'Breadcrumb Home'),
-        createTextField('breadcrumbCurrent', 'Breadcrumb Current'),
-        createTextField('heroBadge', 'Hero Badge'),
-        createTextField('heroTitle', 'Hero Title'),
-        createTextField('heroTitleAccent', 'Hero Title Accent'),
-        createTextareaField('heroDescription', 'Hero Description'),
-        createTextField('heroPrimaryButton', 'Primary Button'),
-        createTextField('heroSecondaryButton', 'Secondary Button'),
-        createTextField('heroReviewText', 'Hero Review Text'),
-        createTextField('heroRating', 'Hero Rating'),
-        createImageField('heroImage', 'Hero Image'),
-        ...createFeatureInspector(4),
-        createTextField('blogSectionTitle', 'Blog Section Title'),
-        createTextField('blogSectionTitleAccent', 'Blog Section Title Accent'),
-        createTextareaField('blogSectionDescription', 'Blog Section Description'),
-        createTextField('blogActionButton', 'Blog Action Button'),
-        ...createBlogInspector(4),
-        ...createStoryInspector(3),
-        ...createCommunityInspector(3),
-        createImageField('travelHeroImage', 'Travel Hero Image'),
-        createTextField('travelHeroTitle', 'Travel Hero Title'),
-        createTextField('travelHeroStories', 'Travel Hero Stories'),
-        createTextField('travelHeroLocation', 'Travel Hero Location'),
+        createTextField('community1Icon', 'Community 1 Icon'),
+        createTextField('community1Title', 'Community 1 Title'),
+        createTextareaField('community1Description', 'Community 1 Description'),
+        createTextField('community2Icon', 'Community 2 Icon'),
+        createTextField('community2Title', 'Community 2 Title'),
+        createTextareaField('community2Description', 'Community 2 Description'),
+        createCheckField('community2Featured', 'Community 2 Featured'),
+        createTextField('community3Icon', 'Community 3 Icon'),
+        createTextField('community3Title', 'Community 3 Title'),
+        createTextareaField('community3Description', 'Community 3 Description'),
         createImageField('travelVideoImage', 'Travel Video Image'),
+        createTextField('travelVideoDuration', 'Travel Video Duration'),
+        createTextField('travelVideoBadge', 'Travel Video Badge'),
         createTextField('travelVideoTitle', 'Travel Video Title'),
         createTextareaField('travelVideoDescription', 'Travel Video Description'),
+        createTextField('travelViews', 'Travel Views'),
+        createTextField('travelViewsLabel', 'Travel Views Label'),
+        createTextField('travelRating', 'Travel Rating'),
+        createTextField('travelRatingLabel', 'Travel Rating Label'),
+        createTextField('travelComments', 'Travel Comments'),
+        createTextField('travelCommentsLabel', 'Travel Comments Label'),
         createTextField('travelButton', 'Travel Button'),
+        createTextField('searchTitle', 'Search Title'),
+        createTextField('searchPlaceholder', 'Search Placeholder'),
+        createTextField('searchAriaLabel', 'Search Aria Label'),
+        createTextField('clearSearchAriaLabel', 'Clear Search Aria Label'),
+        createTextField('blogCategoryTitle', 'Blog Category Title'),
+        createTextField('blogCategoryAriaLabel', 'Blog Category Aria Label'),
+        createTextField('wikiCategoryTitle', 'Wiki Category Title'),
+        createTextField('wikiCategoryAriaLabel', 'Wiki Category Aria Label'),
+        createTextField('blogTagTitle', 'Blog Tag Title'),
+        createTextField('blogTagMoreAriaLabel', 'Blog Tag More Aria Label'),
+        createTextField('noBlogTagsText', 'No Blog Tags Text'),
+        createTextField('noCategoryText', 'No Category Text'),
+        createTextField('allCategoriesText', 'All Categories Text'),
+        createTextField('bookmarkAriaLabel', 'Bookmark Aria Label'),
+        createTextField('readArticleAriaLabel', 'Read Article Aria Label'),
+        createTextField('previousPageAriaLabel', 'Previous Page Aria Label'),
+        createTextField('nextPageAriaLabel', 'Next Page Aria Label'),
+        createTextField('paginationAriaLabel', 'Pagination Aria Label'),
+        createTextField('supportTitle', 'Support Title'),
+        createTextareaField('supportDescription', 'Support Description'),
+        createTextField('supportButton', 'Support Button'),
     ];
 }
 
@@ -1906,6 +1216,7 @@ export const BLOG_PAGE_01: RegItem = {
     label: 'Blog Page 01',
     defaults: DEFAULT_PROPS as Record<string, unknown>,
     inspector: createInspector(),
-    render: (props) => <BlogPage01 {...(props as unknown as Blog01Props)} />,
+    render: (props) => <BlogPage01 {...(props as Blog01Props)} />,
 };
+
 export default BlogPage01;

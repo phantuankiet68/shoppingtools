@@ -171,6 +171,12 @@ model Site {
   portfolios Portfolio[]
   projectFeatures ProjectFeature[]
   testimonials Testimonial[]
+  teamMembers TeamMember[]
+
+  blogCategories BlogCategory[]
+  wikiCategories WikiCategory[]
+  blogPosts      BlogPost[]
+  blogTags       BlogTag[]
 
   @@index([ownerUserId])
   @@index([workspaceId])

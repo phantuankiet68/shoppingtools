@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
 import { getLocalizedValue, type LocalizedText } from '@/lib/ui-builder/localization';
 
 import styles from '@/components/admin/shared/templates/services/about/styles/about-01.module.css';
 
 type ValueColor = 'purple' | 'blue' | 'orange' | 'pink';
-type TeamColor = ValueColor | 'green';
 
 type FeatureItem = {
     icon: string;
@@ -52,13 +52,65 @@ type CoreValue = {
     color: ValueColor;
 };
 
-type TeamMember = {
-    name: LocalizedText;
-    role: LocalizedText;
-    description: LocalizedText;
-    image: string;
-    color: TeamColor;
-    icon: string;
+type SupportedLocale = 'en' | 'vi' | 'ja';
+type TeamMemberColor = 'blue' | 'pink' | 'green' | 'orange';
+
+interface TeamMemberApiItem {
+    id: string;
+    siteId: string;
+    imageUrl: string | null;
+    icon: string | null;
+    experience: string | null;
+    color: TeamMemberColor;
+    linkedinUrl: string | null;
+    twitterUrl: string | null;
+    email: string | null;
+    sortOrder: number;
+    isActive: boolean;
+    name: string;
+    role: string;
+    department: string;
+    description: string;
+    locale: SupportedLocale | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface TeamMemberApiResponse {
+    success: boolean;
+    message?: string;
+    teamMembers: TeamMemberApiItem[];
+    total: number;
+}
+
+function normalizeLocale(value: string | null | undefined): SupportedLocale {
+    return value === 'vi' || value === 'ja' ? value : 'en';
+}
+
+function getTeamColorClass(color: TeamMemberColor): string {
+    return color in { blue: true, pink: true, green: true, orange: true } ? color : 'blue';
+}
+
+const SAMPLE_TEAM_MEMBER: TeamMemberApiItem = {
+    id: 'sample-team-member',
+    siteId: '',
+    imageUrl: '/assets/images/avatar-1.png',
+    icon: 'bi-code-slash',
+    experience: '5+',
+    color: 'blue',
+    linkedinUrl: null,
+    twitterUrl: null,
+    email: null,
+    sortOrder: 0,
+    isActive: true,
+    name: 'Alex Morgan',
+    role: 'Senior Developer',
+    department: 'Engineering',
+    description:
+        'Building scalable digital experiences with modern technologies and thoughtful design.',
+    locale: 'en',
+    createdAt: '',
+    updatedAt: '',
 };
 
 export interface About01Props {
@@ -111,7 +163,6 @@ export interface About01Props {
     teamTitle?: LocalizedText;
     teamTitleAccent?: LocalizedText;
     teamDescription?: LocalizedText;
-    team?: TeamMember[];
     ctaBadge?: LocalizedText;
     ctaTitle?: LocalizedText;
     ctaTitleAccent?: LocalizedText;
@@ -121,6 +172,7 @@ export interface About01Props {
     ctaImage?: string;
     pageTitle?: LocalizedText;
     pageDescription?: LocalizedText;
+    siteId?: string;
 }
 
 const DEFAULT_PROPS: About01Props = {
@@ -1441,125 +1493,6 @@ const DEFAULT_PROPS: About01Props = {
         },
     },
 
-    team: [
-        {
-            name: {
-                sourceLocale: 'en',
-                default: 'Alex Johnson',
-                translations: {
-                    vi: 'Alex Johnson',
-                    ja: 'Alex Johnson',
-                },
-            },
-            role: {
-                sourceLocale: 'en',
-                default: 'Founder & CEO',
-                translations: {
-                    vi: 'Nhà sáng lập & CEO',
-                    ja: 'CEO',
-                },
-            },
-            description: {
-                sourceLocale: 'en',
-                default: 'Leading the vision and strategy behind Kbuilder.',
-                translations: {
-                    vi: 'Định hướng chiến lược và phát triển Kbuilder.',
-                    ja: 'Kbuilderのビジョンを牽引します。',
-                },
-            },
-            image: '/assets/images/avatar-1.png',
-            color: 'purple',
-            icon: 'bi bi-stars',
-        },
-        {
-            name: {
-                sourceLocale: 'en',
-                default: 'Sophia Williams',
-                translations: {
-                    vi: 'Sophia Williams',
-                    ja: 'Sophia Williams',
-                },
-            },
-            role: {
-                sourceLocale: 'en',
-                default: 'UI/UX Designer',
-                translations: {
-                    vi: 'Thiết kế UI/UX',
-                    ja: 'UI/UXデザイナー',
-                },
-            },
-            description: {
-                sourceLocale: 'en',
-                default: 'Creating intuitive and delightful user experiences.',
-                translations: {
-                    vi: 'Thiết kế trải nghiệm người dùng hiện đại và trực quan.',
-                    ja: '直感的なUI/UXを設計。',
-                },
-            },
-            image: '/assets/images/avatar-2.png',
-            color: 'blue',
-            icon: 'bi bi-palette-fill',
-        },
-        {
-            name: {
-                sourceLocale: 'en',
-                default: 'Daniel Brown',
-                translations: {
-                    vi: 'Daniel Brown',
-                    ja: 'Daniel Brown',
-                },
-            },
-            role: {
-                sourceLocale: 'en',
-                default: 'Lead Engineer',
-                translations: {
-                    vi: 'Trưởng nhóm kỹ thuật',
-                    ja: 'リードエンジニア',
-                },
-            },
-            description: {
-                sourceLocale: 'en',
-                default: 'Building scalable systems and platform architecture.',
-                translations: {
-                    vi: 'Xây dựng kiến trúc hệ thống mạnh mẽ và dễ mở rộng.',
-                    ja: 'スケーラブルなシステムを開発。',
-                },
-            },
-            image: '/assets/images/avatar-3.png',
-            color: 'green',
-            icon: 'bi bi-cpu-fill',
-        },
-        {
-            name: {
-                sourceLocale: 'en',
-                default: 'Emily Davis',
-                translations: {
-                    vi: 'Emily Davis',
-                    ja: 'Emily Davis',
-                },
-            },
-            role: {
-                sourceLocale: 'en',
-                default: 'Marketing Manager',
-                translations: {
-                    vi: 'Quản lý Marketing',
-                    ja: 'マーケティング',
-                },
-            },
-            description: {
-                sourceLocale: 'en',
-                default: 'Connecting Kbuilder with creators around the world.',
-                translations: {
-                    vi: 'Kết nối Kbuilder với cộng đồng sáng tạo toàn cầu.',
-                    ja: '世界中のクリエイターとつながります。',
-                },
-            },
-            image: '/assets/images/avatar-4.png',
-            color: 'orange',
-            icon: 'bi bi-megaphone-fill',
-        },
-    ],
-
     /* ==========================================================================
        CTA
     ========================================================================== */
@@ -1652,92 +1585,78 @@ export function About01(props: About01Props) {
     };
 
     const {
-        /* Breadcrumb */
-        breadcrumbHome,
-        breadcrumbCurrent,
-
-        /* Hero */
-        badge,
-        heroTitle,
-        heroTitleAccent,
-        heroDescription,
-
-        primaryButtonLabel,
-        secondaryButtonLabel,
-
-        image,
-
-        performanceScore,
-        performanceLabel,
-
-        /* Mission */
         missionBadge,
         missionTitle,
         missionTitleAccent,
         missionDescription,
-
         missionCenterTitle,
         missionCenterDescription,
-
         missionNodes,
-
-        /* Collections */
-        stats,
-        features,
         values,
-
-        /* Journey */
+        journeys,
         journeyBadge,
         journeyTitle,
         journeyTitleAccent,
         journeyDescription,
-
-        journeys,
-
-        /* Stories */
-        stories,
-        storyFeatures,
-
-        /* Why */
         whyBadge,
         whyTitle,
         whyTitleAccent,
         whyDescription,
-
-        /* Problems / Solutions */
         problems,
         solutions,
-
         builderPreviewImage,
-
-        /* Core Values */
-        coreValues,
-
-        /* Team */
         teamBadge,
         teamTitle,
         teamTitleAccent,
         teamDescription,
-
-        team,
+        siteId,
     } = mergedProps;
 
     /* ==========================================================================
    Locale
 ========================================================================== */
 
-    const [selectedLocale, setSelectedLocale] = useState(() => {
-        if (typeof window === 'undefined') {
-            return 'en';
-        }
+    const [teamData, setTeamData] = useState<TeamMemberApiItem[]>([]);
+    const autoplay = useRef(
+        Autoplay({
+            delay: 5000,
+            stopOnInteraction: false,
+        }),
+    );
 
-        return localStorage.getItem('locale') ?? 'en';
-    });
+    const [emblaRef, emblaApi] = useEmblaCarousel(
+        {
+            loop: true,
+            align: 'start',
+            slidesToScroll: 1,
+        },
+        [autoplay.current],
+    );
+
+    const [selectedTeamSlide, setSelectedTeamSlide] = useState(0);
+
+    useEffect(() => {
+        if (!emblaApi) return;
+
+        const onSelect = () => {
+            setSelectedTeamSlide(emblaApi.selectedScrollSnap());
+        };
+
+        onSelect();
+        emblaApi.on('select', onSelect);
+
+        return () => {
+            emblaApi.off('select', onSelect);
+        };
+    }, [emblaApi]);
+    const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>(() =>
+        normalizeLocale(typeof window === 'undefined' ? 'en' : localStorage.getItem('locale')),
+    );
 
     useEffect(() => {
         const handleLocaleChange = (event: Event) => {
             const customEvent = event as CustomEvent<string>;
-            setSelectedLocale(customEvent.detail);
+            setSelectedLocale(normalizeLocale(customEvent.detail));
         };
 
         window.addEventListener('locale-change', handleLocaleChange as EventListener);
@@ -1751,237 +1670,470 @@ export function About01(props: About01Props) {
 
     const ensureArray = <T,>(value?: T[]): T[] => value ?? [];
 
-    const statsData = ensureArray(stats);
-
-    const featuresData = ensureArray(features);
-
     const valuesData = ensureArray(values);
 
     const missionNodesData = ensureArray(missionNodes);
 
     const journeysData = ensureArray(journeys);
 
-    const storiesData = ensureArray(stories);
-
-    const storyFeaturesData = ensureArray(storyFeatures);
-
     const problemsData = ensureArray(problems);
 
     const solutionsData = ensureArray(solutions);
 
-    const coreValuesData = ensureArray(coreValues);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
 
-    const teamData = ensureArray(team);
+    const togglePlay = async () => {
+        const video = videoRef.current;
 
+        if (!video) return;
+
+        if (video.paused) {
+            await video.play();
+            setIsPlaying(true);
+        } else {
+            video.pause();
+            setIsPlaying(false);
+        }
+    };
+
+    const toggleMute = () => {
+        const video = videoRef.current;
+
+        if (!video) return;
+
+        video.muted = !video.muted;
+        setIsMuted(video.muted);
+    };
+
+    const toggleFullscreen = async () => {
+        const video = videoRef.current;
+
+        if (!video) return;
+
+        if (document.fullscreenElement) {
+            await document.exitFullscreen();
+            return;
+        }
+
+        await video.requestFullscreen();
+    };
+    useEffect(() => {
+        if (!siteId) {
+            setTeamData([SAMPLE_TEAM_MEMBER]);
+            return;
+        }
+
+        const controller = new AbortController();
+
+        const loadTeamMembers = async () => {
+            try {
+                const params = new URLSearchParams({
+                    siteId,
+                    locale: selectedLocale,
+                });
+
+                const response = await fetch(`/api/v1/team-member?${params.toString()}`, {
+                    credentials: 'include',
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Team member API failed: ${response.status}`);
+                }
+
+                const data: TeamMemberApiResponse = await response.json();
+                const members =
+                    data.success && Array.isArray(data.teamMembers) ? data.teamMembers : [];
+
+                setTeamData(members.length ? members : [SAMPLE_TEAM_MEMBER]);
+            } catch (error) {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return;
+                }
+
+                console.error('[ABOUT_01_TEAM]', error);
+                setTeamData([SAMPLE_TEAM_MEMBER]);
+            }
+        };
+
+        void loadTeamMembers();
+
+        return () => controller.abort();
+    }, [siteId, selectedLocale]);
     return (
         <>
             <div className={styles.main}>
                 <section className={styles.hero}>
-                    <div className={styles.background}>
-                        <div className={styles.grid} />
-                        <div className={styles.orbOne} />
-                        <div className={styles.orbTwo} />
-                        <div className={styles.orbThree} />
-                    </div>
+                    <div className={styles.backgroundGlow} />
+                    <div className={styles.gridPattern} />
 
                     <div className={styles.container}>
-                        <div className={styles.heroMain}>
-                            <div className={styles.content}>
-                                <a
-                                    href="/"
-                                    className={styles.badge}
-                                    style={{ '--i': 0 } as React.CSSProperties}
-                                >
-                                    <span className={styles.badgeIcon}>
+                        <div className={styles.showcase}>
+                            {/* Background */}
+                            <div className={`${styles.decor} ${styles.decorLeftTop}`} />
+
+                            <div className={`${styles.decor} ${styles.decorRightTop}`} />
+
+                            <div className={`${styles.decor} ${styles.decorLeftBottom}`} />
+
+                            <div className={`${styles.decor} ${styles.decorRightBottom}`} />
+
+                            {/* Floating tools */}
+                            <div
+                                className={`${styles.toolBubble} ${styles.toolMagic}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-stars" />
+                            </div>
+
+                            <div
+                                className={`${styles.toolBubble} ${styles.toolImage}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-image" />
+                            </div>
+
+                            <div
+                                className={`${styles.toolBubble} ${styles.toolType}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-type" />
+                            </div>
+
+                            <div
+                                className={`${styles.toolBubble} ${styles.toolPalette}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-palette2" />
+                            </div>
+
+                            <div
+                                className={`${styles.toolBubble} ${styles.toolLayers}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-layers" />
+                            </div>
+
+                            {/* AI status */}
+                            <div className={styles.aiStatus}>
+                                <span className={styles.aiStatusDot} />
+
+                                <div>
+                                    <strong>AI Builder</strong>
+                                    <span>Ready to create</span>
+                                </div>
+
+                                <i className="bi bi-stars" />
+                            </div>
+
+                            {/* AI chip */}
+                            <div className={styles.designChip}>
+                                <i className="bi bi-lightning-charge-fill" />
+                                <span>Build faster with AI</span>
+                            </div>
+
+                            {/* Sparkles */}
+                            <div
+                                className={`${styles.sparkle} ${styles.sparkleOne}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-stars" />
+                            </div>
+
+                            <div
+                                className={`${styles.sparkle} ${styles.sparkleTwo}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-star-fill" />
+                            </div>
+
+                            <div
+                                className={`${styles.sparkle} ${styles.sparkleThree}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-stars" />
+                            </div>
+
+                            {/* Orbit */}
+                            <div className={styles.orbit} aria-hidden="true">
+                                <span />
+                            </div>
+
+                            {/* AI Assistant */}
+                            <div className={`${styles.featureCard} ${styles.aiCard}`}>
+                                <div className={styles.featureIcon}>
+                                    <i className="bi bi-stars" />
+                                </div>
+
+                                <div className={styles.featureContent}>
+                                    <strong>AI Assistant</strong>
+
+                                    <span>Tạo nội dung chỉ trong vài giây</span>
+                                </div>
+
+                                <button type="button" aria-label="Open AI Assistant">
+                                    <i className="bi bi-arrow-right" />
+                                </button>
+                            </div>
+
+                            {/* Publish */}
+                            <div className={`${styles.featureCard} ${styles.publishCard}`}>
+                                <div className={styles.featureIcon}>
+                                    <i className="bi bi-cloud-arrow-up" />
+                                </div>
+
+                                <div className={styles.featureContent}>
+                                    <strong>Publish in minutes</strong>
+
+                                    <span>Đưa website lên mạng chỉ với 1 click</span>
+                                </div>
+
+                                <button type="button" aria-label="Publish website">
+                                    <i className="bi bi-arrow-right" />
+                                </button>
+                            </div>
+
+                            {/* Drag & Drop */}
+                            <div className={`${styles.featureCard} ${styles.dragCard}`}>
+                                <div className={styles.featureIcon}>
+                                    <i className="bi bi-arrows-move" />
+                                </div>
+
+                                <div className={styles.featureContent}>
+                                    <strong>Drag & Drop</strong>
+
+                                    <span>Kéo thả, tùy chỉnh dễ dàng</span>
+                                </div>
+
+                                <button type="button" aria-label="Drag and drop">
+                                    <i className="bi bi-arrow-right" />
+                                </button>
+                            </div>
+
+                            {/* Video */}
+                            <div className={styles.videoShell}>
+                                <div className={styles.videoGlow} />
+
+                                <div className={styles.videoFrame}>
+                                    <video
+                                        ref={videoRef}
+                                        className={styles.video}
+                                        preload="metadata"
+                                        playsInline
+                                        onPlay={() => setIsPlaying(true)}
+                                        onPause={() => setIsPlaying(false)}
+                                    >
+                                        <source
+                                            src="/assets/videos/kbuilder-demo.mp4"
+                                            type="video/mp4"
+                                        />
+                                    </video>
+
+                                    <div className={styles.videoBadge}>
+                                        <span className={styles.videoBadgeDot} />
+
+                                        <span>Product Tour</span>
+
+                                        <span className={styles.videoBadgeDivider} />
+
                                         <i className="bi bi-stars" />
-                                    </span>
 
-                                    <span>{t(badge)}</span>
-
-                                    <i className={`bi bi-arrow-up-right ${styles.badgeArrow}`} />
-                                </a>
-
-                                <h1 className={styles.title}>
-                                    {t(heroTitle)}
-                                    <span>{t(heroTitleAccent)}</span>
-                                </h1>
-
-                                <p className={styles.description}>{t(heroDescription)}</p>
-
-                                <div className={styles.actions}>
-                                    <button className={styles.primaryButton}>
-                                        <span>{t(primaryButtonLabel)}</span>
-                                        <i className="bi bi-arrow-right" />
-                                    </button>
-
-                                    <button className={styles.secondaryButton}>
-                                        <i className="bi bi-grid-3x3-gap" />
-                                        <span>{t(secondaryButtonLabel)}</span>
-                                    </button>
-                                </div>
-                                <div className={styles.metrics}>
-                                    {statsData.map((stat, index) => (
-                                        <div key={index} className={styles.metric}>
-                                            <div className={styles.metricIcon}>
-                                                <i className={`bi ${stat.icon}`} />
-                                            </div>
-
-                                            <div className={styles.metricContent}>
-                                                <strong>{t(stat.value)}</strong>
-                                                <span>{t(stat.label)}</span>
-                                            </div>
-
-                                            {index !== statsData.length - 1 && (
-                                                <div className={styles.metricDivider} />
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className={styles.trust}>
-                                    <div className={styles.trustAvatars}>
-                                        <span>J</span>
-                                        <span>M</span>
-                                        <span>K</span>
-                                        <span>T</span>
+                                        <span>AI Powered</span>
                                     </div>
 
-                                    <div className={styles.trustText}>
-                                        <div className={styles.stars}>
-                                            <i className="bi bi-star-fill" />
-                                            <i className="bi bi-star-fill" />
-                                            <i className="bi bi-star-fill" />
-                                            <i className="bi bi-star-fill" />
-                                            <i className="bi bi-star-fill" />
-                                        </div>
-
-                                        <span>Trusted by modern teams</span>
+                                    <div className={styles.videoOverlay}>
+                                        {!isPlaying && (
+                                            <button
+                                                type="button"
+                                                className={styles.centerPlay}
+                                                onClick={togglePlay}
+                                                aria-label="Play video"
+                                            >
+                                                <i className="bi bi-play-fill" />
+                                            </button>
+                                        )}
                                     </div>
-                                </div>
-                            </div>
 
-                            <div className={styles.visual}>
-                                <div className={styles.visualGlow} />
-
-                                <div className={styles.visualTopLabel}>
-                                    <span className={styles.liveDot} />
-                                    <span>Live website builder</span>
-                                </div>
-
-                                <div className={styles.canvasWrapper}>
-                                    <div className={styles.canvasShadow} />
-
-                                    <div className={styles.canvas}>
-                                        <div className={styles.canvasToolbar}>
-                                            <div className={styles.windowDots}>
-                                                <span />
-                                                <span />
-                                                <span />
-                                            </div>
-
-                                            <div className={styles.toolbarTitle}>
-                                                <span className={styles.logoMark}>K</span>
-                                                <strong>KBuilder</strong>
-                                            </div>
-
-                                            <div className={styles.toolbarActions}>
-                                                <span />
-                                                <span />
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.canvasContent}>
-                                            <img
-                                                src={image}
-                                                alt={t(heroTitle)}
-                                                className={styles.heroImage}
+                                    <div className={styles.videoControls}>
+                                        <button
+                                            type="button"
+                                            onClick={togglePlay}
+                                            aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                                        >
+                                            <i
+                                                className={
+                                                    isPlaying
+                                                        ? 'bi bi-pause-fill'
+                                                        : 'bi bi-play-fill'
+                                                }
                                             />
-                                        </div>
-                                    </div>
+                                        </button>
 
-                                    <div
-                                        className={`${styles.floatingCard} ${styles.floatingCardOne}`}
-                                    >
-                                        <div className={styles.floatingIcon}>
-                                            <i className="bi bi-magic" />
-                                        </div>
-                                        <div>
-                                            <strong>AI powered</strong>
-                                            <span>Build faster with AI</span>
-                                        </div>
-                                    </div>
+                                        <span className={styles.time}>00:24 / 02:18</span>
 
-                                    <div
-                                        className={`${styles.floatingCard} ${styles.floatingCardTwo}`}
-                                    >
-                                        <div className={styles.successIcon}>
-                                            <i className="bi bi-check-lg" />
+                                        <div className={styles.progress}>
+                                            <span />
                                         </div>
-                                        <div>
-                                            <strong>{t(performanceScore)}</strong>
-                                            <span>{t(performanceLabel)}</span>
-                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={toggleMute}
+                                            aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                                        >
+                                            <i
+                                                className={
+                                                    isMuted
+                                                        ? 'bi bi-volume-mute-fill'
+                                                        : 'bi bi-volume-up-fill'
+                                                }
+                                            />
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={toggleFullscreen}
+                                            aria-label="Fullscreen"
+                                        >
+                                            <i className="bi bi-fullscreen" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Arrows */}
+                            <div
+                                className={`${styles.arrow} ${styles.arrowLeft}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-arrow-down-right" />
+                            </div>
+
+                            <div
+                                className={`${styles.arrow} ${styles.arrowRight}`}
+                                aria-hidden="true"
+                            >
+                                <i className="bi bi-arrow-up-right" />
+                            </div>
+
+                            {/* Plus */}
+                            <div className={`${styles.plus} ${styles.plusOne}`} aria-hidden="true">
+                                <i className="bi bi-plus-lg" />
+                            </div>
+
+                            <div className={`${styles.plus} ${styles.plusTwo}`} aria-hidden="true">
+                                <i className="bi bi-plus-lg" />
+                            </div>
+                        </div>
+
+                        {/* Bottom CTA */}
+                        <div className={styles.bottomCard}>
+                            <div className={styles.brand}>
+                                <div className={styles.logo}>
+                                    <span>K</span>
+                                </div>
+                            </div>
+
+                            <div className={styles.bottomContent}>
+                                <span className={styles.bottomEyebrow}>KBUILDER</span>
+                                <h2>Xây dựng website dễ dàng hơn với KBuilder</h2>
+                            </div>
+
+                            <div className={styles.divider} />
+
+                            <div className={styles.tags}>
+                                <span>
+                                    <i className="bi bi-window" />
+                                    Website Builder
+                                </span>
+
+                                <span>
+                                    <i className="bi bi-stars" />
+                                    AI
+                                </span>
+
+                                <span>
+                                    <i className="bi bi-code-slash" />
+                                    No Code
+                                </span>
+                            </div>
+
+                            <button
+                                type="button"
+                                className={styles.watchButton}
+                                onClick={togglePlay}
+                            >
+                                <i className="bi bi-play-fill" />
+                                <span>Xem video</span>
+                            </button>
+
+                            <a href="#start" className={styles.startButton}>
+                                <span>Bắt đầu ngay</span>
+                                <i className="bi bi-arrow-right" />
+                            </a>
                         </div>
                     </div>
                 </section>
-                <section className={styles.coreValuesSection}>
-                    <div className={styles.coreValuesBlurOne} />
-                    <div className={styles.coreValuesBlurTwo} />
-                    <div className={styles.coreValuesBackgroundGrid} />
+                <section className={styles.journeySection}>
+                    <div className={styles.journeyContainer}>
+                        <div className={styles.teamHero}>
+                            <div className={styles.teamHeroGlow} />
 
-                    <div className={styles.coreValuesContainer}>
-                        <div className={styles.coreValuesGrid}>
-                            {coreValuesData.map((value, index) => (
-                                <article
-                                    key={index}
-                                    className={`${styles.coreValueCard} ${styles[value.color]}`}
-                                >
-                                    <div className={styles.cardGlow} />
+                            <div className={styles.teamHeroLeft}>
+                                <div className={styles.teamHeroIcon}>
+                                    <i className="bi bi-rocket-takeoff-fill" />
+                                </div>
 
-                                    <div className={styles.cardNoise} />
+                                <div className={styles.teamHeroContent}>
+                                    <h2>
+                                        {t(journeyTitle)}
+                                        <span>{t(journeyTitleAccent)}</span>
+                                    </h2>
 
-                                    <div className={styles.cardOrbit}>
-                                        <span />
-                                        <span />
-                                        <span />
-                                    </div>
-                                    <div className={styles.iconSection}>
-                                        <div className={styles.iconHalo} />
+                                    <p>{t(journeyDescription)}</p>
+                                </div>
+                            </div>
 
-                                        <div className={styles.iconCircle}>
-                                            <i className={`bi ${value.icon}`} />
-                                        </div>
+                            <div className={styles.teamHeroBadge}>
+                                <i className="bi bi-stars" />
+                                {t(journeyBadge)}
+                            </div>
+                        </div>
 
-                                        <span className={styles.orbitDot} />
-                                    </div>
+                        <div className={styles.journeyTimeline}>
+                            <div className={styles.journeyLine}>
+                                <span />
+                                <span />
+                                <span />
+                            </div>
 
-                                    <div className={styles.content}>
-                                        <h3>{t(value.title)}</h3>
-
-                                        <div className={styles.heartDivider}>
-                                            <span />
-
-                                            <i className="bi bi-heart-fill" />
-
-                                            <span />
-                                        </div>
-
-                                        <p>{t(value.description)}</p>
-                                    </div>
-
-                                    <div className={styles.tagRow}>
-                                        {value.tags.map((tag, tagIndex) => (
-                                            <div key={tagIndex} className={styles.tag}>
-                                                <i className="bi bi-check2-circle" />
-
-                                                {t(tag)}
+                            <div className={styles.journeyItems}>
+                                {journeysData.slice(0, 4).map((item, index) => (
+                                    <article key={index} className={styles.journeyItem}>
+                                        <div className={styles.journeyIconWrap}>
+                                            <div className={styles.journeyIcon}>
+                                                <i className={`bi ${item.icon}`} />
                                             </div>
-                                        ))}
-                                    </div>
-                                </article>
-                            ))}
+                                        </div>
+
+                                        <div className={styles.journeyInfo}>
+                                            <span className={styles.journeyYear}>
+                                                {t(item.date)}
+                                            </span>
+
+                                            <h3 className={styles.journeyItemTitle}>
+                                                {t(item.title)}
+                                            </h3>
+
+                                            <p className={styles.journeyItemDescription}>
+                                                {t(item.description)}
+                                            </p>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -2088,67 +2240,6 @@ export function About01(props: About01Props) {
                                         </div>
                                     );
                                 })}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <section className={styles.journeySection}>
-                    <div className={styles.journeyContainer}>
-                        <div className={styles.teamHero}>
-                            <div className={styles.teamHeroGlow} />
-
-                            <div className={styles.teamHeroLeft}>
-                                <div className={styles.teamHeroIcon}>
-                                    <i className="bi bi-rocket-takeoff-fill" />
-                                </div>
-
-                                <div className={styles.teamHeroContent}>
-                                    <h2>
-                                        {t(journeyTitle)}
-                                        <span>{t(journeyTitleAccent)}</span>
-                                    </h2>
-
-                                    <p>{t(journeyDescription)}</p>
-                                </div>
-                            </div>
-
-                            <div className={styles.teamHeroBadge}>
-                                <i className="bi bi-stars" />
-                                {t(journeyBadge)}
-                            </div>
-                        </div>
-
-                        <div className={styles.journeyTimeline}>
-                            <div className={styles.journeyLine}>
-                                <span />
-                                <span />
-                                <span />
-                            </div>
-
-                            <div className={styles.journeyItems}>
-                                {journeysData.slice(0, 4).map((item, index) => (
-                                    <article key={index} className={styles.journeyItem}>
-                                        <div className={styles.journeyIconWrap}>
-                                            <div className={styles.journeyIcon}>
-                                                <i className={`bi ${item.icon}`} />
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.journeyInfo}>
-                                            <span className={styles.journeyYear}>
-                                                {t(item.date)}
-                                            </span>
-
-                                            <h3 className={styles.journeyItemTitle}>
-                                                {t(item.title)}
-                                            </h3>
-
-                                            <p className={styles.journeyItemDescription}>
-                                                {t(item.description)}
-                                            </p>
-                                        </div>
-                                    </article>
-                                ))}
                             </div>
                         </div>
                     </div>
@@ -2288,99 +2379,215 @@ export function About01(props: About01Props) {
                             </div>
                         </div>
 
-                        <div className={styles.team02Grid}>
-                            {teamData.map((member, index) => (
-                                <article
-                                    key={index}
-                                    className={`${styles.team02Card} ${styles[member.color]}`}
-                                >
-                                    {/* Background Glow */}
-                                    <div className={styles.team02Glow} />
+                        <section className={styles.team02}>
+                            <div className={styles.team02Background}>
+                                <span className={styles.team02OrbBlue} />
+                                <span className={styles.team02OrbPurple} />
+                                <span className={styles.team02OrbPink} />
+                                <span className={styles.team02OrbCyan} />
+                            </div>
 
-                                    {/* Border */}
-                                    <div className={styles.team02Border} />
+                            <div className={styles.team02Container}>
+                                <div className={styles.team02Viewport} ref={emblaRef}>
+                                    <div className={styles.team02Grid}>
+                                        {teamData.map((member) => (
+                                            <article
+                                                key={member.id}
+                                                className={`${styles.team02Card} ${styles[member.color]}`}
+                                            >
+                                                <div className={styles.team02CardGlow} />
 
-                                    {/* Decorative Dots */}
-                                    <div className={styles.team02Dots}>
-                                        {Array.from({ length: 9 }).map((_, dotIndex) => (
-                                            <span key={dotIndex} />
+                                                <div className={styles.team02Top}>
+                                                    <span className={styles.team02Department}>
+                                                        <span
+                                                            className={styles.team02DepartmentDot}
+                                                        />
+                                                        {member.department || member.role}
+                                                    </span>
+                                                </div>
+
+                                                <div className={styles.team02Visual}>
+                                                    <div className={styles.team02ImageGlow} />
+
+                                                    <div className={styles.team02ImageFrame}>
+                                                        <Image
+                                                            src={
+                                                                member.imageUrl ??
+                                                                '/assets/images/avatar-1.png'
+                                                            }
+                                                            alt={member.name}
+                                                            fill
+                                                            sizes="(max-width: 767px) 85vw, (max-width: 1199px) 42vw, 300px"
+                                                            className={styles.team02Avatar}
+                                                        />
+                                                    </div>
+
+                                                    <div className={styles.team02Experience}>
+                                                        <strong>{member.experience ?? '5+'}</strong>
+                                                        <span>Years Exp.</span>
+                                                    </div>
+
+                                                    {member.icon && (
+                                                        <div className={styles.team02Skill}>
+                                                            <i className={`bi ${member.icon}`} />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className={styles.team02Content}>
+                                                    <div className={styles.team02TitleRow}>
+                                                        <div className={styles.team02Title}>
+                                                            <h3>{member.name}</h3>
+                                                            <span>{member.role}</span>
+                                                        </div>
+
+                                                        <span className={styles.team02NameArrow}>
+                                                            <i className="bi bi-arrow-up-right" />
+                                                        </span>
+                                                    </div>
+
+                                                    <p className={styles.team02Description}>
+                                                        {member.description}
+                                                    </p>
+                                                </div>
+
+                                                <div className={styles.team02Footer}>
+                                                    <div className={styles.team02Socials}>
+                                                        <a
+                                                            href={member.linkedinUrl ?? '#'}
+                                                            target={
+                                                                member.linkedinUrl
+                                                                    ? '_blank'
+                                                                    : undefined
+                                                            }
+                                                            rel={
+                                                                member.linkedinUrl
+                                                                    ? 'noopener noreferrer'
+                                                                    : undefined
+                                                            }
+                                                            className={`${styles.team02Social} ${
+                                                                !member.linkedinUrl
+                                                                    ? styles.disabledSocial
+                                                                    : ''
+                                                            }`}
+                                                            aria-label="LinkedIn"
+                                                            onClick={(event) => {
+                                                                if (!member.linkedinUrl) {
+                                                                    event.preventDefault();
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i
+                                                                className="bi bi-linkedin"
+                                                                aria-hidden="true"
+                                                            />
+                                                        </a>
+
+                                                        <a
+                                                            href={member.twitterUrl ?? '#'}
+                                                            target={
+                                                                member.twitterUrl
+                                                                    ? '_blank'
+                                                                    : undefined
+                                                            }
+                                                            rel={
+                                                                member.twitterUrl
+                                                                    ? 'noopener noreferrer'
+                                                                    : undefined
+                                                            }
+                                                            className={`${styles.team02Social} ${
+                                                                !member.twitterUrl
+                                                                    ? styles.disabledSocial
+                                                                    : ''
+                                                            }`}
+                                                            aria-label="X"
+                                                            onClick={(event) => {
+                                                                if (!member.twitterUrl) {
+                                                                    event.preventDefault();
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i
+                                                                className="bi bi-twitter-x"
+                                                                aria-hidden="true"
+                                                            />
+                                                        </a>
+
+                                                        <a
+                                                            href={
+                                                                member.email
+                                                                    ? `mailto:${member.email}`
+                                                                    : '#'
+                                                            }
+                                                            className={`${styles.team02Social} ${
+                                                                !member.email
+                                                                    ? styles.disabledSocial
+                                                                    : ''
+                                                            }`}
+                                                            aria-label="Email"
+                                                            onClick={(event) => {
+                                                                if (!member.email) {
+                                                                    event.preventDefault();
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i
+                                                                className="bi bi-envelope-fill"
+                                                                aria-hidden="true"
+                                                            />
+                                                        </a>
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        className={styles.team02ViewButton}
+                                                        aria-label={`View ${member.name}`}
+                                                    >
+                                                        <i className="bi bi-arrow-right" />
+                                                    </button>
+                                                </div>
+                                            </article>
                                         ))}
                                     </div>
 
-                                    {/* Bottom Wave */}
-                                    <div className={styles.team02Wave} />
+                                    <div className={styles.team02Navigation}>
+                                        <button
+                                            type="button"
+                                            className={styles.team02NavigationButton}
+                                            aria-label="Previous"
+                                            onClick={() => emblaApi?.scrollPrev()}
+                                        >
+                                            <i className="bi bi-chevron-left" />
+                                        </button>
 
-                                    {/* Avatar */}
-                                    <div className={styles.team02AvatarArea}>
-                                        <div className={styles.team02OrbitOuter} />
-
-                                        <div className={styles.team02OrbitInner} />
-
-                                        <div className={styles.team02OrbitDot} />
-
-                                        <div className={styles.team02AvatarCircle}>
-                                            <Image
-                                                src={member.image ?? '/assets/images/avatar-1.png'}
-                                                alt={t(member.name)}
-                                                width={320}
-                                                height={320}
-                                                className={styles.team02Avatar}
-                                            />
+                                        <div className={styles.team02Pagination}>
+                                            {teamData.map((member, index) => (
+                                                <button
+                                                    key={member.id}
+                                                    type="button"
+                                                    className={`${styles.team02PaginationDot} ${
+                                                        selectedTeamSlide === index
+                                                            ? styles.active
+                                                            : ''
+                                                    }`}
+                                                    aria-label={`Go to team member ${index + 1}`}
+                                                    onClick={() => emblaApi?.scrollTo(index)}
+                                                />
+                                            ))}
                                         </div>
 
-                                        <div className={styles.team02FloatingBadge}>
-                                            <div className={styles.team02BadgeBox}>
-                                                <i className={`bi ${member.icon}`} />
-                                            </div>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            className={styles.team02NavigationButton}
+                                            aria-label="Next"
+                                            onClick={() => emblaApi?.scrollNext()}
+                                        >
+                                            <i className="bi bi-chevron-right" />
+                                        </button>
                                     </div>
-
-                                    {/* Content */}
-                                    <div className={styles.team02Content}>
-                                        <div className={styles.team02Heading}>
-                                            <h3 className={styles.team02Name}>{t(member.name)}</h3>
-
-                                            <span className={styles.team02Role}>
-                                                {t(member.role)}
-                                            </span>
-                                        </div>
-
-                                        <div className={styles.team02AccentLine}>
-                                            <span />
-                                        </div>
-
-                                        <p className={styles.team02Description}>
-                                            {t(member.description)}
-                                        </p>
-
-                                        <div className={styles.team02Footer}>
-                                            <div className={styles.team02Socials}>
-                                                <button
-                                                    type="button"
-                                                    className={styles.team02Social}
-                                                >
-                                                    <i className="bi bi-linkedin" />
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    className={styles.team02Social}
-                                                >
-                                                    <i className="bi bi-twitter-x" />
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    className={styles.team02Social}
-                                                >
-                                                    <i className="bi bi-envelope-fill" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </section>
             </div>
@@ -2635,45 +2842,6 @@ function createCoreValueArray(): InspectorField {
     };
 }
 
-function createTeamArray(): InspectorField {
-    return {
-        key: 'team',
-        label: 'Team Members',
-        kind: 'array',
-        itemLabel: 'Member',
-        fields: [
-            createLocalizedField('name', 'Name'),
-            createLocalizedField('role', 'Role'),
-            createLocalizedTextareaField('description', 'Description'),
-            createIconField('icon'),
-            createSelectField('color', 'Color', [
-                {
-                    label: 'Purple',
-                    value: 'purple',
-                },
-                {
-                    label: 'Blue',
-                    value: 'blue',
-                },
-                {
-                    label: 'Green',
-                    value: 'green',
-                },
-                {
-                    label: 'Orange',
-                    value: 'orange',
-                },
-                {
-                    label: 'Pink',
-                    value: 'pink',
-                },
-            ]),
-            createImageField('image', 'Image', 'about/team'),
-            createLocalizedField('imageAlt', 'Image Alt'),
-        ],
-    };
-}
-
 function createInspector(): RegItem['inspector'] {
     return [
         ...createBreadcrumbInspector(),
@@ -2693,7 +2861,6 @@ function createInspector(): RegItem['inspector'] {
         createFeatureArray('problems', 'Problems', 'Problem'),
         createFeatureArray('solutions', 'Solutions', 'Solution'),
         createCoreValueArray(),
-        createTeamArray(),
     ];
 }
 

@@ -3635,6 +3635,592 @@ const vi = {
             portfolios: 'portfolio',
         },
     },
+    teamMember: {
+        stats: {
+            total: 'Tổng số thành viên',
+            active: 'Đang hiển thị',
+            hidden: 'Không hiển thị',
+            comparedToLastMonth: 'so với tháng trước',
+            activated: 'đã kích hoạt',
+            notDisplayed: 'không hiển thị',
+            supportedLanguages: 'ngôn ngữ được hỗ trợ',
+            languages: 'Ngôn ngữ',
+        },
+
+        search: {
+            placeholder: 'Tìm kiếm tên, chức vụ, email...',
+        },
+
+        filter: {
+            status: 'Trạng thái',
+            role: 'Chức vụ',
+            all: 'Tất cả',
+            published: 'Đang hiển thị',
+            draft: 'Tạm ẩn',
+            archived: 'Đã lưu trữ',
+            visible: 'Hiển thị',
+        },
+        pagination: {
+            showing: 'Hiển thị',
+        },
+        actions: {
+            add: 'Thêm thành viên',
+            edit: 'Chỉnh sửa',
+            delete: 'Xóa',
+            duplicate: 'Nhân bản',
+            resetFilters: 'Xóa bộ lọc',
+            previous: 'Trang trước',
+            next: 'Trang sau',
+            show: 'Hiển thị',
+            hide: 'Tạm ẩn',
+            sort: 'Sắp xếp',
+        },
+
+        table: {
+            information: 'Thông tin',
+            role: 'Chức vụ',
+            links: 'Liên kết',
+            order: 'Thứ tự',
+            status: 'Trạng thái',
+            actions: 'Thao tác',
+        },
+
+        empty: {
+            title: 'Không tìm thấy thành viên',
+            description: 'Thử thay đổi từ khóa hoặc bộ lọc để tìm thành viên khác.',
+        },
+
+        modal: {
+            success: 'Thành công',
+            loadFailed: 'Không thể tải danh sách thành viên.',
+            updateFailed: 'Không thể cập nhật thành viên.',
+            deleteMember: 'Xóa thành viên',
+            deleteMemberConfirm: 'Bạn có chắc muốn xóa "{name}" không?',
+            deleteFailed: 'Không thể xóa thành viên.',
+            deletedSuccess: 'Đã xóa thành viên "{name}" thành công.',
+            createdSuccess: 'Đã thêm thành viên thành công.',
+            updatedSuccess: 'Đã cập nhật thành viên thành công.',
+        },
+        form: {
+            addTitle: 'Thêm thành viên',
+            addDescription: 'Tạo hồ sơ thành viên mới và thêm nội dung đa ngôn ngữ.',
+            editTitle: 'Chỉnh sửa thành viên',
+            editDescription: 'Cập nhật thông tin thành viên và nội dung đa ngôn ngữ.',
+
+            profile: 'Hồ sơ',
+            profileDescription: 'Thông tin cơ bản và hình ảnh đại diện.',
+
+            icon: 'Biểu tượng',
+            experience: 'Kinh nghiệm',
+            color: 'Màu sắc',
+
+            translations: 'Nội dung đa ngôn ngữ',
+            translationsDescription: 'Thêm nội dung cho từng ngôn ngữ được hỗ trợ.',
+
+            name: 'Họ và tên',
+            role: 'Vai trò',
+            department: 'Phòng ban',
+            description: 'Mô tả',
+            descriptionPlaceholder: 'Giới thiệu ngắn về thành viên này...',
+
+            contact: 'Liên hệ & hiển thị',
+            email: 'Email',
+            sortOrder: 'Thứ tự hiển thị',
+
+            active: 'Thành viên đang hoạt động',
+            activeDescription: 'Hiển thị thành viên này trên website.',
+
+            uploadAvatar: 'Tải ảnh đại diện',
+            dragDrop: 'Kéo thả hoặc nhấp để chọn hình ảnh',
+            removeImage: 'Xóa hình ảnh',
+
+            invalidImage: 'Vui lòng chọn hình ảnh PNG, JPG hoặc WEBP.',
+            emptyImage: 'Hình ảnh được chọn không hợp lệ.',
+            imageTooLarge: 'Kích thước hình ảnh phải nhỏ hơn 5MB.',
+            uploadFailed: 'Không thể tải hình ảnh lên.',
+
+            create: 'Thêm thành viên',
+            update: 'Cập nhật thành viên',
+
+            createFailed: 'Không thể tạo thành viên.',
+            updateFailed: 'Không thể cập nhật thành viên.',
+        },
+    },
+    projectFeature: {
+        stats: {
+            total: 'Tổng tính năng',
+            allFeatures: 'Tất cả project feature',
+            views: 'Lượt xem',
+            totalViews: 'Tổng lượt xem',
+            favorites: 'Yêu thích',
+            userFavorites: 'Lượt người dùng yêu thích',
+            shares: 'Chia sẻ',
+            totalShares: 'Tổng lượt chia sẻ',
+        },
+        actions: {
+            add: 'Thêm Project Feature',
+            edit: 'Chỉnh sửa',
+            view: 'Xem chi tiết',
+            delete: 'Xóa',
+            create: 'Tạo Project Feature',
+            creating: 'Đang tạo...',
+            cancel: 'Hủy',
+            close: 'Đóng',
+            remove: 'Xóa ảnh',
+        },
+        search: {
+            placeholder: 'Tìm kiếm project feature...',
+            label: 'Tìm kiếm project feature',
+        },
+        category: {
+            all: 'Tất cả danh mục',
+            websiteBuilder: 'Website Builder',
+            saas: 'SaaS',
+            ecommerce: 'E-commerce',
+            mobileApp: 'Mobile App',
+            ai: 'AI',
+            design: 'Design',
+            development: 'Development',
+            other: 'Khác',
+            website_builder: 'Website Builder',
+            mobile_app: 'Mobile App',
+        },
+        status: {
+            all: 'Tất cả',
+            published: 'Đã xuất bản',
+            draft: 'Bản nháp',
+            archived: 'Đã lưu trữ',
+        },
+        sort: {
+            sortOrder: 'Thứ tự',
+            newest: 'Mới nhất',
+            views: 'Lượt xem',
+            favorites: 'Yêu thích',
+        },
+        table: {
+            feature: 'Feature',
+            category: 'Danh mục',
+            developer: 'Developer',
+            stats: 'Thống kê',
+            status: 'Trạng thái',
+            sort: 'Thứ tự',
+            created: 'Ngày tạo',
+            actions: 'Thao tác',
+        },
+        empty: {
+            title: 'Không tìm thấy project feature',
+            description: 'Hãy thử thay đổi từ khóa hoặc bộ lọc.',
+            clearFilters: 'Xóa bộ lọc',
+        },
+        pagination: {
+            showing: 'Hiển thị {from} đến {to} trong tổng số {total} feature',
+            previous: 'Trang trước',
+            next: 'Trang tiếp theo',
+        },
+        modal: {
+            success: 'Thành công',
+            loadFailed: 'Không thể tải project features.',
+            deleteFeature: 'Xóa Project Feature',
+            deleteFeatureConfirm: 'Bạn có chắc muốn xóa "{name}" không?',
+            deleteFailed: 'Không thể xóa project feature.',
+            deletedSuccess: 'Đã xóa "{name}" thành công.',
+            addTitle: 'Thêm Project Feature',
+            addDescription: 'Tạo một project feature mới cho website của bạn.',
+            basicInfo: 'Thông tin cơ bản',
+            basicInfoDescription: 'Thiết lập thông tin chính của project feature.',
+            translations: 'Nội dung đa ngôn ngữ',
+            translationsDescription: 'Nhập nội dung cho từng ngôn ngữ.',
+            images: 'Hình ảnh',
+            imagesDescription: 'Thêm tối đa 5 hình ảnh và chọn một ảnh chính.',
+            requiredHint: 'Các trường có dấu * là bắt buộc.',
+            createdSuccess: 'Project feature đã được tạo thành công.',
+            createFailed: 'Không thể tạo project feature.',
+            invalidImageType: 'Vui lòng chọn ảnh PNG, JPG hoặc WEBP.',
+            invalidImage: 'Hình ảnh được chọn không hợp lệ.',
+            imageTooLarge: 'Kích thước hình ảnh không được vượt quá 5MB.',
+            maxImages: 'Bạn chỉ có thể thêm tối đa {count} hình ảnh.',
+            invalidUploadResponse: 'Phản hồi upload không hợp lệ.',
+            uploadFailed: 'Không thể upload hình ảnh.',
+            invalidServerResponse: 'Phản hồi từ server không hợp lệ.',
+            siteRequired: 'Vui lòng chọn website trước.',
+            englishTitleRequired: 'Tiêu đề tiếng Anh là bắt buộc.',
+            slugRequired: 'Slug là bắt buộc.',
+            imageRequired: 'Vui lòng thêm ít nhất một hình ảnh.',
+        },
+        form: {
+            slug: 'Slug',
+            slugPlaceholder: 'my-project-feature',
+            slugHint: 'Slug phải là duy nhất trong website hiện tại.',
+            category: 'Danh mục',
+            developer: 'Developer',
+            developerPlaceholder: 'KBuilder Team',
+            status: 'Trạng thái',
+            sortOrder: 'Thứ tự',
+            featured: 'Featured Project',
+            featuredHint: 'Hiển thị project feature này ở khu vực nổi bật.',
+            title: 'Tiêu đề',
+            titlePlaceholder: 'Nhập tiêu đề project feature...',
+            description: 'Mô tả',
+            descriptionPlaceholder: 'Nhập mô tả project feature...',
+            descriptionHint: 'Nội dung sẽ được lưu dưới dạng JSON.',
+            uploadTitle: 'Kéo thả hình ảnh vào đây',
+            uploadDescription: 'hoặc click để chọn từ máy tính',
+            primary: 'Ảnh chính',
+            setPrimary: 'Đặt làm ảnh chính',
+            tags: 'Thẻ',
+            tagsPlaceholder: 'Next.js, React, SaaS, AI',
+            tagsHint: 'Nhập nhiều tag và phân cách bằng dấu phẩy.',
+        },
+    },
+
+    blogManagement: {
+        header: {
+            eyebrow: 'Quản lý Blog',
+            description: 'Quản lý bài viết, danh mục, Wiki và thẻ trong một không gian làm việc.',
+        },
+
+        tabs: {
+            posts: 'Bài viết',
+            taxonomy: 'Danh mục & Thẻ',
+        },
+
+        actions: {
+            createPost: 'Tạo bài viết mới',
+            createTaxonomy: 'Thêm danh mục / thẻ',
+            refresh: 'Làm mới',
+            edit: 'Chỉnh sửa',
+            delete: 'Xóa',
+            cancel: 'Hủy',
+        },
+
+        stats: {
+            posts: 'Tổng bài viết',
+            postsDescription: 'Bài viết trong hệ thống',
+
+            blogCategories: 'Danh mục Blog',
+            blogCategoriesDescription: 'Danh mục bài viết',
+
+            wikiCategories: 'Danh mục Wiki',
+            wikiCategoriesDescription: 'Danh mục tài liệu',
+
+            tags: 'Thẻ bài viết',
+            tagsDescription: 'Thẻ được sử dụng',
+        },
+
+        taxonomyTabs: {
+            blog: 'Danh mục Blog',
+            wiki: 'Danh mục Wiki',
+            tag: 'Thẻ bài viết',
+        },
+
+        taxonomy: {
+            blog: {
+                title: 'Danh mục Blog',
+                description: 'Phân loại nội dung bài viết Blog của bạn',
+            },
+
+            wiki: {
+                title: 'Danh mục Wiki',
+                description: 'Tổ chức tài liệu và nội dung Wiki',
+            },
+
+            tag: {
+                title: 'Thẻ bài viết',
+                description: 'Quản lý các thẻ được sử dụng trong bài viết',
+            },
+        },
+
+        list: {
+            title: 'Danh sách',
+        },
+
+        search: {
+            posts: 'Tìm kiếm bài viết, danh mục, thẻ...',
+            category: 'Tìm kiếm danh mục...',
+            tag: 'Tìm kiếm thẻ...',
+        },
+
+        filters: {
+            all: 'Tất cả',
+            displaying: 'Hiển thị',
+            posts: 'bài viết',
+        },
+
+        table: {
+            index: '#',
+            image: 'Hình ảnh',
+            title: 'Tiêu đề',
+            name: 'Tên',
+            icon: 'Icon',
+            slug: 'Slug',
+            posts: 'Số bài viết',
+            blogCategory: 'Danh mục Blog',
+            wikiCategory: 'Danh mục Wiki',
+            tags: 'Thẻ',
+            status: 'Trạng thái',
+            views: 'Lượt xem',
+            publishedAt: 'Ngày đăng',
+            actions: 'Thao tác',
+            loading: 'Đang tải dữ liệu...',
+            empty: 'Không có dữ liệu',
+            postsEmpty: 'Không tìm thấy bài viết',
+            postsEmptyDescription: 'Thử thay đổi từ khóa hoặc bộ lọc.',
+        },
+
+        form: {
+            editTitle: 'Chỉnh sửa',
+
+            createBlogCategory: 'Tạo danh mục Blog',
+            createWikiCategory: 'Tạo danh mục Wiki',
+            createTag: 'Tạo Blog Tag',
+            createCategory: 'Tạo danh mục',
+
+            tagDescription: 'Thêm thẻ mới để gắn vào bài viết',
+            categoryDescription: 'Thêm danh mục mới để phân loại nội dung',
+
+            siteId: 'Site ID',
+            siteIdPlaceholder: 'Nhập Site ID...',
+
+            name: 'Tên',
+            nameVI: 'Tên tiếng Việt',
+            nameEN: 'Tên tiếng Anh',
+            nameJA: 'Tên tiếng Nhật',
+
+            namePlaceholderVI: 'Nhập tên tiếng Việt...',
+            namePlaceholderEN: 'Nhập tên tiếng Anh...',
+            namePlaceholderJA: 'Nhập tên tiếng Nhật...',
+
+            tagNamePlaceholder: 'Nhập tên thẻ...',
+
+            slug: 'Slug',
+            icon: 'Icon',
+            description: 'Mô tả',
+            descriptionPlaceholder: 'Nhập mô tả thẻ...',
+
+            color: 'Màu',
+            status: 'Trạng thái',
+            sortOrder: 'Thứ tự',
+
+            isFeatured: 'Đánh dấu nổi bật',
+            isVisible: 'Hiển thị danh mục',
+
+            saving: 'Đang lưu...',
+            update: 'Cập nhật',
+        },
+
+        status: {
+            draft: 'Bản nháp',
+            review: 'Đang duyệt',
+            published: 'Đã xuất bản',
+            archived: 'Đã lưu trữ',
+        },
+
+        validation: {
+            siteIdRequired: 'Vui lòng nhập Site ID.',
+            slugRequired: 'Vui lòng nhập Slug.',
+            tagNameRequired: 'Vui lòng nhập tên thẻ.',
+            translationRequired: 'Vui lòng nhập ít nhất một tên danh mục.',
+        },
+
+        modal: {
+            success: 'Thành công',
+
+            validation: 'Dữ liệu không hợp lệ',
+
+            loadFailed: 'Không thể tải dữ liệu danh mục.',
+            loadPostsFailed: 'Không thể tải danh sách bài viết.',
+
+            createFailed: 'Không thể tạo dữ liệu.',
+            updateFailed: 'Không thể cập nhật dữ liệu.',
+            saveFailed: 'Không thể lưu dữ liệu.',
+
+            deleteFailed: 'Không thể xóa dữ liệu.',
+
+            deleteItem: 'Xóa dữ liệu',
+            deleteItemConfirm: 'Bạn có chắc muốn xóa "{name}" không?',
+
+            deletedSuccess: 'Đã xóa "{name}" thành công.',
+
+            deletePost: 'Xóa bài viết',
+            deletePostConfirm: 'Bạn có chắc muốn xóa bài viết "{name}" không?',
+            postDeletedSuccess: 'Đã xóa bài viết thành công.',
+
+            createdSuccess: 'Đã tạo thành công.',
+            updatedSuccess: 'Đã cập nhật thành công.',
+        },
+
+        pagination: {
+            showing: 'Hiển thị {count} bài viết',
+        },
+    },
+    blog: {
+        header: {
+            title: 'Quản lý Blog',
+            description: 'Quản lý bài viết, nội dung và bản dịch Blog.',
+            create: 'Tạo bài viết',
+            search: 'Tìm kiếm bài viết...',
+            filter: 'Bộ lọc',
+            refresh: 'Làm mới',
+        },
+
+        form: {
+            sections: {
+                basic: {
+                    title: 'Thông tin cơ bản',
+                    description: 'Tiêu đề, danh mục và thẻ',
+                },
+                content: {
+                    title: 'Nội dung',
+                    description: 'Soạn thảo nội dung bài viết',
+                },
+                seo: {
+                    title: 'SEO',
+                    description: 'Tối ưu hiển thị trên công cụ tìm kiếm',
+                },
+                media: {
+                    title: 'Hình ảnh',
+                    description: 'Thumbnail và ảnh cover',
+                },
+            },
+
+            basic: {
+                title: 'Thông tin cơ bản',
+                description: 'Thiết lập thông tin chính cho bài viết.',
+            },
+
+            title: 'Tiêu đề',
+            titlePlaceholder: 'Nhập tiêu đề bài viết...',
+            titleHint: 'Tiêu đề nên rõ ràng và thu hút người đọc.',
+            slug: 'Đường dẫn',
+            slugPlaceholder: 'duong-dan-bai-viet',
+            subtitle: 'Tiêu đề phụ',
+            subtitlePlaceholder: 'Nhập tiêu đề phụ...',
+            blogCategory: 'Danh mục Blog',
+            blogCategoryPlaceholder: 'Chọn danh mục Blog',
+            wikiCategory: 'Danh mục Wiki',
+            wikiCategoryPlaceholder: 'Chọn danh mục Wiki',
+            tags: 'Thẻ',
+            loadingTags: 'Đang tải thẻ...',
+            noTags: 'Chưa có thẻ nào.',
+            excerpt: 'Mô tả ngắn',
+            excerptPlaceholder: 'Nhập mô tả ngắn cho bài viết...',
+
+            content: {
+                title: 'Nội dung bài viết',
+                description: 'Soạn thảo nội dung bài viết bằng trình biên tập.',
+                placeholder: 'Bắt đầu viết nội dung',
+            },
+
+            seo: {
+                title: 'Tối ưu SEO',
+                description:
+                    'Thiết lập thông tin SEO để cải thiện khả năng hiển thị trên công cụ tìm kiếm.',
+                titleField: 'Tiêu đề SEO',
+                titlePlaceholder: 'Nhập tiêu đề SEO...',
+                descriptionField: 'Mô tả SEO',
+                descriptionPlaceholder: 'Nhập mô tả SEO...',
+                focusKeyword: 'Từ khóa chính',
+                canonicalUrl: 'URL chuẩn',
+                searchPreview: 'Xem trước kết quả tìm kiếm',
+                searchPreviewDescription:
+                    'Cho phép xem trước cách bài viết hiển thị trên công cụ tìm kiếm.',
+                noIndex: 'Không lập chỉ mục',
+                noIndexDescription: 'Yêu cầu công cụ tìm kiếm không lập chỉ mục bài viết.',
+                noFollow: 'Không theo liên kết',
+                noFollowDescription:
+                    'Yêu cầu công cụ tìm kiếm không theo các liên kết trong bài viết.',
+            },
+
+            media: {
+                title: 'Hình ảnh',
+                description: 'Thêm hình ảnh cover và thumbnail cho bài viết.',
+                cover: {
+                    title: 'Ảnh Cover',
+                    description: 'Hình ảnh chính của bài viết.',
+                },
+                thumbnail: {
+                    title: 'Thumbnail',
+                    description: 'Hình ảnh đại diện cho bài viết.',
+                },
+                uploading: 'Đang tải ảnh...',
+                chooseImage: 'Chọn hình ảnh',
+                imageHint: 'PNG, JPG hoặc WebP',
+                removeImage: 'Xóa hình ảnh',
+            },
+
+            publish: {
+                title: 'Xuất bản',
+                description: 'Thiết lập trạng thái bài viết.',
+                status: 'Trạng thái',
+                draft: 'Bản nháp',
+                review: 'Đang duyệt',
+                published: 'Đã xuất bản',
+                archived: 'Lưu trữ',
+                publishedAt: 'Thời gian xuất bản',
+                featured: 'Bài viết nổi bật',
+                featuredDescription: 'Hiển thị bài viết ở vị trí nổi bật.',
+                allowComments: 'Cho phép bình luận',
+                allowCommentsDescription: 'Cho phép người dùng bình luận trên bài viết.',
+            },
+
+            language: {
+                title: 'Ngôn ngữ',
+                description: 'Theo dõi trạng thái bản dịch của bài viết.',
+            },
+
+            tip: {
+                title: 'Mẹo',
+                description:
+                    'Bạn nên hoàn thiện tiêu đề, đường dẫn và nội dung cho từng ngôn ngữ trước khi xuất bản.',
+            },
+        },
+
+        modal: {
+            eyebrow: 'QUẢN LÝ BLOG',
+            createTitle: 'Tạo bài viết Blog',
+            contentLabel: 'NỘI DUNG',
+            multilingual: 'Đa ngôn ngữ',
+            multilingualDescription: 'Nội dung hỗ trợ VI, EN và JA.',
+            close: 'Đóng',
+            cancel: 'Hủy',
+            create: 'Tạo bài viết',
+            creating: 'Đang tạo...',
+            noSite: 'Chưa chọn website',
+
+            success: 'Thành công',
+            createdSuccess: 'Bài viết đã được tạo thành công.',
+            createFailed: 'Không thể tạo bài viết',
+            unknownError: 'Đã xảy ra lỗi không xác định.',
+
+            loadFailed: 'Không thể tải dữ liệu',
+            loadOptionsFailed: 'Không thể tải danh mục và thẻ.',
+
+            uploadFailed: 'Tải hình ảnh thất bại',
+            siteNotFound: 'Không tìm thấy website hiện tại.',
+            invalidFile: 'Tệp không hợp lệ',
+            invalidImage: 'Vui lòng chọn một tệp hình ảnh hợp lệ.',
+            fileTooLarge: 'Tệp quá lớn',
+            fileTooLargeDescription: 'Kích thước hình ảnh không được vượt quá 10MB.',
+            uploadUrlMissing: 'Không nhận được URL hình ảnh sau khi tải lên.',
+            uploadImageFailed: 'Không thể tải hình ảnh lên.',
+
+            validationFailed: 'Dữ liệu chưa hợp lệ',
+        },
+
+        validation: {
+            siteNotFound: 'Không tìm thấy website hiện tại.',
+            categoryRequired: 'Vui lòng chọn một danh mục Blog hoặc danh mục Wiki.',
+            categoryExclusive: 'Chỉ được chọn một trong danh mục Blog hoặc danh mục Wiki.',
+            translationRequired:
+                'Vui lòng hoàn thiện ít nhất một bản dịch với tiêu đề, đường dẫn và nội dung.',
+        },
+
+        language: {
+            vi: 'Tiếng Việt',
+            en: 'English',
+            ja: '日本語',
+        },
+    },
 };
 
 export default vi;

@@ -81,3 +81,5 @@ Vui long chỉnh sửa và ghi lại toàn bộ testimonial-list.tsx. ngoài ra 
         },
 
       ); vui long hãy chỉnh sửa và thêm giúp tôi nhé. Thêm phần về translate ngôn ngữ tôi đã có import { useAdminI18n } from "@/components/admin/providers/AdminI18nProvider";  const { t } = useAdminI18n(); cách sửa dung {t("brands.form.brandName")}
+
+Tiếp theo bạn hãy chỉnh sửa lại blog-01.tsx loại bỏ những thứ không cần thiết và thay vào đó là app/api/v1/blog/[id]/route.ts và app/api/v1/blog/route.ts . lưu ý nếu như những bug ẩn không được sử dụng hãy xóa ra. Và siteId được lấy ra giống ở file portfolio-service-01.tsx nhé. Vui lòng ghi gọn code và không xuống dòng tùy tiện để code sạch hơn và chuyên nghiệp hơn. Sau khi chỉnh sửa hãy ghi lại toàn bộ file blog-01.tsx hoàn chỉnh .Hiện tại bạn hãy giữ Ui cũ nhé các class Name không được thay đổi các thẻ được sử dụng cứ giữ nguyên á. NGoài ra nếu như Không có data thì hãy thêm 1 data mẫu nhé

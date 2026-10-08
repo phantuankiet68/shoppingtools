@@ -1,0 +1,94 @@
+/* Embla carousel layer — keeps the existing Project Page UI untouched. */
+.carouselMessage {
+    margin: 2rem 0;
+    text-align: center;
+    color: #74809a;
+    font-size: 1.4rem;
+}
+.carouselViewport {
+    width: 100%;
+    overflow: hidden;
+    margin-top: 5rem;
+    padding: 2px 0 8px;
+}
+.carouselContainer {
+    display: flex;
+    align-items: stretch;
+    touch-action: pan-y pinch-zoom;
+    margin-left: -14px;
+}
+.carouselSlide {
+    box-sizing: border-box;
+    flex: 0 0 calc(25%);
+    min-width: 0;
+    padding-left: 24px;
+}
+.carouselSlide > * {
+    height: 100%;
+}
+.carouselFooter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+.carouselDots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+.carouselDot {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(105, 124, 168, 0.22);
+    cursor: pointer;
+    transition:
+        width 0.25s ease,
+        background 0.25s ease,
+        transform 0.25s ease;
+}
+.carouselDot:hover {
+    transform: scale(1.15);
+    background: rgba(91, 112, 255, 0.42);
+}
+.carouselDotActive {
+    width: 26px;
+    background: linear-gradient(90deg, #6677ff, #8b72ff);
+}
+.carouselCount {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #8792aa;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+.carouselCount span {
+    opacity: 0.5;
+}
+@media (max-width: 1100px) {
+    .carouselSlide {
+        flex-basis: calc((100% - 14px) / 2);
+    }
+}
+@media (max-width: 680px) {
+    .carouselViewport {
+        margin-top: 1.5rem;
+    }
+    .carouselContainer {
+        margin-left: -10px;
+    }
+    .carouselSlide {
+        flex-basis: 100%;
+        padding-left: 10px;
+    }
+    .carouselFooter {
+        margin-top: 18px;
+    }
+}

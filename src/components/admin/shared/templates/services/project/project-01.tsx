@@ -1,71 +1,129 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 
 import { LocalizedText, getLocalizedValue } from '@/lib/ui-builder/localization';
+import type { InspectorField, RegItem } from '@/lib/ui-builder/types';
 
-import type { RegItem, InspectorField } from '@/lib/ui-builder/types';
-import Link from 'next/link';
 import styles from '@/components/admin/shared/templates/services/project/styles/project-01.module.css';
-type StatTone = 'blue' | 'purple' | 'green' | 'orange';
-import Image from 'next/image';
+import carouselStyles from '@/components/admin/shared/templates/services/project/styles/project-01-carousel.module.css';
+import ProjectModal01 from '@/components/admin/shared/templates/services/project/modal/project-modal-01';
+
+type SupportedLocale = 'en' | 'vi' | 'ja';
+
+type ProjectFeatureCategory =
+    | 'WEBSITE_BUILDER'
+    | 'SAAS'
+    | 'ECOMMERCE'
+    | 'MOBILE_APP'
+    | 'AI'
+    | 'DESIGN'
+    | 'DEVELOPMENT'
+    | 'OTHER';
+
+type ProjectFeatureImage = {
+    id: string;
+    featureId?: string;
+    image: string;
+    sortOrder: number;
+    isPrimary: boolean;
+};
+
+type ProjectFeatureApiItem = {
+    id: string;
+    siteId: string;
+    slug: string;
+    category: ProjectFeatureCategory;
+    status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+    developer: string | null;
+    tags: unknown;
+    sortOrder: number;
+    isFeatured: boolean;
+    title: string;
+    description: unknown;
+    locale: string | null;
+    images: ProjectFeatureImage[];
+};
+
+type ProjectFeatureApiResponse = {
+    success: boolean;
+    projectFeatures: ProjectFeatureApiItem[];
+    total?: number;
+    message?: string;
+};
 
 type FeatureItem = {
-    subtitle: LocalizedText;
+    id: string;
+    isSample?: boolean;
+    category: ProjectFeatureCategory;
+    subtitle: string;
     icon: string;
+    title: string;
+    description: string;
+    image: string | null;
+    developer: string | null;
+};
+
+type SolutionItem = {
+    id: string;
+    icon: string;
+    variant: string;
     title: LocalizedText;
     description: LocalizedText;
-    image: string;
+};
+
+type CategoryMeta = {
+    icon: string;
+    label: LocalizedText;
 };
 
 type FeatureCardProps = {
     feature: FeatureItem;
-    t: (value: LocalizedText) => string;
-};
-
-type FeatureSectionHeaderProps = {
-    eyebrow: LocalizedText;
-    accent: LocalizedText;
-    highlight: LocalizedText;
-    t: (value: LocalizedText) => string;
-};
-
-type StatItem = {
-    value: LocalizedText;
-    label: LocalizedText;
-    icon: string;
-    tone: StatTone;
+    learnMoreLabel: string;
+    onOpenFeature: (feature: FeatureItem) => void;
 };
 
 export interface ProjectPage01Props {
-    breadcrumbHome?: LocalizedText;
-    breadcrumbCurrent?: LocalizedText;
+    siteId?: string;
 
     heroBadgeTop?: LocalizedText;
     heroBadgeLeft?: LocalizedText;
-    heroBadgeBottom?: LocalizedText;
-    heroBadgeSsl?: LocalizedText;
-
     heroTitle?: LocalizedText;
+    heroTitleAccent?: LocalizedText;
     heroDescription?: LocalizedText;
     heroButtonLabel?: LocalizedText;
+    heroDemoLabel?: LocalizedText;
 
-    sectionBadge?: LocalizedText;
-    sectionTitle?: LocalizedText;
-    sectionTitleAccent?: LocalizedText;
-    sectionDescription?: LocalizedText;
+    heroFeature1?: LocalizedText;
+    heroFeature2?: LocalizedText;
+    heroFeature3?: LocalizedText;
 
-    stat1Value?: LocalizedText;
-    stat1Label?: LocalizedText;
+    trust1Title?: LocalizedText;
+    trust1Description?: LocalizedText;
+    trust2Title?: LocalizedText;
+    trust2Description?: LocalizedText;
+    trust3Title?: LocalizedText;
+    trust3Description?: LocalizedText;
+    trust4Title?: LocalizedText;
+    trust4Description?: LocalizedText;
 
-    stat2Value?: LocalizedText;
-    stat2Label?: LocalizedText;
+    savingLabel?: LocalizedText;
+    visualNote?: LocalizedText;
 
-    stat3Value?: LocalizedText;
-    stat3Label?: LocalizedText;
+    eyebrow?: LocalizedText;
+    title?: LocalizedText;
+    highlight?: LocalizedText;
+    description?: LocalizedText;
+    learnMoreLabel?: LocalizedText;
 
-    stat4Value?: LocalizedText;
-    stat4Label?: LocalizedText;
+    ctaEyebrow?: LocalizedText;
+    ctaTitle?: LocalizedText;
+    ctaDescription?: LocalizedText;
+    ctaLabel?: LocalizedText;
 
     eyebrowText1?: LocalizedText;
     eyebrowAccentText1?: LocalizedText;
@@ -75,107 +133,23 @@ export interface ProjectPage01Props {
     eyebrowAccentText2?: LocalizedText;
     highlightText2?: LocalizedText;
 
-    subTitle1?: LocalizedText;
-    icon1?: string;
-    title1?: LocalizedText;
-    description1?: LocalizedText;
-    image1?: string;
+    sectionBadge?: LocalizedText;
+    sectionTitle?: LocalizedText;
+    sectionTitleAccent?: LocalizedText;
 
-    subTitle2?: LocalizedText;
-    icon2?: string;
-    title2?: LocalizedText;
-    description2?: LocalizedText;
-    image2?: string;
+    loadingProjectsLabel?: LocalizedText;
+    noProjectsLabel?: LocalizedText;
+    carouselGoToLabel?: LocalizedText;
 
-    subTitle3?: LocalizedText;
-    icon3?: string;
-    title3?: LocalizedText;
-    description3?: LocalizedText;
-    image3?: string;
+    categoryLabels?: Record<ProjectFeatureCategory, CategoryMeta>;
 
-    subTitle4?: LocalizedText;
-    icon4?: string;
-    title4?: LocalizedText;
-    description4?: LocalizedText;
-    image4?: string;
-
-    subTitle5?: LocalizedText;
-    icon5?: string;
-    title5?: LocalizedText;
-    description5?: LocalizedText;
-    image5?: string;
-
-    subTitle6?: LocalizedText;
-    icon6?: string;
-    title6?: LocalizedText;
-    description6?: LocalizedText;
-    image6?: string;
-
-    subTitle7?: LocalizedText;
-    icon7?: string;
-    title7?: LocalizedText;
-    description7?: LocalizedText;
-    image7?: string;
-
-    subTitle8?: LocalizedText;
-    icon8?: string;
-    title8?: LocalizedText;
-    description8?: LocalizedText;
-    image8?: string;
-
-    subTitle9?: LocalizedText;
-    icon9?: string;
-    title9?: LocalizedText;
-    description9?: LocalizedText;
-    image9?: string;
-
-    subTitle10?: LocalizedText;
-    icon10?: string;
-    title10?: LocalizedText;
-    description10?: LocalizedText;
-    image10?: string;
-
-    subTitle11?: LocalizedText;
-    icon11?: string;
-    title11?: LocalizedText;
-    description11?: LocalizedText;
-    image11?: string;
+    solutions?: SolutionItem[];
 }
 
-function createFeature(
-    subtitle: LocalizedText,
-    icon: string,
-    title: LocalizedText,
-    description: LocalizedText,
-    image: string,
-): FeatureItem {
-    return {
-        subtitle,
-        icon,
-        title,
-        description,
-        image,
-    };
-}
-
-export const DEFAULT_PROPS: Required<ProjectPage01Props> = {
-    breadcrumbHome: {
-        sourceLocale: 'en',
-        default: 'Home',
-        translations: {
-            vi: 'Trang chủ',
-            ja: 'ホーム',
-        },
-    },
-
-    breadcrumbCurrent: {
-        sourceLocale: 'en',
-        default: 'Project',
-        translations: {
-            vi: 'Dự án',
-            ja: 'プロジェクト',
-        },
-    },
+export const DEFAULT_PROPS: Required<Omit<ProjectPage01Props, 'siteId'>> & {
+    siteId?: string;
+} = {
+    siteId: undefined,
 
     heroBadgeTop: {
         sourceLocale: 'en',
@@ -188,47 +162,38 @@ export const DEFAULT_PROPS: Required<ProjectPage01Props> = {
 
     heroBadgeLeft: {
         sourceLocale: 'en',
-        default: 'No-Code Builder',
+        default: 'No-Code Website Builder',
         translations: {
-            vi: 'Trình tạo không cần lập trình',
-            ja: 'ノーコードビルダー',
-        },
-    },
-
-    heroBadgeBottom: {
-        sourceLocale: 'en',
-        default: '500+ Templates',
-        translations: {
-            vi: '500+ mẫu giao diện',
-            ja: '500以上のテンプレート',
-        },
-    },
-
-    heroBadgeSsl: {
-        sourceLocale: 'en',
-        default: 'Free SSL',
-        translations: {
-            vi: 'SSL miễn phí',
-            ja: '無料SSL',
+            vi: 'Trình tạo website không cần code',
+            ja: 'ノーコードWebサイトビルダー',
         },
     },
 
     heroTitle: {
         sourceLocale: 'en',
-        default: 'Build Smarter With',
+        default: 'Build Your Website',
         translations: {
-            vi: 'Xây dựng thông minh cùng',
-            ja: 'よりスマートに構築',
+            vi: 'Xây dựng website',
+            ja: 'Webサイトを構築',
+        },
+    },
+
+    heroTitleAccent: {
+        sourceLocale: 'en',
+        default: 'with KBuilder',
+        translations: {
+            vi: 'với KBuilder',
+            ja: 'KBuilderで',
         },
     },
 
     heroDescription: {
         sourceLocale: 'en',
         default:
-            'Launch websites faster using visual editing, responsive templates, cloud hosting and AI-assisted content generation.',
+            'Create and launch professional websites faster with visual editing, responsive templates, reusable sections and integrated hosting.',
         translations: {
-            vi: 'Tạo và xuất bản website nhanh hơn với trình chỉnh sửa trực quan, giao diện responsive, cloud hosting và AI hỗ trợ tạo nội dung.',
-            ja: 'ビジュアル編集、レスポンシブテンプレート、クラウドホスティング、AI支援コンテンツ生成で素早くWebサイトを公開します。',
+            vi: 'Tạo và xuất bản website chuyên nghiệp nhanh hơn với trình chỉnh sửa trực quan, giao diện responsive, section tái sử dụng và hosting tích hợp.',
+            ja: 'ビジュアル編集、レスポンシブテンプレート、再利用可能なセクション、統合ホスティングでWebサイトを素早く公開できます。',
         },
     },
 
@@ -238,6 +203,269 @@ export const DEFAULT_PROPS: Required<ProjectPage01Props> = {
         translations: {
             vi: 'Bắt đầu xây dựng',
             ja: '今すぐ始める',
+        },
+    },
+
+    heroDemoLabel: {
+        sourceLocale: 'en',
+        default: 'Live Demo',
+        translations: {
+            vi: 'Xem demo',
+            ja: 'デモを見る',
+        },
+    },
+
+    heroFeature1: {
+        sourceLocale: 'en',
+        default: 'Visual Drag & Drop',
+        translations: {
+            vi: 'Kéo & thả trực quan',
+            ja: '直感的なドラッグ＆ドロップ',
+        },
+    },
+
+    heroFeature2: {
+        sourceLocale: 'en',
+        default: 'Professional Templates',
+        translations: {
+            vi: 'Mẫu giao diện chuyên nghiệp',
+            ja: 'プロフェッショナルテンプレート',
+        },
+    },
+
+    heroFeature3: {
+        sourceLocale: 'en',
+        default: 'Integrated Hosting',
+        translations: {
+            vi: 'Hosting tích hợp',
+            ja: '統合ホスティング',
+        },
+    },
+
+    trust1Title: {
+        sourceLocale: 'en',
+        default: 'No credit card',
+        translations: {
+            vi: 'Không cần thẻ tín dụng',
+            ja: 'クレジットカード不要',
+        },
+    },
+
+    trust1Description: {
+        sourceLocale: 'en',
+        default: 'Start for free',
+        translations: {
+            vi: 'Bắt đầu miễn phí',
+            ja: '無料で開始',
+        },
+    },
+
+    trust2Title: {
+        sourceLocale: 'en',
+        default: 'Secure hosting',
+        translations: {
+            vi: 'Hosting an toàn',
+            ja: '安全なホスティング',
+        },
+    },
+
+    trust2Description: {
+        sourceLocale: 'en',
+        default: 'Always reliable',
+        translations: {
+            vi: 'Luôn ổn định',
+            ja: '安定した環境',
+        },
+    },
+
+    trust3Title: {
+        sourceLocale: 'en',
+        default: 'Quick setup',
+        translations: {
+            vi: 'Thiết lập nhanh',
+            ja: 'かんたん設定',
+        },
+    },
+
+    trust3Description: {
+        sourceLocale: 'en',
+        default: 'Just minutes',
+        translations: {
+            vi: 'Chỉ vài phút',
+            ja: '数分で完了',
+        },
+    },
+
+    trust4Title: {
+        sourceLocale: 'en',
+        default: 'Built-in SSL',
+        translations: {
+            vi: 'SSL tích hợp',
+            ja: 'SSL標準搭載',
+        },
+    },
+
+    trust4Description: {
+        sourceLocale: 'en',
+        default: 'Included',
+        translations: {
+            vi: 'Đã bao gồm',
+            ja: '標準搭載',
+        },
+    },
+
+    savingLabel: {
+        sourceLocale: 'en',
+        default: 'Save up to',
+        translations: {
+            vi: 'Tiết kiệm đến',
+            ja: '最大',
+        },
+    },
+
+    visualNote: {
+        sourceLocale: 'en',
+        default: 'Build better together',
+        translations: {
+            vi: 'Xây dựng tốt hơn cùng nhau',
+            ja: 'もっと良く、一緒に',
+        },
+    },
+
+    eyebrow: {
+        sourceLocale: 'en',
+        default: 'COMPREHENSIVE AI SOLUTIONS',
+        translations: {
+            vi: 'GIẢI PHÁP AI TOÀN DIỆN',
+            ja: '包括的なAIソリューション',
+        },
+    },
+
+    title: {
+        sourceLocale: 'en',
+        default: 'Turn ideas into',
+        translations: {
+            vi: 'Biến ý tưởng thành',
+            ja: 'アイデアを',
+        },
+    },
+
+    highlight: {
+        sourceLocale: 'en',
+        default: 'smart products',
+        translations: {
+            vi: 'sản phẩm thông minh',
+            ja: 'スマートな製品へ',
+        },
+    },
+
+    description: {
+        sourceLocale: 'en',
+        default:
+            'Build, launch and scale digital products faster with the right technology, expertise and tools.',
+        translations: {
+            vi: 'Xây dựng, triển khai và mở rộng sản phẩm số nhanh hơn với công nghệ, chuyên môn và công cụ phù hợp.',
+            ja: '最適なテクノロジー、専門知識、ツールを活用してデジタル製品をより速く構築、展開できます。',
+        },
+    },
+
+    learnMoreLabel: {
+        sourceLocale: 'en',
+        default: 'Learn more',
+        translations: {
+            vi: 'Tìm hiểu thêm',
+            ja: '詳しく見る',
+        },
+    },
+
+    ctaEyebrow: {
+        sourceLocale: 'en',
+        default: 'BUILD THE FUTURE WITH US',
+        translations: {
+            vi: 'ĐỒNG HÀNH CÙNG BẠN',
+            ja: '私たちと未来を築く',
+        },
+    },
+
+    ctaTitle: {
+        sourceLocale: 'en',
+        default: 'Build the future with AI today',
+        translations: {
+            vi: 'Xây dựng tương lai với AI ngay hôm nay',
+            ja: '今すぐAIと未来を創る',
+        },
+    },
+
+    ctaDescription: {
+        sourceLocale: 'en',
+        default:
+            'From ideas to complete digital products, KBuilder provides the technology and support you need to move forward with confidence.',
+        translations: {
+            vi: 'Từ ý tưởng đến sản phẩm số hoàn chỉnh, KBuilder cung cấp công nghệ và hỗ trợ cần thiết để bạn phát triển nhanh chóng và hiệu quả.',
+            ja: 'アイデアから完成したデジタル製品まで、KBuilderが自信を持って開発を進めるためのテクノロジーとサポートを提供します。',
+        },
+    },
+
+    ctaLabel: {
+        sourceLocale: 'en',
+        default: 'Get started',
+        translations: {
+            vi: 'Bắt đầu ngay',
+            ja: '今すぐ始める',
+        },
+    },
+
+    eyebrowText1: {
+        sourceLocale: 'en',
+        default: 'Create Professional Websites',
+        translations: {
+            vi: 'Tạo website chuyên nghiệp',
+            ja: 'プロフェッショナルなWebサイトを構築',
+        },
+    },
+
+    eyebrowAccentText1: {
+        sourceLocale: 'en',
+        default: 'Without Code',
+        translations: {
+            vi: 'Không cần lập trình',
+            ja: 'コード不要',
+        },
+    },
+
+    highlightText1: {
+        sourceLocale: 'en',
+        default: 'Automation Ready',
+        translations: {
+            vi: 'Sẵn sàng tự động hóa',
+            ja: '自動化対応',
+        },
+    },
+
+    eyebrowText2: {
+        sourceLocale: 'en',
+        default: 'Research & Development',
+        translations: {
+            vi: 'Nghiên cứu & phát triển',
+            ja: '研究開発',
+        },
+    },
+
+    eyebrowAccentText2: {
+        sourceLocale: 'en',
+        default: 'with Modern Technology',
+        translations: {
+            vi: 'với công nghệ hiện đại',
+            ja: '最新テクノロジーで',
+        },
+    },
+
+    highlightText2: {
+        sourceLocale: 'en',
+        default: 'Explore Projects',
+        translations: {
+            vi: 'Khám phá dự án',
+            ja: 'プロジェクトを見る',
         },
     },
 
@@ -268,502 +496,392 @@ export const DEFAULT_PROPS: Required<ProjectPage01Props> = {
         },
     },
 
-    sectionDescription: {
+    loadingProjectsLabel: {
         sourceLocale: 'en',
-        default:
-            'Kbuilder provides a complete platform for building, managing and publishing professional websites through visual editing, reusable components and intelligent automation.',
+        default: 'Loading projects...',
         translations: {
-            vi: 'Kbuilder cung cấp nền tảng hoàn chỉnh để xây dựng, quản lý và xuất bản website chuyên nghiệp bằng trình chỉnh sửa trực quan, component tái sử dụng và tự động hóa thông minh.',
-            ja: 'Kbuilderはビジュアル編集、再利用可能なコンポーネント、インテリジェントな自動化を備えたWebサイト構築・管理・公開プラットフォームです。',
+            vi: 'Đang tải project...',
+            ja: 'プロジェクトを読み込んでいます...',
         },
     },
 
-    stat1Value: {
+    noProjectsLabel: {
         sourceLocale: 'en',
-        default: '50+',
+        default: 'No projects available.',
         translations: {
-            vi: '50+',
-            ja: '50+',
+            vi: 'Chưa có project.',
+            ja: 'プロジェクトがありません。',
         },
     },
 
-    stat1Label: {
+    carouselGoToLabel: {
         sourceLocale: 'en',
-        default: 'Websites Created',
+        default: 'Go to slide',
         translations: {
-            vi: 'Website đã tạo',
-            ja: '制作済みサイト',
+            vi: 'Đến slide',
+            ja: 'スライドへ',
         },
     },
 
-    stat2Value: {
-        sourceLocale: 'en',
-        default: '500+',
-        translations: {
-            vi: '500+',
-            ja: '500+',
+    categoryLabels: {
+        WEBSITE_BUILDER: {
+            icon: 'bi-window-stack',
+            label: {
+                sourceLocale: 'en',
+                default: 'Website Builder',
+                translations: {
+                    vi: 'Trình tạo Website',
+                    ja: 'Webサイトビルダー',
+                },
+            },
+        },
+
+        SAAS: {
+            icon: 'bi-cloud-check',
+            label: {
+                sourceLocale: 'en',
+                default: 'SaaS',
+                translations: {
+                    vi: 'SaaS',
+                    ja: 'SaaS',
+                },
+            },
+        },
+
+        ECOMMERCE: {
+            icon: 'bi-cart-check',
+            label: {
+                sourceLocale: 'en',
+                default: 'E-commerce',
+                translations: {
+                    vi: 'Thương mại điện tử',
+                    ja: 'Eコマース',
+                },
+            },
+        },
+
+        MOBILE_APP: {
+            icon: 'bi-phone',
+            label: {
+                sourceLocale: 'en',
+                default: 'Mobile Apps',
+                translations: {
+                    vi: 'Ứng dụng di động',
+                    ja: 'モバイルアプリ',
+                },
+            },
+        },
+
+        AI: {
+            icon: 'bi-cpu',
+            label: {
+                sourceLocale: 'en',
+                default: 'Artificial Intelligence',
+                translations: {
+                    vi: 'Trí tuệ nhân tạo',
+                    ja: '人工知能',
+                },
+            },
+        },
+
+        DESIGN: {
+            icon: 'bi-palette',
+            label: {
+                sourceLocale: 'en',
+                default: 'Design',
+                translations: {
+                    vi: 'Thiết kế',
+                    ja: 'デザイン',
+                },
+            },
+        },
+
+        DEVELOPMENT: {
+            icon: 'bi-code-slash',
+            label: {
+                sourceLocale: 'en',
+                default: 'Development',
+                translations: {
+                    vi: 'Phát triển',
+                    ja: '開発',
+                },
+            },
+        },
+
+        OTHER: {
+            icon: 'bi-stars',
+            label: {
+                sourceLocale: 'en',
+                default: 'Other',
+                translations: {
+                    vi: 'Khác',
+                    ja: 'その他',
+                },
+            },
         },
     },
 
-    stat2Label: {
-        sourceLocale: 'en',
-        default: 'Templates',
-        translations: {
-            vi: 'Mẫu giao diện',
-            ja: 'テンプレート',
+    solutions: [
+        {
+            id: 'website-builder',
+            icon: 'bi-window-stack',
+            variant: 'solutions01Blue',
+            title: {
+                sourceLocale: 'en',
+                default: 'Website Builder',
+                translations: {
+                    vi: 'Trình tạo Website',
+                    ja: 'Webサイトビルダー',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Build professional websites visually with reusable sections, responsive layouts and modern templates.',
+                translations: {
+                    vi: 'Xây dựng website chuyên nghiệp bằng giao diện trực quan với section tái sử dụng, responsive và template hiện đại.',
+                    ja: '再利用可能なセクション、レスポンシブレイアウト、最新テンプレートでプロフェッショナルなWebサイトを構築できます。',
+                },
+            },
         },
-    },
 
-    stat3Value: {
-        sourceLocale: 'en',
-        default: '100%',
-        translations: {
-            vi: '100%',
-            ja: '100%',
+        {
+            id: 'saas',
+            icon: 'bi-cloud-check-fill',
+            variant: 'solutions01Purple',
+            title: {
+                sourceLocale: 'en',
+                default: 'SaaS Platforms',
+                translations: {
+                    vi: 'Nền tảng SaaS',
+                    ja: 'SaaSプラットフォーム',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Create scalable SaaS products with modern architecture, dashboards, authentication and cloud deployment.',
+                translations: {
+                    vi: 'Xây dựng sản phẩm SaaS có khả năng mở rộng với kiến trúc hiện đại, dashboard, xác thực và cloud deployment.',
+                    ja: '最新アーキテクチャ、ダッシュボード、認証、クラウド展開に対応した拡張性の高いSaaSを構築します。',
+                },
+            },
         },
-    },
 
-    stat3Label: {
-        sourceLocale: 'en',
-        default: 'No-Code Experience',
-        translations: {
-            vi: 'Không cần lập trình',
-            ja: 'ノーコード体験',
+        {
+            id: 'ecommerce',
+            icon: 'bi-cart-check-fill',
+            variant: 'solutions01Pink',
+            title: {
+                sourceLocale: 'en',
+                default: 'E-commerce',
+                translations: {
+                    vi: 'Thương mại điện tử',
+                    ja: 'Eコマース',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Launch modern online stores with flexible content, responsive shopping experiences and conversion-focused layouts.',
+                translations: {
+                    vi: 'Xây dựng cửa hàng trực tuyến hiện đại với nội dung linh hoạt, responsive và bố cục tối ưu chuyển đổi.',
+                    ja: '柔軟なコンテンツ、レスポンシブな購買体験、コンバージョン重視のレイアウトでオンラインストアを構築します。',
+                },
+            },
         },
-    },
 
-    stat4Value: {
-        sourceLocale: 'en',
-        default: 'AI',
-        translations: {
-            vi: 'AI',
-            ja: 'AI',
+        {
+            id: 'development',
+            icon: 'bi-code-slash',
+            variant: 'solutions01Green',
+            title: {
+                sourceLocale: 'en',
+                default: 'Custom Development',
+                translations: {
+                    vi: 'Phát triển theo yêu cầu',
+                    ja: 'カスタム開発',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Build reliable digital products with modern frontend, backend, API and database architecture.',
+                translations: {
+                    vi: 'Xây dựng sản phẩm số ổn định với kiến trúc frontend, backend, API và database hiện đại.',
+                    ja: 'モダンなフロントエンド、バックエンド、API、データベース構成で信頼性の高い製品を開発します。',
+                },
+            },
         },
-    },
-
-    stat4Label: {
-        sourceLocale: 'en',
-        default: 'Powered Builder',
-        translations: {
-            vi: 'Nền tảng AI',
-            ja: 'AI搭載ビルダー',
-        },
-    },
-
-    eyebrowText1: {
-        sourceLocale: 'en',
-        default: 'Create Professional Websites and Business Applications Without Code',
-        translations: {
-            vi: 'Tạo website và ứng dụng doanh nghiệp chuyên nghiệp không cần lập trình',
-            ja: 'コード不要でプロフェッショナルなWebサイトと業務アプリを構築',
-        },
-    },
-
-    eyebrowAccentText1: {
-        sourceLocale: 'en',
-        default: 'Business Applications Without Code',
-        translations: {
-            vi: 'Ứng dụng doanh nghiệp không cần lập trình',
-            ja: 'コード不要の業務アプリ',
-        },
-    },
-
-    highlightText1: {
-        sourceLocale: 'en',
-        default: 'Automation Ready',
-        translations: {
-            vi: 'Sẵn sàng tự động hóa',
-            ja: '自動化対応',
-        },
-    },
-
-    eyebrowText2: {
-        sourceLocale: 'en',
-        default: 'Research & Development with',
-        translations: {
-            vi: 'Nghiên cứu và phát triển với',
-            ja: '研究開発',
-        },
-    },
-
-    eyebrowAccentText2: {
-        sourceLocale: 'en',
-        default: 'Machine Learning',
-        translations: {
-            vi: 'Machine Learning',
-            ja: '機械学習',
-        },
-    },
-
-    highlightText2: {
-        sourceLocale: 'en',
-        default: 'Automation Ready',
-        translations: {
-            vi: 'Sẵn sàng tự động hóa',
-            ja: '自動化対応',
-        },
-    },
-    subTitle1: {
-        sourceLocale: 'en',
-        default: 'Website Builder',
-        translations: {
-            vi: 'Trình tạo Website',
-            ja: 'Webサイトビルダー',
-        },
-    },
-
-    icon1: 'bi-window-stack',
-
-    title1: {
-        sourceLocale: 'en',
-        default: 'No-Code Website Builder',
-        translations: {
-            vi: 'Trình tạo Website không cần lập trình',
-            ja: 'ノーコードWebサイトビルダー',
-        },
-    },
-
-    description1: {
-        sourceLocale: 'en',
-        default:
-            'Empower your team to build, manage, and scale professional websites through a fully visual editing experience. With drag-and-drop page creation, dynamic menu management, reusable content blocks, and flexible design controls, anyone can create beautiful responsive websites without technical expertise.',
-        translations: {
-            vi: 'Cho phép đội ngũ của bạn xây dựng, quản lý và mở rộng website chuyên nghiệp bằng trình chỉnh sửa trực quan. Kéo thả trang, quản lý menu, tái sử dụng component và tùy chỉnh giao diện dễ dàng mà không cần lập trình.',
-            ja: 'ビジュアルエディター、ドラッグ＆ドロップ編集、動的メニュー、再利用可能なコンテンツブロックにより、誰でも簡単にプロフェッショナルなWebサイトを構築できます。',
-        },
-    },
-
-    image1: '/assets/images/feature-add.png',
-
-    subTitle2: {
-        sourceLocale: 'en',
-        default: 'Automation',
-        translations: {
-            vi: 'Tự động hóa',
-            ja: '自動化',
-        },
-    },
-
-    icon2: 'bi-lightning-charge',
-
-    title2: {
-        sourceLocale: 'en',
-        default: 'Website Automation',
-        translations: {
-            vi: 'Tự động hóa Website',
-            ja: 'Webサイト自動化',
-        },
-    },
-
-    description2: {
-        sourceLocale: 'en',
-        default:
-            'Launch a fully configured website in as little as 10 minutes. Automatically generate pages, apply branding, configure site settings, and streamline publishing workflows. Schedule and automate content distribution across Facebook and TikTok to keep your audience engaged without manual work.',
-        translations: {
-            vi: 'Triển khai website hoàn chỉnh chỉ trong vài phút. Tự động tạo trang, áp dụng thương hiệu, cấu hình website và tự động hóa quy trình xuất bản cũng như phân phối nội dung.',
-            ja: '数分で完全なWebサイトを構築し、ページ生成・ブランド適用・設定・公開・SNS配信まで自動化します。',
-        },
-    },
-
-    image2: '/assets/images/automation-add.png',
-
-    subTitle3: {
-        sourceLocale: 'en',
-        default: 'Navigation',
-        translations: {
-            vi: 'Điều hướng',
-            ja: 'ナビゲーション',
-        },
-    },
-
-    icon3: 'bi-grid-3x3-gap',
-
-    title3: {
-        sourceLocale: 'en',
-        default: 'Drag & Drop Menus',
-        translations: {
-            vi: 'Menu kéo thả',
-            ja: 'ドラッグ＆ドロップメニュー',
-        },
-    },
-
-    description3: {
-        sourceLocale: 'en',
-        default:
-            'Build professional navigation systems with visual drag-and-drop controls. Create multi-level dropdowns, mega menus, mobile navigation, and custom links while organizing pages effortlessly. Update menu structures instantly and deliver a seamless browsing experience across all devices without writing code.',
-        translations: {
-            vi: 'Xây dựng hệ thống menu chuyên nghiệp bằng kéo thả trực quan. Hỗ trợ menu đa cấp, mega menu, menu mobile và liên kết tùy chỉnh mà không cần lập trình.',
-            ja: 'ドラッグ＆ドロップ操作でメガメニュー、階層メニュー、モバイルメニューを簡単に構築できます。',
-        },
-    },
-
-    image3: '/assets/images/drag-add.png',
-
-    subTitle4: {
-        sourceLocale: 'en',
-        default: 'Templates',
-        translations: {
-            vi: 'Mẫu giao diện',
-            ja: 'テンプレート',
-        },
-    },
-
-    icon4: 'bi-layout-text-window',
-
-    title4: {
-        sourceLocale: 'en',
-        default: 'Premium Templates',
-        translations: {
-            vi: 'Kho giao diện cao cấp',
-            ja: 'プレミアムテンプレート',
-        },
-    },
-
-    description4: {
-        sourceLocale: 'en',
-        default:
-            'Access a growing collection of 300+ premium website templates designed for every industry and use case. From SaaS platforms and landing pages to eCommerce and booking websites, each template is fully editable, mobile-friendly, and optimized for performance, SEO, and conversion.',
-        translations: {
-            vi: 'Truy cập thư viện hơn 300 giao diện chuyên nghiệp cho Landing Page, SaaS, Booking, eCommerce và nhiều lĩnh vực khác. Mỗi giao diện đều responsive, tối ưu SEO và dễ dàng tùy chỉnh.',
-            ja: '300種類以上の高品質テンプレートを利用でき、すべてレスポンシブ・SEO最適化・編集可能です。',
-        },
-    },
-
-    image4: '/assets/images/template-add.png',
-
-    subTitle5: {
-        sourceLocale: 'en',
-        default: 'Smart Setup',
-        translations: {
-            vi: 'Thiết lập thông minh',
-            ja: 'スマートセットアップ',
-        },
-    },
-
-    icon5: 'bi-magic',
-
-    title5: {
-        sourceLocale: 'en',
-        default: 'Automatic Setup',
-        translations: {
-            vi: 'Thiết lập tự động',
-            ja: '自動セットアップ',
-        },
-    },
-
-    description5: {
-        sourceLocale: 'en',
-        default:
-            'Automatically configure your website, generate pages, prepare navigation, connect domains, and apply essential settings within minutes. Reduce manual work and launch projects much faster.',
-        translations: {
-            vi: 'Tự động cấu hình website, tạo trang, chuẩn bị menu, kết nối tên miền và áp dụng các thiết lập cần thiết chỉ trong vài phút.',
-            ja: 'Webサイト設定、ページ生成、ナビゲーション作成、ドメイン接続を自動化します。',
-        },
-    },
-
-    image5: '/assets/images/setup-add.png',
-
-    subTitle6: {
-        sourceLocale: 'en',
-        default: 'Security',
-        translations: {
-            vi: 'Bảo mật',
-            ja: 'セキュリティ',
-        },
-    },
-
-    icon6: 'bi-shield-check',
-
-    title6: {
-        sourceLocale: 'en',
-        default: 'Custom SSL & Domains',
-        translations: {
-            vi: 'SSL & Tên miền',
-            ja: 'SSL・独自ドメイン',
-        },
-    },
-
-    description6: {
-        sourceLocale: 'en',
-        default:
-            'Publish websites under your own branded domain with automated DNS configuration and free SSL certificates. Secure every website with HTTPS, improve SEO performance, and manage domains directly from the platform.',
-        translations: {
-            vi: 'Xuất bản website với tên miền riêng, cấu hình DNS tự động và SSL miễn phí. Bảo mật HTTPS, cải thiện SEO và quản lý tên miền trực tiếp trên nền tảng.',
-            ja: '独自ドメイン・無料SSL・HTTPS・DNS自動設定をサポートし、安全なWebサイトを公開できます。',
-        },
-    },
-
-    image6: '/assets/images/ssl-add.png',
-
-    subTitle7: {
-        sourceLocale: 'en',
-        default: 'Web Builder',
-        translations: {
-            vi: 'Trình tạo Website',
-            ja: 'Webビルダー',
-        },
-    },
-
-    icon7: 'bi-bounding-box',
-
-    title7: {
-        sourceLocale: 'en',
-        default: 'Visual Canvas Builder',
-        translations: {
-            vi: 'Canvas Builder trực quan',
-            ja: 'ビジュアルキャンバスビルダー',
-        },
-    },
-
-    description7: {
-        sourceLocale: 'en',
-        default:
-            'Researching and developing a next-generation visual website builder powered by a canvas-based editing experience. Users can design pages, arrange components, manage layouts, and customize content through a drag-and-drop interface built with Next.js.',
-        translations: {
-            vi: 'Nghiên cứu và phát triển trình tạo website thế hệ mới dựa trên Canvas. Người dùng có thể kéo thả component, thiết kế layout và chỉnh sửa nội dung trực tiếp bằng giao diện trực quan.',
-            ja: 'キャンバスベースの次世代Webサイトビルダーを開発し、ドラッグ＆ドロップでページやコンポーネントを自由に編集できます。',
-        },
-    },
-
-    image7: '/assets/images/canvas-add.png',
-
-    subTitle8: {
-        sourceLocale: 'en',
-        default: 'Mobile Apps',
-        translations: {
-            vi: 'Ứng dụng di động',
-            ja: 'モバイルアプリ',
-        },
-    },
-
-    icon8: 'bi-phone',
-
-    title8: {
-        sourceLocale: 'en',
-        default: 'React Native Applications',
-        translations: {
-            vi: 'Ứng dụng React Native',
-            ja: 'React Nativeアプリケーション',
-        },
-    },
-
-    description8: {
-        sourceLocale: 'en',
-        default:
-            'Building cross-platform mobile applications with React Native for task management, business operations, customer engagement, and productivity workflows while maintaining a consistent experience across iOS and Android devices.',
-        translations: {
-            vi: 'Phát triển ứng dụng đa nền tảng bằng React Native phục vụ quản lý công việc, doanh nghiệp và khách hàng với trải nghiệm đồng nhất trên iOS và Android.',
-            ja: 'React Nativeを利用してiOS・Android向けクロスプラットフォームアプリケーションを開発します。',
-        },
-    },
-
-    image8: '/assets/images/research-react-native.png',
-
-    subTitle9: {
-        sourceLocale: 'en',
-        default: 'Immersive Tech',
-        translations: {
-            vi: 'Công nghệ nhập vai',
-            ja: '没入型テクノロジー',
-        },
-    },
-
-    icon9: 'bi-badge-vr',
-
-    title9: {
-        sourceLocale: 'en',
-        default: 'Virtual Reality Experiences',
-        translations: {
-            vi: 'Trải nghiệm thực tế ảo',
-            ja: 'VR体験',
-        },
-    },
-
-    description9: {
-        sourceLocale: 'en',
-        default:
-            'Exploring virtual reality technologies to create immersive digital experiences, interactive environments, product showcases, training simulations, and next-generation user interactions across multiple industries.',
-        translations: {
-            vi: 'Nghiên cứu công nghệ thực tế ảo nhằm xây dựng trải nghiệm số, môi trường tương tác, mô phỏng đào tạo và trình diễn sản phẩm.',
-            ja: 'VR技術を活用し、没入型体験、製品展示、教育シミュレーションなどを実現します。',
-        },
-    },
-
-    image9: '/assets/images/research-vr.png',
-
-    subTitle10: {
-        sourceLocale: 'en',
-        default: 'Artificial Intelligence',
-        translations: {
-            vi: 'Trí tuệ nhân tạo',
-            ja: '人工知能',
-        },
-    },
-
-    icon10: 'bi-cpu',
-
-    title10: {
-        sourceLocale: 'en',
-        default: 'Machine Learning & AI',
-        translations: {
-            vi: 'Machine Learning & AI',
-            ja: '機械学習・AI',
-        },
-    },
-
-    description10: {
-        sourceLocale: 'en',
-        default:
-            'Researching machine learning and artificial intelligence technologies to automate workflows, analyze business data, intelligent recommendations, and enhance digital products with smart decision-making capabilities.',
-        translations: {
-            vi: 'Nghiên cứu Machine Learning và AI nhằm tự động hóa quy trình, phân tích dữ liệu doanh nghiệp và nâng cao khả năng ra quyết định thông minh.',
-            ja: '機械学習とAIを活用し、業務自動化・データ分析・インテリジェントな意思決定を実現します。',
-        },
-    },
-
-    image10: '/assets/images/research-ai.png',
-
-    subTitle11: {
-        sourceLocale: 'en',
-        default: 'SEO & Marketing',
-        translations: {
-            vi: 'SEO & Marketing',
-            ja: 'SEO・マーケティング',
-        },
-    },
-
-    icon11: 'bi-graph-up-arrow',
-
-    title11: {
-        sourceLocale: 'en',
-        default: 'SEO Landing Pages',
-        translations: {
-            vi: 'Landing Page chuẩn SEO',
-            ja: 'SEOランディングページ',
-        },
-    },
-
-    description11: {
-        sourceLocale: 'en',
-        default:
-            'Developing SEO-optimized landing page systems focused on performance, search visibility, content structure, and conversion optimization to help businesses attract more organic traffic and generate qualified leads.',
-        translations: {
-            vi: 'Phát triển hệ thống Landing Page chuẩn SEO với hiệu năng cao, cấu trúc nội dung tối ưu và tỷ lệ chuyển đổi tốt nhằm thu hút nhiều khách hàng tiềm năng.',
-            ja: 'SEOに最適化されたランディングページを開発し、検索順位・パフォーマンス・コンバージョン率を向上させます。',
-        },
-    },
-
-    image11: '/assets/images/research-seo.png',
+    ],
 };
 
-function FeatureCard({ feature, t }: FeatureCardProps) {
+function extractRichText(value: unknown): string {
+    if (typeof value === 'string') {
+        return value
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(extractRichText).filter(Boolean).join(' ').trim();
+    }
+
+    if (value && typeof value === 'object') {
+        const record = value as Record<string, unknown>;
+
+        if (typeof record.text === 'string') {
+            return record.text.trim();
+        }
+
+        if (Array.isArray(record.content)) {
+            return extractRichText(record.content);
+        }
+
+        return Object.values(record).map(extractRichText).filter(Boolean).join(' ').trim();
+    }
+
+    return '';
+}
+
+function getCategoryMeta(
+    category: ProjectFeatureCategory,
+    categoryLabels: Record<ProjectFeatureCategory, CategoryMeta>,
+    locale: SupportedLocale,
+    t: (value: LocalizedText) => string,
+) {
+    const item = categoryLabels[category] ?? categoryLabels.OTHER;
+
+    return {
+        icon: item.icon,
+        label: t(item.label),
+    };
+}
+
+function getSampleProjectFeatures(
+    locale: SupportedLocale,
+    categoryLabels: Record<ProjectFeatureCategory, CategoryMeta>,
+    t: (value: LocalizedText) => string,
+): FeatureItem[] {
+    const samples = [
+        {
+            id: 'sample-website-builder',
+            category: 'WEBSITE_BUILDER' as const,
+            icon: 'bi-window-stack',
+            title: {
+                sourceLocale: 'en',
+                default: 'KBuilder Website Builder',
+                translations: {
+                    vi: 'KBuilder Website Builder',
+                    ja: 'KBuilder Webサイトビルダー',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'Build professional websites visually with reusable sections, responsive layouts and AI-assisted content.',
+                translations: {
+                    vi: 'Xây dựng website chuyên nghiệp bằng giao diện trực quan với section tái sử dụng, responsive và AI hỗ trợ nội dung.',
+                    ja: '再利用可能なセクション、レスポンシブレイアウト、AI支援コンテンツでWebサイトを構築できます。',
+                },
+            },
+            developer: {
+                sourceLocale: 'en',
+                default: 'KBuilder Team',
+                translations: {
+                    vi: 'Đội ngũ KBuilder',
+                    ja: 'KBuilderチーム',
+                },
+            },
+        },
+
+        {
+            id: 'sample-saas',
+            category: 'SAAS' as const,
+            icon: 'bi-cloud-check',
+            title: {
+                sourceLocale: 'en',
+                default: 'Business SaaS Platform',
+                translations: {
+                    vi: 'Nền tảng SaaS doanh nghiệp',
+                    ja: '業務向けSaaSプラットフォーム',
+                },
+            },
+            description: {
+                sourceLocale: 'en',
+                default:
+                    'A scalable SaaS foundation with dashboards, authentication and cloud deployment.',
+                translations: {
+                    vi: 'Nền tảng SaaS có khả năng mở rộng với dashboard, xác thực và triển khai cloud.',
+                    ja: 'ダッシュボード、認証、クラウド展開に対応した拡張性の高いSaaS基盤です。',
+                },
+            },
+            developer: {
+                sourceLocale: 'en',
+                default: 'Product Engineering',
+                translations: {
+                    vi: 'Product Engineering',
+                    ja: 'プロダクトエンジニアリング',
+                },
+            },
+        },
+    ];
+
+    return samples.map((item) => ({
+        id: item.id,
+        isSample: true,
+        category: item.category,
+        subtitle: getCategoryMeta(item.category, categoryLabels, locale, t).label,
+        icon: item.icon,
+        title: t(item.title),
+        description: t(item.description),
+        image: '/assets/images/hero-project-browser.png',
+        developer: t(item.developer),
+    }));
+}
+
+function mapProjectFeature(
+    item: ProjectFeatureApiItem,
+    categoryLabels: Record<ProjectFeatureCategory, CategoryMeta>,
+    t: (value: LocalizedText) => string,
+) {
+    const category = getCategoryMeta(item.category, categoryLabels, 'en', t);
+
+    const primaryImage =
+        item.images.find((image) => image.isPrimary)?.image ?? item.images[0]?.image ?? null;
+
+    return {
+        id: item.id,
+        category: item.category,
+        subtitle: category.label,
+        icon: category.icon,
+        title: item.title || item.slug,
+        description: extractRichText(item.description),
+        image: primaryImage,
+        developer: item.developer,
+    };
+}
+
+function FeatureCard({ feature, learnMoreLabel, onOpenFeature }: FeatureCardProps) {
     return (
         <article className={styles.card}>
             <div className={styles.imageWrap}>
                 <div className={styles.imageGlow} />
                 <div className={styles.imageGrid} />
 
-                <img src={feature.image} alt={t(feature.title)} className={styles.image} />
+                {feature.image ? (
+                    <img
+                        src={feature.image}
+                        alt={feature.title}
+                        className={styles.image}
+                        loading="lazy"
+                    />
+                ) : (
+                    <div className={styles.image} aria-hidden="true">
+                        <i className={`bi ${feature.icon}`} />
+                    </div>
+                )}
             </div>
 
             <div className={styles.content}>
@@ -773,26 +891,30 @@ function FeatureCard({ feature, t }: FeatureCardProps) {
                     </div>
 
                     <div className={styles.headerTop}>
-                        <h3>{t(feature.title)}</h3>
-                        <h4 className={styles.subtitle}>{t(feature.subtitle)}</h4>
+                        <h3>{feature.title}</h3>
+                        <h4 className={styles.subtitle}>{feature.subtitle}</h4>
                     </div>
                 </div>
 
                 <div className={styles.cardFooter}>
                     <div className={styles.metaRow}>
                         <div className={styles.metaContent}>
-                            <p>{t(feature.description)}</p>
+                            <p>{feature.description}</p>
                         </div>
                     </div>
 
                     <div className={styles.footerActions}>
                         <span className={styles.status}>
                             <span className={styles.statusDot} />
-                            Included
+                            {feature.developer || 'KBuilder'}
                         </span>
 
-                        <button type="button" className={styles.learnMore}>
-                            Learn More
+                        <button
+                            type="button"
+                            className={styles.learnMore}
+                            onClick={() => onOpenFeature(feature)}
+                        >
+                            {learnMoreLabel}
                             <i className="bi bi-arrow-right" />
                         </button>
                     </div>
@@ -801,59 +923,47 @@ function FeatureCard({ feature, t }: FeatureCardProps) {
         </article>
     );
 }
-function FeatureSectionHeader({ eyebrow, accent, highlight, t }: FeatureSectionHeaderProps) {
+
+function FeatureSectionHeader({
+    eyebrow,
+    accent,
+    highlight,
+    t,
+}: {
+    eyebrow: LocalizedText;
+    accent: LocalizedText;
+    highlight: LocalizedText;
+    t: (value: LocalizedText) => string;
+}) {
     return (
         <div className={styles.header}>
+            <div className={styles.headerGlow} />
+            <div className={styles.headerGrid} />
+
             <div className={styles.headerLeft}>
                 <div className={styles.iconBoxTitle}>
                     <i className="bi bi-rocket-takeoff-fill" />
                 </div>
 
                 <div className={styles.textContent}>
-                    <h2 className={styles.eyebrow}>{t(eyebrow)}</h2>
+                    <div className={styles.eyebrowLabel}>
+                        <span>{t(eyebrow)}</span>
+                        <i className="bi bi-dash-lg" />
+                    </div>
 
-                    <p className={styles.accent}>{t(accent)}</p>
+                    <h2 className={styles.eyebrow}>{t(accent)}</h2>
                 </div>
             </div>
 
-            <button type="button" className={styles.ctaButton}>
-                <i className="bi bi-lightning-charge-fill" />
-                <span>{t(highlight)}</span>
-            </button>
+            <div className={styles.headerRight}>
+                <button type="button" className={styles.ctaButton}>
+                    <i className="bi bi-stars" />
+                    <span>{t(highlight)}</span>
+                    <i className="bi bi-arrow-right" />
+                </button>
+            </div>
         </div>
     );
-}
-
-function createFeatureInspector(index: number): RegItem['inspector'] {
-    return [
-        {
-            key: `subTitle${index}`,
-            label: `Feature ${index} Subtitle`,
-            kind: 'text',
-        },
-        {
-            key: `icon${index}`,
-            label: `Feature ${index} Icon`,
-            kind: 'text',
-        },
-        {
-            key: `title${index}`,
-            label: `Feature ${index} Title`,
-            kind: 'text',
-        },
-        {
-            key: `description${index}`,
-            label: `Feature ${index} Description`,
-            kind: 'textarea',
-        },
-        {
-            key: `image${index}`,
-            label: `Feature ${index} Image`,
-            kind: 'image',
-            folder: 'services/project',
-            accept: 'image/*',
-        },
-    ];
 }
 
 export function ProjectPage01(props: ProjectPage01Props) {
@@ -863,362 +973,469 @@ export function ProjectPage01(props: ProjectPage01Props) {
     };
 
     const {
-        breadcrumbHome,
-        breadcrumbCurrent,
-
+        siteId,
         heroBadgeTop,
         heroBadgeLeft,
-        heroBadgeBottom,
-        heroBadgeSsl,
-
         heroTitle,
+        heroTitleAccent,
         heroDescription,
         heroButtonLabel,
-
-        sectionBadge,
-        sectionTitle,
-        sectionTitleAccent,
-        sectionDescription,
-
-        stat1Value,
-        stat1Label,
-
-        stat2Value,
-        stat2Label,
-
-        stat3Value,
-        stat3Label,
-
-        stat4Value,
-        stat4Label,
-
+        heroDemoLabel,
+        heroFeature1,
+        heroFeature2,
+        heroFeature3,
+        trust1Title,
+        trust1Description,
+        trust2Title,
+        trust2Description,
+        trust3Title,
+        trust3Description,
+        trust4Title,
+        trust4Description,
+        savingLabel,
+        visualNote,
+        eyebrow,
+        title,
+        highlight,
+        description,
+        learnMoreLabel,
+        ctaEyebrow,
+        ctaTitle,
+        ctaDescription,
+        ctaLabel,
         eyebrowText1,
         eyebrowAccentText1,
         highlightText1,
-
         eyebrowText2,
         eyebrowAccentText2,
         highlightText2,
-
-        subTitle1,
-        icon1,
-        title1,
-        description1,
-        image1,
-
-        subTitle2,
-        icon2,
-        title2,
-        description2,
-        image2,
-
-        subTitle3,
-        icon3,
-        title3,
-        description3,
-        image3,
-
-        subTitle4,
-        icon4,
-        title4,
-        description4,
-        image4,
-
-        subTitle5,
-        icon5,
-        title5,
-        description5,
-        image5,
-
-        subTitle6,
-        icon6,
-        title6,
-        description6,
-        image6,
-
-        subTitle7,
-        icon7,
-        title7,
-        description7,
-        image7,
-
-        subTitle8,
-        icon8,
-        title8,
-        description8,
-        image8,
-
-        subTitle9,
-        icon9,
-        title9,
-        description9,
-        image9,
-
-        subTitle10,
-        icon10,
-        title10,
-        description10,
-        image10,
-
-        subTitle11,
-        icon11,
-        title11,
-        description11,
-        image11,
+        loadingProjectsLabel,
+        noProjectsLabel,
+        carouselGoToLabel,
+        categoryLabels,
+        solutions,
     } = mergedProps;
 
-    const [selectedLocale, setSelectedLocale] = useState(() => {
+    const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>(() => {
         if (typeof window === 'undefined') {
             return 'en';
         }
 
-        return localStorage.getItem('locale') ?? 'en';
+        const value = localStorage.getItem('locale');
+
+        return value === 'vi' || value === 'ja' ? value : 'en';
     });
-
-    useEffect(() => {
-        const handleLocaleChange = (event: Event) => {
-            const customEvent = event as CustomEvent<string>;
-            setSelectedLocale(customEvent.detail);
-        };
-
-        window.addEventListener('locale-change', handleLocaleChange as EventListener);
-
-        return () => {
-            window.removeEventListener('locale-change', handleLocaleChange as EventListener);
-        };
-    }, []);
 
     const t = useCallback(
         (value: LocalizedText) => getLocalizedValue(value, selectedLocale),
         [selectedLocale],
     );
 
-    const stats = useMemo<StatItem[]>(
-        () => [
-            {
-                value: stat1Value,
-                label: stat1Label,
-                icon: 'bi-bar-chart-fill',
-                tone: 'blue',
-            },
-            {
-                value: stat2Value,
-                label: stat2Label,
-                icon: 'bi-layers-fill',
-                tone: 'purple',
-            },
-            {
-                value: stat3Value,
-                label: stat3Label,
-                icon: 'bi-shield-check',
-                tone: 'green',
-            },
-            {
-                value: stat4Value,
-                label: stat4Label,
-                icon: 'bi-stars',
-                tone: 'orange',
-            },
-        ],
-        [
-            stat1Value,
-            stat1Label,
-            stat2Value,
-            stat2Label,
-            stat3Value,
-            stat3Label,
-            stat4Value,
-            stat4Label,
-        ],
+    const [features, setFeatures] = useState<FeatureItem[]>([]);
+    const [selectedFeature, setSelectedFeature] = useState<FeatureItem | null>(null);
+    const [loadingFeatures, setLoadingFeatures] = useState(false);
+
+    const autoplay = useMemo(
+        () =>
+            Autoplay({
+                delay: 4200,
+                stopOnInteraction: false,
+                stopOnMouseEnter: true,
+            }),
+        [],
     );
 
-    const FEATURES_WEBSITE: FeatureItem[] = [
-        createFeature(subTitle1, icon1, title1, description1, image1),
-        createFeature(subTitle2, icon2, title2, description2, image2),
-        createFeature(subTitle3, icon3, title3, description3, image3),
-        createFeature(subTitle4, icon4, title4, description4, image4),
-        createFeature(subTitle5, icon5, title5, description5, image5),
-        createFeature(subTitle6, icon6, title6, description6, image6),
-    ];
+    const [emblaRef, emblaApi] = useEmblaCarousel(
+        {
+            align: 'start',
+            loop: true,
+            containScroll: 'trimSnaps',
+            duration: 26,
+        },
+        [autoplay],
+    );
 
-    const FEATURES_DEVELOPMENT: FeatureItem[] = [
-        createFeature(subTitle7, icon7, title7, description7, image7),
-        createFeature(subTitle8, icon8, title8, description8, image8),
-        createFeature(subTitle9, icon9, title9, description9, image9),
-        createFeature(subTitle10, icon10, title10, description10, image10),
-        createFeature(subTitle11, icon11, title11, description11, image11),
-    ];
+    const [selectedSlide, setSelectedSlide] = useState(0);
+    const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+
+    useEffect(() => {
+        const handleLocaleChange = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            const nextLocale = customEvent.detail;
+
+            if (nextLocale === 'en' || nextLocale === 'vi' || nextLocale === 'ja') {
+                setSelectedLocale(nextLocale);
+            }
+        };
+
+        window.addEventListener('locale-change', handleLocaleChange);
+
+        return () => {
+            window.removeEventListener('locale-change', handleLocaleChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        async function loadProjectFeatures() {
+            if (!siteId) {
+                setFeatures(getSampleProjectFeatures(selectedLocale, categoryLabels, t));
+                setLoadingFeatures(false);
+                return;
+            }
+
+            setLoadingFeatures(true);
+
+            try {
+                const params = new URLSearchParams({
+                    siteId,
+                    locale: selectedLocale,
+                    limit: '50',
+                });
+
+                const response = await fetch(`/api/v1/project-feature?${params.toString()}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Project Feature API failed: ${response.status}`);
+                }
+
+                const data: ProjectFeatureApiResponse = await response.json();
+
+                if (!data.success || !Array.isArray(data.projectFeatures)) {
+                    throw new Error(data.message || 'Invalid Project Feature API response.');
+                }
+
+                const apiFeatures = data.projectFeatures.map((item) =>
+                    mapProjectFeature(item, categoryLabels, t),
+                );
+
+                setFeatures(
+                    apiFeatures.length > 0
+                        ? apiFeatures
+                        : getSampleProjectFeatures(selectedLocale, categoryLabels, t),
+                );
+            } catch (error) {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return;
+                }
+
+                console.error('[PROJECT_PAGE_01]', error);
+
+                setFeatures(getSampleProjectFeatures(selectedLocale, categoryLabels, t));
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoadingFeatures(false);
+                }
+            }
+        }
+
+        void loadProjectFeatures();
+
+        return () => controller.abort();
+    }, [siteId, selectedLocale, categoryLabels, t]);
+
+    const onCarouselSelect = useCallback(() => {
+        if (!emblaApi) {
+            return;
+        }
+
+        setSelectedSlide(emblaApi.selectedScrollSnap());
+    }, [emblaApi]);
+
+    useEffect(() => {
+        if (!emblaApi) {
+            return;
+        }
+
+        setScrollSnaps(emblaApi.scrollSnapList());
+        onCarouselSelect();
+
+        emblaApi.on('select', onCarouselSelect);
+        emblaApi.on('reInit', onCarouselSelect);
+
+        return () => {
+            emblaApi.off('select', onCarouselSelect);
+            emblaApi.off('reInit', onCarouselSelect);
+        };
+    }, [emblaApi, onCarouselSelect]);
+
+    useEffect(() => {
+        if (!emblaApi) {
+            return;
+        }
+
+        const frame = window.requestAnimationFrame(() => {
+            emblaApi.reInit();
+            setScrollSnaps(emblaApi.scrollSnapList());
+            onCarouselSelect();
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [emblaApi, features, selectedLocale, onCarouselSelect]);
+
+    const carouselFeatures = useMemo(() => features.slice(0, 8), [features]);
+
+    const developmentFeatures = useMemo(
+        () =>
+            features.filter((feature) =>
+                ['MOBILE_APP', 'AI', 'DEVELOPMENT', 'OTHER'].includes(feature.category),
+            ),
+        [features],
+    );
 
     return (
         <>
             <div className={styles.main}>
                 <section className={styles.section}>
+                    <div className={styles.backgroundGlow} />
+                    <div className={styles.backgroundGlowSecondary} />
+                    <div className={styles.backgroundGrid} />
+
                     <div className={styles.container}>
                         <div className={styles.heroGrid}>
-                            {/* ================= LEFT ================= */}
-
-                            <div className={styles.heroVisual}>
-                                <div className={styles.visualGlow} />
-
-                                <div className={styles.visualNoise} />
-
-                                <div className={styles.visualBadgeLeft}>
-                                    <i className="bi bi-code-slash" />
-                                    {t(heroBadgeLeft)}
+                            <div className={styles.heroContent}>
+                                <div className={styles.badge}>
+                                    <span className={styles.badgeIcon}>
+                                        <i className="bi bi-code-square" />
+                                    </span>
+                                    <span>{t(heroBadgeLeft)}</span>
                                 </div>
 
-                                <div className={styles.visualBadgeRight}>
-                                    <i className="bi bi-stars" />
-                                    {t(heroBadgeTop)}
+                                <h1 className={styles.title}>
+                                    {t(heroTitle)}
+                                    <span className={styles.titleAccent}>
+                                        {t(heroTitleAccent)}
+                                        <span className={styles.titleSparkle}>
+                                            <i className="bi bi-stars" />
+                                        </span>
+                                    </span>
+                                </h1>
+
+                                <p className={styles.description}>{t(heroDescription)}</p>
+
+                                <div className={styles.actions}>
+                                    <button type="button" className={styles.primaryButton}>
+                                        <span className={styles.primaryIcon}>
+                                            <i className="bi bi-rocket-takeoff-fill" />
+                                        </span>
+
+                                        <span>{t(heroButtonLabel)}</span>
+
+                                        <i className="bi bi-arrow-right" />
+                                    </button>
+
+                                    <button type="button" className={styles.secondaryButton}>
+                                        <span className={styles.playIcon}>
+                                            <i className="bi bi-play-fill" />
+                                        </span>
+
+                                        {t(heroDemoLabel)}
+                                    </button>
                                 </div>
 
-                                <div className={styles.visualContent}>
-                                    <div className={styles.visualText}>
-                                        <h1>
-                                            {t(heroTitle)
-                                                .split('\n')
-                                                .map((line, index, arr) => (
-                                                    <span key={index}>
-                                                        {line}
-                                                        {index < arr.length - 1 && <br />}
-                                                    </span>
-                                                ))}
+                                <div className={styles.featureRow}>
+                                    <div className={styles.featurePill}>
+                                        <span className={`${styles.featureIcon} ${styles.purple}`}>
+                                            <i className="bi bi-arrows-move" />
+                                        </span>
 
-                                            <span className={styles.visualTextAi}>AI</span>
-                                        </h1>
+                                        <span>{t(heroFeature1)}</span>
+                                    </div>
 
-                                        <p>{t(heroDescription)}</p>
+                                    <div className={styles.featurePill}>
+                                        <span className={`${styles.featureIcon} ${styles.blue}`}>
+                                            <i className="bi bi-grid-3x3-gap-fill" />
+                                        </span>
 
-                                        <div className={styles.visualActions}>
-                                            <button type="button" className={styles.primaryButton}>
-                                                <i className="bi bi-rocket-takeoff-fill" />
-                                                {t(heroButtonLabel)}
-                                            </button>
+                                        <span>{t(heroFeature2)}</span>
+                                    </div>
 
-                                            <button
-                                                type="button"
-                                                className={styles.secondaryButton}
-                                            >
-                                                <i className="bi bi-play-circle" />
-                                                Live Demo
-                                            </button>
+                                    <div className={styles.featurePill}>
+                                        <span className={`${styles.featureIcon} ${styles.cyan}`}>
+                                            <i className="bi bi-cloud-check-fill" />
+                                        </span>
+
+                                        <span>{t(heroFeature3)}</span>
+                                    </div>
+                                </div>
+
+                                <div className={styles.trustPanel}>
+                                    <div className={styles.trustItem}>
+                                        <span
+                                            className={`${styles.trustIcon} ${styles.trustPurple}`}
+                                        >
+                                            <i className="bi bi-credit-card-2-front" />
+                                        </span>
+
+                                        <div>
+                                            <strong>{t(trust1Title)}</strong>
+                                            <span>{t(trust1Description)}</span>
                                         </div>
                                     </div>
 
-                                    <div className={styles.browserWrapper}>
-                                        <Image
-                                            src="/assets/images/hero-browser.png"
-                                            alt="Browser Preview"
-                                            width={620}
-                                            height={720}
-                                            priority
-                                            className={styles.browserImage}
-                                        />
+                                    <div className={styles.trustItem}>
+                                        <span className={`${styles.trustIcon} ${styles.trustCyan}`}>
+                                            <i className="bi bi-shield-check" />
+                                        </span>
+
+                                        <div>
+                                            <strong>{t(trust2Title)}</strong>
+                                            <span>{t(trust2Description)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.trustItem}>
+                                        <span
+                                            className={`${styles.trustIcon} ${styles.trustYellow}`}
+                                        >
+                                            <i className="bi bi-lightning-charge-fill" />
+                                        </span>
+
+                                        <div>
+                                            <strong>{t(trust3Title)}</strong>
+                                            <span>{t(trust3Description)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.trustItem}>
+                                        <span className={`${styles.trustIcon} ${styles.trustBlue}`}>
+                                            <i className="bi bi-lock-fill" />
+                                        </span>
+
+                                        <div>
+                                            <strong>{t(trust4Title)}</strong>
+                                            <span>{t(trust4Description)}</span>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className={styles.heroVisual}>
+                                <div className={styles.visualGlow} />
+                                <div className={styles.visualGlowPink} />
+
+                                <span className={`${styles.visualSphere} ${styles.sphereOne}`} />
+                                <span className={`${styles.visualSphere} ${styles.sphereTwo}`} />
+                                <span className={`${styles.visualSphere} ${styles.sphereThree}`} />
 
                                 <div className={styles.visualOrbit}>
                                     <span />
                                 </div>
 
-                                <div className={styles.visualStars}>
-                                    <span />
-                                    <span />
-                                    <span />
-                                </div>
-
-                                <div className={styles.trustPanel}>
-                                    <div className={styles.trustItem}>
-                                        <i className="bi bi-credit-card-2-front" />
-
-                                        <div>
-                                            <strong>No Credit Card</strong>
-                                            <span>Required</span>
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.trustItem}>
-                                        <i className="bi bi-shield-check" />
-
-                                        <div>
-                                            <strong>Secure Hosting</strong>
-                                            <span>Always safe</span>
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.trustItem}>
-                                        <i className="bi bi-lightning-charge" />
-
-                                        <div>
-                                            <strong>Instant Setup</strong>
-                                            <span>Get started</span>
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.trustItem}>
-                                        <i className="bi bi-lock" />
-
-                                        <div>
-                                            <strong>Free SSL</strong>
-                                            <span>Included</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* ================= RIGHT ================= */}
-
-                            <div className={styles.heroInfo}>
-                                <span className={styles.infoBadge}>{t(sectionBadge)}</span>
-
-                                <h2 className={styles.infoTitle}>
-                                    {t(sectionTitle)}
-
-                                    <span>{t(sectionTitleAccent)}</span>
-                                </h2>
-
-                                <div className={styles.statsGrid}>
-                                    {stats.map((item, index) => (
-                                        <article key={index} className={styles.statCard}>
-                                            <div
-                                                className={`${styles.iconBox} ${styles[item.tone]}`}
-                                            >
-                                                <i className={`bi ${item.icon}`} />
-                                            </div>
-
-                                            <div className={styles.statContent}>
-                                                <strong>{t(item.value)}</strong>
-
-                                                <span>{t(item.label)}</span>
-                                            </div>
-
-                                            <i
-                                                className={`bi bi-arrow-up-right ${styles.cardArrow}`}
-                                            />
-                                        </article>
-                                    ))}
-                                </div>
-
-                                <div className={styles.featureRow}>
-                                    <div className={styles.featurePill}>
+                                <div className={styles.aiCard}>
+                                    <div className={styles.aiCardIcon}>
                                         <i className="bi bi-stars" />
-                                        AI Assisted Content
                                     </div>
 
-                                    <div className={styles.featurePill}>
-                                        <i className="bi bi-grid-3x3-gap-fill" />
-                                        500+ Templates
+                                    <div className={styles.aiCardContent}>
+                                        <strong>{t(heroBadgeTop)}</strong>
+                                        <span />
+                                        <span />
+                                        <span />
                                     </div>
+                                </div>
 
-                                    <div className={styles.featurePill}>
-                                        <i className="bi bi-cloud-check-fill" />
-                                        Cloud Deployment
+                                <div className={styles.cloudCard}>
+                                    <i className="bi bi-cloud-fill" />
+                                </div>
+
+                                <div className={styles.browserWrapper}>
+                                    <div className={styles.browserShadow} />
+
+                                    <div className={styles.browserFrame}>
+                                        <div className={styles.browserHeader}>
+                                            <div className={styles.browserDots}>
+                                                <span />
+                                                <span />
+                                                <span />
+                                            </div>
+
+                                            <div className={styles.browserBrand}>
+                                                <span className={styles.brandLogo}>
+                                                    <span />
+                                                    <span />
+                                                    <span />
+                                                </span>
+
+                                                <strong>KBuilder</strong>
+                                            </div>
+
+                                            <div className={styles.browserHeaderAction}>
+                                                <span />
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.browserContent}>
+                                            <Image
+                                                src="/assets/images/hero-project-browser.png"
+                                                alt="KBuilder visual website builder"
+                                                width={620}
+                                                height={720}
+                                                priority
+                                                className={styles.browserImage}
+                                            />
+
+                                            <div className={styles.browserOverlay}>
+                                                <div className={styles.overlaySidebar}>
+                                                    <span className={styles.active}>
+                                                        <i className="bi bi-house-fill" />
+                                                    </span>
+
+                                                    <span>
+                                                        <i className="bi bi-person" />
+                                                    </span>
+
+                                                    <span>
+                                                        <i className="bi bi-box" />
+                                                    </span>
+
+                                                    <span>
+                                                        <i className="bi bi-stars" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div className={styles.aiTile}>
+                                    <i className="bi bi-stars" />
+                                    <strong>AI</strong>
+                                </div>
+
+                                <div className={styles.savingCard}>
+                                    <span>{t(savingLabel)}</span>
+                                    <strong>20%</strong>
+                                    <i className="bi bi-arrow-up-right" />
+
+                                    <div className={styles.chart}>
+                                        <span />
+                                        <span />
+                                        <span />
+                                        <span />
+                                        <span />
+                                    </div>
+                                </div>
+
+                                <div className={styles.lightningCard}>
+                                    <i className="bi bi-lightning-charge-fill" />
+                                </div>
+
+                                <div className={styles.visualNote}>
+                                    <span>{t(visualNote)}</span>
+                                    <i className="bi bi-arrow-down-left" />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
+
                 <section className={styles.solutions}>
                     <FeatureSectionHeader
                         eyebrow={eyebrowText1}
@@ -1227,11 +1444,66 @@ export function ProjectPage01(props: ProjectPage01Props) {
                         t={t}
                     />
 
-                    <div className={styles.grid}>
-                        {FEATURES_WEBSITE.map((feature, index) => (
-                            <FeatureCard key={index} feature={feature} t={t} />
-                        ))}
-                    </div>
+                    {loadingFeatures && carouselFeatures.length === 0 ? (
+                        <p className={carouselStyles.carouselMessage} aria-live="polite">
+                            {t(loadingProjectsLabel)}
+                        </p>
+                    ) : carouselFeatures.length === 0 ? (
+                        <p className={carouselStyles.carouselMessage}>{t(noProjectsLabel)}</p>
+                    ) : (
+                        <>
+                            <div className={carouselStyles.carouselViewport} ref={emblaRef}>
+                                <div className={carouselStyles.carouselContainer}>
+                                    {carouselFeatures.map((feature) => (
+                                        <div
+                                            className={carouselStyles.carouselSlide}
+                                            key={feature.id}
+                                        >
+                                            <FeatureCard
+                                                feature={feature}
+                                                learnMoreLabel={t(learnMoreLabel)}
+                                                onOpenFeature={setSelectedFeature}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {scrollSnaps.length > 1 && (
+                                <div
+                                    className={carouselStyles.carouselFooter}
+                                    aria-label={t(carouselGoToLabel)}
+                                >
+                                    <div className={carouselStyles.carouselDots}>
+                                        {scrollSnaps.map((_, index) => (
+                                            <button
+                                                key={index}
+                                                type="button"
+                                                className={`${carouselStyles.carouselDot} ${
+                                                    index === selectedSlide
+                                                        ? carouselStyles.carouselDotActive
+                                                        : ''
+                                                }`}
+                                                aria-label={`${t(carouselGoToLabel)} ${index + 1}`}
+                                                aria-current={
+                                                    index === selectedSlide ? 'true' : undefined
+                                                }
+                                                onClick={() => emblaApi?.scrollTo(index)}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <span className={carouselStyles.carouselCount}>
+                                        {String(selectedSlide + 1).padStart(2, '0')}
+
+                                        <span>/</span>
+
+                                        {String(scrollSnaps.length).padStart(2, '0')}
+                                    </span>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </section>
 
                 <section className={styles.solutions}>
@@ -1243,15 +1515,158 @@ export function ProjectPage01(props: ProjectPage01Props) {
                     />
 
                     <div className={styles.grid}>
-                        {FEATURES_DEVELOPMENT.map((feature, index) => (
-                            <FeatureCard key={index} feature={feature} t={t} />
+                        {!loadingFeatures && developmentFeatures.length === 0 && (
+                            <p>{t(noProjectsLabel)}</p>
+                        )}
+
+                        {developmentFeatures.map((feature) => (
+                            <FeatureCard
+                                key={feature.id}
+                                feature={feature}
+                                learnMoreLabel={t(learnMoreLabel)}
+                                onOpenFeature={setSelectedFeature}
+                            />
                         ))}
                     </div>
                 </section>
+
+                <section className={styles.solutions01Section}>
+                    <div className={styles.solutions01Glow} />
+
+                    <div className={styles.solutions01Container}>
+                        <div className={styles.solutions01Header}>
+                            <div className={styles.solutions01HeaderMain}>
+                                <div className={styles.solutions01TitleIcon}>
+                                    <i className="bi bi-rocket-takeoff-fill" />
+                                </div>
+
+                                <div className={styles.solutions01Heading}>
+                                    <div className={styles.solutions01Eyebrow}>
+                                        <span>{t(eyebrow)}</span>
+                                        <span className={styles.solutions01EyebrowLine} />
+                                    </div>
+
+                                    <h2 className={styles.solutions01Title}>
+                                        {t(title)}
+                                        <span>{t(highlight)}</span>
+                                    </h2>
+
+                                    <p className={styles.solutions01Description}>
+                                        {t(description)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button type="button" className={styles.solutions01LearnMore}>
+                                <i className="bi bi-book" />
+                                <span>{t(learnMoreLabel)}</span>
+                                <i className="bi bi-arrow-right" />
+                            </button>
+                        </div>
+
+                        <div className={styles.solutions01Content}>
+                            <div className={styles.solutions01Grid}>
+                                {solutions.map((solution) => (
+                                    <article
+                                        key={solution.id}
+                                        className={`${styles.solutions01Card} ${styles[solution.variant]}`}
+                                    >
+                                        <div className={styles.solutions01CardTop}>
+                                            <div className={styles.solutions01CardIcon}>
+                                                <i className={`bi ${solution.icon}`} />
+                                            </div>
+
+                                            <div className={styles.solutions01CardContent}>
+                                                <h3>{t(solution.title)}</h3>
+
+                                                <p>{t(solution.description)}</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={styles.solutions01CardArrow}
+                                            aria-label={`${t(solution.title)}`}
+                                        >
+                                            <i className="bi bi-arrow-right" />
+                                        </button>
+                                    </article>
+                                ))}
+                            </div>
+
+                            <aside className={styles.solutions01Feature}>
+                                <div className={styles.solutions01FeatureContent}>
+                                    <div className={styles.solutions01FeatureEyebrow}>
+                                        <i className="bi bi-stars" />
+                                        <span>{t(ctaEyebrow)}</span>
+                                    </div>
+
+                                    <h3>{t(ctaTitle)}</h3>
+
+                                    <p>{t(ctaDescription)}</p>
+
+                                    <button
+                                        type="button"
+                                        className={styles.solutions01FeatureButton}
+                                    >
+                                        <span>{t(ctaLabel)}</span>
+                                        <i className="bi bi-arrow-right" />
+                                    </button>
+                                </div>
+
+                                <div className={styles.solutions01FeatureVisual} aria-hidden="true">
+                                    <div className={styles.solutions01AiGlow} />
+
+                                    <div className={styles.solutions01AiOrbit}>
+                                        <span className={styles.solutions01OrbitDot} />
+                                    </div>
+
+                                    <div className={styles.solutions01AiRobot}>
+                                        <div className={styles.solutions01RobotHead}>
+                                            <span className={styles.solutions01RobotEye} />
+                                            <span className={styles.solutions01RobotEye} />
+                                        </div>
+
+                                        <div className={styles.solutions01RobotBody}>
+                                            <span />
+                                            <span />
+                                            <span />
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        className={`${styles.solutions01FloatingPanel} ${styles.solutions01PanelTop}`}
+                                    >
+                                        <i className="bi bi-bar-chart-fill" />
+                                    </div>
+
+                                    <div
+                                        className={`${styles.solutions01FloatingPanel} ${styles.solutions01PanelMiddle}`}
+                                    >
+                                        <i className="bi bi-chat-dots-fill" />
+                                    </div>
+
+                                    <div
+                                        className={`${styles.solutions01FloatingPanel} ${styles.solutions01PanelBottom}`}
+                                    >
+                                        <i className="bi bi-stars" />
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+                    </div>
+                </section>
             </div>
+
+            <ProjectModal01
+                featureId={selectedFeature?.id ?? null}
+                locale={selectedLocale}
+                fallbackFeature={selectedFeature}
+                onClose={() => setSelectedFeature(null)}
+            />
         </>
     );
 }
+
 function createTextField(key: keyof ProjectPage01Props, label: string): InspectorField {
     return {
         key,
@@ -1270,54 +1685,61 @@ function createTextareaField(key: keyof ProjectPage01Props, label: string): Insp
 
 function createHeroInspector(): InspectorField[] {
     return [
-        createTextField('breadcrumbHome', 'Breadcrumb Home'),
-        createTextField('breadcrumbCurrent', 'Breadcrumb Current'),
         createTextField('heroBadgeTop', 'Hero Badge Top'),
         createTextField('heroBadgeLeft', 'Hero Badge Left'),
-        createTextField('heroBadgeBottom', 'Hero Badge Bottom'),
-        createTextField('heroBadgeSsl', 'Hero Badge SSL'),
         createTextareaField('heroTitle', 'Hero Title'),
+        createTextareaField('heroTitleAccent', 'Hero Title Accent'),
         createTextareaField('heroDescription', 'Hero Description'),
         createTextField('heroButtonLabel', 'Hero Button'),
+        createTextField('heroDemoLabel', 'Hero Demo'),
+        createTextField('heroFeature1', 'Hero Feature 1'),
+        createTextField('heroFeature2', 'Hero Feature 2'),
+        createTextField('heroFeature3', 'Hero Feature 3'),
+    ];
+}
+
+function createTrustInspector(): InspectorField[] {
+    return [
+        createTextField('trust1Title', 'Trust 1 Title'),
+        createTextField('trust1Description', 'Trust 1 Description'),
+        createTextField('trust2Title', 'Trust 2 Title'),
+        createTextField('trust2Description', 'Trust 2 Description'),
+        createTextField('trust3Title', 'Trust 3 Title'),
+        createTextField('trust3Description', 'Trust 3 Description'),
+        createTextField('trust4Title', 'Trust 4 Title'),
+        createTextField('trust4Description', 'Trust 4 Description'),
+        createTextField('savingLabel', 'Saving Label'),
+        createTextField('visualNote', 'Visual Note'),
     ];
 }
 
 function createSectionInspector(): InspectorField[] {
     return [
-        createTextField('sectionBadge', 'Section Badge'),
-        createTextareaField('sectionTitle', 'Section Title'),
-        createTextField('sectionTitleAccent', 'Section Title Accent'),
-        createTextareaField('sectionDescription', 'Section Description'),
-        createTextField('eyebrowText1', 'Header 1'),
-        createTextField('eyebrowAccentText1', 'Header 1 Accent'),
-        createTextField('highlightText1', 'Header 1 Highlight'),
-        createTextField('eyebrowText2', 'Header 2'),
-        createTextField('eyebrowAccentText2', 'Header 2 Accent'),
-        createTextField('highlightText2', 'Header 2 Highlight'),
-    ];
-}
-
-function createStatsInspector(): InspectorField[] {
-    return [
-        createTextField('stat1Value', 'Stat 1 Value'),
-        createTextField('stat1Label', 'Stat 1 Label'),
-        createTextField('stat2Value', 'Stat 2 Value'),
-        createTextField('stat2Label', 'Stat 2 Label'),
-        createTextField('stat3Value', 'Stat 3 Value'),
-        createTextField('stat3Label', 'Stat 3 Label'),
-        createTextField('stat4Value', 'Stat 4 Value'),
-        createTextField('stat4Label', 'Stat 4 Label'),
+        createTextField('eyebrow', 'Solutions Eyebrow'),
+        createTextField('title', 'Solutions Title'),
+        createTextField('highlight', 'Solutions Highlight'),
+        createTextareaField('description', 'Solutions Description'),
+        createTextField('learnMoreLabel', 'Learn More'),
+        createTextField('ctaEyebrow', 'CTA Eyebrow'),
+        createTextareaField('ctaTitle', 'CTA Title'),
+        createTextareaField('ctaDescription', 'CTA Description'),
+        createTextField('ctaLabel', 'CTA Button'),
+        createTextField('eyebrowText1', 'Project Header 1'),
+        createTextField('eyebrowAccentText1', 'Project Header 1 Accent'),
+        createTextField('highlightText1', 'Project Header 1 CTA'),
+        createTextField('eyebrowText2', 'Project Header 2'),
+        createTextField('eyebrowAccentText2', 'Project Header 2 Accent'),
+        createTextField('highlightText2', 'Project Header 2 CTA'),
+        createTextField('loadingProjectsLabel', 'Loading Projects'),
+        createTextField('noProjectsLabel', 'No Projects'),
+        createTextField('carouselGoToLabel', 'Carousel Go To'),
     ];
 }
 
 function createInspector(): InspectorField[] {
-    return [
-        ...createHeroInspector(),
-        ...createSectionInspector(),
-        ...createStatsInspector(),
-        ...Array.from({ length: 11 }, (_, i) => createFeatureInspector(i + 1)).flat(),
-    ];
+    return [...createHeroInspector(), ...createTrustInspector(), ...createSectionInspector()];
 }
+
 export const PROJECT_PAGE_01: RegItem = {
     kind: 'project-page-01',
     label: 'Project Page 01',
@@ -1325,4 +1747,5 @@ export const PROJECT_PAGE_01: RegItem = {
     inspector: createInspector(),
     render: (props) => <ProjectPage01 {...(props as unknown as ProjectPage01Props)} />,
 };
+
 export default ProjectPage01;

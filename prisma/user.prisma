@@ -65,10 +65,7 @@ model User {
   tasks                  Task[]
   changePasswordToken    ChangePasswordToken[]
   projects               Project[]                @relation("UserProjects")
-  videoAffiliates        VideoAffiliate[]         @relation("VideoAffiliateCreator")
-  videoCharacters        VideoCharacter[]         @relation("VideoCharacterCreator")
-  videoProjects          VideoProject[]           @relation("VideoProjectCreator")
-
+  
   @@index([siteId])
   @@index([systemRole])
   @@index([status])
