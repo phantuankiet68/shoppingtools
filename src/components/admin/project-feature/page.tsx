@@ -69,7 +69,7 @@ type ApiResponse = {
     message?: string;
 };
 type ProjectFeatureListProps = {
-    siteId: string;
+    siteId?: string;
     onAdd?: () => void;
     onEdit?: (feature: ProjectFeature) => void;
     onView?: (feature: ProjectFeature) => void;
