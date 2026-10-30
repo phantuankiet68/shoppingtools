@@ -25,7 +25,9 @@ function normalizePath(input?: string | null) {
 
 function isSamePath(value: string | null | undefined, ...candidates: string[]) {
     if (!value) return false;
+
     const current = normalizePath(value);
+
     return candidates.some((item) => normalizePath(item) === current);
 }
 
@@ -65,39 +67,38 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
         notFound();
     }
 
-    const page =
+    const pageSelect = {
+        id: true,
+        title: true,
+        path: true,
+        status: true,
+        blocks: true,
+        seo: {
+            select: {
+                metaTitle: true,
+                metaDescription: true,
+                canonicalUrl: true,
+                robots: true,
+                ogTitle: true,
+                ogDescription: true,
+                ogImage: true,
+                ogImageAlt: true,
+                ogType: true,
+                structuredData: true,
+            },
+        },
+    } as const;
+
+    // Tìm trang theo đường dẫn hiện tại.
+    let page =
         path === '/'
             ? await prisma.page.findFirst({
                   where: {
                       siteId: site.id,
                       status: 'PUBLISHED',
-                      OR: [{ path: '/' }],
+                      path: '/',
                   },
-                  select: {
-                      id: true,
-                      title: true,
-                      path: true,
-                      status: true,
-                      blocks: true,
-
-                      seo: {
-                          select: {
-                              metaTitle: true,
-                              metaDescription: true,
-                              canonicalUrl: true,
-
-                              robots: true,
-
-                              ogTitle: true,
-                              ogDescription: true,
-                              ogImage: true,
-                              ogImageAlt: true,
-                              ogType: true,
-
-                              structuredData: true,
-                          },
-                      },
-                  },
+                  select: pageSelect,
               })
             : await prisma.page.findFirst({
                   where: {
@@ -105,32 +106,20 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
                       status: 'PUBLISHED',
                       OR: [{ path }, { path: path.replace(/^\//, '') }],
                   },
-                  select: {
-                      id: true,
-                      title: true,
-                      path: true,
-                      status: true,
-                      blocks: true,
-
-                      seo: {
-                          select: {
-                              metaTitle: true,
-                              metaDescription: true,
-                              canonicalUrl: true,
-
-                              robots: true,
-
-                              ogTitle: true,
-                              ogDescription: true,
-                              ogImage: true,
-                              ogImageAlt: true,
-                              ogType: true,
-
-                              structuredData: true,
-                          },
-                      },
-                  },
+                  select: pageSelect,
               });
+
+    // Nếu chưa có trang chủ "/", dùng trang "/home".
+    if (!page && path === '/') {
+        page = await prisma.page.findFirst({
+            where: {
+                siteId: site.id,
+                status: 'PUBLISHED',
+                OR: [{ path: '/home' }, { path: 'home' }],
+            },
+            select: pageSelect,
+        });
+    }
 
     if (!page) {
         notFound();
@@ -229,6 +218,7 @@ export default async function PageByPath({ params }: { params: Promise<{ slug?: 
                     }}
                 />
             )}
+
             <RenderBlocksPublic
                 blocks={mergedBlocks}
                 siteId={site.id}
@@ -256,67 +246,68 @@ export async function generateMetadata({
     }
 
     const h = await headers();
-
     const hostHeader = h.get('x-site-domain') ?? h.get('host') ?? '';
-
     const domain = hostHeader.split(':')[0].toLowerCase();
 
+    if (!domain) {
+        return {};
+    }
+
     const site = await prisma.site.findUnique({
-        where: {
-            domain,
-        },
-        select: {
-            id: true,
-        },
+        where: { domain },
+        select: { id: true },
     });
 
     if (!site) {
         return {};
     }
 
-    const page =
+    const metadataSelect = {
+        title: true,
+        seo: true,
+    } as const;
+
+    // Tìm metadata của trang theo URL.
+    let page =
         path === '/'
             ? await prisma.page.findFirst({
                   where: {
                       siteId: site.id,
                       status: 'PUBLISHED',
-                      OR: [{ path: '/' }],
+                      path: '/',
                   },
-
-                  select: {
-                      title: true,
-                      seo: true,
-                  },
+                  select: metadataSelect,
               })
             : await prisma.page.findFirst({
                   where: {
                       siteId: site.id,
                       status: 'PUBLISHED',
-                      OR: [
-                          { path },
-                          {
-                              path: path.replace(/^\//, ''),
-                          },
-                      ],
+                      OR: [{ path }, { path: path.replace(/^\//, '') }],
                   },
-
-                  select: {
-                      title: true,
-                      seo: true,
-                  },
+                  select: metadataSelect,
               });
+
+    // Nếu trang "/" không tồn tại, lấy metadata của "/home".
+    if (!page && path === '/') {
+        page = await prisma.page.findFirst({
+            where: {
+                siteId: site.id,
+                status: 'PUBLISHED',
+                OR: [{ path: '/home' }, { path: 'home' }],
+            },
+            select: metadataSelect,
+        });
+    }
 
     if (!page) {
         return {};
     }
 
     const seo = page.seo;
-
     const robots = seo?.robots ?? 'index,follow';
 
     return {
         title: seo?.metaTitle ?? page.title,
-
         description: seo?.metaDescription ?? undefined,
 
         alternates: {
@@ -325,7 +316,6 @@ export async function generateMetadata({
 
         robots: {
             index: !robots.includes('noindex'),
-
             follow: !robots.includes('nofollow'),
         },
 
@@ -338,7 +328,6 @@ export async function generateMetadata({
                 ? [
                       {
                           url: seo.ogImage,
-
                           alt: seo?.ogImageAlt ?? page.title,
                       },
                   ]
