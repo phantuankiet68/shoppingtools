@@ -952,7 +952,7 @@
 
 @media (max-width: 768px) {
     .root {
-        padding: 3.2rem 0;
+        padding: 0 0 3.2rem 0;
     }
     .container {
         width: 100%;

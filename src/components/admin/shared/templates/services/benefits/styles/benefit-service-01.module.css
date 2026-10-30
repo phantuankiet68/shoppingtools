@@ -495,13 +495,6 @@
         grid-template-columns: 1fr;
         gap: 70px;
     }
-
-    .content {
-        order: 1;
-        align-items: center;
-        text-align: center;
-    }
-
     .media {
         order: 2;
     }
@@ -527,7 +520,7 @@
 
     .container {
         width: calc(100% - 32px);
-        gap: 50px;
+        gap: 20px;
     }
 
     .content h2 {
@@ -600,11 +593,14 @@
     }
 
     .featureList li {
-        font-size: 15px;
+        font-size: 1.3rem;
     }
 
     .mainImage {
         padding: 10px;
+    }
+    .showcase {
+        padding: 20px 0;
     }
 }
 

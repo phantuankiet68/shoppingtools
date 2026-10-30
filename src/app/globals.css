@@ -302,3 +302,22 @@ div[aria-label='Shop Header Announcement'] > div {
 .recharts-text.recharts-cartesian-axis-tick-value {
     font-size: 13px;
 }
+/* Prevent horizontal overflow globally */
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+/* Consistent box sizing */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Hide horizontal scrollbar */
+::-webkit-scrollbar:horizontal {
+    display: none;
+}

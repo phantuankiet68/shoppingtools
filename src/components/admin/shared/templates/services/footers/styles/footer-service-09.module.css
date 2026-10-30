@@ -1488,7 +1488,7 @@
 
 @media (max-width: 760px) {
     .root {
-        margin-top: 30px;
+        padding: 0px 16px;
     }
     .wrap {
         width: min(100% - 20px, 620px);

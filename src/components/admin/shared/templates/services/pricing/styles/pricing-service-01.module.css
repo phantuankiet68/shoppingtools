@@ -689,3 +689,23 @@
         transform: none;
     }
 }
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        max-width: 1400px;
+        display: grid;
+        border-radius: 12px;
+        gap: 15px;
+        margin: 0px auto;
+        padding: 0;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .featured {
+        transform: none;
+    }
+}

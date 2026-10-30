@@ -701,4 +701,8 @@
     .tags span {
         font-size: 0.72rem;
     }
+    .container {
+        padding: 0 16px;
+        width: 100%;
+    }
 }

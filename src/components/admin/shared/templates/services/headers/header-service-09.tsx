@@ -533,16 +533,6 @@ function HeaderService09(props: HeaderService09Props) {
 
             {mobileOpen && (
                 <div className={styles.mobileMenu}>
-                    <form className={styles.mobileSearch} onSubmit={handleSearchSubmit}>
-                        <i className="bi bi-search" />
-                        <input
-                            type="search"
-                            value={searchValue}
-                            onChange={(event) => setSearchValue(event.target.value)}
-                            placeholder={getLocalizedValue(searchPlaceholder, selectedLocale)}
-                        />
-                    </form>
-
                     <nav className={styles.mobileNav}>
                         {menus.map((item) => (
                             <Link
@@ -563,7 +553,6 @@ function HeaderService09(props: HeaderService09Props) {
                             </Link>
                         ))}
                     </nav>
-
                     <div className={styles.mobileActions}>
                         {showWishlist && (
                             <Link href={wishlistHref}>

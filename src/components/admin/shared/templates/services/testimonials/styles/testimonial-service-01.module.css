@@ -356,12 +356,29 @@
 
 /* ─── Responsive ─── */
 @media (max-width: 860px) {
+    .root {
+        padding: 0 16px;
+    }
+    .wrap {
+        padding: 0px;
+    }
+    .topHeader {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
     .featuredCard {
         grid-template-columns: 1fr;
         gap: 24px;
-        padding: 28px;
+        padding: 15px;
+    }
+    .quote {
+        font-size: 1.5rem !important;
     }
 
+    .badge {
+        padding: 5px 8px;
+        font-size: 1rem;
+    }
     .featuredAvatarWrap {
         flex-direction: row;
         align-items: center;
@@ -376,13 +393,17 @@
     .grid {
         grid-template-columns: 1fr;
     }
-}
-
-@media (max-width: 480px) {
-    .root {
-        padding: 64px 16px;
+    .footer {
+        gap: 5px !important;
+    }
+    .info h4 {
+        font-size: 1.5rem !important;
+    }
+    .info span {
+        font-size: 1.2rem !important;
     }
 }
+
 .embla {
     overflow: hidden;
     width: 100%;

@@ -424,13 +424,18 @@
 }
 
 .hoverDesc {
-    font-size: 1.3rem;
-    color: rgba(255, 255, 255, 0.75);
-    margin: 0;
-    line-height: 1.5;
+    color: #ffffffbf;
     max-width: 260px;
-}
+    margin: 0;
+    font-size: 1.3rem;
+    line-height: 1.5;
 
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    overflow: hidden;
+}
 .hoverLink {
     display: inline-flex;
     align-items: center;
@@ -572,6 +577,7 @@
     .wrap {
         padding: 56px 20px 48px;
         gap: 24px;
+        grid-template-columns: 1fr;
     }
 
     .header {
@@ -594,12 +600,20 @@
     }
 
     .filters {
-        gap: 6px;
+        gap: 15px;
+        min-width: 100%;
     }
     .filterBtn {
-        height: 32px;
-        padding: 0 12px;
+        height: 42px;
+        padding: 12px;
         font-size: 0.76rem;
+    }
+    .filterActive {
+        color: #fff !important;
+    }
+
+    .bottomCta {
+        min-width: 100%;
     }
 }
 
