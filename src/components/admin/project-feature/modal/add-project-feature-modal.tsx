@@ -212,7 +212,7 @@ function tagsToText(value: unknown): string {
 
 function createDescriptionJson(value: string) {
     return {
-        type: 'text',
+        type: '',
         content: value.trim(),
     };
 }

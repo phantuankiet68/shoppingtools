@@ -358,7 +358,6 @@ export default function ProjectFeatureModal({
                                     <i className="bi bi-stars" /> {text.featured}
                                 </div>
                                 <h2 id="project-feature-title">{title}</h2>
-                                <p>{description}</p>
                             </div>
                             <div className={styles.headingActions}>
                                 <button

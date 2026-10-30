@@ -346,8 +346,8 @@
 .cardHeader h3 {
     margin: 0;
     color: #1c2948;
-    font-size: 1.3rem;
-    font-weight: 800;
+    font-size: 1.6rem;
+    font-weight: 700;
 }
 .statusBadge {
     display: inline-flex;
@@ -495,10 +495,16 @@
     color: #5d6be7;
 }
 .sidebarCard p {
-    margin: 12px 0 0;
     color: #74809b;
+    margin: 12px 0 0;
     font-size: 1.2rem;
     line-height: 1.65;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 7;
+    line-clamp: 7;
+    overflow: hidden;
 }
 
 @keyframes overlayIn {
