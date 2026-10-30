@@ -284,7 +284,7 @@
 ----------------------------------------- */
 .heroVisual {
     position: relative;
-    min-height: 357px;
+    min-height: 437px;
     isolation: isolate;
 }
 .heroGlow {
@@ -301,13 +301,14 @@
 .heroBrowser {
     border-radius: 20px;
     width: min(100%, 650px);
-    height: 368px;
+    height: 417px;
     position: absolute;
     top: -10px;
-    right: -10px;
+    right: 0px;
 }
 .heroImage {
     object-fit: cover;
+    border-radius: 16px;
 }
 /* -----------------------------------------
    Phone

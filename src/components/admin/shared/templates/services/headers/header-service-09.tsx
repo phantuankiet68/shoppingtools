@@ -116,8 +116,12 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     loginTitle: localeText('Login', 'Đăng nhập', 'ログイン'),
     loginSubtitle: localeText('Welcome Guest', 'Chào mừng Quý khách', 'ようこそ、ゲスト様'),
     loginHref: '/sign-in',
-    offerTitle: localeText('Developer Docs', 'Tài liệu Dev', '開発者Docs'),
-    offerSubtitle: localeText('Docs', 'Hướng dẫn', 'ドキュメント'),
+    offerTitle: localeText('Offers', 'Ưu đãi', 'キャンペーン'),
+    offerSubtitle: localeText(
+        'Exclusive Deals & Promotions',
+        'Ưu đãi và khuyến mãi hấp dẫn',
+        'お得な特典・キャンペーン',
+    ),
     offerHref: '/docs',
     searchPlaceholder: localeText(
         'Search templates, features, guides...',
