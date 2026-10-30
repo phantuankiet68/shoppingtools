@@ -154,8 +154,8 @@
 .flag {
     display: block;
     width: 22px;
-    height: auto;
-    object-fit: cover;
+    height: 15px;
+    object-fit: contain;
     border-radius: 3px;
     flex: 0 0 auto;
 }

@@ -200,7 +200,7 @@
 .filters {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 10px;
 }
 
 .filterBtn {
@@ -500,7 +500,7 @@
     flex-direction: column;
     gap: 24px;
     display: flex;
-    padding: 32px 24px;
+    padding: 24px;
     background: #ffffff59;
     border: 1px solid #ffffffc2;
     border-radius: 16px;
