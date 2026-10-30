@@ -567,6 +567,7 @@ export default function UiBuilderAddPage() {
 
                                         <Inspector
                                             active={active}
+                                            siteId={siteId}
                                             move={move}
                                             remove={remove}
                                             updateActive={updateActive}

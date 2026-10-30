@@ -10,6 +10,7 @@ import ArrayField from '@/components/admin/shared/inspector/ArrayField';
 
 type Props = {
     active: Block | null;
+    siteId: string;
     move: (dir: -1 | 1) => void;
     remove: () => void;
     updateActive: (patch: Record<string, unknown>) => void;
@@ -62,7 +63,13 @@ const updateLocalizedText = (value: unknown, locale: Locale, text: string): Loca
     };
 };
 
-export default React.memo(function Inspector({ active, move, remove, updateActive }: Props) {
+export default React.memo(function Inspector({
+    active,
+    siteId,
+    move,
+    remove,
+    updateActive,
+}: Props) {
     const reg = React.useMemo(() => {
         const kind = active?.kind;
         return kind ? REGISTRY.find((r) => r.kind === kind) : undefined;
@@ -78,32 +85,32 @@ export default React.memo(function Inspector({ active, move, remove, updateActiv
         fileInputRefs.current[key]?.click();
     }, []);
 
-    const uploadImage = React.useCallback(async (file: File) => {
-        const form = new FormData();
-        form.append('file', file);
+    const uploadImage = React.useCallback(
+        async (file: File) => {
+            if (!siteId) {
+                throw new Error('Vui lòng chọn website trước khi upload.');
+            }
 
-        const res = await fetch('/api/admin/upload', {
-            method: 'POST',
-            body: form,
-        });
+            const form = new FormData();
+            form.append('file', file);
+            form.append('siteId', siteId);
+            form.append('folder', 'media');
 
-        const data = await res.json().catch(() => null);
+            const res = await fetch('/api/admin/upload', {
+                method: 'POST',
+                body: form,
+            });
 
-        console.log('upload status:', res.status);
-        console.log('upload response:', data);
+            const data = await res.json();
 
-        if (!res.ok) {
-            throw new Error(data?.error || 'Upload failed');
-        }
+            if (!res.ok) {
+                throw new Error(data?.message || 'Upload failed');
+            }
 
-        const url = data?.url || data?.urls?.[0];
-
-        if (!url || typeof url !== 'string') {
-            throw new Error('Upload response missing image url');
-        }
-
-        return url;
-    }, []);
+            return data.file.url;
+        },
+        [siteId],
+    );
 
     const handleImageChange = React.useCallback(
         async (key: string, file?: File | null) => {
