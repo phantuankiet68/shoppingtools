@@ -83,14 +83,14 @@ export const DEFAULT_PROPS: Required<ContactService01Props> = {
     formButtonText: lt('Send Message', 'Gửi tin nhắn', 'メッセージを送信'),
     formSuccessText: lt('Message Sent', 'Đã gửi thành công', '送信が完了しました'),
     contact1Label: lt('Call us', 'Gọi cho chúng tôi', 'お電話はこちら'),
-    contact1Value: lt('(+84) 023-444-6666-5678', '(+84) 023-444-6666-5678', '(+81) 03-1234-5678'),
+    contact1Value: lt('(+84) 086-710-5900', '(+84) 086-710-5900', '(+84) 086-710-5900'),
     contact1Description: lt(
         'Mon – Fri, 8:00 – 17:00',
         'Thứ 2 – Thứ 6, 8:00 – 17:00',
         '月曜日〜金曜日 8:00〜17:00',
     ),
     contact2Label: lt('Email us', 'Email cho chúng tôi', 'メールでお問い合わせ'),
-    contact2Value: lt('hello@kbuilder.io', 'hello@kbuilder.io', 'hello@kbuilder.io'),
+    contact2Value: lt('tuankietity@gmail.com', 'tuankietity@gmail.com', 'tuankietity@gmail.com'),
     contact2Description: lt(
         'We reply within 24 hours',
         'Chúng tôi sẽ phản hồi trong vòng 24 giờ.',

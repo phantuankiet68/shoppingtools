@@ -75,16 +75,18 @@ const WEBSITE_TYPES: WebsiteType[] = ['landing', 'blog', 'ecommerce', 'booking',
 
 const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'vi', 'ja'];
 
-const SAMPLE_ITEM: PortfolioItem = {
-    id: 'sample-portfolio',
-    imageUrl: '/assets/portfolio/landing-01.jpg',
-    imageAlt: 'Modern SaaS Landing Page',
-    category: 'landing',
-    title: 'AI SaaS Platform',
-    description: 'Modern landing page designed to maximize conversions.',
-    size: 'tall',
-    href: '#',
-};
+const FALLBACK_ITEMS: PortfolioItem[] = [
+    {
+        id: 'sample-portfolio',
+        imageUrl: '/assets/portfolio/landing-01.jpg',
+        imageAlt: 'Modern SaaS Landing Page',
+        category: 'landing',
+        title: 'AI SaaS Platform',
+        description: 'Modern landing page designed to maximize conversions.',
+        size: 'tall',
+        href: '#',
+    },
+];
 
 function createLocalizedText(defaultValue: string, vi?: string, ja?: string): LocalizedText {
     return {
@@ -232,16 +234,47 @@ function PlaceholderCard({ category, title }: { category: WebsiteType; title: st
     );
 }
 
+function isWebsiteType(value: unknown): value is WebsiteType {
+    return typeof value === 'string' && WEBSITE_TYPES.includes(value as WebsiteType);
+}
+
+function isPortfolioSize(value: unknown): value is PortfolioSize {
+    return value === 'tall' || value === 'wide' || value === 'normal';
+}
+
+function isPortfolioApiItem(value: unknown): value is PortfolioApiItem {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    const item = value as Partial<PortfolioApiItem>;
+
+    return (
+        typeof item.id === 'string' &&
+        typeof item.imageUrl === 'string' &&
+        typeof item.title === 'string' &&
+        isWebsiteType(item.category) &&
+        isPortfolioSize(item.size) &&
+        typeof item.isActive === 'boolean'
+    );
+}
+
 function mapPortfolioItem(item: PortfolioApiItem): PortfolioItem {
     return {
         id: item.id,
-        imageUrl: item.imageUrl,
-        imageAlt: item.imageAlt || item.title,
+        imageUrl: item.imageUrl.trim(),
+        imageAlt:
+            typeof item.imageAlt === 'string' && item.imageAlt.trim()
+                ? item.imageAlt.trim()
+                : item.title,
         category: item.category,
-        title: item.title || 'Untitled Portfolio',
-        description: item.description ?? undefined,
+        title: item.title.trim() || 'Untitled Portfolio',
+        description:
+            typeof item.description === 'string' && item.description.trim()
+                ? item.description.trim()
+                : undefined,
         size: item.size,
-        href: item.href ?? undefined,
+        href: typeof item.href === 'string' && item.href.trim() ? item.href.trim() : undefined,
     };
 }
 
@@ -318,6 +351,7 @@ export function PortfolioService01(props: PortfolioService01Props) {
     const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState('all');
     const [hoveredId, setHoveredId] = useState<string | null>(null);
+    const [failedImageKeys, setFailedImageKeys] = useState<Set<string>>(() => new Set());
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -344,9 +378,12 @@ export function PortfolioService01(props: PortfolioService01Props) {
 
     useEffect(() => {
         setActiveFilter('all');
+        setHoveredId(null);
 
-        if (!siteId) {
-            setItems([SAMPLE_ITEM]);
+        const normalizedSiteId: string = siteId?.trim() ?? '';
+
+        if (normalizedSiteId.length === 0) {
+            setItems([]);
             setLoading(false);
             return;
         }
@@ -354,19 +391,16 @@ export function PortfolioService01(props: PortfolioService01Props) {
         const controller = new AbortController();
 
         async function loadPortfolios() {
-            if (!siteId) {
-                setItems([SAMPLE_ITEM]);
-                setLoading(false);
-                return;
-            }
-
+            // Clear the previous site's data while the next site/locale is loading.
+            setItems([]);
             setLoading(true);
 
             try {
-                const params = new URLSearchParams();
-                params.set('siteId', siteId);
-                params.set('locale', selectedLocale);
-                params.set('limit', '50');
+                const params = new URLSearchParams({
+                    siteId: normalizedSiteId,
+                    locale: selectedLocale,
+                    limit: '50',
+                });
 
                 const response = await fetch(`/api/v1/portfolios?${params.toString()}`, {
                     method: 'GET',
@@ -379,22 +413,27 @@ export function PortfolioService01(props: PortfolioService01Props) {
                     throw new Error(`Portfolio API failed: ${response.status}`);
                 }
 
-                const data: PortfolioApiResponse = await response.json();
+                const data: unknown = await response.json();
 
-                if (
-                    !data.success ||
-                    !Array.isArray(data.portfolios) ||
-                    data.portfolios.length === 0
-                ) {
-                    setItems([SAMPLE_ITEM]);
-                    return;
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Portfolio API returned an invalid response.');
                 }
 
-                const nextItems = data.portfolios
-                    .filter((item) => item.isActive)
+                const payload = data as Partial<PortfolioApiResponse>;
+
+                if (payload.success !== true || !Array.isArray(payload.portfolios)) {
+                    throw new Error('Portfolio API returned an unsuccessful or invalid payload.');
+                }
+
+                const nextItems = payload.portfolios
+                    .filter(isPortfolioApiItem)
+                    .filter((item) => item.isActive && item.imageUrl.trim().length > 0)
                     .map(mapPortfolioItem);
 
-                setItems(nextItems.length > 0 ? nextItems : [SAMPLE_ITEM]);
+                // Keep only real database records in state. Fallback is applied at render time.
+                if (!controller.signal.aborted) {
+                    setItems(nextItems);
+                }
             } catch (error) {
                 if (error instanceof DOMException && error.name === 'AbortError') {
                     return;
@@ -402,7 +441,9 @@ export function PortfolioService01(props: PortfolioService01Props) {
 
                 console.error('[PORTFOLIO_SERVICE_01]', error);
 
-                setItems([SAMPLE_ITEM]);
+                if (!controller.signal.aborted) {
+                    setItems([]);
+                }
             } finally {
                 if (!controller.signal.aborted) {
                     setLoading(false);
@@ -417,9 +458,18 @@ export function PortfolioService01(props: PortfolioService01Props) {
         };
     }, [siteId, selectedLocale]);
 
-    const t = (value: LocalizedText) => getLocalizedValue(value, selectedLocale);
+    const t = (value: LocalizedText | undefined, fallback: LocalizedText) =>
+        getLocalizedValue(value ?? fallback, selectedLocale);
 
-    const localizedFilterAllText = t(filterAllText);
+    const localizedFilterAllText = t(filterAllText, DEFAULT_PROPS.filterAllText);
+
+    const displayItems = useMemo<PortfolioItem[]>(() => {
+        if (loading) {
+            return [];
+        }
+
+        return items.length > 0 ? items : FALLBACK_ITEMS;
+    }, [items, loading]);
 
     const categories = useMemo(
         () => WEBSITE_TYPES.filter((category) => items.some((item) => item.category === category)),
@@ -428,8 +478,10 @@ export function PortfolioService01(props: PortfolioService01Props) {
 
     const filteredItems = useMemo(
         () =>
-            activeFilter === 'all' ? items : items.filter((item) => item.category === activeFilter),
-        [activeFilter, items],
+            activeFilter === 'all'
+                ? displayItems
+                : displayItems.filter((item) => item.category === activeFilter),
+        [activeFilter, displayItems],
     );
 
     useEffect(() => {
@@ -455,7 +507,7 @@ export function PortfolioService01(props: PortfolioService01Props) {
         <section
             ref={rootRef}
             className={`${styles.root} ${inView ? styles.inView : ''}`}
-            aria-label={t(headline)}
+            aria-label={t(headline, DEFAULT_PROPS.headline)}
         >
             <div className={styles.wrap}>
                 <div
@@ -469,14 +521,17 @@ export function PortfolioService01(props: PortfolioService01Props) {
                     <div className={styles.headerLeft}>
                         <span className={styles.eyebrow}>
                             <i className="bi bi-grid-3x3-gap-fill" aria-hidden="true" />
-                            {t(eyebrow)}
+                            {t(eyebrow, DEFAULT_PROPS.eyebrow)}
                         </span>
 
                         <h2 className={styles.headline}>
-                            {t(headline)} <span className={styles.accent}>{t(headlineAccent)}</span>
+                            {t(headline, DEFAULT_PROPS.headline)}{' '}
+                            <span className={styles.accent}>
+                                {t(headlineAccent, DEFAULT_PROPS.headlineAccent)}
+                            </span>
                         </h2>
 
-                        <p className={styles.sub}>{t(subheadline)}</p>
+                        <p className={styles.sub}>{t(subheadline, DEFAULT_PROPS.subheadline)}</p>
                     </div>
 
                     {showFilters && categories.length > 0 && (
@@ -546,11 +601,14 @@ export function PortfolioService01(props: PortfolioService01Props) {
                                 <div className={styles.bottomCtaCopy}>
                                     <i className="bi bi-stars" aria-hidden="true" />
 
-                                    <span>{t(ctaDescription)}</span>
+                                    <span>{t(ctaDescription, DEFAULT_PROPS.ctaDescription)}</span>
                                 </div>
 
-                                <Link href={ctaHref} className={styles.bottomCtaLink}>
-                                    {t(ctaText)}
+                                <Link
+                                    href={ctaHref || DEFAULT_PROPS.ctaHref}
+                                    className={styles.bottomCtaLink}
+                                >
+                                    {t(ctaText, DEFAULT_PROPS.ctaText)}
 
                                     <i className="bi bi-arrow-right" aria-hidden="true" />
                                 </Link>
@@ -580,14 +638,30 @@ export function PortfolioService01(props: PortfolioService01Props) {
                             onMouseLeave={() => setHoveredId(null)}
                         >
                             <div className={styles.cellMedia}>
-                                {isValidImageUrl(item.imageUrl) ? (
+                                {isValidImageUrl(item.imageUrl) &&
+                                !failedImageKeys.has(`${item.id}:${item.imageUrl}`) ? (
                                     <Image
                                         src={item.imageUrl}
                                         alt={item.imageAlt || item.title}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
                                         className={styles.cellImg}
-                                        unoptimized={isExternalImage(item.imageUrl)}
+                                        unoptimized={
+                                            isExternalImage(item.imageUrl) ||
+                                            item.imageUrl.startsWith('blob:')
+                                        }
+                                        onError={() => {
+                                            const imageKey = `${item.id}:${item.imageUrl}`;
+                                            setFailedImageKeys((current) => {
+                                                if (current.has(imageKey)) {
+                                                    return current;
+                                                }
+
+                                                const next = new Set(current);
+                                                next.add(imageKey);
+                                                return next;
+                                            });
+                                        }}
                                     />
                                 ) : (
                                     <PlaceholderCard category={item.category} title={item.title} />
@@ -609,7 +683,7 @@ export function PortfolioService01(props: PortfolioService01Props) {
 
                                         {item.href && (
                                             <Link href={item.href} className={styles.hoverLink}>
-                                                {t(detailText)}
+                                                {t(detailText, DEFAULT_PROPS.detailText)}
 
                                                 <i
                                                     className="bi bi-arrow-up-right"
@@ -633,7 +707,7 @@ export function PortfolioService01(props: PortfolioService01Props) {
                     ))}
 
                     {loading && (
-                        <div className={styles.r} aria-live="polite">
+                        <div className={styles.r} aria-live="polite" role="status">
                             Loading portfolio...
                         </div>
                     )}
