@@ -4,6 +4,7 @@ import { ChangeEvent, DragEvent, FormEvent, useEffect, useMemo, useRef, useState
 import styles from './add-project-feature-modal.module.css';
 import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 import { useModal } from '@/components/admin/shared/common/modal';
+import RichTextEditor from '@/components/admin/shared/editor/rich-text-editor';
 
 type LocaleCode = 'en' | 'vi' | 'ja';
 
@@ -925,15 +926,19 @@ export default function AddProjectFeatureModal({
                                 <div className={styles.field}>
                                     <label>{t('projectFeature.form.description')}</label>
 
-                                    <textarea
+                                    <RichTextEditor
+                                        field="description"
                                         value={currentTranslation.description}
-                                        onChange={(event) =>
-                                            updateTranslation('description', event.target.value)
+                                        onChange={(value) =>
+                                            updateTranslation('description', value)
                                         }
+                                        siteId={siteId}
                                         placeholder={t(
                                             'projectFeature.form.descriptionPlaceholder',
                                         )}
-                                        rows={5}
+                                        disabled={submitting}
+                                        minHeight={220}
+                                        showCharacterCount
                                     />
 
                                     <small>{t('projectFeature.form.descriptionHint')}</small>
