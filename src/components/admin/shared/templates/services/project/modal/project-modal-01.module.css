@@ -107,11 +107,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 72px;
-    width: 72px;
-    height: 72px;
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
     border: 1px solid rgba(255, 255, 255, 0.9);
-    border-radius: 20px;
+    border-radius: 12px;
     background: linear-gradient(145deg, #eef7ff, #f3edff);
     box-shadow:
         0 12px 30px rgba(79, 103, 207, 0.1),
@@ -196,14 +196,14 @@
 }
 .galleryCard {
     overflow: hidden;
-    border-radius: 22px;
+    border-radius: 12px;
 }
 .galleryMain {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 420px;
+    height: 468px;
     padding: 18px;
     overflow: hidden;
     background: linear-gradient(135deg, #edf7ff, #f5f1ff 62%, #eef3ff);
@@ -327,6 +327,32 @@
 .overviewCard {
     padding: 18px;
     border-radius: 12px;
+
+    /* Giới hạn chiều cao */
+    max-height: 420px;
+    overflow-y: auto;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #d5d9e2 transparent;
+}
+
+/* Chrome, Edge, Safari */
+.overviewCard::-webkit-scrollbar {
+    width: 4px;
+}
+
+.overviewCard::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overviewCard::-webkit-scrollbar-thumb {
+    background: #d5d9e2;
+    border-radius: 10px;
+}
+
+.overviewCard::-webkit-scrollbar-thumb:hover {
+    background: #aeb6c4;
 }
 .cardHeader {
     display: flex;
@@ -400,20 +426,20 @@
 .sidebar {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     padding-top: 45px;
 }
 .sidebarCard {
-    padding: 20px;
-    border-radius: 20px;
+    padding: 12px;
+    border-radius: 12px;
 }
 .sidebarTopIcon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
-    margin-bottom: 18px;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 12px;
     border-radius: 16px;
     background: linear-gradient(135deg, rgba(77, 122, 255, 0.13), rgba(143, 76, 255, 0.12));
     color: #5d66e8;
@@ -428,7 +454,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 14px;
-    padding: 20px 0;
+    padding: 12px 0;
     border-bottom: 1px solid rgba(210, 218, 238, 0.6);
 }
 .infoItem:first-child {
@@ -460,8 +486,8 @@
 .statsCard {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    padding: 18px 8px;
-    border-radius: 20px;
+    padding: 8px;
+    border-radius: 12px;
 }
 .statItem {
     display: flex;
@@ -497,7 +523,7 @@
 .sidebarCard p {
     color: #74809b;
     margin: 12px 0 0;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     line-height: 1.65;
 
     display: -webkit-box;
@@ -603,5 +629,288 @@
     }
     .statsCard {
         order: -1;
+    }
+}
+.richDescription {
+    color: #526078;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    overflow-wrap: break-word;
+}
+
+.richDescription h2 {
+    color: #172b4d;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 28px 0 12px;
+}
+
+.richDescription h3 {
+    color: #243b5a;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 22px 0 10px;
+}
+
+.richDescription p {
+    margin: 0 0 16px;
+}
+
+.richDescription ul,
+.richDescription ol {
+    padding-left: 24px;
+    margin: 12px 0 20px;
+}
+
+.richDescription li {
+    margin-bottom: 8px;
+}
+
+.richDescription strong {
+    color: #263b5a;
+    font-weight: 700;
+}
+/* =========================================
+   PROMOTION SIDEBAR - BLUE & ORANGE
+========================================= */
+
+.sidebarCard {
+    padding: 12px;
+    border: 1px solid #e8edf5;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
+    box-shadow: 0 8px 28px rgba(36, 71, 125, 0.045);
+}
+
+/* Header */
+
+.promoHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.promoHeaderIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #eaf2ff, #f0f4ff);
+    color: #3478e5;
+    font-size: 17px;
+}
+
+.promoHeader > div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.promoEyebrow {
+    color: #e69a48;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 1.15px;
+    line-height: 1.4;
+}
+
+.promoHeader strong {
+    color: #263c5c;
+    font-size: 1.2rem;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+/* Content */
+
+.promoContent {
+    padding-top: 12px;
+}
+
+/* Price card */
+
+.promoPrice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+    padding: 12px;
+    border: 1px solid #e3eafa;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f3f7ff 0%, #f8faff 65%, #fff9f1 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Orange decorative accent */
+
+.promoPrice::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #f5a34b, #ffd19a);
+    border-radius: 0 16px 16px 0;
+}
+
+.promoPrice > span {
+    color: #e49a46;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    line-height: 1.4;
+}
+
+.priceValue {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.priceValue strong {
+    color: #2868d9;
+    font-size: clamp(1.8rem, 4vw, 2.15rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -1.2px;
+}
+
+.priceValue span {
+    color: #8290a7;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.promoPrice small {
+    color: #8491a7;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Description */
+
+.promoDescription {
+    margin: 17px 0;
+    color: #71809a;
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+}
+
+/* Divider */
+
+.promoDivider {
+    width: 100%;
+    height: 1px;
+    margin: 10px 0;
+    background: #edf0f5;
+}
+
+/* Template benefit */
+
+.promoBenefit {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #e8edf7;
+    border-radius: 13px;
+    background: #f7f9fd;
+    transition: all 0.25s ease;
+}
+
+.promoBenefit:hover {
+    border-color: #d7e5fb;
+    background: #f1f6ff;
+    transform: translateY(-2px);
+}
+
+.promoBenefitIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #e8f0ff;
+    color: #3478e5;
+    font-size: 15px;
+}
+
+.promoBenefitText {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.promoBenefitText strong {
+    color: #344966;
+    font-size: 1rem;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+.promoBenefitText span {
+    color: #8a96aa;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.promoCheck {
+    flex-shrink: 0;
+    color: #e9a04f;
+    font-size: 15px;
+}
+
+/* Responsive */
+
+@media (max-width: 576px) {
+    .sidebarCard {
+        padding: 17px;
+        border-radius: 18px;
+    }
+
+    .promoHeader {
+        gap: 10px;
+        padding-bottom: 14px;
+    }
+
+    .promoHeaderIcon {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+    }
+
+    .promoContent {
+        padding-top: 15px;
+    }
+
+    .promoPrice {
+        padding: 14px;
+    }
+
+    .priceValue strong {
+        font-size: 1.9rem;
+    }
+
+    .promoDescription {
+        font-size: 0.78rem;
+        line-height: 1.7;
+    }
+
+    .promoBenefit {
+        padding: 10px;
     }
 }

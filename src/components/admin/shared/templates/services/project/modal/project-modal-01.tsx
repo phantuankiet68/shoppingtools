@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import styles from './project-modal-01.module.css';
 
 type SupportedLocale = 'en' | 'vi' | 'ja';
@@ -86,6 +87,37 @@ function extractRichText(value: unknown): string {
         }
 
         return Object.values(record).map(extractRichText).filter(Boolean).join(' ').trim();
+    }
+
+    return '';
+}
+
+function extractRichTextHtml(value: unknown): string {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed) return '';
+
+        try {
+            const parsed: unknown = JSON.parse(trimmed);
+            if (parsed && typeof parsed === 'object') {
+                return extractRichTextHtml(parsed);
+            }
+        } catch {
+            // The value is already an HTML or plain-text string.
+        }
+
+        return trimmed;
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(extractRichTextHtml).filter(Boolean).join('');
+    }
+
+    if (value && typeof value === 'object') {
+        const record = value as Record<string, unknown>;
+        if (typeof record.content === 'string') return record.content;
+        if (Array.isArray(record.content)) return extractRichTextHtml(record.content);
+        if (typeof record.text === 'string') return record.text;
     }
 
     return '';
@@ -297,9 +329,11 @@ export default function ProjectFeatureModal({
               : [];
     const currentImage = displayImages[activeImage] ?? displayImages[0];
     const title = translation?.title || fallbackFeature?.title || 'Project';
-    const description = translation
-        ? extractRichText(translation.description)
+    const descriptionHtml = translation
+        ? extractRichTextHtml(translation.description)
         : fallbackFeature?.description || '';
+    const safeDescriptionHtml = DOMPurify.sanitize(descriptionHtml);
+    const description = extractRichText(descriptionHtml);
     const category = data?.category ?? fallbackFeature?.category ?? 'OTHER';
     const tags = getTags(data?.tags);
 
@@ -472,7 +506,10 @@ export default function ProjectFeatureModal({
                                         {data?.status ?? 'PUBLISHED'}
                                     </span>
                                 </div>
-                                <p>{description}</p>
+                                <div
+                                    className={styles.richDescription}
+                                    dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
+                                />
                                 {tags.length > 0 && (
                                     <div className={styles.tagsSection}>
                                         <span className={styles.metaLabel}>{text.tags}</span>
@@ -489,9 +526,6 @@ export default function ProjectFeatureModal({
 
                     <aside className={styles.sidebar}>
                         <div className={styles.sidebarCard}>
-                            <div className={styles.sidebarTopIcon}>
-                                <i className="bi bi-rocket-takeoff-fill" />
-                            </div>
                             <div className={styles.infoList}>
                                 <div className={styles.infoItem}>
                                     <span>
@@ -546,11 +580,97 @@ export default function ProjectFeatureModal({
                         </div>
 
                         <div className={styles.sidebarCard}>
-                            <div className={styles.sidebarHeading}>
-                                <i className="bi bi-info-circle" />
-                                <strong>{text.overview}</strong>
+                            <div className={styles.promoHeader}>
+                                <div className={styles.promoHeaderIcon}>
+                                    <i className="bi bi-gift-fill" />
+                                </div>
+
+                                <div>
+                                    <span className={styles.promoEyebrow}>
+                                        {locale === 'vi'
+                                            ? 'ƯU ĐÃI CÓ THỜI HẠN'
+                                            : locale === 'ja'
+                                              ? '期間限定キャンペーン'
+                                              : 'LIMITED-TIME OFFER'}
+                                    </span>
+
+                                    <strong>
+                                        {locale === 'vi'
+                                            ? 'Ưu đãi năm đầu tiên'
+                                            : locale === 'ja'
+                                              ? '初年度限定特典'
+                                              : 'First-Year Special Offer'}
+                                    </strong>
+                                </div>
                             </div>
-                            <p>{description || text.loading}</p>
+
+                            <div className={styles.promoContent}>
+                                <div className={styles.promoPrice}>
+                                    <span>
+                                        {locale === 'vi'
+                                            ? 'CHỈ TỪ'
+                                            : locale === 'ja'
+                                              ? '特別価格'
+                                              : 'SPECIAL PRICE'}
+                                    </span>
+
+                                    <div className={styles.priceValue}>
+                                        <strong>99.000đ</strong>
+                                        <span>
+                                            /{' '}
+                                            {locale === 'vi'
+                                                ? 'năm đầu'
+                                                : locale === 'ja'
+                                                  ? '初年度'
+                                                  : 'first year'}
+                                        </span>
+                                    </div>
+
+                                    <small>
+                                        {locale === 'vi'
+                                            ? 'Chi phí đăng ký sử dụng nền tảng'
+                                            : locale === 'ja'
+                                              ? 'プラットフォームの初年度利用料金'
+                                              : 'Platform registration fee for the first year'}
+                                    </small>
+                                </div>
+
+                                <p className={styles.promoDescription}>
+                                    {locale === 'vi'
+                                        ? 'Khởi tạo website dễ dàng với mức phí chỉ 99.000đ cho năm đầu tiên. Lựa chọn 1 trong 10 mẫu website được thiết kế và thiết lập sẵn, giúp tiết kiệm thời gian triển khai và nhanh chóng đưa website vào hoạt động.'
+                                        : locale === 'ja'
+                                          ? '初年度は99,000 VNDで手軽にWebサイトを開設できます。デザインと基本設定が完了した10種類のテンプレートから1つを選択でき、導入時間を短縮してスムーズにWebサイトを公開できます。'
+                                          : 'Launch your website for only VND 99,000 in the first year. Choose one from 10 professionally designed and pre-configured website templates to save setup time and get your website up and running faster.'}
+                                </p>
+
+                                <div className={styles.promoDivider} />
+
+                                <div className={styles.promoBenefit}>
+                                    <div className={styles.promoBenefitIcon}>
+                                        <i className="bi bi-grid-1x2-fill" />
+                                    </div>
+
+                                    <div className={styles.promoBenefitText}>
+                                        <strong>
+                                            {locale === 'vi'
+                                                ? '10 template thiết lập sẵn'
+                                                : locale === 'ja'
+                                                  ? '設定済みテンプレート10種類'
+                                                  : '10 Ready-to-Use Templates'}
+                                        </strong>
+
+                                        <span>
+                                            {locale === 'vi'
+                                                ? 'Lựa chọn mẫu phù hợp với nhu cầu'
+                                                : locale === 'ja'
+                                                  ? '用途に合わせてテンプレートを選択'
+                                                  : 'Choose a template that fits your needs'}
+                                        </span>
+                                    </div>
+
+                                    <i className={`bi bi-check-circle-fill ${styles.promoCheck}`} />
+                                </div>
+                            </div>
                         </div>
                     </aside>
                 </div>
