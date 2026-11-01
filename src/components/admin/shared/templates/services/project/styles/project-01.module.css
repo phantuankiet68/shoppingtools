@@ -1002,11 +1002,28 @@
 
 @media (max-width: 520px) {
     .container {
-        width: calc(100% - 24px);
+        width: 100%;
     }
 
     .heroContent {
-        padding-top: 34px;
+        padding-top: 0px;
+    }
+
+    .header {
+        border-radius: 12px !important;
+        gap: 10px !important;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    .grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+        margin-top: 5rem;
+        display: grid;
+    }
+    .solutions {
+        padding: 0px 16px !important;
     }
 
     .badge {
@@ -2712,7 +2729,7 @@
 
 @media (max-width: 680px) {
     .solutions01Container {
-        width: min(100% - 28px, 1440px);
+        width: 100%;
     }
 
     .solutions01HeaderMain {
@@ -2731,15 +2748,15 @@
     }
 
     .solutions01Eyebrow {
-        font-size: 0.7rem;
+        font-size: 1.1rem;
     }
 
     .solutions01Title {
-        font-size: 1.45rem;
+        font-size: 1.8rem !important;
     }
 
     .solutions01Description {
-        font-size: 0.85rem;
+        font-size: 1.2rem;
     }
 
     .solutions01Grid {

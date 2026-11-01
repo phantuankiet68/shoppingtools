@@ -337,7 +337,7 @@
 }
 
 .table th {
-    height: 57px;
+    height: 47px;
     padding: 0 9px;
     color: var(--muted);
     background: #ffffff59;
@@ -360,8 +360,8 @@
 }
 
 .table td {
-    height: 82px;
-    padding: 9px;
+    height: 65px;
+    padding: 6px;
     border-bottom: 1px solid #c0d8ff;
     color: #42506b;
     font-size: 12px;
@@ -432,7 +432,7 @@
 
 .thumbnail {
     width: 112px;
-    height: 58px;
+    height: 48px;
     flex: 0 0 112px;
     position: relative;
     overflow: hidden;

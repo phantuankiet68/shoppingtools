@@ -74,7 +74,7 @@ type ProjectFeatureListProps = {
     onEdit?: (feature: ProjectFeature) => void;
     onView?: (feature: ProjectFeature) => void;
 };
-const PAGE_SIZES = [10, 20, 50];
+const PAGE_SIZES = [7, 14, 21, 50];
 const CATEGORY_META: Record<
     FeatureCategory,
     {
@@ -171,7 +171,8 @@ export default function ProjectFeatureList({
         shares: 0,
     });
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(7);
+    const [totalItems, setTotalItems] = useState(0);
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState<FeatureCategory | 'ALL'>('ALL');
     const [status, setStatus] = useState<FeatureStatus | 'ALL'>('ALL');
@@ -205,6 +206,7 @@ export default function ProjectFeatureList({
     const loadFeatures = useCallback(async () => {
         if (!resolvedSiteId) {
             setFeatures([]);
+            setTotalItems(0);
             setLoading(false);
             return;
         }
@@ -242,6 +244,7 @@ export default function ProjectFeatureList({
             }
             const nextFeatures = data.items ?? data.projectFeatures ?? [];
             setFeatures(nextFeatures);
+            setTotalItems(data.pagination?.total ?? nextFeatures.length);
             if (data.stats) {
                 setStats(data.stats);
             } else {
@@ -261,6 +264,7 @@ export default function ProjectFeatureList({
             }
         } catch (error: unknown) {
             setFeatures([]);
+            setTotalItems(0);
             modal.error(
                 t('projectFeature.modal.loadFailed'),
                 error instanceof Error ? error.message : t('projectFeature.modal.loadFailed'),
@@ -278,10 +282,10 @@ export default function ProjectFeatureList({
         );
         return () => window.clearTimeout(timer);
     }, [loadFeatures]);
-    const totalPages = Math.max(1, Math.ceil(stats.total / pageSize));
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
     const safePage = Math.min(page, totalPages);
-    const showingFrom = stats.total === 0 ? 0 : (safePage - 1) * pageSize + 1;
-    const showingTo = Math.min(safePage * pageSize, stats.total);
+    const showingFrom = totalItems === 0 ? 0 : (safePage - 1) * pageSize + 1;
+    const showingTo = Math.min(safePage * pageSize, totalItems);
     const handleDelete = useCallback(
         (feature: ProjectFeature) => {
             const translation = getTranslation(feature, locale);
@@ -437,7 +441,10 @@ export default function ProjectFeatureList({
                             <i className="bi bi-search" />
                             <input
                                 value={search}
-                                onChange={(event) => setSearch(event.target.value)}
+                                onChange={(event) => {
+                                    setSearch(event.target.value);
+                                    setPage(1);
+                                }}
                                 placeholder={t('projectFeature.search.placeholder')}
                                 aria-label={t('projectFeature.search.label')}
                             />

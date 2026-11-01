@@ -95,8 +95,6 @@ export interface ProjectPage01Props {
     heroTitle?: LocalizedText;
     heroTitleAccent?: LocalizedText;
     heroDescription?: LocalizedText;
-    heroButtonLabel?: LocalizedText;
-    heroDemoLabel?: LocalizedText;
 
     heroFeature1?: LocalizedText;
     heroFeature2?: LocalizedText;
@@ -194,24 +192,6 @@ export const DEFAULT_PROPS: Required<Omit<ProjectPage01Props, 'siteId'>> & {
         translations: {
             vi: 'Tạo và xuất bản website chuyên nghiệp nhanh hơn với trình chỉnh sửa trực quan, giao diện responsive, section tái sử dụng và hosting tích hợp.',
             ja: 'ビジュアル編集、レスポンシブテンプレート、再利用可能なセクション、統合ホスティングでWebサイトを素早く公開できます。',
-        },
-    },
-
-    heroButtonLabel: {
-        sourceLocale: 'en',
-        default: 'Start Building',
-        translations: {
-            vi: 'Bắt đầu xây dựng',
-            ja: '今すぐ始める',
-        },
-    },
-
-    heroDemoLabel: {
-        sourceLocale: 'en',
-        default: 'Live Demo',
-        translations: {
-            vi: 'Xem demo',
-            ja: 'デモを見る',
         },
     },
 
@@ -979,8 +959,6 @@ export function ProjectPage01(props: ProjectPage01Props) {
         heroTitle,
         heroTitleAccent,
         heroDescription,
-        heroButtonLabel,
-        heroDemoLabel,
         heroFeature1,
         heroFeature2,
         heroFeature3,
@@ -1218,26 +1196,6 @@ export function ProjectPage01(props: ProjectPage01Props) {
                                 </h1>
 
                                 <p className={styles.description}>{t(heroDescription)}</p>
-
-                                <div className={styles.actions}>
-                                    <button type="button" className={styles.primaryButton}>
-                                        <span className={styles.primaryIcon}>
-                                            <i className="bi bi-rocket-takeoff-fill" />
-                                        </span>
-
-                                        <span>{t(heroButtonLabel)}</span>
-
-                                        <i className="bi bi-arrow-right" />
-                                    </button>
-
-                                    <button type="button" className={styles.secondaryButton}>
-                                        <span className={styles.playIcon}>
-                                            <i className="bi bi-play-fill" />
-                                        </span>
-
-                                        {t(heroDemoLabel)}
-                                    </button>
-                                </div>
 
                                 <div className={styles.featureRow}>
                                     <div className={styles.featurePill}>
@@ -1690,8 +1648,6 @@ function createHeroInspector(): InspectorField[] {
         createTextareaField('heroTitle', 'Hero Title'),
         createTextareaField('heroTitleAccent', 'Hero Title Accent'),
         createTextareaField('heroDescription', 'Hero Description'),
-        createTextField('heroButtonLabel', 'Hero Button'),
-        createTextField('heroDemoLabel', 'Hero Demo'),
         createTextField('heroFeature1', 'Hero Feature 1'),
         createTextField('heroFeature2', 'Hero Feature 2'),
         createTextField('heroFeature3', 'Hero Feature 3'),
