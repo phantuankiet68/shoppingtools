@@ -51,19 +51,17 @@ type SortField = 'sortOrder' | 'createdAt' | 'viewCount' | 'favoriteCount';
 // COMMON HELPERS
 // ======================================================
 
-const errorResponse = (message: string, status = 400) => {
-    return NextResponse.json(
+const errorResponse = (message: string, status = 400) =>
+    NextResponse.json(
         {
             success: false,
             message,
         },
         { status },
     );
-};
 
-const isOneOf = <T extends string>(values: readonly T[], value: string): value is T => {
-    return values.includes(value as T);
-};
+const isOneOf = <T extends string>(values: readonly T[], value: string): value is T =>
+    values.includes(value as T);
 
 const parseLimit = (value: string | null): number => {
     const parsed = Number(value);
@@ -122,9 +120,7 @@ async function getFeature(id: string, workspaceId: string) {
         },
         include: {
             translations: {
-                orderBy: {
-                    locale: 'asc',
-                },
+                orderBy: { locale: 'asc' },
             },
             images: {
                 orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
@@ -153,7 +149,6 @@ function normalizeTranslations(items: TranslationInput[] = []) {
 
     for (const item of items) {
         const locale = String(item.locale ?? '').trim();
-
         const title = String(item.title ?? '').trim();
 
         if (!isOneOf(LOCALES, locale)) {
@@ -185,7 +180,6 @@ function normalizeImages(items: ImageInput[] = []) {
 
     const images = items.map((item, index) => {
         const image = String(item.image ?? '').trim();
-
         const sortOrder = item.sortOrder == null ? index : Number(item.sortOrder);
 
         if (!image) {
@@ -203,7 +197,7 @@ function normalizeImages(items: ImageInput[] = []) {
         };
     });
 
-    // Chỉ cho phép một ảnh chính.
+    // Ensure there is at most one primary image.
     const primary = images.findIndex((item) => item.isPrimary);
 
     images.forEach((item, index) => {
@@ -232,11 +226,8 @@ const featureSelect = {
     isFeatured: true,
     createdAt: true,
     updatedAt: true,
-
     translations: {
-        orderBy: {
-            locale: 'asc' as const,
-        },
+        orderBy: { locale: 'asc' as const },
         select: {
             id: true,
             locale: true,
@@ -244,7 +235,6 @@ const featureSelect = {
             description: true,
         },
     },
-
     images: {
         orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
         take: 5,
@@ -264,10 +254,7 @@ const featureSelect = {
 
 export async function GET(request: NextRequest) {
     try {
-        // ----------------------------------------------
         // 1. Authentication
-        // ----------------------------------------------
-
         const { session, workspaceId } = await getWorkspace();
 
         if (!session) {
@@ -278,30 +265,21 @@ export async function GET(request: NextRequest) {
             return errorResponse('Workspace not found.');
         }
 
-        // ----------------------------------------------
         // 2. Query parameters
-        // ----------------------------------------------
-
         const { searchParams } = new URL(request.url);
 
         const siteId = searchParams.get('siteId')?.trim() ?? '';
-
         const search = searchParams.get('search')?.trim() ?? '';
-
         const category = searchParams.get('category')?.trim() ?? '';
-
         const status = searchParams.get('status')?.trim() ?? '';
-
         const locale = searchParams.get('locale')?.trim() ?? '';
 
         const requestedPage = parsePage(searchParams.get('page'));
-
         const limit = parseLimit(searchParams.get('limit'));
 
-        // ----------------------------------------------
         // 3. Sorting
-        // ----------------------------------------------
-
+        // Front-end values:
+        // sortOrder, createdAt, views, favorites
         const sortFieldMap: Record<string, SortField> = {
             sortOrder: 'sortOrder',
             createdAt: 'createdAt',
@@ -310,16 +288,12 @@ export async function GET(request: NextRequest) {
         };
 
         const requestedSort = searchParams.get('sortBy') ?? 'sortOrder';
-
         const sortBy: SortField = sortFieldMap[requestedSort] ?? 'sortOrder';
 
         const sortOrder: Prisma.SortOrder =
             searchParams.get('sortOrder') === 'desc' ? 'desc' : 'asc';
 
-        // ----------------------------------------------
         // 4. Validate parameters
-        // ----------------------------------------------
-
         if (!siteId) {
             return errorResponse('siteId is required.');
         }
@@ -336,27 +310,20 @@ export async function GET(request: NextRequest) {
             return errorResponse('Invalid locale.');
         }
 
-        // ----------------------------------------------
         // 5. Validate site access
-        // ----------------------------------------------
-
         const site = await getSite(siteId, workspaceId);
 
         if (!site) {
             return errorResponse('Site not found or access denied.', 404);
         }
 
-        // ----------------------------------------------
-        // 6. Build common filters
-        // ----------------------------------------------
-
+        // 6. Common filters for status tabs and aggregate statistics.
+        // Deliberately excludes the selected status so tab counts stay stable.
         const statsWhere: Prisma.ProjectFeatureWhereInput = {
             siteId: site.id,
-
             ...(category && {
                 category: category as ProjectFeatureCategory,
             }),
-
             ...(search && {
                 OR: [
                     {
@@ -385,148 +352,102 @@ export async function GET(request: NextRequest) {
             }),
         };
 
-        // Status chỉ áp dụng cho danh sách.
-        // Không áp dụng vào thống kê các tab.
+        // Selected status filters the displayed list and pagination total.
         const where: Prisma.ProjectFeatureWhereInput = {
             ...statsWhere,
-
             ...(status && {
                 status: status as ProjectFeatureStatus,
             }),
         };
 
-        // ----------------------------------------------
-        // 7. Get total & statistics
-        // ----------------------------------------------
+        // 7. Get list total, status counters and aggregate statistics.
+        // Use count() instead of groupBy() to avoid Prisma groupBy orderBy
+        // requirements and _count union typing differences across versions.
+        const [total, publishedCount, draftCount, archivedCount, aggregates] =
+            await prisma.$transaction([
+                prisma.projectFeature.count({
+                    where,
+                }),
 
-        const [total, groupedStatuses, aggregates] = await prisma.$transaction([
-            prisma.projectFeature.count({
-                where,
-            }),
+                prisma.projectFeature.count({
+                    where: {
+                        ...statsWhere,
+                        status: ProjectFeatureStatus.PUBLISHED,
+                    },
+                }),
 
-            prisma.projectFeature.groupBy({
-                by: ['status'],
-                where: statsWhere,
-                _count: {
-                    _all: true,
-                },
-            }),
+                prisma.projectFeature.count({
+                    where: {
+                        ...statsWhere,
+                        status: ProjectFeatureStatus.DRAFT,
+                    },
+                }),
 
-            prisma.projectFeature.aggregate({
-                where: statsWhere,
+                prisma.projectFeature.count({
+                    where: {
+                        ...statsWhere,
+                        status: ProjectFeatureStatus.ARCHIVED,
+                    },
+                }),
 
-                _sum: {
-                    viewCount: true,
-                    favoriteCount: true,
-                    shareCount: true,
-                },
+                prisma.projectFeature.aggregate({
+                    where: statsWhere,
+                    _sum: {
+                        viewCount: true,
+                        favoriteCount: true,
+                        shareCount: true,
+                    },
+                    _count: {
+                        _all: true,
+                    },
+                }),
+            ]);
 
-                _count: {
-                    _all: true,
-                },
-            }),
-        ]);
-
-        // ----------------------------------------------
-        // 8. Calculate pagination
-        // ----------------------------------------------
-
+        // 8. Pagination
         const totalPages = Math.ceil(total / limit);
 
-        // Không cho phép truy cập trang vượt giới hạn.
+        // Clamp requested page when filters reduce the number of results.
         const page = totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
 
         const skip = (page - 1) * limit;
 
-        // ----------------------------------------------
-        // 9. Get status counts
-        // ----------------------------------------------
-
-        const statusCounts = {
-            PUBLISHED: 0,
-            DRAFT: 0,
-            ARCHIVED: 0,
-        };
-
-        for (const group of groupedStatuses) {
-            const statusKey = group.status as keyof typeof statusCounts;
-
-            statusCounts[statusKey] = group._count._all;
-        }
-
-        // ----------------------------------------------
-        // 10. Get paginated data
-        // ----------------------------------------------
-
-        const translationWhere = locale
-            ? {
-                  locale: locale as Locale,
-              }
-            : undefined;
+        // 9. Fetch current page
+        const translationWhere = locale ? { locale: locale as Locale } : undefined;
 
         const items = await prisma.projectFeature.findMany({
             where,
-
-            orderBy: [
-                {
-                    [sortBy]: sortOrder,
-                },
-                {
-                    createdAt: 'desc',
-                },
-            ],
-
+            orderBy: [{ [sortBy]: sortOrder }, { createdAt: 'desc' }],
             skip,
             take: limit,
-
             select: {
                 ...featureSelect,
-
                 translations: {
                     where: translationWhere,
-
-                    orderBy: {
-                        locale: 'asc',
-                    },
-
+                    orderBy: { locale: 'asc' },
                     select: featureSelect.translations.select,
                 },
             },
         });
 
-        // ----------------------------------------------
-        // 11. Response
-        // ----------------------------------------------
-
+        // 10. Response
         return NextResponse.json({
             success: true,
-
             projectFeatures: items,
-
             stats: {
                 total: aggregates._count._all,
-
-                published: statusCounts.PUBLISHED,
-
-                draft: statusCounts.DRAFT,
-
-                archived: statusCounts.ARCHIVED,
-
+                published: publishedCount,
+                draft: draftCount,
+                archived: archivedCount,
                 views: aggregates._sum.viewCount ?? 0,
-
                 favorites: aggregates._sum.favoriteCount ?? 0,
-
                 shares: aggregates._sum.shareCount ?? 0,
             },
-
             pagination: {
                 page,
                 limit,
                 total,
                 totalPages,
-
                 hasNextPage: page < totalPages,
-
                 hasPreviousPage: page > 1 && total > 0,
             },
         });
@@ -543,10 +464,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        // ----------------------------------------------
         // 1. Authentication
-        // ----------------------------------------------
-
         const { session, workspaceId } = await getWorkspace();
 
         if (!session) {
@@ -557,10 +475,7 @@ export async function POST(request: NextRequest) {
             return errorResponse('Workspace not found.');
         }
 
-        // ----------------------------------------------
         // 2. Parse request body
-        // ----------------------------------------------
-
         let body: ProjectFeatureInput;
 
         try {
@@ -569,16 +484,10 @@ export async function POST(request: NextRequest) {
             return errorResponse('Invalid JSON body.');
         }
 
-        // ----------------------------------------------
         // 3. Normalize fields
-        // ----------------------------------------------
-
         const siteId = String(body.siteId ?? '').trim();
-
         const category = String(body.category ?? 'OTHER').trim();
-
         const status = String(body.status ?? 'DRAFT').trim();
-
         const slug = String(body.slug ?? '').trim();
 
         const developer = body.developer == null ? null : String(body.developer).trim() || null;
@@ -587,10 +496,7 @@ export async function POST(request: NextRequest) {
 
         const isFeatured = body.isFeatured ?? false;
 
-        // ----------------------------------------------
         // 4. Validate fields
-        // ----------------------------------------------
-
         if (!siteId) {
             return errorResponse('siteId is required.');
         }
@@ -615,28 +521,18 @@ export async function POST(request: NextRequest) {
             return errorResponse('isFeatured must be a boolean.');
         }
 
-        // ----------------------------------------------
-        // 5. Validate site
-        // ----------------------------------------------
-
+        // 5. Validate site access
         const site = await getSite(siteId, workspaceId);
 
         if (!site) {
             return errorResponse('Site not found or access denied.', 404);
         }
 
-        // ----------------------------------------------
-        // 6. Normalize translations & images
-        // ----------------------------------------------
-
+        // 6. Normalize translations and images
         const translations = normalizeTranslations(body.translations);
-
         const images = normalizeImages(body.images);
 
-        // ----------------------------------------------
-        // 7. Check duplicate slug
-        // ----------------------------------------------
-
+        // 7. Check duplicate slug within the same site
         const existing = await prisma.projectFeature.findUnique({
             where: {
                 siteId_slug: {
@@ -644,7 +540,6 @@ export async function POST(request: NextRequest) {
                     slug,
                 },
             },
-
             select: {
                 id: true,
             },
@@ -654,60 +549,41 @@ export async function POST(request: NextRequest) {
             return errorResponse('A project feature with this slug already exists.', 409);
         }
 
-        // ----------------------------------------------
         // 8. Create project feature
-        // ----------------------------------------------
-
         const item = await prisma.projectFeature.create({
             data: {
                 siteId: site.id,
-
                 category: category as ProjectFeatureCategory,
-
                 status: status as ProjectFeatureStatus,
-
                 developer,
-
                 tags: body.tags == null ? undefined : (body.tags as Prisma.InputJsonValue),
-
                 slug,
                 sortOrder,
                 isFeatured,
-
                 translations: {
                     create: translations,
                 },
-
                 images: {
                     create: images,
                 },
             },
-
             select: featureSelect,
         });
 
-        // ----------------------------------------------
         // 9. Response
-        // ----------------------------------------------
-
         return NextResponse.json(
             {
                 success: true,
-
                 message: 'Project feature created successfully.',
-
                 item,
             },
-            {
-                status: 201,
-            },
+            { status: 201 },
         );
     } catch (error) {
         console.error('[POST /api/admin/project-features]', error);
 
         return errorResponse(
             error instanceof Error ? error.message : 'Internal server error.',
-
             error instanceof Error ? 400 : 500,
         );
     }
