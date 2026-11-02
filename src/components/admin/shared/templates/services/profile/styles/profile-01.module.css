@@ -1,7 +1,6 @@
 .profile {
     position: relative;
     padding: 0;
-    margin-top: 32px;
     overflow: hidden;
     isolation: isolate;
     width: 100%;
@@ -22,7 +21,7 @@
     background-attachment: fixed;
 
     overflow: hidden;
-    padding: 35px 0 0;
+    padding: 35px 0;
 }
 
 .container {
@@ -118,15 +117,16 @@
 ========================================================== */
 
 .mediaCard {
-    background: #fff;
     border-radius: 16px;
 }
 
 .formCard {
-    background: #fff;
     border-radius: 16px;
     padding: 24px;
-    border: 1px solid #edf1f7;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
 }
 
 .cardHeader {
@@ -184,9 +184,11 @@
     align-items: center;
     justify-content: center;
     padding: 32px 24px;
-    border: 1px solid #edf1f7;
     border-radius: 22px;
-    background: #fff;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
     text-align: center;
 }
 
@@ -964,9 +966,10 @@
     position: relative;
     padding: 24px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(22px);
-    border: var(--bd-header);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
     overflow: hidden;
     transition: 0.35s;
 }
@@ -1602,9 +1605,10 @@
     position: relative;
     padding: 24px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(22px);
-    border: 1px solid #edf1f7;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    background: linear-gradient(120deg, #fff0, #fbfbfb00);
+    border: 1px solid #ffffffad;
     overflow: hidden;
     transition: 0.4s;
 }
