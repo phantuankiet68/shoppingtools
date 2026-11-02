@@ -185,7 +185,7 @@ function getSampleBlogs(locale: SupportedLocale): BlogItem[] {
             description: content.description,
             author: 'KBuilder',
             role: content.role,
-            avatar: '/assets/images/avatar-1.png',
+            avatar: '/assets/images/avatar/avatar.png',
         },
     ];
 }
@@ -298,8 +298,8 @@ export const DEFAULT_PROPS: Required<Omit<Blog01Props, 'siteId'>> & { siteId?: s
         'Khám phá những hành trình truyền cảm hứng, câu chuyện chân thực và trải nghiệm đáng nhớ được chia sẻ bởi các nhà sáng tạo đồng hành cùng Kbuilder.',
         'Kbuilderとともに成長するクリエイターたちが共有する感動的な旅やリアルなストーリー、忘れられない体験をご覧ください。',
     ),
-    reviewerAvatar: '/assets/images/avatar-1.png',
-    reviewerName: localizedText('Phan Duy Linh', 'Phan Duy Linh', 'ファン・ズイ・リン'),
+    reviewerAvatar: '/assets/images/avatar-2.png',
+    reviewerName: localizedText('Phạm Đăng Khoa', 'Phạm Đăng Khoa', 'Phạm Đăng Khoa'),
     reviewerRole: localizedText(
         'Personal Brand & Digital Creator',
         'Xây dựng thương hiệu cá nhân & Sáng tạo số',
@@ -521,7 +521,7 @@ export function BlogPage01(props: Blog01Props) {
                         locale: selectedLocale,
                         status: 'PUBLISHED',
                         page: String(currentPage),
-                        limit: '6',
+                        limit: '9',
                     });
                     if (search.trim()) params.set('search', search.trim());
                     if (activeTagId) params.set('tagId', activeTagId);

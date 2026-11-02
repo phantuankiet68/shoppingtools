@@ -857,7 +857,7 @@ function ChangePassword01(props: ChangePassword01Props) {
                 <button
                     type="button"
                     className={styles.primaryButton}
-                    onClick={() => router.push('/dashboard')}
+                    onClick={() => router.push('/admin')}
                 >
                     {t(continueDashboardButton)}
                     <i className="bi bi-arrow-right" />

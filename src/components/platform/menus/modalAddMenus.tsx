@@ -448,7 +448,7 @@ export function ModalAddMenus({
                                 value={form.path}
                                 onChange={(event) => handlePathChange(event.target.value)}
                                 className={styles.control}
-                                placeholder="/admin/dashboard"
+                                placeholder="/admin"
                                 disabled={submitting}
                             />
                         </label>

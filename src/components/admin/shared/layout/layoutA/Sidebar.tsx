@@ -33,7 +33,7 @@ const DEFAULT_DASHBOARD: Item = {
     key: 'dashboard',
     title: 'Dashboard',
     icon: 'bi-speedometer2',
-    path: '/admin/dashboard',
+    path: '/admin',
     parentId: null,
     children: [],
 };
@@ -585,7 +585,7 @@ export default function Sidebar({ navRef }: { navRef: RefObject<HTMLDivElement |
                 <div className={styles.sidebarPanel}>
                     <div className={styles.brandWrap}>
                         <Link
-                            href="/admin/dashboard"
+                            href="/admin"
                             className={styles.brandLink}
                             aria-label="KBuilder Dashboard"
                         >

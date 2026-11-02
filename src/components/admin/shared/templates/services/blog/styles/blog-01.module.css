@@ -657,7 +657,10 @@
 
 @media (max-width: 768px) {
     .blogSection {
-        padding: 6rem 0;
+        padding: 5rem 16px;
+    }
+    .blogCover {
+        max-height: 200px !important;
     }
 
     .blogContainer {
@@ -892,7 +895,9 @@
     }
 
     .blogCard {
-        border-radius: 22px;
+        border-radius: 16px;
+        max-width: 100%;
+        width: 357px;
     }
 
     .blogBookmark {
@@ -2128,6 +2133,10 @@
 @media (max-width: 768px) {
     .trekkerShell {
         width: min(100% - 32px, 1320px);
+        padding: 0 !important;
+    }
+    .gridStatus {
+        grid-template-columns: 1fr !important;
     }
 
     .trekkerHeading {
