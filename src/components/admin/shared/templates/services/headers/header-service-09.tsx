@@ -47,7 +47,6 @@ export interface HeaderService09Props {
     offerTitle?: LocalizedText;
     offerSubtitle?: LocalizedText;
     offerHref?: string;
-    searchPlaceholder?: LocalizedText;
     primaryColor?: string;
     secondaryColor?: string;
     accentColor?: string;
@@ -123,11 +122,6 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
         'お得な特典・キャンペーン',
     ),
     offerHref: '/docs',
-    searchPlaceholder: localeText(
-        'Search templates, features, guides...',
-        'Tìm kiếm template, tính năng, hướng dẫn...',
-        'テンプレート、機能、ガイドを検索...',
-    ),
     primaryColor: '#4F8FF7',
     secondaryColor: '#A855F7',
     accentColor: '#7C5CFC',
@@ -206,7 +200,6 @@ function HeaderService09(props: HeaderService09Props) {
         offerTitle,
         offerSubtitle,
         offerHref,
-        searchPlaceholder,
         primaryColor,
         secondaryColor,
         accentColor,
@@ -229,14 +222,12 @@ function HeaderService09(props: HeaderService09Props) {
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [languageOpen, setLanguageOpen] = useState(false);
-    const [searchValue, setSearchValue] = useState('');
     const [selectedLocale, setSelectedLocale] = useState(() => {
         if (typeof window === 'undefined') return 'en';
         return localStorage.getItem('locale') ?? 'en';
     });
 
     const languageRef = useRef<HTMLDivElement>(null);
-    const searchRef = useRef<HTMLInputElement>(null);
 
     const currentLocale = LOCALES.find((item) => item.value === selectedLocale) ?? LOCALES[0];
     const siteLogo = site?.logoUrl || logo || '/assets/images/logo.png';
@@ -263,12 +254,10 @@ function HeaderService09(props: HeaderService09Props) {
             if (event.key === 'Escape') {
                 setLanguageOpen(false);
                 setMobileOpen(false);
-                searchRef.current?.blur();
             }
 
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
                 event.preventDefault();
-                searchRef.current?.focus();
             }
         }
 
@@ -293,16 +282,6 @@ function HeaderService09(props: HeaderService09Props) {
         localStorage.setItem('locale', locale);
         window.dispatchEvent(new CustomEvent('locale-change', { detail: locale }));
         setLanguageOpen(false);
-    }
-
-    function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        if (!searchValue.trim()) {
-            searchRef.current?.focus();
-            return;
-        }
-        const query = encodeURIComponent(searchValue.trim());
-        window.location.href = `/search?q=${query}`;
     }
 
     function renderUserMenu() {
@@ -496,20 +475,6 @@ function HeaderService09(props: HeaderService09Props) {
                         ))}
                     </nav>
 
-                    <form className={styles.searchWrapper} onSubmit={handleSearchSubmit}>
-                        <div className={styles.searchBox}>
-                            <i className="bi bi-search" />
-                            <input
-                                ref={searchRef}
-                                type="search"
-                                value={searchValue}
-                                onChange={(event) => setSearchValue(event.target.value)}
-                                placeholder={getLocalizedValue(searchPlaceholder, selectedLocale)}
-                                aria-label={getLocalizedValue(searchPlaceholder, selectedLocale)}
-                            />
-                        </div>
-                    </form>
-
                     {showOfferCard && (
                         <Link href={offerHref} className={styles.offerCard}>
                             <span className={styles.offerIcon}>
@@ -633,7 +598,6 @@ function createOfferInspector(): RegItem['inspector'] {
     return [
         localizedTextField('offerTitle', 'Offer Title'),
         localizedTextField('offerSubtitle', 'Offer Subtitle'),
-        localizedTextField('searchPlaceholder', 'Search Placeholder'),
         textField('offerHref', 'Offer Url'),
     ];
 }
