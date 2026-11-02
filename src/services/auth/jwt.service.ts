@@ -2,7 +2,13 @@ import { SignJWT, jwtVerify } from 'jose';
 import { AUTH } from '@/constants/auth';
 import type { JwtPayload } from './auth.types';
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+const jwtSecret = process.env.JWT_SECRET?.trim();
+
+if (!jwtSecret) {
+    throw new Error('JWT_SECRET is missing or empty.');
+}
+
+const secret = new TextEncoder().encode(jwtSecret);
 
 export async function createAccessToken(payload: JwtPayload): Promise<string> {
     return new SignJWT(payload)
