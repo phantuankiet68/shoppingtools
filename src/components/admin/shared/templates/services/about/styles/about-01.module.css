@@ -1290,11 +1290,9 @@
     position: relative;
     z-index: 5;
     width: 100%;
-    max-width: 535px;
+    max-width: 619px;
     aspect-ratio: 1.55;
     transform: translateX(8px);
-    filter: drop-shadow(0 30px 38px rgba(76, 95, 184, 0.2))
-        drop-shadow(0 7px 14px rgba(105, 90, 208, 0.08));
 }
 
 .builderPreviewImage {
@@ -1304,6 +1302,7 @@
     height: 100%;
     object-fit: contain;
     object-position: center;
+    border-radius: 16px;
 }
 
 .builderDecorationTop {

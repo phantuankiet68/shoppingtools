@@ -283,81 +283,89 @@ export async function POST(request: NextRequest) {
             return jsonError('Invalid status.');
         }
 
-        const post = await prisma.blogPost.create({
-            data: {
-                siteId,
-                categoryId,
-                wikiCategoryId,
-
-                authorId: normalizeNullableString(body.authorId),
-
-                status: status as ContentStatus,
-
-                featured: normalizeBoolean(body.featured),
-
-                allowComments: normalizeBoolean(body.allowComments, true),
-
-                thumbnail: normalizeNullableString(body.thumbnail),
-
-                coverImage: normalizeNullableString(body.coverImage),
-
-                readingTime: normalizeInteger(body.readingTime),
-
-                wordCount: normalizeInteger(body.wordCount),
-
-                publishedAt: normalizeDate(body.publishedAt),
-
-                translations: {
-                    create: translations.map((translation) => ({
-                        locale: translation.locale,
-                        title: translation.title,
-                        slug: translation.slug,
-                        subtitle: translation.subtitle,
-                        excerpt: translation.excerpt,
-                        content: translation.content,
-                        toc: translation.toc,
-                        keywords: translation.keywords,
-                        searchTerms: translation.searchTerms,
-                        synonyms: translation.synonyms,
-
-                        ...(translation.seo
-                            ? {
-                                  seo: {
-                                      create: translation.seo,
-                                  },
-                              }
-                            : {}),
-                    })),
-                },
-
-                ...(tagIds.length
-                    ? {
-                          tags: {
-                              create: tagIds.map((tagId) => ({
-                                  tagId,
-                              })),
-                          },
-                      }
-                    : {}),
-            },
-
-            include: POST_INCLUDE,
-        });
-
-        if (tagIds.length) {
-            await prisma.blogTag.updateMany({
-                where: {
-                    id: {
-                        in: tagIds,
-                    },
-                },
+        const post = await prisma.$transaction(async (tx) => {
+            const createdPost = await tx.blogPost.create({
                 data: {
-                    usageCount: {
-                        increment: 1,
+                    siteId,
+                    categoryId,
+                    wikiCategoryId,
+
+                    authorId: normalizeNullableString(body.authorId),
+
+                    status: status as ContentStatus,
+
+                    featured: normalizeBoolean(body.featured),
+
+                    allowComments: normalizeBoolean(body.allowComments, true),
+
+                    thumbnail: normalizeNullableString(body.thumbnail),
+
+                    coverImage: normalizeNullableString(body.coverImage),
+
+                    readingTime: normalizeInteger(body.readingTime),
+
+                    wordCount: normalizeInteger(body.wordCount),
+
+                    publishedAt: normalizeDate(body.publishedAt),
+
+                    translations: {
+                        create: translations.map((translation) => ({
+                            locale: translation.locale,
+                            title: translation.title,
+                            slug: translation.slug,
+                            subtitle: translation.subtitle,
+                            excerpt: translation.excerpt,
+                            content: translation.content,
+                            toc: translation.toc,
+                            keywords: translation.keywords,
+                            searchTerms: translation.searchTerms,
+                            synonyms: translation.synonyms,
+
+                            // normalizePostTranslations already returns the Prisma
+                            // relation envelope: { create: { ...seoFields } }.
+                            // Do not wrap it in another `create`, otherwise Prisma
+                            // receives the invalid shape seo.create.create.
+                            ...(translation.seo
+                                ? {
+                                      seo: translation.seo,
+                                  }
+                                : {}),
+                        })),
                     },
+
+                    ...(tagIds.length
+                        ? {
+                              tags: {
+                                  create: tagIds.map((tagId) => ({
+                                      tagId,
+                                  })),
+                              },
+                          }
+                        : {}),
                 },
+
+                include: POST_INCLUDE,
             });
-        }
+
+            // Keep tag usage counters consistent with the post creation.
+            // If either operation fails, the transaction rolls back both.
+            if (tagIds.length) {
+                await tx.blogTag.updateMany({
+                    where: {
+                        id: {
+                            in: tagIds,
+                        },
+                    },
+                    data: {
+                        usageCount: {
+                            increment: 1,
+                        },
+                    },
+                });
+            }
+
+            return createdPost;
+        });
 
         return NextResponse.json(
             {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useModal } from '@/components/admin/shared/common/modal';
 import { useAdminI18n } from '@/components/admin/providers/AdminI18nProvider';
 import styles from './blog-management.module.css';
@@ -56,6 +56,18 @@ type TaxonomyFormState = {
     name: string;
     description: string;
     color: string;
+};
+
+type PaginationState = {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+};
+
+type PaginatedResult<T> = {
+    items: T[];
+    pagination: PaginationState;
 };
 
 type ApiResponse<T> = {
@@ -132,6 +144,58 @@ const requestJson = async <T,>(url: string, options?: RequestInit): Promise<T> =
     }
 
     return payload as T;
+};
+
+const requestPaginatedJson = async <T,>(
+    url: string,
+    fallbackPage: number,
+    fallbackLimit: number,
+): Promise<PaginatedResult<T>> => {
+    const response = await fetch(url, {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+        throw new Error(await getApiError(response));
+    }
+
+    const payload = (await response.json()) as ApiResponse<unknown> & {
+        data?: unknown;
+        items?: unknown;
+        results?: unknown;
+        pagination?: {
+            page?: number;
+            limit?: number;
+            total?: number;
+            totalPages?: number;
+        };
+    };
+
+    const source = payload.data ?? payload.items ?? payload.results ?? payload;
+    const nested =
+        source && typeof source === 'object' ? (source as Record<string, unknown>) : undefined;
+    const pagination =
+        payload.pagination ??
+        (nested?.pagination as ApiResponse<unknown>['pagination'] | undefined);
+    const items = normalizeArray<T>(source);
+    const page = Math.max(1, Number(pagination?.page) || fallbackPage);
+    const limit = Math.max(1, Number(pagination?.limit) || fallbackLimit);
+    const parsedTotal = Number(pagination?.total);
+    const total = Math.max(0, Number.isFinite(parsedTotal) ? parsedTotal : items.length);
+    const parsedTotalPages = Number(pagination?.totalPages);
+    const totalPages = Math.max(
+        1,
+        Number.isFinite(parsedTotalPages) && parsedTotalPages > 0
+            ? parsedTotalPages
+            : Math.ceil(total / limit) || 1,
+    );
+
+    return {
+        items,
+        pagination: { page, limit, total, totalPages },
+    };
 };
 
 const normalizeArray = <T,>(value: unknown): T[] => {
@@ -278,6 +342,14 @@ export default function BlogManagement({ siteId: initialSiteId }: { siteId?: str
 
     const siteId = currentSite?.id || initialSiteId || '';
     const [taxonomyData, setTaxonomyData] = useState<TaxonomyItem[]>([]);
+    const taxonomyRequestId = useRef(0);
+    const [taxonomyPage, setTaxonomyPage] = useState(1);
+    const [taxonomyPagination, setTaxonomyPagination] = useState<PaginationState>({
+        page: 1,
+        limit: 6,
+        total: 0,
+        totalPages: 1,
+    });
     const [taxonomyCounts, setTaxonomyCounts] = useState({
         blog: 0,
         wiki: 0,
@@ -294,50 +366,68 @@ export default function BlogManagement({ siteId: initialSiteId }: { siteId?: str
     const [showAddBlogModal, setShowAddBlogModal] = useState(false);
 
     const loadTaxonomy = useCallback(async () => {
+        const requestId = ++taxonomyRequestId.current;
+
         if (!siteId) {
+            setLoading(false);
             setTaxonomyData([]);
+            setTaxonomyPagination({ page: 1, limit: 6, total: 0, totalPages: 1 });
             return;
         }
 
         setLoading(true);
 
         try {
-            const endpoint = getTaxonomyEndpoint(taxonomyTab);
             const params = new URLSearchParams({
                 siteId,
-                page: '1',
-                limit: '100',
+                page: String(taxonomyPage),
+                limit: '6',
             });
 
             if (search.trim()) {
                 params.set('search', search.trim());
             }
 
-            const response = await requestJson<unknown>(`${endpoint}?${params.toString()}`);
+            const result = await requestPaginatedJson<Record<string, unknown>>(
+                `${getTaxonomyEndpoint(taxonomyTab)}?${params.toString()}`,
+                taxonomyPage,
+                6,
+            );
 
-            const items = normalizeArray<Record<string, unknown>>(response);
+            if (requestId !== taxonomyRequestId.current) {
+                return;
+            }
 
             setTaxonomyData(
-                items.map((item) => normalizeTaxonomyItem(item, taxonomyTab === 'tag')),
+                result.items.map((item) => normalizeTaxonomyItem(item, taxonomyTab === 'tag')),
             );
+            setTaxonomyPagination(result.pagination);
+
+            // Keep the page valid when records are deleted or a search narrows the result.
+            if (taxonomyPage > result.pagination.totalPages) {
+                setTaxonomyPage(result.pagination.totalPages);
+            }
         } catch (error: unknown) {
+            if (requestId !== taxonomyRequestId.current) {
+                return;
+            }
+
             modal.error(
                 t('blogManagement.modal.loadFailed'),
                 error instanceof Error ? error.message : t('blogManagement.modal.loadFailed'),
             );
             setTaxonomyData([]);
+            setTaxonomyPagination({ page: 1, limit: 6, total: 0, totalPages: 1 });
         } finally {
-            setLoading(false);
+            if (requestId === taxonomyRequestId.current) {
+                setLoading(false);
+            }
         }
-    }, [modal, search, siteId, t, taxonomyTab]);
+    }, [modal, search, siteId, t, taxonomyTab, taxonomyPage]);
 
     const loadTaxonomyCounts = useCallback(async () => {
         if (!siteId) {
-            setTaxonomyCounts({
-                blog: 0,
-                wiki: 0,
-                tag: 0,
-            });
+            setTaxonomyCounts({ blog: 0, wiki: 0, tag: 0 });
             return;
         }
 
@@ -348,21 +438,23 @@ export default function BlogManagement({ siteId: initialSiteId }: { siteId?: str
                     const params = new URLSearchParams({
                         siteId,
                         page: '1',
-                        limit: '100',
+                        limit: '1',
                     });
 
-                    const response = await requestJson<unknown>(
+                    const result = await requestPaginatedJson<Record<string, unknown>>(
                         `${getTaxonomyEndpoint(tab)}?${params.toString()}`,
+                        1,
+                        1,
                     );
 
-                    return normalizeArray<Record<string, unknown>>(response).length;
+                    return result.pagination.total;
                 }),
             );
 
             setTaxonomyCounts({
-                blog: results[0] || 0,
-                wiki: results[1] || 0,
-                tag: results[2] || 0,
+                blog: results[0] ?? 0,
+                wiki: results[1] ?? 0,
+                tag: results[2] ?? 0,
             });
         } catch (error: unknown) {
             modal.error(
@@ -485,10 +577,16 @@ export default function BlogManagement({ siteId: initialSiteId }: { siteId?: str
         setForm(EMPTY_FORM);
     }, []);
 
+    const handleTaxonomySearch = useCallback((value: string) => {
+        setSearch(value);
+        setTaxonomyPage(1);
+    }, []);
+
     const handleTaxonomyChange = useCallback(
         (tab: TaxonomyTab) => {
             setTaxonomyTab(tab);
             setSearch('');
+            setTaxonomyPage(1);
             resetForm();
         },
         [resetForm],
@@ -812,9 +910,11 @@ export default function BlogManagement({ siteId: initialSiteId }: { siteId?: str
                         title={taxonomyTitle}
                         description={taxonomyDescription}
                         search={search}
-                        setSearch={setSearch}
+                        setSearch={handleTaxonomySearch}
                         data={taxonomyData}
                         loading={loading}
+                        pagination={taxonomyPagination}
+                        onPageChange={setTaxonomyPage}
                         editingItem={editingItem}
                         form={form}
                         saving={saving}
@@ -858,6 +958,8 @@ function TaxonomyView({
     setSearch,
     data,
     loading,
+    pagination,
+    onPageChange,
     editingItem,
     form,
     saving,
@@ -877,6 +979,8 @@ function TaxonomyView({
     setSearch: (value: string) => void;
     data: TaxonomyItem[];
     loading: boolean;
+    pagination: PaginationState;
+    onPageChange: (page: number) => void;
     editingItem: TaxonomyItem | null;
     form: TaxonomyFormState;
     saving: boolean;
@@ -970,7 +1074,7 @@ function TaxonomyView({
                                 <h2>
                                     {t('blogManagement.list.title')} {title}
                                 </h2>
-                                <span className={styles.countBadge}>{data.length}</span>
+                                <span className={styles.countBadge}>{pagination.total}</span>
                             </div>
 
                             <p>{description}</p>
@@ -1025,7 +1129,11 @@ function TaxonomyView({
                                 ) : data.length ? (
                                     data.map((item, index) => (
                                         <tr key={item.id}>
-                                            <td className={styles.index}>{index + 1}</td>
+                                            <td className={styles.index}>
+                                                {(pagination.page - 1) * pagination.limit +
+                                                    index +
+                                                    1}
+                                            </td>
 
                                             <td>
                                                 <div className={styles.itemIcon}>
@@ -1097,6 +1205,42 @@ function TaxonomyView({
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    <div className={styles.pagination}>
+                        <span>
+                            {pagination.total === 0
+                                ? '0'
+                                : `${(pagination.page - 1) * pagination.limit + 1}–${Math.min(
+                                      pagination.page * pagination.limit,
+                                      pagination.total,
+                                  )} / ${pagination.total}`}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <button
+                                className={styles.refreshButton}
+                                type="button"
+                                disabled={loading || pagination.page <= 1}
+                                onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
+                            >
+                                <i className="bi bi-chevron-left" />
+                            </button>
+                            <span>
+                                {pagination.page} / {pagination.totalPages}
+                            </span>
+                            <button
+                                className={styles.refreshButton}
+                                type="button"
+                                disabled={loading || pagination.page >= pagination.totalPages}
+                                onClick={() =>
+                                    onPageChange(
+                                        Math.min(pagination.totalPages, pagination.page + 1),
+                                    )
+                                }
+                            >
+                                <i className="bi bi-chevron-right" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
