@@ -116,11 +116,7 @@ export const DEFAULT_PROPS: Required<HeaderService09Props> = {
     loginSubtitle: localeText('Welcome Guest', 'Chào mừng Quý khách', 'ようこそ、ゲスト様'),
     loginHref: '/sign-in',
     offerSubtitle: localeText('Offers', 'Ưu đãi', 'キャンペーン'),
-    offerTitle: localeText(
-        'Exclusive Deals & Promotions',
-        'Ưu đãi và khuyến mãi hấp dẫn',
-        'お得な特典・キャンペーン',
-    ),
+    offerTitle: localeText('Exclusive Deals', 'khuyến mãi hấp dẫn', 'キャンペーン'),
     offerHref: '/docs',
     primaryColor: '#4F8FF7',
     secondaryColor: '#A855F7',
@@ -481,8 +477,8 @@ function HeaderService09(props: HeaderService09Props) {
                                 <i className="bi bi-gift-fill" />
                             </span>
                             <span className={styles.offerContent}>
-                                <strong>{getLocalizedValue(offerSubtitle, selectedLocale)}</strong>
-                                <small>{getLocalizedValue(offerTitle, selectedLocale)}</small>
+                                <strong>{getLocalizedValue(offerTitle, selectedLocale)}</strong>
+                                <small>{getLocalizedValue(offerSubtitle, selectedLocale)}</small>
                             </span>
                             <i className="bi bi-chevron-right" />
                         </Link>
